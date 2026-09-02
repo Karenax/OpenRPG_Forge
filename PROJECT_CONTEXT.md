@@ -2,8 +2,9 @@
 
 Dernière mise à jour : **2 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d` ; Gate 2 interdite ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, source produit et garde
+ETW `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, protocole schema 8 en attente de rejeu exact ; Gate 2
+interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,17 +30,20 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot source courant de Gate 1 est `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
-`a195b2b865c45502f3b412a43bfb20f4d53f9491`. Il ajoute seulement un reçu JSON atomique et
-`qualifying=false` lors d'un timeout avant l'état prêt ; les deux tests Release ciblés, Clippy Release
-strict, le formatage et le diff-check passent. Son binaire Release exact mesure 82 333 696 octets,
-SHA-256 `b1f0f17bb2499a798445e78d49dfb57db8182a2896dd36f13c48ed44360e60ab`. La baseline Release
-non instrumentée `6f0e519a` fournit trois runs Auto valides côté infrastructure, tous en échec aux
-seuils. La dernière campagne native Release normale complète et ses validations 140/140 moteur,
-52/52 runtime et 1/1 intégration restent épinglées à `15635b3f`. Les 28/28 tests Studio et l'acquisition temporelle
-Browser restent épinglés à `a4e9824a` ; la validation workspace **298/298** reste épinglée au commit
-overlay `afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de
-build connu reste la future incompatibilité transitive de `proc-macro-error2 v2.0.1`.
+La source produit et la garde d'acquisition courantes de Gate 1 sont
+`9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
+`656feb155c4a30371210229bf6c5dea5bbf8fcd3`. La chaîne `2bf5e44f` → `e1e818fc` ajoute un profil de
+présentation strictement diagnostique puis expose les vrais noms de systèmes Bevy uniquement dans ce
+profil ; `9db35a8e` ajoute le mutex machine, les préflights bornés et l'arrêt limité à la session ETW
+possédée. Le rebuild Release normal exact mesure 82 333 696 octets, SHA-256
+`c3790da4a7a9f46b36f0837144a75f5afdd43a63101093d25f402d09e0e80c4a`. Il atteint 128,7260 FPS,
+p95 13,9112 ms et 1 % low 58,3489 FPS, sans valeur affichée au-dessus de 33,3 ms, sans séquence de
+plus d'un intervalle au-dessus de 16,7 ms et sans perte ETW. Ses 17 lignes `DisplayedTime=NA` restent
+conservées. ADR-0008 clarifie qu'elles sont diagnostiques lorsque la résidence d'affichage est continue
+et que tous les autres invariants passent ; le protocole schema 8 doit encore être rejoué sur un commit
+et un target propres. La dernière validation workspace **298/298** reste épinglée à l'overlay
+`afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de build
+connu reste la future incompatibilité transitive de `proc-macro-error2 v2.0.1`.
 
 Les preuves Browser High clear/rain restent épinglées au commit exact `d9e2670` : **24/24 contrôles** passent
 pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
@@ -119,16 +123,17 @@ toujours aucune borne QPC haute et la capture reste non qualifiante. Le diagnost
 critique stable autour de l'acquisition de surface et du pacing, plutôt que dans les appels Vulkan
 bruts, sans autoriser encore une conclusion causale ni fermer `R1-037`, `R1-041` ou `R1-048`.
 
-La baseline courante `6f0e519a`, acquise dans l'ordre `AB/BA/AB`, fournit trois runs Auto et trois
-FIFO valides côté infrastructure. Les Auto mesurent 21,3180 à 21,5263 FPS moyens, p95 69,4547 à
-69,4584 ms et 1 % low 6,9036 à 7,0982 FPS ; les FIFO échouent aussi et aucune proposition de pacing
-n'est retenue. Le reçu `06b5fd40` démontre ensuite que le timeout DX12/FXC est exclusivement lié aux
-pipelines : à 1 200 ticks, 40/69 sont prêts et 29 restent en création, tandis que les huit autres
-prédicats sont vrais. DX12/DXC atteint 69/69 pipelines entre les ticks 209 et 294, mais PresentMon
-perd 261 138 à 263 726 événements ETW et ne produit aucune ligne qualifiable. Ces pilotes DX12 sont
-invalides pour les métriques et ne remplacent pas le FAIL de la baseline. Un prototype externe
-PresentMon `v2.4.1` à buffers 128 KiB/minimum 512 ne produit aucun exécutable : son unique build
-x64 Release échoue sur quatre dépendances vcpkg non restaurées ; aucun A/B ni aucune promotion Forge.
+La baseline historique `6f0e519a`, acquise dans l'ordre `AB/BA/AB`, fournissait trois runs Auto à
+21,3180–21,5263 FPS et trois FIFO également en échec. L'enquête a ensuite identifié une session
+PresentMon orpheline comme cause des captures vides et des pertes ETW massives attribuées auparavant
+aux essais DX12/DXC. Son arrêt par identifiant exact rétablit immédiatement des lignes cible et zéro
+perte ; aucune session étrangère n'est terminée. Le run Release normal gouverné `9db35a8e` et deux
+répétitions mesurent désormais 128,7260–129,3634 FPS, p95 13,9079–13,9130 ms et 1 % low
+53,0763–58,3489 FPS, avec 16–21 présentations non affichées conservées. Un contrôle FIFO en compte 19.
+Le diagnostic officiel PresentMon 2.5.1 A4 retrouve 129,7334 FPS, p95 13,9102 ms, 1 % low 61,4409
+FPS et 16 lignes `NA`, mais reste non qualifiant car il réutilise le binaire et emploie un shim
+d'identité 2.4.1 dans le signal runtime. Il ne justifie ni un changement silencieux du pin, ni une
+qualification de Gate 1.
 
 ---
 
@@ -1340,29 +1345,34 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
-`a195b2b865c45502f3b412a43bfb20f4d53f9491` : la correction de prépasse végétation et le contrôleur
-gameplay/Rapier réel sont conservés. Ce lot ajoute uniquement un reçu de timeout atomique et
-`qualifying=false` ; ses deux tests Release ciblés, Clippy Release strict, son formatage et son
-diff-check passent. La dernière campagne Release normale complète
-`15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration. La campagne visuelle
-exacte `873618af` conserve cinq vues fixes, 24 checkpoints et un MP4 de trois secondes sans
-réapparition du défaut depth-only. À `15635b3f`, le ledger runtime enregistre 1 800 ticks en
-29,997926 s, 3 672 frames main-world, 3 674 contrôles et les reçus 1/1 puis 2/2. Sa sélection hôte
-distincte retient 719 lignes PresentMon du PID 2864 après la seule borne basse QPC, sans borne haute
-runtime ; sa frontière n'est ni vérifiée ni ingérée. Ses 680 présentations résolues échouent aux
-seuils d'affichage : moyenne 44,2516 ms, p95 62,4861 ms et 1 % low 12,5912 FPS.
+État consolidé à la source produit et garde `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
+`656feb155c4a30371210229bf6c5dea5bbf8fcd3` : la correction de prépasse végétation, le contrôleur
+gameplay/Rapier réel et les reçus de timeout sont conservés. La session ETW orpheline qui contaminait
+les captures précédentes a été arrêtée par son seul identifiant ; le harnais gouverné refuse désormais
+toute session Gate 1 préexistante, sérialise les acquisitions avec un mutex machine et ne termine que
+la session qu'il possède.
 
-Le diagnostic instrumenté historique `2fe48485` conserve 1 800 ticks, 2 608 frames main-world et 2 609
-contrôles. PresentMon retient 2 184 lignes, dont 1 446 présentations résolues : `DisplayedTime`
-20,8579 ms de moyenne, p95 34,7319 ms, p99 83,4934 ms et 1 % low 4,1709 FPS. La trace interne stable
-mesure 2 835 intervalles à 11,4451 ms de moyenne, p95 12,6216 ms et p99 13,2567 ms, mais n'est pas
-corrélée aux frontières QPC de la capture externe. La campagne reste donc non qualifiante et en échec
-externe ; elle oriente le diagnostic vers l'acquisition de surface et le pacing sans clore la cause.
-La baseline Release `6f0e519a` confirme ensuite le FAIL sur trois runs Auto valides : 21,3180 à
-21,5263 FPS moyens, p95 69,4547 à 69,4584 ms et 1 % low 6,9036 à 7,0982 FPS. Le reçu courant
-`06b5fd40` isole DX12/FXC à 40/69 pipelines prêts ; DX12/DXC atteint 69/69 mais ses captures sont
-invalides par pertes ETW massives et n'apportent aucune métrique.
+Le rebuild Release normal exact `9db35a8e` exécute 1 800 ticks en 29,982427 s, couvre 3 878 frames
+main-world et produit 3 877 lignes PresentMon dans la fenêtre : 3 860 affichées et 17 non affichées.
+Les valeurs affichées mesurent 128,7260 FPS, p95 13,9112 ms, p99 13,9657 ms et 1 % low 58,3489 FPS,
+avec zéro intervalle au-dessus de 33,3 ms, au plus un intervalle lent consécutif et zéro perte ETW.
+Deux répétitions Auto et un contrôle FIFO confirment 128,9631–129,6567 FPS avec 16–21 lignes `NA`.
+L'analyse de 73/15 570 lignes non affichées n'observe ni hitch CPU/GPU, ni perte ETW, ni rupture de
+résidence ; 69 sont groupées dans deux transitoires, mais quatre restent tardives. Aucun warmup
+rétrospectif n'est utilisé pour les masquer.
+
+ADR-0008 distingue donc une présentation applicative non affichée d'un trou visible : le CSV complet
+et le compteur `NA` restent obligatoires, tandis que le verdict stutter exige simultanément la
+résidence continue, ETW 0/0, la fenêtre et la signature stables, 60 FPS, p95 ≤ 16,7 ms, 1 % low ≥ 45
+FPS, aucune valeur >33,3 ms et au plus une valeur lente consécutive. Le validateur schema 8 et
+l'analyse A/B portent ce contrat, mais leur rejeu sur commit exact reste dû avant toute promotion.
+PresentMon 2.5.1 A4 retrouve 129,7334 FPS et 16 lignes `NA` sur le même binaire ; ce diagnostic reste
+non qualifiant et ne change pas le pin 2.4.1.
+
+La campagne visuelle exacte `873618af` conserve cinq vues fixes, 24 checkpoints et un MP4 de trois
+secondes sans réapparition du défaut depth-only. La dernière campagne Release normale complète
+`15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration ; ces validations
+doivent être rejouées sur le lot courant.
 Le harnais temporel
 Browser `a4e9824a` reste acquis mais n'a pas été rejoué sur ce commit et laisse la revue humaine en
 attente. L'overlay CPU/GPU `afb270c3`
@@ -1377,9 +1387,9 @@ reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `
 conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
 représentation joueur reste une capsule procédurale sans asset.
 
-Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, la baseline PresentMon
-`6f0e519a` échoue aux seuils de stutter, les pilotes DX12/DXC sont invalides, l'eau n'est pas qualifiée par profil et aucune revue
-humaine comparative n'accepte encore le rendu corrigé. Voir
+Gate 1 reste **OUVERTE** : le rejeu gouverné schema 8, la cible RTX 3060/RX 6600, `R1-037`, les
+preuves finales eau/Browser et la revue humaine comparative restent dus. La CI distante reste
+`NOT RUN — infrastructure billing` sous ADR-0006. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1906,25 +1916,25 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source `06b5fd40`, dont les deux tests
-Release ciblés, Clippy Release strict, le formatage et le diff-check passent. Ce lot ajoute seulement un
-reçu atomique de timeout `qualifying=false`. La dernière campagne Release normale complète
-`15635b3f` conserve ses validations 140/140 moteur, 52/52 runtime et 1/1 intégration. Le diagnostic
-instrumenté historique `2fe48485` reste non qualifiant. La baseline Release actuelle `6f0e519a`
-fournit trois runs Auto valides côté infrastructure, tous FAIL : 21,3180 à 21,5263 FPS moyens, p95
-69,4547 à 69,4584 ms et 1 % low 6,9036 à 7,0982 FPS. Le reçu `06b5fd40` prouve que DX12/FXC
-expire avec 40/69 pipelines prêts et 29 encore en création. DX12/DXC atteint 69/69 entre les ticks
-209 et 294, mais PresentMon perd 261 138 à 263 726 événements ETW et ne produit aucune ligne : ces
-pilotes sont invalides pour les métriques.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte à la source produit et garde ETW `9db35a8e`.
+La session PresentMon orpheline qui contaminait les anciennes captures a été arrêtée par identifiant
+exact ; la nouvelle garde refuse les sessions préexistantes et ne termine que la sienne. Le rebuild
+Release normal propre mesure 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS, zéro intervalle
+>33,3 ms, maximum lent consécutif 1 et ETW 0/0. Ses 17 présentations non affichées restent conservées.
+Deux répétitions Auto, un contrôle FIFO et le diagnostic officiel 2.5.1 confirment la cadence et 16–21
+lignes `NA`. ADR-0008 les classe comme diagnostic distinct du stutter seulement lorsque la résidence
+est continue et que tous les invariants d'affichage passent. Le protocole schema 8 est prêt, mais son
+rebuild et son rejeu sur commit exact restent dus. La dernière campagne complète `15635b3f` conserve
+ses validations historiques 140/140 moteur, 52/52 runtime et 1/1 intégration jusqu'à ce rejeu.
 La preuve visuelle `873618af`
 conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
 3/3 ROIs végétation, témoin terrain, 4/4
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-Restent dus : restauration d'une capture d'affichage sans perte ETW, correction puis requalification
-gouvernée du stutter temps réel sur build Release normal, instrumentation exhaustive `R1-037`,
-GPU cible `R1-041`, preuves eau/Browser finales et revue humaine.
+Restent dus : rebuild/rejeu gouverné schema 8 du stutter temps réel, replay local transversal,
+instrumentation exhaustive `R1-037`, GPU cible `R1-041`, preuves eau/Browser finales et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
-explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
+explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
+ne démarrent pas.
 ```

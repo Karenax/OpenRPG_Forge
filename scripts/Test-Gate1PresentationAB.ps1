@@ -433,13 +433,18 @@ function ConvertFrom-Gate1DiagnosticSummary {
         $normalizedMetrics.mean_display_fps -ge 60.0 -and
         $normalizedMetrics.p95_ms -le 16.7 -and
         $normalizedMetrics.one_percent_low_fps -ge 45.0 -and
-        $normalizedMetrics.not_displayed_rows -eq 0 -and
         $normalizedMetrics.over_33_3_ms_count -eq 0 -and
         $normalizedMetrics.maximum_consecutive_over_16_7_ms -le 1
     )
-    $expectedHelperPass = $infrastructureErrors.Count -eq 0 -and $displayMetricChecksPassed
+    $preHelperStatusInfrastructurePassed = $infrastructureErrors.Count -eq 0
+    $expectedHelperPass = $preHelperStatusInfrastructurePassed -and $displayMetricChecksPassed
     $helperClaimsPass = $status -eq "diagnostic_thresholds_passed"
-    if ($helperClaimsPass -ne $expectedHelperPass) {
+    $legacyZeroNotDisplayedPolicyMigrated = (
+        -not $helperClaimsPass -and
+        $expectedHelperPass -and
+        $normalizedMetrics.not_displayed_rows -gt 0
+    )
+    if ($helperClaimsPass -ne $expectedHelperPass -and -not $legacyZeroNotDisplayedPolicyMigrated) {
         $infrastructureErrors.Add("helper status disagrees with recomputed infrastructure and metric checks")
     }
 
@@ -448,6 +453,7 @@ function ConvertFrom-Gate1DiagnosticSummary {
         summary_path = $SourcePath
         summary_sha256 = $SourceSha256
         helper_status = $status
+        legacy_zero_not_displayed_policy_migrated = $legacyZeroNotDisplayedPolicyMigrated
         route = $route
         repository_commit = $commit
         repository_tree = $tree
@@ -588,10 +594,18 @@ function Invoke-Gate1PresentationAnalysis {
             p95_at_most_16_7_ms = ([double]$run.metrics.p95_ms -le 16.7)
             one_percent_low_at_least_45_fps = ([double]$run.metrics.one_percent_low_fps -ge 45.0)
             no_not_displayed_rows = ([uint64]$run.metrics.not_displayed_rows -eq 0)
+            not_displayed_rows_are_diagnostic_when_display_residency_is_continuous = ([bool]$run.qpc_coverage.display_projection_coverage_passed)
             no_displayed_time_over_33_3_ms = ([uint64]$run.metrics.over_33_3_ms_count -eq 0)
             maximum_consecutive_over_16_7_ms_at_most_1 = ([uint64]$run.metrics.maximum_consecutive_over_16_7_ms -le 1)
         }
-        $allMetricChecksPass = @($metricChecks.Values | Where-Object { $_ -eq $false }).Count -eq 0
+        $stutterMetricCheckNames = @(
+            "mean_display_fps_at_least_60",
+            "p95_at_most_16_7_ms",
+            "one_percent_low_at_least_45_fps",
+            "no_displayed_time_over_33_3_ms",
+            "maximum_consecutive_over_16_7_ms_at_most_1"
+        )
+        $allMetricChecksPass = @($stutterMetricCheckNames | Where-Object { $metricChecks[$_] -eq $false }).Count -eq 0
         $metricAssessment = if ($run.route -eq "fifo_diagnostic") {
             if ($allMetricChecksPass) { "PASS" } else { "FAIL" }
         }
@@ -607,6 +621,7 @@ function Invoke-Gate1PresentationAnalysis {
                 summary_path = $run.summary_path
                 summary_sha256 = $run.summary_sha256
                 helper_status = $run.helper_status
+                legacy_zero_not_displayed_policy_migrated = [bool]$run.legacy_zero_not_displayed_policy_migrated
                 infrastructure_status = if (@($run.infrastructure_errors).Count -eq 0) { "VALID" } else { "INVALID" }
                 metric_assessment = $metricAssessment
                 metrics = $run.metrics
@@ -699,7 +714,7 @@ function Invoke-Gate1PresentationAnalysis {
     }
     return [pscustomobject][ordered]@{
         schema = "forge.gate1-presentation-ab-analysis"
-        schema_version = 1
+        schema_version = 2
         generated_at_utc = [DateTimeOffset]::UtcNow.ToString("o")
         qualifying = $false
         closes_gate = $false
@@ -712,6 +727,7 @@ function Invoke-Gate1PresentationAnalysis {
             aggregation_unit = "run"
             frames_pooled = $false
             p95_values_averaged_for_verdict = $false
+            not_displayed_rows_policy = "diagnostic_only_when_display_residency_is_continuous"
             first_fifo_signature_tuple_predefined = $false
         }
         provenance = [pscustomobject][ordered]@{
@@ -760,7 +776,8 @@ function New-InMemoryRunFixture {
         [Parameter(Mandatory = $true)][string]$Route,
         [Parameter(Mandatory = $true)][double]$P95,
         [Parameter(Mandatory = $true)][double]$OnePercentLow,
-        [Parameter(Mandatory = $true)][double]$MeanFps
+        [Parameter(Mandatory = $true)][double]$MeanFps,
+        [uint64]$NotDisplayedRows = 0
     )
 
     $autoTuple = [pscustomobject][ordered]@{
@@ -781,6 +798,7 @@ function New-InMemoryRunFixture {
         summary_path = "memory://run-$Ordinal/diagnostic-summary.json"
         summary_sha256 = ("{0:x64}" -f $Ordinal)
         helper_status = if ($Route -eq "fifo_diagnostic") { "diagnostic_thresholds_passed" } else { "diagnostic_thresholds_failed" }
+        legacy_zero_not_displayed_policy_migrated = $false
         route = $Route
         repository_commit = "1111111111111111111111111111111111111111"
         repository_tree = "2222222222222222222222222222222222222222"
@@ -820,7 +838,7 @@ function New-InMemoryRunFixture {
             mean_display_fps = $MeanFps
             p95_ms = $P95
             one_percent_low_fps = $OnePercentLow
-            not_displayed_rows = 0
+            not_displayed_rows = $NotDisplayedRows
             over_33_3_ms_count = 0
             maximum_consecutive_over_16_7_ms = 0
         }
@@ -830,7 +848,7 @@ function New-InMemoryRunFixture {
 function New-PositiveInMemoryFixtures {
     return @(
         (New-InMemoryRunFixture -Ordinal 1 -Route "auto_no_vsync" -P95 24.0 -OnePercentLow 30.0 -MeanFps 52.0),
-        (New-InMemoryRunFixture -Ordinal 2 -Route "fifo_diagnostic" -P95 13.0 -OnePercentLow 70.0 -MeanFps 72.0),
+        (New-InMemoryRunFixture -Ordinal 2 -Route "fifo_diagnostic" -P95 13.0 -OnePercentLow 70.0 -MeanFps 72.0 -NotDisplayedRows 4),
         (New-InMemoryRunFixture -Ordinal 3 -Route "fifo_diagnostic" -P95 14.0 -OnePercentLow 68.0 -MeanFps 71.0),
         (New-InMemoryRunFixture -Ordinal 4 -Route "auto_no_vsync" -P95 22.0 -OnePercentLow 35.0 -MeanFps 54.0),
         (New-InMemoryRunFixture -Ordinal 5 -Route "auto_no_vsync" -P95 23.0 -OnePercentLow 32.0 -MeanFps 53.0),
@@ -880,7 +898,7 @@ function New-InMemoryDiagnosticSummaryFixture {
                 covers_end = $true
                 maximum_gap_qpc = 1
                 quantization_tolerance_qpc = 1
-                not_displayed_rows = 0
+                not_displayed_rows = 4
             }
             etw = [pscustomobject]@{
                 events_lost = 0
@@ -912,12 +930,55 @@ function Invoke-InMemorySelfTest {
         -SourcePath "memory://summary/diagnostic-summary.json" `
         -SourceSha256 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     Assert-Condition -Condition ($parsedSummary.route -eq "fifo_diagnostic" -and @($parsedSummary.infrastructure_errors).Count -eq 0) -Message "Schema-v2 diagnostic summary fixture did not normalize cleanly."
+    Assert-Condition -Condition ($parsedSummary.metrics.not_displayed_rows -eq 4) -Message "Schema-v2 diagnostic summary fixture lost its diagnostic not-displayed row count."
+    Assert-Condition -Condition (-not $parsedSummary.legacy_zero_not_displayed_policy_migrated) -Message "Current-policy PASS fixture was incorrectly marked as a legacy migration."
+
+    $legacySummary = Copy-InMemoryFixture -Value (New-InMemoryDiagnosticSummaryFixture)
+    $legacySummary.status = "diagnostic_thresholds_failed"
+    $legacyParsed = ConvertFrom-Gate1DiagnosticSummary `
+        -Summary $legacySummary `
+        -Ordinal 2 `
+        -SourcePath "memory://summary/legacy-zero-not-displayed-policy.json" `
+        -SourceSha256 "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    Assert-Condition -Condition (@($legacyParsed.infrastructure_errors).Count -eq 0 -and $legacyParsed.legacy_zero_not_displayed_policy_migrated) -Message "Schema-v2 legacy zero-not-displayed policy fixture was not migrated narrowly."
+
+    $failedWithoutNotDisplayedRows = Copy-InMemoryFixture -Value (New-InMemoryDiagnosticSummaryFixture)
+    $failedWithoutNotDisplayedRows.status = "diagnostic_thresholds_failed"
+    $failedWithoutNotDisplayedRows.presentmon.display_projection.not_displayed_rows = 0
+    $failedWithoutNotDisplayedRowsParsed = ConvertFrom-Gate1DiagnosticSummary `
+        -Summary $failedWithoutNotDisplayedRows `
+        -Ordinal 2 `
+        -SourcePath "memory://summary/failed-without-not-displayed-rows.json" `
+        -SourceSha256 "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    Assert-Condition -Condition (@($failedWithoutNotDisplayedRowsParsed.infrastructure_errors).Count -gt 0 -and -not $failedWithoutNotDisplayedRowsParsed.legacy_zero_not_displayed_policy_migrated) -Message "Schema-v2 failed status without not-displayed rows was incorrectly migrated."
+
+    $passingStatusWithMetricFailure = Copy-InMemoryFixture -Value (New-InMemoryDiagnosticSummaryFixture)
+    $passingStatusWithMetricFailure.display_metrics.p95_ms = 17.0
+    $passingStatusWithMetricFailureParsed = ConvertFrom-Gate1DiagnosticSummary `
+        -Summary $passingStatusWithMetricFailure `
+        -Ordinal 2 `
+        -SourcePath "memory://summary/pass-with-metric-failure.json" `
+        -SourceSha256 "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    Assert-Condition -Condition (@($passingStatusWithMetricFailureParsed.infrastructure_errors).Count -gt 0 -and -not $passingStatusWithMetricFailureParsed.legacy_zero_not_displayed_policy_migrated) -Message "Schema-v2 passing status with a displayed-metric failure was accepted."
+
+    $coverageSummary = Copy-InMemoryFixture -Value (New-InMemoryDiagnosticSummaryFixture)
+    $coverageSummary.presentmon.display_projection.coverage_passed = $false
+    $coverageSummary.presentmon.display_projection.covers_end = $false
+    $coverageFailure = ConvertFrom-Gate1DiagnosticSummary `
+        -Summary $coverageSummary `
+        -Ordinal 2 `
+        -SourcePath "memory://summary/coverage-failure.json" `
+        -SourceSha256 "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    Assert-Condition -Condition (@($coverageFailure.infrastructure_errors).Count -gt 0 -and -not $coverageFailure.legacy_zero_not_displayed_policy_migrated) -Message "Schema-v2 passing status with broken display-residency coverage was accepted."
 
     $positive = Invoke-Gate1PresentationAnalysis -Runs (New-PositiveInMemoryFixtures)
     Assert-Condition -Condition ($positive.verdict -eq "PROPOSE" -and $positive.qualifying -eq $false -and $positive.closes_gate -eq $false) -Message "Positive A/B fixture did not produce a non-qualifying PROPOSE verdict."
     Assert-Condition -Condition ($positive.pairs.Count -eq 3 -and $positive.runs.Count -eq 6) -Message "Positive A/B fixture lost run or pair units."
     Assert-Condition -Condition ($positive.mode_run_statistics.fifo_diagnostic.p95_ms.median -eq 14.0) -Message "Run-level median self-test failed."
     Assert-Condition -Condition ($positive.proposal_checks.strict_improved_pair_count -eq 3 -and $positive.proposal_checks.strict_metric_comparison_count -eq 6) -Message "Strict pair/metric comparison counts are incorrect."
+    $fifoWithDiagnosticNotDisplayedRows = @($positive.runs | Where-Object { $_.ordinal -eq 2 })[0]
+    Assert-Condition -Condition ($fifoWithDiagnosticNotDisplayedRows.metric_assessment -eq "PASS" -and -not $fifoWithDiagnosticNotDisplayedRows.metric_checks.no_not_displayed_rows -and $fifoWithDiagnosticNotDisplayedRows.metric_checks.not_displayed_rows_are_diagnostic_when_display_residency_is_continuous) -Message "A/B self-test treated diagnostic not-displayed rows as a stutter threshold failure."
+    Assert-Condition -Condition ($positive.protocol.not_displayed_rows_policy -eq "diagnostic_only_when_display_residency_is_continuous") -Message "A/B self-test lost the not-displayed-row policy."
 
     $metricFail = Copy-InMemoryFixture -Value (New-PositiveInMemoryFixtures)
     $metricFail[1].metrics.p95_ms = 17.0
@@ -1042,7 +1103,7 @@ function Write-JsonAtomically {
 
 Invoke-InMemorySelfTest
 if ($PSCmdlet.ParameterSetName -eq "SelfTest") {
-    Write-Output "FORGE_GATE1_PRESENTATION_AB_SELF_TEST_PASS fixtures=in_memory_and_schema_v2 negative_cases=7 qualifying=false"
+    Write-Output "FORGE_GATE1_PRESENTATION_AB_SELF_TEST_PASS fixtures=in_memory_and_schema_v2 negative_cases=10 legacy_zero_not_displayed_policy=fail_closed_migration not_displayed_rows=diagnostic qualifying=false"
     return
 }
 

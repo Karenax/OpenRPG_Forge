@@ -291,6 +291,10 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
+État pré-rejeu : ADR-0008 clarifie la sémantique des frames PresentMon non affichées, mais le
+validateur schema v8 qui l'applique attend encore un build Release propre et un rejeu exact. Les
+objectifs numériques mesurés sur la RX 7800 XT sont des candidats locaux, pas un passage de Gate 1.
+
 La campagne native initiale reste épinglée au commit
 `a7c9b1e1d5e32f826b606778434a5fae91cc947d`, arbre
 `2066fce699e4dd178c3d679cf4b0168d2e727d3d`. Ce commit ajoute un harness natif exact-commit pour
@@ -345,18 +349,54 @@ runs Auto échouent : 21,3180 à 21,5263 FPS moyens, p95 de 69,4547 à 69,4584 m
 116 consécutives au-dessus de 16,7 ms. Les trois FIFO échouent aussi ; l'analyse hashée
 `5026e75d…81dd3e` ne propose aucun changement de pacing.
 
-Le lot source courant `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
-`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ajoute seulement un reçu atomique de timeout avant
-l'état prêt, schema v1 et `qualifying=false`. Deux tests Release ciblés, Clippy Release strict,
-formatage et diff-check passent. Le smoke DX12/FXC prouve qu'à 1 200 ticks seul
-`pipeline_ready=false`, avec 40/69 pipelines prêts et 29 en création. DX12/DXC atteint 69/69 entre
-les ticks 209 et 294, mais PresentMon ne fournit aucune ligne et perd jusqu'à 263 726 événements ETW ;
-ces pilotes sont invalides pour les métriques. Le DXC statique local n'est pas promu après un échec de
-link sur `atls.lib` absent.
+La chaîne source candidate courante part de
+`2bf5e44f5d06529b26208a1ac7c9a4c158d48aad`, qui ajoute le profil de présentation opt-in, puis
+`e1e818fc1ed8655b851e34007039f4b288941377`, qui exige `bevy/trace` et `bevy/debug` afin de publier
+les vrais noms de systèmes Bevy, et atteint
+`9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
+`656feb155c4a30371210229bf6c5dea5bbf8fcd3`, qui protège les acquisitions PresentMon par un mutex
+machine global, des préflights bornés et l'arrêt du seul identifiant de session possédé. Le profil
+instrumenté reste diagnostique et non qualifiant ; il ne remplace jamais la Release normale.
 
-Le prototype externe PresentMon `v2.4.1` / `43bd0333`, buffers ETW 128 KiB et minimum 512, ne produit
-aucun exécutable : son unique build x64 Release s'arrête sur quatre dépendances vcpkg non restaurées.
-Aucun A/B ni aucune promotion Forge ne sont effectués.
+La cause des captures sans ligne et des pertes ETW massives n'était pas le renderer : une session
+orpheline `OpenRPGForge-Gate1-Diagnostic-85a698103aaf4186a480beabd1840099`, laissée par le run
+`cpu-util-vulkan-6f0e519a-20260902T112247353Z`, était encore active. Son arrêt ciblé avec l'exécutable
+PresentMon officiel a rendu une acquisition propre : 11 lignes cible, 7 lignes avant signal et zéro
+perte ETW. Le guard de `9db35a8e` refuse désormais toute session Gate 1 reconnue avant de démarrer,
+ne tue aucune session étrangère et vérifie l'absence de sa session exacte au postflight.
+
+Le run Release normal gouverné schema v7 de `9db35a8e`, construit dans un target Cargo propre, utilise
+le binaire exact de 82 333 696 octets, SHA-256
+`C3790DA4A7A9F46B36F0837144A75F5AFDD43A63101093D25F402D09E0E80C4A`. Sur RX 7800 XT/Vulkan,
+30 secondes de gameplay réel donnent 128,7260 FPS moyens, p95 13,9112 ms, p99 13,9657 ms et 1 % low
+58,3489 FPS. La fenêtre reste stable, la résidence d'affichage couvre les deux bornes sans trou,
+aucun `DisplayedTime` ne dépasse 33,3 ms, le maximum consécutif au-dessus de 16,7 ms vaut un et les
+pertes ETW valent 0/0. Les 17 lignes `DisplayedTime=NA` sont conservées et hashées. Le schema v7
+classait encore ce run en échec à cause de son prédicat supplémentaire « zéro frame non affichée ».
+
+Deux répétitions Auto du même binaire confirment 128,9631 à 129,3634 FPS, p95 13,9079 à 13,9130 ms,
+1 % low 53,0763 à 54,9590 FPS, zéro valeur au-dessus de 33,3 ms, 16 à 21 lignes `NA` et zéro perte
+ETW. La première répétition atteint toutefois deux valeurs consécutives au-dessus de 16,7 ms ; la
+seconde reste à une. Le contrôle FIFO reste comparable : 129,6567 FPS, p95 13,9083 ms, 1 % low
+57,3937 FPS, 19 lignes `NA`, zéro valeur au-dessus de 33,3 ms, maximum consécutif un et ETW 0/0.
+Ces répétitions rendent le nouveau niveau de performance crédible sans encore fournir le rejeu
+gouverné schema v8 requis.
+
+L'A/B diagnostique PresentMon `2.5.1` A4 sur le même binaire reste explicitement non qualifiant car il
+réutilise le target Cargo et un shim d'identité `2.4.1` dans le signal runtime. Il relève 3 908 lignes
+CPU, 3 893 résidences affichées, 16 lignes `NA`, 129,7334 FPS, p95 13,9102 ms, p99 13,9572 ms, 1 %
+low 61,4409 FPS, zéro valeur au-dessus de 33,3 ms, maximum consécutif un et ETW 0/0. Son résumé
+SHA-256 `AAC662F7177FAEEF2B26E923061517BF6CF4B80A80543E8DE31862FE3DE17B28`, son CSV
+`5053DAE9491C5665077D430741258D2CADF1EBCCE627506820E137EA8C5DB2D2` et son ledger
+`718270959D9CCB1BD6711CC6BCAE6E1CC3DF70B4F987EBA5A9AE16A6E646E95F` restent externes et hashés ;
+l'outil officiel vaut
+`9BEC3083069F58F911E6A512F4806DB51A27BD096103087BC1D05EF54C80A191`.
+
+ADR-0008 conserve les lignes `NA` comme diagnostic et autorise un verdict stutter local seulement si
+la résidence dérivée couvre sans trou toute la fenêtre, ETW vaut 0/0, la fenêtre et la signature de
+présentation restent stables, et les seuils FPS/p95/1 % low/>33,3 ms/consécutifs passent tous. Le code
+schema v8 correspondant est présent dans le lot de travail, avec son auto-test, mais attend encore un
+build propre, un rejeu exact et ses preuves hashées avant toute promotion de `R1-048` ou de Gate 1.
 
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
@@ -394,14 +434,16 @@ et supprime le warning natif observé à `a34596bd`. La campagne initiale `a7c9b
 contours/stipple noirs, silhouettes lointaines crénelées, grands aplats et eau masquée. La campagne
 corrective `6a24cabe` élimine le principal défaut depth-only et rend `R1-046`/`R1-047` candidates à
 revue humaine. La campagne `873618af` acquiert ensuite le vrai contrôleur gameplay, sa caméra et
-Rapier. Aux lots historiques `15635b3f` et `2fe48485`, le ledger runtime et la sélection PresentMon
-hôte restent deux observations distinctes. La baseline `6f0e519a` confirme ensuite le FAIL sur trois
-runs Auto valides. Le reçu `06b5fd40` isole le timeout DX12/FXC, mais les acquisitions DX12/DXC sont
-invalides par pertes ETW et ne remplacent aucune métrique. `R1-023`, `R1-025`, `R1-026`
+Rapier. La baseline historique `6f0e519a` échouait sur trois runs Auto, puis la chaîne
+`2bf5e44f` → `e1e818fc` → `9db35a8e` a isolé la session ETW orpheline, sécurisé le collecteur et
+produit un run normal gouverné qui passe localement les objectifs numériques de la roadmap sous la
+sémantique ADR-0008. Une répétition Auto sur deux échoue encore au critère « au plus une valeur
+consécutive > 16,7 ms », et aucun run schema v8 propre n'existe encore. `R1-023`, `R1-025`, `R1-026`
 et `R1-046` à `R1-048` restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste
-satisfaite ; matériel cible, stutter représentatif et revue humaine restent dus. L'audit provenance
-strict passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
-n'est pas un PASS. Gate 1 reste **OUVERTE**.
+satisfaite ; rebuild/rejeu schema v8 exact, matériel cible, stutter répétable et revue humaine restent
+dus. L'audit provenance strict passe sans asset Cadle ; aucun asset Cadle n'entre dans Forge. La CI
+distante reste `NOT RUN` sous ADR-0006 et ce statut n'est pas un PASS. Gate 1 reste **OUVERTE** et
+Gate 2 reste interdite.
 
 ## But
 
@@ -510,11 +552,13 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-047` vue lointaine — PNG Release `873618af` réacquis ; correction bleu-noir préservée,
   revue humaine LOD/composition encore due.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
-  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. La baseline Release
-  `6f0e519a` fournit trois runs Auto valides côté infrastructure, tous **FAIL seuils** : 21,3180 à
-  21,5263 FPS, p95 69,4547 à 69,4584 ms et 1 % low 6,9036 à 7,0982 FPS. Le reçu courant
-  `06b5fd40` isole DX12/FXC à la compilation de pipelines ; DX12/DXC atteint 69/69 pipelines mais ses
-  captures PresentMon sont invalides par pertes ETW. Revue humaine non réalisée ;
+  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. Le run normal gouverné
+  schema v7 `9db35a8e` sur RX 7800 XT relève 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
+  17 lignes `NA`, zéro perte ETW, zéro valeur > 33,3 ms et maximum consécutif > 16,7 ms égal à un ;
+  la résidence couvre toute la fenêtre sans trou. Sous ADR-0008, ces objectifs sont candidats à un
+  PASS automatisé local. `R1-048` reste décochée : le rebuild/rejeu exact schema v8 n'est pas encore
+  acquis, une répétition Auto atteint deux valeurs consécutives > 16,7 ms, le GPU cible n'est pas
+  mesuré et la revue humaine n'est pas réalisée. `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
@@ -529,12 +573,16 @@ qualité                   Low / Medium / High / Ultra
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — trois runs Auto `6f0e519a` : 21,3180 à
-  21,5263 FPS ; GPU cible non mesuré ;
-- [ ] p95 ≤ 16,7 ms — trois runs Auto `6f0e519a` : 69,4547 à 69,4584 ms ;
-- [ ] 1 % low ≥ 45 FPS — trois runs Auto `6f0e519a` : 6,9036 à 7,0982 FPS ;
-- [ ] absence de stutter récurrent — trois runs Auto `6f0e519a` : 16 à 27 non affichées, 546 à 556
-  au-dessus de 33,3 ms et séquences maximales de 65 à 116 au-dessus de 16,7 ms ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — candidat PASS local RX 7800 XT au run
+  gouverné schema v7 `9db35a8e` : 128,7260 FPS ; rejeu schema v8 et GPU cible dus ;
+- [ ] p95 ≤ 16,7 ms — candidat PASS local RX 7800 XT à `9db35a8e` : 13,9112 ms ; rejeu schema v8 et
+  GPU cible dus ;
+- [ ] 1 % low ≥ 45 FPS — candidat PASS local RX 7800 XT à `9db35a8e` : 58,3489 FPS ; rejeu schema v8
+  et GPU cible dus ;
+- [ ] absence de stutter récurrent — candidat PASS local du run gouverné schema v7 sous ADR-0008 :
+  résidence sans trou, fenêtre stable, ETW 0/0, 17 lignes `NA` diagnostiques conservées, aucune valeur
+  > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; rejeu
+  schema v8 propre, répétabilité et revue humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;

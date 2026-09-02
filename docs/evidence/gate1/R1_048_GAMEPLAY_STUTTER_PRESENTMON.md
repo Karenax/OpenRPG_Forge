@@ -1,34 +1,168 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-02**
-Route : **`R1-048` OUVERTE — FAIL sur les seuils de diagnostic**
+Route : **`R1-048` OUVERTE — cadence conforme sur GPU de développement ; requalification gouvernée, GPU cible et revue humaine dus**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
 
-La baseline Release non instrumentée `6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, arbre
-`cfbe45ecd3464c16f47ef1b2da2bf7fd5b78d9c7`, fournit trois runs `AutoNoVsync` valides du point de
-vue de l'infrastructure. Ils échouent tous aux seuils : 21,3180 à 21,5263 FPS moyens, p95 de
-69,4547 à 69,4584 ms, 1 % low de 6,9036 à 7,0982 FPS, 16 à 27 présentations non affichées, 546 à
-556 présentations au-dessus de 33,3 ms et 65 à 116 frames consécutives au-dessus de 16,7 ms. Les
-trois variantes FIFO échouent également ; aucune proposition de pacing n'est retenue. L'analyse
-`presentation-ab-analysis.json`, SHA-256
-`5026e75d1b47824a47381bd05ab8ae273111948b87d6ffbc804f0cecab81dd3e`, porte donc le verdict
-**FAIL**, `qualifying=false` et `closes_gate=false`.
+Le lot source courant est `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
+`656feb155c4a30371210229bf6c5dea5bbf8fcd3`. Son rebuild Release normal, dans un target Cargo propre,
+atteint **128,7260 FPS affichés**, un p95 de **13,9112 ms**, un 1 % low de **58,3489 FPS**, zéro
+intervalle au-dessus de 33,3 ms et au plus un intervalle consécutif au-dessus de 16,7 ms. La capture
+exacte ne perd aucun événement ni buffer ETW. Elle contient toutefois 17 présentations non affichées ;
+le validateur schema 7 reste donc `runtime_qpc_display_overlap_thresholds_failed` et
+`gate1_qualified=false` sous son ancien prédicat « zéro `NA` ». ADR-0008 clarifie que ce compteur
+reste obligatoire et diagnostique, mais qu'il n'est pas à lui seul un stutter lorsque la résidence
+d'affichage est continue et que tous les seuils visibles passent. Une nouvelle acquisition schema 8
+sur commit exact est donc requise avant de retenir ce résultat automatisé. Le gain de cadence remplace
+le défaut de la baseline historique `6f0e519a`, mais ne ferme pas `R1-048`.
 
-Le lot source courant `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
-`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ne modifie ni la durée de mesure, ni les seuils, ni
-les schémas qualifiants. Il ajoute uniquement un reçu JSON atomique et explicitement
-`qualifying=false` lorsque le runtime expire avant l'état prêt. Le smoke DX12/FXC identifie ainsi la
-cause exacte : à 1 200 ticks, les huit autres prédicats sont vrais et seul `pipeline_ready=false`, avec
-40 pipelines prêts et 29 encore en création. Avec le DXC Microsoft signé du SDK Windows, les 69
-pipelines deviennent prêts, mais PresentMon 2.4.1 perd massivement les événements ETW et ne produit
-aucune ligne pour le processus. Ces essais DX12 sont des diagnostics d'infrastructure sans métrique de
-performance, pas une requalification.
+Deux répétitions du même binaire comptent respectivement 16 et 21 présentations non affichées. Le
+contrôle FIFO en compte 19. Un A/B diagnostique avec le binaire officiel PresentMon 2.5.1 en compte
+16 et reproduit pratiquement la même distribution temporelle. Les métriques de cadence sont donc
+répétables. Les `DisplayedTime=NA` ne peuvent être effacés ; ADR-0008 les sépare du verdict stutter
+uniquement lorsque les invariants de résidence, d'ETW, de fenêtre et de cadence passent tous.
 
-Le diagnostic opt-in historique `2fe48485086e925422c667f49c38a80f96e1a81a` reste conservé, mais
-n'est plus la source courante. `R1-037`, `R1-041` et `R1-048` restent ouvertes,
-`human_review_performed=false`, Gate 1 reste ouverte et Gate 2 reste interdite.
+La cause des captures ETW vides et massivement perdues antérieures a été isolée : une session
+PresentMon orpheline était encore active. Elle a été arrêtée par son identifiant exact, sans arrêt
+générique ni suppression d'une session étrangère, puis son absence a été vérifiée avant la reprise.
+Cette correction invalide l'ancienne hypothèse d'un simple défaut de buffers ETW ; elle ne transforme
+pas les essais DX12 historiques en mesures de performance.
+
+Le diagnostic opt-in historique `2fe48485086e925422c667f49c38a80f96e1a81a` et la baseline
+`6f0e519afd01a701dd4d772d0d3837dd5cbf9814` restent conservés comme historique. `R1-037`, `R1-041`
+et `R1-048` restent ouvertes. La RX 7800 XT de développement ne remplace pas la RTX 3060/RX 6600
+cible, `human_review_performed=false`, aucune CI distante n'a exécuté le commit courant et aucun
+asset Cadle n'est copié dans Forge. Gate 1 reste ouverte et Gate 2 reste interdite.
+
+## Lot courant `2bf5e44f` → `e1e818fc` → `9db35a8e`
+
+### Cause racine ETW et récupération ciblée
+
+La session orpheline
+`OpenRPGForge-Gate1-Diagnostic-85a698103aaf4186a480beabd1840099`, issue du diagnostic externe
+`cpu-util-vulkan-6f0e519a-20260902T112247353Z`, restait enregistrée après la fin de son processus.
+Elle coexistait avec les captures suivantes et expliquait leurs pertes ETW massives ainsi que leurs
+zéro lignes cible. L'outil officiel épinglé a reçu uniquement :
+
+```text
+--session_name OpenRPGForge-Gate1-Diagnostic-85a698103aaf4186a480beabd1840099
+--terminate_existing_session
+```
+
+La commande sort avec le code 0. Une interrogation ETW suivante confirme l'absence de cet identifiant.
+Aucune autre session n'est arrêtée. Le rejeu propre
+`vulkan-presentation-profile-clean-etw-2bf5e44f-20260902T152400224Z` reçoit 11 lignes cible, dont
+sept avant le signal, et zéro perte ETW. Il échoue ensuite pour une raison indépendante et explicite :
+les noms de systèmes Bevy nécessaires au profil n'étaient pas exposés dans cette configuration.
+
+### Portée des trois commits
+
+| Commit | Changement validé | Limite conservée |
+|---|---|---|
+| `2bf5e44f5d06529b26208a1ac7c9a4c158d48aad` | ajoute le profil de spans de présentation borné et opt-in `presentation-profile` | instrumentation applicative non qualifiante ; ne remplace jamais `DisplayedTime` ni un FPS écran |
+| `e1e818fc1ed8655b851e34007039f4b288941377` | ajoute `bevy/debug` à cette seule feature et teste les vrais noms de systèmes Bevy | le binaire instrumenté et son target partagé restent non qualifiants ; aucun coût n'est attribué sans A/B normal au même commit |
+| `9db35a8e125c6c60cde9de66a7f6aa7585215bfa` | ajoute le garde de sessions ETW au harnais gouverné, avec mutex machine `Global\OpenRPGForge-Gate1-PresentMon-Guard`, deux préflights et postflight | refuse une session préexistante au lieu de l'arrêter ; le fallback ne termine que l'identifiant possédé par le run ; ne ferme aucune route à lui seul |
+
+Le validateur schema 7 teste aussi le parsing insensible à la casse des seuls identifiants Gate 1
+attendus, borne l'appel `logman query -ets`, vérifie l'absence de la session possédée après arrêt et
+interdit explicitement l'arrêt d'une session non possédée. Le profil corrigé `e1e818fc` produit des
+spans applicatifs utilisables, mais sa synthèse
+`vulkan-presentation-profile-fixed-validator-20260902T161518176Z`, SHA-256
+`ba7afea882a5b44095ad1e53bbff87ec053bed2d1c1fe075d30bd2de775ba668`, conserve
+`qualifying=false`.
+
+### Run Release normal gouverné `9db35a8e`
+
+Artefacts externes non versionnés :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-normal-9db35a8-20260902T163730202Z
+```
+
+Le rebuild utilise uniquement les features normales `default,native`, sans `presentation-profile`,
+`bevy/trace` ni `bevy/debug`. Le target est neuf, le worktree reste propre et le binaire Release exact
+mesure 82 333 696 octets, SHA-256
+`c3790da4a7a9f46b36f0837144a75f5afdd43a63101093d25f402d09e0e80c4a`.
+
+| Invariant ou mesure | Résultat |
+|---|---:|
+| durée QPC runtime | 29,9824273 s, intervalle demi-ouvert exact |
+| ticks contrôleur | 1 800, 900 avant + 900 arrière, zéro catch-up |
+| frames main-world couvertes | 3 878 |
+| lignes PresentMon dans l'enveloppe | 3 877 |
+| présentations affichées / non affichées | 3 860 / **17** |
+| `DisplayedTime` moyen / FPS moyen | 7,7684 ms / **128,7260 FPS** |
+| p95 / p99 | **13,9112 / 13,9657 ms** |
+| 1 % low | **58,3489 FPS** |
+| `>16,7 ms` / `>33,3 ms` | 17 / **0** |
+| maximum consécutif `>16,7 ms` | **1** |
+| pertes ETW événements / buffers | **0 / 0** |
+| fenêtre | handle stable, visible, jamais minimisée et au premier plan sur toute la fenêtre |
+| warnings / erreurs / panic runtime | **0 / 0 / 0** |
+
+Le résultat satisfait FPS moyen, p95, 1 % low, absence d'intervalle au-dessus de 33,3 ms et absence de
+deux intervalles lents consécutifs. Le prédicat ajouté par le harnais
+`bounded_sample_has_no_not_displayed_frames` reste faux à cause des 17 lignes `DisplayedTime=NA`.
+La validation de 16 902 octets porte le SHA-256
+`61223f1362c85cc7f0990279df2dd77c9ca6a71b8a9b9eb9c834d697d76fd571`; le CSV porte
+`12052e2efb218837b1985528b06b68f6e44fe22af1e25f91608c102ba31c9f7b` et le ledger
+`acf0a7bd21034335eb090f52d8f9e9c7702724664d0b9f24e71e708c62b1eca1`.
+
+### Répétabilité et distribution des présentations non affichées
+
+| Route | Lignes CPU bornées | `DisplayedTime=NA` | FPS moyen | p95 | 1 % low | `>33,3 ms` | max. consécutif `>16,7 ms` |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Auto gouverné | 3 877 | 17 | 128,7260 | 13,9112 ms | 58,3489 FPS | 0 | 1 |
+| Auto répétition A1 | 3 896 | 16 | 129,3634 | 13,9130 ms | 53,0763 FPS | 0 | 2 |
+| Auto répétition A2 | 3 890 | 21 | 128,9631 | 13,9079 ms | 54,9590 FPS | 0 | 1 |
+| FIFO contrôle non qualifiant | 3 907 | 19 | 129,6567 | 13,9083 ms | 57,3937 FPS | 0 | 1 |
+
+Sur les quatre runs, 73 des 15 570 lignes CPU bornées sont non affichées, soit **0,469 %**. Leur
+distribution n'est pas uniforme : 37 surviennent entre `+0,0096` et `+0,7417 s`, 32 entre
+`+2,8528` et `+3,1949 s`, puis seulement quatre tardivement à `+16,005`, `+23,071`, `+25,619` et
+`+25,676 s`. Ainsi, **69/73, soit 94,5 %**, appartiennent à deux transitoires reproductibles.
+
+Les lignes non affichées ont elles-mêmes un `FrameTime` de 7,67 à 11,37 ms et un `GPUTime` d'environ
+5,36 à 9,05 ms. Les pipelines sont prêts avant et pendant la mesure, il n'y a aucun catch-up ni perte
+ETW, et la fenêtre reste au premier plan. Un intervalle rétrospectif commençant à `+3,5 s` serait donc
+trompeur : il réduirait la campagne sous 30 secondes et laisserait encore 1/0/2/1 lignes non affichées.
+Une sous-fenêtre commune choisie pour obtenir zéro `NA` ne serait pas une preuve qualifiante. Un futur
+settle de premier plan ne serait recevable que s'il précède une nouvelle fenêtre complète et prédéfinie
+de 30 secondes ; les données actuelles ne prouvent pas qu'il supprimerait le second transitoire ou les
+quatre événements tardifs.
+
+### A/B diagnostique avec PresentMon officiel 2.5.1
+
+Le binaire officiel 2.5.1 mesure 956 768 octets, porte le SHA-256
+`9bec3083069f58f911e6a512f4806db51a27bd096103087bc1d05ef54c80a191` et une signature Authenticode
+Intel valide. Le run A4 réemploie exactement le binaire runtime Release normal `9db35a8e` :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-normal-presentmon-2.5.1-a4-9db35a8-20260902T173500000Z
+```
+
+| Mesure A4 | Résultat |
+|---|---:|
+| durée QPC | 29,9871804 s |
+| lignes CPU / affichées / non affichées | 3 908 / 3 893 / **16** |
+| FPS moyen | **129,7334** |
+| p95 / p99 | **13,9102 / 13,9572 ms** |
+| 1 % low | **61,4409 FPS** |
+| `>33,3 ms` / max. consécutif `>16,7 ms` | **0 / 1** |
+| pertes ETW événements / buffers | **0 / 0** |
+
+Ce run est explicitement **NONQUALIFYING**. Le runtime exige encore dans son signal l'identité
+épinglée 2.4.1 ; le helper fournit donc un shim d'identité 2.4.1 alors que le processus de capture réel
+est 2.5.1. La synthèse énumère cette incompatibilité, le target partagé et l'absence de rebuild
+gouverné pour refuser la qualification. Elle porte le SHA-256
+`aac662f7177faeef2b26e923061517bf6cf4b80a80543e8de31862fe3de17b28`; le CSV porte
+`5053dae9491c5665077d430741258d2cadf1ebcce627506820e137ea8c5db2d2` et le ledger
+`718270959d9ccb1bd6711cc6bcae6e1cc3df70b4f987eba5a9ae16a6e646e95f`.
+
+Les distributions 2.4.1 et 2.5.1 sont proches. A4 ne justifie donc ni d'ignorer les présentations non
+affichées, ni de changer silencieusement l'outil épinglé, ni de déclarer Gate 1 passée.
 
 ## Historique — identité source, opt-in et validations `2fe48485`
 
@@ -384,12 +518,14 @@ ne produit de ligne PresentMon qualifiable, de signal de départ, de ledger ou d
 | sans suivi input | `87d0f0fe56d4c7cfde0bd8790c2bbb33f9d8b0f84ab13b2952de66622a165952` | zéro ligne ; sortie brute vide |
 | affichage seul | `53b4a33bc6695430fa8d044c25b1fe94b13ba7554f9fd4a5c890b3c39295116f` | zéro ligne ; 261 138 événements ETW perdus |
 
-Un probe séparé avec le PresentMon signé livré par AMD reproduit le défaut : 72/72 pipelines prêts,
-zéro ligne et 58 122 événements ETW perdus en cinq secondes. Le taux de remplissage publié par
-PresentMon décrit le nombre de buffers ETW utilisés, pas leur remplissage en octets ; le binaire 2.4.1
-épinglé n'expose aucune option CLI pour la taille ou le nombre de buffers. L'élévation n'apporte que
-des privilèges de métadonnées processus et ne constitue pas un correctif démontré. Ces essais sont
-donc classés **INVALIDES — acquisition ETW**, sans comparaison de performance.
+Un probe séparé avec le PresentMon signé livré par AMD reproduit alors le défaut : 72/72 pipelines
+prêts, zéro ligne et 58 122 événements ETW perdus en cinq secondes. L'enquête postérieure identifie
+cependant la session orpheline `OpenRPGForge-Gate1-Diagnostic-85a698103aaf4186a480beabd1840099`
+comme cause racine sur cette machine. Après son arrêt ciblé, PresentMon 2.4.1 produit de nouveau des
+lignes avec zéro perte ETW. Les trois pilotes et le probe restent **INVALIDES — acquisition ETW**,
+mais ils ne prouvent ni une régression DX12, ni un besoin d'augmenter les buffers, ni une performance
+du produit. L'élévation n'avait apporté que des privilèges de métadonnées processus et n'avait pas
+traité la session concurrente.
 
 Un prototype jetable a épinglé l'upstream officiel PresentMon `v2.4.1` au commit vérifié
 `43bd033364154bd5eade7c11f6b0364a12380deb`, arbre
@@ -405,7 +541,8 @@ prototype reste externe, non promu et sans effet sur le verdict.
 Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
 reste attaché au commit exact `15635b3f85b623654e498b17ed299674928313e6`, pas aux commits
 `6f0e519afd01a701dd4d772d0d3837dd5cbf9814` ou
-`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`. Il expose quatre jobs — `wasm`,
+`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d` ou
+`9db35a8e125c6c60cde9de66a7f6aa7585215bfa`. Il expose quatre jobs — `wasm`,
 `supply-chain`, `native (ubuntu-24.04)` et `native (windows-2025)` — avec **0 étape exécutée** et
 aucun runner alloué. La conclusion GitHub `failure` décrit le blocage d'infrastructure/facturation,
 pas un échec du code : la qualification reste **NOT RUN — infrastructure billing** sous ADR-0006.
@@ -428,14 +565,25 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 
 ## État final
 
-- `R1-048` : **OUVERTE — FAIL sur la baseline `6f0e519a`** ;
+- `R1-048` : **OUVERTE** — la cadence principale passe localement à `9db35a8e`, mais le rejeu
+  gouverné schema 8, le GPU cible et la revue humaine restent dus ;
 - `R1-037` : **OUVERTE** ;
 - `R1-041` : **OUVERTE** ;
+- run Release normal gouverné `9db35a8e` : 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
+  zéro `>33,3 ms`, maximum consécutif 1 et ETW 0/0 ; **17 présentations non affichées**, donc
+  `gate1_qualified=false` ;
+- garde ETW `9db35a8e` : préflights/postflight et mutex machine validés ; aucune session étrangère
+  n'est arrêtée automatiquement ;
+- répétitions Auto : 16 et 21 présentations non affichées ; FIFO diagnostique : 19 ;
+- diagnostic officiel PresentMon 2.5.1 A4 : métriques concordantes et 16 présentations non affichées,
+  mais **NONQUALIFYING** à cause du target partagé, de l'absence de rebuild gouverné et du shim
+  d'identité 2.4.1 dans le signal runtime ;
 - baseline Release `6f0e519a` : trois runs `AutoNoVsync` structurellement valides, verdict **FAIL** ;
 - reçu de timeout `06b5fd40` : **PASS fonctionnel**, diagnostic d'échec uniquement, sans métrique de
   performance ;
 - DX12/FXC : attente de compilation prouvée, 40/69 prêts et 29 en création à 1 200 ticks ;
-- DX12/DXC dynamique : 69/69 prêts, acquisition PresentMon **INVALIDE** par pertes ETW massives ;
+- DX12/DXC dynamique : 69/69 prêts, acquisitions historiques **INVALIDES** ; les pertes ETW ont pour
+  cause racine locale la session PresentMon orpheline ensuite arrêtée par son identifiant exact ;
 - DXC statique `a59f560c` : **NON PROMU**, build interrompu par l'absence d'ATL/MFC ;
 - campagne opt-in `2fe48485` : **NONQUALIFYING**, trace interne proche de `8b` mais divergence
   trace/PresentMon non réconciliée ;
@@ -443,12 +591,14 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 - revue humaine : **non réalisée**, `human_review_performed=false` ;
 - Gate 1 : **OUVERTE** ;
 - Gate 2 : **INTERDITE** sans passage formel de Gate 1 ou nouvelle dérogation explicite acceptée ;
-- CI distante `33584774630` attachée à `15635b3f` : **NOT RUN** sous ADR-0006 ;
+- CI distante du commit courant : **NOT RUN** ; le run historique `33584774630` attaché à
+  `15635b3f` reste **NOT RUN** sous ADR-0006 ;
 - asset Cadle copié dans Forge : **aucun**.
 
-La prochaine acquisition qualifiante doit employer un runtime Release normal dans un target gouverné
-propre et une capture d'affichage sans perte ETW. Une instrumentation `tracing` interne, bornée et
-explicitement non qualifiante peut corréler les appels `Surface::present` et backend
-`IDXGISwapchain3::Present`/`vkQueuePresentKHR`, mais ne doit jamais être appelée temps d'affichage ni
-remplacer PresentMon. La route doit ensuite satisfaire les seuils de présentation et être complétée par
-le benchmark GPU cible et la revue humaine.
+La prochaine acquisition qualifiante doit conserver le runtime Release normal, le target gouverné
+propre, les 30 secondes et les 1 800 ticks complets. Elle doit conserver et compter toutes les
+présentations non affichées, prouver une résidence continue et appliquer l'intégralité des seuils
+d'ADR-0008, sans choisir rétrospectivement une sous-fenêtre favorable. Une éventuelle stabilisation du
+premier plan doit précéder une nouvelle fenêtre complète et être enregistrée comme telle. La route doit
+ensuite être rejouée sur le GPU cible et complétée par la revue humaine ; l'instrumentation
+`presentation-profile` reste un diagnostic interne non qualifiant et ne remplace jamais PresentMon.

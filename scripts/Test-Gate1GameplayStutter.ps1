@@ -81,6 +81,76 @@ function Assert-Condition {
     }
 }
 
+function Get-Gate1DisplayedStutterThresholdAssessment {
+    param(
+        [Parameter(Mandatory = $true)][bool]$DisplayCoveragePassed,
+        [Parameter(Mandatory = $true)][uint64]$NotDisplayedRows,
+        [Parameter(Mandatory = $true)][double]$MeanDisplayFps,
+        [Parameter(Mandatory = $true)][double]$P95Milliseconds,
+        [Parameter(Mandatory = $true)][double]$OnePercentLowFps,
+        [Parameter(Mandatory = $true)][uint64]$Over33Count,
+        [Parameter(Mandatory = $true)][uint64]$MaximumConsecutiveOver16
+    )
+
+    $metricThresholdsPassed = (
+        $MeanDisplayFps -ge 60.0 -and
+        $P95Milliseconds -le 16.7 -and
+        $OnePercentLowFps -ge 45.0 -and
+        $Over33Count -eq 0 -and
+        $MaximumConsecutiveOver16 -le 1
+    )
+    return [pscustomobject][ordered]@{
+        DisplayCoveragePassed = $DisplayCoveragePassed
+        MetricThresholdsPassed = $metricThresholdsPassed
+        NotDisplayedRows = $NotDisplayedRows
+        HasNoNotDisplayedRows = ($NotDisplayedRows -eq 0)
+        NotDisplayedRowsAreDiagnostic = $DisplayCoveragePassed
+        ThresholdsPassed = ($DisplayCoveragePassed -and $metricThresholdsPassed)
+    }
+}
+
+function Invoke-Gate1DisplayedStutterThresholdSelfTest {
+    $passWithNotDisplayedRow = Get-Gate1DisplayedStutterThresholdAssessment `
+        -DisplayCoveragePassed $true `
+        -NotDisplayedRows 1 `
+        -MeanDisplayFps 120.0 `
+        -P95Milliseconds 12.0 `
+        -OnePercentLowFps 60.0 `
+        -Over33Count 0 `
+        -MaximumConsecutiveOver16 1
+    Assert-Condition -Condition ($passWithNotDisplayedRow.ThresholdsPassed -and $passWithNotDisplayedRow.MetricThresholdsPassed) -Message "Displayed-stutter threshold self-test treated one not-displayed row as a stutter despite continuous residency and passing displayed-frame metrics."
+    Assert-Condition -Condition (-not $passWithNotDisplayedRow.HasNoNotDisplayedRows -and $passWithNotDisplayedRow.NotDisplayedRowsAreDiagnostic) -Message "Displayed-stutter threshold self-test did not retain the not-displayed row as an explicit diagnostic."
+
+    $coverageFailure = Get-Gate1DisplayedStutterThresholdAssessment `
+        -DisplayCoveragePassed $false `
+        -NotDisplayedRows 1 `
+        -MeanDisplayFps 120.0 `
+        -P95Milliseconds 12.0 `
+        -OnePercentLowFps 60.0 `
+        -Over33Count 0 `
+        -MaximumConsecutiveOver16 1
+    Assert-Condition -Condition (-not $coverageFailure.ThresholdsPassed -and -not $coverageFailure.NotDisplayedRowsAreDiagnostic) -Message "Displayed-stutter threshold self-test accepted broken display-residency coverage."
+
+    $metricFailures = @(
+        @{ MeanDisplayFps = 59.9; P95Milliseconds = 12.0; OnePercentLowFps = 60.0; Over33Count = 0; MaximumConsecutiveOver16 = 1 },
+        @{ MeanDisplayFps = 120.0; P95Milliseconds = 16.8; OnePercentLowFps = 60.0; Over33Count = 0; MaximumConsecutiveOver16 = 1 },
+        @{ MeanDisplayFps = 120.0; P95Milliseconds = 12.0; OnePercentLowFps = 44.9; Over33Count = 0; MaximumConsecutiveOver16 = 1 },
+        @{ MeanDisplayFps = 120.0; P95Milliseconds = 12.0; OnePercentLowFps = 60.0; Over33Count = 1; MaximumConsecutiveOver16 = 1 },
+        @{ MeanDisplayFps = 120.0; P95Milliseconds = 12.0; OnePercentLowFps = 60.0; Over33Count = 0; MaximumConsecutiveOver16 = 2 }
+    )
+    foreach ($failure in $metricFailures) {
+        $assessment = Get-Gate1DisplayedStutterThresholdAssessment `
+            -DisplayCoveragePassed $true `
+            -NotDisplayedRows 1 `
+            -MeanDisplayFps $failure.MeanDisplayFps `
+            -P95Milliseconds $failure.P95Milliseconds `
+            -OnePercentLowFps $failure.OnePercentLowFps `
+            -Over33Count $failure.Over33Count `
+            -MaximumConsecutiveOver16 $failure.MaximumConsecutiveOver16
+        Assert-Condition -Condition (-not $assessment.ThresholdsPassed -and -not $assessment.MetricThresholdsPassed -and $assessment.NotDisplayedRowsAreDiagnostic) -Message "Displayed-stutter threshold self-test accepted a failing displayed-frame metric."
+    }
+}
+
 function Get-Gate1PresentationRouteContract {
     param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Route)
 
@@ -1777,6 +1847,7 @@ function Invoke-Gate1PresentMonEtwSessionGuardSelfTest {
 
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
 Invoke-Gate1PresentationRouteSelfTest
+Invoke-Gate1DisplayedStutterThresholdSelfTest
 Invoke-Gate1NativeWindowContinuitySelfTest
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Invoke-PresentMonControllerQpcWindowSelfTest
@@ -2524,7 +2595,15 @@ try {
     $maxConsecutiveOver16 = if ($over16Sequences.Count -eq 0) { 0 } else { [int](($over16Sequences | Measure-Object -Property length -Maximum).Maximum) }
     $maxConsecutiveOver33 = if ($over33Sequences.Count -eq 0) { 0 } else { [int](($over33Sequences | Measure-Object -Property length -Maximum).Maximum) }
     $displayCoveragePassed = $presentMonControllerProjection.CoversStart -and $presentMonControllerProjection.CoversEnd -and [decimal]$presentMonControllerProjection.MaximumGapQpc -le [decimal]$presentMonControllerProjection.QuantizationToleranceQpc
-    $displayThresholdsPassed = $displayCoveragePassed -and $measurementNotDisplayedRows.Count -eq 0 -and $meanDisplayFps -ge 60.0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
+    $displayStutterThresholdAssessment = Get-Gate1DisplayedStutterThresholdAssessment `
+        -DisplayCoveragePassed $displayCoveragePassed `
+        -NotDisplayedRows $measurementNotDisplayedRows.Count `
+        -MeanDisplayFps $meanDisplayFps `
+        -P95Milliseconds $p95Milliseconds `
+        -OnePercentLowFps $onePercentLowFps `
+        -Over33Count $over33Count `
+        -MaximumConsecutiveOver16 $maxConsecutiveOver16
+    $displayThresholdsPassed = $displayStutterThresholdAssessment.ThresholdsPassed
     $boundedThresholdsPassed = $displayThresholdsPassed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
     $validationStatus = if ($presentationContract.Name -eq "FifoDiagnostic") {
         if ($boundedThresholdsPassed) { "diagnostic_thresholds_passed" } else { "diagnostic_thresholds_failed" }
@@ -2538,7 +2617,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 7
+        schema_version = 8
         status = $validationStatus
         presentation_route = $presentationContract.PresentationRoute
         requested_present_mode = $presentationContract.RequestedPresentMode
@@ -2764,7 +2843,10 @@ try {
             display_residency_covers_runtime_start = $presentMonControllerProjection.CoversStart
             display_residency_covers_runtime_end = $presentMonControllerProjection.CoversEnd
             display_residency_maximum_gap_within_quantization = ([decimal]$presentMonControllerProjection.MaximumGapQpc -le [decimal]$presentMonControllerProjection.QuantizationToleranceQpc)
-            bounded_sample_has_no_not_displayed_frames = ($measurementNotDisplayedRows.Count -eq 0)
+            bounded_sample_has_no_not_displayed_frames = $displayStutterThresholdAssessment.HasNoNotDisplayedRows
+            not_displayed_frames_are_diagnostic_when_display_residency_is_continuous = $displayStutterThresholdAssessment.NotDisplayedRowsAreDiagnostic
+            display_stutter_metric_thresholds_passed = $displayStutterThresholdAssessment.MetricThresholdsPassed
+            display_stutter_threshold_contract_self_test_passed = $true
             runtime_warning_error_panic_entries = 0
             presentmon_capture_disallowed_log_entries = 0
             presentmon_stop_disallowed_log_entries = $unexpectedStopOutput.Count
