@@ -143,7 +143,11 @@ player/Rapier/camera bindings are ready, the runtime writes
 process to that exact PID and atomically publish
 `gate1-gameplay-stutter.start.signal.json`. The controller performs 900 fixed ticks forward and 900
 ticks backward at 60 Hz, crosses the central seam without teleportation, stops under a bounded
-watchdog, and writes `gate1-gameplay-stutter.json`.
+watchdog, and writes `gate1-gameplay-stutter.json`. Runtime ready, start-signal and final ledgers use
+schema 3. Forge's derived vegetation visibility audit runs at a bounded 100 ms cadence while Bevy
+visibility, rendering, wind, interaction and controller work remain per-frame. The harness requests
+monotonic out-of-cadence audit tickets at the ready and final movement boundaries and refuses to
+publish either boundary until the post-visibility observer has acknowledged the exact ticket.
 
 The runtime ledger deliberately leaves display qualification false: it can prove the uninterrupted
 controller, Rapier, camera, scene and pipeline window, but it cannot verify the external ETW trace.

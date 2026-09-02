@@ -11,7 +11,8 @@ use forge_engine::{
     PendingPlayerControlCommand, PipelineWarmupObservation, PlayerControlCommand,
     PlayerControllerSet, PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings,
     PlayerRuntimeSnapshot, RenderDiagnosticsPolicy, RuntimeAutomation, SceneryProjectionStats,
-    SceneryProjectionStatus, TERRAIN_PHYSICS_HZ, VegetationProjectionStats,
+    SceneryProjectionStatus, TERRAIN_PHYSICS_HZ, VEGETATION_VISIBILITY_AUDIT_INTERVAL,
+    VegetationProjectionStats, VegetationVisibilityAuditControl, VegetationVisibilityAuditTicket,
     VisualValleyQualitySelection, VisualValleyQualityStats, VisualValleyShadowStats,
     VisualValleyStats, WaterProjectionStats, WeatherProjectionStats,
     validate_governed_gate1_render_state,
@@ -29,7 +30,7 @@ use std::{
 const READY_SCHEMA: &str = "forge.gate1-gameplay-stutter-ready";
 const SIGNAL_SCHEMA: &str = "forge.gate1-gameplay-stutter-start-signal";
 const LEDGER_SCHEMA: &str = "forge.gate1-gameplay-stutter";
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 const READY_FILE: &str = "gate1-gameplay-stutter.ready.json";
 const START_SIGNAL_FILE: &str = "gate1-gameplay-stutter.start.signal.json";
 const LEDGER_FILE: &str = "gate1-gameplay-stutter.json";
@@ -280,6 +281,10 @@ struct Runtime {
     main_world_measurement_active: bool,
     final_main_world_validation_pending: bool,
     final_main_world_validation_completed: bool,
+    ready_visibility_audit_ticket: Option<VegetationVisibilityAuditTicket>,
+    ready_visibility_audit_completed_id: Option<u64>,
+    final_visibility_audit_ticket: Option<VegetationVisibilityAuditTicket>,
+    final_visibility_audit_completed_id: Option<u64>,
     last_water_animation_updates: Option<u64>,
     water_animation_advancement_updates: u32,
     catch_up_fixed_ticks: u32,
@@ -334,6 +339,10 @@ impl Runtime {
             main_world_measurement_active: false,
             final_main_world_validation_pending: false,
             final_main_world_validation_completed: false,
+            ready_visibility_audit_ticket: None,
+            ready_visibility_audit_completed_id: None,
+            final_visibility_audit_ticket: None,
+            final_visibility_audit_completed_id: None,
             last_water_animation_updates: None,
             water_animation_advancement_updates: 0,
             catch_up_fixed_ticks: 0,
@@ -394,6 +403,9 @@ struct ProtocolEvidence {
     no_pause: bool,
     screenshots_requested: bool,
     presentmon_required: bool,
+    vegetation_visibility_audit_interval_ms: u128,
+    ready_vegetation_visibility_audit_receipt_required: bool,
+    final_vegetation_visibility_audit_receipt_required: bool,
     instrumentation: InstrumentationEvidence,
 }
 
@@ -454,6 +466,13 @@ struct QualificationBoundary {
     gate1_route_qualified: bool,
 }
 
+#[derive(Clone, Copy, Serialize)]
+struct VegetationVisibilityAuditReceipt {
+    interval_ms: u128,
+    ticket_id: u64,
+    completed_id: u64,
+}
+
 #[derive(Serialize)]
 struct ReadyLedger<'a> {
     schema: &'static str,
@@ -467,6 +486,7 @@ struct ReadyLedger<'a> {
     protocol: ProtocolEvidence,
     start_signal_contract: StartSignalContract,
     sources: SourceEvidence,
+    vegetation_visibility_audit: VegetationVisibilityAuditReceipt,
     governed_scene: GovernedSceneEvidence,
     pipeline_warmup: &'a PipelineWarmupObservation,
     quality: &'a VisualValleyQualityStats,
@@ -554,6 +574,7 @@ struct GovernedSceneStability {
     qualified_for_entire_measurement: bool,
     structural_identity_stable: bool,
     final_main_world_boundary_validated: bool,
+    final_visibility_audit: VegetationVisibilityAuditReceipt,
     water_animation_advanced_each_main_world_update: bool,
     water_animation_advancement_updates: u32,
     initial_observation: GovernedSceneEvidence,
@@ -693,6 +714,7 @@ fn observe_controller(
     cameras: Query<(Entity, &Camera), With<ForgePlayerCamera>>,
     players: Query<Entity, With<ForgePlayerCharacter>>,
     screenshots: Query<Entity, With<Screenshot>>,
+    mut visibility_audit: ResMut<VegetationVisibilityAuditControl>,
     mut runtime: ResMut<Runtime>,
     mut exit: MessageWriter<AppExit>,
 ) {
@@ -725,6 +747,16 @@ fn observe_controller(
                     }
                     return Ok(());
                 };
+                let Some(ready_visibility_audit_ticket) = runtime.ready_visibility_audit_ticket
+                else {
+                    runtime.ready_visibility_audit_ticket =
+                        Some(visibility_audit.request_observation());
+                    return Ok(());
+                };
+                if !visibility_audit.request_is_completed(ready_visibility_audit_ticket) {
+                    return Ok(());
+                }
+                runtime.ready_visibility_audit_completed_id = Some(visibility_audit.completed_id());
                 write_ready(
                     &runtime,
                     binding,
@@ -871,6 +903,8 @@ fn observe_controller(
                             .elapsed()
                             .as_secs_f64(),
                     );
+                    runtime.final_visibility_audit_ticket =
+                        Some(visibility_audit.request_observation());
                     runtime.final_main_world_validation_pending = true;
                     enter_phase(&mut runtime, Phase::PreparingStop);
                 }
@@ -976,6 +1010,7 @@ fn observe_main_world_window(
     scene: GovernedScene,
     windows: Query<&Window, With<PrimaryWindow>>,
     screenshots: Query<Entity, With<Screenshot>>,
+    visibility_audit: Res<VegetationVisibilityAuditControl>,
     mut runtime: ResMut<Runtime>,
     mut exit: MessageWriter<AppExit>,
 ) {
@@ -999,11 +1034,51 @@ fn observe_main_world_window(
         return;
     }
     runtime.main_world_invariant_checks = runtime.main_world_invariant_checks.saturating_add(1);
-    if runtime.final_main_world_validation_pending {
-        runtime.final_main_world_validation_pending = false;
-        runtime.final_main_world_validation_completed = true;
-        runtime.main_world_measurement_active = false;
+    if let Err(error) = complete_final_main_world_boundary(&mut runtime, &visibility_audit) {
+        fail(&mut runtime, &mut exit, &error);
     }
+}
+
+fn complete_final_main_world_boundary(
+    runtime: &mut Runtime,
+    visibility_audit: &VegetationVisibilityAuditControl,
+) -> Result<(), String> {
+    if !runtime.final_main_world_validation_pending {
+        return Ok(());
+    }
+    let ticket = runtime
+        .final_visibility_audit_ticket
+        .ok_or("final vegetation visibility audit ticket is absent")?;
+    if !visibility_audit.request_is_completed(ticket) {
+        return Ok(());
+    }
+    runtime.final_visibility_audit_completed_id = Some(visibility_audit.completed_id());
+    runtime.final_main_world_validation_pending = false;
+    runtime.final_main_world_validation_completed = true;
+    runtime.main_world_measurement_active = false;
+    Ok(())
+}
+
+fn vegetation_visibility_audit_receipt(
+    ticket: Option<VegetationVisibilityAuditTicket>,
+    completed_id: Option<u64>,
+    boundary: &str,
+) -> Result<VegetationVisibilityAuditReceipt, String> {
+    let ticket =
+        ticket.ok_or_else(|| format!("{boundary} vegetation visibility audit ticket is absent"))?;
+    let completed_id = completed_id
+        .ok_or_else(|| format!("{boundary} vegetation visibility audit receipt is absent"))?;
+    if completed_id < ticket.id() {
+        return Err(format!(
+            "{boundary} vegetation visibility audit receipt {completed_id} does not cover ticket {}",
+            ticket.id()
+        ));
+    }
+    Ok(VegetationVisibilityAuditReceipt {
+        interval_ms: VEGETATION_VISIBILITY_AUDIT_INTERVAL.as_millis(),
+        ticket_id: ticket.id(),
+        completed_id,
+    })
 }
 
 fn observe_water_animation(runtime: &mut Runtime, current_updates: u64) -> Result<(), String> {
@@ -1582,6 +1657,11 @@ fn write_ready(
             ));
         }
     }
+    let vegetation_visibility_audit = vegetation_visibility_audit_receipt(
+        runtime.ready_visibility_audit_ticket,
+        runtime.ready_visibility_audit_completed_id,
+        "ready",
+    )?;
     let process_id = std::process::id();
     let ledger = ReadyLedger {
         schema: READY_SCHEMA,
@@ -1604,6 +1684,7 @@ fn write_ready(
             qpc_boundary_required: true,
         },
         sources: sources(&runtime.configuration),
+        vegetation_visibility_audit,
         governed_scene: scene.snapshot(),
         pipeline_warmup: pipeline,
         quality: &scene.quality,
@@ -1696,6 +1777,11 @@ fn write_ledger(
         .initial_gpu
         .clone()
         .ok_or("initial GPU observation is absent")?;
+    let final_visibility_audit = vegetation_visibility_audit_receipt(
+        runtime.final_visibility_audit_ticket,
+        runtime.final_visibility_audit_completed_id,
+        "final",
+    )?;
     let ledger = GameplayStutterLedger {
         schema: LEDGER_SCHEMA,
         schema_version: SCHEMA_VERSION,
@@ -1735,6 +1821,7 @@ fn write_ledger(
             qualified_for_entire_measurement: true,
             structural_identity_stable: true,
             final_main_world_boundary_validated: runtime.final_main_world_validation_completed,
+            final_visibility_audit,
             water_animation_advanced_each_main_world_update: runtime
                 .water_animation_advancement_updates
                 == runtime.main_world_invariant_checks,
@@ -1908,6 +1995,11 @@ fn validate_final_movement(
     {
         return Err("the final main-world measurement boundary was not validated".to_owned());
     }
+    vegetation_visibility_audit_receipt(
+        runtime.final_visibility_audit_ticket,
+        runtime.final_visibility_audit_completed_id,
+        "final",
+    )?;
     Ok(())
 }
 
@@ -1923,6 +2015,9 @@ fn protocol() -> ProtocolEvidence {
         no_pause: true,
         screenshots_requested: false,
         presentmon_required: true,
+        vegetation_visibility_audit_interval_ms: VEGETATION_VISIBILITY_AUDIT_INTERVAL.as_millis(),
+        ready_vegetation_visibility_audit_receipt_required: true,
+        final_vegetation_visibility_audit_receipt_required: true,
         instrumentation: instrumentation(),
     }
 }
@@ -2269,8 +2364,41 @@ mod tests {
     }
 
     #[test]
+    fn final_main_world_boundary_waits_for_the_requested_visibility_audit() {
+        let mut runtime = test_runtime();
+        let mut visibility_audit = VegetationVisibilityAuditControl::default();
+        runtime.final_main_world_validation_pending = true;
+        runtime.main_world_measurement_active = true;
+        runtime.final_visibility_audit_ticket = Some(visibility_audit.request_observation());
+
+        complete_final_main_world_boundary(&mut runtime, &visibility_audit).unwrap();
+
+        assert!(runtime.final_main_world_validation_pending);
+        assert!(!runtime.final_main_world_validation_completed);
+        assert!(runtime.main_world_measurement_active);
+        assert!(runtime.final_visibility_audit_completed_id.is_none());
+    }
+
+    #[test]
+    fn visibility_audit_receipt_rejects_absent_or_stale_acknowledgements() {
+        let mut visibility_audit = VegetationVisibilityAuditControl::default();
+        let ticket = visibility_audit.request_observation();
+
+        assert!(vegetation_visibility_audit_receipt(None, Some(ticket.id()), "ready").is_err());
+        assert!(vegetation_visibility_audit_receipt(Some(ticket), None, "ready").is_err());
+        assert!(vegetation_visibility_audit_receipt(Some(ticket), Some(0), "ready").is_err());
+        let receipt =
+            vegetation_visibility_audit_receipt(Some(ticket), Some(ticket.id()), "ready").unwrap();
+        assert_eq!(receipt.interval_ms, 100);
+        assert_eq!(receipt.ticket_id, ticket.id());
+        assert_eq!(receipt.completed_id, ticket.id());
+    }
+
+    #[test]
     fn final_movement_accepts_measured_terrain_drift_but_keeps_lateral_bound() {
         let mut runtime = test_runtime();
+        let mut visibility_audit = VegetationVisibilityAuditControl::default();
+        let final_visibility_audit_ticket = visibility_audit.request_observation();
         runtime.forward_ticks = FORWARD_TICKS;
         runtime.reverse_ticks = REVERSE_TICKS;
         runtime.grounded_ticks = TOTAL_MOVEMENT_TICKS;
@@ -2280,6 +2408,8 @@ mod tests {
         runtime.main_world_invariant_checks = 1;
         runtime.water_animation_advancement_updates = 1;
         runtime.final_main_world_validation_completed = true;
+        runtime.final_visibility_audit_ticket = Some(final_visibility_audit_ticket);
+        runtime.final_visibility_audit_completed_id = Some(final_visibility_audit_ticket.id());
 
         let start = Vec3::new(16.0, -24.30, 8.0);
         let forward = Vec3::new(17.34, -10.18, -61.51);

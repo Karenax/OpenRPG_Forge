@@ -448,15 +448,13 @@ function Get-PresentMonStreamSnapshot {
         }
     }
 
-    $rows = if ($csvLines.Count -gt 1) {
-        @($csvLines.ToArray() | ConvertFrom-Csv)
-    }
-    else {
-        @()
+    $rows = @()
+    if ($csvLines.Count -gt 1) {
+        $rows = @($csvLines.ToArray() | ConvertFrom-Csv)
     }
     return [pscustomobject]@{
         HeaderObserved = $headerObserved
-        Rows = $rows
+        Rows = @($rows)
         CsvLines = $csvLines.ToArray()
         ConsoleLines = $consoleLines.ToArray()
         UnknownLines = $unknownLines.ToArray()
@@ -1281,7 +1279,7 @@ try {
 
     $ready = Wait-ForReadyJson -Path $readyPath -Process $runtimeCapture.Process -TimeoutSeconds $readyTimeoutSeconds
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema" -Path "ready") -eq "forge.gate1-gameplay-stutter-ready") -Message "Unexpected ready schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 2) -Message "Unexpected ready schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 3) -Message "Unexpected ready schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "status" -Path "ready") -eq "ready_waiting_for_presentmon_start_signal") -Message "Runtime is not waiting for the PresentMon start signal."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "process_id" -Path "ready") -eq $runtimeProcessId) -Message "Ready PID does not match the launched runtime PID."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_source_commit" -Path "ready") -eq $gitCommit) -Message "Ready ledger is not linked to the exact repository commit."
@@ -1295,10 +1293,20 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "no_pause" -Path "ready.protocol") -eq $true) -Message "Ready protocol permits pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "screenshots_requested" -Path "ready.protocol") -eq $false) -Message "Ready protocol requests screenshots."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentmon_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require PresentMon."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "vegetation_visibility_audit_interval_ms" -Path "ready.protocol") -eq 100) -Message "Ready protocol vegetation visibility audit cadence changed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "ready_vegetation_visibility_audit_receipt_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require a vegetation visibility audit receipt."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "final_vegetation_visibility_audit_receipt_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require a final vegetation visibility audit receipt."
     Assert-QualifyingInstrumentationContract -Instrumentation (Get-RequiredProperty -InputObject $readyProtocol -Name "instrumentation" -Path "ready.protocol") -Path "ready.protocol.instrumentation"
     $readySignalContract = Get-RequiredProperty -InputObject $ready -Name "start_signal_contract" -Path "ready"
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "schema_version" -Path "ready.start_signal_contract") -eq 2) -Message "Ready start-signal contract schema version changed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "schema_version" -Path "ready.start_signal_contract") -eq 3) -Message "Ready start-signal contract schema version changed."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "qpc_boundary_required" -Path "ready.start_signal_contract") -eq $true) -Message "Ready contract does not require an observed QPC boundary."
+
+    $readyVisibilityAudit = Get-RequiredProperty -InputObject $ready -Name "vegetation_visibility_audit" -Path "ready"
+    [uint64]$readyVisibilityAuditTicket = Get-RequiredProperty -InputObject $readyVisibilityAudit -Name "ticket_id" -Path "ready.vegetation_visibility_audit"
+    [uint64]$readyVisibilityAuditCompleted = Get-RequiredProperty -InputObject $readyVisibilityAudit -Name "completed_id" -Path "ready.vegetation_visibility_audit"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyVisibilityAudit -Name "interval_ms" -Path "ready.vegetation_visibility_audit") -eq 100) -Message "Ready vegetation visibility audit interval changed."
+    Assert-Condition -Condition ($readyVisibilityAuditTicket -gt 0) -Message "Ready vegetation visibility audit ticket is absent."
+    Assert-Condition -Condition ($readyVisibilityAuditCompleted -ge $readyVisibilityAuditTicket) -Message "Ready vegetation visibility audit receipt does not cover its ticket."
 
     $readyPipeline = Get-RequiredProperty -InputObject $ready -Name "pipeline_warmup" -Path "ready"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyPipeline -Name "status" -Path "ready.pipeline_warmup") -eq "ready") -Message "Pipelines are not ready before PresentMon attachment."
@@ -1422,7 +1430,7 @@ try {
 
     $signal = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-start-signal"
-        schema_version = 2
+        schema_version = 3
         process_id = $runtimeProcessId
         presentmon = [ordered]@{
             capture_started = $true
@@ -1520,13 +1528,13 @@ try {
     Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
     $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema" -Path "ledger") -eq "forge.gate1-gameplay-stutter") -Message "Unexpected runtime ledger schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 2) -Message "Unexpected runtime ledger schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 3) -Message "Unexpected runtime ledger schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "status" -Path "ledger") -eq "controller_window_complete_pending_presentmon_analysis") -Message "Runtime controller window did not complete cleanly."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_profile" -Path "ledger") -eq "release") -Message "Runtime ledger build profile is not release."
     $ledgerReady = Get-RequiredProperty -InputObject $ledger -Name "ready" -Path "ledger"
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerReady -Name "signal_schema_version" -Path "ledger.ready") -eq 2) -Message "Runtime ledger start-signal schema version mismatch."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerReady -Name "signal_schema_version" -Path "ledger.ready") -eq 3) -Message "Runtime ledger start-signal schema version mismatch."
     $ledgerSources = Get-RequiredProperty -InputObject $ledger -Name "sources" -Path "ledger"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerSources -Name "cadle_assets_used" -Path "ledger.sources") -eq $false) -Message "Runtime ledger reports Cadle asset use."
 
@@ -1536,6 +1544,9 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vsync_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger reports VSync enabled."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "no_pause" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol allowed pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "screenshots_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger protocol requested screenshots."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vegetation_visibility_audit_interval_ms" -Path "ledger.protocol") -eq 100) -Message "Ledger protocol vegetation visibility audit cadence changed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "ready_vegetation_visibility_audit_receipt_required" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol does not require the ready vegetation visibility audit receipt."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "final_vegetation_visibility_audit_receipt_required" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol does not require the final vegetation visibility audit receipt."
     $ledgerInstrumentation = Get-RequiredProperty -InputObject $ledgerProtocol -Name "instrumentation" -Path "ledger.protocol"
     Assert-QualifyingInstrumentationContract -Instrumentation $ledgerInstrumentation -Path "ledger.protocol.instrumentation"
 
@@ -1557,6 +1568,12 @@ try {
     foreach ($field in @("qualified_before_measurement", "qualified_for_entire_measurement", "structural_identity_stable", "final_main_world_boundary_validated")) {
         Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name $field -Path "ledger.governed_scene") -eq $true) -Message "Governed scene failed $field."
     }
+    $finalVisibilityAudit = Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "final_visibility_audit" -Path "ledger.governed_scene"
+    [uint64]$finalVisibilityAuditTicket = Get-RequiredProperty -InputObject $finalVisibilityAudit -Name "ticket_id" -Path "ledger.governed_scene.final_visibility_audit"
+    [uint64]$finalVisibilityAuditCompleted = Get-RequiredProperty -InputObject $finalVisibilityAudit -Name "completed_id" -Path "ledger.governed_scene.final_visibility_audit"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $finalVisibilityAudit -Name "interval_ms" -Path "ledger.governed_scene.final_visibility_audit") -eq 100) -Message "Final vegetation visibility audit interval changed."
+    Assert-Condition -Condition ($finalVisibilityAuditTicket -gt 0) -Message "Final vegetation visibility audit ticket is absent."
+    Assert-Condition -Condition ($finalVisibilityAuditCompleted -ge $finalVisibilityAuditTicket) -Message "Final vegetation visibility audit receipt does not cover its ticket."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advanced_each_main_world_update" -Path "ledger.governed_scene") -eq $true) -Message "Water animation did not advance on every measured main-world update."
     $waterAnimationAdvancementUpdates = [int](Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advancement_updates" -Path "ledger.governed_scene")
     Assert-Condition -Condition ($waterAnimationAdvancementUpdates -gt 0) -Message "No water animation advancement was observed during measurement."

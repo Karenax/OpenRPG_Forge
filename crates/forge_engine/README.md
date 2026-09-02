@@ -24,6 +24,18 @@ external PresentMon measurement. The overlay and proof ledgers report render-pas
 pipeline statistics and runtime presented-frame counts as `not_observed`; Bevy application-update
 timing remains visible but is never relabeled as presentation timing.
 
+The diagnostics overlay refreshes on a stable 200 ms cadence instead of rebuilding text on every
+application update. Its first update is immediate, automation capture/exit/close frames force a
+refresh, and displayed GPU, quality or scenery state transitions refresh it early. An unchanged
+formatted value does not write the Bevy `Text` component.
+
+Forge's derived vegetation visibility traversal is bounded to a 100 ms wall-clock cadence. Bevy's
+visibility systems, rendering, vegetation wind/interaction and player control remain per-frame.
+Gate 1 can force a monotonic audit ticket at a qualification boundary and only accepts the boundary
+after the post-visibility observer acknowledges it. The historical `observation_frames` metric keeps
+counting main-world visibility boundaries; full traversal passes are exposed separately by the audit
+cadence resource.
+
 The v8 ledger additionally records:
 
 - optional current-device wgpu allocator suballocations and Bevy mesh-slab capacity, neither of

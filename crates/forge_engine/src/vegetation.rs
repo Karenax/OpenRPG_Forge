@@ -32,7 +32,7 @@ use forge_world::{
     VegetationGenerationPlan, VegetationInstance, VegetationInstanceId, VegetationKindCounts,
 };
 use serde::Serialize;
-use std::{any::TypeId, collections::HashMap, error::Error, fmt, ops::Range};
+use std::{any::TypeId, collections::HashMap, error::Error, fmt, ops::Range, time::Duration};
 
 const VEGETATION_SHADER_PATH: &str =
     "embedded://forge_engine/shaders/visual_valley_vegetation_deform.wgsl";
@@ -44,6 +44,12 @@ const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
 const MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M: f32 = 6.0;
 const MAX_MEDIUM_HLOD_CROSSFADE_WIDTH_M: f32 = 12.0;
+
+/// Wall-clock cadence of the derived visibility audit.
+///
+/// Bevy still evaluates [`VisibilitySystems::CheckVisibility`] every frame. Only Forge's
+/// diagnostic traversal of all vegetation projections is limited to ten observations per second.
+pub const VEGETATION_VISIBILITY_AUDIT_INTERVAL: Duration = Duration::from_millis(100);
 
 /// Defensive Gate 1 budgets, applied before expensive generation or mesh allocation.
 pub const MAX_VEGETATION_CANDIDATE_ATTEMPTS: u64 = MAX_VEGETATION_PLACEMENT_ATTEMPTS;
@@ -213,6 +219,11 @@ pub enum VegetationVisibilityObservationStatus {
 /// Last complete visibility observation for the single active Visual Valley camera.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Serialize)]
 pub struct VegetationVisibilityStats {
+    /// Number of main-world visibility boundaries observed by Forge.
+    ///
+    /// The historical main-world meaning is preserved for evidence-schema compatibility. It is not
+    /// a presented-frame count; [`VegetationVisibilityAuditCadence::completed_observations`] reports
+    /// the lower number of full projection audit passes separately.
     pub observation_frames: u64,
     pub status: VegetationVisibilityObservationStatus,
     pub active_camera_views: u64,
@@ -222,6 +233,191 @@ pub struct VegetationVisibilityStats {
     pub medium: VegetationVisibilityBucket,
     pub hlod: VegetationVisibilityBucket,
     pub grass_batches: VegetationVisibilityBucket,
+}
+
+/// Strong receipt returned when a caller requests an out-of-cadence visibility observation.
+///
+/// Tickets are process-local diagnostic identifiers. They are monotonic and never wrap; the
+/// practically unreachable `u64::MAX` value is retained rather than rolling back to zero.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize)]
+#[serde(transparent)]
+pub struct VegetationVisibilityAuditTicket(u64);
+
+impl VegetationVisibilityAuditTicket {
+    /// Numeric identifier suitable for a machine-readable qualification ledger.
+    #[must_use]
+    pub const fn id(self) -> u64 {
+        self.0
+    }
+}
+
+/// Request/receipt control for exact visibility observations at governed checkpoints.
+///
+/// A runtime harness may call [`Self::request_observation`] at a ready or final checkpoint, then
+/// poll [`Self::request_is_completed`] in a later schedule. Multiple pending tickets may be
+/// coalesced into one observation, but each ticket is acknowledged monotonically at most once.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Resource, Serialize)]
+pub struct VegetationVisibilityAuditControl {
+    requested_id: u64,
+    completed_id: u64,
+}
+
+impl VegetationVisibilityAuditControl {
+    /// Requests an observation after Bevy's next visibility pass, regardless of the 100 ms cadence.
+    pub fn request_observation(&mut self) -> VegetationVisibilityAuditTicket {
+        self.requested_id = self.requested_id.saturating_add(1);
+        VegetationVisibilityAuditTicket(self.requested_id)
+    }
+
+    /// Latest requested diagnostic identifier.
+    #[must_use]
+    pub const fn requested_id(&self) -> u64 {
+        self.requested_id
+    }
+
+    /// Latest identifier covered by a completed visibility observation.
+    #[must_use]
+    pub const fn completed_id(&self) -> u64 {
+        self.completed_id
+    }
+
+    /// Returns true only after an observation has covered `ticket`.
+    #[must_use]
+    pub const fn request_is_completed(&self, ticket: VegetationVisibilityAuditTicket) -> bool {
+        ticket.0 <= self.completed_id
+    }
+
+    const fn pending_ticket(&self) -> Option<VegetationVisibilityAuditTicket> {
+        if self.completed_id < self.requested_id {
+            Some(VegetationVisibilityAuditTicket(self.requested_id))
+        } else {
+            None
+        }
+    }
+
+    fn complete_through(&mut self, ticket: Option<VegetationVisibilityAuditTicket>) {
+        if let Some(ticket) = ticket {
+            self.completed_id = self.completed_id.max(ticket.0.min(self.requested_id));
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct VegetationVisibilityAuditSemantics {
+    active_camera_views: u64,
+    single_active_camera: Option<Entity>,
+    single_active_camera_disables_indirect_drawing: bool,
+    visibility_range_bits: [u32; 4],
+}
+
+impl VegetationVisibilityAuditSemantics {
+    fn new(
+        active_camera_views: u64,
+        single_active_camera: Option<Entity>,
+        single_active_camera_disables_indirect_drawing: bool,
+        presentation: VegetationPresentationProfile,
+    ) -> Self {
+        Self {
+            active_camera_views,
+            single_active_camera,
+            single_active_camera_disables_indirect_drawing,
+            visibility_range_bits: [
+                presentation.near_lod_distance_m.to_bits(),
+                presentation.medium_lod_distance_m.to_bits(),
+                presentation.hlod_distance_m.to_bits(),
+                presentation.cull_distance_m.to_bits(),
+            ],
+        }
+    }
+}
+
+/// Runtime state of Forge's bounded vegetation visibility audit.
+///
+/// The resource is public so qualification code can report the effective cadence and completed
+/// observation count. Its scheduling internals remain private: callers force a fresh observation
+/// through [`VegetationVisibilityAuditControl`] instead of mutating the clock state.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Resource)]
+pub struct VegetationVisibilityAuditCadence {
+    interval: Duration,
+    has_observed: bool,
+    last_observed_at: Option<Duration>,
+    main_world_observation_frames: u64,
+    completed_observations: u64,
+    last_semantics: Option<VegetationVisibilityAuditSemantics>,
+}
+
+impl Default for VegetationVisibilityAuditCadence {
+    fn default() -> Self {
+        Self {
+            interval: VEGETATION_VISIBILITY_AUDIT_INTERVAL,
+            has_observed: false,
+            last_observed_at: None,
+            main_world_observation_frames: 0,
+            completed_observations: 0,
+            last_semantics: None,
+        }
+    }
+}
+
+impl VegetationVisibilityAuditCadence {
+    /// Effective minimum interval between ordinary visibility observations.
+    #[must_use]
+    pub const fn interval(&self) -> Duration {
+        self.interval
+    }
+
+    /// Last real-time timestamp recorded by the audit, if a real clock was available.
+    #[must_use]
+    pub const fn last_observed_at(&self) -> Option<Duration> {
+        self.last_observed_at
+    }
+
+    /// Number of actual full audit passes, independent of rendered or simulated frame counts.
+    #[must_use]
+    pub const fn completed_observations(&self) -> u64 {
+        self.completed_observations
+    }
+
+    /// Number of main-world `PostUpdate` visibility boundaries observed by this system.
+    ///
+    /// This preserves the historical meaning of `VegetationVisibilityStats::observation_frames`
+    /// even though the expensive projection traversal now runs at a lower cadence.
+    #[must_use]
+    pub const fn main_world_observation_frames(&self) -> u64 {
+        self.main_world_observation_frames
+    }
+
+    fn record_main_world_observation_frame(&mut self) {
+        self.main_world_observation_frames = self.main_world_observation_frames.saturating_add(1);
+    }
+
+    fn observation_is_due(
+        &self,
+        now: Option<Duration>,
+        forced: bool,
+        semantics: VegetationVisibilityAuditSemantics,
+    ) -> bool {
+        if !self.has_observed || forced || self.last_semantics != Some(semantics) {
+            return true;
+        }
+        match (now, self.last_observed_at) {
+            (Some(now), Some(last)) if now < last => true,
+            (Some(now), Some(last)) => now.saturating_sub(last) >= self.interval,
+            (Some(_), None) => true,
+            (None, _) => false,
+        }
+    }
+
+    fn record_observation(
+        &mut self,
+        now: Option<Duration>,
+        semantics: VegetationVisibilityAuditSemantics,
+    ) {
+        self.has_observed = true;
+        self.last_observed_at = now;
+        self.completed_observations = self.completed_observations.saturating_add(1);
+        self.last_semantics = Some(semantics);
+    }
 }
 
 /// GPU preprocessing state resolved from Bevy's renderer support resource.
@@ -1140,6 +1336,8 @@ impl Plugin for VisualValleyVegetationPlugin {
             .insert_resource(VegetationPresentation(profile))
             .insert_resource(interaction)
             .insert_resource(PreparedVegetation(Some(prepared)))
+            .init_resource::<VegetationVisibilityAuditControl>()
+            .init_resource::<VegetationVisibilityAuditCadence>()
             .add_plugins(MaterialPlugin::<VisualValleyVegetationMaterial>::default())
             .add_systems(Startup, spawn_vegetation_projection)
             .add_systems(Update, update_vegetation_interaction_uniform)
@@ -1900,10 +2098,14 @@ fn observe_vegetation_visibility(
         )>,
     >,
     visible_ranges: Res<VisibleEntityRanges>,
+    time: Option<Res<Time<Real>>>,
+    presentation: Res<VegetationPresentation>,
     mut visible_meshes: Local<EntityHashSet>,
+    mut audit_control: ResMut<VegetationVisibilityAuditControl>,
+    mut audit_cadence: ResMut<VegetationVisibilityAuditCadence>,
     mut stats: ResMut<VegetationProjectionStats>,
 ) {
-    let observation_frames = stats.visibility.observation_frames.saturating_add(1);
+    audit_cadence.record_main_world_observation_frame();
     let mut active_cameras = cameras.iter().filter(|(_, camera, _, _)| camera.is_active);
     let active_camera = active_cameras.next();
     let additional_active_cameras = active_cameras.count();
@@ -1915,56 +2117,71 @@ fn observe_vegetation_visibility(
         1 => VegetationVisibilityObservationStatus::ObservedSingleActiveCamera,
         _ => VegetationVisibilityObservationStatus::UnavailableMultipleActiveCameras,
     };
+    let single_active_camera = if active_camera_views == 1 {
+        active_camera.map(|(entity, _, _, _)| entity)
+    } else {
+        None
+    };
+    let single_active_camera_disables_indirect_drawing = active_camera_views == 1
+        && active_camera.is_some_and(|(_, _, _, no_indirect_drawing)| no_indirect_drawing);
+    let semantics = VegetationVisibilityAuditSemantics::new(
+        active_camera_views,
+        single_active_camera,
+        single_active_camera_disables_indirect_drawing,
+        presentation.0,
+    );
+    let pending_ticket = audit_control.pending_ticket();
+    let now = time.as_deref().map(Time::elapsed);
+    if !audit_cadence.observation_is_due(now, pending_ticket.is_some(), semantics) {
+        return;
+    }
+
     let mut observation = VegetationVisibilityStats {
-        observation_frames,
+        observation_frames: audit_cadence.main_world_observation_frames(),
         status: observation_status,
         active_camera_views,
         ..default()
     };
-    let Some((camera_entity, _, camera_visible_entities, no_indirect_drawing)) = active_camera
-    else {
-        stats.visibility = observation;
-        stats.render_path.active_camera_gpu_preprocessing = VegetationGpuPreprocessingMode::Unknown;
-        return;
-    };
-    if additional_active_cameras > 0 {
-        stats.visibility = observation;
-        stats.render_path.active_camera_gpu_preprocessing = VegetationGpuPreprocessingMode::Unknown;
-        return;
-    }
-
-    visible_meshes.clear();
-    visible_meshes.extend(
-        camera_visible_entities
-            .iter(TypeId::of::<Mesh3d>())
-            .copied(),
-    );
-    for (entity, placement, batch) in &projections {
-        let in_range = visible_ranges.entity_is_in_range_of_view(entity, camera_entity);
-        let cpu_visible_for_camera = visible_meshes.contains(&entity);
-        if cpu_visible_for_camera && !in_range {
-            observation.visible_outside_range_inconsistencies = observation
-                .visible_outside_range_inconsistencies
-                .saturating_add(1);
+    if let Some((camera_entity, _, camera_visible_entities, no_indirect_drawing)) =
+        active_camera.filter(|_| additional_active_cameras == 0)
+    {
+        visible_meshes.clear();
+        visible_meshes.extend(
+            camera_visible_entities
+                .iter(TypeId::of::<Mesh3d>())
+                .copied(),
+        );
+        for (entity, placement, batch) in &projections {
+            let in_range = visible_ranges.entity_is_in_range_of_view(entity, camera_entity);
+            let cpu_visible_for_camera = visible_meshes.contains(&entity);
+            if cpu_visible_for_camera && !in_range {
+                observation.visible_outside_range_inconsistencies = observation
+                    .visible_outside_range_inconsistencies
+                    .saturating_add(1);
+            }
+            observation.total.observe(in_range, cpu_visible_for_camera);
+            let bucket = match (
+                placement.map(|marker| marker.lod),
+                batch.map(|marker| marker.lod),
+            ) {
+                (Some(VegetationProjectionLod::Near), None) => &mut observation.near,
+                (Some(VegetationProjectionLod::Medium), None) => &mut observation.medium,
+                (None, Some(VegetationProjectionLod::Hlod)) => &mut observation.hlod,
+                (None, Some(VegetationProjectionLod::GrassBatch)) => &mut observation.grass_batches,
+                _ => continue,
+            };
+            bucket.observe(in_range, cpu_visible_for_camera);
         }
-        observation.total.observe(in_range, cpu_visible_for_camera);
-        let bucket = match (
-            placement.map(|marker| marker.lod),
-            batch.map(|marker| marker.lod),
-        ) {
-            (Some(VegetationProjectionLod::Near), None) => &mut observation.near,
-            (Some(VegetationProjectionLod::Medium), None) => &mut observation.medium,
-            (None, Some(VegetationProjectionLod::Hlod)) => &mut observation.hlod,
-            (None, Some(VegetationProjectionLod::GrassBatch)) => &mut observation.grass_batches,
-            _ => continue,
-        };
-        bucket.observe(in_range, cpu_visible_for_camera);
+        stats.render_path.active_camera_gpu_preprocessing = resolve_camera_preprocessing(
+            stats.render_path.maximum_gpu_preprocessing,
+            no_indirect_drawing,
+        );
+    } else {
+        stats.render_path.active_camera_gpu_preprocessing = VegetationGpuPreprocessingMode::Unknown;
     }
     stats.visibility = observation;
-    stats.render_path.active_camera_gpu_preprocessing = resolve_camera_preprocessing(
-        stats.render_path.maximum_gpu_preprocessing,
-        no_indirect_drawing,
-    );
+    audit_cadence.record_observation(now, semantics);
+    audit_control.complete_through(pending_ticket);
 }
 
 const fn vegetation_gpu_preprocessing_mode(
@@ -2066,6 +2283,107 @@ mod tests {
             interaction_strength: 0.8,
             grass_blades_per_patch: 12,
         }
+    }
+
+    fn visibility_semantics(
+        camera: Option<Entity>,
+        presentation: VegetationPresentationProfile,
+    ) -> VegetationVisibilityAuditSemantics {
+        VegetationVisibilityAuditSemantics::new(
+            u64::from(camera.is_some()),
+            camera,
+            false,
+            presentation,
+        )
+    }
+
+    #[test]
+    fn visibility_audit_is_due_immediately_without_a_real_clock() {
+        let semantics = visibility_semantics(None, profile());
+        let mut cadence = VegetationVisibilityAuditCadence::default();
+
+        assert_eq!(cadence.main_world_observation_frames(), 0);
+        cadence.record_main_world_observation_frame();
+        assert_eq!(cadence.main_world_observation_frames(), 1);
+        assert!(cadence.observation_is_due(None, false, semantics));
+        cadence.record_observation(None, semantics);
+        assert!(!cadence.observation_is_due(None, false, semantics));
+        assert!(cadence.observation_is_due(None, true, semantics));
+        assert_eq!(cadence.interval(), Duration::from_millis(100));
+        assert_eq!(cadence.completed_observations(), 1);
+    }
+
+    #[test]
+    fn visibility_audit_deadline_is_exact_and_uses_real_elapsed_time() {
+        let semantics = visibility_semantics(None, profile());
+        let mut cadence = VegetationVisibilityAuditCadence::default();
+        cadence.record_observation(Some(Duration::from_secs(3)), semantics);
+
+        assert!(!cadence.observation_is_due(Some(Duration::from_millis(3_099)), false, semantics,));
+        assert!(cadence.observation_is_due(Some(Duration::from_millis(3_100)), false, semantics,));
+        assert_eq!(cadence.last_observed_at(), Some(Duration::from_secs(3)));
+    }
+
+    #[test]
+    fn forced_visibility_audit_ticket_is_monotonic_and_consumed_once() {
+        let semantics = visibility_semantics(None, profile());
+        let mut cadence = VegetationVisibilityAuditCadence::default();
+        cadence.record_observation(Some(Duration::ZERO), semantics);
+        let mut control = VegetationVisibilityAuditControl::default();
+
+        let first = control.request_observation();
+        assert_eq!(first.id(), 1);
+        assert_eq!(control.requested_id(), 1);
+        assert_eq!(control.completed_id(), 0);
+        assert!(!control.request_is_completed(first));
+        assert!(cadence.observation_is_due(
+            Some(Duration::from_millis(1)),
+            control.pending_ticket().is_some(),
+            semantics,
+        ));
+
+        cadence.record_observation(Some(Duration::from_millis(1)), semantics);
+        control.complete_through(control.pending_ticket());
+        assert!(control.request_is_completed(first));
+        assert_eq!(control.completed_id(), 1);
+        assert!(!cadence.observation_is_due(
+            Some(Duration::from_millis(2)),
+            control.pending_ticket().is_some(),
+            semantics,
+        ));
+
+        let second = control.request_observation();
+        assert_eq!(second.id(), 2);
+        assert!(second > first);
+        assert!(!control.request_is_completed(second));
+        assert!(cadence.observation_is_due(
+            Some(Duration::from_millis(2)),
+            control.pending_ticket().is_some(),
+            semantics,
+        ));
+    }
+
+    #[test]
+    fn relevant_camera_or_quality_semantics_force_an_early_visibility_audit() {
+        let camera = Entity::from_raw_u32(7).unwrap();
+        let original = visibility_semantics(Some(camera), profile());
+        let mut cadence = VegetationVisibilityAuditCadence::default();
+        cadence.record_observation(Some(Duration::from_secs(1)), original);
+
+        assert!(!cadence.observation_is_due(Some(Duration::from_millis(1_001)), false, original,));
+        assert!(cadence.observation_is_due(
+            Some(Duration::from_millis(1_001)),
+            false,
+            visibility_semantics(None, profile()),
+        ));
+
+        let mut lower_distance = profile();
+        lower_distance.cull_distance_m -= 1.0;
+        assert!(cadence.observation_is_due(
+            Some(Duration::from_millis(1_001)),
+            false,
+            visibility_semantics(Some(camera), lower_distance),
+        ));
     }
 
     fn placement(kind: VegetationKind, x: f32, z: f32) -> ProceduralVegetationPlacement {

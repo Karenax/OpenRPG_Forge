@@ -60,13 +60,16 @@ pub use terrain_update::{
 };
 pub use vegetation::{
     MAX_VEGETATION_CANDIDATE_ATTEMPTS, MAX_VEGETATION_GRASS_BLADES,
-    MAX_VEGETATION_PROJECTION_ENTITIES, VegetationAdapterError, VegetationChunkBatchMarker,
-    VegetationInteractionField, VegetationLodRanges, VegetationMeshError, VegetationMeshKey,
-    VegetationPlacementMarker, VegetationPlacementStats, VegetationProjectionCounts,
-    VegetationProjectionLod, VegetationProjectionStats, VegetationRenderPathStats,
-    VegetationTriangleStats, VegetationVisibilityBucket, VegetationVisibilityObservationStatus,
-    VegetationVisibilityStats, VisualValleyVegetationExtension, VisualValleyVegetationMaterial,
-    VisualValleyVegetationPlugin, inspect_vegetation_projection,
+    MAX_VEGETATION_PROJECTION_ENTITIES, VEGETATION_VISIBILITY_AUDIT_INTERVAL,
+    VegetationAdapterError, VegetationChunkBatchMarker, VegetationInteractionField,
+    VegetationLodRanges, VegetationMeshError, VegetationMeshKey, VegetationPlacementMarker,
+    VegetationPlacementStats, VegetationProjectionCounts, VegetationProjectionLod,
+    VegetationProjectionStats, VegetationRenderPathStats, VegetationTriangleStats,
+    VegetationVisibilityAuditCadence, VegetationVisibilityAuditControl,
+    VegetationVisibilityAuditTicket, VegetationVisibilityBucket,
+    VegetationVisibilityObservationStatus, VegetationVisibilityStats,
+    VisualValleyVegetationExtension, VisualValleyVegetationMaterial, VisualValleyVegetationPlugin,
+    inspect_vegetation_projection,
 };
 pub use visual_valley::{
     VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,
@@ -107,6 +110,7 @@ use std::{
     fmt::Write as _,
     fs,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 /// Persistent identity carried by a transient Bevy entity.
@@ -186,6 +190,97 @@ pub struct GpuDiagnostic {
 
 #[derive(Component)]
 struct DiagnosticsOverlay;
+
+const DIAGNOSTICS_OVERLAY_REFRESH_INTERVAL: Duration = Duration::from_millis(200);
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct DiagnosticsOverlayQualityState {
+    selection: VisualValleyQualitySelection,
+    current_tier: forge_project::VisualQualityTier,
+    dynamically_applied_tier: Option<forge_project::VisualQualityTier>,
+}
+
+impl From<&VisualValleyQualityStats> for DiagnosticsOverlayQualityState {
+    fn from(stats: &VisualValleyQualityStats) -> Self {
+        Self {
+            selection: stats.selection,
+            current_tier: stats.current_tier,
+            dynamically_applied_tier: stats.dynamically_applied_tier,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct DiagnosticsOverlaySceneryState {
+    status: SceneryProjectionStatus,
+    loaded_models: usize,
+    unique_models: usize,
+    replacement_lod_start_bits: u32,
+    replacement_lod_end_bits: u32,
+}
+
+impl From<&SceneryProjectionStats> for DiagnosticsOverlaySceneryState {
+    fn from(stats: &SceneryProjectionStats) -> Self {
+        Self {
+            status: stats.status,
+            loaded_models: stats.loaded_models,
+            unique_models: stats.unique_models,
+            replacement_lod_start_bits: stats.replacement_lod_start_m.to_bits(),
+            replacement_lod_end_bits: stats.replacement_lod_end_m.to_bits(),
+        }
+    }
+}
+
+#[derive(Debug, Resource)]
+struct DiagnosticsOverlayRefreshState {
+    elapsed: Duration,
+    initialized: bool,
+    gpu_name: Option<String>,
+    quality: Option<DiagnosticsOverlayQualityState>,
+    scenery: Option<DiagnosticsOverlaySceneryState>,
+}
+
+impl Default for DiagnosticsOverlayRefreshState {
+    fn default() -> Self {
+        Self {
+            elapsed: Duration::ZERO,
+            initialized: false,
+            gpu_name: None,
+            quality: None,
+            scenery: None,
+        }
+    }
+}
+
+impl DiagnosticsOverlayRefreshState {
+    fn should_refresh(
+        &mut self,
+        delta: Duration,
+        forced: bool,
+        gpu_name: Option<&str>,
+        quality: Option<DiagnosticsOverlayQualityState>,
+        scenery: Option<DiagnosticsOverlaySceneryState>,
+    ) -> bool {
+        self.elapsed = self.elapsed.saturating_add(delta);
+        let periodic = self.elapsed >= DIAGNOSTICS_OVERLAY_REFRESH_INTERVAL;
+        if periodic {
+            self.elapsed = Duration::ZERO;
+        }
+
+        let first = !self.initialized;
+        let semantic_change = self.gpu_name.as_deref() != gpu_name
+            || self.quality != quality
+            || self.scenery != scenery;
+        if self.gpu_name.as_deref() != gpu_name {
+            self.gpu_name = gpu_name.map(str::to_owned);
+        }
+        self.quality = quality;
+        self.scenery = scenery;
+        self.initialized = true;
+
+        first || periodic || forced || semantic_change
+    }
+}
 
 #[derive(Resource, Default)]
 struct AdapterLogged(bool);
@@ -458,6 +553,7 @@ impl Plugin for RuntimeEvidencePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.automation.clone())
             .insert_resource(FrameLedger::for_automation(&self.automation))
+            .init_resource::<DiagnosticsOverlayRefreshState>()
             .insert_resource(WindowLifecycle::new(
                 self.automation.resize_request,
                 self.automation.close_at_frame,
@@ -990,16 +1086,39 @@ struct RuntimePerformanceEvidence<'w> {
 
 #[allow(
     clippy::needless_pass_by_value,
-    reason = "Bevy systems require owned system parameter wrappers"
+    clippy::too_many_arguments,
+    reason = "Bevy systems require owned wrappers for independent evidence and cadence resources"
 )]
 fn update_overlay(
     diagnostics: Res<DiagnosticsStore>,
     stats: Res<ProofSceneStats>,
+    frame: Res<bevy::diagnostic::FrameCount>,
+    time: Option<Res<Time<Real>>>,
     automation: Res<RuntimeAutomation>,
     gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
+    mut refresh: ResMut<DiagnosticsOverlayRefreshState>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
 ) {
+    let quality_state = gate1
+        .quality
+        .as_deref()
+        .map(DiagnosticsOverlayQualityState::from);
+    let scenery_state = gate1
+        .scenery
+        .as_deref()
+        .map(DiagnosticsOverlaySceneryState::from);
+    let forced = automation_forces_overlay_refresh(frame.0, &automation);
+    if !refresh.should_refresh(
+        time.as_deref().map_or(Duration::ZERO, Time::delta),
+        forced,
+        gpu.as_deref().map(|gpu| gpu.name.as_str()),
+        quality_state,
+        scenery_state,
+    ) {
+        return;
+    }
+
     let fps = diagnostics
         .get(&FrameTimeDiagnosticsPlugin::FPS)
         .and_then(bevy::diagnostic::Diagnostic::smoothed)
@@ -1012,7 +1131,7 @@ fn update_overlay(
         .as_ref()
         .map_or("GPU initialising", |gpu| gpu.name.as_str());
     let render_work = build_render_work_report(&stats, &diagnostics);
-    **overlay = Text::new(if let Some(visual_valley) = gate1.visual_valley {
+    let next_text = if let Some(visual_valley) = gate1.visual_valley {
         let mut logical_details = visual_valley.overlay_details();
         if let Some(vegetation) = gate1.vegetation {
             logical_details.push('\n');
@@ -1074,7 +1193,24 @@ fn update_overlay(
             &stats,
             &render_work,
         )
-    });
+    };
+    if let Some(replacement) = diagnostics_overlay_text_replacement(&overlay, next_text) {
+        **overlay = replacement;
+    }
+}
+
+fn automation_forces_overlay_refresh(frame: u32, automation: &RuntimeAutomation) -> bool {
+    (automation.capture_path.is_some() && frame == automation.capture_frame)
+        || automation
+            .exit_after_frames
+            .is_some_and(|exit_frame| frame == exit_frame)
+        || automation
+            .close_at_frame
+            .is_some_and(|close_frame| frame == close_frame)
+}
+
+fn diagnostics_overlay_text_replacement(current: &Text, next: String) -> Option<Text> {
+    (current.as_str() != next).then(|| Text::new(next))
 }
 
 fn format_diagnostics_overlay(
@@ -2063,6 +2199,117 @@ mod tests {
             exit_after_frames: last_frame,
             ..default()
         }
+    }
+
+    #[test]
+    fn diagnostics_overlay_refresh_is_immediate_and_keeps_a_stable_period() {
+        let mut refresh = DiagnosticsOverlayRefreshState::default();
+
+        assert!(refresh.should_refresh(Duration::ZERO, false, None, None, None));
+        assert!(!refresh.should_refresh(Duration::from_millis(199), false, None, None, None,));
+        assert!(refresh.should_refresh(Duration::from_millis(1), false, None, None, None,));
+
+        assert!(refresh.should_refresh(Duration::from_millis(50), true, None, None, None,));
+        assert!(!refresh.should_refresh(Duration::from_millis(149), false, None, None, None,));
+        assert!(refresh.should_refresh(Duration::from_millis(1), false, None, None, None,));
+    }
+
+    #[test]
+    fn diagnostics_overlay_refreshes_only_for_displayed_semantic_changes() {
+        let mut refresh = DiagnosticsOverlayRefreshState::default();
+        let high = DiagnosticsOverlayQualityState {
+            selection: VisualValleyQualitySelection::Fixed(forge_project::VisualQualityTier::High),
+            current_tier: forge_project::VisualQualityTier::High,
+            dynamically_applied_tier: Some(forge_project::VisualQualityTier::High),
+        };
+        let ultra = DiagnosticsOverlayQualityState {
+            current_tier: forge_project::VisualQualityTier::Ultra,
+            dynamically_applied_tier: Some(forge_project::VisualQualityTier::Ultra),
+            ..high
+        };
+        let pending = DiagnosticsOverlaySceneryState {
+            status: SceneryProjectionStatus::Pending,
+            loaded_models: 0,
+            unique_models: 9,
+            replacement_lod_start_bits: 72.0_f32.to_bits(),
+            replacement_lod_end_bits: 180.0_f32.to_bits(),
+        };
+        let activated = DiagnosticsOverlaySceneryState {
+            status: SceneryProjectionStatus::Activated,
+            loaded_models: 9,
+            ..pending
+        };
+
+        assert!(refresh.should_refresh(Duration::ZERO, false, None, None, None));
+        assert!(!refresh.should_refresh(Duration::ZERO, false, None, None, None));
+        assert!(refresh.should_refresh(Duration::ZERO, false, Some("test GPU"), None, None,));
+        assert!(!refresh.should_refresh(Duration::ZERO, false, Some("test GPU"), None, None,));
+        assert!(refresh.should_refresh(Duration::ZERO, false, Some("test GPU"), Some(high), None,));
+        assert!(
+            !refresh.should_refresh(Duration::ZERO, false, Some("test GPU"), Some(high), None,)
+        );
+        assert!(
+            refresh.should_refresh(Duration::ZERO, false, Some("test GPU"), Some(ultra), None,)
+        );
+        assert!(refresh.should_refresh(
+            Duration::ZERO,
+            false,
+            Some("test GPU"),
+            Some(ultra),
+            Some(pending),
+        ));
+        assert!(refresh.should_refresh(
+            Duration::ZERO,
+            false,
+            Some("test GPU"),
+            Some(ultra),
+            Some(activated),
+        ));
+        assert!(!refresh.should_refresh(
+            Duration::ZERO,
+            false,
+            Some("test GPU"),
+            Some(ultra),
+            Some(activated),
+        ));
+    }
+
+    #[test]
+    fn automation_refreshes_overlay_on_capture_exit_and_close_frames() {
+        let automation = RuntimeAutomation {
+            capture_path: Some(PathBuf::from("overlay-capture-test.png")),
+            capture_frame: 12,
+            exit_after_frames: Some(20),
+            close_at_frame: Some(30),
+            ..default()
+        };
+
+        assert!(!automation_forces_overlay_refresh(11, &automation));
+        assert!(automation_forces_overlay_refresh(12, &automation));
+        assert!(automation_forces_overlay_refresh(20, &automation));
+        assert!(automation_forces_overlay_refresh(30, &automation));
+        assert!(!automation_forces_overlay_refresh(31, &automation));
+
+        let capture_not_configured = RuntimeAutomation {
+            capture_frame: 12,
+            ..default()
+        };
+        assert!(!automation_forces_overlay_refresh(
+            12,
+            &capture_not_configured
+        ));
+    }
+
+    #[test]
+    fn unchanged_diagnostics_overlay_text_has_no_replacement() {
+        let current = Text::new("stable overlay");
+
+        assert!(
+            diagnostics_overlay_text_replacement(&current, "stable overlay".to_owned()).is_none()
+        );
+        let replacement =
+            diagnostics_overlay_text_replacement(&current, "updated overlay".to_owned()).unwrap();
+        assert_eq!(replacement.as_str(), "updated overlay");
     }
 
     fn sample_gpu_memory() -> GpuMemoryObservation {
