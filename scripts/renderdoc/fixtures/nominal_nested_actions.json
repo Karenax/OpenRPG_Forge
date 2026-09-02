@@ -1,0 +1,142 @@
+{
+  "schema": "forge-gate1-renderdoc-actions/v1",
+  "capture": {
+    "captured_frame_count": 1,
+    "present_count": 1,
+    "local_replay_support": "Supported",
+    "pipeline_type": "Vulkan",
+    "degraded": false
+  },
+  "actions": [
+    {
+      "event_id": 1,
+      "name": "Visual Valley",
+      "flags": [
+        "PushMarker"
+      ],
+      "topology": null,
+      "num_indices": 0,
+      "num_instances": 0,
+      "indirect": false,
+      "indirect_resolved": true,
+      "active_stages": [],
+      "children": [
+        {
+          "event_id": 2,
+          "name": "Opaque terrain",
+          "flags": [
+            "Drawcall"
+          ],
+          "topology": "TriangleList",
+          "num_indices": 6,
+          "num_instances": 2,
+          "indirect": false,
+          "indirect_resolved": true,
+          "active_stages": [
+            "Vertex",
+            "Fragment"
+          ],
+          "children": []
+        },
+        {
+          "event_id": 3,
+          "name": "Expanded vegetation multi-action",
+          "flags": [
+            "MultiAction",
+            "Drawcall"
+          ],
+          "topology": "TriangleStrip",
+          "num_indices": 999,
+          "num_instances": 99,
+          "indirect": false,
+          "indirect_resolved": true,
+          "active_stages": [
+            "Geometry"
+          ],
+          "children": [
+            {
+              "event_id": 4,
+              "name": "Debug line list",
+              "flags": [
+                "Drawcall"
+              ],
+              "topology": "LineList",
+              "num_indices": 4,
+              "num_instances": 0,
+              "indirect": false,
+              "indirect_resolved": true,
+              "active_stages": [
+                "Vertex",
+                "Fragment"
+              ],
+              "children": []
+            },
+            {
+              "event_id": 5,
+              "name": "Nested marker",
+              "flags": [
+                "PushMarker"
+              ],
+              "topology": null,
+              "num_indices": 0,
+              "num_instances": 0,
+              "indirect": false,
+              "indirect_resolved": true,
+              "active_stages": [],
+              "children": [
+                {
+                  "event_id": 6,
+                  "name": "Point sprites",
+                  "flags": [
+                    "Drawcall"
+                  ],
+                  "topology": "PointList",
+                  "num_indices": 5,
+                  "num_instances": 3,
+                  "indirect": false,
+                  "indirect_resolved": true,
+                  "active_stages": [
+                    "Vertex",
+                    "Fragment"
+                  ],
+                  "children": []
+                }
+              ]
+            },
+            {
+              "event_id": 7,
+              "name": "Depth-only foliage",
+              "flags": [
+                "Drawcall",
+                "Indirect"
+              ],
+              "topology": "TriangleList",
+              "num_indices": 3,
+              "num_instances": 1,
+              "indirect": true,
+              "indirect_resolved": true,
+              "active_stages": [
+                "Vertex"
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "event_id": 8,
+      "name": "Present",
+      "flags": [
+        "Present"
+      ],
+      "topology": null,
+      "num_indices": 0,
+      "num_instances": 0,
+      "indirect": false,
+      "indirect_resolved": true,
+      "active_stages": [],
+      "children": []
+    }
+  ]
+}

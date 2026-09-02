@@ -1,0 +1,190 @@
+{
+  "schema": "forge-gate1-renderdoc-lock/v1",
+  "route": "R1-037",
+  "created_from_commit": "1912806fc6e90277cd779a21a2557e6c820d5d44",
+  "created_from_tree": "4bfb863255dd865432093c5e7291287b8e78dc43",
+  "tool": {
+    "product": "RenderDoc",
+    "release": "1.46",
+    "platform": "Windows x64 portable",
+    "release_tag": "v1.46",
+    "release_tag_object": "102e5410cb596fddc140ef0fdcd4292c495b4b41",
+    "release_commit": "e4bd23b671d3d5a747ff5221dbe08a63eb6ca200",
+    "source_urls": {
+      "archive": "https://renderdoc.org/stable/1.46/RenderDoc_1.46_64.zip",
+      "signature": "https://renderdoc.org/stable/1.46/RenderDoc_1.46_64.zip.sig",
+      "public_key": "https://renderdoc.org/baldurk-pubkey.asc"
+    },
+    "sha256": {
+      "archive": "9CA4D09ECABA2CC791168660D6FC2A7E3D70FE67146E87EC05C5F8DEA70772F7",
+      "signature": "F2773031ED354F5E0C98FD87BDFFDB01CEBA1559776BF7E79377215F23B32077",
+      "public_key": "29062B19E84C72E2F2D3FFA4C0578CF9627E6E710EBFA78DA513B6C33471523A",
+      "qrenderdoc_exe": "C5E9D3F254D80A7649FBD9EAE1C67618CB19278C603710370C220DE469397277",
+      "renderdoccmd_exe": "400CB013EA52B9BAA818D69DC0A6341776D2A9560EDAD5BCC6E200FE8C03806D",
+      "renderdoc_dll": "809DA38E3867D9FD09CC5C30DD5310500DEE75E999166D7A14AD1EF6E9ECA65D",
+      "license_md": "BA3B05B7F5BFDB4B4917BF8EA3AA9C4EA4C20FF6522DE9109A6CC982C5C35730",
+      "acquisition_result": "1353372A67D364AF2B33A05833FAE6F8A355378C4202CFD4DA281BC78E97C77F"
+    },
+    "openpgp_primary_fingerprint": "1B039DB9A4718A2D699DE031AC612C3120C34695",
+    "authenticode_signer_subject": "CN=Baldur Scott Karlsson, O=Baldur Scott Karlsson, S=Scotland, C=GB",
+    "authenticode_signer_thumbprint": "F91353AE1E90CBEFF15585165D1611C5CE72E346",
+    "license": {
+      "spdx": "MIT",
+      "preserved_with_external_package": true,
+      "forge_repository_copy": false,
+      "redistribution_planned": false,
+      "redistribution_review_required": true
+    },
+    "storage_policy": "external_only_outside_git_worktrees"
+  },
+  "qualification_matrix": {
+    "qualifiable": [
+      {
+        "os": "Windows",
+        "architecture": "x86_64",
+        "backend": "Vulkan",
+        "weather": [
+          "clear",
+          "rain"
+        ],
+        "independent_launches_per_weather": 2,
+        "total_captures": 4
+      }
+    ],
+    "not_qualified": [
+      {
+        "backend": "D3D12",
+        "reason": "capture_path_not_qualified"
+      }
+    ],
+    "unsupported": [
+      {
+        "backend": "Browser WebGPU",
+        "reason": "unsupported_by_renderdoc_1_46"
+      }
+    ]
+  },
+  "workload": {
+    "scene": "visual_valley",
+    "quality": "high",
+    "width": 1920,
+    "height": 1080,
+    "vsync": false,
+    "camera": "fixed",
+    "seed": "fixed",
+    "tick": "fixed",
+    "weather_order": [
+      "clear",
+      "rain"
+    ],
+    "pipeline_stable_render_frames": 30,
+    "freeze_before_ready_receipt": true,
+    "ready_receipt_atomic": true,
+    "ready_receipt_required_fields": [
+      "schema",
+      "nonce",
+      "pid",
+      "source_commit",
+      "build_profile",
+      "backend",
+      "gpu",
+      "driver",
+      "resolution",
+      "vsync",
+      "weather",
+      "seed",
+      "tick",
+      "camera",
+      "source_hashes"
+    ]
+  },
+  "capture": {
+    "launcher": "qrenderdoc.exe --py",
+    "launch_api": "ExecuteAndInject",
+    "target_control_required": true,
+    "trigger_api": "TriggerCapture",
+    "trigger_count": 1,
+    "captured_frame_count": 1,
+    "present_count": 1,
+    "local_replay_support": "Supported",
+    "pipeline_type": "Vulkan",
+    "degraded": false,
+    "fresh_process_per_capture": true,
+    "registry_mutation_by_harness": false
+  },
+  "normalized_input": {
+    "schema": "forge-gate1-renderdoc-actions/v1",
+    "model": "scripts/renderdoc/gate1_renderdoc_model.py",
+    "root_fields": [
+      "schema",
+      "capture",
+      "actions"
+    ],
+    "capture_fields": [
+      "captured_frame_count",
+      "present_count",
+      "local_replay_support",
+      "pipeline_type",
+      "degraded"
+    ],
+    "action_fields": [
+      "event_id",
+      "name",
+      "flags",
+      "topology",
+      "num_indices",
+      "num_instances",
+      "indirect",
+      "indirect_resolved",
+      "active_stages",
+      "children"
+    ]
+  },
+  "analysis": {
+    "leaf_flag": "Drawcall",
+    "containers_recursed_without_counting_parent": true,
+    "zero_num_instances_fallback": 1,
+    "accepted_topologies": [
+      "TriangleList",
+      "LineList",
+      "PointList"
+    ],
+    "triangle_formula": "num_indices_div_3_times_instances",
+    "line_formula": "num_indices_div_2_times_instances",
+    "point_formula": "num_indices_times_instances",
+    "separate_counters": [
+      "draws",
+      "instances",
+      "triangles",
+      "lines",
+      "points"
+    ],
+    "integer_limit": "uint64",
+    "reject": [
+      "triangle_strip",
+      "triangle_fan",
+      "line_strip",
+      "adjacency",
+      "patch",
+      "unknown_topology",
+      "geometry_stage",
+      "tessellation_stage",
+      "mesh_task_stage",
+      "unresolved_indirect",
+      "unexpanded_multiaction_leaf",
+      "indivisible_primitive_count",
+      "duplicate_event_id",
+      "integer_overflow"
+    ],
+    "fps_from_renderdoc": false
+  },
+  "qualification_boundary": {
+    "portable_acquisition_status": "PASS",
+    "vulkan_layer_registered": false,
+    "captures_status": "NOT_RUN",
+    "closes_r1_037": false,
+    "closes_gate1": false,
+    "authorizes_gate2": false,
+    "cadle_asset_copied": false
+  }
+}
