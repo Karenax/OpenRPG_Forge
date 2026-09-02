@@ -1,3 +1,5 @@
+#[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+use crate::presentation_profile::PresentationProfileController;
 use bevy::{
     app::AppExit,
     diagnostic::FrameCount,
@@ -117,7 +119,7 @@ impl Gate1PresentationRoute {
     unsafe_code,
     reason = "the isolated Gate 1 clock adapter calls the two pointer-only Win32 QPC functions"
 )]
-mod qpc_clock {
+pub(crate) mod qpc_clock {
     #[link(name = "kernel32")]
     unsafe extern "system" {
         #[link_name = "QueryPerformanceCounter"]
@@ -126,11 +128,11 @@ mod qpc_clock {
         fn query_performance_frequency(value: *mut i64) -> i32;
     }
 
-    pub(super) fn timestamp() -> Result<u64, String> {
+    pub(crate) fn timestamp() -> Result<u64, String> {
         query(query_performance_counter, "QueryPerformanceCounter")
     }
 
-    pub(super) fn frequency_hz() -> Result<u64, String> {
+    pub(crate) fn frequency_hz() -> Result<u64, String> {
         query(query_performance_frequency, "QueryPerformanceFrequency")
     }
 
@@ -152,12 +154,12 @@ mod qpc_clock {
 }
 
 #[cfg(not(windows))]
-mod qpc_clock {
-    pub(super) fn timestamp() -> Result<u64, String> {
+pub(crate) mod qpc_clock {
+    pub(crate) fn timestamp() -> Result<u64, String> {
         Err("Gate 1 QPC acquisition requires Windows".to_owned())
     }
 
-    pub(super) fn frequency_hz() -> Result<u64, String> {
+    pub(crate) fn frequency_hz() -> Result<u64, String> {
         Err("Gate 1 QPC acquisition requires Windows".to_owned())
     }
 }
@@ -255,6 +257,14 @@ fn validate_external_presentation_instrumentation(app: &App) -> Result<(), &'sta
     }
     if app.is_plugin_added::<RenderDiagnosticsPlugin>() {
         return Err("RenderDiagnosticsPlugin must be absent from the qualifying runtime");
+    }
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    if app
+        .world()
+        .get_resource::<PresentationProfileController>()
+        .is_none_or(|controller| !controller.is_enabled())
+    {
+        return Err("presentation-profile controller must be enabled for this diagnostic build");
     }
     Ok(())
 }
@@ -833,9 +843,15 @@ struct GameplayStutterLedger {
     qualification: LedgerQualification,
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters are owned handles"
+)]
 fn drive_controller(
     mut pending: ResMut<PendingPlayerControlCommand>,
     mut runtime: ResMut<Runtime>,
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    presentation_profile: Option<Res<PresentationProfileController>>,
     mut exit: MessageWriter<AppExit>,
 ) {
     if runtime.phase.is_terminal() {
@@ -845,6 +861,18 @@ fn drive_controller(
         match runtime.phase {
             Phase::PreparingForward if runtime.forward_sequence.is_none() => {
                 begin_controller_qpc_window(&mut runtime)?;
+                #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+                presentation_profile
+                    .as_deref()
+                    .ok_or("presentation-profile controller resource is absent")?
+                    .start(
+                        runtime
+                            .controller_window_qpc_start
+                            .ok_or("presentation-profile QPC start is absent")?,
+                        runtime
+                            .controller_window_qpc_frequency_hz
+                            .ok_or("presentation-profile QPC frequency is absent")?,
+                    )?;
                 let sequence = pending
                     .submit(PlayerControlCommand {
                         move_axis: Vec2::Y,
@@ -953,6 +981,8 @@ fn observe_controller(
     players: Query<Entity, With<ForgePlayerCharacter>>,
     screenshots: Query<Entity, With<Screenshot>>,
     mut visibility_audit: ResMut<VegetationVisibilityAuditControl>,
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    presentation_profile: Option<Res<PresentationProfileController>>,
     mut runtime: ResMut<Runtime>,
     mut exit: MessageWriter<AppExit>,
 ) {
@@ -1140,6 +1170,20 @@ fn observe_controller(
                 sample_movement(&mut runtime, &snapshot, frame.0, false)?;
                 if runtime.reverse_ticks >= REVERSE_TICKS {
                     complete_controller_qpc_window(&mut runtime)?;
+                    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+                    presentation_profile
+                        .as_deref()
+                        .ok_or("presentation-profile controller resource is absent")?
+                        .finish_and_write(
+                            runtime
+                                .controller_window_qpc_end
+                                .ok_or("presentation-profile QPC end is absent")?,
+                            &scene
+                                .gpu
+                                .as_deref()
+                                .ok_or("GPU identity disappeared at presentation-profile boundary")?
+                                .backend,
+                        )?;
                     runtime.end_position = Some(snapshot.player_position);
                     runtime.last_fixed_tick = Some(snapshot.fixed_tick);
                     runtime.final_visibility_audit_ticket =
@@ -2793,6 +2837,10 @@ mod tests {
                 RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification,
             ..default()
         });
+        #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+        accepted.insert_resource(PresentationProfileController::enabled(
+            std::path::Path::new("."),
+        ));
         assert!(validate_external_presentation_instrumentation(&accepted).is_ok());
 
         accepted.add_plugins(RenderDiagnosticsPlugin);

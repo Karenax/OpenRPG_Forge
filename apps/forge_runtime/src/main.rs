@@ -3,9 +3,11 @@
 mod gate1_gameplay_stutter;
 mod gate1_visual_proof;
 mod player_camera_probe;
+#[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+mod presentation_profile;
 mod terrain_partial_update_probe;
 
-#[cfg(not(feature = "render-profile"))]
+#[cfg(not(any(feature = "render-profile", feature = "presentation-profile")))]
 use bevy::log::DEFAULT_FILTER;
 use bevy::{
     app::AppExit,
@@ -37,12 +39,14 @@ use forge_world::{
 use gate1_gameplay_stutter::{Gate1GameplayStutterPlugin, Gate1PresentationRoute};
 use gate1_visual_proof::Gate1VisualProofPlugin;
 use player_camera_probe::PlayerCameraProbePlugin;
+#[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+use presentation_profile::PresentationProfileController;
 use std::{
     env, fs,
     path::{Path, PathBuf},
 };
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
-#[cfg(not(feature = "render-profile"))]
+#[cfg(not(any(feature = "render-profile", feature = "presentation-profile")))]
 use tracing_subscriber::EnvFilter;
 #[cfg(feature = "render-profile")]
 use tracing_subscriber::{Layer as _, filter::LevelFilter};
@@ -93,7 +97,7 @@ fn main() -> AppExit {
         "forge_runtime: NONQUALIFYING render-profile build; Bevy trace_chrome logging is active"
     );
 
-    #[cfg(not(feature = "render-profile"))]
+    #[cfg(not(any(feature = "render-profile", feature = "presentation-profile")))]
     if let Err(message) = initialize_structured_tracing() {
         eprintln!("forge_runtime: cannot initialize structured tracing: {message}");
         return AppExit::from_code(2);
@@ -108,6 +112,27 @@ fn main() -> AppExit {
     if let Some(message) = options.render_profile_route_error() {
         eprintln!("forge_runtime: {message}");
         return AppExit::from_code(2);
+    }
+
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    if let Some(message) = options.presentation_profile_route_error() {
+        eprintln!("forge_runtime: {message}");
+        return AppExit::from_code(2);
+    }
+
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    let presentation_profile = options.presentation_profile_controller();
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    {
+        if presentation_profile.is_enabled() {
+            eprintln!(
+                "forge_runtime: NONQUALIFYING presentation-profile diagnostic; exact Bevy/wgpu application spans only"
+            );
+        }
+        if let Err(message) = presentation_profile::initialize_tracing(&presentation_profile) {
+            eprintln!("forge_runtime: cannot initialize presentation-profile tracing: {message}");
+            return AppExit::from_code(2);
+        }
     }
 
     if options.log_probe {
@@ -201,6 +226,10 @@ fn main() -> AppExit {
     let default_plugins = default_plugins.disable::<LogPlugin>();
 
     let mut app = App::new();
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    if presentation_profile.is_enabled() {
+        app.insert_resource(presentation_profile.clone());
+    }
     app.insert_resource(ClearColor(Color::srgb(0.015, 0.025, 0.055)))
         .add_plugins(default_plugins);
 
@@ -630,6 +659,21 @@ impl RenderProfileGate1Diagnostic {
     }
 }
 
+#[cfg(feature = "presentation-profile")]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+enum PresentationProfileGate1Diagnostic {
+    #[default]
+    Disabled,
+    Enabled,
+}
+
+#[cfg(feature = "presentation-profile")]
+impl PresentationProfileGate1Diagnostic {
+    const fn is_enabled(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+}
+
 #[derive(Debug)]
 struct Options {
     scene_path: Option<PathBuf>,
@@ -643,6 +687,8 @@ struct Options {
     gate1_visual_proof_output: Option<PathBuf>,
     #[cfg(feature = "render-profile")]
     render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic,
+    #[cfg(feature = "presentation-profile")]
+    presentation_profile_gate1_diagnostic: PresentationProfileGate1Diagnostic,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
     capture_path: Option<PathBuf>,
@@ -672,6 +718,8 @@ impl Default for Options {
             gate1_visual_proof_output: None,
             #[cfg(feature = "render-profile")]
             render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic::Disabled,
+            #[cfg(feature = "presentation-profile")]
+            presentation_profile_gate1_diagnostic: PresentationProfileGate1Diagnostic::Disabled,
             weather_state: None,
             quality_selection: None,
             capture_path: None,
@@ -690,6 +738,10 @@ impl Default for Options {
 }
 
 impl Options {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the strict CLI parser keeps every mutually exclusive route in one ordered match"
+    )]
     fn parse(mut arguments: impl Iterator<Item = String>) -> Result<Self, String> {
         let mut options = Self::default();
         while let Some(argument) = arguments.next() {
@@ -733,6 +785,17 @@ impl Options {
                 #[cfg(feature = "render-profile")]
                 "--render-profile-gate1-diagnostic" => {
                     options.render_profile_gate1_diagnostic = RenderProfileGate1Diagnostic::Enabled;
+                }
+                #[cfg(feature = "presentation-profile")]
+                "--presentation-profile-gate1-diagnostic" => {
+                    if options.presentation_profile_gate1_diagnostic.is_enabled() {
+                        return Err(
+                            "--presentation-profile-gate1-diagnostic may only be specified once"
+                                .to_owned(),
+                        );
+                    }
+                    options.presentation_profile_gate1_diagnostic =
+                        PresentationProfileGate1Diagnostic::Enabled;
                 }
                 "--weather" => {
                     if options.weather_state.is_some() {
@@ -809,6 +872,8 @@ impl Options {
         }
         #[cfg(feature = "render-profile")]
         self.validate_render_profile_gate1_diagnostic()?;
+        #[cfg(feature = "presentation-profile")]
+        self.validate_presentation_profile_gate1_diagnostic()?;
         self.validate_gate1_fifo_diagnostic()?;
         self.validate_gate1_gameplay_stutter()?;
         self.validate_gate1_visual_proof()?;
@@ -926,6 +991,64 @@ impl Options {
             );
         }
         Ok(())
+    }
+
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    fn presentation_profile_route_error(&self) -> Option<&'static str> {
+        if self.gate1_visual_proof_output.is_some()
+            || (self.gate1_gameplay_stutter_output.is_some()
+                && !self.presentation_profile_gate1_diagnostic.is_enabled())
+        {
+            return Some(
+                "NONQUALIFYING presentation-profile builds refuse Gate 1 qualification routes; pass --presentation-profile-gate1-diagnostic with --gate1-gameplay-stutter for the bounded diagnostic",
+            );
+        }
+        None
+    }
+
+    #[cfg(feature = "presentation-profile")]
+    fn validate_presentation_profile_gate1_diagnostic(&self) -> Result<(), String> {
+        if !self.presentation_profile_gate1_diagnostic.is_enabled() {
+            return Ok(());
+        }
+        #[cfg(feature = "render-profile")]
+        return Err(
+            "--presentation-profile-gate1-diagnostic is incompatible with the trace_chrome render-profile feature"
+                .to_owned(),
+        );
+        #[cfg(not(feature = "render-profile"))]
+        {
+            if self.gate1_visual_proof_output.is_some() {
+                return Err(
+                    "--presentation-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+                        .to_owned(),
+                );
+            }
+            if self.log_probe {
+                return Err(
+                    "--presentation-profile-gate1-diagnostic cannot be combined with --log-probe"
+                        .to_owned(),
+                );
+            }
+            if self.gate1_gameplay_stutter_output.is_none() {
+                return Err(
+                    "--presentation-profile-gate1-diagnostic requires --gate1-gameplay-stutter"
+                        .to_owned(),
+                );
+            }
+            Ok(())
+        }
+    }
+
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    fn presentation_profile_controller(&self) -> PresentationProfileController {
+        self.gate1_gameplay_stutter_output
+            .as_deref()
+            .filter(|_| self.presentation_profile_gate1_diagnostic.is_enabled())
+            .map_or_else(
+                PresentationProfileController::disabled,
+                PresentationProfileController::enabled,
+            )
     }
 
     fn validate_gate1_fifo_diagnostic(&self) -> Result<(), String> {
@@ -1555,7 +1678,7 @@ fn prepare_gate1_visual_proof_directory(output_dir: &Path) -> Result<(), String>
     Ok(())
 }
 
-#[cfg(not(feature = "render-profile"))]
+#[cfg(not(any(feature = "render-profile", feature = "presentation-profile")))]
 fn initialize_structured_tracing() -> Result<(), String> {
     let fallback = format!("info,{DEFAULT_FILTER},forge=info");
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(fallback));
@@ -1575,7 +1698,7 @@ fn initialize_structured_tracing() -> Result<(), String> {
 }
 
 fn startup_error(phase: &str, message: &str) -> AppExit {
-    #[cfg(feature = "render-profile")]
+    #[cfg(any(feature = "render-profile", feature = "presentation-profile"))]
     eprintln!("forge_runtime: startup failed during {phase}: {message}");
     tracing::error!(
         target: "forge::runtime",
@@ -1793,6 +1916,86 @@ mod tests {
             )
             .unwrap_err(),
             "unknown option `--render-profile-gate1-diagnostic`"
+        );
+    }
+
+    #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
+    #[test]
+    fn presentation_profile_is_an_explicit_gameplay_only_opt_in() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--no-vsync",
+                "--presentation-profile-gate1-diagnostic",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        assert!(accepted.presentation_profile_gate1_diagnostic.is_enabled());
+        assert_eq!(accepted.presentation_profile_route_error(), None);
+        assert!(accepted.presentation_profile_controller().is_enabled());
+
+        assert_eq!(
+            Options::parse(
+                ["--presentation-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--presentation-profile-gate1-diagnostic requires --gate1-gameplay-stutter"
+        );
+
+        let unmarked = Options::parse(
+            [
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--no-vsync",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        assert!(
+            unmarked
+                .presentation_profile_route_error()
+                .is_some_and(|message| message.contains("NONQUALIFYING"))
+        );
+        assert!(!unmarked.presentation_profile_controller().is_enabled());
+    }
+
+    #[cfg(all(feature = "presentation-profile", feature = "render-profile"))]
+    #[test]
+    fn presentation_profile_refuses_trace_chrome_coactivation() {
+        assert_eq!(
+            Options::parse(
+                ["--presentation-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--presentation-profile-gate1-diagnostic is incompatible with the trace_chrome render-profile feature"
+        );
+    }
+
+    #[cfg(not(feature = "presentation-profile"))]
+    #[test]
+    fn normal_build_does_not_recognize_presentation_profile_diagnostic() {
+        assert_eq!(
+            Options::parse(
+                ["--presentation-profile-gate1-diagnostic"]
+                    .into_iter()
+                    .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "unknown option `--presentation-profile-gate1-diagnostic`"
         );
     }
 
