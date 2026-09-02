@@ -20,8 +20,8 @@ use bevy::{
     render::view::ColorGrading,
 };
 use forge_project::{
-    DynamicQualityAdaptationProfile, QualityWaterReflection, ResolvedWaterReflectionPath,
-    VisualQualityPreset, VisualQualityTier, VisualValleyQualityProfileDocument,
+    DynamicQualityAdaptationProfile, VisualQualityPreset, VisualQualityTier,
+    VisualValleyQualityProfileDocument,
 };
 use serde::Serialize;
 
@@ -318,7 +318,6 @@ fn apply_quality_tier(
     cameras: Query<
         (
             Entity,
-            Option<&ScreenSpaceReflections>,
             Option<&Bloom>,
             Option<&ColorGrading>,
             Option<&Tonemapping>,
@@ -415,32 +414,17 @@ fn apply_quality_tier(
             runtime.current_tier,
         );
     }
-    let screen_space_reflections_available = water_projection.as_deref().is_some_and(|water| {
-        matches!(
-            water.resolved_optics.reflection,
-            ResolvedWaterReflectionPath::ScreenSpace { .. }
-        )
-    });
-    for (camera, ssr, bloom, color_grading, tonemapping) in &cameras {
+    for (camera, bloom, color_grading, tonemapping) in &cameras {
         if preset.shadows.contact_shadows_enabled {
             commands.entity(camera).insert(ContactShadows::default());
         } else {
             commands.entity(camera).remove::<ContactShadows>();
         }
-        match preset.water.reflection {
-            QualityWaterReflection::ScreenSpace if screen_space_reflections_available => {
-                let mut settings = ssr.cloned().unwrap_or_default();
-                settings.linear_steps = u32::from(preset.water.reflection_steps);
-                commands.entity(camera).insert(settings);
-            }
-            QualityWaterReflection::ScreenSpace
-            | QualityWaterReflection::Disabled
-            | QualityWaterReflection::Environment => {
-                commands
-                    .entity(camera)
-                    .remove::<(ScreenSpaceReflections, DeferredPrepass)>();
-            }
-        }
+        // Bevy 0.19 SSR is a deferred-only path and cannot reflect the forward water material.
+        // The water adapter owns its explicit IBL fallback and native transmission component.
+        commands
+            .entity(camera)
+            .remove::<(ScreenSpaceReflections, DeferredPrepass)>();
         if preset.post_process.bloom_enabled {
             if bloom.is_none() {
                 let configured = weather_profile
@@ -643,7 +627,7 @@ pub(crate) const QUALITY_FIELD_PROJECTION_CONTRACT: [(&str, QualityFieldProjecti
     ),
     (
         "water.refraction",
-        QualityFieldProjectionStatus::NotApplicable,
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
     ),
     (
         "water.refraction_steps",
@@ -651,7 +635,7 @@ pub(crate) const QUALITY_FIELD_PROJECTION_CONTRACT: [(&str, QualityFieldProjecti
     ),
     (
         "water.refraction_max_depth_m",
-        QualityFieldProjectionStatus::NotApplicable,
+        QualityFieldProjectionStatus::AppliedOnTierTransition,
     ),
 ];
 
@@ -679,6 +663,11 @@ fn quality_field_projections() -> Vec<QualityFieldProjection> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::{
+        light::AtmosphereEnvironmentMapLight,
+        pbr::{ScreenSpaceTransmission, ScreenSpaceTransmissionQuality},
+    };
+    use forge_project::{ResolvedWaterReflectionPath, ResolvedWaterRefractionPath};
 
     const QUALITY_JSON: &str =
         include_str!("../../../examples/visual_valley/quality-profile.v1.json");
@@ -743,7 +732,7 @@ mod tests {
     }
 
     #[test]
-    fn runtime_tier_transition_updates_water_ledger_without_reenabling_ssr() {
+    fn runtime_water_optics_transition_is_reversible_without_reenabling_ssr() {
         let profile = VisualValleyQualityProfileDocument::from_json(QUALITY_JSON).unwrap();
         let low = profile.preset(VisualQualityTier::Low).clone();
         let terrain = forge_world::embedded_visual_valley_terrain_document().unwrap();
@@ -756,6 +745,7 @@ mod tests {
             .world_mut()
             .spawn((
                 Camera3d::default(),
+                AtmosphereEnvironmentMapLight::default(),
                 DeferredPrepass,
                 ScreenSpaceReflections::default(),
             ))
@@ -770,13 +760,32 @@ mod tests {
         ));
         app.update();
         app.update();
-        assert_eq!(
-            app.world()
-                .resource::<WaterProjectionStats>()
-                .resolved_optics
-                .requested_quality,
-            forge_project::WaterQualityTier::Low
-        );
+        {
+            let world = app.world();
+            let water = world.resource::<WaterProjectionStats>();
+            assert_eq!(
+                water.resolved_optics.requested_quality,
+                forge_project::WaterQualityTier::Low
+            );
+            assert_eq!(
+                water.resolved_optics.reflection,
+                ResolvedWaterReflectionPath::Environment
+            );
+            assert!(!water.resolved_optics.reflection_fallback_used);
+            assert_eq!(
+                water.resolved_optics.refraction,
+                ResolvedWaterRefractionPath::SurfaceTint
+            );
+            assert_eq!(water.applied_surface_tint_strength, Some(0.18));
+            assert_eq!(water.applied_specular_transmission, None);
+            assert!(water.shader_uniforms_match_profile);
+            assert_eq!(
+                world
+                    .get::<ScreenSpaceTransmission>(camera)
+                    .map(|transmission| (transmission.steps, transmission.quality)),
+                Some((0, ScreenSpaceTransmissionQuality::Low))
+            );
+        }
 
         {
             let mut runtime = app.world_mut().resource_mut::<VisualValleyQualityRuntime>();
@@ -785,22 +794,72 @@ mod tests {
         app.update();
         app.update();
 
+        {
+            let world = app.world();
+            let water = world.resource::<WaterProjectionStats>();
+            assert_eq!(
+                water.resolved_optics.requested_quality,
+                forge_project::WaterQualityTier::Ultra
+            );
+            assert_eq!(water.requested_reflection_max_distance_m, Some(128.0));
+            assert_eq!(
+                water.resolved_optics.reflection,
+                ResolvedWaterReflectionPath::Environment
+            );
+            assert!(water.resolved_optics.reflection_fallback_used);
+            assert_eq!(
+                water.resolved_optics.refraction,
+                ResolvedWaterRefractionPath::ScreenSpace { max_steps: 40 }
+            );
+            assert_eq!(water.applied_surface_tint_strength, None);
+            assert_eq!(water.applied_specular_transmission, Some(0.18));
+            assert_eq!(water.applied_uniform_thickness_m, Some(3.5));
+            assert_eq!(water.screen_space_transmission_steps, 1);
+            assert_eq!(water.screen_space_transmission_quality, "ultra");
+            assert_eq!(water.screen_space_transmission_blur_taps, 32);
+            assert!(water.shader_uniforms_match_profile);
+            assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
+            assert!(world.get::<DeferredPrepass>(camera).is_none());
+            assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
+            assert_eq!(water.msaa_off_camera_entities, 0);
+            assert_eq!(water.msaa_sample4_camera_entities, 1);
+            assert_eq!(
+                world
+                    .get::<ScreenSpaceTransmission>(camera)
+                    .map(|transmission| (transmission.steps, transmission.quality)),
+                Some((1, ScreenSpaceTransmissionQuality::Ultra))
+            );
+        }
+
+        {
+            let mut runtime = app.world_mut().resource_mut::<VisualValleyQualityRuntime>();
+            runtime.current_tier = VisualQualityTier::Low;
+        }
+        app.update();
+        app.update();
+
         let world = app.world();
         let water = world.resource::<WaterProjectionStats>();
         assert_eq!(
             water.resolved_optics.requested_quality,
-            forge_project::WaterQualityTier::Ultra
+            forge_project::WaterQualityTier::Low
         );
-        assert_eq!(water.requested_reflection_max_distance_m, Some(128.0));
         assert_eq!(
-            water.resolved_optics.reflection,
-            ResolvedWaterReflectionPath::Disabled
+            water.resolved_optics.refraction,
+            ResolvedWaterRefractionPath::SurfaceTint
         );
-        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
-        assert!(world.get::<DeferredPrepass>(camera).is_none());
-        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
-        assert_eq!(water.msaa_off_camera_entities, 0);
-        assert_eq!(water.msaa_sample4_camera_entities, 1);
+        assert_eq!(water.applied_surface_tint_strength, Some(0.18));
+        assert_eq!(water.applied_specular_transmission, None);
+        assert_eq!(water.screen_space_transmission_steps, 0);
+        assert_eq!(water.screen_space_transmission_quality, "low");
+        assert_eq!(water.screen_space_transmission_blur_taps, 0);
+        assert!(water.shader_uniforms_match_profile);
+        assert_eq!(
+            world
+                .get::<ScreenSpaceTransmission>(camera)
+                .map(|transmission| (transmission.steps, transmission.quality)),
+            Some((0, ScreenSpaceTransmissionQuality::Low))
+        );
     }
 
     #[test]
@@ -818,6 +877,10 @@ mod tests {
         assert!(fields.iter().any(|field| {
             field.field == "water.reflection_steps"
                 && field.status == QualityFieldProjectionStatus::NotApplicable
+        }));
+        assert!(fields.iter().any(|field| {
+            field.field == "water.refraction"
+                && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
         }));
     }
 

@@ -43,7 +43,7 @@ const PLAYER_READY_MAX_FIXED_TICKS: u32 = 300;
 const PROOF_TIMEOUT: Duration = Duration::from_secs(90);
 const WATER_VIEW_ANCHOR_X_M: f32 = 16.0;
 const WATER_VIEW_ANCHOR_Z_M: f32 = 160.0;
-const WATER_VIEW_DISTANCE_M: f32 = 14.0;
+const WATER_VIEW_DISTANCE_M: f32 = 10.0;
 const MOVEMENT_START_X_M: f32 = 16.0;
 const MOVEMENT_START_Z_M: f32 = 8.0;
 const NORMALIZED_GRADE_TO_CIE_OFFSET: f32 = 0.1;
@@ -1567,7 +1567,7 @@ fn water_camera_pose(
         .ok_or_else(|| "proof water camera cannot be placed inside the terrain".to_owned())?;
     Ok(CameraPose {
         translation: Vec3::new(camera_xz.x, height + eye_height_m, camera_xz.y),
-        target: Vec3::new(focus.center_m.x, focus.center_m.y + 0.25, focus.center_m.z),
+        target: Vec3::new(focus.center_m.x, focus.center_m.y + 0.05, focus.center_m.z),
         vertical_fov_degrees,
     })
 }
@@ -2227,6 +2227,10 @@ mod tests {
         assert_eq!(
             water_pose.translation.y.to_bits(),
             (expected_camera.1 + player.camera.eye_height_m).to_bits()
+        );
+        assert_eq!(
+            water_pose.target.y.to_bits(),
+            (focus.center_m.y + 0.05).to_bits()
         );
         assert!(
             ((water_pose.translation.xz() - water_pose.target.xz()).length()

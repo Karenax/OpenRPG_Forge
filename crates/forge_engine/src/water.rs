@@ -1,9 +1,13 @@
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
+    light::AtmosphereEnvironmentMapLight,
     material::OpaqueRendererMethod,
     mesh::Indices,
-    pbr::{ExtendedMaterial, MaterialExtension, ScreenSpaceReflections, ScreenSpaceTransmission},
+    pbr::{
+        ExtendedMaterial, MaterialExtension, ScreenSpaceReflections, ScreenSpaceTransmission,
+        ScreenSpaceTransmissionQuality,
+    },
     prelude::*,
     render::render_resource::{AsBindGroup, PrimitiveTopology},
     shader::ShaderRef,
@@ -12,8 +16,8 @@ use forge_project::{
     QualityWaterReflection, QualityWaterRefraction, ResolvedWaterReflectionPath,
     ResolvedWaterRefractionPath, TerrainDocument, VisualQualityPreset, VisualQualityTier,
     WaterDocument, WaterDocumentError, WaterOpticsCapabilities, WaterOpticsCapabilityStatus,
-    WaterOpticsResolution, WaterQualitySettings, WaterQualityTier, WaterReflectionProfile,
-    WaterRefractionProfile,
+    WaterOpticsResolution, WaterQualitySettings, WaterQualityTier, WaterReflectionFallback,
+    WaterReflectionProfile, WaterRefractionFallback, WaterRefractionProfile,
 };
 use forge_world::{
     RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
@@ -27,7 +31,7 @@ pub const VISUAL_VALLEY_WATER_CLEARANCE_M: f32 = 0.14;
 const WATER_SHADER_PATH: &str = "embedded://forge_engine/shaders/visual_valley_water.wgsl";
 const WATER_SHADER_PHASE_WRAP_RADIANS: f64 = std::f64::consts::TAU;
 const WATER_IOR: f32 = 1.33;
-const WATER_REFLECTANCE: f32 = 0.36;
+const WATER_DISABLED_REFLECTANCE: f32 = 0.0;
 
 const RIVER_LANE_COUNT: usize = 3;
 const RIVER_BANK_LANE_COUNT: usize = 2;
@@ -114,12 +118,24 @@ pub struct WaterProjectionStats {
     pub bank_erosion_status: &'static str,
     pub bank_material_status: &'static str,
     pub requested_reflection_intensity: Option<f32>,
+    pub applied_material_reflectance: Option<f32>,
+    pub requested_reflection_steps: u16,
     pub requested_reflection_max_distance_m: Option<f32>,
     pub reflection_intensity_status: &'static str,
+    pub reflection_steps_status: &'static str,
     pub reflection_max_distance_status: &'static str,
     pub requested_refraction_strength: Option<f32>,
+    pub requested_refraction_steps: u16,
+    pub requested_refraction_max_depth_m: Option<f32>,
     pub applied_surface_tint_strength: Option<f32>,
+    pub applied_specular_transmission: Option<f32>,
+    pub applied_uniform_thickness_m: Option<f32>,
+    pub screen_space_transmission_steps: usize,
+    pub screen_space_transmission_quality: &'static str,
+    pub screen_space_transmission_blur_taps: u8,
     pub refraction_status: &'static str,
+    pub refraction_steps_status: &'static str,
+    pub refraction_max_depth_status: &'static str,
     pub requested_ssr_component_prepared: bool,
     pub forward_material_ssr_limit: &'static str,
     pub resolved_optics: WaterOpticsResolution,
@@ -132,6 +148,10 @@ pub struct WaterProjectionStats {
     pub msaa_off_camera_entities: usize,
     pub msaa_sample4_camera_entities: usize,
     pub transmission_disabled_camera_entities: usize,
+    pub transmission_enabled_camera_entities: usize,
+    pub atmosphere_environment_camera_entities: usize,
+    pub environment_reflection_status: &'static str,
+    pub screen_space_transmission_status: &'static str,
     pub cpu_ecs_application_status: &'static str,
     pub gpu_pass_observed: bool,
     pub native_gpu_execution_status: &'static str,
@@ -169,7 +189,7 @@ pub struct VisualValleyWaterExtension {
     /// Downstream direction XZ and current/previous wrapped phase in radians.
     #[uniform(100)]
     pub flow_phase: Vec4,
-    /// Requested opacity, authored roughness, water IOR, and non-metal reflectance.
+    /// Requested opacity, authored roughness, water IOR, and applied IBL reflectance.
     #[uniform(100)]
     pub optical_parameters: Vec4,
 }
@@ -254,7 +274,7 @@ impl VisualValleyWaterPlugin {
         }
     }
 
-    /// Applies the screen-space reflection path and step budget for the startup tier.
+    /// Applies the resolved water optics and bounded budgets for the startup tier.
     #[must_use]
     pub fn with_quality_preset(
         mut self,
@@ -274,11 +294,11 @@ impl Plugin for VisualValleyWaterPlugin {
             });
         if let Some((quality, tier)) = &self.quality {
             apply_quality_optics_projection(&mut prepared.stats, &self.water, quality.water, *tier);
-            prepared.ssr =
-                prepare_resolved_ssr(&self.water, prepared.stats.resolved_optics.reflection);
         }
+        apply_water_optics_to_material(&mut prepared.water_material, &self.water, &prepared.stats);
         let stats = prepared.stats.clone();
-        let ssr = prepared.ssr.clone();
+        let transmission = screen_space_transmission_configuration(&stats);
+        let applied_optics = applied_water_optics(&stats);
         let material_projection = prepared.water_material.extension.clone();
 
         embedded_asset!(app, "shaders/visual_valley_water.wgsl");
@@ -288,8 +308,9 @@ impl Plugin for VisualValleyWaterPlugin {
             })
             .insert_resource(WaterRuntimeState::from_profile(&self.water))
             .insert_resource(WaterMaterialProjection(material_projection))
+            .insert_resource(AppliedWaterOpticsState(applied_optics))
             .insert_resource(PreparedWaterSurface(Some(prepared)))
-            .insert_resource(PreparedWaterCamera { ssr })
+            .insert_resource(PreparedWaterCamera { transmission })
             .add_plugins(MaterialPlugin::<VisualValleyWaterMaterial>::default())
             .add_systems(Startup, spawn_water_surface)
             .add_systems(
@@ -300,7 +321,11 @@ impl Plugin for VisualValleyWaterPlugin {
                 PostStartup,
                 (configure_water_cameras, observe_water_components).chain(),
             )
-            .add_systems(PostUpdate, observe_water_components);
+            .add_systems(PostUpdate, observe_water_components)
+            .add_systems(
+                Last,
+                synchronize_water_optics.after(crate::quality::VisualValleyQualitySet::Apply),
+            );
     }
 }
 
@@ -408,8 +433,23 @@ struct PreparedWaterSurface(Option<PreparedWaterScene>);
 
 #[derive(Resource)]
 struct PreparedWaterCamera {
-    ssr: Option<ScreenSpaceReflections>,
+    transmission: ScreenSpaceTransmission,
 }
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct AppliedWaterOptics {
+    reflectance: f32,
+    surface_tint_strength: f32,
+    specular_transmission: f32,
+    uniform_thickness_m: f32,
+    transmission_steps: usize,
+    transmission_quality: ScreenSpaceTransmissionQuality,
+    transmission_quality_name: &'static str,
+    transmission_blur_taps: u8,
+}
+
+#[derive(Resource)]
+struct AppliedWaterOpticsState(AppliedWaterOptics);
 
 struct PreparedWaterScene {
     name: String,
@@ -418,7 +458,6 @@ struct PreparedWaterScene {
     water_material: VisualValleyWaterMaterial,
     river_bank_material: StandardMaterial,
     stats: WaterProjectionStats,
-    ssr: Option<ScreenSpaceReflections>,
 }
 
 struct RiverSurfaceGeometry {
@@ -614,16 +653,9 @@ fn prepare_water_surface(
             (f32::INFINITY, f32::NEG_INFINITY),
             |(minimum, maximum), depth| (minimum.min(depth), maximum.max(depth)),
         );
-    let requested_refraction_strength = requested_refraction_strength(water);
-    let applied_surface_tint_strength =
-        if resolved_optics.refraction == ResolvedWaterRefractionPath::SurfaceTint {
-            requested_refraction_strength
-        } else {
-            None
-        };
     let (requested_reflection_intensity, requested_reflection_max_distance_m) =
         requested_reflection_parameters(water);
-    let ssr = prepare_resolved_ssr(water, resolved_optics.reflection);
+    let requested_refraction_strength = requested_refraction_strength(water);
     let flow_direction = downstream_flow_direction(&samples);
     let runtime_state = WaterRuntimeState::from_profile(water);
     let water_surface_queries = water_counts.vertices;
@@ -646,7 +678,7 @@ fn prepare_water_surface(
     let winding_corrections = water_winding_corrections
         .checked_add(river_bank_winding_corrections)
         .ok_or(WaterAdapterError::ArithmeticOverflow("winding corrections"))?;
-    let stats = WaterProjectionStats {
+    let mut stats = WaterProjectionStats {
         source_hash: water.content_hash()?.to_string(),
         terrain_source_hash: terrain_plan.document_hash().to_string(),
         authored_control_points: water.river.control_points.len(),
@@ -673,7 +705,7 @@ fn prepare_water_surface(
         material_alpha_mode: "opaque",
         opaque_renderer_method: "forward",
         requested_opacity: water.surface.opacity,
-        opacity_status: "requested_recorded_surface_forced_opaque_for_forward_surface_tint",
+        opacity_status: "requested_recorded_alpha_mode_opaque_bevy_transmissive_phase_is_material_driven",
         requested_wave_amplitude_m: water.surface.wave_amplitude_m,
         requested_wave_length_m: water.surface.wave_length_m,
         requested_flow_speed_mps: water.surface.flow_speed_mps,
@@ -702,14 +734,26 @@ fn prepare_water_surface(
         bank_erosion_status: "deferred_no_terrain_carving_adapter",
         bank_material_status: "opaque_forward_matches_terrain_earth_palette",
         requested_reflection_intensity,
+        applied_material_reflectance: None,
+        requested_reflection_steps: 0,
         requested_reflection_max_distance_m,
-        reflection_intensity_status: "requested_unavailable_resolved_disabled",
-        reflection_max_distance_status: "requested_unavailable_resolved_disabled",
+        reflection_intensity_status: "prepared_not_observed",
+        reflection_steps_status: "prepared_not_observed",
+        reflection_max_distance_status: "prepared_not_observed",
         requested_refraction_strength,
-        applied_surface_tint_strength,
-        refraction_status: "requested_screen_space_unavailable_for_opaque_forward_resolved_surface_tint",
-        requested_ssr_component_prepared: ssr.is_some(),
-        forward_material_ssr_limit: "bevy_0_19_1_deferred_ssr_disabled_after_native_validation_warning",
+        requested_refraction_steps: 0,
+        requested_refraction_max_depth_m: None,
+        applied_surface_tint_strength: None,
+        applied_specular_transmission: None,
+        applied_uniform_thickness_m: None,
+        screen_space_transmission_steps: 0,
+        screen_space_transmission_quality: "disabled",
+        screen_space_transmission_blur_taps: 0,
+        refraction_status: "prepared_not_observed",
+        refraction_steps_status: "prepared_not_observed",
+        refraction_max_depth_status: "prepared_not_observed",
+        requested_ssr_component_prepared: false,
+        forward_material_ssr_limit: "bevy_0_19_1_deferred_ssr_unavailable_for_forward_water_environment_fallback_used",
         resolved_optics,
         runtime_observation: WaterRuntimeObservationStatus::NotObserved,
         water_mesh_entities: 0,
@@ -720,27 +764,38 @@ fn prepare_water_surface(
         msaa_off_camera_entities: 0,
         msaa_sample4_camera_entities: 0,
         transmission_disabled_camera_entities: 0,
+        transmission_enabled_camera_entities: 0,
+        atmosphere_environment_camera_entities: 0,
+        environment_reflection_status: "prepared_not_observed",
+        screen_space_transmission_status: "prepared_not_observed",
         cpu_ecs_application_status: "prepared_cpu_assets_not_observed",
         gpu_pass_observed: false,
         native_gpu_execution_status: "not_observed_by_water_metrics",
         webgpu_execution_status: "not_observed_by_water_metrics",
         evidence_source: "cpu_geometry_and_main_world_components_not_gpu_execution",
     };
+    apply_quality_optics_projection(
+        &mut stats,
+        water,
+        authored_water_quality_settings(water),
+        visual_quality_tier(water.optics.quality),
+    );
+
+    let mut material = water_material(
+        water,
+        maximum_sampled_bed_depth_m,
+        flow_direction,
+        &runtime_state,
+    );
+    apply_water_optics_to_material(&mut material, water, &stats);
 
     Ok(PreparedWaterScene {
         name: water.name.clone(),
         water_geometry,
         river_bank_geometry,
-        water_material: water_material(
-            water,
-            applied_surface_tint_strength,
-            maximum_sampled_bed_depth_m,
-            flow_direction,
-            &runtime_state,
-        ),
+        water_material: material,
         river_bank_material: river_bank_material(),
         stats,
-        ssr,
     })
 }
 
@@ -1056,35 +1111,28 @@ fn build_normals(
 
 fn water_material(
     water: &WaterDocument,
-    applied_surface_tint_strength: Option<f32>,
     maximum_sampled_bed_depth_m: f32,
     flow_direction: Vec2,
     runtime_state: &WaterRuntimeState,
 ) -> VisualValleyWaterMaterial {
     let shallow = water.surface.shallow_color_srgb;
-    let deep = water.surface.deep_color_srgb;
-    let tint_strength = applied_surface_tint_strength.unwrap_or(0.0);
-    let shallow_strength = 1.0 - tint_strength;
     VisualValleyWaterMaterial {
         base: StandardMaterial {
-            base_color: Color::srgb(
-                shallow.red * shallow_strength + deep.red * tint_strength,
-                shallow.green * shallow_strength + deep.green * tint_strength,
-                shallow.blue * shallow_strength + deep.blue * tint_strength,
-            ),
+            base_color: Color::srgb(shallow.red, shallow.green, shallow.blue),
             alpha_mode: AlphaMode::Opaque,
             metallic: 0.0,
             perceptual_roughness: water.surface.roughness,
-            reflectance: WATER_REFLECTANCE,
+            reflectance: WATER_DISABLED_REFLECTANCE,
             ior: WATER_IOR,
             diffuse_transmission: 0.0,
             specular_transmission: 0.0,
+            thickness: 0.0,
             opaque_render_method: OpaqueRendererMethod::Forward,
             ..default()
         },
         extension: water_extension(
             water,
-            tint_strength,
+            0.0,
             maximum_sampled_bed_depth_m,
             flow_direction,
             runtime_state,
@@ -1142,7 +1190,7 @@ fn water_extension(
             water.surface.opacity,
             water.surface.roughness,
             WATER_IOR,
-            WATER_REFLECTANCE,
+            WATER_DISABLED_REFLECTANCE,
         ),
     }
 }
@@ -1198,16 +1246,154 @@ fn requested_refraction_strength(water: &WaterDocument) -> Option<f32> {
     }
 }
 
+fn authored_water_quality_settings(water: &WaterDocument) -> WaterQualitySettings {
+    let (reflection, reflection_steps, reflection_max_distance_m) = match water.optics.reflection {
+        WaterReflectionProfile::Disabled => (QualityWaterReflection::Disabled, 0, 0.0),
+        WaterReflectionProfile::Environment { .. } => (QualityWaterReflection::Environment, 0, 0.0),
+        WaterReflectionProfile::ScreenSpace {
+            max_steps,
+            max_distance_m,
+            ..
+        } => (
+            QualityWaterReflection::ScreenSpace,
+            max_steps,
+            max_distance_m,
+        ),
+    };
+    let (refraction, refraction_steps, refraction_max_depth_m) = match water.optics.refraction {
+        WaterRefractionProfile::Disabled => (QualityWaterRefraction::Disabled, 0, 0.0),
+        WaterRefractionProfile::SurfaceTint { .. } => (QualityWaterRefraction::SurfaceTint, 0, 0.0),
+        WaterRefractionProfile::ScreenSpace {
+            max_steps,
+            max_depth_m,
+            ..
+        } => (QualityWaterRefraction::ScreenSpace, max_steps, max_depth_m),
+    };
+    WaterQualitySettings {
+        reflection,
+        reflection_steps,
+        reflection_max_distance_m,
+        refraction,
+        refraction_steps,
+        refraction_max_depth_m,
+    }
+}
+
+const fn transmission_quality_for(
+    tier: WaterQualityTier,
+) -> (ScreenSpaceTransmissionQuality, &'static str, u8) {
+    match tier {
+        WaterQualityTier::Low => (ScreenSpaceTransmissionQuality::Low, "low", 4),
+        WaterQualityTier::Medium => (ScreenSpaceTransmissionQuality::Medium, "medium", 8),
+        WaterQualityTier::High => (ScreenSpaceTransmissionQuality::High, "high", 16),
+        WaterQualityTier::Ultra => (ScreenSpaceTransmissionQuality::Ultra, "ultra", 32),
+    }
+}
+
+fn applied_water_optics(stats: &WaterProjectionStats) -> AppliedWaterOptics {
+    let reflectance = if matches!(
+        stats.resolved_optics.reflection,
+        ResolvedWaterReflectionPath::Environment | ResolvedWaterReflectionPath::ScreenSpace { .. }
+    ) {
+        stats
+            .requested_reflection_intensity
+            .unwrap_or(WATER_DISABLED_REFLECTANCE)
+            .clamp(0.0, 1.0)
+    } else {
+        WATER_DISABLED_REFLECTANCE
+    };
+    let surface_tint_strength = if matches!(
+        stats.resolved_optics.refraction,
+        ResolvedWaterRefractionPath::SurfaceTint
+    ) {
+        stats.requested_refraction_strength.unwrap_or(0.0)
+    } else {
+        0.0
+    };
+    let screen_space_transmission = matches!(
+        stats.resolved_optics.refraction,
+        ResolvedWaterRefractionPath::ScreenSpace { .. }
+    );
+    let (transmission_quality, transmission_quality_name, available_blur_taps) =
+        transmission_quality_for(stats.resolved_optics.requested_quality);
+    let uniform_thickness_m = if screen_space_transmission {
+        stats
+            .requested_refraction_max_depth_m
+            .unwrap_or(0.0)
+            .min(stats.maximum_sampled_bed_depth_m)
+            .max(0.0)
+    } else {
+        0.0
+    };
+    AppliedWaterOptics {
+        reflectance,
+        surface_tint_strength,
+        specular_transmission: if screen_space_transmission {
+            stats.requested_refraction_strength.unwrap_or(0.0)
+        } else {
+            0.0
+        },
+        uniform_thickness_m,
+        // Bevy's `steps` counts copied transmissive layers, not authored ray-march steps. One
+        // river layer is exact here; quality maps only to Bevy's documented blur-tap preset.
+        transmission_steps: if screen_space_transmission { 1 } else { 0 },
+        transmission_quality,
+        transmission_quality_name,
+        transmission_blur_taps: if screen_space_transmission {
+            available_blur_taps
+        } else {
+            0
+        },
+    }
+}
+
+fn screen_space_transmission_configuration(
+    stats: &WaterProjectionStats,
+) -> ScreenSpaceTransmission {
+    let optics = applied_water_optics(stats);
+    ScreenSpaceTransmission {
+        steps: optics.transmission_steps,
+        quality: optics.transmission_quality,
+    }
+}
+
+fn apply_water_optics_to_material(
+    material: &mut VisualValleyWaterMaterial,
+    water: &WaterDocument,
+    stats: &WaterProjectionStats,
+) {
+    let optics = applied_water_optics(stats);
+    material.base.base_color = water_surface_color(water, optics.surface_tint_strength);
+    material.base.reflectance = optics.reflectance;
+    material.base.specular_transmission = optics.specular_transmission;
+    material.base.thickness = optics.uniform_thickness_m;
+    material.extension.shallow_color_surface_tint.w = optics.surface_tint_strength;
+    material.extension.optical_parameters.w = optics.reflectance;
+}
+
+fn water_surface_color(water: &WaterDocument, surface_tint_strength: f32) -> Color {
+    let shallow = water.surface.shallow_color_srgb;
+    let deep = water.surface.deep_color_srgb;
+    let shallow_strength = 1.0 - surface_tint_strength;
+    Color::srgb(
+        shallow.red * shallow_strength + deep.red * surface_tint_strength,
+        shallow.green * shallow_strength + deep.green * surface_tint_strength,
+        shallow.blue * shallow_strength + deep.blue * surface_tint_strength,
+    )
+}
+
 const fn bevy_water_optics_capabilities() -> WaterOpticsCapabilities {
     WaterOpticsCapabilities {
         // Bevy 0.19.1's deferred SSR path emitted a validated wgpu invariant warning on the Gate 1
         // Vulkan baseline. Keep the authored request visible, but resolve it through the declared
         // fallback until a clean native and WebGPU path is qualified.
         screen_space_reflections: WaterOpticsCapabilityStatus::Unavailable,
-        // StandardMaterial screen-space transmission enters the transmissive forward phase. The
-        // governed water remains opaque and uses the authored surface-tint fallback.
-        screen_space_refraction: WaterOpticsCapabilityStatus::Unavailable,
-        environment_reflections: WaterOpticsCapabilityStatus::NotQualified,
+        // Bevy's native transmissive forward phase can refract the copied opaque scene. This is a
+        // component/material capability declaration; GPU execution remains separately unobserved.
+        screen_space_refraction: WaterOpticsCapabilityStatus::Available,
+        // The environment plugin explicitly attaches AtmosphereEnvironmentMapLight to the view.
+        // Generated/filtered GPU maps remain outside this main-world capability observation.
+        environment_reflections: WaterOpticsCapabilityStatus::Available,
     }
 }
 
@@ -1220,10 +1406,21 @@ pub(crate) const fn quality_water_tier(tier: VisualQualityTier) -> WaterQualityT
     }
 }
 
+const fn visual_quality_tier(tier: WaterQualityTier) -> VisualQualityTier {
+    match tier {
+        WaterQualityTier::Low => VisualQualityTier::Low,
+        WaterQualityTier::Medium => VisualQualityTier::Medium,
+        WaterQualityTier::High => VisualQualityTier::High,
+        WaterQualityTier::Ultra => VisualQualityTier::Ultra,
+    }
+}
+
 fn resolve_quality_optics(
     quality: WaterQualitySettings,
     tier: VisualQualityTier,
     capabilities: WaterOpticsCapabilities,
+    reflection_fallback: WaterReflectionFallback,
+    refraction_fallback: WaterRefractionFallback,
 ) -> WaterOpticsResolution {
     let (reflection, reflection_fallback_used) = match quality.reflection {
         QualityWaterReflection::Disabled => (ResolvedWaterReflectionPath::Disabled, false),
@@ -1242,7 +1439,8 @@ fn resolve_quality_optics(
                     },
                     false,
                 )
-            } else if capabilities.environment_reflections == WaterOpticsCapabilityStatus::Available
+            } else if reflection_fallback == WaterReflectionFallback::EnvironmentThenDisabled
+                && capabilities.environment_reflections == WaterOpticsCapabilityStatus::Available
             {
                 (ResolvedWaterReflectionPath::Environment, true)
             } else {
@@ -1261,8 +1459,10 @@ fn resolve_quality_optics(
                     },
                     false,
                 )
-            } else {
+            } else if refraction_fallback == WaterRefractionFallback::SurfaceTint {
                 (ResolvedWaterRefractionPath::SurfaceTint, true)
+            } else {
+                (ResolvedWaterRefractionPath::Disabled, true)
             }
         }
     };
@@ -1282,7 +1482,13 @@ pub(crate) fn apply_quality_optics_projection(
     quality: WaterQualitySettings,
     tier: VisualQualityTier,
 ) {
-    let resolved = resolve_quality_optics(quality, tier, stats.resolved_optics.capabilities);
+    let resolved = resolve_quality_optics(
+        quality,
+        tier,
+        stats.resolved_optics.capabilities,
+        water.optics.reflection_fallback,
+        water.optics.refraction_fallback,
+    );
     let (authored_reflection_intensity, _) = requested_reflection_parameters(water);
     stats.requested_reflection_intensity = match quality.reflection {
         QualityWaterReflection::Disabled => None,
@@ -1290,6 +1496,7 @@ pub(crate) fn apply_quality_optics_projection(
             authored_reflection_intensity
         }
     };
+    stats.requested_reflection_steps = quality.reflection_steps;
     stats.requested_reflection_max_distance_m = match quality.reflection {
         QualityWaterReflection::ScreenSpace => Some(quality.reflection_max_distance_m),
         QualityWaterReflection::Disabled | QualityWaterReflection::Environment => None,
@@ -1299,24 +1506,54 @@ pub(crate) fn apply_quality_optics_projection(
         (_, ResolvedWaterReflectionPath::Disabled) => {
             "quality_profile_requested_unavailable_resolved_disabled"
         }
-        (_, ResolvedWaterReflectionPath::Environment) => {
-            "quality_profile_environment_path_cpu_configured_gpu_not_observed"
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::Environment) => {
+            "quality_profile_ssr_unavailable_environment_ibl_fallback_intensity_mapped_to_material_reflectance_gpu_not_observed"
+        }
+        (QualityWaterReflection::Environment, ResolvedWaterReflectionPath::Environment) => {
+            "quality_profile_environment_ibl_intensity_mapped_to_material_reflectance_gpu_not_observed"
         }
         (_, ResolvedWaterReflectionPath::ScreenSpace { .. }) => {
             "quality_profile_screen_space_path_cpu_configured_gpu_not_observed"
         }
     };
-    stats.reflection_max_distance_status = match quality.reflection {
-        QualityWaterReflection::ScreenSpace => {
-            "quality_profile_screen_space_distance_requested_gpu_not_observed"
+    stats.reflection_steps_status = match (quality.reflection, resolved.reflection) {
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::Environment) => {
+            "requested_ssr_ray_steps_recorded_not_applied_environment_fallback"
         }
-        QualityWaterReflection::Disabled | QualityWaterReflection::Environment => "not_applicable",
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::Disabled) => {
+            "requested_ssr_ray_steps_recorded_not_applied_disabled_fallback"
+        }
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::ScreenSpace { .. }) => {
+            "requested_ssr_ray_steps_mapped_to_ssr_component"
+        }
+        (QualityWaterReflection::Disabled | QualityWaterReflection::Environment, _) => {
+            "not_applicable"
+        }
+    };
+    stats.reflection_max_distance_status = match (quality.reflection, resolved.reflection) {
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::Environment) => {
+            "requested_ssr_distance_recorded_not_applied_environment_fallback"
+        }
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::Disabled) => {
+            "requested_ssr_distance_recorded_not_applied_disabled_fallback"
+        }
+        (QualityWaterReflection::ScreenSpace, ResolvedWaterReflectionPath::ScreenSpace { .. }) => {
+            "requested_ssr_distance_recorded_gpu_not_observed"
+        }
+        (QualityWaterReflection::Disabled | QualityWaterReflection::Environment, _) => {
+            "not_applicable"
+        }
     };
     stats.requested_refraction_strength = match quality.refraction {
         QualityWaterRefraction::Disabled => None,
         QualityWaterRefraction::SurfaceTint | QualityWaterRefraction::ScreenSpace => {
             requested_refraction_strength(water)
         }
+    };
+    stats.requested_refraction_steps = quality.refraction_steps;
+    stats.requested_refraction_max_depth_m = match quality.refraction {
+        QualityWaterRefraction::ScreenSpace => Some(quality.refraction_max_depth_m),
+        QualityWaterRefraction::Disabled | QualityWaterRefraction::SurfaceTint => None,
     };
     stats.applied_surface_tint_strength = matches!(
         resolved.refraction,
@@ -1336,31 +1573,62 @@ pub(crate) fn apply_quality_optics_projection(
             "quality_profile_requested_unavailable_resolved_disabled"
         }
         (_, ResolvedWaterRefractionPath::ScreenSpace { .. }) => {
-            "quality_profile_screen_space_path_cpu_configured_gpu_not_observed"
+            "quality_profile_bevy_native_screen_space_transmission_configured_gpu_not_observed"
         }
     };
-    stats.requested_ssr_component_prepared = matches!(
-        resolved.reflection,
-        ResolvedWaterReflectionPath::ScreenSpace { .. }
-    );
     stats.resolved_optics = resolved;
-}
-
-fn prepare_resolved_ssr(
-    water: &WaterDocument,
-    resolved: ResolvedWaterReflectionPath,
-) -> Option<ScreenSpaceReflections> {
-    let ResolvedWaterReflectionPath::ScreenSpace { max_steps } = resolved else {
-        return None;
+    let applied = applied_water_optics(stats);
+    stats.applied_material_reflectance = matches!(
+        stats.resolved_optics.reflection,
+        ResolvedWaterReflectionPath::Environment | ResolvedWaterReflectionPath::ScreenSpace { .. }
+    )
+    .then_some(applied.reflectance);
+    stats.applied_surface_tint_strength = matches!(
+        stats.resolved_optics.refraction,
+        ResolvedWaterRefractionPath::SurfaceTint
+    )
+    .then_some(applied.surface_tint_strength);
+    stats.applied_specular_transmission = matches!(
+        stats.resolved_optics.refraction,
+        ResolvedWaterRefractionPath::ScreenSpace { .. }
+    )
+    .then_some(applied.specular_transmission);
+    stats.applied_uniform_thickness_m = matches!(
+        stats.resolved_optics.refraction,
+        ResolvedWaterRefractionPath::ScreenSpace { .. }
+    )
+    .then_some(applied.uniform_thickness_m);
+    stats.screen_space_transmission_steps = applied.transmission_steps;
+    stats.screen_space_transmission_quality = applied.transmission_quality_name;
+    stats.screen_space_transmission_blur_taps = applied.transmission_blur_taps;
+    stats.refraction_steps_status = match quality.refraction {
+        QualityWaterRefraction::ScreenSpace => {
+            "requested_ray_steps_recorded_not_mapped_to_bevy_layer_copies_quality_mapped_to_blur_taps"
+        }
+        QualityWaterRefraction::Disabled | QualityWaterRefraction::SurfaceTint => "not_applicable",
     };
-    let WaterReflectionProfile::ScreenSpace { thickness_m, .. } = water.optics.reflection else {
-        return None;
+    stats.refraction_max_depth_status = match stats.resolved_optics.refraction {
+        ResolvedWaterRefractionPath::ScreenSpace { .. } => {
+            "requested_depth_bounded_to_sampled_bed_and_mapped_to_uniform_material_thickness"
+        }
+        ResolvedWaterRefractionPath::Disabled | ResolvedWaterRefractionPath::SurfaceTint => {
+            "not_applicable"
+        }
     };
-    Some(ScreenSpaceReflections {
-        thickness: thickness_m,
-        linear_steps: u32::from(max_steps),
-        ..default()
-    })
+    stats.requested_ssr_component_prepared = false;
+    stats.environment_reflection_status = if matches!(
+        stats.resolved_optics.reflection,
+        ResolvedWaterReflectionPath::Environment
+    ) {
+        "ibl_source_component_not_observed_yet_gpu_not_observed"
+    } else {
+        "not_applicable"
+    };
+    stats.screen_space_transmission_status = if applied.transmission_steps > 0 {
+        "camera_component_not_observed_yet_gpu_not_observed"
+    } else {
+        "disabled_by_resolved_quality_tier"
+    };
 }
 
 fn lane_label(index: usize) -> &'static str {
@@ -1491,14 +1759,62 @@ fn configure_water_cameras(
 ) {
     for camera in &cameras {
         let mut entity = commands.entity(camera);
-        entity.insert(ScreenSpaceTransmission {
-            steps: 0,
-            ..default()
-        });
-        if let Some(ssr) = &prepared.ssr {
-            entity.insert((Msaa::Off, DeferredPrepass, ssr.clone()));
-        } else {
+        entity.insert((Msaa::Sample4, prepared.transmission.clone()));
+        entity.remove::<(ScreenSpaceReflections, DeferredPrepass)>();
+    }
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    clippy::too_many_arguments,
+    clippy::type_complexity,
+    reason = "the water quality projection reconciles one material and independently auditable camera components"
+)]
+fn synchronize_water_optics(
+    mut commands: Commands,
+    profile: Res<VisualValleyWaterProfile>,
+    stats: Res<WaterProjectionStats>,
+    material: Option<Res<WaterSurfaceMaterial>>,
+    mut materials: ResMut<Assets<VisualValleyWaterMaterial>>,
+    mut projection: ResMut<WaterMaterialProjection>,
+    mut applied: ResMut<AppliedWaterOpticsState>,
+    cameras: Query<
+        (
+            Entity,
+            Option<&ScreenSpaceTransmission>,
+            Option<&Msaa>,
+            Has<ScreenSpaceReflections>,
+            Has<DeferredPrepass>,
+        ),
+        With<Camera3d>,
+    >,
+) {
+    let expected_optics = applied_water_optics(&stats);
+    if applied.0 != expected_optics {
+        if let Some(material) = material
+            && let Some(mut material) = materials.get_mut(&material.0)
+        {
+            apply_water_optics_to_material(&mut material, &profile.document, &stats);
+            projection.0 = material.extension.clone();
+        }
+        applied.0 = expected_optics;
+    }
+
+    let expected_transmission = screen_space_transmission_configuration(&stats);
+    for (camera, transmission, msaa, has_ssr, has_deferred) in &cameras {
+        let mut entity = commands.entity(camera);
+        if transmission.is_none()
+            || transmission.is_some_and(|current| {
+                current.steps != expected_transmission.steps
+                    || current.quality != expected_transmission.quality
+            })
+        {
+            entity.insert(expected_transmission.clone());
+        }
+        if msaa != Some(&Msaa::Sample4) {
             entity.insert(Msaa::Sample4);
+        }
+        if has_ssr || has_deferred {
             entity.remove::<(ScreenSpaceReflections, DeferredPrepass)>();
         }
     }
@@ -1521,7 +1837,12 @@ fn observe_water_components(
     ssr_cameras: Query<Entity, (With<Camera3d>, With<ScreenSpaceReflections>)>,
     msaa_cameras: Query<&Msaa, With<Camera3d>>,
     transmission_cameras: Query<&ScreenSpaceTransmission, With<Camera3d>>,
+    atmosphere_environment_cameras: Query<
+        Entity,
+        (With<Camera3d>, With<AtmosphereEnvironmentMapLight>),
+    >,
     materials: Res<Assets<VisualValleyWaterMaterial>>,
+    profile: Res<VisualValleyWaterProfile>,
     projection: Res<WaterMaterialProjection>,
     runtime: Res<WaterRuntimeState>,
     mut stats: ResMut<WaterProjectionStats>,
@@ -1543,14 +1864,28 @@ fn observe_water_components(
         .iter()
         .filter(|transmission| transmission.steps == 0)
         .count();
+    stats.transmission_enabled_camera_entities = transmission_cameras
+        .iter()
+        .filter(|transmission| transmission.steps > 0)
+        .count();
+    stats.atmosphere_environment_camera_entities = atmosphere_environment_cameras.iter().count();
     stats.shader_material_assets = materials.len();
     stats.shader_material_entities = surface_materials.iter().count();
     let expected_extension = projected_water_extension(&projection.0, &runtime);
+    let expected_optics = applied_water_optics(&stats);
+    let expected_surface_color =
+        water_surface_color(&profile.document, expected_optics.surface_tint_strength);
     stats.shader_uniforms_match_profile = stats.shader_material_entities == 1
         && surface_materials.iter().all(|handle| {
-            materials
-                .get(&handle.0)
-                .is_some_and(|material| material.extension == expected_extension)
+            materials.get(&handle.0).is_some_and(|material| {
+                material.extension == expected_extension
+                    && material.base.base_color == expected_surface_color
+                    && material.base.reflectance.to_bits() == expected_optics.reflectance.to_bits()
+                    && material.base.specular_transmission.to_bits()
+                        == expected_optics.specular_transmission.to_bits()
+                    && material.base.thickness.to_bits()
+                        == expected_optics.uniform_thickness_m.to_bits()
+            })
         });
     stats.animation_updates = runtime.updates;
     stats.animation_uniform_status = if stats.shader_uniforms_match_profile {
@@ -1563,35 +1898,47 @@ fn observe_water_components(
     } else {
         "cpu_material_asset_incomplete_or_not_observed"
     };
-    let ssr_expected = matches!(
+    let expected_transmission = screen_space_transmission_configuration(&stats);
+    let transmission_cameras_match = transmission_cameras.iter().count()
+        == stats.camera_3d_entities
+        && transmission_cameras.iter().all(|transmission| {
+            transmission.steps == expected_transmission.steps
+                && transmission.quality == expected_transmission.quality
+        });
+    stats.screen_space_transmission_status = if transmission_cameras_match {
+        if expected_transmission.steps > 0 {
+            "observed_main_world_bevy_screen_space_transmission_component_gpu_not_observed"
+        } else {
+            "observed_main_world_screen_space_transmission_disabled"
+        }
+    } else {
+        "main_world_screen_space_transmission_component_incomplete_gpu_not_observed"
+    };
+    let environment_reflection_expected = matches!(
         stats.resolved_optics.reflection,
-        ResolvedWaterReflectionPath::ScreenSpace { .. }
+        ResolvedWaterReflectionPath::Environment
     );
-    let deferred_cameras_match = if ssr_expected {
-        stats.deferred_camera_entities == stats.camera_3d_entities
+    let environment_sources_match = !environment_reflection_expected
+        || stats.atmosphere_environment_camera_entities == stats.camera_3d_entities;
+    stats.environment_reflection_status = if !environment_reflection_expected {
+        "not_applicable"
+    } else if !environment_sources_match {
+        "main_world_atmosphere_ibl_source_component_incomplete_gpu_not_observed"
     } else {
-        stats.deferred_camera_entities == 0
+        "observed_main_world_atmosphere_ibl_source_component_filtering_not_observed_gpu_not_observed"
     };
-    let ssr_cameras_match = if ssr_expected {
-        stats.ssr_camera_entities == stats.camera_3d_entities
-    } else {
-        stats.ssr_camera_entities == 0
-    };
-    let msaa_cameras_match = if ssr_expected {
-        stats.msaa_off_camera_entities == stats.camera_3d_entities
-    } else {
-        stats.msaa_off_camera_entities == 0
-            && stats.msaa_sample4_camera_entities == stats.camera_3d_entities
-    };
+    let forward_camera_components_match = stats.deferred_camera_entities == 0
+        && stats.ssr_camera_entities == 0
+        && stats.msaa_off_camera_entities == 0
+        && stats.msaa_sample4_camera_entities == stats.camera_3d_entities;
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
         && stats.shader_material_entities == 1
         && stats.shader_uniforms_match_profile
         && stats.camera_3d_entities > 0
-        && deferred_cameras_match
-        && msaa_cameras_match
-        && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
-        && ssr_cameras_match
+        && forward_camera_components_match
+        && transmission_cameras_match
+        && environment_sources_match
     {
         WaterRuntimeObservationStatus::ObservedMainWorldComponents
     } else {
@@ -1746,7 +2093,7 @@ mod tests {
     }
 
     #[test]
-    fn material_extension_maps_profile_and_keeps_forward_surface_opaque() {
+    fn material_extension_maps_ibl_and_native_transmission_without_claiming_gpu_execution() {
         let prepared = prepared();
         assert_eq!(prepared.water_material.base.alpha_mode, AlphaMode::Opaque);
         assert_eq!(
@@ -1755,7 +2102,7 @@ mod tests {
         );
         assert_eq!(
             prepared.water_material.base.specular_transmission.to_bits(),
-            0.0_f32.to_bits()
+            0.18_f32.to_bits()
         );
         assert_eq!(
             prepared.water_material.base.diffuse_transmission.to_bits(),
@@ -1767,7 +2114,11 @@ mod tests {
         );
         assert_eq!(
             prepared.water_material.base.reflectance.to_bits(),
-            WATER_REFLECTANCE.to_bits()
+            0.72_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.water_material.base.thickness.to_bits(),
+            3.2_f32.to_bits()
         );
         assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
         let bank = prepared.river_bank_material.base_color.to_linear();
@@ -1779,16 +2130,19 @@ mod tests {
             prepared.stats.bank_material_status,
             "opaque_forward_matches_terrain_earth_palette"
         );
-        assert_eq!(prepared.stats.applied_surface_tint_strength, Some(0.18));
+        assert_eq!(prepared.stats.applied_surface_tint_strength, None);
+        assert_eq!(prepared.stats.applied_material_reflectance, Some(0.72));
+        assert_eq!(prepared.stats.applied_specular_transmission, Some(0.18));
+        assert_eq!(prepared.stats.applied_uniform_thickness_m, Some(3.2));
         let tint = prepared.water_material.base.base_color.to_srgba();
-        assert!((tint.red - (0.12 * 0.82 + 0.02 * 0.18)).abs() < 1.0e-6);
-        assert!((tint.green - (0.42 * 0.82 + 0.13 * 0.18)).abs() < 1.0e-6);
-        assert!((tint.blue - (0.46 * 0.82 + 0.21 * 0.18)).abs() < 1.0e-6);
+        assert!((tint.red - 0.12).abs() < 1.0e-6);
+        assert!((tint.green - 0.42).abs() < 1.0e-6);
+        assert!((tint.blue - 0.46).abs() < 1.0e-6);
         let extension = &prepared.water_material.extension;
         assert_eq!(extension.wave_parameters, Vec4::new(0.12, 5.5, 0.72, 0.62));
         assert_eq!(
             extension.shallow_color_surface_tint.w.to_bits(),
-            0.18_f32.to_bits()
+            0.0_f32.to_bits()
         );
         assert_eq!(
             extension.deep_color_max_depth.w.to_bits(),
@@ -1797,7 +2151,7 @@ mod tests {
         assert!((extension.flow_phase.xy().length() - 1.0).abs() < 1.0e-6);
         assert_eq!(
             extension.optical_parameters,
-            Vec4::new(0.84, 0.16, WATER_IOR, WATER_REFLECTANCE)
+            Vec4::new(0.84, 0.16, WATER_IOR, 0.72)
         );
     }
 
@@ -1805,10 +2159,9 @@ mod tests {
     fn metrics_resolve_optics_without_claiming_gpu_or_webgpu_execution() {
         let prepared = prepared();
         assert!(!prepared.stats.requested_ssr_component_prepared);
-        assert!(prepared.ssr.is_none());
         assert_eq!(
             prepared.stats.reflection_intensity_status,
-            "requested_unavailable_resolved_disabled"
+            "quality_profile_ssr_unavailable_environment_ibl_fallback_intensity_mapped_to_material_reflectance_gpu_not_observed"
         );
         assert_eq!(
             prepared.stats.wave_motion_status,
@@ -1838,14 +2191,20 @@ mod tests {
         );
         assert_eq!(
             prepared.stats.resolved_optics.reflection,
-            ResolvedWaterReflectionPath::Disabled
+            ResolvedWaterReflectionPath::Environment
         );
         assert!(prepared.stats.resolved_optics.reflection_fallback_used);
         assert_eq!(
             prepared.stats.resolved_optics.refraction,
-            ResolvedWaterRefractionPath::SurfaceTint
+            ResolvedWaterRefractionPath::ScreenSpace { max_steps: 24 }
         );
-        assert!(prepared.stats.resolved_optics.refraction_fallback_used);
+        assert!(!prepared.stats.resolved_optics.refraction_fallback_used);
+        assert_eq!(prepared.stats.requested_reflection_steps, 48);
+        assert_eq!(prepared.stats.requested_refraction_steps, 24);
+        assert_eq!(prepared.stats.requested_refraction_max_depth_m, Some(3.2));
+        assert_eq!(prepared.stats.screen_space_transmission_steps, 1);
+        assert_eq!(prepared.stats.screen_space_transmission_quality, "high");
+        assert_eq!(prepared.stats.screen_space_transmission_blur_taps, 16);
         assert_eq!(
             prepared
                 .stats
@@ -1860,7 +2219,15 @@ mod tests {
                 .resolved_optics
                 .capabilities
                 .screen_space_refraction,
-            WaterOpticsCapabilityStatus::Unavailable
+            WaterOpticsCapabilityStatus::Available
+        );
+        assert_eq!(
+            prepared
+                .stats
+                .resolved_optics
+                .capabilities
+                .environment_reflections,
+            WaterOpticsCapabilityStatus::Available
         );
         let serialized = serde_json::to_value(&prepared.stats).unwrap();
         assert_eq!(serialized["gpu_pass_observed"], false);
@@ -1882,43 +2249,94 @@ mod tests {
         ))
         .unwrap();
         let water = embedded_visual_valley_water_document().unwrap();
-        for (tier, expected, expected_distance, refraction_fallback) in [
-            (VisualQualityTier::Low, WaterQualityTier::Low, None, false),
+        for (
+            tier,
+            expected,
+            expected_reflection_steps,
+            expected_distance,
+            reflection_fallback,
+            expected_refraction,
+            expected_refraction_steps,
+            expected_transmission_steps,
+            expected_transmission_quality,
+            expected_blur_taps,
+        ) in [
+            (
+                VisualQualityTier::Low,
+                WaterQualityTier::Low,
+                0,
+                None,
+                false,
+                ResolvedWaterRefractionPath::SurfaceTint,
+                0,
+                0,
+                "low",
+                0,
+            ),
             (
                 VisualQualityTier::Medium,
                 WaterQualityTier::Medium,
+                24,
                 Some(64.0),
-                false,
+                true,
+                ResolvedWaterRefractionPath::SurfaceTint,
+                0,
+                0,
+                "medium",
+                0,
             ),
             (
                 VisualQualityTier::High,
                 WaterQualityTier::High,
+                48,
                 Some(96.0),
                 true,
+                ResolvedWaterRefractionPath::ScreenSpace { max_steps: 24 },
+                24,
+                1,
+                "high",
+                16,
             ),
             (
                 VisualQualityTier::Ultra,
                 WaterQualityTier::Ultra,
+                64,
                 Some(128.0),
                 true,
+                ResolvedWaterRefractionPath::ScreenSpace { max_steps: 40 },
+                40,
+                1,
+                "ultra",
+                32,
             ),
         ] {
             let mut stats = prepared().stats;
             apply_quality_optics_projection(&mut stats, &water, quality.preset(tier).water, tier);
             assert_eq!(stats.resolved_optics.requested_quality, expected);
+            assert_eq!(stats.requested_reflection_steps, expected_reflection_steps);
             assert_eq!(stats.requested_reflection_max_distance_m, expected_distance);
             assert_eq!(
                 stats.resolved_optics.reflection,
-                ResolvedWaterReflectionPath::Disabled
-            );
-            assert!(stats.resolved_optics.reflection_fallback_used);
-            assert_eq!(
-                stats.resolved_optics.refraction,
-                ResolvedWaterRefractionPath::SurfaceTint
+                ResolvedWaterReflectionPath::Environment
             );
             assert_eq!(
-                stats.resolved_optics.refraction_fallback_used,
-                refraction_fallback
+                stats.resolved_optics.reflection_fallback_used,
+                reflection_fallback
+            );
+            assert_eq!(stats.resolved_optics.refraction, expected_refraction);
+            assert!(!stats.resolved_optics.refraction_fallback_used);
+            assert_eq!(stats.requested_refraction_steps, expected_refraction_steps);
+            assert_eq!(
+                stats.screen_space_transmission_steps,
+                expected_transmission_steps
+            );
+            assert_eq!(
+                stats.screen_space_transmission_quality,
+                expected_transmission_quality
+            );
+            assert_eq!(
+                stats.screen_space_transmission_blur_taps,
+                expected_blur_taps
             );
             assert!(!stats.requested_ssr_component_prepared);
         }
@@ -1936,6 +2354,7 @@ mod tests {
             .world_mut()
             .spawn((
                 Camera3d::default(),
+                AtmosphereEnvironmentMapLight::default(),
                 DeferredPrepass,
                 ScreenSpaceReflections::default(),
             ))
@@ -1953,7 +2372,9 @@ mod tests {
         assert_eq!(stats.ssr_camera_entities, 0);
         assert_eq!(stats.msaa_off_camera_entities, 0);
         assert_eq!(stats.msaa_sample4_camera_entities, 1);
-        assert_eq!(stats.transmission_disabled_camera_entities, 1);
+        assert_eq!(stats.transmission_disabled_camera_entities, 0);
+        assert_eq!(stats.transmission_enabled_camera_entities, 1);
+        assert_eq!(stats.atmosphere_environment_camera_entities, 1);
         assert_eq!(stats.shader_material_assets, 1);
         assert_eq!(stats.shader_material_entities, 1);
         assert!(stats.shader_uniforms_match_profile);
@@ -1964,33 +2385,52 @@ mod tests {
         );
         assert!(!stats.gpu_pass_observed);
         assert_eq!(app.world().get::<Msaa>(camera), Some(&Msaa::Sample4));
+        let transmission = app.world().get::<ScreenSpaceTransmission>(camera).unwrap();
+        assert_eq!(transmission.steps, 1);
+        assert_eq!(transmission.quality, ScreenSpaceTransmissionQuality::High);
     }
 
     #[test]
-    fn deferred_ssr_preparation_alone_disables_msaa() {
+    fn native_transmission_preparation_keeps_forward_msaa_and_removes_deferred_ssr() {
         let mut app = App::new();
         app.add_plugins(MinimalPlugins);
-        let camera = app.world_mut().spawn(Camera3d::default()).id();
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                DeferredPrepass,
+                ScreenSpaceReflections::default(),
+            ))
+            .id();
         app.insert_resource(PreparedWaterCamera {
-            ssr: Some(ScreenSpaceReflections::default()),
+            transmission: ScreenSpaceTransmission {
+                steps: 1,
+                quality: ScreenSpaceTransmissionQuality::Ultra,
+            },
         });
         app.add_systems(Update, configure_water_cameras);
         app.update();
 
         let world = app.world();
-        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Off));
-        assert!(world.get::<DeferredPrepass>(camera).is_some());
-        assert!(world.get::<ScreenSpaceReflections>(camera).is_some());
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
+        assert!(world.get::<DeferredPrepass>(camera).is_none());
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
         assert_eq!(
             world
                 .get::<ScreenSpaceTransmission>(camera)
                 .map(|transmission| transmission.steps),
-            Some(0)
+            Some(1)
+        );
+        assert_eq!(
+            world
+                .get::<ScreenSpaceTransmission>(camera)
+                .map(|transmission| transmission.quality),
+            Some(ScreenSpaceTransmissionQuality::Ultra)
         );
     }
 
     #[test]
-    fn high_quality_transition_cannot_reenable_unavailable_ssr() {
+    fn high_quality_uses_environment_fallback_and_native_transmission_without_ssr() {
         let terrain = embedded_visual_valley_terrain_document().unwrap();
         let water = embedded_visual_valley_water_document().unwrap();
         let quality = VisualValleyQualityProfileDocument::from_json(include_str!(
@@ -2005,6 +2445,7 @@ mod tests {
             .world_mut()
             .spawn((
                 Camera3d::default(),
+                AtmosphereEnvironmentMapLight::default(),
                 DeferredPrepass,
                 ScreenSpaceReflections::default(),
             ))
@@ -2031,7 +2472,16 @@ mod tests {
         assert_eq!(stats.deferred_camera_entities, 0);
         assert_eq!(stats.msaa_off_camera_entities, 0);
         assert_eq!(stats.msaa_sample4_camera_entities, 1);
+        assert_eq!(stats.transmission_enabled_camera_entities, 1);
+        assert_eq!(stats.screen_space_transmission_steps, 1);
+        assert_eq!(stats.screen_space_transmission_quality, "high");
         assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
+        assert_eq!(
+            world
+                .get::<ScreenSpaceTransmission>(camera)
+                .map(|transmission| (transmission.steps, transmission.quality)),
+            Some((1, ScreenSpaceTransmissionQuality::High))
+        );
     }
 
     #[test]

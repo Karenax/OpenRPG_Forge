@@ -2444,7 +2444,10 @@ mod tests {
         app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
         app.init_asset::<Mesh>();
         app.init_asset::<StandardMaterial>();
-        app.world_mut().spawn(Camera3d::default());
+        app.world_mut().spawn((
+            Camera3d::default(),
+            bevy::light::AtmosphereEnvironmentMapLight::default(),
+        ));
         app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
         app.update();
         app.world().resource::<WaterProjectionStats>().clone()
