@@ -324,7 +324,7 @@ p99 76,4441 ms et 1 % low 12,5912 FPS. La frontière hôte n'est ni vérifiée n
 La campagne est **non qualifiante** — target Cargo partagé, aucun rebuild gouverné en target propre —
 et le GPU cible comme la revue humaine restent à faux.
 
-La source courante publiée `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
+La source historique `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
 `378f13f68e7689a6790aa544f1e5b4a1be30ad16`, ajoute l'opt-in strictement diagnostique
 `--render-profile-gate1-diagnostic`. Il n'est disponible qu'avec la feature `render-profile`, exige la
 route gameplay-stutter et publie un marqueur `qualifying = false`. Le formatage, les checks Cargo
@@ -336,6 +336,27 @@ La trace Chrome agrège 2 835 intervalles stables à 11,4451 ms de moyenne, p95 
 13,2567 ms et maximum 27,2177 ms. Elle oriente le diagnostic vers l'acquisition de surface et le
 pacing plutôt que les appels Vulkan bruts, mais ne supplante pas PresentMon : horloges et frontières
 ne sont pas corrélées, la borne QPC haute manque et la capture reste non qualifiante.
+
+La baseline Release non instrumentée actuelle `6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, arbre
+`cfbe45ecd3464c16f47ef1b2da2bf7fd5b78d9c7`, exécute trois runs `AutoNoVsync` et trois FIFO dans
+l'ordre contrebalancé `AB/BA/AB`. Les six acquisitions sont valides côté infrastructure. Les trois
+runs Auto échouent : 21,3180 à 21,5263 FPS moyens, p95 de 69,4547 à 69,4584 ms, 1 % low de
+6,9036 à 7,0982 FPS, 16 à 27 présentations non affichées, 546 à 556 au-dessus de 33,3 ms et 65 à
+116 consécutives au-dessus de 16,7 ms. Les trois FIFO échouent aussi ; l'analyse hashée
+`5026e75d…81dd3e` ne propose aucun changement de pacing.
+
+Le lot source courant `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
+`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ajoute seulement un reçu atomique de timeout avant
+l'état prêt, schema v1 et `qualifying=false`. Deux tests Release ciblés, Clippy Release strict,
+formatage et diff-check passent. Le smoke DX12/FXC prouve qu'à 1 200 ticks seul
+`pipeline_ready=false`, avec 40/69 pipelines prêts et 29 en création. DX12/DXC atteint 69/69 entre
+les ticks 209 et 294, mais PresentMon ne fournit aucune ligne et perd jusqu'à 263 726 événements ETW ;
+ces pilotes sont invalides pour les métriques. Le DXC statique local n'est pas promu après un échec de
+link sur `atls.lib` absent.
+
+Le prototype externe PresentMon `v2.4.1` / `43bd0333`, buffers ETW 128 KiB et minimum 512, ne produit
+aucun exécutable : son unique build x64 Release s'arrête sur quatre dépendances vcpkg non restaurées.
+Aucun A/B ni aucune promotion Forge ne sont effectués.
 
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
@@ -373,13 +394,13 @@ et supprime le warning natif observé à `a34596bd`. La campagne initiale `a7c9b
 contours/stipple noirs, silhouettes lointaines crénelées, grands aplats et eau masquée. La campagne
 corrective `6a24cabe` élimine le principal défaut depth-only et rend `R1-046`/`R1-047` candidates à
 revue humaine. La campagne `873618af` acquiert ensuite le vrai contrôleur gameplay, sa caméra et
-Rapier. Aux lots `15635b3f` et `2fe48485`, le ledger runtime et la sélection PresentMon hôte restent
-deux observations distinctes ; la trace instrumentée du second lot ne résout pas la corrélation des
-horloges. L'absence de borne haute runtime, de vérification et d'ingestion de la frontière hôte, ainsi
-que l'échec externe aux seuils empêchent de fermer le stutter. `R1-023`, `R1-025`, `R1-026`
+Rapier. Aux lots historiques `15635b3f` et `2fe48485`, le ledger runtime et la sélection PresentMon
+hôte restent deux observations distinctes. La baseline `6f0e519a` confirme ensuite le FAIL sur trois
+runs Auto valides. Le reçu `06b5fd40` isole le timeout DX12/FXC, mais les acquisitions DX12/DXC sont
+invalides par pertes ETW et ne remplacent aucune métrique. `R1-023`, `R1-025`, `R1-026`
 et `R1-046` à `R1-048` restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste
 satisfaite ; matériel cible, stutter représentatif et revue humaine restent dus. L'audit provenance
-strict `2fe48485` passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
+strict passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
 n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
@@ -489,12 +510,11 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-047` vue lointaine — PNG Release `873618af` réacquis ; correction bleu-noir préservée,
   revue humaine LOD/composition encore due.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
-  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. La dernière campagne Release
-  normale `15635b3f` reste non qualifiante et en échec externe. Le diagnostic instrumenté
-  `2fe48485` enregistre 1 800 ticks/29,995543 s/2 608 frames/2 609 contrôles et 2 184 lignes PresentMon,
-  dont 1 446 présentations résolues. Il reste **FAIL seuils** (`DisplayedTime` moyen 20,8579 ms, p95
-  34,7319 ms, 1 % low 4,1709 FPS). Sa trace interne stable n'est pas corrélée à la fenêtre QPC ; sans
-  borne haute, vérification ou ingestion runtime, elle ne qualifie pas le stutter. Revue humaine non réalisée ;
+  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. La baseline Release
+  `6f0e519a` fournit trois runs Auto valides côté infrastructure, tous **FAIL seuils** : 21,3180 à
+  21,5263 FPS, p95 69,4547 à 69,4584 ms et 1 % low 6,9036 à 7,0982 FPS. Le reçu courant
+  `06b5fd40` isole DX12/FXC à la compilation de pipelines ; DX12/DXC atteint 69/69 pipelines mais ses
+  captures PresentMon sont invalides par pertes ETW. Revue humaine non réalisée ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
@@ -509,20 +529,19 @@ qualité                   Low / Medium / High / Ultra
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — sélection PresentMon hôte `2fe48485`
-  non qualifiante en échec à 20,8579 ms de `DisplayedTime` moyen ; GPU cible non mesuré ;
-- [ ] p95 ≤ 16,7 ms — sélection PresentMon hôte non qualifiante à 34,7319 ms ;
-- [ ] 1 % low ≥ 45 FPS — sélection PresentMon hôte non qualifiante à 4,1709 FPS ;
-- [ ] absence de stutter récurrent — la sélection PresentMon hôte `2fe48485` est non qualifiante et
-  échoue aux seuils avec 680/1 446 présentations au-dessus de 16,7 ms et 111/1 446 au-dessus de
-  33,3 ms ; la trace interne stable n'est pas corrélée à cette sélection ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — trois runs Auto `6f0e519a` : 21,3180 à
+  21,5263 FPS ; GPU cible non mesuré ;
+- [ ] p95 ≤ 16,7 ms — trois runs Auto `6f0e519a` : 69,4547 à 69,4584 ms ;
+- [ ] 1 % low ≥ 45 FPS — trois runs Auto `6f0e519a` : 6,9036 à 7,0982 FPS ;
+- [ ] absence de stutter récurrent — trois runs Auto `6f0e519a` : 16 à 27 non affichées, 546 à 556
+  au-dessus de 33,3 ms et séquences maximales de 65 à 116 au-dessus de 16,7 ms ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
 - [x] rapport et captures versionnés — rapport Gate 1, preuves Browser, lot correctif `6a24cabe`,
-  lot contrôleur Release `873618af`, synthèse PresentMon `15635b3f` et diagnostic instrumenté
-  `2fe48485` ajoutés avec leurs SHA-256 et audit de provenance ; les artefacts bruts des campagnes
+  lot contrôleur Release `873618af`, preuves historiques, baseline `6f0e519a` et reçu de timeout
+  `06b5fd40` ajoutés avec leurs SHA-256 et audit de provenance ; les artefacts bruts des campagnes
   non qualifiantes restent externes et hashés.
 
 ---

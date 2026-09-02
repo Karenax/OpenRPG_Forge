@@ -6,21 +6,31 @@ Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
 
-Le commit opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
-`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, permet un profilage explicitement marqué. La campagne
-`2fe48485-render-profile-20260902T060816358Z` est **NONQUALIFYING** : le marqueur schema 1 porte
-`qualifying=false`, l'instrumentation `render-profile` modifie les logs et l'ordonnancement du rendu,
-le target Cargo partagé est réutilisé et aucun rebuild gouverné en target propre n'est effectué.
+La baseline Release non instrumentée `6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, arbre
+`cfbe45ecd3464c16f47ef1b2da2bf7fd5b78d9c7`, fournit trois runs `AutoNoVsync` valides du point de
+vue de l'infrastructure. Ils échouent tous aux seuils : 21,3180 à 21,5263 FPS moyens, p95 de
+69,4547 à 69,4584 ms, 1 % low de 6,9036 à 7,0982 FPS, 16 à 27 présentations non affichées, 546 à
+556 présentations au-dessus de 33,3 ms et 65 à 116 frames consécutives au-dessus de 16,7 ms. Les
+trois variantes FIFO échouent également ; aucune proposition de pacing n'est retenue. L'analyse
+`presentation-ab-analysis.json`, SHA-256
+`5026e75d1b47824a47381bd05ab8ae273111948b87d6ffbc804f0cecab81dd3e`, porte donc le verdict
+**FAIL**, `qualifying=false` et `closes_gate=false`.
 
-Le ledger runtime prouve une route gameplay réelle de 1 800 ticks en 29,995543 s. Séparément,
-PresentMon retient 2 184 lignes après une borne QPC basse, sans borne haute runtime ni ingestion : 738
-n'ont pas de `DisplayedTime` résolu et les 1 446 valeurs résolues échouent aux seuils. La trace interne
-stable, proche de la distribution `8b`, mesure 11,445115 ms, soit 87,3735 FPS équivalents profilés ;
-elle ne remplace pas le **FAIL PresentMon**. La divergence trace/PresentMon reste non réconciliée.
-Aucun correctif n'est appliqué dans cette consolidation documentaire. `R1-037`, `R1-041` et `R1-048`
-restent ouvertes, la revue humaine reste fausse, Gate 1 reste ouverte et Gate 2 reste interdite.
+Le lot source courant `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
+`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ne modifie ni la durée de mesure, ni les seuils, ni
+les schémas qualifiants. Il ajoute uniquement un reçu JSON atomique et explicitement
+`qualifying=false` lorsque le runtime expire avant l'état prêt. Le smoke DX12/FXC identifie ainsi la
+cause exacte : à 1 200 ticks, les huit autres prédicats sont vrais et seul `pipeline_ready=false`, avec
+40 pipelines prêts et 29 encore en création. Avec le DXC Microsoft signé du SDK Windows, les 69
+pipelines deviennent prêts, mais PresentMon 2.4.1 perd massivement les événements ETW et ne produit
+aucune ligne pour le processus. Ces essais DX12 sont des diagnostics d'infrastructure sans métrique de
+performance, pas une requalification.
 
-## Identité source, opt-in et validations `2fe48485`
+Le diagnostic opt-in historique `2fe48485086e925422c667f49c38a80f96e1a81a` reste conservé, mais
+n'est plus la source courante. `R1-037`, `R1-041` et `R1-048` restent ouvertes,
+`human_review_performed=false`, Gate 1 reste ouverte et Gate 2 reste interdite.
+
+## Historique — identité source, opt-in et validations `2fe48485`
 
 | Élément | Valeur |
 |---|---|
@@ -313,11 +323,89 @@ Ces nombres sont un diagnostic externe utile, pas un benchmark gouverné accept�
 calls, triangles ou instances n'est acquis. La RX 7800 XT est le GPU de développement ; elle ne ferme
 pas `R1-041`, qui exige encore une RTX 3060 ou RX 6600.
 
+## Diagnostics postérieurs à `2fe48485`
+
+### Baseline Release et matrice de pacing `6f0e519a`
+
+Le binaire Release non instrumenté de 82 328 064 octets, SHA-256
+`c20c2b727b5103f677aaea0ea04984c214526e0455487f30865200d6974ece0a`, est lié au commit exact
+`6f0e519afd01a701dd4d772d0d3837dd5cbf9814`. La campagne contrebalancée `AB/BA/AB` contient trois
+runs `AutoNoVsync` et trois runs FIFO. Les six acquisitions sont structurellement valides, leurs
+identités scène/GPU/OS/affichage concordent et leurs signatures de présentation sont stables. Les
+trois runs de baseline `AutoNoVsync` donnent :
+
+| Mesure, unité par run | Minimum | Médiane | Maximum |
+|---|---:|---:|---:|
+| FPS affichés moyens | 21,3180 | 21,4731 | 21,5263 |
+| p95 affiché | 69,4547 ms | 69,4566 ms | 69,4584 ms |
+| 1 % low | 6,9036 FPS | 6,9289 FPS | 7,0982 FPS |
+| présentations non affichées | 16 | 19 | 27 |
+| présentations au-dessus de 33,3 ms | 546 | 554 | 556 |
+| maximum consécutif au-dessus de 16,7 ms | 65 | 88 | 116 |
+
+Les trois runs FIFO échouent eux aussi et ne sont meilleurs à la fois sur le p95 et le 1 % low que
+dans une paire sur trois. La matrice refuse donc tout changement de pacing. Elle est diagnostique,
+`qualifying=false`, `closes_gate=false`, et son verdict est **FAIL**.
+
+### Reçu de timeout reproductible `06b5fd40`
+
+Le commit `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
+`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ajoute uniquement le schéma
+`forge.gate1-gameplay-stutter-readiness-timeout` v1. L'écriture est atomique, réservée au chemin
+d'échec avant l'état prêt et porte toujours `qualifying=false`. Le binaire Release exact mesure
+82 333 696 octets, SHA-256
+`b1f0f17bb2499a798445e78d49dfb57db8182a2896dd36f13c48ed44360e60ab`. Les deux tests Release
+ciblés `readiness_timeout` passent, Clippy Release strict passe, le formatage et le diff-check passent.
+
+Le smoke réel DX12/FXC
+`dx12-fxc-readiness-timeout-06b5fd4-20260902T131450568Z` expire à 1 200 ticks avant le lancement de
+PresentMon. Les huit prédicats scène/qualité/GPU/profil joueur/ancrage/caméra/binding sont vrais ; seul
+`pipeline_ready=false`. Le cache rapporte 69 pipelines : 40 prêts, 29 en création, zéro en file et
+zéro erreur. Le reçu de 1 548 octets porte le SHA-256
+`77e96f54e5a4aa8ddfbb5d42cc20a079efcea47abb0851d3a59b2074d01c179b`. Il prouve que le timeout
+DX12/FXC est une attente de compilation de pipelines, sans fournir de verdict de performance.
+
+### Routes DXC et invalidation ETW
+
+Le prototype DXC statique local `a59f560c` n'est pas promu : son build atteint l'édition de liens puis
+échoue avec `LNK1104` sur `atls.lib`, composant ATL/MFC absent de Visual Studio Build Tools. Aucun
+binaire ni aucune métrique n'en résultent. La route dynamique emploie à la place le DXC Microsoft
+signé du SDK Windows `10.0.26100.0` : `dxc.exe` v1.8.2502.11, SHA-256
+`7c6918a0e2d4e437629fa8549f5ce800970494780f363bbbe1e3d3034f435aee`, `dxcompiler.dll` SHA-256
+`78b5e21a91707b4a567ef281a519c52a45b709561202f54c5ad79c5a315847ed` et `dxil.dll` SHA-256
+`77e039c905030a641e53658a008b74e90635a5ea9b6b79eabd0f2003bdfca59a`.
+
+Trois pilotes dynamiques atteignent l'état prêt avec 69/69 pipelines entre les ticks 209 et 294. Aucun
+ne produit de ligne PresentMon qualifiable, de signal de départ, de ledger ou de synthèse :
+
+| Pilote externe | Reçu prêt SHA-256 | Observation PresentMon |
+|---|---|---|
+| standard | `1797ba6fd7af11c50f873ac8f903f0f825e83b541d22ad1900a728be11a49e65` | zéro ligne ; 263 726 événements ETW perdus |
+| sans suivi input | `87d0f0fe56d4c7cfde0bd8790c2bbb33f9d8b0f84ab13b2952de66622a165952` | zéro ligne ; sortie brute vide |
+| affichage seul | `53b4a33bc6695430fa8d044c25b1fe94b13ba7554f9fd4a5c890b3c39295116f` | zéro ligne ; 261 138 événements ETW perdus |
+
+Un probe séparé avec le PresentMon signé livré par AMD reproduit le défaut : 72/72 pipelines prêts,
+zéro ligne et 58 122 événements ETW perdus en cinq secondes. Le taux de remplissage publié par
+PresentMon décrit le nombre de buffers ETW utilisés, pas leur remplissage en octets ; le binaire 2.4.1
+épinglé n'expose aucune option CLI pour la taille ou le nombre de buffers. L'élévation n'apporte que
+des privilèges de métadonnées processus et ne constitue pas un correctif démontré. Ces essais sont
+donc classés **INVALIDES — acquisition ETW**, sans comparaison de performance.
+
+Un prototype jetable a épinglé l'upstream officiel PresentMon `v2.4.1` au commit vérifié
+`43bd033364154bd5eade7c11f6b0364a12380deb`, arbre
+`4fbde5ec7fa97676079ac363e0a6f682c26cbb29`, licence MIT. Son patch externe borne le test à des
+buffers ETW de 128 KiB, minimum 512 et maximum 1 024 ; `git diff --no-ext-diff --binary` porte le
+SHA-256 `5041bead4cb9cbd16bf665dd8ea8c0213191d009f8a6277b05c6cdacfc3b0835`. L'unique build x64
+Release échoue avant le link : les dépendances vcpkg `cli11`, `concurrentqueue`, `cereal` et
+`boost-asio` ne sont pas restaurées. Aucun exécutable, aucune signature et aucun A/B n'existent ; ce
+prototype reste externe, non promu et sans effet sur le verdict.
+
 ## CI distante historique — exception ADR-0006
 
 Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
-reste attaché au commit exact `15635b3f85b623654e498b17ed299674928313e6`, pas au commit opt-in
-`2fe48485086e925422c667f49c38a80f96e1a81a`. Il expose quatre jobs — `wasm`,
+reste attaché au commit exact `15635b3f85b623654e498b17ed299674928313e6`, pas aux commits
+`6f0e519afd01a701dd4d772d0d3837dd5cbf9814` ou
+`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`. Il expose quatre jobs — `wasm`,
 `supply-chain`, `native (ubuntu-24.04)` et `native (windows-2025)` — avec **0 étape exécutée** et
 aucun runner alloué. La conclusion GitHub `failure` décrit le blocage d'infrastructure/facturation,
 pas un échec du code : la qualification reste **NOT RUN — infrastructure billing** sous ADR-0006.
@@ -340,9 +428,15 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 
 ## État final
 
-- `R1-048` : **OUVERTE — FAIL seuils dans la campagne diagnostique non qualifiante** ;
+- `R1-048` : **OUVERTE — FAIL sur la baseline `6f0e519a`** ;
 - `R1-037` : **OUVERTE** ;
 - `R1-041` : **OUVERTE** ;
+- baseline Release `6f0e519a` : trois runs `AutoNoVsync` structurellement valides, verdict **FAIL** ;
+- reçu de timeout `06b5fd40` : **PASS fonctionnel**, diagnostic d'échec uniquement, sans métrique de
+  performance ;
+- DX12/FXC : attente de compilation prouvée, 40/69 prêts et 29 en création à 1 200 ticks ;
+- DX12/DXC dynamique : 69/69 prêts, acquisition PresentMon **INVALIDE** par pertes ETW massives ;
+- DXC statique `a59f560c` : **NON PROMU**, build interrompu par l'absence d'ATL/MFC ;
 - campagne opt-in `2fe48485` : **NONQUALIFYING**, trace interne proche de `8b` mais divergence
   trace/PresentMon non réconciliée ;
 - campagne historique `15635b3f` et ses hashes : **préservés** ;
@@ -350,9 +444,11 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 - Gate 1 : **OUVERTE** ;
 - Gate 2 : **INTERDITE** sans passage formel de Gate 1 ou nouvelle dérogation explicite acceptée ;
 - CI distante `33584774630` attachée à `15635b3f` : **NOT RUN** sous ADR-0006 ;
-- correctif : **aucun dans cette consolidation documentaire**.
+- asset Cadle copié dans Forge : **aucun**.
 
-La prochaine acquisition qualifiante doit revenir à un runtime Release non instrumenté, reconstruire
-dans un target gouverné propre, faire ingérer et vérifier la frontière QPC exacte par le runtime,
-conserver la route sans pause, satisfaire les seuils de présentation, puis être complétée par le
-benchmark GPU cible et la revue humaine.
+La prochaine acquisition qualifiante doit employer un runtime Release normal dans un target gouverné
+propre et une capture d'affichage sans perte ETW. Une instrumentation `tracing` interne, bornée et
+explicitement non qualifiante peut corréler les appels `Surface::present` et backend
+`IDXGISwapchain3::Present`/`vkQueuePresentKHR`, mais ne doit jamais être appelée temps d'affichage ni
+remplacer PresentMon. La route doit ensuite satisfaire les seuils de présentation et être complétée par
+le benchmark GPU cible et la revue humaine.

@@ -9,12 +9,13 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 ## Résumé de décision
 
 Visual Valley conserve une paire native/Browser exacte au commit `d9e2670`, des captures fixes, des
-ledgers versionnés et une provenance CC0/Cadle auditée. Le correctif `6a24cabe` supprime le défaut
+ledgers versionnés et une provenance CC0/Cadle auditée. Aucun asset Cadle n'est copié dans Forge. Le
+correctif `6a24cabe` supprime le défaut
 depth-only majeur de la végétation. La campagne `873618af` conserve cette correction et exerce le vrai
 contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La source publiée antérieure `15635b3f`
 borne le rafraîchissement des preuves et ajoute des reçus monotones d'audit de visibilité ; ses preuves
 et sa CI restent historiques. Le commit opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
-`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, permet un profilage explicitement marqué
+`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, permet un profilage historique explicitement marqué
 **NONQUALIFYING**. Ses checks normal/feature, ses deux variantes de Clippy strict, ses 2/2 tests
 unitaires, ses 4/4 tests du guard d'intégration, son formatage, son diff-check et sa provenance passent.
 Les deux variantes Browser passent chacune
@@ -33,14 +34,24 @@ corrige ensuite les silhouettes bleu-noir laissées par la prépasse caméra. Le
 le déplacement du contrôleur réel sur 173 ticks avec collisions. À `15635b3f`, la première sélection
 PresentMon non qualifiante échoue aux seuils et reste conservée comme preuve historique.
 
-À `2fe48485`, le nouveau ledger enregistre 1 800 ticks en 29,995543 s, avec 2 ticks de catch-up, 2 608
+À `2fe48485`, le ledger historique enregistre 1 800 ticks en 29,995543 s, avec 2 ticks de catch-up, 2 608
 frames main-world et 2 609 contrôles d'invariants. Séparément, l'hôte retient 2 184 lignes PresentMon
 après la seule borne QPC basse : 738 `DisplayedTime` sont non résolus et les 1 446 valeurs résolues
 mesurent 20,8579 ms de moyenne, p95 34,7319 ms, p99 83,4934 ms et 1 % low 4,1709 FPS. La trace interne
 stable mesure 11,445115 ms, soit 87,3735 FPS équivalents profilés, et suit de près la capture `8b` ;
 elle est NONQUALIFYING et ne remplace pas le **FAIL PresentMon**. La divergence trace/PresentMon n'est
-pas réconciliée. La présentation GPU Browser reste `not_observed`, la cible RTX 3060/RX 6600 n'a pas
-été mesurée et `human_review_performed=false`. Aucun correctif n'est appliqué maintenant.
+pas réconciliée.
+
+La baseline Release non instrumentée actuelle `6f0e519a` fournit ensuite trois runs `AutoNoVsync`
+structurellement valides. Tous échouent : 21,3180 à 21,5263 FPS moyens, p95 de 69,4547 à
+69,4584 ms et 1 % low de 6,9036 à 7,0982 FPS. Les trois runs FIFO échouent eux aussi ; aucune
+proposition de pacing n'est retenue. Le lot `06b5fd40` ajoute uniquement un reçu atomique de timeout
+avant l'état prêt. Il prouve que DX12/FXC attend encore 29 compilations de pipelines à 1 200 ticks,
+alors que DX12/DXC atteint 69/69 pipelines entre 209 et 294 ticks. Sur cette dernière route,
+PresentMon perd toutefois 261 138 à 263 726 événements ETW et ne produit aucune ligne ; ces essais
+sont invalides pour toute comparaison de performance. La présentation GPU Browser reste
+`not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée et
+`human_review_performed=false`.
 
 Le verdict `R1-055` est **poursuivre Gate 1**, corriger et requalifier les preuves manquantes. Il ne
 constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
@@ -49,11 +60,14 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| diagnostic opt-in `render-profile` courant | `2fe48485086e925422c667f49c38a80f96e1a81a` | `378f13f68e7689a6790aa544f1e5b4a1be30ad16` | runtime Release 90 245 632 octets ; checks normal/feature, Clippy strict normal/all-features, 2/2 unitaires, guard 4/4, formatage, diff-check et provenance PASS ; trace et PresentMon NONQUALIFYING, seuils FAIL |
+| diagnostic de timeout courant | `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d` | `a195b2b865c45502f3b412a43bfb20f4d53f9491` | runtime Release 82 333 696 octets, SHA-256 `b1f0f17b…60e60ab` ; 2/2 tests Release ciblés, Clippy Release strict, formatage et diff-check PASS ; DX12/FXC isolé à la compilation de pipelines ; aucune métrique qualifiante |
+| baseline Release et pacing | `6f0e519afd01a701dd4d772d0d3837dd5cbf9814` | `cfbe45ecd3464c16f47ef1b2da2bf7fd5b78d9c7` | trois runs Auto et trois FIFO valides côté infrastructure ; analyse `5026e75d…81dd3e` ; verdict FAIL, aucune proposition de pacing, `qualifying=false` |
+| durcissement hôte publié de base | `a340494939c82a8800999c14a44c06a797d74f5d` | `b6d18b992ac0e1f84724cd301da6dc7c08cb9ed7` | base exacte du lot `06b5fd40` ; activation PresentMon durcie, sans verdict de performance propre |
+| diagnostic opt-in `render-profile` historique | `2fe48485086e925422c667f49c38a80f96e1a81a` | `378f13f68e7689a6790aa544f1e5b4a1be30ad16` | runtime Release 90 245 632 octets ; checks normal/feature, Clippy strict normal/all-features, 2/2 unitaires, guard 4/4, formatage, diff-check et provenance PASS ; trace et PresentMon NONQUALIFYING, seuils FAIL |
 | source publiée et cadence de preuve historique | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant historique, seuils FAIL ; CI `33584774630` attachée à ce commit |
 | acquisition visuelle et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
 | correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
-| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur `2fe48485` |
+| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source courante |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
@@ -316,6 +330,60 @@ divergence entre 11,445115 ms internes et 20,8579 ms affichées reste non récon
 n'est appliqué dans ce lot documentaire. `R1-037`, `R1-041` et `R1-048` restent ouvertes,
 `human_review_performed=false`, Gate 1 reste ouverte et Gate 2 reste interdite.
 
+## Baseline Release `6f0e519a` et diagnostic de readiness `06b5fd40`
+
+La campagne contrebalancée `6f0e519a-foreground-f87b293b` exécute le binaire Release non instrumenté
+de 82 328 064 octets, SHA-256
+`c20c2b727b5103f677aaea0ea04984c214526e0455487f30865200d6974ece0a`. Les six runs `AB/BA/AB`
+sont valides côté infrastructure, avec identité scène/GPU/OS/affichage concordante et signatures de
+présentation stables. Les trois runs de baseline `AutoNoVsync` échouent tous :
+
+| Mesure, unité par run | Minimum | Médiane | Maximum |
+|---|---:|---:|---:|
+| FPS affichés moyens | 21,3180 | 21,4731 | 21,5263 |
+| p95 affiché | 69,4547 ms | 69,4566 ms | 69,4584 ms |
+| 1 % low | 6,9036 FPS | 6,9289 FPS | 7,0982 FPS |
+| présentations non affichées | 16 | 19 | 27 |
+| présentations au-dessus de 33,3 ms | 546 | 554 | 556 |
+| maximum consécutif au-dessus de 16,7 ms | 65 | 88 | 116 |
+
+Les trois FIFO échouent aussi et ne sont strictement meilleurs que dans une paire sur trois. Le fichier
+`presentation-ab-analysis.json`, SHA-256
+`5026e75d1b47824a47381bd05ab8ae273111948b87d6ffbc804f0cecab81dd3e`, refuse donc toute
+proposition : verdict **FAIL**, `qualifying=false`, `closes_gate=false`.
+
+Le commit `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, arbre
+`a195b2b865c45502f3b412a43bfb20f4d53f9491`, ajoute exclusivement un reçu atomique de timeout
+avant l'état prêt. Il conserve 1 200 ticks d'attente et ne change aucun critère ou schéma qualifiant. Le
+binaire Release exact mesure 82 333 696 octets, SHA-256
+`b1f0f17bb2499a798445e78d49dfb57db8182a2896dd36f13c48ed44360e60ab`; 2/2 tests Release
+ciblés, Clippy Release strict, formatage et diff-check passent.
+
+Le smoke réel DX12/FXC expire à 1 200 ticks : les huit prédicats autres que le pipeline sont vrais et
+`pipeline_ready=false`, avec 40/69 pipelines prêts, 29 en création et zéro erreur. Le reçu
+`forge.gate1-gameplay-stutter-readiness-timeout` v1, `qualifying=false`, porte le SHA-256
+`77e96f54e5a4aa8ddfbb5d42cc20a079efcea47abb0851d3a59b2074d01c179b`. La cause du timeout
+FXC est donc isolée à la compilation de pipelines.
+
+Avec le DXC Microsoft signé du SDK Windows 10.0.26100.0, trois pilotes atteignent 69/69 pipelines
+entre les ticks 209 et 294. Le PresentMon 2.4.1 épinglé ne produit toutefois aucune ligne et perd
+jusqu'à 263 726 événements ETW ; une variante affichage seul perd 261 138 événements. Le PresentMon
+signé livré par AMD reproduit zéro ligne et 58 122 événements perdus en cinq secondes. La route DXC
+statique locale n'est pas promue : son link échoue sur `atls.lib`, composant ATL/MFC absent. Il n'existe
+donc aucune mesure de performance DX12 recevable, seulement deux conclusions bornées : DXC résout le
+warm-up et l'acquisition ETW locale est invalide.
+
+Un prototype externe de PresentMon officiel `v2.4.1` / `43bd0333` double la taille de buffer ETW à
+128 KiB et le minimum à 512, sans dépasser le maximum amont de 1 024. Le diff binaire hashé
+`5041bead…3b0835` ne touche que deux fichiers. Son unique build x64 Release échoue avant le link,
+faute des dépendances vcpkg `cli11`, `concurrentqueue`, `cereal` et `boost-asio`. Aucun exécutable ni
+A/B n'est produit et rien n'est promu dans Forge.
+
+Une instrumentation interne bornée peut mesurer les intervalles entre appels `Surface::present` et
+backend `IDXGISwapchain3::Present`/`vkQueuePresentKHR`. Ces valeurs décrivent la cadence des demandes
+de présentation, pas `DisplayedTime`, la composition ou le scan-out ; elles doivent rester
+explicitement non qualifiantes et ne peuvent pas remplacer PresentMon.
+
 ## Preuve temporelle Browser exacte `a4e9824a`
 
 Le harnais préenregistré a exécuté Edge headed `152.0.4191.53` sur la route High/clear exacte, depuis
@@ -486,12 +554,13 @@ depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel. À 
 runtime et la première sélection PresentMon hôte sont deux observations historiques distinctes ; la
 seconde n'a pas de borne haute runtime, n'est ni vérifiée ni ingérée, et échoue aux seuils.
 
-Le diagnostic courant `2fe48485` confirme une route gameplay réelle, mais sa sélection PresentMon
+Le diagnostic historique `2fe48485` confirme une route gameplay réelle, mais sa sélection PresentMon
 retient 1 446 présentations résolues sur 2 184 lignes après la borne basse et échoue encore : moyenne
 20,8579 ms, p95 34,7319 ms, 1 % low 4,1709 FPS, 680 dépassements de 16,667 ms et 111 de 33,333 ms. La
 trace interne stable à 11,445115 ms, proche de `8b`, reste NONQUALIFYING et ne remplace pas ce FAIL.
-La divergence trace/PresentMon reste non réconciliée : « acquis » ne signifie pas « qualifié ».
-`human_review_performed=false` et aucun correctif n'est appliqué maintenant.
+La baseline courante `6f0e519a` confirme le FAIL sur trois runs Auto valides, tandis que le diagnostic
+`06b5fd40` isole le timeout DX12/FXC. Les essais DX12/DXC ne sont pas comparables : l'acquisition ETW
+est invalide. « Acquis » ne signifie pas « qualifié » et `human_review_performed=false`.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
@@ -504,14 +573,14 @@ huitième match de ledger.
 |---|---|---|
 | qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
-| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, `DisplayedTime` moyen 20,8579 ms sur RX 7800 XT ; GPU cible non mesuré ; `15635b3f` conservé comme historique |
-| p95 `<=16,7 ms` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, p95 34,7319 ms ; GPU cible non mesuré |
-| 1 % low `>=45 FPS` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, 1 % low 4,1709 FPS ; GPU cible non mesuré |
-| absence de stutter récurrent | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante ; 680/1 446 présentations >16,667 ms et 111/1 446 >33,333 ms ; trace interne NONQUALIFYING |
+| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE / FAIL diagnostic** | trois runs Auto `6f0e519a` valides côté infrastructure : 21,3180 à 21,5263 FPS ; GPU cible non mesuré |
+| p95 `<=16,7 ms` | **OUVERTE / FAIL diagnostic** | trois runs Auto `6f0e519a` : 69,4547 à 69,4584 ms |
+| 1 % low `>=45 FPS` | **OUVERTE / FAIL diagnostic** | trois runs Auto `6f0e519a` : 6,9036 à 7,0982 FPS |
+| absence de stutter récurrent | **OUVERTE / FAIL diagnostic** | trois runs Auto `6f0e519a` : 16 à 27 non affichées, 546 à 556 au-dessus de 33,3 ms et séquences maximales de 65 à 116 au-dessus de 16,7 ms |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
-| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser, lot natif `873618af` et synthèse PresentMon historique `15635b3f` préservés ; diagnostic externe `2fe48485` et ses agrégats hashés et consignés, bruts non versionnés |
+| rapport et captures versionnés | **SATISFAITE** | preuves antérieures préservées ; baseline `6f0e519a`, reçu `06b5fd40`, essais DXC/ETW et leurs hashes consignés ; bruts diagnostiques non versionnés |
 
 ## Limites visuelles et qualification humaine
 
@@ -523,16 +592,17 @@ wetness sont visibles, mais la réflexion/réfraction ne sont pas inspectables h
 CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
-hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la sélection PresentMon
-hôte `2fe48485` confirme actuellement un échec diagnostique des seuils. Sa divergence avec la trace
-interne n'est pas réconciliée, tandis que la revue humaine FHD/QHD et les comparaisons
+hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la baseline PresentMon
+`6f0e519a` confirme actuellement le FAIL des seuils. Les essais DX12/DXC restent invalides pour les
+métriques à cause des pertes ETW, tandis que la revue humaine FHD/QHD et les comparaisons
 matériaux/composition/A-B restent dues.
 
 ## CI distante
 
 Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
-reste attaché uniquement à `15635b3f85b623654e498b17ed299674928313e6` et ne valide pas le commit
-opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`. Ses quatre jobs — `wasm`, `supply-chain`,
+reste attaché uniquement à `15635b3f85b623654e498b17ed299674928313e6` et ne valide ni
+`6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, ni
+`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`. Ses quatre jobs — `wasm`, `supply-chain`,
 `native (ubuntu-24.04)` et `native (windows-2025)` — ont chacun **0 étape exécutée** et aucun runner
 alloué. La conclusion GitHub `failure` correspond au blocage de facturation, pas à un test du code :
 la CI distante est qualifiée **NOT RUN — infrastructure billing**. ADR-0006 autorise une dérogation
@@ -543,16 +613,17 @@ locale ou visuelle.
 
 Verdict : **POURSUIVRE GATE 1**.
 
-Aucun correctif n'est appliqué dans la présente consolidation documentaire. `R1-037`, `R1-041` et
-`R1-048` restent ouvertes, `human_review_performed=false`, et le travail ci-dessous reste futur.
+Le reçu de timeout est validé mais ne corrige pas la cadence. `R1-037`, `R1-041` et `R1-048` restent
+ouvertes, `human_review_performed=false`, et le travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. corriger les coûts de présentation, reconstruire dans un target gouverné propre puis réacquérir la
-   route continue avec qualification QPC exacte et seuils stutter satisfaits ;
-2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
-3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
-4. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
+1. restaurer une capture d'affichage sans perte ETW, reconstruire dans un target gouverné propre puis
+   réacquérir la route continue ; toute instrumentation interne reste non qualifiante ;
+2. corriger la cadence mesurée puis obtenir les seuils de stutter sur une capture d'affichage valide ;
+3. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
+4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
+5. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
    statuer sur les routes visuelles restantes.
 
 Tant que ces éléments ne sont pas acquis, Gate 1 reste **OUVERTE** et Gate 2 est **INTERDITE** sans
