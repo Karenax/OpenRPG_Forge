@@ -140,9 +140,26 @@ controller, Rapier, camera, scene and pipeline window, but it cannot verify the 
 `scripts/Test-Gate1GameplayStutter.ps1` owns that host boundary. It accepts only the pinned,
 Authenticode-valid PresentMon 2.4.1 console binary, observes a complete target-PID row before
 publishing the QPC-bound start signal, captures v2 display rows and ETW-loss counters, then computes
-a bounded post-signal display distribution from `DisplayedTime`. `FrameTime` is retained as a diagnostic but
-is never substituted for a missing displayed frame; the 1 % low uses the mean of the slowest
-`ceil(samples / 100)` displayed times. The runtime does not yet expose exact QPC values for the first
+a bounded post-signal display distribution from `DisplayedTime`. The host immediately persists the
+published QPC boundary in `gate1-gameplay-stutter.host-boundary.json`, so an unsuccessful threshold
+run still retains its exact host envelope. PresentMon writes through
+`--output_stdout` into a shared live stream because its `--output_file` transport does not guarantee
+bounded pre-signal visibility. The byte-for-byte raw stream is retained; the host deterministically
+derives `presentmon.csv` and the normalized ETW-status log, and fails closed on a partial,
+interleaved or malformed record. Once the runtime exits, the host stops the exact named trace session
+with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
+failures, and requires the control and capture processes to exit cleanly. The runtime GPU
+backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
+route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 2 for
+this stdout-stream transport. `FrameTime` is retained as a diagnostic but is never substituted for a
+missing displayed frame. Within an otherwise valid envelope that retains at least 120 numeric
+displayed rows and the required boundary coverage, structurally valid
+`DisplayLatency=NA`/`DisplayedTime=NA` pairs are counted as unresolved displays; any inside the
+bounded measurement makes its thresholds fail, and the host writes the failure validation before
+returning an error. If those minimum sample or coverage prerequisites are absent, acquisition fails
+before metric validation and only the already-persisted host boundary is guaranteed. The 1 % low uses
+the mean of the slowest `ceil(samples / 100)` displayed times. The runtime does not yet expose exact
+QPC values for the first
 and last controller ticks, so the host records a bounded threshold sample but deliberately leaves
 `exact_runtime_qpc_bounds_observed` and `real_time_display_stutter_qualified` false. Human review,
 GPU-target qualification and the overall Gate 1 route remain separate. This protocol alone does not

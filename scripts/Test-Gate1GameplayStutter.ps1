@@ -25,6 +25,7 @@ $presentMonBytes = 927304L
 $presentMonSha256 = "d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34"
 $readyFileName = "gate1-gameplay-stutter.ready.json"
 $signalFileName = "gate1-gameplay-stutter.start.signal.json"
+$hostBoundaryFileName = "gate1-gameplay-stutter.host-boundary.json"
 $ledgerFileName = "gate1-gameplay-stutter.json"
 $validationFileName = "gate1-gameplay-stutter.validation.json"
 $runtimeTimeoutSeconds = 120
@@ -63,6 +64,7 @@ $expectedPresentMonColumns = @(
     "EtwBuffersLost"
 )
 $expectedPresentMonHeader = $expectedPresentMonColumns -join ","
+$expectedPresentRuntime = "DXGI"
 
 function Assert-Condition {
     param(
@@ -318,6 +320,255 @@ function Get-FirstLineShared {
     }
 }
 
+function Get-SharedText {
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    $stream = [IO.FileStream]::new(
+        $Path,
+        [IO.FileMode]::Open,
+        [IO.FileAccess]::Read,
+        [IO.FileShare]::ReadWrite
+    )
+    try {
+        $reader = [IO.StreamReader]::new($stream, [Text.Encoding]::UTF8, $true, 4096, $true)
+        try {
+            return $reader.ReadToEnd()
+        }
+        finally {
+            $reader.Dispose()
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
+function Test-PresentMonConsoleLine {
+    param([AllowEmptyString()][string]$Line)
+
+    $trimmed = $Line.Trim()
+    return (
+        [string]::IsNullOrWhiteSpace($trimmed) -or
+        $trimmed -match '^\[ETW Status\] '
+    )
+}
+
+function Get-PresentMonStreamSnapshot {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$ExpectedHeader,
+        [switch]$Final
+    )
+
+    if (-not [IO.File]::Exists($Path)) {
+        return [pscustomobject]@{
+            HeaderObserved = $false
+            Rows = @()
+            CsvLines = @()
+            ConsoleLines = @()
+            UnknownLines = @()
+        }
+    }
+    $text = Get-SharedText -Path $Path
+    if ([string]::IsNullOrEmpty($text)) {
+        return [pscustomobject]@{
+            HeaderObserved = $false
+            Rows = @()
+            CsvLines = @()
+            ConsoleLines = @()
+            UnknownLines = @()
+        }
+    }
+
+    $lines = @([regex]::Split($text, '\r?\n'))
+    $endsWithNewLine = $text.EndsWith("`n", [StringComparison]::Ordinal)
+    if ($lines.Count -gt 0 -and $lines[$lines.Count - 1].Length -eq 0) {
+        $lines = if ($lines.Count -eq 1) { @() } else { @($lines[0..($lines.Count - 2)]) }
+    }
+    elseif (-not $Final -and -not $endsWithNewLine) {
+        $lines = if ($lines.Count -eq 1) { @() } else { @($lines[0..($lines.Count - 2)]) }
+    }
+
+    $headerObserved = $false
+    $expectedColumnCount = ([regex]::Split($ExpectedHeader, ',')).Count
+    $csvLines = [Collections.Generic.List[string]]::new()
+    $consoleLines = [Collections.Generic.List[string]]::new()
+    $unknownLines = [Collections.Generic.List[string]]::new()
+    foreach ($line in $lines) {
+        $normalized = $line.TrimStart([char]0xfeff)
+        if ([string]::Equals($normalized, $ExpectedHeader, [StringComparison]::Ordinal)) {
+            if ($headerObserved) {
+                $unknownLines.Add("duplicate CSV header")
+            }
+            else {
+                $headerObserved = $true
+                $csvLines.Add($normalized)
+            }
+            continue
+        }
+        if (Test-PresentMonConsoleLine -Line $normalized) {
+            if (-not [string]::IsNullOrWhiteSpace($normalized)) {
+                $consoleLines.Add($normalized.Trim())
+            }
+            continue
+        }
+        if ($headerObserved) {
+            $actualColumnCount = ([regex]::Split($normalized, ',')).Count
+            if ($actualColumnCount -eq $expectedColumnCount) {
+                $csvLines.Add($normalized)
+            }
+            else {
+                $unknownLines.Add("CSV row has $actualColumnCount columns; expected $expectedColumnCount")
+            }
+        }
+        else {
+            $unknownLines.Add($normalized)
+        }
+    }
+
+    $rows = if ($csvLines.Count -gt 1) {
+        @($csvLines.ToArray() | ConvertFrom-Csv)
+    }
+    else {
+        @()
+    }
+    return [pscustomobject]@{
+        HeaderObserved = $headerObserved
+        Rows = $rows
+        CsvLines = $csvLines.ToArray()
+        ConsoleLines = $consoleLines.ToArray()
+        UnknownLines = $unknownLines.ToArray()
+    }
+}
+
+function Test-QualifiedPresentMonPreSignalRow {
+    param(
+        [Parameter(Mandatory = $true)][object]$Row,
+        [Parameter(Mandatory = $true)][int]$ExpectedColumnCount,
+        [Parameter(Mandatory = $true)][string]$ExpectedApplication,
+        [Parameter(Mandatory = $true)][int]$ExpectedProcessId,
+        [Parameter(Mandatory = $true)][string]$ExpectedRuntime
+    )
+
+    if (@($Row.PSObject.Properties).Count -ne $ExpectedColumnCount) {
+        return $false
+    }
+    if (-not [string]::Equals([string]$Row.Application, $ExpectedApplication, [StringComparison]::OrdinalIgnoreCase)) {
+        return $false
+    }
+    $processId = 0
+    if (-not [int]::TryParse([string]$Row.ProcessID, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$processId) -or $processId -ne $ExpectedProcessId) {
+        return $false
+    }
+    if ([string]$Row.SwapChainAddress -notmatch '^0x[0-9A-Fa-f]+$' -or -not [string]::Equals([string]$Row.PresentRuntime, $ExpectedRuntime, [StringComparison]::Ordinal)) {
+        return $false
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$Row.PresentMode) -or [string]::Equals([string]$Row.PresentMode, "NA", [StringComparison]::Ordinal)) {
+        return $false
+    }
+
+    [uint64]$qpc = 0
+    if (-not [uint64]::TryParse([string]$Row.CPUStartQPC, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$qpc) -or $qpc -eq 0) {
+        return $false
+    }
+    foreach ($field in @("FrameTime", "DisplayLatency", "DisplayedTime")) {
+        [double]$metric = 0.0
+        if (-not [double]::TryParse([string]$Row.$field, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$metric) -or -not [double]::IsFinite($metric) -or $metric -le 0.0) {
+            return $false
+        }
+    }
+    [double]$etwFill = 0.0
+    if (-not [double]::TryParse(([string]$Row.EtwBufferFillPct -replace '%$', ''), [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$etwFill) -or -not [double]::IsFinite($etwFill) -or $etwFill -lt 0.0 -or $etwFill -ge 100.0) {
+        return $false
+    }
+    [uint64]$etwInUse = 0
+    [uint64]$etwTotal = 0
+    [uint64]$etwEventsLost = 0
+    [uint64]$etwBuffersLost = 0
+    if (
+        -not [uint64]::TryParse([string]$Row.EtwBuffersInUse, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$etwInUse) -or
+        -not [uint64]::TryParse([string]$Row.EtwTotalBuffers, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$etwTotal) -or
+        -not [uint64]::TryParse([string]$Row.EtwEventsLost, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$etwEventsLost) -or
+        -not [uint64]::TryParse([string]$Row.EtwBuffersLost, [Globalization.NumberStyles]::None, [Globalization.CultureInfo]::InvariantCulture, [ref]$etwBuffersLost) -or
+        $etwTotal -eq 0 -or
+        $etwInUse -gt $etwTotal -or
+        $etwEventsLost -ne 0 -or
+        $etwBuffersLost -ne 0
+    ) {
+        return $false
+    }
+    return $true
+}
+
+function Invoke-PresentMonStreamParserSelfTest {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExpectedHeader,
+        [Parameter(Mandatory = $true)][int]$ExpectedColumnCount,
+        [Parameter(Mandatory = $true)][string]$ExpectedRuntime
+    )
+
+    $values = @(
+        "forge_runtime.exe", "4242", "0xABC", $ExpectedRuntime, "0", "0", "0", "Composed: Flip",
+        "123456", "16.0", "10.0", "6.0", "1.0", "1.0", "1.0", "0.0", "16.0", "16.0",
+        "0.0", "16.0", "0.0", "NA", "NA", "1.0", "1", "256", "0", "0"
+    )
+    Assert-Condition -Condition ($values.Count -eq $ExpectedColumnCount) -Message "PresentMon parser self-test row has the wrong column count."
+    $statusLine = "[ETW Status] BufferFillPct=1.0% BuffersInUse=1 TotalBuffers=256 EventsLost=0 BuffersLost=0"
+    $temporaryPath = [IO.Path]::GetTempFileName()
+    try {
+        $row = $values -join ","
+        [IO.File]::WriteAllText($temporaryPath, "$statusLine`r`n$ExpectedHeader`r`n$row", [Text.UTF8Encoding]::new($false))
+        $liveSnapshot = Get-PresentMonStreamSnapshot -Path $temporaryPath -ExpectedHeader $ExpectedHeader
+        Assert-Condition -Condition ($liveSnapshot.HeaderObserved -and $liveSnapshot.Rows.Count -eq 0 -and $liveSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon parser self-test accepted an unterminated live row."
+        $finalSnapshot = Get-PresentMonStreamSnapshot -Path $temporaryPath -ExpectedHeader $ExpectedHeader -Final
+        Assert-Condition -Condition ($finalSnapshot.Rows.Count -eq 1 -and $finalSnapshot.ConsoleLines.Count -eq 1 -and $finalSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon parser self-test did not recover the complete final row."
+        Assert-Condition -Condition (Test-QualifiedPresentMonPreSignalRow -Row $finalSnapshot.Rows[0] -ExpectedColumnCount $ExpectedColumnCount -ExpectedApplication "forge_runtime.exe" -ExpectedProcessId 4242 -ExpectedRuntime $ExpectedRuntime) -Message "PresentMon parser self-test rejected its valid strict row."
+
+        $naRow = $finalSnapshot.Rows[0] | Select-Object *
+        $naRow.DisplayedTime = "NA"
+        Assert-Condition -Condition (-not (Test-QualifiedPresentMonPreSignalRow -Row $naRow -ExpectedColumnCount $ExpectedColumnCount -ExpectedApplication "forge_runtime.exe" -ExpectedProcessId 4242 -ExpectedRuntime $ExpectedRuntime)) -Message "PresentMon parser self-test accepted a pre-signal NA display row."
+        $lostRow = $finalSnapshot.Rows[0] | Select-Object *
+        $lostRow.EtwBuffersLost = "1"
+        Assert-Condition -Condition (-not (Test-QualifiedPresentMonPreSignalRow -Row $lostRow -ExpectedColumnCount $ExpectedColumnCount -ExpectedApplication "forge_runtime.exe" -ExpectedProcessId 4242 -ExpectedRuntime $ExpectedRuntime)) -Message "PresentMon parser self-test accepted an ETW-loss row."
+
+        [IO.File]::WriteAllText($temporaryPath, "$ExpectedHeader`r`n$row,INJECTED`r`n", [Text.UTF8Encoding]::new($false))
+        $extraColumnSnapshot = Get-PresentMonStreamSnapshot -Path $temporaryPath -ExpectedHeader $ExpectedHeader -Final
+        Assert-Condition -Condition ($extraColumnSnapshot.HeaderObserved -and $extraColumnSnapshot.Rows.Count -eq 0 -and $extraColumnSnapshot.UnknownLines.Count -eq 1) -Message "PresentMon parser self-test accepted a row with a trailing extra column."
+
+        $interleavedValues = [string[]]$values.Clone()
+        $interleavedValues[17] = "16.0[ETW Status] BufferFillPct=1.0%"
+        [IO.File]::WriteAllText($temporaryPath, "$ExpectedHeader`r`n$($interleavedValues -join ',')`r`n", [Text.UTF8Encoding]::new($false))
+        $interleavedSnapshot = Get-PresentMonStreamSnapshot -Path $temporaryPath -ExpectedHeader $ExpectedHeader -Final
+        Assert-Condition -Condition ($interleavedSnapshot.Rows.Count -eq 1 -and -not (Test-QualifiedPresentMonPreSignalRow -Row $interleavedSnapshot.Rows[0] -ExpectedColumnCount $ExpectedColumnCount -ExpectedApplication "forge_runtime.exe" -ExpectedProcessId 4242 -ExpectedRuntime $ExpectedRuntime)) -Message "PresentMon parser self-test did not fail closed on an interleaved row."
+    }
+    finally {
+        if ([IO.File]::Exists($temporaryPath)) {
+            [IO.File]::Delete($temporaryPath)
+        }
+    }
+}
+
+function Write-PresentMonStreamArtifacts {
+    param(
+        [Parameter(Mandatory = $true)][string]$RawPath,
+        [Parameter(Mandatory = $true)][string]$CsvPath,
+        [Parameter(Mandatory = $true)][string]$ConsolePath,
+        [Parameter(Mandatory = $true)][string]$ExpectedHeader
+    )
+
+    $snapshot = Get-PresentMonStreamSnapshot -Path $RawPath -ExpectedHeader $ExpectedHeader -Final
+    Assert-Condition -Condition $snapshot.HeaderObserved -Message "The completed PresentMon stdout stream has no exact governed CSV header."
+    Assert-Condition -Condition ($snapshot.UnknownLines.Count -eq 0) -Message "The completed PresentMon stdout stream contains unknown or malformed records: $($snapshot.UnknownLines -join '; ')."
+    Assert-Condition -Condition ($snapshot.Rows.Count -gt 0) -Message "The completed PresentMon stdout stream contains no CSV rows."
+    [IO.File]::WriteAllLines($CsvPath, [string[]]$snapshot.CsvLines, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllLines($ConsolePath, [string[]]$snapshot.ConsoleLines, [Text.UTF8Encoding]::new($false))
+    return [pscustomobject]@{
+        CsvRows = $snapshot.Rows.Count
+        CsvLines = $snapshot.CsvLines.Count
+        ConsoleLines = $snapshot.ConsoleLines.Count
+    }
+}
+
 function Start-CapturedProcess {
     param(
         [Parameter(Mandatory = $true)][string]$FilePath,
@@ -327,11 +578,18 @@ function Start-CapturedProcess {
         [Parameter(Mandatory = $true)][string]$StdoutPath,
         [Parameter(Mandatory = $true)][string]$StderrPath,
         [Parameter(Mandatory = $true)][bool]$Visible,
-        [hashtable]$EnvironmentVariables = @{}
+        [hashtable]$EnvironmentVariables = @{},
+        [switch]$StreamToFiles
     )
 
     $process = $null
+    $stdoutStream = $null
+    $stderrStream = $null
     try {
+        if ($StreamToFiles) {
+            Assert-Condition -Condition (-not [IO.File]::Exists($StdoutPath)) -Message "$Label stdout path already exists."
+            Assert-Condition -Condition (-not [IO.File]::Exists($StderrPath)) -Message "$Label stderr path already exists."
+        }
         $startInfo = [Diagnostics.ProcessStartInfo]::new()
         $startInfo.FileName = $FilePath
         $startInfo.WorkingDirectory = $WorkingDirectory
@@ -352,13 +610,40 @@ function Start-CapturedProcess {
         $process = [Diagnostics.Process]::new()
         $process.StartInfo = $startInfo
         Assert-Condition -Condition ($process.Start()) -Message "Cannot start $Label."
+        if ($StreamToFiles) {
+            $stdoutStream = [IO.FileStream]::new(
+                $StdoutPath,
+                [IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,
+                [IO.FileShare]::Read,
+                1,
+                [IO.FileOptions]::Asynchronous
+            )
+            $stderrStream = [IO.FileStream]::new(
+                $StderrPath,
+                [IO.FileMode]::CreateNew,
+                [IO.FileAccess]::Write,
+                [IO.FileShare]::Read,
+                1,
+                [IO.FileOptions]::Asynchronous
+            )
+            $stdoutTask = $process.StandardOutput.BaseStream.CopyToAsync($stdoutStream)
+            $stderrTask = $process.StandardError.BaseStream.CopyToAsync($stderrStream)
+        }
+        else {
+            $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+            $stderrTask = $process.StandardError.ReadToEndAsync()
+        }
         return [pscustomobject]@{
             Label = $Label
             Process = $process
-            StdoutTask = $process.StandardOutput.ReadToEndAsync()
-            StderrTask = $process.StandardError.ReadToEndAsync()
+            StdoutTask = $stdoutTask
+            StderrTask = $stderrTask
             StdoutPath = $StdoutPath
             StderrPath = $StderrPath
+            StreamToFiles = [bool]$StreamToFiles
+            StdoutStream = $stdoutStream
+            StderrStream = $stderrStream
             OutputSaved = $false
         }
     }
@@ -374,6 +659,12 @@ function Start-CapturedProcess {
                 # The outer watchdog cannot retain a capture object when startup itself failed.
             }
             $process.Dispose()
+        }
+        if ($null -ne $stdoutStream) {
+            $stdoutStream.Dispose()
+        }
+        if ($null -ne $stderrStream) {
+            $stderrStream.Dispose()
         }
         throw
     }
@@ -405,6 +696,50 @@ function Save-CapturedProcessOutput {
 
     if ($Capture.OutputSaved) {
         return [pscustomobject]@{ StdoutDrained = $true; StderrDrained = $true }
+    }
+
+    if ($Capture.StreamToFiles) {
+        $stdoutDrained = $false
+        $stderrDrained = $false
+        try {
+            $stdoutDrained = $Capture.StdoutTask.Wait($DrainTimeoutMilliseconds)
+            if ($stdoutDrained) {
+                $Capture.StdoutTask.GetAwaiter().GetResult()
+            }
+        }
+        catch {
+            $stdoutDrained = $false
+        }
+        finally {
+            try {
+                $Capture.StdoutStream.Flush()
+            }
+            catch {
+            }
+            $Capture.StdoutStream.Dispose()
+        }
+        try {
+            $stderrDrained = $Capture.StderrTask.Wait($DrainTimeoutMilliseconds)
+            if ($stderrDrained) {
+                $Capture.StderrTask.GetAwaiter().GetResult()
+            }
+        }
+        catch {
+            $stderrDrained = $false
+        }
+        finally {
+            try {
+                $Capture.StderrStream.Flush()
+            }
+            catch {
+            }
+            $Capture.StderrStream.Dispose()
+        }
+        $Capture.OutputSaved = $true
+        return [pscustomobject]@{
+            StdoutDrained = $stdoutDrained
+            StderrDrained = $stderrDrained
+        }
     }
 
     $stdout = ""
@@ -441,6 +776,125 @@ function Save-CapturedProcessOutput {
     return [pscustomobject]@{
         StdoutDrained = $stdoutDrained
         StderrDrained = $stderrDrained
+    }
+}
+
+function Invoke-CapturedProcessBounded {
+    param(
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$ArgumentList,
+        [Parameter(Mandatory = $true)][string]$WorkingDirectory,
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][string]$LogPath,
+        [Parameter(Mandatory = $true)][int]$ExitTimeoutMilliseconds,
+        [Parameter(Mandatory = $true)][int]$DrainTimeoutMilliseconds
+    )
+
+    $process = $null
+    $stdoutTask = $null
+    $stderrTask = $null
+    $stdout = ""
+    $stderr = ""
+    $timedOut = $false
+    $terminationConfirmed = $false
+    $stdoutDrained = $false
+    $stderrDrained = $false
+    $exitCode = $null
+    $processStarted = $false
+    try {
+        $startInfo = [Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $FilePath
+        $startInfo.WorkingDirectory = $WorkingDirectory
+        $startInfo.UseShellExecute = $false
+        $startInfo.CreateNoWindow = $true
+        $startInfo.WindowStyle = [Diagnostics.ProcessWindowStyle]::Hidden
+        $startInfo.RedirectStandardOutput = $true
+        $startInfo.RedirectStandardError = $true
+        foreach ($argument in $ArgumentList) {
+            [void]$startInfo.ArgumentList.Add($argument)
+        }
+
+        $process = [Diagnostics.Process]::new()
+        $process.StartInfo = $startInfo
+        Assert-Condition -Condition ($process.Start()) -Message "Cannot start $Label."
+        $processStarted = $true
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $terminationConfirmed = $process.WaitForExit($ExitTimeoutMilliseconds)
+        if (-not $terminationConfirmed) {
+            $timedOut = $true
+            try {
+                $process.Kill($true)
+                $terminationConfirmed = $process.WaitForExit(5000)
+            }
+            catch {
+                $terminationConfirmed = $false
+            }
+        }
+        if ($terminationConfirmed) {
+            $exitCode = $process.ExitCode
+        }
+
+        try {
+            $stdoutDrained = $stdoutTask.Wait($DrainTimeoutMilliseconds)
+            if ($stdoutDrained) {
+                $stdout = $stdoutTask.GetAwaiter().GetResult()
+            }
+        }
+        catch {
+            $stdout = "[$Label watchdog] stdout drainage failed: $($_.Exception.Message)"
+        }
+        try {
+            $stderrDrained = $stderrTask.Wait($DrainTimeoutMilliseconds)
+            if ($stderrDrained) {
+                $stderr = $stderrTask.GetAwaiter().GetResult()
+            }
+        }
+        catch {
+            $stderr = "[$Label watchdog] stderr drainage failed: $($_.Exception.Message)"
+        }
+
+        $output = [Collections.Generic.List[string]]::new()
+        foreach ($streamText in @($stdout, $stderr)) {
+            foreach ($line in @($streamText -split '\r?\n')) {
+                if (-not [string]::IsNullOrWhiteSpace($line)) {
+                    $output.Add($line)
+                }
+            }
+        }
+        if ($timedOut) {
+            $output.Add("[$Label watchdog] process exceeded $ExitTimeoutMilliseconds ms and was terminated.")
+        }
+        if (-not $stdoutDrained) {
+            $output.Add("[$Label watchdog] stdout did not drain within $DrainTimeoutMilliseconds ms.")
+        }
+        if (-not $stderrDrained) {
+            $output.Add("[$Label watchdog] stderr did not drain within $DrainTimeoutMilliseconds ms.")
+        }
+        [IO.File]::WriteAllLines($LogPath, [string[]]$output, [Text.UTF8Encoding]::new($false))
+
+        return [pscustomobject]@{
+            ExitCode = $exitCode
+            TimedOut = $timedOut
+            TerminationConfirmed = $terminationConfirmed
+            StdoutDrained = $stdoutDrained
+            StderrDrained = $stderrDrained
+            Output = @($output)
+        }
+    }
+    finally {
+        if ($null -ne $process) {
+            if ($processStarted -and -not $process.HasExited) {
+                try {
+                    $process.Kill($true)
+                    [void]$process.WaitForExit(5000)
+                }
+                catch {
+                    # The bounded result records that termination could not be confirmed.
+                }
+            }
+            $process.Dispose()
+        }
     }
 }
 
@@ -536,12 +990,13 @@ function Get-PresentMonLogAssessment {
         Assert-Condition -Condition ($remainingStderr.IndexOf($allowedWarning, [StringComparison]::Ordinal) -lt 0) -Message "PresentMon emitted the allowed non-admin warning more than once."
     }
     $issues = [Collections.Generic.List[string]]::new()
+    $etwStatusCount = 0
     if (-not [string]::IsNullOrWhiteSpace($remainingStderr)) {
         $issues.Add("stderr: $remainingStderr")
     }
     foreach ($line in [IO.File]::ReadAllLines($StdoutPath)) {
         $trimmed = $line.Trim()
-        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed -in @("Started recording.", "Stopped recording.")) {
+        if ([string]::IsNullOrWhiteSpace($trimmed)) {
             continue
         }
         $match = [regex]::Match($trimmed, '^\[ETW Status\] BufferFillPct=(?<fill>\d+(?:\.\d+)?)% BuffersInUse=(?<inuse>\d+) TotalBuffers=(?<total>\d+) EventsLost=0 BuffersLost=0$')
@@ -555,9 +1010,13 @@ function Get-PresentMonLogAssessment {
         if ($fill -ge 100.0 -or $total -eq 0 -or $inUse -gt $total) {
             $issues.Add("stdout ETW status is invalid: $trimmed")
         }
+        else {
+            $etwStatusCount++
+        }
     }
     return [pscustomobject]@{
         AllowedNonAdminWarningCount = $allowedCount
+        EtwStatusCount = $etwStatusCount
         DisallowedTokens = @($issues)
     }
 }
@@ -631,6 +1090,7 @@ function Get-ArtifactDescriptor {
 }
 
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
+Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
 $repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path
@@ -758,18 +1218,26 @@ Assert-NoReparsePointInExistingAncestors -Path $outputPath
 
 $readyPath = Join-Path $outputPath $readyFileName
 $signalPath = Join-Path $outputPath $signalFileName
+$hostBoundaryPath = Join-Path $outputPath $hostBoundaryFileName
 $ledgerPath = Join-Path $outputPath $ledgerFileName
 $csvPath = Join-Path $outputPath "presentmon.csv"
 $runtimeStdoutPath = Join-Path $outputPath "runtime.stdout.log"
 $runtimeStderrPath = Join-Path $outputPath "runtime.stderr.log"
+$presentMonRawStdoutPath = Join-Path $outputPath "presentmon.raw.stdout.log"
 $presentMonStdoutPath = Join-Path $outputPath "presentmon.stdout.log"
 $presentMonStderrPath = Join-Path $outputPath "presentmon.stderr.log"
+$presentMonStopPath = Join-Path $outputPath "presentmon.stop.log"
+$presentMonFallbackStopPath = Join-Path $outputPath "presentmon.fallback-stop.log"
 $validationPath = Join-Path $outputPath $validationFileName
 $runtimeCapture = $null
 $presentMonCapture = $null
 $runtimeOutput = $null
 $presentMonOutput = $null
 $nativeWindowObservation = $null
+$presentMonSessionStarted = $false
+$presentMonSessionStopped = $false
+$presentMonStopExitCode = $null
+$presentMonStopResult = $null
 $runtimeSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
 $sessionId = "OpenRPGForge-Gate1-Stutter-$([Guid]::NewGuid().ToString('N'))"
 
@@ -851,16 +1319,16 @@ try {
     $nativeWindowObservation = Wait-ForQualifiedNativeWindow -Process $runtimeCapture.Process -TimeoutSeconds 5
     $presentMonArguments = @(
         "--process_id", [string]$runtimeProcessId,
-        "--output_file", $csvPath,
+        "--output_stdout",
         "--v2_metrics",
         "--qpc_time",
         "--track_etw_status",
         "--session_name", $sessionId,
-        "--terminate_on_proc_exit",
         "--no_console_stats",
         "--set_circular_buffer_size", "4096"
     )
-    $presentMonCapture = Start-CapturedProcess -FilePath $presentMonFullPath -ArgumentList $presentMonArguments -WorkingDirectory $outputPath -Label "PresentMon Gate 1 gameplay stutter" -StdoutPath $presentMonStdoutPath -StderrPath $presentMonStderrPath -Visible $false
+    $presentMonCapture = Start-CapturedProcess -FilePath $presentMonFullPath -ArgumentList $presentMonArguments -WorkingDirectory $outputPath -Label "PresentMon Gate 1 gameplay stutter" -StdoutPath $presentMonRawStdoutPath -StderrPath $presentMonStderrPath -Visible $false -StreamToFiles
+    $presentMonSessionStarted = $true
 
     $presentMonReadyTimer = [Diagnostics.Stopwatch]::StartNew()
     $presentMonHeaderObserved = $false
@@ -868,17 +1336,17 @@ try {
         if ($presentMonCapture.Process.HasExited) {
             throw "PresentMon exited with code $($presentMonCapture.Process.ExitCode) before publishing its CSV header."
         }
-        if ([IO.File]::Exists($csvPath)) {
+        if ([IO.File]::Exists($presentMonRawStdoutPath)) {
             try {
-                $header = Get-FirstLineShared -Path $csvPath
-                if (-not [string]::IsNullOrWhiteSpace($header)) {
-                    Assert-Condition -Condition ([string]::Equals($header, $expectedPresentMonHeader, [StringComparison]::Ordinal)) -Message "PresentMon CSV header is not the exact governed v2/QPC/ETW header."
+                $streamSnapshot = Get-PresentMonStreamSnapshot -Path $presentMonRawStdoutPath -ExpectedHeader $expectedPresentMonHeader
+                if ($streamSnapshot.HeaderObserved) {
+                    Assert-Condition -Condition ($streamSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon stdout emitted unknown content before its exact governed CSV header."
                     $presentMonHeaderObserved = $true
                     break
                 }
             }
             catch {
-                if ($_.Exception.Message -like "PresentMon CSV header is not*") {
+                if ($_.Exception.Message -like "PresentMon CSV header is not*" -or $_.Exception.Message -like "PresentMon stdout emitted unknown content*") {
                     throw
                 }
             }
@@ -895,13 +1363,16 @@ try {
             throw "PresentMon exited before observing a complete target-PID display row."
         }
         try {
-            $candidateRows = @(Import-Csv -LiteralPath $csvPath)
+            $streamSnapshot = Get-PresentMonStreamSnapshot -Path $presentMonRawStdoutPath -ExpectedHeader $expectedPresentMonHeader
+            Assert-Condition -Condition ($streamSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon stdout emitted unknown content before its exact governed CSV header."
+            $candidateRows = @($streamSnapshot.Rows)
             $completeRows = @($candidateRows | Where-Object {
-                    [string]$_.ProcessID -match '^\d+$' -and
-                    [int]$_.ProcessID -eq $runtimeProcessId -and
-                    [string]$_.CPUStartQPC -match '^\d+$' -and
-                    [string]$_.EtwBuffersLost -match '^\d+$' -and
-                    -not [string]::IsNullOrWhiteSpace([string]$_.DisplayedTime)
+                    Test-QualifiedPresentMonPreSignalRow `
+                        -Row $_ `
+                        -ExpectedColumnCount $expectedPresentMonColumns.Count `
+                        -ExpectedApplication ([IO.Path]::GetFileName($runtimePath)) `
+                        -ExpectedProcessId $runtimeProcessId `
+                        -ExpectedRuntime $expectedPresentRuntime
                 })
             if ($completeRows.Count -gt 0) {
                 $lastPreSignalRow = $completeRows[$completeRows.Count - 1]
@@ -913,7 +1384,7 @@ try {
             }
         }
         catch {
-            if ($_.Exception.Message -like "PresentMon pre-signal row*") {
+            if ($_.Exception.Message -like "PresentMon pre-signal row*" -or $_.Exception.Message -like "PresentMon stdout emitted unknown content*") {
                 throw
             }
         }
@@ -944,6 +1415,18 @@ try {
     Write-JsonAtomically -Path $signalPath -Value $signal
     [uint64]$signalPublishedQpc = [Diagnostics.Stopwatch]::GetTimestamp()
     Assert-Condition -Condition ($signalPublishedQpc -ge $measurementNotBeforeQpc) -Message "The host QPC regressed while publishing the start signal."
+    $hostBoundary = [ordered]@{
+        schema = "forge.gate1-gameplay-stutter-host-boundary"
+        schema_version = 1
+        repository_commit = $gitCommit
+        repository_tree = $gitTree
+        runtime_process_id = $runtimeProcessId
+        presentmon_session_id = $sessionId
+        measurement_not_before_qpc = $measurementNotBeforeQpc
+        signal_published_qpc = $signalPublishedQpc
+        qpc_frequency_hz = $qpcFrequencyHz
+    }
+    Write-JsonAtomically -Path $hostBoundaryPath -Value $hostBoundary
 
     while (-not $runtimeCapture.Process.HasExited) {
         if ($presentMonCapture.Process.HasExited) {
@@ -955,13 +1438,34 @@ try {
         Start-Sleep -Milliseconds 100
     }
     Assert-Condition -Condition ($runtimeCapture.Process.ExitCode -eq 0) -Message "forge_runtime failed with exit code $($runtimeCapture.Process.ExitCode)."
+    $presentMonStopResult = Invoke-CapturedProcessBounded `
+        -FilePath $presentMonFullPath `
+        -ArgumentList @("--session_name", $sessionId, "--terminate_existing_session") `
+        -WorkingDirectory $outputPath `
+        -Label "PresentMon session-stop control" `
+        -LogPath $presentMonStopPath `
+        -ExitTimeoutMilliseconds ($presentMonExitTimeoutSeconds * 1000) `
+        -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
+    $presentMonStopOutput = @($presentMonStopResult.Output)
+    $presentMonStopExitCode = $presentMonStopResult.ExitCode
+    Assert-Condition -Condition (-not $presentMonStopResult.TimedOut -and $presentMonStopResult.TerminationConfirmed) -Message "PresentMon session-stop control did not terminate inside the bounded window."
+    Assert-Condition -Condition ($presentMonStopResult.StdoutDrained -and $presentMonStopResult.StderrDrained) -Message "PresentMon session-stop control output did not drain inside the bounded window."
+    Assert-Condition -Condition ($presentMonStopExitCode -eq 0) -Message "PresentMon session-stop control failed with exit code $presentMonStopExitCode."
+    $allowedStopOutput = @(
+        "warning: --terminate_existing_session exits without capturing anything; ignoring all other options.",
+        "warning: --no_console_stats added because stdout does not support statistics reporting."
+    )
+    $unexpectedStopOutput = @($presentMonStopOutput | ForEach-Object { [regex]::Replace($_.Trim(), '\s+', ' ') } | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and $_ -notin $allowedStopOutput })
+    Assert-Condition -Condition ($unexpectedStopOutput.Count -eq 0) -Message "PresentMon session-stop control emitted unexpected output: $($unexpectedStopOutput -join '; ')."
     Assert-Condition -Condition ($presentMonCapture.Process.WaitForExit($presentMonExitTimeoutSeconds * 1000)) -Message "PresentMon did not terminate within $presentMonExitTimeoutSeconds seconds after target PID $runtimeProcessId exited."
     Assert-Condition -Condition ($presentMonCapture.Process.ExitCode -eq 0) -Message "PresentMon failed with exit code $($presentMonCapture.Process.ExitCode)."
+    $presentMonSessionStopped = $true
 
     $runtimeOutput = Save-CapturedProcessOutput -Capture $runtimeCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
     $presentMonOutput = Save-CapturedProcessOutput -Capture $presentMonCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
     Assert-Condition -Condition ($runtimeOutput.StdoutDrained -and $runtimeOutput.StderrDrained) -Message "Runtime output did not drain inside the bounded window."
     Assert-Condition -Condition ($presentMonOutput.StdoutDrained -and $presentMonOutput.StderrDrained) -Message "PresentMon output did not drain inside the bounded window."
+    $presentMonStreamPartition = Write-PresentMonStreamArtifacts -RawPath $presentMonRawStdoutPath -CsvPath $csvPath -ConsolePath $presentMonStdoutPath -ExpectedHeader $expectedPresentMonHeader
 
     $gitCommitAfter = (& git -C $repositoryPath rev-parse HEAD).Trim()
     $gitCommitAfterExitCode = $LASTEXITCODE
@@ -987,6 +1491,7 @@ try {
     }
     $presentMonLogAssessment = Get-PresentMonLogAssessment -StdoutPath $presentMonStdoutPath -StderrPath $presentMonStderrPath
     Assert-Condition -Condition ($presentMonLogAssessment.DisallowedTokens.Count -eq 0) -Message "PresentMon logs contain a disallowed warning/error/loss/failure token."
+    Assert-Condition -Condition ($presentMonLogAssessment.EtwStatusCount -gt 0) -Message "PresentMon emitted no valid ETW status line on its governed stdout stream."
 
     Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
     $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
@@ -1101,6 +1606,8 @@ try {
     Assert-Condition -Condition ([string]::Equals($finalHeader, $expectedPresentMonHeader, [StringComparison]::Ordinal)) -Message "Final PresentMon CSV header changed."
     $csvRows = @(Import-Csv -LiteralPath $csvPath)
     Assert-Condition -Condition ($csvRows.Count -ge 120) -Message "PresentMon CSV contains fewer than 120 rows."
+    Assert-Condition -Condition ($presentMonStreamPartition.CsvRows -eq $csvRows.Count -and $presentMonStreamPartition.CsvLines -eq $csvRows.Count + 1) -Message "PresentMon raw-stream partition counts do not match the canonical CSV."
+    Assert-Condition -Condition ($presentMonStreamPartition.ConsoleLines -eq $presentMonLogAssessment.EtwStatusCount) -Message "PresentMon raw-stream console partition does not match the validated ETW status log."
     $parsedRows = [Collections.Generic.List[object]]::new()
     $swapChains = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $presentModes = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -1113,7 +1620,7 @@ try {
     for ($index = 0; $index -lt $csvRows.Count; $index++) {
         $row = $csvRows[$index]
         $csvRowNumber = $index + 2
-        Assert-Condition -Condition ($row.PSObject.Properties.Count -eq $expectedPresentMonColumns.Count) -Message "CSV row $csvRowNumber does not have the exact v2/ETW column count."
+        Assert-Condition -Condition (@($row.PSObject.Properties).Count -eq $expectedPresentMonColumns.Count) -Message "CSV row $csvRowNumber does not have the exact v2/ETW column count."
         $application = [string](Get-RequiredProperty -InputObject $row -Name "Application" -Path "csv[$csvRowNumber]")
         Assert-Condition -Condition ([string]::Equals($application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "CSV row $csvRowNumber names unexpected application '$application'."
         $processIdText = [string](Get-RequiredProperty -InputObject $row -Name "ProcessID" -Path "csv[$csvRowNumber]")
@@ -1123,7 +1630,7 @@ try {
         Assert-Condition -Condition ($swapChain -match '^0x[0-9A-Fa-f]+$') -Message "CSV row $csvRowNumber has invalid SwapChainAddress '$swapChain'."
         [void]$swapChains.Add($swapChain)
         $presentRuntime = [string](Get-RequiredProperty -InputObject $row -Name "PresentRuntime" -Path "csv[$csvRowNumber]")
-        Assert-Condition -Condition ($presentRuntime -eq "Other") -Message "CSV row $csvRowNumber is not the governed Vulkan PresentRuntime `Other`: '$presentRuntime'."
+        Assert-Condition -Condition ($presentRuntime -eq $expectedPresentRuntime) -Message "CSV row $csvRowNumber is not the governed Windows presentation runtime '$expectedPresentRuntime': '$presentRuntime'."
         [void]$presentRuntimes.Add($presentRuntime)
         $presentMode = [string](Get-RequiredProperty -InputObject $row -Name "PresentMode" -Path "csv[$csvRowNumber]")
         Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($presentMode) -and $presentMode -ne "NA") -Message "CSV row $csvRowNumber has no PresentMode."
@@ -1155,7 +1662,6 @@ try {
         $displayedTime = $null
         if ([string]::Equals($displayedText, "NA", [StringComparison]::Ordinal)) {
             Assert-Condition -Condition ([string]::Equals($displayLatencyText, "NA", [StringComparison]::Ordinal)) -Message "CSV row $csvRowNumber has mismatched DisplayLatency/DisplayedTime NA state."
-            Assert-Condition -Condition ($index -eq $csvRows.Count - 1) -Message "CSV row $csvRowNumber is an interior non-displayed frame."
             $displayedNaCount++
         }
         else {
@@ -1176,7 +1682,6 @@ try {
                 DisplayedTimeMs = $displayedTime
             })
     }
-    Assert-Condition -Condition ($displayedNaCount -le 1) -Message "PresentMon recorded more than one terminal unresolved display row."
     Assert-Condition -Condition ($swapChains.Count -eq 1) -Message "PresentMon recorded $($swapChains.Count) swap chains; one exact display surface is required."
     Assert-Condition -Condition ($presentRuntimes.Count -eq 1) -Message "PresentRuntime changed during the capture."
     Assert-Condition -Condition ($presentModes.Count -eq 1) -Message "PresentMode changed during the capture."
@@ -1193,7 +1698,6 @@ try {
         })
     Assert-Condition -Condition ($measurementEnvelopeRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 rows."
     $measurementUnresolvedRows = @($measurementEnvelopeRows | Where-Object { $null -eq $_.DisplayedTimeMs })
-    Assert-Condition -Condition ($measurementUnresolvedRows.Count -eq 0) -Message "The bounded display-sample window contains an unresolved DisplayedTime row."
     $measurementRows = @($measurementEnvelopeRows | Where-Object { $null -ne $_.DisplayedTimeMs })
     Assert-Condition -Condition ($measurementRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 displayed rows."
     $firstQpc = [decimal]$measurementRows[0].Qpc
@@ -1223,7 +1727,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 1
+        schema_version = 2
         status = if ($boundedThresholdsPassed) { "bounded_sample_thresholds_passed_pending_exact_runtime_qpc" } else { "bounded_sample_thresholds_failed" }
         repository_commit = $gitCommit
         repository_tree = $gitTree
@@ -1263,11 +1767,21 @@ try {
             signer = $presentMonSigner
             session_id = $sessionId
             target_process_id = $runtimeProcessId
+            session_stop_mode = "terminate_existing_session"
+            session_stop_exit_code = $presentMonStopExitCode
+            session_stop_timeout_seconds = $presentMonExitTimeoutSeconds
+            session_stop_timed_out = $presentMonStopResult.TimedOut
+            session_stop_termination_confirmed = $presentMonStopResult.TerminationConfirmed
+            session_stop_stdout_drained = $presentMonStopResult.StdoutDrained
+            session_stop_stderr_drained = $presentMonStopResult.StderrDrained
+            output_transport = "stdout_stream"
+            raw_stdout_stream_csv_rows = $presentMonStreamPartition.CsvRows
+            raw_stdout_stream_console_lines = $presentMonStreamPartition.ConsoleLines
             csv_schema = "presentmon_v2_qpc_with_etw_status"
             csv_columns = $expectedPresentMonColumns
             raw_csv_rows = $parsedRows.Count
             raw_displayed_rows = $parsedRows.Count - $displayedNaCount
-            raw_terminal_unresolved_rows = $displayedNaCount
+            raw_unresolved_display_rows = $displayedNaCount
             last_pre_signal_qpc = $lastPreSignalQpc
             measurement_not_before_qpc = $measurementNotBeforeQpc
             signal_published_qpc = $signalPublishedQpc
@@ -1287,6 +1801,7 @@ try {
             present_flags_values = @($presentFlagsValues)
             etw_events_lost = 0
             etw_buffers_lost = 0
+            stdout_etw_status_lines = $presentMonLogAssessment.EtwStatusCount
             allowed_non_admin_warning_count = $presentMonLogAssessment.AllowedNonAdminWarningCount
         }
         display_metrics = [ordered]@{
@@ -1319,14 +1834,18 @@ try {
             uninterrupted_1800_fixed_ticks = $true
             governed_scene_qualified_and_stable = $true
             presentmon_pid_exact = $true
+            presentmon_session_stopped_gracefully = (-not $presentMonStopResult.TimedOut -and $presentMonStopResult.TerminationConfirmed -and $presentMonStopResult.StdoutDrained -and $presentMonStopResult.StderrDrained -and $presentMonStopExitCode -eq 0)
+            presentmon_stdout_stream_observed_live = $true
+            presentmon_raw_stdout_partitioned = $true
             presentmon_v2_qpc_header_exact = $true
             presentmon_qpc_boundary_observed_before_signal = $true
             exact_runtime_qpc_bounds_observed = $false
             presentmon_single_stable_swapchain_epoch = $true
             presentmon_etw_loss_zero = $true
-            bounded_sample_has_no_unresolved_display = $true
+            bounded_sample_has_no_unresolved_display = ($measurementUnresolvedRows.Count -eq 0)
             runtime_warning_error_panic_entries = 0
-            presentmon_disallowed_log_entries = 0
+            presentmon_capture_disallowed_log_entries = 0
+            presentmon_stop_disallowed_log_entries = $unexpectedStopOutput.Count
             p95_at_most_16_7_ms = ($p95Milliseconds -le 16.7)
             one_percent_low_at_least_45_fps = ($onePercentLowFps -ge 45.0)
             no_displayed_time_over_33_3_ms = ($over33Count -eq 0)
@@ -1340,12 +1859,15 @@ try {
         artifacts = [ordered]@{
             ready = Get-ArtifactDescriptor -Path $readyPath -RelativePath $readyFileName
             start_signal = Get-ArtifactDescriptor -Path $signalPath -RelativePath $signalFileName
+            host_boundary = Get-ArtifactDescriptor -Path $hostBoundaryPath -RelativePath $hostBoundaryFileName
             runtime_ledger = Get-ArtifactDescriptor -Path $ledgerPath -RelativePath $ledgerFileName
             presentmon_csv = Get-ArtifactDescriptor -Path $csvPath -RelativePath "presentmon.csv"
             runtime_stdout = Get-ArtifactDescriptor -Path $runtimeStdoutPath -RelativePath "runtime.stdout.log"
             runtime_stderr = Get-ArtifactDescriptor -Path $runtimeStderrPath -RelativePath "runtime.stderr.log"
+            presentmon_raw_stdout = Get-ArtifactDescriptor -Path $presentMonRawStdoutPath -RelativePath "presentmon.raw.stdout.log"
             presentmon_stdout = Get-ArtifactDescriptor -Path $presentMonStdoutPath -RelativePath "presentmon.stdout.log"
             presentmon_stderr = Get-ArtifactDescriptor -Path $presentMonStderrPath -RelativePath "presentmon.stderr.log"
+            presentmon_stop = Get-ArtifactDescriptor -Path $presentMonStopPath -RelativePath "presentmon.stop.log"
         }
         limitations = [ordered]@{
             single_run_only = $true
@@ -1361,6 +1883,28 @@ try {
     Write-Output ("FORGE_GATE1_GAMEPLAY_STUTTER_BOUNDED_SAMPLE_RECORDED thresholds_passed=true samples={0} mean_ms={1:F4} p95_ms={2:F4} one_percent_low_fps={3:F3} over_16_7={4} over_33_3={5} max_consecutive_over_16_7={6}" -f $displayedTimes.Count, $meanMilliseconds, $p95Milliseconds, $onePercentLowFps, $over16Count, $over33Count, $maxConsecutiveOver16)
 }
 finally {
+    $presentMonSessionCleanupSucceeded = $true
+    if ($presentMonSessionStarted -and -not $presentMonSessionStopped) {
+        try {
+            $presentMonFallbackStopResult = Invoke-CapturedProcessBounded `
+                -FilePath $presentMonFullPath `
+                -ArgumentList @("--session_name", $sessionId, "--terminate_existing_session") `
+                -WorkingDirectory $outputPath `
+                -Label "PresentMon fallback session-stop control" `
+                -LogPath $presentMonFallbackStopPath `
+                -ExitTimeoutMilliseconds ($presentMonExitTimeoutSeconds * 1000) `
+                -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
+            $presentMonSessionCleanupSucceeded = -not $presentMonFallbackStopResult.TimedOut -and
+                $presentMonFallbackStopResult.TerminationConfirmed -and
+                $presentMonFallbackStopResult.StdoutDrained -and
+                $presentMonFallbackStopResult.StderrDrained -and
+                $presentMonFallbackStopResult.ExitCode -eq 0
+            $presentMonSessionStopped = $presentMonSessionCleanupSucceeded
+        }
+        catch {
+            $presentMonSessionCleanupSucceeded = $false
+        }
+    }
     $presentMonStopped = Stop-CapturedProcessBounded -Capture $presentMonCapture
     $runtimeStopped = Stop-CapturedProcessBounded -Capture $runtimeCapture
     if ($null -ne $presentMonCapture -and -not $presentMonCapture.OutputSaved) {
@@ -1375,7 +1919,7 @@ finally {
     if ($null -ne $runtimeCapture) {
         $runtimeCapture.Process.Dispose()
     }
-    if (-not $presentMonStopped -or -not $runtimeStopped) {
+    if (-not $presentMonSessionCleanupSucceeded -or -not $presentMonStopped -or -not $runtimeStopped) {
         Write-Warning "A process-tree watchdog could not confirm bounded termination."
     }
 }
