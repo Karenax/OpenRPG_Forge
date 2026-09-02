@@ -172,6 +172,25 @@ Bloom component, not numeric Bloom parameters or GPU execution. The harness and 
 leave real-time stutter, GPU execution, comparative visual quality and human review false; their
 output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
 
+## Gate 1 RenderDoc acquisition route
+
+The runtime now contains a strictly bounded `--gate1-renderdoc-capture <output-dir>` route paired
+with `--gate1-renderdoc-nonce <nonce>` for the R1-037 accounting protocol. It is accepted only on
+Windows Vulkan with `--visual-valley --quality high --weather clear|rain --no-vsync`, and it owns the
+camera, weather, capture synchronization and exit lifecycle. The runtime waits for stable pipelines,
+freezes the governed scene, writes an atomic nonce/PID/commit/GPU/source-hash ready receipt, validates
+the external capture signal, holds the frozen workload for 120 frames and writes a runtime ledger. It
+does not analyze RenderDoc actions and cannot qualify R1-037 by itself.
+
+`scripts/Invoke-Gate1RenderDoc.ps1` and the QRenderDoc adapter implement the external four-run matrix
+required by ADR-0009: two independent `clear` launches and two independent `rain` launches. The
+orchestrator requires the pinned external RenderDoc 1.46 distribution, a clean exact-commit worktree,
+fresh external output/target directories and an already-correct Vulkan layer registration. It checks
+the layer read-only and deliberately refuses to register, repair or remove it. The route and
+orchestrator are integrated, but their Rust/runtime validation and the four real captures have not
+yet been completed; **R1-037 remains open**. RenderDoc counters are GPU-work evidence only and never
+replace PresentMon FPS/stutter evidence.
+
 ## Gate 1 gameplay-stutter acquisition
 
 `--gate1-gameplay-stutter <output-dir>` is a separate, self-bounded measurement mode with two explicit
@@ -247,10 +266,17 @@ weather), the pipelines exercised by the process, the nine governed CC0 models a
 player/Rapier/camera bindings are ready, the runtime writes
 `gate1-gameplay-stutter.ready.json`. It then waits for the host to attach the pinned PresentMon
 process to that exact PID and atomically publish
-`gate1-gameplay-stutter.start.signal.json`. The controller performs 900 fixed ticks forward and 900
+`gate1-gameplay-stutter.start.signal.json`. Before signal publication, the host may repeat the fixed
+foreground-settle boundary only when a strictly ordered post-settle window sample exceeds the 250 ms
+gap ceiling. This restabilization is capped at three attempts and a global 15-second QPC deadline;
+rejected attempts never publish a signal, non-monotonic QPC fails closed, and retries are forbidden
+after signal publication or metric collection. The controller performs 900 fixed ticks forward and 900
 ticks backward at 60 Hz, crosses the central seam without teleportation, stops under a bounded
 watchdog, and writes `gate1-gameplay-stutter.json`. The ready contract uses schema 4, the start signal
-remains schema 3, and the final runtime ledger uses schema 5. These versions add the explicit
+remains schema 3, the host boundary uses schema 5, the final runtime ledger uses schema 5 and the host
+validation uses schema 12. A failed run writes `forge.gate1-gameplay-stutter-abort` schema 1 and keeps
+`verdict=no_qualified_performance_verdict`; the receipt records whether any signal, host boundary,
+runtime ledger or validation had already been published. These versions add the explicit
 presentation request/route, VSync request, qualification eligibility and observation scope while
 retaining the controller's half-open
 `[start, end)` Windows QPC interval. Forge's derived vegetation visibility audit runs at a bounded
@@ -282,9 +308,10 @@ interleaved or malformed record. Once the runtime exits, the host stops the exac
 with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
 failures, and requires the control and capture processes to exit cleanly. The runtime GPU
 backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
-route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 6 for
-this stdout-stream transport, exact runtime-QPC contract, structured foreground-activation evidence,
-continuous foreground-window contract and explicit uninstrumented-runtime contract.
+route requires the observed `PresentRuntime` to remain `DXGI`. Host validation schema 12 covers the
+stdout-stream transport, exact runtime-QPC contract, structured foreground activation, bounded
+pre-signal restabilization, continuous foreground-window contract and explicit uninstrumented-runtime
+contract.
 Bevy `FrameTime` is
 retained as an application-loop diagnostic but is never substituted for a missing displayed frame.
 For every numeric PresentMon pair, the host derives the displayed interval as

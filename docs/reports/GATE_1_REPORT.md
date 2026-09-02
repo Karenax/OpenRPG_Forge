@@ -1,6 +1,6 @@
 # Rapport Gate 1 — Visual Valley
 
-Date de consolidation : **2026-09-02**
+Date de consolidation : **2026-09-03**
 
 Verdict : **POURSUIVRE GATE 1 — GATE 1 OUVERTE**
 
@@ -14,6 +14,13 @@ versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié d
 contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La matrice native `5eadec7f`, le harnais
 temporel Browser `a4e9824a` et les preuves visuelles antérieures restent valides dans leurs frontières
 documentées ; ils ne remplacent ni le benchmark GPU cible ni la revue humaine.
+
+La chaîne de travail courante intègre aussi l'implémentation d'optique d'eau native bornée
+`e7e7d419`, le contrat/modèle RenderDoc `dbe5eb86` et la route runtime/orchestrateur RenderDoc
+`140acbdd`. Ces intégrations ne ferment encore aucune route : les validations Rust/runtime finales et
+les nouvelles captures d'eau restent dues pour `R1-023` ; la validation finale du modèle, le smoke
+runtime et les quatre captures Vulkan indépendantes restent dus pour `R1-037`. Aucun résultat GPU ou
+humain n'est déduit de la seule présence du code.
 
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
 Ils ont échoué ou sont restés non qualifiants selon leurs protocoles d'origine. Le lot `06b5fd40`
@@ -59,8 +66,24 @@ de l'enveloppe et reste FAIL ; Replay2 passe le focus sur 274/274, conserve une 
 1 % low 61,2708 FPS, mais une valeur isolée de 35,3837 ms dépasse 33,3 ms. Aucun PASS schema 8 n'est
 donc revendiqué et `R1-048` reste ouverte.
 
-Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte et son instrumentation
-exhaustive reste `NOT RUN` ; `R1-041`, `R1-048`, le GPU
+Un nouveau rebuild/rejeu gouverné est ensuite lancé au commit exact
+`1912806fc6e90277cd779a21a2557e6c820d5d44`, arbre
+`4bfb863255dd865432093c5e7291287b8e78dc43`, avec le harnais schema 11. Le runtime publie le reçu
+prêt schema 4 et PresentMon collecte 338 lignes Forge avec `EventsLost=0` et `BuffersLost=0`. Après le
+settle de premier plan, le sampling de la fenêtre native présente toutefois un trou strictement
+supérieur à 250 ms. Le harnais abandonne **avant** le signal : aucun host boundary, aucun ledger final
+et aucune validation ne sont publiés. Cette acquisition a donc le verdict
+**ABORT INFRASTRUCTURE AVANT SIGNAL — AUCUN VERDICT PERFORMANCE**.
+
+Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` porte désormais la frontière hôte au schema 5 et la
+validation au schema 12. Il autorise au plus trois tentatives de restabilisation dans un budget global
+de 15 secondes, exclusivement avant le signal, et publie un reçu d'abandon v1 en cas d'échec. Ses
+self-tests, la syntaxe PowerShell et le diff-check passent ; aucun replay qualifiant schema 12 n'a
+encore été acquis.
+
+Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte : son contrat et son
+chemin d'acquisition sont intégrés, mais le runtime et les captures finales restent `NOT RUN` ;
+`R1-041`, `R1-048`, le GPU
 cible RTX 3060/RX 6600, la revue humaine et la CI distante restent dus. Gate 1 reste ouverte ; ce
 rapport ne constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer
 Gate 2.
@@ -69,6 +92,10 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
+| route runtime/orchestrateur RenderDoc intégrée, non qualifiée | `140acbddf2b0bdd6d1c5a5115269edcc729be564` | `b2edfa2c1b5c4e99b5488fc288714d876b5ddb4d` | code d'acquisition R1-037 présent ; validation runtime et quatre captures Vulkan encore dues |
+| optique d'eau native bornée intégrée, non qualifiée | `e7e7d41951a3579936a1c9f8b8601fa639898679` | `5e7e5ec10c5f654c84d52e4d8bbc4f951dcfe83d` | implémentation R1-023 présente ; tests/runtime/captures et revue humaine encore dus |
+| harnais de restabilisation pré-signal | `9b847e996c39e76a9620e18cc1d7c5b2440e6145` | `9ee511f7d529098d003a78795e0d9cc94fcc3726` | host boundary schema 5, validation schema 12, trois tentatives/15 s maximum avant signal et reçu d'abandon v1 ; pas encore rejoué de façon qualifiante |
+| dernier replay gouverné avorté avant signal | `1912806fc6e90277cd779a21a2557e6c820d5d44` | `4bfb863255dd865432093c5e7291287b8e78dc43` | ready schema 4 et 338 lignes Forge PresentMon, ETW 0/0 ; gap de sampling fenêtre `>250 ms`, aucun signal/host boundary/ledger/validation et aucun verdict performance |
 | source et replays gouvernés schema 8 | `49acfd5695a7246062a86fb84f5d933130579187` | `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` | deux rebuilds/replays propres distincts ; Replay1 FAIL avec focus perdu, Replay2 FAIL sur un unique `DisplayedTime` de 35,3837 ms ; aucun PASS de `R1-048` |
 | garde ETW et run gouverné schema 7 immuable | `9db35a8e125c6c60cde9de66a7f6aa7585215bfa` | `656feb155c4a30371210229bf6c5dea5bbf8fcd3` | harnais schema 7 avec mutex/préflights/postflight ; rebuild Release normal propre et capture 2.4.1 complète ; 17 lignes non affichées, cadence conforme, statut schema 7 encore FAIL |
 | noms Bevy du profil de présentation | `e1e818fc1ed8655b851e34007039f4b288941377` | `274e7c51006eaee0cf0de300a393f332afe504d1` | ajoute `bevy/debug` à la seule feature diagnostique et les tests de noms réels ; binaire instrumenté et target partagé NONQUALIFYING |
@@ -709,6 +736,10 @@ Restent explicitement ouvertes :
 - `R1-037`, `R1-041` et `R1-048` ;
 - `R1-046`, `R1-047` et `R1-049` à `R1-052`.
 
+`R1-023` et `R1-037` ont désormais du code intégré dans la chaîne courante, sans changer leur état :
+les validations/runtime et captures finales ne sont pas acquises. Une route ouverte avec une
+implémentation partielle ou non rejouée reste une route ouverte.
+
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `873618af`. Le principal défaut
 depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel. À `15635b3f`, le ledger
 runtime et la première sélection PresentMon hôte sont deux observations historiques distinctes ; la
@@ -724,7 +755,10 @@ mais la session ETW orpheline explique désormais leur acquisition défaillante.
 schema 7 `9db35a8e` remplit les seuils temporels locaux et la résidence continue. Les deux replays
 schema 8 exacts `49acfd56` sont maintenant acquis, mais aucun n'est PASS : Replay1 perd le focus et
 Replay2 conserve un outlier de 35,3837 ms. Les PASS A5/A6 restent diagnostiques non qualifiants sur le
-binaire partagé `21228a…`. « Acquis » ne signifie pas « qualifié » et
+binaire partagé `21228a…`. Le rejeu suivant `1912806` est un ABORT avant signal sur un gap de sampling
+fenêtre `>250 ms` ; il conserve ready + PresentMon ETW 0/0 mais n'ajoute aucune métrique qualifiante.
+Le harnais `9b847e99` corrige ce cas en schema hôte 5 / validation 12, sans replay final à ce stade.
+« Acquis » ne signifie pas « qualifié » et
 `human_review_performed=false`.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
@@ -741,7 +775,7 @@ huitième match de ledger.
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
 | p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
 | 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
-| absence de stutter récurrent | **OUVERTE — REPLAY FAIL** | focus, résidence et ETW passent sur Replay2, mais une valeur de 35,3837 ms viole le plafond strict de 33,3 ms ; `R1-048` reste ouverte |
+| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, NOUVEAU REPLAY ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; le rejeu schema 11 `1912806` s'arrête avant signal sur un gap fenêtre `>250 ms` et ne produit aucun verdict ; replay schema 12 dû |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -785,16 +819,22 @@ La capture schema 7 `9db35a8e` reste une preuve historique intacte. ADR-0008/sch
 replays gouvernés exacts à `49acfd56` : Replay1 est confondu par 182/275 échantillons hors premier plan ;
 Replay2 passe focus, résidence et ETW, mais échoue sur un unique `DisplayedTime` de 35,3837 ms. Les
 diagnostics A5/A6 PASS ne sont pas qualifiants parce qu'ils réutilisent le target et le binaire
-`21228a…`. `R1-037`, `R1-041` et `R1-048` restent ouvertes, `human_review_performed=false`, et le
-travail ci-dessous reste futur.
+`21228a…`. Le rejeu schema 11 `1912806` suivant est abandonné avant signal pour un gap de sampling
+fenêtre `>250 ms` ; il ne remplace pas ce verdict. Le harnais `9b847e99` expose désormais host boundary
+schema 5 / validation schema 12 avec restabilisation pré-signal bornée, mais n'a pas encore produit de
+replay qualifiant. `R1-023`, `R1-037`, `R1-041` et `R1-048` restent ouvertes,
+`human_review_performed=false`, et le travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. diagnostiquer l'outlier de 35,3837 ms sans couper rétrospectivement la fenêtre ni affaiblir le
-   contrat, puis acquérir un replay gouverné schema 8 entièrement PASS pour `R1-048` ;
-2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
-3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
-4. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
+1. exécuter un rebuild/replay gouverné complet avec le harnais schema 12 sans couper
+   rétrospectivement la fenêtre ni affaiblir le contrat, puis obtenir tous les seuils PASS pour
+   `R1-048` ;
+2. terminer la validation/runtime et les captures eau de `R1-023` ;
+3. valider le modèle et la route runtime `R1-037`, puis acquérir les quatre captures RenderDoc
+   indépendantes exigées par ADR-0009 ;
+4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
+5. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
    statuer sur les routes visuelles restantes.
 
 Tant que ces éléments ne sont pas acquis, Gate 1 reste **OUVERTE** et Gate 2 est **INTERDITE** sans

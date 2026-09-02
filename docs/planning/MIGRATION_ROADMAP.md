@@ -1,6 +1,6 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-09-02
+Dernière mise à jour : 2026-09-03
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
 automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gate 2 interdite sans
@@ -291,6 +291,19 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
+État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée
+`e7e7d419` ; `R1-037` dispose du contrat/modèle `dbe5eb86` et de la route
+runtime/orchestrateur `140acbdd`. Ces routes restent décochées : validations Rust/runtime, captures
+finales et qualification humaine/GPU ne sont pas encore acquises.
+
+Le dernier rejeu PresentMon au commit exact `1912806fc6e90277cd779a21a2557e6c820d5d44`, arbre
+`4bfb863255dd865432093c5e7291287b8e78dc43`, publie le ready schema 4 et collecte 338 lignes Forge
+avec ETW 0/0, puis **ABORT avant signal** sur un trou d'échantillonnage de fenêtre `>250 ms` après le
+settle. Il ne publie ni host boundary, ni ledger final, ni validation et ne produit aucun verdict de
+performance. Le commit `9b847e99` fait évoluer le harnais vers host boundary schema 5 / validation
+schema 12 avec trois tentatives et 15 secondes maximum de restabilisation exclusivement pré-signal ;
+aucun replay qualifiant schema 12 n'est encore acquis.
+
 État des rejeux schema v8 : ADR-0008 et son validateur sont appliqués au commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
 `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Le premier rejeu gouverné échoue après une perte de
@@ -557,8 +570,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-021` brouillard volumétrique ou approximation mesurée — approximation de distance observée
   en natif et dans la scène Browser ; volumétrie réelle non revendiquée.
 - [x] `R1-022` eau de rivière — géométrie/composants observés ; présentation GPU non revendiquée.
-- [ ] `R1-023` réflexion/réfraction selon profil — captures eau `873618af` acquises, mais eau trop
-  étroite/masquée pour inspecter honnêtement les effets optiques.
+- [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée intégrée à
+  `e7e7d419` ; validations Rust/runtime et nouvelles captures encore dues. Les anciennes captures eau
+  `873618af` restent trop étroites/masquées pour inspecter honnêtement les effets optiques ; aucun PASS
+  GPU ou humain n'est revendiqué.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus
   schema v2 `873618af` ;
@@ -585,7 +600,9 @@ qualité                   Low / Medium / High / Ultra
   fallback indisponible testé ; ne vaut ni temps GPU frame entière ni instrumentation `R1-037`.
 - [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
-- [ ] `R1-037` draw calls, triangles, instances.
+- [ ] `R1-037` draw calls, triangles, instances — contrat/modèle RenderDoc `dbe5eb86` et route
+  runtime/orchestrateur `140acbdd` intégrés ; validation finale et quatre captures Vulkan indépendantes
+  clear A/B + rain A/B encore dues, donc aucun compteur qualifiant acquis.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,
   clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.
@@ -614,7 +631,11 @@ qualité                   Low / Medium / High / Ultra
   perd le premier plan et le second, stable, passe FPS/p95/1 % low/consécutifs mais échoue sur une
   valeur unique `DisplayedTime=35,3837 ms`. `R1-048` reste décochée : une répétition Auto atteint
   deux valeurs consécutives > 16,7 ms, les PASS A5/A6 sont non qualifiants, le GPU cible n'est pas
-  mesuré et la revue humaine n'est pas réalisée. `R1-037` reste un bloqueur distinct de Gate 1 ;
+  mesuré et la revue humaine n'est pas réalisée. Le replay schema 11 `1912806` suivant est un
+  **ABORT avant signal** sur un gap de sampling fenêtre `>250 ms` : ready et PresentMon ETW 0/0 sont
+  conservés, mais aucun host boundary, ledger final, validation ou verdict performance n'existe. Le
+  harnais `9b847e99` est maintenant host boundary schema 5 / validation schema 12 ; replay final dû.
+  `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
@@ -638,8 +659,10 @@ qualité                   Low / Medium / High / Ultra
 - [ ] absence de stutter récurrent — candidat PASS local du run gouverné schema v7 sous ADR-0008 :
   résidence sans trou, fenêtre stable, ETW 0/0, 17 lignes `NA` diagnostiques conservées, aucune valeur
   > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; le premier
-  rejeu schema v8 perd le premier plan et le second échoue sur une valeur unique à 35,3837 ms. Un
-  rejeu gouverné strictement PASS, la répétabilité et la revue humaine restent dus ;
+  rejeu schema v8 perd le premier plan et le second échoue sur une valeur unique à 35,3837 ms. Le
+  replay schema 11 `1912806` suivant est abandonné avant signal sur un gap fenêtre `>250 ms` et ne
+  produit aucun verdict. Un rejeu gouverné schema 12 strictement PASS, la répétabilité et la revue
+  humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;

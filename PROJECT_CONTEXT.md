@@ -1,10 +1,10 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **2 septembre 2026**
+Dernière mise à jour : **3 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, protocole schema 8 rejoué
-deux fois à `49acfd5695a7246062a86fb84f5d933130579187` sans PASS qualifiant de `R1-048` ; Gate 2 interdite ;
-produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, dernier replay schema 11
+`1912806` abandonné avant signal et harnais host schema 5 / validation schema 12 non encore rejoué ;
+Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,6 +29,23 @@ Tauri 2 + Leptos partagent une scène Forge versionnée. ADR-0005 confirme ce St
 Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN` pour blocage de
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
+
+Le dernier replay PresentMon est construit proprement au commit exact
+`1912806fc6e90277cd779a21a2557e6c820d5d44`, arbre
+`4bfb863255dd865432093c5e7291287b8e78dc43`. Le runtime publie son reçu prêt schema 4 et PresentMon
+2.4.1 collecte 338 lignes Forge avec zéro événement et zéro buffer ETW perdu. Après le settle de
+premier plan, le sampling de la fenêtre native présente cependant un trou strictement supérieur à
+250 ms. Le harnais abandonne avant le signal : aucune frontière hôte, aucun ledger final et aucune
+validation ne sont publiés. Cette acquisition ne porte donc aucun verdict de performance et ne
+remplace pas le FAIL strict schema 8 antérieur.
+
+Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` porte ensuite la frontière hôte au schema 5 et la
+validation au schema 12. Il borne la restabilisation à trois tentatives et 15 secondes, uniquement
+avant signal, refuse un QPC non monotone et publie un reçu d'abandon v1 en cas d'échec. Ses self-tests,
+sa syntaxe PowerShell et son diff-check passent, mais aucun replay qualifiant schema 12 n'est encore
+acquis. La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
+route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd` ; les validations Rust/runtime et captures
+finales de `R1-023`/`R1-037` restent dues. Leur code intégré n'est pas une qualification.
 
 La source exacte des acquisitions schema 8 de Gate 1 est
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -1390,6 +1407,13 @@ inexploitable pour une qualification de cadence parce que la fenêtre perd le pr
 Sa validation `45b87d0d…50894d1` reste donc FAIL ; aucun PASS schema 8 ni fermeture de `R1-048` n'est
 revendiqué.
 
+Le replay suivant, au commit/arbre exacts `1912806f`/`4bfb8632`, atteint le ready schema 4 et collecte
+338 lignes Forge PresentMon avec ETW 0/0, mais un gap d'échantillonnage de fenêtre `>250 ms` apparaît
+après le settle. L'hôte abandonne avant signal : aucune frontière, aucun ledger final et aucune
+validation ne sont publiés, donc aucun verdict de performance n'est ajouté. Le durcissement
+`9b847e99` fait évoluer l'hôte au schema 5 et la validation au schema 12 avec restabilisation
+pré-signal bornée ; son replay qualifiant reste dû.
+
 Le diagnostic officiel PresentMon 2.5.1 A4 historique retrouve 129,7334 FPS et 16 lignes `NA` sur le
 binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les diagnostics schema 8
 A4/A5/A6 sont distincts : A4 échoue sur un outlier, A5 et A6 passent les seuils, mais tous réutilisent
@@ -1413,10 +1437,11 @@ reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `
 conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
 représentation joueur reste une capsule procédurale sans asset.
 
-Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay schema 8 PASS, et la cible RTX 3060/RX 6600,
-`R1-037` encore `NOT RUN`, les preuves finales eau/Browser et la revue humaine comparative restent
-dues. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a
-été introduit. Voir
+Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay qualifiant PASS et la cible RTX 3060/RX 6600
+reste due. `R1-023` et `R1-037` disposent maintenant de code intégré (`e7e7d419`, puis
+`dbe5eb86`/`140acbdd`), mais leurs validations/runtime et captures finales ne sont pas acquises. Les
+preuves finales eau/Browser et la revue humaine comparative restent dues. La CI distante reste
+`NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a été introduit. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1955,6 +1980,10 @@ Deux replays gouvernés schema 8 ont maintenant été acquis. Replay1 perd le fo
 1 % low 61,2708 FPS. Son unique valeur de 35,3837 ms au-dessus de 33,3 ms maintient toutefois le FAIL
 (`45b87d0d…50894d1`) et `R1-048` ouverte. A4 schema 8 échoue sur un outlier ; A5/A6 passent seulement
 comme diagnostics non qualifiants sur le binaire partagé `21228a…` sans rebuild gouverné propre.
+Le replay schema 11 suivant, au commit `1912806`, publie ready + 338 lignes Forge PresentMon avec
+ETW 0/0, puis s'arrête avant signal sur un gap de sampling fenêtre `>250 ms` ; il ne produit aucun
+verdict de performance. Le harnais `9b847e99` utilise désormais host boundary schema 5 et validation
+schema 12 avec restabilisation pré-signal bornée, sans replay qualifiant encore acquis.
 La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
 52/52 runtime et 1/1 intégration. Le lot courant ajoute 66/66 tests Release `forge_runtime
 --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS ; aucun nouveau replay
@@ -1965,9 +1994,11 @@ conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e982
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-Restent dus : diagnostic puis PASS gouverné de `R1-048`, replay local transversal, instrumentation
-exhaustive `R1-037`, GPU cible `R1-041`, preuves eau/Browser finales et revue humaine. Aucun asset
-Cadle n'a été ajouté à Forge.
+L'optique d'eau `e7e7d419` et le contrat/chemin de capture RenderDoc
+`dbe5eb86`/`140acbdd` sont intégrés, sans qualification : validations Rust/runtime, captures eau et
+quatre captures Vulkan RenderDoc restent dues. Restent également dus : replay schema 12 PASS de
+`R1-048`, replay local transversal, GPU cible `R1-041`, preuves Browser finales et revue humaine.
+Aucun asset Cadle n'a été ajouté à Forge.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
 ne démarrent pas.
