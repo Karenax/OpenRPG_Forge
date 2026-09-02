@@ -11,10 +11,10 @@ L'API Python est :
 analyze_document(document: Mapping[str, object]) -> dict[str, object]
 ```
 
-Une entrée acceptée retourne `forge-gate1-renderdoc-analysis/v1`. Toute ambiguïté lève
+Une entrée acceptée retourne `forge-gate1-renderdoc-analysis/v2`. Toute ambiguïté lève
 `ContractError(code, path, message)` ; aucune valeur partielle n'est qualifiante.
 
-La racine `forge-gate1-renderdoc-actions/v1` contient exactement :
+La racine `forge-gate1-renderdoc-actions/v2` contient exactement :
 
 ```text
 schema
@@ -41,6 +41,7 @@ flags
 topology
 num_indices
 num_instances
+instanced
 indirect
 indirect_resolved
 active_stages
@@ -52,13 +53,21 @@ noms canoniques. Il ne doit jamais transmettre une chaîne de repli pour une val
 actions indirectes ne sont admises que lorsque leur compte exact a déjà été résolu ; dans ce cas le
 flag `Indirect`, `indirect=true` et `indirect_resolved=true` concordent.
 
+Le champ `instanced` concorde obligatoirement avec le flag `Instanced`. Pour une action réellement
+non instanciée, `instanced=false` et `num_instances=0` forment le sentinel normalisé et contribuent
+une instance effective. Pour une action instanciée, `instanced=true` conserve exactement
+`num_instances`, y compris zéro : un draw instancié zéro reste un draw émis, mais ajoute zéro instance
+et zéro primitive. Toute autre combinaison est rejetée.
+
 Les actions conteneurs sont parcourues récursivement et ne sont pas comptées. Seules leurs feuilles
 `Drawcall` contribuent aux métriques. Les topologies admises sont `TriangleList`, `LineList` et
 `PointList`. Une feuille de dessin expose obligatoirement le stage `Vertex` et éventuellement
 `Fragment`, sans autre stage actif.
 
-`num_instances=0` représente le fallback RenderDoc d'une instance. Les résultats sont bornés à
-`uint64`. L'analyse ne produit volontairement aucun champ FPS.
+Le modèle compte séparément chaque action portant le flag `Present`, exige exactement une occurrence
+et la recoupe avec `capture.present_count`. Zéro, deux occurrences ou une valeur déclarée incohérente
+échouent sans métriques partielles. Les résultats sont bornés à `uint64`. L'analyse ne produit
+volontairement aucun champ FPS.
 
 ## Test pur
 

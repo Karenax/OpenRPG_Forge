@@ -1,5 +1,5 @@
 {
-  "schema": "forge-gate1-renderdoc-capture-rejections/v1",
+  "schema": "forge-gate1-renderdoc-capture-rejections/v2",
   "cases": [
     {
       "name": "multiple_frames",
@@ -10,14 +10,14 @@
     },
     {
       "name": "multiple_presents",
-      "expected_code": "present_count",
+      "expected_code": "present_count_mismatch",
       "overrides": {
         "present_count": 2
       }
     },
     {
       "name": "no_present",
-      "expected_code": "present_count",
+      "expected_code": "present_count_mismatch",
       "overrides": {
         "present_count": 0
       }

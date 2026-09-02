@@ -34,10 +34,25 @@ _PASS_ACTION: dict[str, object] = {
     "flags": ["Drawcall"],
     "topology": "TriangleList",
     "num_indices": 3,
-    "num_instances": 1,
+    "num_instances": 0,
+    "instanced": False,
     "indirect": False,
     "indirect_resolved": True,
     "active_stages": ["Vertex", "Fragment"],
+    "children": [],
+}
+
+_PRESENT_ACTION: dict[str, object] = {
+    "event_id": UINT64_MAX,
+    "name": "Present",
+    "flags": ["Present"],
+    "topology": None,
+    "num_indices": 0,
+    "num_instances": 0,
+    "instanced": False,
+    "indirect": False,
+    "indirect_resolved": True,
+    "active_stages": [],
     "children": [],
 }
 
@@ -53,11 +68,17 @@ def _load_fixture(name: str) -> dict[str, object]:
 def _document(
     actions: list[dict[str, object]] | None = None,
     capture: dict[str, object] | None = None,
+    present_actions: int = 1,
 ) -> dict[str, object]:
+    normalized_actions = copy.deepcopy([_PASS_ACTION] if actions is None else actions)
+    for index in range(present_actions):
+        present = copy.deepcopy(_PRESENT_ACTION)
+        present["event_id"] = UINT64_MAX - index
+        normalized_actions.append(present)
     return {
         "schema": INPUT_SCHEMA,
         "capture": copy.deepcopy(_PASS_CAPTURE if capture is None else capture),
-        "actions": copy.deepcopy([_PASS_ACTION] if actions is None else actions),
+        "actions": normalized_actions,
     }
 
 
@@ -80,6 +101,7 @@ class Gate1RenderDocModelTests(unittest.TestCase):
         self.assertEqual("forge-gate1-renderdoc-lock/v1", manifest["schema"])
         self.assertEqual("R1-037", manifest["route"])
         self.assertEqual(INPUT_SCHEMA, manifest["normalized_input"]["schema"])
+        self.assertEqual(OUTPUT_SCHEMA, manifest["analysis"]["output_schema"])
         self.assertEqual(
             "scripts/renderdoc/gate1_renderdoc_model.py",
             manifest["normalized_input"]["model"],
@@ -88,6 +110,10 @@ class Gate1RenderDocModelTests(unittest.TestCase):
             ["TriangleList", "LineList", "PointList"],
             manifest["analysis"]["accepted_topologies"],
         )
+        self.assertIn("instanced", manifest["normalized_input"]["action_fields"])
+        self.assertEqual("Present", manifest["analysis"]["present_action_flag"])
+        self.assertTrue(manifest["analysis"]["present_count_cross_checked_with_actions"])
+        self.assertTrue(manifest["analysis"]["instance_accounting"]["instanced_zero_preserved"])
         self.assertFalse(manifest["analysis"]["fps_from_renderdoc"])
         self.assertEqual("NOT_RUN", manifest["qualification_boundary"]["captures_status"])
         self.assertFalse(manifest["qualification_boundary"]["closes_r1_037"])
@@ -104,6 +130,7 @@ class Gate1RenderDocModelTests(unittest.TestCase):
         self.assertEqual(
             {
                 "actions_visited": 8,
+                "present_actions": 1,
                 "draws": 4,
                 "instances": 7,
                 "triangles": 5,
@@ -121,7 +148,7 @@ class Gate1RenderDocModelTests(unittest.TestCase):
 
     def test_every_action_rejection_fixture_fails_closed(self) -> None:
         fixture = _load_fixture("action_rejections.json")
-        self.assertEqual("forge-gate1-renderdoc-action-rejections/v1", fixture["schema"])
+        self.assertEqual("forge-gate1-renderdoc-action-rejections/v2", fixture["schema"])
         cases = fixture["cases"]
         self.assertIsInstance(cases, list)
         names: set[str] = set()
@@ -141,7 +168,7 @@ class Gate1RenderDocModelTests(unittest.TestCase):
 
     def test_every_capture_rejection_fixture_fails_closed(self) -> None:
         fixture = _load_fixture("capture_rejections.json")
-        self.assertEqual("forge-gate1-renderdoc-capture-rejections/v1", fixture["schema"])
+        self.assertEqual("forge-gate1-renderdoc-capture-rejections/v2", fixture["schema"])
         cases = fixture["cases"]
         self.assertIsInstance(cases, list)
         names: set[str] = set()
@@ -186,18 +213,22 @@ class Gate1RenderDocModelTests(unittest.TestCase):
         first.update(
             {
                 "event_id": 1,
+                "flags": ["Drawcall", "Instanced"],
                 "topology": "PointList",
                 "num_indices": 0,
                 "num_instances": UINT64_MAX,
+                "instanced": True,
             }
         )
         second = copy.deepcopy(_PASS_ACTION)
         second.update(
             {
                 "event_id": 2,
+                "flags": ["Drawcall", "Instanced"],
                 "topology": "PointList",
                 "num_indices": 0,
                 "num_instances": 1,
+                "instanced": True,
             }
         )
 
@@ -208,18 +239,22 @@ class Gate1RenderDocModelTests(unittest.TestCase):
         first.update(
             {
                 "event_id": 1,
+                "flags": ["Drawcall", "Instanced"],
                 "topology": "PointList",
                 "num_indices": UINT64_MAX,
                 "num_instances": 1,
+                "instanced": True,
             }
         )
         second = copy.deepcopy(_PASS_ACTION)
         second.update(
             {
                 "event_id": 2,
+                "flags": ["Drawcall", "Instanced"],
                 "topology": "PointList",
                 "num_indices": 1,
                 "num_instances": 1,
+                "instanced": True,
             }
         )
 
@@ -239,6 +274,54 @@ class Gate1RenderDocModelTests(unittest.TestCase):
 
         _assert_contract_error(self, "empty_draw_set", _document([marker]))
 
+    def test_non_instanced_zero_sentinel_counts_one_instance(self) -> None:
+        result = analyze_document(_document())
+
+        self.assertEqual(1, result["metrics"]["draws"])
+        self.assertEqual(1, result["metrics"]["instances"])
+        self.assertEqual(1, result["metrics"]["triangles"])
+
+    def test_instanced_zero_preserves_zero_instances_and_primitives(self) -> None:
+        action = copy.deepcopy(_PASS_ACTION)
+        action.update(
+            {
+                "flags": ["Drawcall", "Instanced"],
+                "instanced": True,
+                "num_instances": 0,
+            }
+        )
+
+        result = analyze_document(_document([action]))
+
+        self.assertEqual(1, result["metrics"]["draws"])
+        self.assertEqual(0, result["metrics"]["instances"])
+        self.assertEqual(0, result["metrics"]["triangles"])
+
+    def test_zero_actual_present_actions_is_rejected_even_when_declared_zero(self) -> None:
+        capture = {**_PASS_CAPTURE, "present_count": 0}
+
+        _assert_contract_error(
+            self,
+            "present_action_count",
+            _document(capture=capture, present_actions=0),
+        )
+
+    def test_two_actual_present_actions_are_rejected_even_when_declared_two(self) -> None:
+        capture = {**_PASS_CAPTURE, "present_count": 2}
+
+        _assert_contract_error(
+            self,
+            "present_action_count",
+            _document(capture=capture, present_actions=2),
+        )
+
+    def test_declared_present_count_must_match_observed_actions(self) -> None:
+        _assert_contract_error(
+            self,
+            "present_count_mismatch",
+            _document(present_actions=2),
+        )
+
     def test_root_capture_and_action_shapes_are_exact(self) -> None:
         root_extra = _document()
         root_extra["fps"] = 60
@@ -254,10 +337,12 @@ class Gate1RenderDocModelTests(unittest.TestCase):
 
     def test_schema_and_non_empty_tree_are_required(self) -> None:
         wrong_schema = _document()
-        wrong_schema["schema"] = "forge-gate1-renderdoc-actions/v2"
+        wrong_schema["schema"] = "forge-gate1-renderdoc-actions/v1"
         _assert_contract_error(self, "unsupported_schema", wrong_schema)
 
-        _assert_contract_error(self, "empty_action_tree", _document([]))
+        _assert_contract_error(
+            self, "empty_action_tree", _document([], present_actions=0)
+        )
 
     def test_error_payload_is_stable_and_contains_no_partial_metrics(self) -> None:
         error = _assert_contract_error(

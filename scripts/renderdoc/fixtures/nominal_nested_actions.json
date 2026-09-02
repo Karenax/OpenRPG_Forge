@@ -1,5 +1,5 @@
 {
-  "schema": "forge-gate1-renderdoc-actions/v1",
+  "schema": "forge-gate1-renderdoc-actions/v2",
   "capture": {
     "captured_frame_count": 1,
     "present_count": 1,
@@ -17,6 +17,7 @@
       "topology": null,
       "num_indices": 0,
       "num_instances": 0,
+      "instanced": false,
       "indirect": false,
       "indirect_resolved": true,
       "active_stages": [],
@@ -25,11 +26,13 @@
           "event_id": 2,
           "name": "Opaque terrain",
           "flags": [
-            "Drawcall"
+            "Drawcall",
+            "Instanced"
           ],
           "topology": "TriangleList",
           "num_indices": 6,
           "num_instances": 2,
+          "instanced": true,
           "indirect": false,
           "indirect_resolved": true,
           "active_stages": [
@@ -48,6 +51,7 @@
           "topology": "TriangleStrip",
           "num_indices": 999,
           "num_instances": 99,
+          "instanced": false,
           "indirect": false,
           "indirect_resolved": true,
           "active_stages": [
@@ -63,6 +67,7 @@
               "topology": "LineList",
               "num_indices": 4,
               "num_instances": 0,
+              "instanced": false,
               "indirect": false,
               "indirect_resolved": true,
               "active_stages": [
@@ -80,6 +85,7 @@
               "topology": null,
               "num_indices": 0,
               "num_instances": 0,
+              "instanced": false,
               "indirect": false,
               "indirect_resolved": true,
               "active_stages": [],
@@ -88,11 +94,13 @@
                   "event_id": 6,
                   "name": "Point sprites",
                   "flags": [
-                    "Drawcall"
+                    "Drawcall",
+                    "Instanced"
                   ],
                   "topology": "PointList",
                   "num_indices": 5,
                   "num_instances": 3,
+                  "instanced": true,
                   "indirect": false,
                   "indirect_resolved": true,
                   "active_stages": [
@@ -108,11 +116,13 @@
               "name": "Depth-only foliage",
               "flags": [
                 "Drawcall",
-                "Indirect"
+                "Indirect",
+                "Instanced"
               ],
               "topology": "TriangleList",
               "num_indices": 3,
               "num_instances": 1,
+              "instanced": true,
               "indirect": true,
               "indirect_resolved": true,
               "active_stages": [
@@ -133,6 +143,7 @@
       "topology": null,
       "num_indices": 0,
       "num_instances": 0,
+      "instanced": false,
       "indirect": false,
       "indirect_resolved": true,
       "active_stages": [],

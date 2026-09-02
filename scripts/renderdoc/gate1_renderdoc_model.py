@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import Any
 
 
-INPUT_SCHEMA = "forge-gate1-renderdoc-actions/v1"
-OUTPUT_SCHEMA = "forge-gate1-renderdoc-analysis/v1"
+INPUT_SCHEMA = "forge-gate1-renderdoc-actions/v2"
+OUTPUT_SCHEMA = "forge-gate1-renderdoc-analysis/v2"
 UINT64_MAX = (1 << 64) - 1
 
 _ROOT_FIELDS = frozenset({"schema", "capture", "actions"})
@@ -39,6 +39,7 @@ _ACTION_FIELDS = frozenset(
         "topology",
         "num_indices",
         "num_instances",
+        "instanced",
         "indirect",
         "indirect_resolved",
         "active_stages",
@@ -73,6 +74,7 @@ class ContractError(ValueError):
 @dataclass
 class _Counters:
     actions_visited: int = 0
+    present_actions: int = 0
     draws: int = 0
     instances: int = 0
     triangles: int = 0
@@ -178,12 +180,6 @@ def _validate_capture(value: object) -> dict[str, object]:
         )
 
     present_count = _expect_uint64(capture["present_count"], "$.capture.present_count")
-    if present_count != 1:
-        raise ContractError(
-            "present_count",
-            "$.capture.present_count",
-            "exactly one Present is required",
-        )
 
     replay_support = _expect_string(
         capture["local_replay_support"], "$.capture.local_replay_support"
@@ -255,6 +251,7 @@ def _walk_action(
         topology = _expect_optional_string(action["topology"], f"{path}.topology")
         num_indices = _expect_uint64(action["num_indices"], f"{path}.num_indices")
         raw_instances = _expect_uint64(action["num_instances"], f"{path}.num_instances")
+        instanced = _expect_bool(action["instanced"], f"{path}.instanced")
         indirect = _expect_bool(action["indirect"], f"{path}.indirect")
         indirect_resolved = _expect_bool(
             action["indirect_resolved"], f"{path}.indirect_resolved"
@@ -267,6 +264,17 @@ def _walk_action(
         counters.actions_visited = _increment(
             counters.actions_visited, 1, f"{path}.actions_visited"
         )
+
+        if "Present" in flags:
+            counters.present_actions = _increment(
+                counters.present_actions, 1, f"{path}.present_actions"
+            )
+            if "Drawcall" in flags:
+                raise ContractError(
+                    "present_drawcall_conflict",
+                    f"{path}.flags",
+                    "an action cannot be both Present and Drawcall",
+                )
 
         if children:
             for index, child in enumerate(children):
@@ -311,6 +319,20 @@ def _walk_action(
                 "exact indirect counts were not resolved",
             )
 
+        flag_marks_instanced = "Instanced" in flags
+        if instanced != flag_marks_instanced:
+            raise ContractError(
+                "instance_metadata_mismatch",
+                f"{path}.instanced",
+                "instanced boolean and Instanced action flag disagree",
+            )
+        if not instanced and raw_instances != 0:
+            raise ContractError(
+                "instance_metadata_mismatch",
+                f"{path}.num_instances",
+                "a non-instanced draw must use the normalized zero sentinel",
+            )
+
         unsupported_stages = sorted(set(active_stages) - _SUPPORTED_DRAW_STAGES)
         if unsupported_stages:
             raise ContractError(
@@ -325,7 +347,7 @@ def _walk_action(
                 "a qualified draw must expose the Vertex stage",
             )
 
-        instances = raw_instances if raw_instances != 0 else 1
+        instances = raw_instances if instanced else 1
         primitive_path = f"{path}.primitive_count"
 
         if topology == "TriangleList":
@@ -401,6 +423,25 @@ def analyze_document(document: Mapping[str, object]) -> dict[str, object]:
             active_objects,
         )
 
+    declared_present_count = _expect_uint64(
+        capture["present_count"], "$.capture.present_count"
+    )
+    if counters.present_actions != declared_present_count:
+        raise ContractError(
+            "present_count_mismatch",
+            "$.capture.present_count",
+            (
+                f"declared {declared_present_count} Present actions but observed "
+                f"{counters.present_actions}"
+            ),
+        )
+    if counters.present_actions != 1:
+        raise ContractError(
+            "present_action_count",
+            "$.actions",
+            f"exactly one Present action is required, observed {counters.present_actions}",
+        )
+
     if counters.draws == 0:
         raise ContractError(
             "empty_draw_set", "$.actions", "the captured Present contains no drawcall leaf"
@@ -412,6 +453,7 @@ def analyze_document(document: Mapping[str, object]) -> dict[str, object]:
         "capture": capture,
         "metrics": {
             "actions_visited": counters.actions_visited,
+            "present_actions": counters.present_actions,
             "draws": counters.draws,
             "instances": counters.instances,
             "triangles": counters.triangles,
@@ -445,7 +487,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Validate and account a normalized Gate 1 RenderDoc action tree."
     )
-    parser.add_argument("input", type=Path, help="forge-gate1-renderdoc-actions/v1 JSON")
+    parser.add_argument("input", type=Path, help="forge-gate1-renderdoc-actions/v2 JSON")
     args = parser.parse_args(argv)
 
     try:

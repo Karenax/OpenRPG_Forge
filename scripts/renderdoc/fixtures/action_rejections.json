@@ -1,5 +1,5 @@
 {
-  "schema": "forge-gate1-renderdoc-action-rejections/v1",
+  "schema": "forge-gate1-renderdoc-action-rejections/v2",
   "cases": [
     {
       "name": "triangle_strip",
@@ -165,8 +165,49 @@
       "name": "primitive_multiplication_overflow",
       "expected_code": "integer_overflow",
       "overrides": {
+        "flags": [
+          "Drawcall",
+          "Instanced"
+        ],
         "num_indices": 6,
-        "num_instances": 18446744073709551615
+        "num_instances": 18446744073709551615,
+        "instanced": true
+      }
+    },
+    {
+      "name": "instanced_flag_without_boolean",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Instanced"
+        ],
+        "instanced": false
+      }
+    },
+    {
+      "name": "instanced_boolean_without_flag",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "instanced": true
+      }
+    },
+    {
+      "name": "non_instanced_nonzero_sentinel",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "num_instances": 1,
+        "instanced": false
+      }
+    },
+    {
+      "name": "present_drawcall_conflict",
+      "expected_code": "present_drawcall_conflict",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Present"
+        ]
       }
     },
     {

@@ -63,7 +63,9 @@ backend, GPU, pilote ou hash.
 Le contrôleur utilise le `qrenderdoc.exe` épinglé et son mode Python. Il lance le processus cible avec
 `ExecuteAndInject`, rejoint le Target Control, attend et valide le reçu atomique, puis appelle
 `TriggerCapture(1)`. Il accepte exactement une nouvelle capture correspondant à exactement un
-`Present` du processus attendu.
+`Present` du processus attendu. Le replay compte les actions portant réellement `ActionFlags.Present`
+et recoupe ce total avec `present_count` déclaré par l'adaptateur ; les deux valeurs doivent être
+exactement égales à un.
 
 La capture est invalide si le processus sort avant le reçu, si plusieurs captures apparaissent, si le
 nonce ou le PID divergent, si la scène se défige, ou si l'outil ne peut pas identifier sans ambiguïté
@@ -81,10 +83,12 @@ Chaque `.rdc` doit être ouvert avec :
 - `LocalReplaySupport == Supported` ;
 - `pipelineType == Vulkan` exactement ;
 - `degraded == false` ;
-- une seule frame capturée et un seul `Present` qualifié.
+- une seule frame capturée, une seule action `Present` observée et `present_count == 1`.
 
 L'adaptateur RenderDoc produit ensuite un document normalisé
-`forge-gate1-renderdoc-actions/v1`. Le modèle pur versionné dans
+`forge-gate1-renderdoc-actions/v2`. Cette version rend obligatoires l'état d'instanciation explicite
+et le comptage des actions `Present` ; une analyse acceptée produit
+`forge-gate1-renderdoc-analysis/v2`. Le modèle pur versionné dans
 `scripts/renderdoc/gate1_renderdoc_model.py` ne charge aucune DLL RenderDoc et n'accède ni au GPU, ni
 au registre. Cette séparation permet de tester exhaustivement la sémantique de comptage sans capture.
 
@@ -96,7 +100,11 @@ portant `ActionFlags.Drawcall`.
 
 Pour chaque feuille valide :
 
-- `instances` reçoit `numInstances`, ou 1 lorsque la valeur normalisée est zéro ;
+- le champ normalisé `instanced` doit concorder avec `ActionFlags.Instanced` ;
+- un draw réellement non instancié utilise `instanced=false` et le sentinel `numInstances=0`, puis
+  contribue une instance effective ;
+- un draw instancié utilise `instanced=true` et contribue exactement `numInstances`, y compris zéro ;
+  un draw instancié zéro reste un draw, mais ajoute zéro instance et zéro primitive ;
 - `TriangleList` contribue `(numIndices / 3) × instances`, uniquement si `numIndices` est divisible
   par trois ;
 - `LineList` contribue `(numIndices / 2) × instances`, uniquement si `numIndices` est divisible par
@@ -107,8 +115,9 @@ Pour chaque feuille valide :
 
 Une capture échoue fermement en présence de strip, fan, adjacency, patch, topologie inconnue,
 géométrie, tessellation, mesh/task shader, `MultiAction` feuille non développé, indirect non résolu,
-compte indivisible, identifiant d'événement dupliqué ou overflow. Une action indirecte est admissible
-seulement si l'adaptateur a résolu ses comptes exacts avant l'analyse.
+compte indivisible, métadonnées d'instanciation incohérentes, nombre de `Present` différent de un,
+divergence entre `present_count` et les actions, identifiant d'événement dupliqué ou overflow. Une
+action indirecte est admissible seulement si l'adaptateur a résolu ses comptes exacts avant l'analyse.
 
 ### Frontière temporelle
 
@@ -143,7 +152,7 @@ La route reste ouverte jusqu'à obtention simultanée de :
 - quatre reçus runtime atomiques valides ;
 - quatre `.rdc` indépendants et leurs SHA-256 ;
 - quatre replays locaux `Supported`, Vulkan exacts et non dégradés ;
-- quatre analyses sans rejet sémantique ;
+- quatre analyses sans rejet sémantique, chacune avec une action `Present` réellement observée ;
 - égalité des compteurs entre les deux répétitions d'une même météo ;
 - inventaire hashé des artefacts et validation finale fail-closed ;
 - confirmation que le runtime normal, PresentMon, la CI et les assets Cadle n'ont pas été utilisés

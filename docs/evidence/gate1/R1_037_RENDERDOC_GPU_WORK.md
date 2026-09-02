@@ -76,7 +76,7 @@ la matrice qualifiable, le workload et les rejets de l'analyse. ADR-0009 impose 
 - Browser WebGPU `UNSUPPORTED BY RENDERDOC 1.46` ;
 - Visual Valley High, 1920 × 1080, VSync off, caméra/seed/tick fixes ;
 - pipelines stables 30 frames puis état figé et reçu atomique ;
-- exactement un `Present` par capture ;
+- exactement une action `Present` observée par capture, recoupée avec `present_count=1` ;
 - deux lancements indépendants pour chacune des météos `clear` et `rain` ;
 - replay local `Supported`, pipeline Vulkan exact et mode non dégradé ;
 - aucun FPS dérivé de RenderDoc.
@@ -84,9 +84,14 @@ la matrice qualifiable, le workload et les rejets de l'analyse. ADR-0009 impose 
 ## Analyseur pur
 
 `scripts/renderdoc/gate1_renderdoc_model.py` consomme uniquement le schéma normalisé
-`forge-gate1-renderdoc-actions/v1`. Il ne charge pas RenderDoc et ne touche ni au GPU, ni au registre,
+`forge-gate1-renderdoc-actions/v2`. Il ne charge pas RenderDoc et ne touche ni au GPU, ni au registre,
 ni au runtime. Ses tests couvrent le parcours des markers/`MultiAction`, l'absence de double compte,
-les trois topologies admises, le fallback d'instance, les comptes divisibles et les rejets fermés.
+les trois topologies admises, l'instanciation explicite, le comptage réel des `Present`, les comptes
+divisibles et les rejets fermés.
+
+Le format d'enveloppe du lock reste `forge-gate1-renderdoc-lock/v1`. Le payload normalisé, modifié de
+façon incompatible par ces deux invariants, est explicitement monté à
+`forge-gate1-renderdoc-actions/v2` et sa sortie à `forge-gate1-renderdoc-analysis/v2`.
 
 Commande exécutée depuis la racine du worktree :
 
@@ -94,7 +99,7 @@ Commande exécutée depuis la racine du worktree :
 python -S -B -m unittest discover -s scripts/renderdoc -p "test_*.py" -v
 ```
 
-Résultat : **12/12 tests PASS**. La matrice chargée couvre 21 rejets d'actions et 9 rejets
+Résultat : **17/17 tests PASS**. La matrice chargée couvre 25 rejets d'actions et 9 rejets
 d'enveloppe de capture, en plus des tests programmatiques de cycle, identifiant dupliqué, overflow de
 cumul, arbre sans draw, forme stricte et payload d'erreur sans métriques partielles. `-B` n'a produit
 aucun `__pycache__`.
@@ -103,18 +108,20 @@ Le smoke CLI pur sur `nominal_nested_actions.json` retourne `PASS` avec 8 action
 7 instances, 5 triangles, 2 lignes et 15 points. Le parent `MultiAction` marqué `Drawcall` porte des
 valeurs volontairement non qualifiantes mais n'est pas compté, ce qui prouve le parcours des seules
 feuilles sans double compte. Une feuille indirecte résolue est comptée avec ses valeurs exactes ; les
-indirects non résolus sont rejetés. Aucun champ FPS n'est émis.
+indirects non résolus sont rejetés. Le smoke observe aussi exactement une action `Present`. Un draw
+non instancié au sentinel zéro contribue une instance, tandis qu'un draw explicitement instancié zéro
+conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 
 | Artefact suivi | SHA-256 |
 |---|---|
-| ADR-0009 | `024E70F7A89FB45C9933FEF691482F350D7E8CA8A5481B6ECDA4D409A61780E3` |
-| `scripts/gate1-renderdoc.v1.json` | `7FEA4EE48BDCC855C5D69355ADC13574E794CD9995D9F796603A7EF878680D6A` |
-| `gate1_renderdoc_model.py` | `4DE2A38E7862C67995900CFC164BBBDF8F5643F8A11EFE5F614C3D8307A74341` |
-| `test_gate1_renderdoc_model.py` | `4BB232DDF604BDAFFA1493DDF272229DA0709C09A3CFBDFA4EBDD211B9C4FF2A` |
-| `nominal_nested_actions.json` | `8ED6642DAE07A30678C4207D231128B113BC70E57A14A9A1113FD1CFCD035CE6` |
-| `action_rejections.json` | `94ADBD15FF6A3E00A82957E98C6F065BC1C74C1C980AE1E18E0D080C47ABBD0A` |
-| `capture_rejections.json` | `295E9B0FA59932265CB6A243CE82FD01C06300C71D9AAC7F642B2A4C3EDB13D8` |
-| `scripts/renderdoc/README.md` | `DC313268D7D1E4D2AC68EDEA0D2927C0C25644712158F7002654DE403509565A` |
+| ADR-0009 | `2D82EAD0B7713D9AEE1DC836E7C7E6159D45576BD5E0C2C976264036CC84BB40` |
+| `scripts/gate1-renderdoc.v1.json` | `7C9C81A43154E7AFA7CAE7CEA7E18B915E87B032312D5D2A632601C34A8D2BB6` |
+| `gate1_renderdoc_model.py` | `74348096DBC5B43D982270519130A42F675C2E3E47B0FE43027A71ECDF38E96B` |
+| `test_gate1_renderdoc_model.py` | `A1AF6E2C803C74D9D7E11EBA5A9C874A89B528449C7DF70DC61E6FBB1474A281` |
+| `nominal_nested_actions.json` | `E7373B924A521112FBBB99F22107D19AE5A69DB4F9EBA48EFBC8F91A27151048` |
+| `action_rejections.json` | `705A3AC2B9F1FC6993F8B3ED9F791D672F1C0D5AD5CE5C7B6E46F0422E9D9123` |
+| `capture_rejections.json` | `C5AF8AF8E92FB8A956A07A419F11C326912365AB5495CF7CDE185E5FC388D33C` |
+| `scripts/renderdoc/README.md` | `E007E17C93474BC35E8830DCC6B9330A43CE0EF9CE04FC97997842CF0EEB2012` |
 
 ## Limites et travail encore dû
 
@@ -122,7 +129,7 @@ indirects non résolus sont rejetés. Aucun champ FPS n'est émis.
 |---|---|
 | acquisition portable, signatures, licence et hashes | **PASS** |
 | ADR, manifeste et modèle pur | **AJOUTÉS DANS CE LOT** |
-| tests Python purs | **PASS — 12/12, 30 sous-cas de rejet chargés** |
+| tests Python purs | **PASS — 17/17, 34 sous-cas de rejet chargés** |
 | couche Vulkan RenderDoc enregistrée | **NON — BLOCAGE EXPLICITE** |
 | workload runtime déterministe | **NON LIVRÉ PAR CE LOT** |
 | orchestrateur QRenderDoc | **NON LIVRÉ PAR CE LOT** |

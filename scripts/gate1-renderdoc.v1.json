@@ -113,7 +113,7 @@
     "registry_mutation_by_harness": false
   },
   "normalized_input": {
-    "schema": "forge-gate1-renderdoc-actions/v1",
+    "schema": "forge-gate1-renderdoc-actions/v2",
     "model": "scripts/renderdoc/gate1_renderdoc_model.py",
     "root_fields": [
       "schema",
@@ -134,6 +134,7 @@
       "topology",
       "num_indices",
       "num_instances",
+      "instanced",
       "indirect",
       "indirect_resolved",
       "active_stages",
@@ -141,9 +142,21 @@
     ]
   },
   "analysis": {
+    "output_schema": "forge-gate1-renderdoc-analysis/v2",
     "leaf_flag": "Drawcall",
     "containers_recursed_without_counting_parent": true,
-    "zero_num_instances_fallback": 1,
+    "present_action_flag": "Present",
+    "required_present_actions": 1,
+    "present_count_cross_checked_with_actions": true,
+    "instance_accounting": {
+      "explicit_field": "instanced",
+      "action_flag": "Instanced",
+      "field_and_flag_must_match": true,
+      "non_instanced_num_instances_sentinel": 0,
+      "non_instanced_effective_instances": 1,
+      "instanced_uses_exact_num_instances": true,
+      "instanced_zero_preserved": true
+    },
     "accepted_topologies": [
       "TriangleList",
       "LineList",
@@ -172,6 +185,10 @@
       "mesh_task_stage",
       "unresolved_indirect",
       "unexpanded_multiaction_leaf",
+      "instance_metadata_mismatch",
+      "present_drawcall_conflict",
+      "present_count_mismatch",
+      "present_action_count",
       "indivisible_primitive_count",
       "duplicate_event_id",
       "integer_overflow"
