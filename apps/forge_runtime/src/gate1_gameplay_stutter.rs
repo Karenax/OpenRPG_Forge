@@ -31,6 +31,7 @@ const READY_SCHEMA: &str = "forge.gate1-gameplay-stutter-ready";
 const SIGNAL_SCHEMA: &str = "forge.gate1-gameplay-stutter-start-signal";
 const LEDGER_SCHEMA: &str = "forge.gate1-gameplay-stutter";
 const SCHEMA_VERSION: u32 = 3;
+const LEDGER_SCHEMA_VERSION: u32 = 4;
 const READY_FILE: &str = "gate1-gameplay-stutter.ready.json";
 const START_SIGNAL_FILE: &str = "gate1-gameplay-stutter.start.signal.json";
 const LEDGER_FILE: &str = "gate1-gameplay-stutter.json";
@@ -54,6 +55,56 @@ const START_Z_M: f32 = 8.0;
 const PRESENTMON_VERSION: &str = "2.4.1";
 const MAX_START_SIGNAL_BYTES: u64 = 16 * 1024;
 const PRESENTMON_SHA256: &str = "d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34";
+
+#[cfg(windows)]
+#[allow(
+    unsafe_code,
+    reason = "the isolated Gate 1 clock adapter calls the two pointer-only Win32 QPC functions"
+)]
+mod qpc_clock {
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        #[link_name = "QueryPerformanceCounter"]
+        fn query_performance_counter(value: *mut i64) -> i32;
+        #[link_name = "QueryPerformanceFrequency"]
+        fn query_performance_frequency(value: *mut i64) -> i32;
+    }
+
+    pub(super) fn timestamp() -> Result<u64, String> {
+        query(query_performance_counter, "QueryPerformanceCounter")
+    }
+
+    pub(super) fn frequency_hz() -> Result<u64, String> {
+        query(query_performance_frequency, "QueryPerformanceFrequency")
+    }
+
+    fn query(
+        function: unsafe extern "system" fn(*mut i64) -> i32,
+        name: &str,
+    ) -> Result<u64, String> {
+        let mut value = 0_i64;
+        // SAFETY: `value` is a live, aligned `i64` for the duration of the Win32 call. Both
+        // selected APIs only write one signed 64-bit counter value through this non-null pointer.
+        let succeeded = unsafe { function(&raw mut value) };
+        if succeeded == 0 || value <= 0 {
+            return Err(format!(
+                "{name} did not return a positive Gate 1 clock value"
+            ));
+        }
+        u64::try_from(value).map_err(|error| format!("{name} returned an invalid value: {error}"))
+    }
+}
+
+#[cfg(not(windows))]
+mod qpc_clock {
+    pub(super) fn timestamp() -> Result<u64, String> {
+        Err("Gate 1 QPC acquisition requires Windows".to_owned())
+    }
+
+    pub(super) fn frequency_hz() -> Result<u64, String> {
+        Err("Gate 1 QPC acquisition requires Windows".to_owned())
+    }
+}
 
 #[derive(Clone, Resource)]
 struct Configuration {
@@ -268,6 +319,9 @@ struct Runtime {
     stopped_position: Option<Vec3>,
     measurement_started_at: Option<Instant>,
     measurement_elapsed_seconds: Option<f64>,
+    controller_window_qpc_start: Option<u64>,
+    controller_window_qpc_end: Option<u64>,
+    controller_window_qpc_frequency_hz: Option<u64>,
     first_fixed_tick: Option<u64>,
     midpoint_fixed_tick: Option<u64>,
     last_fixed_tick: Option<u64>,
@@ -326,6 +380,9 @@ impl Runtime {
             stopped_position: None,
             measurement_started_at: None,
             measurement_elapsed_seconds: None,
+            controller_window_qpc_start: None,
+            controller_window_qpc_end: None,
+            controller_window_qpc_frequency_hz: None,
             first_fixed_tick: None,
             midpoint_fixed_tick: None,
             last_fixed_tick: None,
@@ -526,6 +583,15 @@ struct PresentMonEvidence {
     display_metrics_ingested: bool,
 }
 
+#[derive(Clone, Copy, Serialize)]
+struct ControllerQpcWindowEvidence {
+    clock: &'static str,
+    interval: &'static str,
+    start_qpc: u64,
+    end_qpc: u64,
+    frequency_hz: u64,
+}
+
 #[derive(Serialize)]
 struct PipelineStability {
     ready_before_measurement: bool,
@@ -655,6 +721,7 @@ struct GameplayStutterLedger {
     sources: SourceEvidence,
     ready: ReadyEvidence,
     presentmon: PresentMonEvidence,
+    controller_window_qpc: ControllerQpcWindowEvidence,
     governed_scene: GovernedSceneStability,
     pipeline_warmup: PipelineStability,
     quality: QualityStability,
@@ -672,28 +739,97 @@ fn drive_controller(
     if runtime.phase.is_terminal() {
         return;
     }
-    let result = match runtime.phase {
-        Phase::PreparingForward if runtime.forward_sequence.is_none() => pending
-            .submit(PlayerControlCommand {
-                move_axis: Vec2::Y,
-                ..default()
-            })
-            .map(|sequence| runtime.forward_sequence = Some(sequence)),
-        Phase::PreparingReverse if runtime.reverse_sequence.is_none() => pending
-            .submit(PlayerControlCommand {
-                move_axis: Vec2::NEG_Y,
-                ..default()
-            })
-            .map(|sequence| runtime.reverse_sequence = Some(sequence)),
-        Phase::PreparingStop if runtime.stop_sequence.is_none() => pending
-            .submit(PlayerControlCommand::default())
-            .map(|sequence| runtime.stop_sequence = Some(sequence)),
-        _ => Ok(()),
-    }
-    .map_err(|error| format!("cannot submit gameplay stutter command: {error}"));
+    let result = (|| -> Result<(), String> {
+        match runtime.phase {
+            Phase::PreparingForward if runtime.forward_sequence.is_none() => {
+                begin_controller_qpc_window(&mut runtime)?;
+                let sequence = pending
+                    .submit(PlayerControlCommand {
+                        move_axis: Vec2::Y,
+                        ..default()
+                    })
+                    .map_err(|error| format!("cannot submit gameplay stutter command: {error}"))?;
+                runtime.forward_sequence = Some(sequence);
+            }
+            Phase::PreparingReverse if runtime.reverse_sequence.is_none() => {
+                let sequence = pending
+                    .submit(PlayerControlCommand {
+                        move_axis: Vec2::NEG_Y,
+                        ..default()
+                    })
+                    .map_err(|error| format!("cannot submit gameplay stutter command: {error}"))?;
+                runtime.reverse_sequence = Some(sequence);
+            }
+            Phase::PreparingStop if runtime.stop_sequence.is_none() => {
+                let sequence = pending
+                    .submit(PlayerControlCommand::default())
+                    .map_err(|error| format!("cannot submit gameplay stutter command: {error}"))?;
+                runtime.stop_sequence = Some(sequence);
+            }
+            _ => {}
+        }
+        Ok(())
+    })();
     if let Err(error) = result {
         fail(&mut runtime, &mut exit, &error);
     }
+}
+
+fn begin_controller_qpc_window(runtime: &mut Runtime) -> Result<(), String> {
+    if runtime.measurement_started_at.is_some()
+        || runtime.controller_window_qpc_start.is_some()
+        || runtime.controller_window_qpc_end.is_some()
+        || runtime.controller_window_qpc_frequency_hz.is_some()
+    {
+        return Err("controller QPC window was already started".to_owned());
+    }
+    let signal = runtime
+        .signal
+        .as_ref()
+        .ok_or("cannot start the controller QPC window without an accepted signal")?;
+    let expected_frequency_hz = signal.presentmon.qpc_frequency_hz;
+    let measurement_not_before_qpc = signal.presentmon.measurement_not_before_qpc;
+    let frequency_hz = qpc_clock::frequency_hz()?;
+    if frequency_hz != expected_frequency_hz {
+        return Err(format!(
+            "runtime QPC frequency {frequency_hz} Hz differs from host frequency {expected_frequency_hz} Hz"
+        ));
+    }
+    let start_qpc = qpc_clock::timestamp()?;
+    if start_qpc <= measurement_not_before_qpc {
+        return Err(format!(
+            "runtime controller QPC start {start_qpc} does not follow host lower boundary {measurement_not_before_qpc}"
+        ));
+    }
+    runtime.controller_window_qpc_frequency_hz = Some(frequency_hz);
+    runtime.controller_window_qpc_start = Some(start_qpc);
+    runtime.measurement_started_at = Some(Instant::now());
+    Ok(())
+}
+
+fn complete_controller_qpc_window(runtime: &mut Runtime) -> Result<(), String> {
+    let start_qpc = runtime
+        .controller_window_qpc_start
+        .ok_or("controller QPC start is absent at the final movement sample")?;
+    if runtime.controller_window_qpc_end.is_some() || runtime.measurement_elapsed_seconds.is_some()
+    {
+        return Err("controller QPC window was already completed".to_owned());
+    }
+    let end_qpc = qpc_clock::timestamp()?;
+    if end_qpc <= start_qpc {
+        return Err(format!(
+            "runtime controller QPC end {end_qpc} does not follow start {start_qpc}"
+        ));
+    }
+    runtime.controller_window_qpc_end = Some(end_qpc);
+    runtime.measurement_elapsed_seconds = Some(
+        runtime
+            .measurement_started_at
+            .ok_or("measurement start instant missing")?
+            .elapsed()
+            .as_secs_f64(),
+    );
+    Ok(())
 }
 
 #[allow(
@@ -800,7 +936,6 @@ fn observe_controller(
                 runtime.signal = Some(signal);
                 runtime.start_position = Some(snapshot.player_position);
                 runtime.previous_sample_position = Some(snapshot.player_position);
-                runtime.measurement_started_at = Some(Instant::now());
                 runtime.last_water_animation_updates = Some(scene.water.animation_updates);
                 runtime.main_world_measurement_active = true;
                 enter_phase(&mut runtime, Phase::PreparingForward);
@@ -894,15 +1029,9 @@ fn observe_controller(
                 require_exact_sequence(&snapshot, sequence, "reverse")?;
                 sample_movement(&mut runtime, &snapshot, frame.0, false)?;
                 if runtime.reverse_ticks >= REVERSE_TICKS {
+                    complete_controller_qpc_window(&mut runtime)?;
                     runtime.end_position = Some(snapshot.player_position);
                     runtime.last_fixed_tick = Some(snapshot.fixed_tick);
-                    runtime.measurement_elapsed_seconds = Some(
-                        runtime
-                            .measurement_started_at
-                            .ok_or("measurement start instant missing")?
-                            .elapsed()
-                            .as_secs_f64(),
-                    );
                     runtime.final_visibility_audit_ticket =
                         Some(visibility_audit.request_observation());
                     runtime.final_main_world_validation_pending = true;
@@ -1716,6 +1845,40 @@ fn write_ready(
     Ok(())
 }
 
+fn controller_qpc_window_evidence(
+    runtime: &Runtime,
+) -> Result<ControllerQpcWindowEvidence, String> {
+    let signal = runtime
+        .signal
+        .as_ref()
+        .ok_or("accepted PresentMon start signal is absent")?;
+    let start_qpc = runtime
+        .controller_window_qpc_start
+        .ok_or("controller QPC start is absent")?;
+    let end_qpc = runtime
+        .controller_window_qpc_end
+        .ok_or("controller QPC end is absent")?;
+    let frequency_hz = runtime
+        .controller_window_qpc_frequency_hz
+        .ok_or("controller QPC frequency is absent")?;
+    if start_qpc <= signal.presentmon.measurement_not_before_qpc {
+        return Err("controller QPC start does not follow the host lower boundary".to_owned());
+    }
+    if end_qpc <= start_qpc {
+        return Err("controller QPC end does not follow its start".to_owned());
+    }
+    if frequency_hz == 0 || frequency_hz != signal.presentmon.qpc_frequency_hz {
+        return Err("controller QPC frequency does not match the accepted host clock".to_owned());
+    }
+    Ok(ControllerQpcWindowEvidence {
+        clock: "windows_query_performance_counter",
+        interval: "half_open_start_inclusive_end_exclusive",
+        start_qpc,
+        end_qpc,
+        frequency_hz,
+    })
+}
+
 #[allow(
     clippy::too_many_lines,
     reason = "the final serialized proof ledger keeps all independent observations together"
@@ -1747,6 +1910,7 @@ fn write_ledger(
     let observed_wall_duration_seconds = runtime
         .measurement_elapsed_seconds
         .ok_or("measurement wall duration is absent")?;
+    let controller_window_qpc = controller_qpc_window_evidence(runtime)?;
     validate_final_movement(
         runtime,
         start,
@@ -1784,7 +1948,7 @@ fn write_ledger(
     )?;
     let ledger = GameplayStutterLedger {
         schema: LEDGER_SCHEMA,
-        schema_version: SCHEMA_VERSION,
+        schema_version: LEDGER_SCHEMA_VERSION,
         status: "controller_window_complete_pending_presentmon_analysis",
         process_id: std::process::id(),
         build_source_commit: embedded_source_commit()?,
@@ -1816,6 +1980,7 @@ fn write_ledger(
             runtime_verified_capture: false,
             display_metrics_ingested: false,
         },
+        controller_window_qpc,
         governed_scene: GovernedSceneStability {
             qualified_before_measurement: true,
             qualified_for_entire_measurement: true,
@@ -2211,6 +2376,38 @@ mod tests {
         let mut unsafe_session = signal;
         unsafe_session.presentmon.session_id = "bad session".to_owned();
         assert!(validate_start_signal(&unsafe_session, 42).is_err());
+    }
+
+    #[test]
+    fn controller_qpc_evidence_requires_ordered_host_correlated_bounds() {
+        let mut runtime = test_runtime();
+        runtime.signal = Some(valid_signal(42));
+        runtime.controller_window_qpc_start = Some(123_500);
+        runtime.controller_window_qpc_end = Some(223_500);
+        runtime.controller_window_qpc_frequency_hz = Some(10_000_000);
+
+        let evidence = controller_qpc_window_evidence(&runtime).unwrap();
+        assert_eq!(evidence.clock, "windows_query_performance_counter");
+        assert_eq!(evidence.interval, "half_open_start_inclusive_end_exclusive");
+        assert_eq!(evidence.start_qpc, 123_500);
+        assert_eq!(evidence.end_qpc, 223_500);
+        assert_eq!(evidence.frequency_hz, 10_000_000);
+
+        runtime.controller_window_qpc_end = Some(123_500);
+        assert!(controller_qpc_window_evidence(&runtime).is_err());
+        runtime.controller_window_qpc_end = Some(223_500);
+        runtime.controller_window_qpc_frequency_hz = Some(9_999_999);
+        assert!(controller_qpc_window_evidence(&runtime).is_err());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn isolated_qpc_clock_reports_positive_monotonic_values() {
+        let frequency_hz = qpc_clock::frequency_hz().unwrap();
+        let first = qpc_clock::timestamp().unwrap();
+        let second = qpc_clock::timestamp().unwrap();
+        assert!(frequency_hz > 0);
+        assert!(second >= first);
     }
 
     #[test]

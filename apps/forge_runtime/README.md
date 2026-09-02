@@ -230,8 +230,10 @@ player/Rapier/camera bindings are ready, the runtime writes
 process to that exact PID and atomically publish
 `gate1-gameplay-stutter.start.signal.json`. The controller performs 900 fixed ticks forward and 900
 ticks backward at 60 Hz, crosses the central seam without teleportation, stops under a bounded
-watchdog, and writes `gate1-gameplay-stutter.json`. Runtime ready, start-signal and final ledgers use
-schema 3. Forge's derived vegetation visibility audit runs at a bounded 100 ms cadence while Bevy
+watchdog, and writes `gate1-gameplay-stutter.json`. The ready and start-signal contracts use schema 3;
+the final runtime ledger uses schema 4 because it also publishes the controller's half-open
+`[start, end)` Windows QPC interval. Forge's derived vegetation visibility audit runs at a bounded
+100 ms cadence while Bevy
 visibility, rendering, wind, interaction and controller work remain per-frame. The harness requests
 monotonic out-of-cadence audit tickets at the ready and final movement boundaries and refuses to
 publish either boundary until the post-visibility observer has acknowledged the exact ticket.
@@ -245,8 +247,11 @@ diagnostics resolve encoder is disabled, and that display timing belongs to exte
 `DisplayedTime`.
 `scripts/Test-Gate1GameplayStutter.ps1` owns that host boundary. It accepts only the pinned,
 Authenticode-valid PresentMon 2.4.1 console binary, observes a complete target-PID row before
-publishing the QPC-bound start signal, captures v2 display rows and ETW-loss counters, then computes
-a bounded post-signal display distribution from `DisplayedTime`. The host immediately persists the
+publishing the QPC-bound start signal, captures v2 display rows and ETW-loss counters, then computes a
+display distribution correlated to the runtime controller interval. The runtime reads
+`QueryPerformanceCounter` immediately before the first controller submission and after the final
+movement sample, verifies the host QPC frequency, and serializes those two boundaries. The host
+immediately persists the
 published QPC boundary in `gate1-gameplay-stutter.host-boundary.json`, so an unsuccessful threshold
 run still retains its exact host envelope. PresentMon writes through
 `--output_stdout` into a shared live stream because its `--output_file` transport does not guarantee
@@ -256,18 +261,23 @@ interleaved or malformed record. Once the runtime exits, the host stops the exac
 with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
 failures, and requires the control and capture processes to exit cleanly. The runtime GPU
 backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
-route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 3 for
-this stdout-stream transport and explicit uninstrumented-runtime contract. Bevy `FrameTime` is
+route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 4 for
+this stdout-stream transport, exact runtime-QPC contract and explicit uninstrumented-runtime contract.
+Bevy `FrameTime` is
 retained as an application-loop diagnostic but is never substituted for a missing displayed frame.
-Within an otherwise valid envelope that retains at least 120 numeric
-displayed rows and the required boundary coverage, structurally valid
-`DisplayLatency=NA`/`DisplayedTime=NA` pairs are counted as unresolved displays; any inside the
-bounded measurement makes its thresholds fail, and the host writes the failure validation before
-returning an error. If those minimum sample or coverage prerequisites are absent, acquisition fails
-before metric validation and only the already-persisted host boundary is guaranteed. The 1 % low uses
-the mean of the slowest `ceil(samples / 100)` displayed times. The runtime does not yet expose exact
-QPC values for the first
-and last controller ticks, so the host records a bounded threshold sample but deliberately leaves
-`exact_runtime_qpc_bounds_observed` and `real_time_display_stutter_qualified` false. Human review,
+For every numeric PresentMon pair, the host derives the displayed interval as
+`CPUStartQPC + DisplayLatency` through that start plus `DisplayedTime`; it keeps every interval that
+overlaps the runtime's half-open controller window. The selected intervals must cover both runtime
+boundaries and may have no internal gap larger than the QPC equivalent of two printed CSV quanta.
+Within an otherwise valid envelope that retains at least 120 numeric displayed rows,
+structurally valid `DisplayLatency=NA`/`DisplayedTime=NA` pairs mean that the frame was not displayed.
+They are counted separately when their CPU start falls inside the controller window; any such frame
+makes the thresholds fail. The host writes the failure validation before returning an error. If the
+minimum sample or coverage prerequisites are absent, acquisition fails before metric validation and
+only the already-persisted host boundary is guaranteed. The 1 % low uses the mean of the slowest
+`ceil(samples / 100)` displayed times. The validation records
+`exact_runtime_qpc_bounds_observed=true`; the display boundaries remain derived from four-decimal
+PresentMon CSV metrics, so `exact_display_qpc_bounds_observed=false` remains explicit. Runtime-side
+ingestion, `real_time_display_stutter_qualified`, human review,
 GPU-target qualification and the overall Gate 1 route remain separate. This protocol alone does not
 close `R1-048` or Gate 1, and Gate 2 remains forbidden while the remaining Gate 1 criteria are open.

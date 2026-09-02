@@ -568,6 +568,173 @@ function Invoke-PresentMonStreamParserSelfTest {
     }
 }
 
+function Get-VerifiedRuntimeControllerQpcWindow {
+    param(
+        [Parameter(Mandatory = $true)][uint64]$HostLowerBoundQpc,
+        [Parameter(Mandatory = $true)][uint64]$StartQpc,
+        [Parameter(Mandatory = $true)][uint64]$EndQpc,
+        [Parameter(Mandatory = $true)][uint64]$RuntimeFrequencyHz,
+        [Parameter(Mandatory = $true)][uint64]$HostFrequencyHz
+    )
+
+    Assert-Condition -Condition ($StartQpc -gt $HostLowerBoundQpc) -Message "Runtime controller QPC start does not follow the host lower boundary."
+    Assert-Condition -Condition ($EndQpc -gt $StartQpc) -Message "Runtime controller QPC bounds are absent or unordered."
+    Assert-Condition -Condition ($RuntimeFrequencyHz -gt 0 -and $RuntimeFrequencyHz -eq $HostFrequencyHz) -Message "Runtime controller QPC frequency does not match the host clock."
+    $durationSeconds = [double](([decimal]$EndQpc - [decimal]$StartQpc) / [decimal]$RuntimeFrequencyHz)
+    Assert-Condition -Condition ([double]::IsFinite($durationSeconds) -and $durationSeconds -gt 0.0) -Message "Runtime controller QPC duration is invalid."
+    return [pscustomobject]@{
+        StartQpc = $StartQpc
+        EndQpc = $EndQpc
+        FrequencyHz = $RuntimeFrequencyHz
+        DurationSeconds = $durationSeconds
+    }
+}
+
+function Get-PresentMonControllerWindowProjection {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Rows,
+        [Parameter(Mandatory = $true)][uint64]$StartQpc,
+        [Parameter(Mandatory = $true)][uint64]$EndQpc,
+        [Parameter(Mandatory = $true)][uint64]$FrequencyHz
+    )
+
+    Assert-Condition -Condition ($StartQpc -gt 0 -and $EndQpc -gt $StartQpc -and $FrequencyHz -gt 0) -Message "Runtime controller QPC projection inputs are invalid."
+    [decimal]$start = $StartQpc
+    [decimal]$end = $EndQpc
+    [decimal]$frequency = $FrequencyHz
+    # PresentMon prints DisplayLatency and DisplayedTime with four decimal places in milliseconds.
+    # Two printed quanta cover the worst-case adjacent-boundary rounding after both terms are added.
+    [decimal]$quantizationToleranceQpc = [Math]::Max(1, [Math]::Ceiling([decimal]$FrequencyHz / [decimal]5000000))
+    $displayedRows = [Collections.Generic.List[object]]::new()
+    $notDisplayedRows = [Collections.Generic.List[object]]::new()
+    foreach ($row in $Rows) {
+        [decimal]$cpuStartQpc = $row.Qpc
+        if ($null -eq $row.DisplayedTimeMs) {
+            if ($cpuStartQpc -ge $start -and $cpuStartQpc -lt $end) {
+                $notDisplayedRows.Add($row)
+            }
+            continue
+        }
+        $displayStartQpc = $cpuStartQpc + ([decimal]([double]$row.DisplayLatencyMs) * $frequency / 1000)
+        $displayEndQpc = $displayStartQpc + ([decimal]([double]$row.DisplayedTimeMs) * $frequency / 1000)
+        if ($displayEndQpc -gt $start -and $displayStartQpc -lt $end) {
+            $displayedRows.Add([pscustomobject]@{
+                    CsvRow = $row.CsvRow
+                    Qpc = $cpuStartQpc
+                    DisplayLatencyMs = $row.DisplayLatencyMs
+                    DisplayedTimeMs = $row.DisplayedTimeMs
+                    DerivedDisplayStartQpc = $displayStartQpc
+                    DerivedDisplayEndQpc = $displayEndQpc
+            })
+        }
+    }
+    $orderedDisplayedRows = @($displayedRows.ToArray() | Sort-Object { [decimal]$_.DerivedDisplayStartQpc })
+    $coversStart = $false
+    $coversEnd = $false
+    [decimal]$maximumGapQpc = 0
+    [decimal]$totalGapQpc = 0
+    [decimal]$coverageCursor = $start
+    foreach ($row in $orderedDisplayedRows) {
+        [decimal]$displayStartQpc = $row.DerivedDisplayStartQpc
+        [decimal]$displayEndQpc = $row.DerivedDisplayEndQpc
+        if ($displayStartQpc -le ($start + $quantizationToleranceQpc) -and $displayEndQpc -gt $start) {
+            $coversStart = $true
+        }
+        if ($displayStartQpc -lt $end -and $displayEndQpc -ge ($end - $quantizationToleranceQpc)) {
+            $coversEnd = $true
+        }
+        [decimal]$clippedStartQpc = [Math]::Max([decimal]$row.DerivedDisplayStartQpc, $start)
+        [decimal]$clippedEndQpc = [Math]::Min([decimal]$row.DerivedDisplayEndQpc, $end)
+        if ($clippedStartQpc -gt $coverageCursor) {
+            $gapQpc = $clippedStartQpc - $coverageCursor
+            $maximumGapQpc = [Math]::Max($maximumGapQpc, $gapQpc)
+            $totalGapQpc += $gapQpc
+        }
+        if ($clippedEndQpc -gt $coverageCursor) {
+            $coverageCursor = $clippedEndQpc
+        }
+    }
+    if ($coverageCursor -lt $end) {
+        $gapQpc = $end - $coverageCursor
+        $maximumGapQpc = [Math]::Max($maximumGapQpc, $gapQpc)
+        $totalGapQpc += $gapQpc
+    }
+    return [pscustomobject]@{
+        Interval = "half_open_start_inclusive_end_exclusive"
+        DisplayTimingSource = "derived_from_cpu_start_qpc_plus_presentmon_display_latency_and_displayed_time"
+        DisplayedOverlapRows = $orderedDisplayedRows
+        NotDisplayedCpuStartRows = @($notDisplayedRows.ToArray())
+        CoversStart = $coversStart
+        CoversEnd = $coversEnd
+        QuantizationToleranceQpc = $quantizationToleranceQpc
+        MaximumGapQpc = $maximumGapQpc
+        TotalGapQpc = $totalGapQpc
+    }
+}
+
+function Assert-PresentMonControllerWindowCoverage {
+    param([Parameter(Mandatory = $true)][object]$Projection)
+
+    Assert-Condition -Condition ($Projection.CoversStart -eq $true) -Message "PresentMon-derived display residency does not cover the runtime controller start boundary."
+    Assert-Condition -Condition ($Projection.CoversEnd -eq $true) -Message "PresentMon-derived display residency does not cover the runtime controller end boundary."
+    Assert-Condition -Condition ([decimal]$Projection.MaximumGapQpc -le [decimal]$Projection.QuantizationToleranceQpc) -Message "PresentMon-derived display residency has a gap of $($Projection.MaximumGapQpc) QPC ticks; tolerance is $($Projection.QuantizationToleranceQpc)."
+}
+
+function Invoke-PresentMonControllerQpcWindowSelfTest {
+    $rows = @(
+        [pscustomobject]@{ CsvRow = 1; Qpc = [uint64]40; DisplayLatencyMs = 50.0; DisplayedTimeMs = 10.0 },
+        [pscustomobject]@{ CsvRow = 2; Qpc = [uint64]50; DisplayLatencyMs = 40.0; DisplayedTimeMs = 70.0 },
+        [pscustomobject]@{ CsvRow = 3; Qpc = [uint64]90; DisplayLatencyMs = 10.0; DisplayedTimeMs = 50.0 },
+        [pscustomobject]@{ CsvRow = 4; Qpc = [uint64]150; DisplayLatencyMs = 10.0; DisplayedTimeMs = 40.0 },
+        [pscustomobject]@{ CsvRow = 5; Qpc = [uint64]190; DisplayLatencyMs = 10.0; DisplayedTimeMs = 20.0 },
+        [pscustomobject]@{ CsvRow = 6; Qpc = [uint64]100; DisplayLatencyMs = $null; DisplayedTimeMs = $null },
+        [pscustomobject]@{ CsvRow = 7; Qpc = [uint64]200; DisplayLatencyMs = $null; DisplayedTimeMs = $null }
+    )
+    $projection = Get-PresentMonControllerWindowProjection -Rows $rows -StartQpc 100 -EndQpc 200 -FrequencyHz 1000
+    $selected = @($projection.DisplayedOverlapRows)
+    Assert-Condition -Condition ($selected.Count -eq 3) -Message "PresentMon projection self-test selected the wrong display-overlap count."
+    Assert-Condition -Condition ([uint64]$selected[0].Qpc -eq 50) -Message "PresentMon projection self-test omitted the predecessor already displayed across runtime start."
+    Assert-Condition -Condition (@($selected | Where-Object { [uint64]$_.Qpc -eq 90 }).Count -eq 1) -Message "PresentMon projection self-test excluded the inclusive display start boundary."
+    Assert-Condition -Condition (@($selected | Where-Object { [uint64]$_.Qpc -eq 40 }).Count -eq 0) -Message "PresentMon projection self-test included a frame whose display interval ends at runtime start."
+    Assert-Condition -Condition (@($selected | Where-Object { [uint64]$_.Qpc -eq 190 }).Count -eq 0) -Message "PresentMon projection self-test included a frame whose display interval begins at runtime end."
+    Assert-Condition -Condition ($projection.CoversStart -and $projection.CoversEnd -and [decimal]$projection.MaximumGapQpc -eq 0) -Message "PresentMon projection self-test did not prove contiguous boundary coverage."
+    Assert-Condition -Condition (@($projection.NotDisplayedCpuStartRows).Count -eq 1 -and [uint64]$projection.NotDisplayedCpuStartRows[0].Qpc -eq 100) -Message "PresentMon projection self-test did not apply a half-open CPU interval to not-displayed rows."
+    Assert-PresentMonControllerWindowCoverage -Projection $projection
+    $gappedRows = @($rows | ForEach-Object { $_ | Select-Object * })
+    $gappedRows[3].DisplayLatencyMs = 13.0
+    $gappedProjection = Get-PresentMonControllerWindowProjection -Rows $gappedRows -StartQpc 100 -EndQpc 200 -FrequencyHz 1000
+    Assert-Condition -Condition ($gappedProjection.CoversStart -and $gappedProjection.CoversEnd -and [decimal]$gappedProjection.MaximumGapQpc -eq 3) -Message "PresentMon projection self-test did not expose an internal display gap above quantization tolerance."
+    $gapRejected = $false
+    try {
+        Assert-PresentMonControllerWindowCoverage -Projection $gappedProjection
+    }
+    catch {
+        $gapRejected = $true
+        Assert-Condition -Condition ($_.Exception.Message -like "*has a gap of 3 QPC ticks*") -Message "PresentMon projection gap self-test failed for an unexpected reason."
+    }
+    Assert-Condition -Condition $gapRejected -Message "PresentMon projection gap self-test accepted a gap above quantization tolerance."
+    $verified = Get-VerifiedRuntimeControllerQpcWindow -HostLowerBoundQpc 99 -StartQpc 100 -EndQpc 300 -RuntimeFrequencyHz 100 -HostFrequencyHz 100
+    Assert-Condition -Condition ($verified.DurationSeconds -eq 2.0) -Message "Runtime QPC self-test computed the wrong duration."
+
+    $negativeCases = @(
+        @{ Arguments = @{ HostLowerBoundQpc = 100; StartQpc = 100; EndQpc = 300; RuntimeFrequencyHz = 100; HostFrequencyHz = 100 }; Expected = "does not follow the host lower boundary" },
+        @{ Arguments = @{ HostLowerBoundQpc = 99; StartQpc = 100; EndQpc = 100; RuntimeFrequencyHz = 100; HostFrequencyHz = 100 }; Expected = "absent or unordered" },
+        @{ Arguments = @{ HostLowerBoundQpc = 99; StartQpc = 100; EndQpc = 300; RuntimeFrequencyHz = 99; HostFrequencyHz = 100 }; Expected = "does not match the host clock" }
+    )
+    foreach ($case in $negativeCases) {
+        $rejected = $false
+        $arguments = $case.Arguments
+        try {
+            [void](Get-VerifiedRuntimeControllerQpcWindow @arguments)
+        }
+        catch {
+            $rejected = $true
+            Assert-Condition -Condition ($_.Exception.Message -like "*$($case.Expected)*") -Message "Runtime QPC negative self-test failed for an unexpected reason."
+        }
+        Assert-Condition -Condition $rejected -Message "Runtime QPC negative self-test accepted an invalid boundary contract."
+    }
+}
+
 function Write-PresentMonStreamArtifacts {
     param(
         [Parameter(Mandatory = $true)][string]$RawPath,
@@ -1111,6 +1278,7 @@ function Get-ArtifactDescriptor {
 
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
+Invoke-PresentMonControllerQpcWindowSelfTest
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
 $repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path
@@ -1528,7 +1696,7 @@ try {
     Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
     $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema" -Path "ledger") -eq "forge.gate1-gameplay-stutter") -Message "Unexpected runtime ledger schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 3) -Message "Unexpected runtime ledger schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 4) -Message "Unexpected runtime ledger schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "status" -Path "ledger") -eq "controller_window_complete_pending_presentmon_analysis") -Message "Runtime controller window did not complete cleanly."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
@@ -1563,6 +1731,12 @@ try {
     Assert-Condition -Condition ([int](Get-RequiredProperty -InputObject $ledgerPresentMon -Name "pre_signal_observed_rows" -Path "ledger.presentmon") -eq $preSignalObservedRows) -Message "Ledger PresentMon pre-signal row count mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "runtime_verified_capture" -Path "ledger.presentmon") -eq $false) -Message "Runtime falsely claims it verified the external capture."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "display_metrics_ingested" -Path "ledger.presentmon") -eq $false) -Message "Runtime falsely claims it ingested display metrics."
+    $ledgerControllerQpc = Get-RequiredProperty -InputObject $ledger -Name "controller_window_qpc" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerControllerQpc -Name "clock" -Path "ledger.controller_window_qpc") -eq "windows_query_performance_counter") -Message "Runtime controller boundary does not identify the Windows QPC clock."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerControllerQpc -Name "interval" -Path "ledger.controller_window_qpc") -eq "half_open_start_inclusive_end_exclusive") -Message "Runtime controller QPC interval is not half-open."
+    [uint64]$controllerWindowStartQpc = Get-RequiredProperty -InputObject $ledgerControllerQpc -Name "start_qpc" -Path "ledger.controller_window_qpc"
+    [uint64]$controllerWindowEndQpc = Get-RequiredProperty -InputObject $ledgerControllerQpc -Name "end_qpc" -Path "ledger.controller_window_qpc"
+    [uint64]$controllerWindowFrequencyHz = Get-RequiredProperty -InputObject $ledgerControllerQpc -Name "frequency_hz" -Path "ledger.controller_window_qpc"
 
     $ledgerGovernedScene = Get-RequiredProperty -InputObject $ledger -Name "governed_scene" -Path "ledger"
     foreach ($field in @("qualified_before_measurement", "qualified_for_entire_measurement", "structural_identity_stable", "final_main_world_boundary_validated")) {
@@ -1600,6 +1774,14 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "nominal_duration_seconds" -Path "ledger.movement") -eq 30) -Message "Nominal controller duration is not 30 seconds."
     $observedWallSeconds = [double](Get-RequiredProperty -InputObject $movement -Name "observed_wall_duration_seconds" -Path "ledger.movement")
     Assert-Condition -Condition ([double]::IsFinite($observedWallSeconds) -and $observedWallSeconds -ge 29.5 -and $observedWallSeconds -le 30.5) -Message "Observed controller wall duration is outside 29.5..30.5 seconds."
+    $verifiedControllerQpcWindow = Get-VerifiedRuntimeControllerQpcWindow `
+        -HostLowerBoundQpc $measurementNotBeforeQpc `
+        -StartQpc $controllerWindowStartQpc `
+        -EndQpc $controllerWindowEndQpc `
+        -RuntimeFrequencyHz $controllerWindowFrequencyHz `
+        -HostFrequencyHz $qpcFrequencyHz
+    Assert-Condition -Condition ($verifiedControllerQpcWindow.DurationSeconds -ge 29.5 -and $verifiedControllerQpcWindow.DurationSeconds -le 30.5) -Message "Runtime controller QPC duration is outside 29.5..30.5 seconds."
+    $monotonicDurationDeltaMilliseconds = [Math]::Abs($verifiedControllerQpcWindow.DurationSeconds - $observedWallSeconds) * 1000.0
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "forward_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Forward controller leg is shorter than 60 m."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "reverse_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Reverse controller leg is shorter than 60 m."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "return_distance_m" -Path "ledger.movement") -le 5.0) -Message "Controller did not return within 5 m."
@@ -1663,7 +1845,7 @@ try {
     $allowsTearingValues = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $syncIntervals = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
     $presentFlagsValues = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
-    $displayedNaCount = 0
+    $notDisplayedCount = 0
     $previousQpc = $null
     for ($index = 0; $index -lt $csvRows.Count; $index++) {
         $row = $csvRows[$index]
@@ -1707,13 +1889,14 @@ try {
         }
         $displayLatencyText = [string](Get-RequiredProperty -InputObject $row -Name "DisplayLatency" -Path "csv[$csvRowNumber]")
         $displayedText = [string](Get-RequiredProperty -InputObject $row -Name "DisplayedTime" -Path "csv[$csvRowNumber]")
+        $displayLatency = $null
         $displayedTime = $null
         if ([string]::Equals($displayedText, "NA", [StringComparison]::Ordinal)) {
             Assert-Condition -Condition ([string]::Equals($displayLatencyText, "NA", [StringComparison]::Ordinal)) -Message "CSV row $csvRowNumber has mismatched DisplayLatency/DisplayedTime NA state."
-            $displayedNaCount++
+            $notDisplayedCount++
         }
         else {
-            [void](ConvertTo-InvariantDouble -Value $displayLatencyText -Field "csv[$csvRowNumber].DisplayLatency" -Minimum 0.0)
+            $displayLatency = ConvertTo-InvariantDouble -Value $displayLatencyText -Field "csv[$csvRowNumber].DisplayLatency" -Minimum 0.0
             $displayedTime = ConvertTo-InvariantDouble -Value $displayedText -Field "csv[$csvRowNumber].DisplayedTime" -Minimum 0.0 -StrictlyGreaterThanMinimum
         }
         $etwFill = ConvertTo-InvariantDouble -Value ([string]$row.EtwBufferFillPct -replace '%$', '') -Field "csv[$csvRowNumber].EtwBufferFillPct" -Minimum 0.0
@@ -1727,6 +1910,7 @@ try {
         $parsedRows.Add([pscustomobject]@{
                 CsvRow = $csvRowNumber
                 Qpc = $qpc
+                DisplayLatencyMs = $displayLatency
                 DisplayedTimeMs = $displayedTime
             })
     }
@@ -1738,23 +1922,19 @@ try {
     Assert-Condition -Condition ($presentFlagsValues.Count -eq 1) -Message "PresentFlags changed during the capture."
     Assert-Condition -Condition (@($syncIntervals)[0] -eq "0") -Message "PresentMon observed a non-zero SyncInterval despite the governed no-vsync protocol."
 
-    [decimal]$qpcFrequency = $qpcFrequencyHz
-    [decimal]$measurementStartQpc = $signalPublishedQpc
-    [decimal]$nominalMovementEndQpc = $measurementStartQpc + [decimal]([Math]::Ceiling($observedWallSeconds * [double]$qpcFrequencyHz))
-    $measurementEnvelopeRows = @($parsedRows | Where-Object {
-            [decimal]($_.Qpc) -gt $measurementStartQpc -and [decimal]($_.Qpc) -le $nominalMovementEndQpc
-        })
-    Assert-Condition -Condition ($measurementEnvelopeRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 rows."
-    $measurementUnresolvedRows = @($measurementEnvelopeRows | Where-Object { $null -eq $_.DisplayedTimeMs })
-    $measurementRows = @($measurementEnvelopeRows | Where-Object { $null -ne $_.DisplayedTimeMs })
-    Assert-Condition -Condition ($measurementRows.Count -ge 120) -Message "The bounded post-signal display sample contains fewer than 120 displayed rows."
-    $firstQpc = [decimal]$measurementRows[0].Qpc
-    $lastQpc = [decimal]$measurementRows[$measurementRows.Count - 1].Qpc
-    $lastDisplayedSeconds = [decimal]([double]$measurementRows[$measurementRows.Count - 1].DisplayedTimeMs / 1000.0)
-    $measurementDurationSeconds = [double](($lastQpc - $firstQpc) / $qpcFrequency + $lastDisplayedSeconds)
-    $measurementStartDelayMilliseconds = [double](($firstQpc - $measurementStartQpc) * 1000 / $qpcFrequency)
-    Assert-Condition -Condition ($measurementStartDelayMilliseconds -ge 0.0 -and $measurementStartDelayMilliseconds -le 100.0) -Message "The bounded display sample begins $measurementStartDelayMilliseconds ms after the QPC signal boundary."
-    Assert-Condition -Condition ($measurementDurationSeconds -ge ($observedWallSeconds - 0.1) -and $measurementDurationSeconds -le ($observedWallSeconds + 0.15)) -Message "Bounded display-sample duration $measurementDurationSeconds s does not match reported controller wall duration $observedWallSeconds s within tolerance."
+    [decimal]$measurementStartQpc = $verifiedControllerQpcWindow.StartQpc
+    [decimal]$measurementEndQpc = $verifiedControllerQpcWindow.EndQpc
+    $presentMonControllerProjection = Get-PresentMonControllerWindowProjection `
+            -Rows @($parsedRows) `
+            -StartQpc $controllerWindowStartQpc `
+            -EndQpc $controllerWindowEndQpc `
+            -FrequencyHz $controllerWindowFrequencyHz
+    $measurementRows = @($presentMonControllerProjection.DisplayedOverlapRows)
+    $measurementNotDisplayedRows = @($presentMonControllerProjection.NotDisplayedCpuStartRows)
+    $measurementEnvelopeRowCount = $measurementRows.Count + $measurementNotDisplayedRows.Count
+    Assert-Condition -Condition ($measurementEnvelopeRowCount -ge 120) -Message "The runtime-window PresentMon projection contains fewer than 120 rows."
+    Assert-Condition -Condition ($measurementRows.Count -ge 120) -Message "The runtime-window PresentMon projection contains fewer than 120 displayed rows."
+    Assert-PresentMonControllerWindowCoverage -Projection $presentMonControllerProjection
 
     $displayedTimes = [double[]]@($measurementRows | ForEach-Object { [double]$_.DisplayedTimeMs })
     $sortedDisplayedTimes = [double[]]@($displayedTimes | Sort-Object)
@@ -1771,12 +1951,13 @@ try {
     $over33Sequences = @(Get-ThresholdSequences -Rows @($measurementRows) -ThresholdMilliseconds 33.3)
     $maxConsecutiveOver16 = if ($over16Sequences.Count -eq 0) { 0 } else { [int](($over16Sequences | Measure-Object -Property length -Maximum).Maximum) }
     $maxConsecutiveOver33 = if ($over33Sequences.Count -eq 0) { 0 } else { [int](($over33Sequences | Measure-Object -Property length -Maximum).Maximum) }
-    $boundedThresholdsPassed = $measurementUnresolvedRows.Count -eq 0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
+    $displayCoveragePassed = $presentMonControllerProjection.CoversStart -and $presentMonControllerProjection.CoversEnd -and [decimal]$presentMonControllerProjection.MaximumGapQpc -le [decimal]$presentMonControllerProjection.QuantizationToleranceQpc
+    $boundedThresholdsPassed = $displayCoveragePassed -and $measurementNotDisplayedRows.Count -eq 0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 3
-        status = if ($boundedThresholdsPassed) { "bounded_sample_thresholds_passed_pending_exact_runtime_qpc" } else { "bounded_sample_thresholds_failed" }
+        schema_version = 4
+        status = if ($boundedThresholdsPassed) { "runtime_qpc_display_overlap_thresholds_passed_pending_gate1_qualification" } else { "runtime_qpc_display_overlap_thresholds_failed" }
         repository_commit = $gitCommit
         repository_tree = $gitTree
         runtime = [ordered]@{
@@ -1838,19 +2019,30 @@ try {
             csv_schema = "presentmon_v2_qpc_with_etw_status"
             csv_columns = $expectedPresentMonColumns
             raw_csv_rows = $parsedRows.Count
-            raw_displayed_rows = $parsedRows.Count - $displayedNaCount
-            raw_unresolved_display_rows = $displayedNaCount
+            raw_displayed_rows = $parsedRows.Count - $notDisplayedCount
+            raw_not_displayed_rows = $notDisplayedCount
             last_pre_signal_qpc = $lastPreSignalQpc
             measurement_not_before_qpc = $measurementNotBeforeQpc
             signal_published_qpc = $signalPublishedQpc
             qpc_frequency_hz = $qpcFrequencyHz
+            runtime_controller_window_start_qpc = [uint64]$measurementStartQpc
+            runtime_controller_window_end_qpc = [uint64]$measurementEndQpc
+            runtime_controller_window_interval = "half_open_start_inclusive_end_exclusive"
+            runtime_controller_window_qpc_frequency_hz = [uint64]$verifiedControllerQpcWindow.FrequencyHz
+            runtime_controller_window_duration_seconds = $verifiedControllerQpcWindow.DurationSeconds
+            monotonic_duration_delta_ms = $monotonicDurationDeltaMilliseconds
             pre_signal_observed_rows = $preSignalObservedRows
-            measurement_envelope_rows = $measurementEnvelopeRows.Count
+            measurement_selection = $presentMonControllerProjection.DisplayTimingSource
+            measurement_interval = $presentMonControllerProjection.Interval
+            measurement_envelope_rows = $measurementEnvelopeRowCount
             measurement_displayed_rows = $measurementRows.Count
-            measurement_unresolved_rows = $measurementUnresolvedRows.Count
-            measurement_envelope_margin_seconds = 0.0
-            bounded_sample_first_row_delay_from_signal_ms = $measurementStartDelayMilliseconds
-            measurement_duration_seconds = $measurementDurationSeconds
+            measurement_not_displayed_rows = $measurementNotDisplayedRows.Count
+            display_residency_covers_start = $presentMonControllerProjection.CoversStart
+            display_residency_covers_end = $presentMonControllerProjection.CoversEnd
+            display_residency_maximum_gap_qpc = $presentMonControllerProjection.MaximumGapQpc
+            display_residency_total_gap_qpc_diagnostic = $presentMonControllerProjection.TotalGapQpc
+            display_residency_quantization_tolerance_qpc = $presentMonControllerProjection.QuantizationToleranceQpc
+            exact_display_qpc_bounds_observed = $false
             swap_chain = @($swapChains)[0]
             present_runtime = @($presentRuntimes)[0]
             present_mode = @($presentModes)[0]
@@ -1898,10 +2090,18 @@ try {
             presentmon_raw_stdout_partitioned = $true
             presentmon_v2_qpc_header_exact = $true
             presentmon_qpc_boundary_observed_before_signal = $true
-            exact_runtime_qpc_bounds_observed = $false
+            exact_runtime_qpc_bounds_observed = $true
+            runtime_qpc_frequency_matches_host = $true
+            runtime_qpc_duration_in_29_5_to_30_5_seconds = $true
+            monotonic_duration_delta_recorded = $true
+            presentmon_display_intervals_derived_from_latency = $true
+            exact_display_qpc_bounds_observed = $false
             presentmon_single_stable_swapchain_epoch = $true
             presentmon_etw_loss_zero = $true
-            bounded_sample_has_no_unresolved_display = ($measurementUnresolvedRows.Count -eq 0)
+            display_residency_covers_runtime_start = $presentMonControllerProjection.CoversStart
+            display_residency_covers_runtime_end = $presentMonControllerProjection.CoversEnd
+            display_residency_maximum_gap_within_quantization = ([decimal]$presentMonControllerProjection.MaximumGapQpc -le [decimal]$presentMonControllerProjection.QuantizationToleranceQpc)
+            bounded_sample_has_no_not_displayed_frames = ($measurementNotDisplayedRows.Count -eq 0)
             runtime_warning_error_panic_entries = 0
             presentmon_capture_disallowed_log_entries = 0
             presentmon_stop_disallowed_log_entries = $unexpectedStopOutput.Count
