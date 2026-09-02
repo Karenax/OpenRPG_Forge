@@ -8,10 +8,11 @@ Complète : `ADR-0004-gate0-draw-call-telemetry-exception.md`
 ## Contexte
 
 La preuve native Gate 1 mesure une fenêtre de gameplay réelle avec PresentMon, sur le PID exact du
-runtime. Les captures propres à PresentMon `2.4.1` et les diagnostics A/B avec `2.5.1` contiennent un
-petit nombre de lignes dont `DisplayedTime` vaut `NA`, alors que les intervalles effectivement
-affichés couvrent toute la fenêtre, qu'aucun événement ou buffer ETW n'est perdu et que les seuils de
-stutter demandés par la roadmap passent.
+runtime. Les captures initiales propres à PresentMon `2.4.1` et les diagnostics A/B avec `2.5.1`
+contiennent un petit nombre de lignes dont `DisplayedTime` vaut `NA`, alors que les intervalles
+effectivement affichés couvrent toute la fenêtre, qu'aucun événement ou buffer ETW n'est perdu et que
+les seuils de stutter demandés par la roadmap passent. Les rejeux schema 8 ultérieurs démontrent aussi
+le cas complémentaire : la sémantique `NA` peut être satisfaite tandis qu'un autre seuil strict échoue.
 
 La documentation officielle de l'[application console PresentMon
 2.5.1](https://github.com/GameTechDev/PresentMon/blob/v2.5.1/README-ConsoleApplication.md)
@@ -149,6 +150,61 @@ un build propre et emploie un shim d'identité `2.4.1` dans le signal runtime pe
 réel est `2.5.1`. Il sert seulement à comparer le collecteur sur le même binaire. La proximité des
 résultats et la persistance de 16 lignes `NA` ne remplacent pas la preuve gouvernée.
 
+## Application schema 8 au commit `49acfd5`
+
+Le validateur schema 8 applique cette décision au commit exact
+`49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Il conserve les lignes `NA`, dérive la résidence,
+échantillonne l'état de fenêtre et évalue séparément les neuf conditions ci-dessus. Les deux rejeux
+gouvernés restent des **FAIL** pour des raisons observées différentes ; aucun assouplissement du
+contrat n'est appliqué.
+
+### Rejeu 1 : la fenêtre n'est pas stable
+
+Le premier rebuild Release mesure 82 333 696 octets et porte le SHA-256
+`21228a133c5b58025695a68668f10387a7e368c445b3f43155df6e775ce177f7`. La résidence couvre les deux
+bornes sans trou et ETW reste à 0/0, mais la fenêtre n'est pas au premier plan pendant **182 des 275**
+échantillons de l'enveloppe. Les métriques échouent également : 75,2425 FPS, p95 20,9013 ms,
+1 % low 12,3978 FPS, 29 valeurs au-dessus de 33,3 ms et une séquence maximale de 14 valeurs au-dessus
+de 16,7 ms. La validation schema 8 porte le SHA-256
+`36e1eebf9c4324ab285cbb7de1c5ea51117237e7bcb88a73c446c4be1d36d7bd`. Le compteur de 155 lignes
+`DisplayedTime=NA` reste diagnostique ; il ne répare ni l'état de fenêtre ni les seuils échoués.
+
+### Rejeu 2 : `NA` diagnostique, mais une frame affichée dépasse 33,3 ms
+
+Le second rebuild Release mesure lui aussi 82 333 696 octets et porte le SHA-256
+`0c220f6980457a427dcf4f48c1204da07120fddc265c97e6ed61da2326a75a85`. Cette fois, les 274
+échantillons de l'enveloppe conservent tous le même handle et le même propriétaire, une fenêtre
+visible, jamais minimisée et toujours au premier plan. La résidence dérivée couvre le début et la fin
+avec un trou maximal et total de 0 QPC ; les pertes ETW sont 0/0. Les 13 lignes
+`DisplayedTime=NA` sont donc correctement classées comme diagnostic distinct du stutter.
+
+Les autres résultats sont 129,9968 FPS, p95 13,8805 ms, p99 13,9329 ms, 1 % low 61,2708 FPS et une
+séquence maximale de un au-dessus de 16,7 ms. Une unique valeur numérique `DisplayedTime=35,3837 ms`
+reste cependant au-dessus de 33,3 ms. La condition 8 échoue donc sans ambiguïté : ADR-0008 n'autorise
+pas les 13 lignes `NA`, la résidence continue ou les bonnes moyennes à masquer cette frame affichée.
+Le statut reste `runtime_qpc_display_overlap_thresholds_failed`, `gate1_qualified=false`.
+
+| Artefact replay 2 | SHA-256 |
+|---|---|
+| validation schema 8 | `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1` |
+| CSV PresentMon | `5d810261815fe74d0e556f638bd704ac94119667fa4868aa57716320a124ec22` |
+| ledger runtime | `88cd702163b3094d22a54fb352db6c75aa742c4cfde0919c86e331c76494605b` |
+
+L'audit post-run ne trouve aucun processus runtime/PresentMon ni aucune session ETW Gate 1 résiduelle,
+et les identités/hashes ready, signal, frontière hôte, ledger et validation concordent. Ce constat
+valide le fonctionnement de la clarification `NA` et l'infrastructure du second rejeu, pas le verdict
+stutter.
+
+### Diagnostics A4/A5/A6 non qualifiants
+
+Les diagnostics de focus A4, A5 et A6 réemploient le binaire `21228a13…` depuis un target Cargo
+partagé, sans rebuild gouverné propre. A4 échoue les seuils, tandis qu'A5 et A6 les passent ; les trois
+conservent le premier plan, ETW 0/0 et une résidence sans trou. Ils restent néanmoins tous
+`qualifying=false` pour `shared_cargo_target_reused` et
+`governed_clean_target_rebuild_not_performed`. Les PASS A5/A6 ne peuvent ni remplacer le rejeu 2
+gouverné, ni fermer `R1-048`, ni permettre de sélectionner le meilleur run.
+
 ## Limites des notifications DDI récentes
 
 L'[issue officielle PresentMon
@@ -172,6 +228,9 @@ matériel ou l'OS change, ou si une capture ETL indépendante contredit la rési
 Cette décision ne ferme pas Gate 1. Elle qualifie uniquement la sémantique du verdict automatisé de
 stutter sur le matériel local observé. Restent notamment ouverts :
 
+- un rejeu gouverné qui satisfait les neuf conditions, puisque le replay 2 échoue encore la condition
+  absolue `DisplayedTime<=33,3 ms` ;
+- `R1-048`, qui reste ouverte avec ce FAIL strict ;
 - la qualification sur le GPU cible ;
 - la revue humaine visuelle et de jouabilité ;
 - `R1-037`, tant que la télémétrie exhaustive des draw calls ou une capture GPU conforme à ADR-0004
@@ -180,13 +239,18 @@ stutter sur le matériel local observé. Restent notamment ouverts :
 - toute autre condition ouverte du rapport et de la roadmap Gate 1.
 
 ADR-0008 n'autorise pas le démarrage de Gate 2. Gate 2 reste interdite tant qu'un verdict Gate 1
-complet, honnête et documenté n'a pas été prononcé selon la roadmap.
+complet, honnête et documenté n'a pas été prononcé selon la roadmap. Cette clarification n'importe ni
+ne copie aucun asset Cadle dans Forge.
 
 ## Conséquences
 
 Le protocole ne confond plus une présentation applicative non affichée avec un trou de résidence
 visible. Il conserve l'intégralité de la preuve et applique les seuils de stutter à ce qui a réellement
 été affiché, tout en rendant les frames non affichées auditables.
+
+Le replay 2 confirme le caractère non dérogatoire de cette décision : 13 lignes `NA` peuvent être
+diagnostiques avec une résidence continue, mais une unique frame affichée à 35,3837 ms maintient le
+verdict stutter en échec.
 
 Le coût assumé est un verdict composé de plusieurs invariants plutôt qu'un unique compteur nul. Les
 ledgers, scripts et rapports qui appliquent cette décision doivent donc exposer séparément la

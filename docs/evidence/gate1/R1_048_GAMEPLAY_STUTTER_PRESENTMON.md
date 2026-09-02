@@ -1,22 +1,29 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-02**
-Route : **`R1-048` OUVERTE — cadence conforme sur GPU de développement ; requalification gouvernée, GPU cible et revue humaine dus**
+Route : **`R1-048` OUVERTE — schema 8 rejoué ; infrastructure propre mais seuil strict `>33,3 ms` non satisfait**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
 
-Le lot source courant est `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
-`656feb155c4a30371210229bf6c5dea5bbf8fcd3`. Son rebuild Release normal, dans un target Cargo propre,
-atteint **128,7260 FPS affichés**, un p95 de **13,9112 ms**, un 1 % low de **58,3489 FPS**, zéro
-intervalle au-dessus de 33,3 ms et au plus un intervalle consécutif au-dessus de 16,7 ms. La capture
-exacte ne perd aucun événement ni buffer ETW. Elle contient toutefois 17 présentations non affichées ;
-le validateur schema 7 reste donc `runtime_qpc_display_overlap_thresholds_failed` et
-`gate1_qualified=false` sous son ancien prédicat « zéro `NA` ». ADR-0008 clarifie que ce compteur
-reste obligatoire et diagnostique, mais qu'il n'est pas à lui seul un stutter lorsque la résidence
-d'affichage est continue et que tous les seuils visibles passent. Une nouvelle acquisition schema 8
-sur commit exact est donc requise avant de retenir ce résultat automatisé. Le gain de cadence remplace
-le défaut de la baseline historique `6f0e519a`, mais ne ferme pas `R1-048`.
+Le protocole schema 8 a été construit et rejoué sur le commit exact
+`49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Le premier rejeu gouverné perd le premier plan pendant
+182 des 275 échantillons de fenêtre et échoue aussi les seuils de cadence. Le second rejeu gouverné
+conserve au contraire le handle, le propriétaire, la visibilité, l'absence de minimisation et le
+premier plan sur toute la fenêtre ; la résidence d'affichage couvre les deux bornes sans trou,
+PresentMon perd zéro événement et zéro buffer ETW et les identités/hashes concordent. Il reste
+néanmoins **FAIL strict** : une valeur numérique `DisplayedTime=35,3837 ms` dépasse 33,3 ms. Ses 13
+lignes `DisplayedTime=NA` sont correctement conservées et traitées comme diagnostic par ADR-0008 ;
+elles ne masquent ni ne compensent cette frame affichée trop longue. `gate1_qualified=false` et
+`R1-048` reste ouverte.
+
+La baseline schema 7 du lot `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
+`656feb155c4a30371210229bf6c5dea5bbf8fcd3`, reste conservée. Son rebuild Release normal atteignait
+**128,7260 FPS affichés**, p95 **13,9112 ms**, 1 % low **58,3489 FPS**, zéro intervalle au-dessus de
+33,3 ms, un maximum consécutif de un au-dessus de 16,7 ms et ETW 0/0, avec 17 présentations non
+affichées. Ce résultat historique expliquait la clarification d'ADR-0008, mais ne remplace pas les
+rejeux schema 8 actuels et ne ferme pas `R1-048`.
 
 Deux répétitions du même binaire comptent respectivement 16 et 21 présentations non affichées. Le
 contrôle FIFO en compte 19. Un A/B diagnostique avec le binaire officiel PresentMon 2.5.1 en compte
@@ -36,7 +43,107 @@ et `R1-048` restent ouvertes. La RX 7800 XT de développement ne remplace pas la
 cible, `human_review_performed=false`, aucune CI distante n'a exécuté le commit courant et aucun
 asset Cadle n'est copié dans Forge. Gate 1 reste ouverte et Gate 2 reste interdite.
 
-## Lot courant `2bf5e44f` → `e1e818fc` → `9db35a8e`
+## Rebuilds et rejeux gouvernés schema 8 `49acfd5`
+
+Les deux acquisitions utilisent le même commit et le même arbre propres, un target Cargo neuf par
+rejeu, le profil Release normal `default,native`, la route `AutoNoVsync`, Vulkan, High 1920 × 1080,
+30 secondes et 1 800 ticks fixes sans catch-up. PresentMon reste l'outil officiel 2.4.1 épinglé,
+927 304 octets, SHA-256
+`d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34`, signature Authenticode Intel
+valide. Le schéma conserve chaque ligne `DisplayedTime=NA`, vérifie séparément la résidence dérivée,
+l'état de fenêtre, les pertes ETW et tous les seuils d'ADR-0008.
+
+### Rejeu 1 — échec de premier plan et de cadence
+
+Artefacts externes non versionnés :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-schema8-49acfd5-20260902T180000000Z
+```
+
+Le binaire Release mesure 82 333 696 octets et porte le SHA-256
+`21228a133c5b58025695a68668f10387a7e368c445b3f43155df6e775ce177f7`. Le rejeu couvre les bornes
+du contrôleur et conserve un trou de résidence maximal/total nul ainsi que ETW 0/0, mais la fenêtre
+n'est plus au premier plan pendant **182/275** échantillons. Le prédicat
+`runtime_window_state_passed=false` suffit à refuser la qualification ; les métriques échouent aussi :
+
+| Mesure | Résultat |
+|---|---:|
+| lignes affichées / `DisplayedTime=NA` | 2 257 / 155 |
+| FPS moyen | 75,2425 |
+| p95 / p99 | 20,9013 / 34,7203 ms |
+| 1 % low | 12,3978 FPS |
+| `>16,7 ms` / `>33,3 ms` | 496 / 29 |
+| maximum consécutif `>16,7 ms` | 14 |
+| pertes ETW / trou de résidence maximal | 0/0 / 0 QPC |
+
+La validation schema 8 porte le SHA-256
+`36e1eebf9c4324ab285cbb7de1c5ea51117237e7bcb88a73c446c4be1d36d7bd`. Ce rejeu est un **FAIL**
+conservé ; ses métriques ne doivent pas être utilisées comme mesure de cadence stable.
+
+### Diagnostics A4/A5/A6 sur binaire partagé
+
+Trois diagnostics de premier plan réemploient exactement le binaire `21228a13…`, sans rebuild dans
+un target gouverné neuf. Ils sont donc tous `qualifying=false` pour
+`shared_cargo_target_reused` et `governed_clean_target_rebuild_not_performed`, indépendamment de leur
+résultat numérique.
+
+| Diagnostic | Affichées / `NA` | FPS moyen | p95 | 1 % low | `>33,3 ms` | max. consécutif `>16,7 ms` | Résultat diagnostique |
+|---|---:|---:|---:|---:|---:|---:|---|
+| A4 | 3 845 / 27 | 128,0449 | 13,8972 ms | 55,3146 FPS | 1 | 1 | **FAIL**, non qualifiant |
+| A5 | 3 878 / 2 | 129,2931 | 13,9101 ms | 71,6098 FPS | 0 | 0 | **PASS**, non qualifiant |
+| A6 | 3 846 / 0 | 128,2562 | 13,8968 ms | 71,6615 FPS | 0 | 0 | **PASS**, non qualifiant |
+
+Les trois diagnostics gardent le premier plan, ETW 0/0 et une résidence sans trou. A5/A6 montrent
+qu'un état stable est reproductible, mais ne qualifient ni le binaire ni la route et ne permettent
+pas de choisir rétrospectivement un run favorable.
+
+### Rejeu 2 — infrastructure propre, échec strict sur une frame affichée
+
+Artefacts externes non versionnés :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-schema8-replay2-49acfd5-20260902T192000000Z
+```
+
+Le second rebuild Release mesure 82 333 696 octets et porte le SHA-256
+`0c220f6980457a427dcf4f48c1204da07120fddc265c97e6ed61da2326a75a85`. L'identité commit/arbre,
+le PID, la session PresentMon et les bornes QPC concordent entre ready, signal, frontière hôte,
+ledger et validation. L'audit post-run ne trouve aucun processus runtime/PresentMon ni aucune session
+ETW Gate 1 résiduelle.
+
+| Invariant ou mesure | Résultat |
+|---|---:|
+| durée QPC runtime / ticks | 29,9830658 s / 1 800, zéro catch-up |
+| enveloppe projetée / affichées / `DisplayedTime=NA` | 3 913 / 3 900 / 13 |
+| FPS moyen | **129,9968** |
+| p95 / p99 | **13,8805 / 13,9329 ms** |
+| 1 % low | **61,2708 FPS** |
+| `>16,7 ms` / `>33,3 ms` | 9 / **1** |
+| maximum consécutif `>16,7 ms` | **1** |
+| frame affichée maximale fautive | **35,3837 ms**, échantillon 18, ligne CSV physique 200 |
+| fenêtre | 0/274 hors premier plan ; handle/propriétaire stables ; visible ; jamais minimisée |
+| pertes ETW événements / buffers | **0 / 0** |
+| résidence | couvre début et fin ; trou maximal/total **0 / 0 QPC** |
+| warnings / erreurs / panic runtime | **0 / 0 / 0** |
+
+La ligne fautive associe `FrameTime=8,9135 ms`, `CPUBusy=8,8158 ms`, `GPUTime=5,9857 ms`,
+`DisplayLatency=32,0790 ms` et `DisplayedTime=35,3837 ms`. Elle est isolée et ne révèle pas une
+surcharge CPU/GPU récurrente, mais la condition 8 d'ADR-0008 est absolue : une seule valeur numérique
+au-dessus de 33,3 ms maintient `display_stutter_metric_thresholds_passed=false` et le statut
+`runtime_qpc_display_overlap_thresholds_failed`.
+
+| Artefact replay 2 | Octets | SHA-256 |
+|---|---:|---|
+| validation schema 8 | 16 111 | `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1` |
+| `presentmon.csv` | 780 640 | `5d810261815fe74d0e556f638bd704ac94119667fa4868aa57716320a124ec22` |
+| ledger runtime | 53 240 | `88cd702163b3094d22a54fb352db6c75aa742c4cfde0919c86e331c76494605b` |
+
+Les onze hashes incorporés à la validation correspondent aux octets locaux. Ce rejeu valide le
+fonctionnement de la sémantique `NA` d'ADR-0008 et l'infrastructure d'acquisition, pas le seuil strict
+de stutter. Il ne ferme ni `R1-048` ni Gate 1.
+
+## Historique — chaîne `2bf5e44f` → `e1e818fc` → `9db35a8e`
 
 ### Cause racine ETW et récupération ciblée
 
@@ -565,13 +672,21 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 
 ## État final
 
-- `R1-048` : **OUVERTE** — la cadence principale passe localement à `9db35a8e`, mais le rejeu
-  gouverné schema 8, le GPU cible et la revue humaine restent dus ;
+- `R1-048` : **OUVERTE** — le rejeu gouverné schema 8 a été effectué à `49acfd5`, mais le replay 2
+  échoue strictement sur une valeur `DisplayedTime=35,3837 ms` ; GPU cible et revue humaine restent
+  dus ;
 - `R1-037` : **OUVERTE** ;
 - `R1-041` : **OUVERTE** ;
+- replay 1 schema 8 : **FAIL** — premier plan perdu sur 182/275 échantillons, p95 20,9013 ms,
+  1 % low 12,3978 FPS, 29 valeurs `>33,3 ms`, validation SHA-256 `36e1eebf…` ;
+- replay 2 schema 8 : infrastructure, fenêtre, ETW et résidence **PASS**, mais seuil stutter
+  **FAIL** — 129,9968 FPS, p95 13,8805 ms, 1 % low 61,2708 FPS, une valeur `>33,3 ms`, maximum
+  consécutif 1, validation SHA-256 `45b87d0d…` ;
+- diagnostics schema 8 A4/A5/A6 sur le binaire partagé `21228a13…` : respectivement **FAIL/PASS/PASS**,
+  tous **NONQUALIFYING** ;
 - run Release normal gouverné `9db35a8e` : 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
-  zéro `>33,3 ms`, maximum consécutif 1 et ETW 0/0 ; **17 présentations non affichées**, donc
-  `gate1_qualified=false` ;
+  zéro `>33,3 ms`, maximum consécutif 1 et ETW 0/0 ; **17 présentations non affichées** ; preuve
+  schema 7 historique conservée, sans remplacer le replay schema 8 ;
 - garde ETW `9db35a8e` : préflights/postflight et mutex machine validés ; aucune session étrangère
   n'est arrêtée automatiquement ;
 - répétitions Auto : 16 et 21 présentations non affichées ; FIFO diagnostique : 19 ;
@@ -598,7 +713,8 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 La prochaine acquisition qualifiante doit conserver le runtime Release normal, le target gouverné
 propre, les 30 secondes et les 1 800 ticks complets. Elle doit conserver et compter toutes les
 présentations non affichées, prouver une résidence continue et appliquer l'intégralité des seuils
-d'ADR-0008, sans choisir rétrospectivement une sous-fenêtre favorable. Une éventuelle stabilisation du
-premier plan doit précéder une nouvelle fenêtre complète et être enregistrée comme telle. La route doit
-ensuite être rejouée sur le GPU cible et complétée par la revue humaine ; l'instrumentation
-`presentation-profile` reste un diagnostic interne non qualifiant et ne remplace jamais PresentMon.
+d'ADR-0008, notamment l'absence absolue de valeur numérique `DisplayedTime>33,3 ms`, sans choisir
+rétrospectivement une sous-fenêtre favorable. La route doit ensuite être rejouée sur le GPU cible et
+complétée par la revue humaine ; `R1-037` reste due, la CI distante reste `NOT RUN` et
+l'instrumentation `presentation-profile` reste un diagnostic interne non qualifiant qui ne remplace
+jamais PresentMon. Gate 2 reste interdite et aucun asset Cadle n'est introduit.

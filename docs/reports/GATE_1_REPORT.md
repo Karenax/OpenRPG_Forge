@@ -21,7 +21,7 @@ isole séparément le timeout DX12/FXC à la compilation de pipelines. Les captu
 massivement perdues n'étaient toutefois pas une preuve de régression DX12 : l'enquête ultérieure a
 identifié une session PresentMon ETW orpheline encore active comme cause racine locale.
 
-La chaîne source courante commence à
+L'historique de la chaîne source commence à
 `2bf5e44f5d06529b26208a1ac7c9a4c158d48aad`, qui ajoute un profil de spans de présentation borné,
 opt-in et explicitement non qualifiant. `e1e818fc1ed8655b851e34007039f4b288941377` expose les noms de
 systèmes Bevy nécessaires à ce profil via `bevy/debug`, uniquement dans la feature diagnostique.
@@ -51,19 +51,26 @@ gouverné et du shim d'identité 2.4.1 dans le signal runtime.
 
 ADR-0008 clarifie désormais qu'une présentation applicative non affichée reste un diagnostic
 obligatoire mais n'est pas, à elle seule, un trou de résidence visible. Le code de ce lot porte cette
-décision en schema 8 et l'analyse A/B en schema 2. À cette consolidation, ces changements sont
-**EN ATTENTE de build Release propre et de rejeu exact**. Aucun PASS schema
-8 n'est revendiqué ; le schema 7 et ses hashes restent la dernière acquisition gouvernée immuable.
+décision en schema 8 et l'analyse A/B en schema 2. Deux replays gouvernés ont désormais été acquis au
+commit `49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Replay1 perd le premier plan sur 182/275 échantillons
+de l'enveloppe et reste FAIL ; Replay2 passe le focus sur 274/274, conserve une résidence sans trou,
+13 lignes `DisplayedTime=NA` et ETW 0/0. Il atteint 129,9968 FPS, p95 13,8805 ms, p99 13,9329 ms et
+1 % low 61,2708 FPS, mais une valeur isolée de 35,3837 ms dépasse 33,3 ms. Aucun PASS schema 8 n'est
+donc revendiqué et `R1-048` reste ouverte.
 
-Le verdict `R1-055` reste **poursuivre Gate 1**. `R1-037`, `R1-041`, `R1-048`, le GPU cible RTX
-3060/RX 6600, la revue humaine et la CI distante restent dus. Gate 1 reste ouverte ; ce rapport ne
-constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
+Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte et son instrumentation
+exhaustive reste `NOT RUN` ; `R1-041`, `R1-048`, le GPU
+cible RTX 3060/RX 6600, la revue humaine et la CI distante restent dus. Gate 1 reste ouverte ; ce
+rapport ne constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer
+Gate 2.
 
 ## Identités exactes et frontières de preuve
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| garde ETW et dernier run gouverné immuable | `9db35a8e125c6c60cde9de66a7f6aa7585215bfa` | `656feb155c4a30371210229bf6c5dea5bbf8fcd3` | harnais schema 7 avec mutex/préflights/postflight ; rebuild Release normal propre et capture 2.4.1 complète ; 17 lignes non affichées, cadence conforme, statut schema 7 encore FAIL |
+| source et replays gouvernés schema 8 | `49acfd5695a7246062a86fb84f5d933130579187` | `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` | deux rebuilds/replays propres distincts ; Replay1 FAIL avec focus perdu, Replay2 FAIL sur un unique `DisplayedTime` de 35,3837 ms ; aucun PASS de `R1-048` |
+| garde ETW et run gouverné schema 7 immuable | `9db35a8e125c6c60cde9de66a7f6aa7585215bfa` | `656feb155c4a30371210229bf6c5dea5bbf8fcd3` | harnais schema 7 avec mutex/préflights/postflight ; rebuild Release normal propre et capture 2.4.1 complète ; 17 lignes non affichées, cadence conforme, statut schema 7 encore FAIL |
 | noms Bevy du profil de présentation | `e1e818fc1ed8655b851e34007039f4b288941377` | `274e7c51006eaee0cf0de300a393f332afe504d1` | ajoute `bevy/debug` à la seule feature diagnostique et les tests de noms réels ; binaire instrumenté et target partagé NONQUALIFYING |
 | spans de présentation bornés | `2bf5e44f5d06529b26208a1ac7c9a4c158d48aad` | `29683ad294242e6582ea61076538be26cba9531f` | profil `presentation-profile` opt-in ; spans applicatifs uniquement, jamais assimilés à `DisplayedTime` ou au FPS écran |
 | diagnostic de timeout historique | `06b5fd404bb4c3918b4b7ea154c8d7878609fa8d` | `a195b2b865c45502f3b412a43bfb20f4d53f9491` | runtime Release 82 333 696 octets, SHA-256 `b1f0f17b…60e60ab` ; 2/2 tests Release ciblés, Clippy Release strict, formatage et diff-check PASS ; DX12/FXC isolé à la compilation de pipelines ; aucune métrique qualifiante |
@@ -89,7 +96,7 @@ Le natif et le Browser forment une paire exacte d9. Le hash scenery
 manifestes Browser. Les preuves `a34596bd` et `92286910` restent historiques et ne sont pas utilisées
 pour conclure la parité courante `R1-043`.
 
-## Acquisition gouvernée courante et contrat pré-rejeu
+## Acquisition gouvernée courante et résultats schema 8
 
 ### Identité et garde ETW `9db35a8e`
 
@@ -169,7 +176,7 @@ réel est 2.5.1. Sa synthèse porte
 `5053DAE9491C5665077D430741258D2CADF1EBCCE627506820E137EA8C5DB2D2` et son ledger
 `718270959D9CCB1BD6711CC6BCAE6E1CC3DF70B4F987EBA5A9AE16A6E646E95F`.
 
-### ADR-0008 et code schema 8 en attente
+### ADR-0008 et replays gouvernés schema 8
 
 ADR-0008 est accepté et versionné dans ce lot. Il conserve chaque ligne `DisplayedTime=NA` dans le
 CSV et comme compteur diagnostique, mais sépare ce compteur de la continuité de résidence dérivée.
@@ -180,9 +187,33 @@ affichée au-dessus de 33,3 ms et au plus une valeur consécutive au-dessus de 1
 Le code de ce lot élève la validation gameplay-stutter au schema 8, publie séparément le compteur
 non affiché, la continuité de résidence et les seuils temporels, puis élève l'analyse A/B au schema 2.
 Ses self-tests en mémoire couvrent un compteur non nul avec résidence continue, une rupture de
-couverture et chaque seuil temporel. **Aucun build Release propre, aucun rejeu PresentMon exact et
-aucun artefact schema 8 ne sont encore acquis à cette consolidation.** Le changement reste donc une
-implémentation en attente de preuve, pas le reclassement rétroactif du run schema 7.
+couverture et chaque seuil temporel. Le run schema 7 reste immuable : les résultats suivants sont de
+nouvelles acquisitions au commit/arbre exacts
+`49acfd5695a7246062a86fb84f5d933130579187`/`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`.
+
+| Replay gouverné | Binaire Release | Focus | Sélection affichée / `NA` | FPS moyen | p95 / p99 | 1 % low | `>33,3 ms` | ETW / trou de résidence | Verdict |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Replay1 | 82 333 696 octets, `21228a133c5b58025695a68668f10387a7e368c445b3f43155df6e775ce177f7` | 182/275 échantillons hors premier plan | 2 257 / 155 | 75,2425 | 20,9013 / 34,7203 ms | 12,3978 FPS | 29 | 0/0 ; 0 QPC | **FAIL**, performance confondue par la perte de focus |
+| Replay2 | 82 333 696 octets, `0c220f6980457a427dcf4f48c1204da07120fddc265c97e6ed61da2326a75a85` | **274/274 au premier plan** | 3 900 / **13** | **129,9968** | **13,8805 / 13,9329 ms** | **61,2708 FPS** | **1** | **0/0 ; 0 QPC** | **FAIL**, plafond absolu dépassé une fois |
+
+Replay1 porte une validation de 79 290 octets, SHA-256
+`36e1eebf9c4324ab285cbb7de1c5ea51117237e7bcb88a73c446c4be1d36d7bd`. Sa perte de premier plan
+interdit de présenter ses métriques comme une régression produit qualifiée. Replay2 porte une
+validation de 16 111 octets, SHA-256
+`45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1`. Son infrastructure passe :
+fenêtre stable et visible, focus 274/274, bornes QPC runtime exactes, signature PresentMon stable,
+résidence couvrant début et fin sans trou et ETW 0/0. Le seul seuil automatisé directement fautif est
+`no_displayed_time_over_33_3_ms=false`, causé par une valeur de **35,3837 ms** au sample 18. Le FAIL
+reste donc réel même si les autres seuils sont largement tenus ; aucune cause racine moteur n'est
+déduite de ce seul outlier.
+
+Les diagnostics schema 8 A4/A5/A6 sont distincts du diagnostic PresentMon 2.5.1 A4 historique décrit
+plus haut. Tous trois réutilisent le binaire `21228a…` dans un target Cargo partagé, sans rebuild
+gouverné propre ; ils portent donc `qualifying=false` et ne peuvent fermer `R1-048`. A4 est **FAIL**
+sur un outlier au-dessus de 33,3 ms. A5 et A6 passent les seuils et le focus, avec respectivement
+129,2931 et 128,2562 FPS, p95 13,9101 et 13,8968 ms, aucune valeur au-dessus de 33,3 ms, ETW 0/0 et
+une résidence sans trou. Ces répétitions éclairent la variabilité, mais ne remplacent pas un replay
+gouverné PASS sur un binaire propre.
 
 ## Validation source
 
@@ -251,9 +282,19 @@ ciblés emploient les vrais noms de systèmes ; le diagnostic corrigé produit u
 
 À `9db35a8e`, la syntaxe PowerShell, le self-test du garde, l'appel `logman` borné, la création du
 mutex global et `git diff --check` passent avant le commit. Le rebuild Release gouverné et le run
-schema 7 documentés plus haut constituent la validation d'exécution. Ils ne valident pas le code
-schema 8 de ce lot. Pour ce dernier, le build, les tests du harnais complet et le rejeu
-PresentMon restent expressément **NOT RUN** à cette étape pré-rejeu.
+schema 7 documentés plus haut restent une validation historique distincte. À `49acfd56`, deux builds
+Release propres et deux replays PresentMon schema 8 sont exécutés : le premier est invalidé pour la
+qualification par 182/275 échantillons hors premier plan ; le second valide l'infrastructure mais
+échoue au plafond absolu sur l'unique valeur de 35,3837 ms. Ces exécutions retirent la mention
+pré-rejeu, sans produire un PASS `R1-048`.
+
+La validation proportionnée finale du lot exécute
+`cargo test --release --locked -p forge_runtime --all-features -j 1` : **62/62 tests unitaires** et
+**4/4 tests d'intégration** passent, soit **66/66**, sans échec. `cargo fmt --all -- --check`, l'auto-test
+`Test-Gate1PresentationAB.ps1 -SelfTest` (10 cas négatifs, migration legacy fail-closed) et
+`git diff --check` passent également. Aucun nouveau workspace `--all-targets`, aucun Clippy workspace
+courant, aucune instrumentation exhaustive `R1-037`, aucune mesure GPU cible et aucune CI distante ne
+sont revendiqués pour ce lot.
 
 ## Overlay CPU/GPU exact `afb270c3`
 
@@ -680,8 +721,10 @@ trace interne stable à 11,445115 ms, proche de `8b`, reste NONQUALIFYING et ne 
 La baseline historique `6f0e519a` conserve son FAIL sur trois runs Auto valides, tandis que le
 diagnostic `06b5fd40` isole le timeout DX12/FXC. Les essais DX12/DXC historiques restent invalides,
 mais la session ETW orpheline explique désormais leur acquisition défaillante. Le run gouverné
-schema 7 `9db35a8e` remplit les seuils temporels locaux et la résidence continue ; ADR-0008 et le code
-schema 8 attendent encore leur rejeu exact. « Acquis » ne signifie pas « qualifié » et
+schema 7 `9db35a8e` remplit les seuils temporels locaux et la résidence continue. Les deux replays
+schema 8 exacts `49acfd56` sont maintenant acquis, mais aucun n'est PASS : Replay1 perd le focus et
+Replay2 conserve un outlier de 35,3837 ms. Les PASS A5/A6 restent diagnostiques non qualifiants sur le
+binaire partagé `21228a…`. « Acquis » ne signifie pas « qualifié » et
 `human_review_performed=false`.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
@@ -695,10 +738,10 @@ huitième match de ledger.
 |---|---|---|
 | qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
-| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | run local gouverné `9db35a8e` à 128,7260 FPS sur RX 7800 XT ; rebuild/rejeu schema 8 et GPU cible encore dus |
-| p95 `<=16,7 ms` | **OUVERTE — CANDIDATE PRÉ-REJEU** | schema 7 `9db35a8e` à 13,9112 ms ; nouveau contrat schema 8 non rejoué |
-| 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE PRÉ-REJEU** | schema 7 `9db35a8e` à 58,3489 FPS ; nouveau contrat schema 8 non rejoué |
-| absence de stutter récurrent | **OUVERTE — CONTRAT ACCEPTÉ, REJEU DÛ** | résidence schema 7 complète, ETW 0/0, zéro `>33,3 ms`, maximum consécutif 1 et 17 lignes non affichées conservées ; ADR-0008/schema 8 pas encore acquis |
+| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
+| p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
+| 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
+| absence de stutter récurrent | **OUVERTE — REPLAY FAIL** | focus, résidence et ETW passent sur Replay2, mais une valeur de 35,3837 ms viole le plafond strict de 33,3 ms ; `R1-048` reste ouverte |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -714,11 +757,12 @@ wetness sont visibles, mais la réflexion/réfraction ne sont pas inspectables h
 CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
-hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés. Le run PresentMon
-`9db35a8e` améliore la cadence locale sans fournir la revue visuelle ni le GPU cible. Les essais
+hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés. Les runs PresentMon
+`9db35a8e` puis Replay2 `49acfd56` montrent une cadence locale élevée sur RX 7800 XT sans fournir la
+revue visuelle ni le GPU cible ; Replay2 reste en outre FAIL sur son unique outlier. Les essais
 DX12/DXC historiques restent invalides ; leur panne ETW est attribuée à la session orpheline, pas à
 une métrique produit. La revue humaine FHD/QHD et les comparaisons matériaux/composition/A-B restent
-dues.
+dues. Aucun asset Cadle n'a été ajouté à Forge.
 
 ## CI distante
 
@@ -737,20 +781,20 @@ locale ou visuelle.
 
 Verdict : **POURSUIVRE GATE 1**.
 
-La capture schema 7 `9db35a8e` prouve une cadence locale conforme aux seuils temporels avec résidence
-continue et ETW 0/0. ADR-0008 est accepté, mais son code schema 8 n'a encore ni build propre ni rejeu
-exact. `R1-037`, `R1-041` et `R1-048` restent ouvertes, `human_review_performed=false`, et le travail
-ci-dessous reste futur.
+La capture schema 7 `9db35a8e` reste une preuve historique intacte. ADR-0008/schema 8 a désormais deux
+replays gouvernés exacts à `49acfd56` : Replay1 est confondu par 182/275 échantillons hors premier plan ;
+Replay2 passe focus, résidence et ETW, mais échoue sur un unique `DisplayedTime` de 35,3837 ms. Les
+diagnostics A5/A6 PASS ne sont pas qualifiants parce qu'ils réutilisent le target et le binaire
+`21228a…`. `R1-037`, `R1-041` et `R1-048` restent ouvertes, `human_review_performed=false`, et le
+travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. valider le code schema 8, le commiter sur une identité exacte, reconstruire le runtime Release
-   normal dans un target gouverné propre et rejouer les 30 secondes/1 800 ticks sans perte ETW ;
-2. vérifier que le nouveau reçu conserve les lignes non affichées comme diagnostic, prouve la
-   résidence continue et applique tous les seuils ADR-0008 sans reclasser l'ancien schema 7 ;
-3. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
-4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
-5. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
+1. diagnostiquer l'outlier de 35,3837 ms sans couper rétrospectivement la fenêtre ni affaiblir le
+   contrat, puis acquérir un replay gouverné schema 8 entièrement PASS pour `R1-048` ;
+2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
+3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
+4. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
    statuer sur les routes visuelles restantes.
 
 Tant que ces éléments ne sont pas acquis, Gate 1 reste **OUVERTE** et Gate 2 est **INTERDITE** sans

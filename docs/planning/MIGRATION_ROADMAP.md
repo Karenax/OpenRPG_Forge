@@ -291,9 +291,12 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
-État pré-rejeu : ADR-0008 clarifie la sémantique des frames PresentMon non affichées, mais le
-validateur schema v8 qui l'applique attend encore un build Release propre et un rejeu exact. Les
-objectifs numériques mesurés sur la RX 7800 XT sont des candidats locaux, pas un passage de Gate 1.
+État des rejeux schema v8 : ADR-0008 et son validateur sont appliqués au commit exact
+`49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Le premier rejeu gouverné échoue après une perte de
+premier plan ; le second conserve la fenêtre au premier plan et passe tous les objectifs numériques
+sauf le contrat strict « zéro `DisplayedTime` > 33,3 ms », avec une valeur unique à 35,3837 ms. Ces
+résultats RX 7800 XT restent des preuves locales ; ils ne passent ni `R1-048` ni Gate 1.
 
 La campagne native initiale reste épinglée au commit
 `a7c9b1e1d5e32f826b606778434a5fae91cc947d`, arbre
@@ -301,7 +304,10 @@ La campagne native initiale reste épinglée au commit
 les vues hauteur humaine/lointaine/eau, la séquence clair → pluie → clair et une vidéo de trois
 secondes. Ses 37/37 tests ciblés, le formatage, Clippy strict du runtime et le validateur d'acquisition
 passent. La validation workspace 298/298 et le check Studio WASM restent épinglés au commit overlay
-`afb270c3` tant que le rejeu workspace du commit courant n'est pas consolidé.
+`afb270c3` tant que le rejeu workspace du commit courant n'est pas consolidé. La validation
+proportionnée du lot schema 8 passe 66/66 tests Release `forge_runtime --all-features` (62 unitaires,
+4 intégration), le formatage Rust, l'auto-test A/B schema 2 et le diff-check ; elle n'est pas présentée
+comme un replay workspace complet.
 
 Le correctif prépasse `6a24cabe69e242ff551b265d44da67ca8d017c98`, arbre
 `38a6990ce02baa651773d23d1038b3ef9ff9e76d`, désactive la prépasse caméra du matériau de végétation
@@ -341,7 +347,7 @@ La trace Chrome agrège 2 835 intervalles stables à 11,4451 ms de moyenne, p95 
 pacing plutôt que les appels Vulkan bruts, mais ne supplante pas PresentMon : horloges et frontières
 ne sont pas corrélées, la borne QPC haute manque et la capture reste non qualifiante.
 
-La baseline Release non instrumentée actuelle `6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, arbre
+La baseline Release non instrumentée historique `6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, arbre
 `cfbe45ecd3464c16f47ef1b2da2bf7fd5b78d9c7`, exécute trois runs `AutoNoVsync` et trois FIFO dans
 l'ordre contrebalancé `AB/BA/AB`. Les six acquisitions sont valides côté infrastructure. Les trois
 runs Auto échouent : 21,3180 à 21,5263 FPS moyens, p95 de 69,4547 à 69,4584 ms, 1 % low de
@@ -349,7 +355,7 @@ runs Auto échouent : 21,3180 à 21,5263 FPS moyens, p95 de 69,4547 à 69,4584 m
 116 consécutives au-dessus de 16,7 ms. Les trois FIFO échouent aussi ; l'analyse hashée
 `5026e75d…81dd3e` ne propose aucun changement de pacing.
 
-La chaîne source candidate courante part de
+La chaîne source historique menant au schema v7 part de
 `2bf5e44f5d06529b26208a1ac7c9a4c158d48aad`, qui ajoute le profil de présentation opt-in, puis
 `e1e818fc1ed8655b851e34007039f4b288941377`, qui exige `bevy/trace` et `bevy/debug` afin de publier
 les vrais noms de systèmes Bevy, et atteint
@@ -379,8 +385,53 @@ Deux répétitions Auto du même binaire confirment 128,9631 à 129,3634 FPS, p9
 ETW. La première répétition atteint toutefois deux valeurs consécutives au-dessus de 16,7 ms ; la
 seconde reste à une. Le contrôle FIFO reste comparable : 129,6567 FPS, p95 13,9083 ms, 1 % low
 57,3937 FPS, 19 lignes `NA`, zéro valeur au-dessus de 33,3 ms, maximum consécutif un et ETW 0/0.
-Ces répétitions rendent le nouveau niveau de performance crédible sans encore fournir le rejeu
-gouverné schema v8 requis.
+Ces répétitions restent l'historique schema v7 ; elles rendent le nouveau niveau de performance
+crédible sans remplacer les deux rejeux gouvernés schema v8 ci-dessous.
+
+Le premier rejeu Release gouverné schema v8,
+`vulkan-governed-schema8-49acfd5-20260902T180000000Z`, utilise le binaire SHA-256
+`21228A133C5B58025695A68668F10387A7E368C445B3F43155DF6E775CE177F7`. Il conserve 2 257
+résidences affichées et 155 lignes `NA`, sans trou de résidence ni perte ETW, mais perd le premier
+plan à +6,3577083 s pendant 182 des 275 échantillons de fenêtre. Il échoue avec 75,2425 FPS,
+p95 20,9013 ms, p99 34,7203 ms, 1 % low 12,3978 FPS, 496 valeurs > 16,7 ms, 29 valeurs
+> 33,3 ms et un maximum consécutif de 14. La validation SHA-256
+`36E1EEBF9C4324AB285CBB7DE1C5EA51117237E7BCB88A73C446C4BE1D36D7BD`, le CSV
+`6C11232BD6864E195CE50ADA347909608BA8D406CB5F438D87842126583570B3` et le ledger
+`7EE6B8C0CE49A3D6A27C2595FD4E755F474CB36C5FAA121025E1A7123CCA037F` prouvent ce FAIL ; les
+`NA` restent diagnostiques puisque la résidence couvre toute la fenêtre avec un gap nul.
+
+Le second rejeu Release gouverné schema v8,
+`vulkan-governed-schema8-replay2-49acfd5-20260902T192000000Z`, reconstruit le binaire exact SHA-256
+`0C220F6980457A427DCF4F48C1204DA07120FDDC265C97E6ED61DA2326A75A85`. La fenêtre reste visible,
+non minimisée et au premier plan pendant 274/274 échantillons ; la signature de présentation est
+stable, ETW vaut 0/0 et la résidence couvre les deux bornes avec un gap nul. Les 3 900 résidences
+affichées et 13 lignes `NA` donnent 129,9968 FPS, p95 13,8805 ms, p99 13,9329 ms et 1 % low
+61,2708 FPS. Le maximum consécutif > 16,7 ms vaut un. Tous ces objectifs passent, mais une valeur
+unique `DisplayedTime=35,3837 ms` à +0,2253583 s fait échouer le contrat strict « zéro > 33,3 ms »
+et maintient le statut `runtime_qpc_display_overlap_thresholds_failed`. La validation SHA-256
+`45B87D0D78570C0F6D0E541DF040AA008AE49E2CA47B5D02002F223EA50894D1`, le CSV
+`5D810261815FE74D0E556F638BD704AC94119667FA4868AA57716320A124EC22` et le ledger
+`88CD702163B3094D22A54FB352DB6C75AA742C4CFDE0919C86E331C76494605B` restent les preuves
+gouvernées de ce FAIL unique.
+
+La série de focus schema v8 A4/A5/A6 au même commit/arbre et sur le binaire partagé SHA-256
+`21228A133C5B58025695A68668F10387A7E368C445B3F43155DF6E775CE177F7` est explicitement
+**non qualifiante** : elle réutilise le target Cargo gouverné et ne remplace pas un rebuild propre. A4
+échoue avec 128,0449 FPS, p95 13,8972 ms, 1 % low 55,3146 FPS, 27 `NA` et une valeur > 33,3 ms ;
+son résumé/CSV/ledger vaut
+`D339B7528424545EF27DD652FC518CA44E6DBD0A0EA762100F10553B7C8436CC` /
+`AC400A4638EDF33223AFBF37CAAF9909CC4BD26EFE2331BB4B9F3C22DB3271C7` /
+`FE905D77940487DBE6497807452C6D535E4A8B2CCE430C95309B459E8D409F48`. A5 passe ses seuils avec
+129,2931 FPS, p95 13,9101 ms, 1 % low 71,6098 FPS, deux `NA`, zéro valeur > 16,7 ms et zéro valeur
+> 33,3 ms ; ses trois hashes valent
+`A867339F2545D7B0F2526657CA44C869C4B418455DC96670004857C7200A9248` /
+`DCFEAD7518ABEEC3CF9649C3435DB2AD5C061235889132F02008D02B2523FB7F` /
+`C6536C40F7A56383D64123895F964FD65C1C7653F879581A36CDCA3809BEC231`. A6 passe aussi avec
+128,2562 FPS, p95 13,8968 ms, 1 % low 71,6615 FPS, zéro `NA`, zéro valeur > 16,7 ms et zéro
+valeur > 33,3 ms ;
+ses trois hashes valent `EBE9F6EF319F77F3B2C5FAE2FC98F1A6A093A69693FA270865A8075CDA582064` /
+`F50270BAB9312AAE9EE5FCEDC45AAA524C1B9F1D0AECDC39BAE2F183ACFA838C` /
+`5556B2042652572AD2266D2CFF4EBFE02AEA424B71447B3D842A8BC3DADAEBA7`.
 
 L'A/B diagnostique PresentMon `2.5.1` A4 sur le même binaire reste explicitement non qualifiant car il
 réutilise le target Cargo et un shim d'identité `2.4.1` dans le signal runtime. Il relève 3 908 lignes
@@ -395,8 +446,9 @@ l'outil officiel vaut
 ADR-0008 conserve les lignes `NA` comme diagnostic et autorise un verdict stutter local seulement si
 la résidence dérivée couvre sans trou toute la fenêtre, ETW vaut 0/0, la fenêtre et la signature de
 présentation restent stables, et les seuils FPS/p95/1 % low/>33,3 ms/consécutifs passent tous. Le code
-schema v8 correspondant est présent dans le lot de travail, avec son auto-test, mais attend encore un
-build propre, un rejeu exact et ses preuves hashées avant toute promotion de `R1-048` ou de Gate 1.
+schema v8, son auto-test et deux rejeux gouvernés hashés existent désormais. Le premier est invalidé par
+la perte de premier plan ; le second reste un FAIL strict à cause de son unique 35,3837 ms. Ni les
+PASS diagnostiques A5/A6 ni le reste des seuils PASS du rejeu gouverné ne promeuvent `R1-048` ou Gate 1.
 
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
@@ -438,12 +490,14 @@ Rapier. La baseline historique `6f0e519a` échouait sur trois runs Auto, puis la
 `2bf5e44f` → `e1e818fc` → `9db35a8e` a isolé la session ETW orpheline, sécurisé le collecteur et
 produit un run normal gouverné qui passe localement les objectifs numériques de la roadmap sous la
 sémantique ADR-0008. Une répétition Auto sur deux échoue encore au critère « au plus une valeur
-consécutive > 16,7 ms », et aucun run schema v8 propre n'existe encore. `R1-023`, `R1-025`, `R1-026`
-et `R1-046` à `R1-048` restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste
-satisfaite ; rebuild/rejeu schema v8 exact, matériel cible, stutter répétable et revue humaine restent
-dus. L'audit provenance strict passe sans asset Cadle ; aucun asset Cadle n'entre dans Forge. La CI
-distante reste `NOT RUN` sous ADR-0006 et ce statut n'est pas un PASS. Gate 1 reste **OUVERTE** et
-Gate 2 reste interdite.
+consécutive > 16,7 ms ». Deux runs schema v8 gouvernés existent maintenant : le premier perd le
+premier plan et le second passe tous les objectifs sauf une valeur unique à 35,3837 ms. A5/A6 passent
+en diagnostic mais restent non qualifiants. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048`
+restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste satisfaite ; un rejeu
+gouverné répétable qui passe tous les seuils, le matériel cible et la revue humaine restent dus.
+L'audit provenance strict passe sans asset Cadle ; aucun asset Cadle n'entre dans Forge. La CI distante
+reste `NOT RUN` sous ADR-0006 et ce statut n'est pas un PASS. Gate 1 reste **OUVERTE** et Gate 2 reste
+interdite.
 
 ## But
 
@@ -556,8 +610,10 @@ qualité                   Low / Medium / High / Ultra
   schema v7 `9db35a8e` sur RX 7800 XT relève 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
   17 lignes `NA`, zéro perte ETW, zéro valeur > 33,3 ms et maximum consécutif > 16,7 ms égal à un ;
   la résidence couvre toute la fenêtre sans trou. Sous ADR-0008, ces objectifs sont candidats à un
-  PASS automatisé local. `R1-048` reste décochée : le rebuild/rejeu exact schema v8 n'est pas encore
-  acquis, une répétition Auto atteint deux valeurs consécutives > 16,7 ms, le GPU cible n'est pas
+  PASS automatisé local. Au commit/arbre schema v8 `49acfd56`/`c6e7f6c5`, le premier rejeu gouverné
+  perd le premier plan et le second, stable, passe FPS/p95/1 % low/consécutifs mais échoue sur une
+  valeur unique `DisplayedTime=35,3837 ms`. `R1-048` reste décochée : une répétition Auto atteint
+  deux valeurs consécutives > 16,7 ms, les PASS A5/A6 sont non qualifiants, le GPU cible n'est pas
   mesuré et la revue humaine n'est pas réalisée. `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
@@ -573,16 +629,17 @@ qualité                   Low / Medium / High / Ultra
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — candidat PASS local RX 7800 XT au run
-  gouverné schema v7 `9db35a8e` : 128,7260 FPS ; rejeu schema v8 et GPU cible dus ;
-- [ ] p95 ≤ 16,7 ms — candidat PASS local RX 7800 XT à `9db35a8e` : 13,9112 ms ; rejeu schema v8 et
-  GPU cible dus ;
-- [ ] 1 % low ≥ 45 FPS — candidat PASS local RX 7800 XT à `9db35a8e` : 58,3489 FPS ; rejeu schema v8
-  et GPU cible dus ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — candidat PASS local RX 7800 XT au rejeu
+  gouverné schema v8 `49acfd56` : 129,9968 FPS ; GPU cible dû ;
+- [ ] p95 ≤ 16,7 ms — candidat PASS local RX 7800 XT au rejeu schema v8 `49acfd56` : 13,8805 ms ;
+  GPU cible dû ;
+- [ ] 1 % low ≥ 45 FPS — candidat PASS local RX 7800 XT au rejeu schema v8 `49acfd56` : 61,2708 FPS ;
+  GPU cible dû ;
 - [ ] absence de stutter récurrent — candidat PASS local du run gouverné schema v7 sous ADR-0008 :
   résidence sans trou, fenêtre stable, ETW 0/0, 17 lignes `NA` diagnostiques conservées, aucune valeur
-  > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; rejeu
-  schema v8 propre, répétabilité et revue humaine restent dus ;
+  > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; le premier
+  rejeu schema v8 perd le premier plan et le second échoue sur une valeur unique à 35,3837 ms. Un
+  rejeu gouverné strictement PASS, la répétabilité et la revue humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;

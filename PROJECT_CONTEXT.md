@@ -2,9 +2,9 @@
 
 Dernière mise à jour : **2 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, source produit et garde
-ETW `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, protocole schema 8 en attente de rejeu exact ; Gate 2
-interdite ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, protocole schema 8 rejoué
+deux fois à `49acfd5695a7246062a86fb84f5d933130579187` sans PASS qualifiant de `R1-048` ; Gate 2 interdite ;
+produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -30,20 +30,37 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-La source produit et la garde d'acquisition courantes de Gate 1 sont
-`9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
-`656feb155c4a30371210229bf6c5dea5bbf8fcd3`. La chaîne `2bf5e44f` → `e1e818fc` ajoute un profil de
-présentation strictement diagnostique puis expose les vrais noms de systèmes Bevy uniquement dans ce
-profil ; `9db35a8e` ajoute le mutex machine, les préflights bornés et l'arrêt limité à la session ETW
-possédée. Le rebuild Release normal exact mesure 82 333 696 octets, SHA-256
-`c3790da4a7a9f46b36f0837144a75f5afdd43a63101093d25f402d09e0e80c4a`. Il atteint 128,7260 FPS,
-p95 13,9112 ms et 1 % low 58,3489 FPS, sans valeur affichée au-dessus de 33,3 ms, sans séquence de
-plus d'un intervalle au-dessus de 16,7 ms et sans perte ETW. Ses 17 lignes `DisplayedTime=NA` restent
-conservées. ADR-0008 clarifie qu'elles sont diagnostiques lorsque la résidence d'affichage est continue
-et que tous les autres invariants passent ; le protocole schema 8 doit encore être rejoué sur un commit
-et un target propres. La dernière validation workspace **298/298** reste épinglée à l'overlay
-`afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de build
-connu reste la future incompatibilité transitive de `proc-macro-error2 v2.0.1`.
+La source exacte des acquisitions schema 8 de Gate 1 est
+`49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Elle conserve la garde d'acquisition
+`9db35a8e125c6c60cde9de66a7f6aa7585215bfa` : mutex machine, préflights bornés et arrêt limité à la
+session ETW possédée. Le run schema 7 historique sur `9db35a8e` reste intact : son binaire Release de
+82 333 696 octets, SHA-256 `c3790da4a7a9f46b36f0837144a75f5afdd43a63101093d25f402d09e0e80c4a`,
+atteint 128,7260 FPS, p95 13,9112 ms et 1 % low 58,3489 FPS, sans valeur affichée au-dessus de
+33,3 ms ni perte ETW, et conserve 17 lignes `DisplayedTime=NA`.
+
+Deux replays gouvernés propres appliquent désormais ADR-0008/schema 8, sans réécrire ce run
+historique. Le premier emploie un binaire de 82 333 696 octets,
+SHA-256 `21228a133c5b58025695a68668f10387a7e368c445b3f43155df6e775ce177f7`, mais perd le premier plan
+sur 182 des 275 échantillons de l'enveloppe ; ses métriques sont donc confondues et sa validation
+FAIL porte le SHA-256 `36e1eebf9c4324ab285cbb7de1c5ea51117237e7bcb88a73c446c4be1d36d7bd`.
+Le second reconstruit séparément un binaire de 82 333 696 octets,
+SHA-256 `0c220f6980457a427dcf4f48c1204da07120fddc265c97e6ed61da2326a75a85`. Le focus passe sur
+274/274 échantillons, la résidence couvre les deux bornes avec un trou maximal et total de 0 QPC,
+ETW reste à 0/0 et les 13 lignes `DisplayedTime=NA` restent diagnostiques. Les 3 900 valeurs affichées
+mesurent 129,9968 FPS, p95 13,8805 ms, p99 13,9329 ms et 1 % low 61,2708 FPS. Une seule valeur,
+35,3837 ms, dépasse toutefois le plafond strict de 33,3 ms : le statut reste honnêtement FAIL et la
+validation porte le SHA-256 `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1`.
+
+Les diagnostics schema 8 A4/A5/A6 réutilisent tous le binaire `21228a…` et ne qualifient pas la Gate :
+A4 échoue sur un seul outlier, tandis qu'A5 et A6 passent les seuils et le focus. Leur target Cargo
+partagé et l'absence de rebuild gouverné propre imposent `qualifying=false`. Ils ne remplacent donc ni
+le Replay2 ni un PASS de `R1-048`. La dernière validation workspace **298/298** reste épinglée à
+l'overlay `afb270c3`. La validation proportionnée du lot courant passe **66/66** tests Release
+`forge_runtime --all-features` (62 unitaires et 4 intégration), ainsi que le formatage Rust, l'auto-test
+A/B schema 2 et `git diff --check`. Elle ne remplace pas un rejeu workspace complet. Le seul
+avertissement de build connu reste la future incompatibilité transitive de
+`proc-macro-error2 v2.0.1`.
 
 Les preuves Browser High clear/rain restent épinglées au commit exact `d9e2670` : **24/24 contrôles** passent
 pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
@@ -1345,12 +1362,12 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé à la source produit et garde `9db35a8e125c6c60cde9de66a7f6aa7585215bfa`, arbre
-`656feb155c4a30371210229bf6c5dea5bbf8fcd3` : la correction de prépasse végétation, le contrôleur
-gameplay/Rapier réel et les reçus de timeout sont conservés. La session ETW orpheline qui contaminait
-les captures précédentes a été arrêtée par son seul identifiant ; le harnais gouverné refuse désormais
-toute session Gate 1 préexistante, sérialise les acquisitions avec un mutex machine et ne termine que
-la session qu'il possède.
+État consolidé à la source exacte `49acfd5695a7246062a86fb84f5d933130579187`, arbre
+`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` : la correction de prépasse végétation, le contrôleur
+gameplay/Rapier réel, les reçus de timeout, ADR-0008 et la garde `9db35a8e` sont conservés. La session
+ETW orpheline qui contaminait les captures précédentes a été arrêtée par son seul identifiant ; le
+harnais gouverné refuse désormais toute session Gate 1 préexistante, sérialise les acquisitions avec
+un mutex machine et ne termine que la session qu'il possède.
 
 Le rebuild Release normal exact `9db35a8e` exécute 1 800 ticks en 29,982427 s, couvre 3 878 frames
 main-world et produit 3 877 lignes PresentMon dans la fenêtre : 3 860 affichées et 17 non affichées.
@@ -1364,10 +1381,19 @@ rétrospectif n'est utilisé pour les masquer.
 ADR-0008 distingue donc une présentation applicative non affichée d'un trou visible : le CSV complet
 et le compteur `NA` restent obligatoires, tandis que le verdict stutter exige simultanément la
 résidence continue, ETW 0/0, la fenêtre et la signature stables, 60 FPS, p95 ≤ 16,7 ms, 1 % low ≥ 45
-FPS, aucune valeur >33,3 ms et au plus une valeur lente consécutive. Le validateur schema 8 et
-l'analyse A/B portent ce contrat, mais leur rejeu sur commit exact reste dû avant toute promotion.
-PresentMon 2.5.1 A4 retrouve 129,7334 FPS et 16 lignes `NA` sur le même binaire ; ce diagnostic reste
-non qualifiant et ne change pas le pin 2.4.1.
+FPS, aucune valeur >33,3 ms et au plus une valeur lente consécutive. Deux replays gouvernés schema 8
+portent désormais ce contrat au commit/arbre exacts `49acfd56`/`c6e7f6c5`. Replay1 reste FAIL et
+inexploitable pour une qualification de cadence parce que la fenêtre perd le premier plan sur 182/275
+échantillons ; sa validation porte `36e1eebf…1d36d7bd`. Replay2 passe le focus sur 274/274, conserve
+13 lignes `NA`, une résidence sans trou et ETW 0/0. Il mesure 129,9968 FPS, p95 13,8805 ms, p99
+13,9329 ms et 1 % low 61,2708 FPS, mais une valeur isolée de 35,3837 ms dépasse le plafond de 33,3 ms.
+Sa validation `45b87d0d…50894d1` reste donc FAIL ; aucun PASS schema 8 ni fermeture de `R1-048` n'est
+revendiqué.
+
+Le diagnostic officiel PresentMon 2.5.1 A4 historique retrouve 129,7334 FPS et 16 lignes `NA` sur le
+binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les diagnostics schema 8
+A4/A5/A6 sont distincts : A4 échoue sur un outlier, A5 et A6 passent les seuils, mais tous réutilisent
+le binaire `21228a…` dans un target partagé sans rebuild gouverné et restent donc non qualifiants.
 
 La campagne visuelle exacte `873618af` conserve cinq vues fixes, 24 checkpoints et un MP4 de trois
 secondes sans réapparition du défaut depth-only. La dernière campagne Release normale complète
@@ -1387,9 +1413,10 @@ reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `
 conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
 représentation joueur reste une capsule procédurale sans asset.
 
-Gate 1 reste **OUVERTE** : le rejeu gouverné schema 8, la cible RTX 3060/RX 6600, `R1-037`, les
-preuves finales eau/Browser et la revue humaine comparative restent dus. La CI distante reste
-`NOT RUN — infrastructure billing` sous ADR-0006. Voir
+Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay schema 8 PASS, et la cible RTX 3060/RX 6600,
+`R1-037` encore `NOT RUN`, les preuves finales eau/Browser et la revue humaine comparative restent
+dues. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a
+été introduit. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -1916,24 +1943,31 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte à la source produit et garde ETW `9db35a8e`.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit/arbre schema 8 exacts
+`49acfd5695a7246062a86fb84f5d933130579187`/`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`.
 La session PresentMon orpheline qui contaminait les anciennes captures a été arrêtée par identifiant
-exact ; la nouvelle garde refuse les sessions préexistantes et ne termine que la sienne. Le rebuild
-Release normal propre mesure 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS, zéro intervalle
->33,3 ms, maximum lent consécutif 1 et ETW 0/0. Ses 17 présentations non affichées restent conservées.
-Deux répétitions Auto, un contrôle FIFO et le diagnostic officiel 2.5.1 confirment la cadence et 16–21
-lignes `NA`. ADR-0008 les classe comme diagnostic distinct du stutter seulement lorsque la résidence
-est continue et que tous les invariants d'affichage passent. Le protocole schema 8 est prêt, mais son
-rebuild et son rejeu sur commit exact restent dus. La dernière campagne complète `15635b3f` conserve
-ses validations historiques 140/140 moteur, 52/52 runtime et 1/1 intégration jusqu'à ce rejeu.
+exact ; la garde `9db35a8e` refuse les sessions préexistantes et ne termine que la sienne. Le run
+schema 7 historique conserve 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS, zéro intervalle
+>33,3 ms, ETW 0/0 et 17 présentations non affichées.
+Deux replays gouvernés schema 8 ont maintenant été acquis. Replay1 perd le focus sur 182/275
+échantillons et reste FAIL (`36e1eebf…1d36d7bd`). Replay2 passe le focus 274/274, conserve 13 lignes
+`NA`, ETW 0/0 et une résidence sans trou ; il mesure 129,9968 FPS, p95 13,8805 ms, p99 13,9329 ms et
+1 % low 61,2708 FPS. Son unique valeur de 35,3837 ms au-dessus de 33,3 ms maintient toutefois le FAIL
+(`45b87d0d…50894d1`) et `R1-048` ouverte. A4 schema 8 échoue sur un outlier ; A5/A6 passent seulement
+comme diagnostics non qualifiants sur le binaire partagé `21228a…` sans rebuild gouverné propre.
+La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
+52/52 runtime et 1/1 intégration. Le lot courant ajoute 66/66 tests Release `forge_runtime
+--all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS ; aucun nouveau replay
+workspace complet n'est revendiqué ici.
 La preuve visuelle `873618af`
 conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
 3/3 ROIs végétation, témoin terrain, 4/4
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-Restent dus : rebuild/rejeu gouverné schema 8 du stutter temps réel, replay local transversal,
-instrumentation exhaustive `R1-037`, GPU cible `R1-041`, preuves eau/Browser finales et revue humaine.
+Restent dus : diagnostic puis PASS gouverné de `R1-048`, replay local transversal, instrumentation
+exhaustive `R1-037`, GPU cible `R1-041`, preuves eau/Browser finales et revue humaine. Aucun asset
+Cadle n'a été ajouté à Forge.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
 ne démarrent pas.
