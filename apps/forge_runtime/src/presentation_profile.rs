@@ -915,6 +915,68 @@ fn write_json_atomic(path: &Path, report: &PresentationProfileReport) -> Result<
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::ecs::system::IntoSystem;
+
+    #[test]
+    fn filtered_layer_discovers_bevy_prepare_windows_system_span() {
+        let controller = PresentationProfileController::enabled(Path::new("."));
+        let dynamic_controller = controller.clone();
+        let profile_filter = DynFilterFn::new(move |metadata, _context| {
+            dynamic_controller.profile_metadata_enabled(metadata)
+        })
+        .with_callsite_filter(|metadata| {
+            if exact_span_metadata(metadata) {
+                Interest::sometimes()
+            } else {
+                Interest::never()
+            }
+        });
+        let subscriber = Registry::default().with(controller.layer().with_filter(profile_filter));
+
+        tracing::subscriber::with_default(subscriber, || {
+            let name = "bevy_render::view::window::prepare_windows";
+            let span = tracing::info_span!(parent: None, "system", name = name.to_owned());
+            drop(span);
+        });
+
+        assert!(
+            controller
+                .recorder
+                .prepare_windows_discovered
+                .load(Ordering::Acquire)
+        );
+    }
+
+    #[test]
+    fn filtered_layer_discovers_actual_bevy_system_metadata() {
+        let controller = PresentationProfileController::enabled(Path::new("."));
+        let dynamic_controller = controller.clone();
+        let profile_filter = DynFilterFn::new(move |metadata, _context| {
+            dynamic_controller.profile_metadata_enabled(metadata)
+        })
+        .with_callsite_filter(|metadata| {
+            if exact_span_metadata(metadata) {
+                Interest::sometimes()
+            } else {
+                Interest::never()
+            }
+        });
+        let subscriber = Registry::default().with(controller.layer().with_filter(profile_filter));
+
+        tracing::subscriber::with_default(subscriber, || {
+            let _system = IntoSystem::into_system(bevy::render::view::window::prepare_windows);
+        });
+
+        assert!(
+            controller
+                .recorder
+                .prepare_windows_discovered
+                .load(Ordering::Acquire)
+        );
+        controller
+            .start(100, 10_000_000)
+            .expect("the real Bevy system metadata unlocks the public measurement start");
+    }
 
     fn event(
         sequence: u64,

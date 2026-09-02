@@ -16,7 +16,7 @@ required-features = ["native"]
 default = ["native"]
 native = ["forge_engine/native"]
 render-profile = ["bevy/trace_chrome"]
-presentation-profile = ["bevy/trace"]
+presentation-profile = ["bevy/trace", "bevy/debug"]
 
 [dependencies]
 bevy.workspace = true
