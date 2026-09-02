@@ -183,7 +183,11 @@ the ready/final protocols keep `qualification_eligible=false` for FIFO; the rout
 pacing but can never qualify or close Gate 1. Both routes require an absent or empty output directory. The governed
 host acquisition requires Windows, a Vulkan-capable adapter, a Bevy-observed physical 1920x1080
 surface and a visible, non-minimized native window whose reported outer rectangle is at least
-1920x1080. Before publishing the start signal, the host requests that exact window in the foreground;
+1920x1080. Before publishing the start signal, the host revalidates the exact HWND, owner PID,
+visibility and non-minimized state, then requests that window in the foreground. It first uses the
+normal application and `SetForegroundWindow` paths; the attached-thread fallback runs only if the
+same revalidated window is still in the background. The host never restores/resizes the window or
+synthesizes keyboard input during activation. The validation records every attempted path and result;
 it then samples handle ownership, visibility, minimized state and foreground state every 100 ms
 through the controller interval, requiring both boundary coverage and no sampling gap above 250 ms.
 After the ledger is written, the runtime keeps the native window alive for a declared 500 ms
@@ -278,9 +282,9 @@ interleaved or malformed record. Once the runtime exits, the host stops the exac
 with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
 failures, and requires the control and capture processes to exit cleanly. The runtime GPU
 backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
-route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 5 for
-this stdout-stream transport, exact runtime-QPC contract, continuous foreground-window contract and
-explicit uninstrumented-runtime contract.
+route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 6 for
+this stdout-stream transport, exact runtime-QPC contract, structured foreground-activation evidence,
+continuous foreground-window contract and explicit uninstrumented-runtime contract.
 Bevy `FrameTime` is
 retained as an application-loop diagnostic but is never substituted for a missing displayed frame.
 For every numeric PresentMon pair, the host derives the displayed interval as

@@ -218,6 +218,101 @@ namespace ForgeGate1Stutter {
 '@
 }
 
+if (-not ("ForgeGate1Stutter.ForegroundActivationV2" -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+
+namespace ForgeGate1Stutter {
+    public static class ForegroundActivationV2 {
+        [DllImport("kernel32.dll")]
+        private static extern uint GetCurrentThreadId();
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AttachThreadInput(uint attachThreadId, uint attachToThreadId, bool attach);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool BringWindowToTop(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetActiveWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr SetFocus(IntPtr hWnd);
+
+        public static bool Activate(IntPtr hWnd, uint expectedProcessId) {
+            if (hWnd == IntPtr.Zero || !IsWindow(hWnd) || !IsWindowVisible(hWnd) || IsIconic(hWnd)) {
+                return false;
+            }
+
+            uint targetProcessId;
+            uint targetThreadId = GetWindowThreadProcessId(hWnd, out targetProcessId);
+            if (targetThreadId == 0 || targetProcessId != expectedProcessId) {
+                return false;
+            }
+            if (GetForegroundWindow() == hWnd) {
+                return true;
+            }
+
+            uint currentThreadId = GetCurrentThreadId();
+            IntPtr initialForegroundWindow = GetForegroundWindow();
+            uint foregroundProcessId;
+            uint foregroundThreadId = initialForegroundWindow == IntPtr.Zero ? 0
+                : GetWindowThreadProcessId(initialForegroundWindow, out foregroundProcessId);
+            bool attachedToForeground = false;
+            bool attachedToTarget = false;
+            bool requestAccepted = false;
+            try {
+                if (foregroundThreadId != 0 && foregroundThreadId != currentThreadId) {
+                    attachedToForeground = AttachThreadInput(currentThreadId, foregroundThreadId, true);
+                }
+                if (targetThreadId != currentThreadId && targetThreadId != foregroundThreadId) {
+                    attachedToTarget = AttachThreadInput(currentThreadId, targetThreadId, true);
+                }
+                BringWindowToTop(hWnd);
+                requestAccepted = SetForegroundWindow(hWnd);
+                SetActiveWindow(hWnd);
+                SetFocus(hWnd);
+                return requestAccepted || GetForegroundWindow() == hWnd;
+            }
+            finally {
+                if (attachedToTarget) {
+                    AttachThreadInput(currentThreadId, targetThreadId, false);
+                }
+                if (attachedToForeground) {
+                    AttachThreadInput(currentThreadId, foregroundThreadId, false);
+                }
+            }
+        }
+    }
+}
+'@
+}
+
 function Wait-ForQualifiedNativeWindow {
     param(
         [Parameter(Mandatory = $true)][Diagnostics.Process]$Process,
@@ -313,9 +408,52 @@ function Invoke-Gate1RuntimeWindowForegroundAttempt {
         [int]$TimeoutMilliseconds = 2000
     )
 
-    $requestAccepted = [ForgeGate1Stutter.NativeWindow]::SetForegroundWindow($ExpectedHandle)
     $timer = [Diagnostics.Stopwatch]::StartNew()
-    $lastState = $null
+    Assert-Condition -Condition (-not $Process.HasExited) -Message "forge_runtime exited before foreground activation."
+    $lastState = Get-Gate1NativeWindowState -Process $Process -ExpectedHandle $ExpectedHandle
+    Assert-Condition -Condition ($lastState.HandleMatches -and $lastState.OwnerMatches -and $lastState.Visible -and -not $lastState.Minimized) -Message "The qualified forge_runtime HWND changed before foreground activation."
+    $initialForeground = $lastState.Foreground
+    $appActivateAttempted = $false
+    $appActivateReturned = $false
+    $appActivateError = $null
+    $setForegroundWindowAttempted = $false
+    $requestAccepted = $false
+    $forcedActivationAttempted = $false
+    $forcedActivationReturned = $false
+
+    if (-not $lastState.Foreground) {
+        $appActivateAttempted = $true
+        $shell = $null
+        try {
+            $shell = New-Object -ComObject WScript.Shell
+            $appActivateReturned = [bool]$shell.AppActivate($Process.Id)
+        }
+        catch {
+            $appActivateError = $_.Exception.Message
+        }
+        finally {
+            if ($null -ne $shell) {
+                [void][Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+            }
+        }
+        Start-Sleep -Milliseconds 100
+        $lastState = Get-Gate1NativeWindowState -Process $Process -ExpectedHandle $ExpectedHandle
+    }
+
+    if (-not $lastState.Foreground) {
+        Assert-Condition -Condition ($lastState.HandleMatches -and $lastState.OwnerMatches -and $lastState.Visible -and -not $lastState.Minimized) -Message "The qualified forge_runtime HWND changed before SetForegroundWindow."
+        $setForegroundWindowAttempted = $true
+        $requestAccepted = [ForgeGate1Stutter.NativeWindow]::SetForegroundWindow($ExpectedHandle)
+        Start-Sleep -Milliseconds 100
+        $lastState = Get-Gate1NativeWindowState -Process $Process -ExpectedHandle $ExpectedHandle
+    }
+
+    if (-not $lastState.Foreground) {
+        Assert-Condition -Condition ($lastState.HandleMatches -and $lastState.OwnerMatches -and $lastState.Visible -and -not $lastState.Minimized) -Message "The qualified forge_runtime HWND changed before the attached-thread foreground fallback."
+        $forcedActivationAttempted = $true
+        $forcedActivationReturned = [ForgeGate1Stutter.ForegroundActivationV2]::Activate($ExpectedHandle, [uint32]$Process.Id)
+    }
+
     do {
         if ($Process.HasExited) {
             break
@@ -327,8 +465,18 @@ function Invoke-Gate1RuntimeWindowForegroundAttempt {
         Start-Sleep -Milliseconds 50
     } while ($timer.ElapsedMilliseconds -lt $TimeoutMilliseconds)
 
+    if ($null -ne $lastState) {
+        Assert-Condition -Condition ($lastState.HandleMatches -and $lastState.OwnerMatches -and $lastState.Visible -and -not $lastState.Minimized) -Message "The qualified forge_runtime HWND changed during foreground activation."
+    }
     return [pscustomobject]@{
+        InitialForeground = $initialForeground
+        AppActivateAttempted = $appActivateAttempted
+        AppActivateReturned = $appActivateReturned
+        AppActivateError = $appActivateError
+        SetForegroundWindowAttempted = $setForegroundWindowAttempted
         SetForegroundWindowReturned = $requestAccepted
+        ForcedActivationAttempted = $forcedActivationAttempted
+        ForcedActivationReturned = $forcedActivationReturned
         ForegroundObserved = ($null -ne $lastState -and $lastState.Foreground)
         ElapsedMilliseconds = $timer.Elapsed.TotalMilliseconds
         LastState = $lastState
@@ -1108,7 +1256,7 @@ function Save-CapturedProcessOutput {
         try {
             $stdoutDrained = $Capture.StdoutTask.Wait($DrainTimeoutMilliseconds)
             if ($stdoutDrained) {
-                $Capture.StdoutTask.GetAwaiter().GetResult()
+                [void]$Capture.StdoutTask.GetAwaiter().GetResult()
             }
         }
         catch {
@@ -1125,7 +1273,7 @@ function Save-CapturedProcessOutput {
         try {
             $stderrDrained = $Capture.StderrTask.Wait($DrainTimeoutMilliseconds)
             if ($stderrDrained) {
-                $Capture.StderrTask.GetAwaiter().GetResult()
+                [void]$Capture.StderrTask.GetAwaiter().GetResult()
             }
         }
         catch {
@@ -1180,6 +1328,35 @@ function Save-CapturedProcessOutput {
     return [pscustomobject]@{
         StdoutDrained = $stdoutDrained
         StderrDrained = $stderrDrained
+    }
+}
+
+function Invoke-Gate1CapturedProcessOutputSelfTest {
+    $stdoutSource = [IO.MemoryStream]::new([byte[]](1, 2, 3))
+    $stderrSource = [IO.MemoryStream]::new([byte[]](4, 5))
+    $stdoutDestination = [IO.MemoryStream]::new()
+    $stderrDestination = [IO.MemoryStream]::new()
+    $capture = [pscustomobject]@{
+        Label = "captured-output-self-test"
+        StdoutTask = $stdoutSource.CopyToAsync($stdoutDestination)
+        StderrTask = $stderrSource.CopyToAsync($stderrDestination)
+        StdoutPath = "unused.stdout.log"
+        StderrPath = "unused.stderr.log"
+        StreamToFiles = $true
+        StdoutStream = $stdoutDestination
+        StderrStream = $stderrDestination
+        OutputSaved = $false
+    }
+    try {
+        $result = @(Save-CapturedProcessOutput -Capture $capture -DrainTimeoutMilliseconds 1000)
+        Assert-Condition -Condition ($result.Count -eq 1) -Message "Captured-process output leaked task results into the pipeline."
+        Assert-Condition -Condition ($result[0].StdoutDrained -and $result[0].StderrDrained) -Message "Captured-process output self-test did not drain both streams."
+        $secondResult = @(Save-CapturedProcessOutput -Capture $capture -DrainTimeoutMilliseconds 1000)
+        Assert-Condition -Condition ($secondResult.Count -eq 1 -and $secondResult[0].StdoutDrained -and $secondResult[0].StderrDrained) -Message "Captured-process output self-test is not idempotent."
+    }
+    finally {
+        $stdoutSource.Dispose()
+        $stderrSource.Dispose()
     }
 }
 
@@ -1498,6 +1675,7 @@ Invoke-Gate1PresentationRouteSelfTest
 Invoke-Gate1NativeWindowContinuitySelfTest
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Invoke-PresentMonControllerQpcWindowSelfTest
+Invoke-Gate1CapturedProcessOutputSelfTest
 $presentationContract = Get-Gate1PresentationRouteContract -Route $PresentationRoute
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
@@ -2236,7 +2414,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 5
+        schema_version = 6
         status = $validationStatus
         presentation_route = $presentationContract.PresentationRoute
         requested_present_mode = $presentationContract.RequestedPresentMode
@@ -2269,7 +2447,14 @@ try {
                 window_wait_elapsed_ms = $nativeWindowObservation.ObservedAfterWaitStartMilliseconds
             }
             foreground_attempt_before_signal = [ordered]@{
+                initial_foreground = $foregroundAttempt.InitialForeground
+                app_activate_attempted = $foregroundAttempt.AppActivateAttempted
+                app_activate_returned = $foregroundAttempt.AppActivateReturned
+                app_activate_error = $foregroundAttempt.AppActivateError
+                set_foreground_window_attempted = $foregroundAttempt.SetForegroundWindowAttempted
                 set_foreground_window_returned = $foregroundAttempt.SetForegroundWindowReturned
+                attached_thread_fallback_attempted = $foregroundAttempt.ForcedActivationAttempted
+                attached_thread_fallback_returned = $foregroundAttempt.ForcedActivationReturned
                 foreground_observed = $foregroundAttempt.ForegroundObserved
                 elapsed_ms = $foregroundAttempt.ElapsedMilliseconds
             }
