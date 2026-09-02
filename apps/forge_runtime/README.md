@@ -45,6 +45,9 @@ this feature, keep Forge structured JSON tracing and continue to disable Bevy's 
 Conversely, `--all-features` enables `render-profile` and therefore cannot produce a qualifying
 runtime executable. Profiled builds refuse `--log-probe`, `--gate1-visual-proof` and
 `--gate1-gameplay-stutter` before any proof path is prepared; use a diagnostic Visual Valley route.
+The profiled build caps formatted stderr output at `INFO` while retaining `TRACE` spans in the Chrome
+layer, and disables Bevy's render-pass diagnostics plugin so the trace does not add its separate
+per-frame resolve encoder to the workload.
 
 Build and run the diagnostic explicitly, with `FORGE_GATE1_EXTERNAL_ROOT` resolving to an existing
 directory outside every Git worktree:

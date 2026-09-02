@@ -6,9 +6,10 @@ mod player_camera_probe;
 mod terrain_partial_update_probe;
 
 #[cfg(not(feature = "render-profile"))]
-use bevy::log::{DEFAULT_FILTER, LogPlugin};
+use bevy::log::DEFAULT_FILTER;
 use bevy::{
     app::AppExit,
+    log::LogPlugin,
     prelude::*,
     render::{
         RenderPlugin,
@@ -43,6 +44,8 @@ use std::{
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
 #[cfg(not(feature = "render-profile"))]
 use tracing_subscriber::EnvFilter;
+#[cfg(feature = "render-profile")]
+use tracing_subscriber::{Layer as _, filter::LevelFilter};
 
 #[allow(
     clippy::too_many_lines,
@@ -139,6 +142,17 @@ fn main() -> AppExit {
             ..default()
         })
         .set(render_plugin);
+    #[cfg(feature = "render-profile")]
+    let default_plugins = default_plugins.set(LogPlugin {
+        fmt_layer: |_| {
+            Some(Box::new(
+                tracing_subscriber::fmt::Layer::default()
+                    .with_writer(std::io::stderr)
+                    .with_filter(LevelFilter::INFO),
+            ))
+        },
+        ..default()
+    });
     #[cfg(not(feature = "render-profile"))]
     let default_plugins = default_plugins.disable::<LogPlugin>();
 
@@ -979,7 +993,9 @@ impl Options {
                 _ => None,
             },
             close_at_frame: self.close_at_frame,
-            render_diagnostics_policy: if self.gate1_gameplay_stutter_output.is_some() {
+            render_diagnostics_policy: if cfg!(feature = "render-profile")
+                || self.gate1_gameplay_stutter_output.is_some()
+            {
                 RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
             } else {
                 RenderDiagnosticsPolicy::Enabled
@@ -1737,9 +1753,15 @@ mod tests {
             .into_iter(),
         )
         .unwrap();
+        #[cfg(not(feature = "render-profile"))]
         assert_eq!(
             ordinary_high.runtime_automation().render_diagnostics_policy,
             RenderDiagnosticsPolicy::Enabled
+        );
+        #[cfg(feature = "render-profile")]
+        assert_eq!(
+            ordinary_high.runtime_automation().render_diagnostics_policy,
+            RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
         );
 
         assert_eq!(
