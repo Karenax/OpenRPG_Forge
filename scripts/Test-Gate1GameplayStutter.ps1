@@ -40,6 +40,9 @@ $drainTimeoutMilliseconds = 5000
 $foregroundSettleRequiredMilliseconds = 2000
 $nativeWindowSamplingIntervalMilliseconds = 100
 $nativeWindowMaximumSamplingGapMilliseconds = 250.0
+$preSignalStabilizationMaximumAttempts = 3
+$preSignalStabilizationTimeoutSeconds = 15
+$runtimeWatchdogSafetyMarginSeconds = 10
 [uint32]$executionStateContinuous = 2147483648
 [uint32]$executionStateSystemRequired = 1
 [uint32]$executionStateDisplayRequired = 2
@@ -739,13 +742,17 @@ function Wait-Gate1RuntimeWindowForegroundSettle {
         [Parameter(Mandatory = $true)][IntPtr]$ExpectedHandle,
         [Parameter(Mandatory = $true)][uint64]$FrequencyHz,
         [Parameter(Mandatory = $true)][object]$PresentMonCapture,
-        [Parameter(Mandatory = $true)][string]$PresentMonStderrPath
+        [Parameter(Mandatory = $true)][string]$PresentMonStderrPath,
+        [uint64]$DeadlineQpc = 0
     )
 
     Assert-Condition -Condition ($FrequencyHz -gt 0) -Message "Foreground-settle QPC frequency is invalid."
     $samples = [Collections.Generic.List[object]]::new()
     [uint64]$previousQpc = 0
     while ($true) {
+        if ($DeadlineQpc -gt 0) {
+            Assert-Condition -Condition ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $DeadlineQpc) -Message "Pre-signal stabilization exceeded its absolute QPC deadline during the fixed foreground-settle interval."
+        }
         Assert-Gate1PresentMonFailurePriority `
             -PresentMonCapture $PresentMonCapture `
             -PresentMonStderrPath $PresentMonStderrPath `
@@ -1317,6 +1324,73 @@ function Select-Gate1PresentMonFailure {
     }
 }
 
+function Get-Gate1PreSignalGapDisposition {
+    param(
+        [Parameter(Mandatory = $true)][bool]$GapPassed,
+        [Parameter(Mandatory = $true)][bool]$StrictlyOrdered,
+        [Parameter(Mandatory = $true)][int]$Attempt,
+        [Parameter(Mandatory = $true)][int]$MaximumAttempts
+    )
+
+    Assert-Condition -Condition ($Attempt -ge 1) -Message "Pre-signal stabilization attempt must be positive."
+    Assert-Condition -Condition ($MaximumAttempts -ge 1) -Message "Pre-signal stabilization maximum attempts must be positive."
+    Assert-Condition -Condition ($Attempt -le $MaximumAttempts) -Message "Pre-signal stabilization attempt exceeds its bound."
+    if (-not $StrictlyOrdered) {
+        return "fail_closed"
+    }
+    if ($GapPassed) {
+        return "accept"
+    }
+    if ($Attempt -lt $MaximumAttempts) {
+        return "restabilize_before_signal"
+    }
+    return "fail_closed"
+}
+
+function Get-Gate1PreSignalStabilizationTraceAssessment {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Attempts,
+        [Parameter(Mandatory = $true)][int]$MaximumAttempts,
+        [Parameter(Mandatory = $true)][double]$MaximumGapMilliseconds
+    )
+
+    $ordered = @($Attempts)
+    $countBounded = $ordered.Count -ge 1 -and $ordered.Count -le $MaximumAttempts
+    $indicesContiguous = $countBounded
+    for ($index = 0; $index -lt $ordered.Count; $index++) {
+        if ([int]$ordered[$index].attempt -ne ($index + 1)) {
+            $indicesContiguous = $false
+        }
+    }
+    $accepted = @($ordered | Where-Object { $_.accepted })
+    $rejected = @($ordered | Where-Object { -not $_.accepted })
+    $exactlyOneAccepted = $accepted.Count -eq 1
+    $acceptedIsLast = $exactlyOneAccepted -and [int]$accepted[0].attempt -eq $ordered.Count
+    $acceptedSignalPublished = $exactlyOneAccepted -and [bool]$accepted[0].signal_published
+    $acceptedGapValid = $exactlyOneAccepted -and
+        [bool]$accepted[0].strictly_ordered -and
+        [double]$accepted[0].gap_ms -le $MaximumGapMilliseconds -and
+        $null -ne $accepted[0].maximum_gap_ms -and
+        [double]$accepted[0].maximum_gap_ms -le $MaximumGapMilliseconds
+    $rejectedSignalsAbsent = @($rejected | Where-Object { $_.signal_published }).Count -eq 0
+    $rejectedGapsValid = @($rejected | Where-Object {
+            -not $_.strictly_ordered -or
+            [double]$_.gap_ms -le $MaximumGapMilliseconds -or
+            [string]$_.disposition -ne "restabilize_before_signal"
+        }).Count -eq 0
+    return [pscustomobject][ordered]@{
+        CountBounded = $countBounded
+        IndicesContiguous = $indicesContiguous
+        ExactlyOneAccepted = $exactlyOneAccepted
+        AcceptedIsLast = $acceptedIsLast
+        AcceptedSignalPublished = $acceptedSignalPublished
+        AcceptedGapValid = $acceptedGapValid
+        RejectedSignalsAbsent = $rejectedSignalsAbsent
+        RejectedGapsValid = $rejectedGapsValid
+        Passed = ($countBounded -and $indicesContiguous -and $exactlyOneAccepted -and $acceptedIsLast -and $acceptedSignalPublished -and $acceptedGapValid -and $rejectedSignalsAbsent -and $rejectedGapsValid)
+    }
+}
+
 function Assert-Gate1PresentMonFailurePriority {
     param(
         [Parameter(Mandatory = $true)][object]$PresentMonCapture,
@@ -1364,6 +1438,24 @@ function Invoke-Gate1PresentMonFailureSelectionSelfTest {
 
     $postCleanupStderrWins = Select-Gate1PresentMonFailure -StderrText "error: Failed to start ETW session (4201)" -HasExited $true -ExitCode 23 -GapPassed $false -Phase "after cleanup" -GapFailureMessage "gap"
     Assert-Condition -Condition ($postCleanupStderrWins.Kind -eq "stderr_error" -and $postCleanupStderrWins.Message -match '4201') -Message "PresentMon post-cleanup failure-priority self-test did not preserve stderr over exit and gap failures."
+
+    Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $true -StrictlyOrdered $true -Attempt 1 -MaximumAttempts 3) -eq "accept") -Message "Pre-signal stabilization self-test did not accept a valid gap."
+    Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $false -StrictlyOrdered $true -Attempt 1 -MaximumAttempts 3) -eq "restabilize_before_signal") -Message "Pre-signal stabilization self-test did not request a bounded retry before signal publication."
+    Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $false -StrictlyOrdered $true -Attempt 3 -MaximumAttempts 3) -eq "fail_closed") -Message "Pre-signal stabilization self-test did not fail closed at its attempt bound."
+    Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $false -StrictlyOrdered $false -Attempt 1 -MaximumAttempts 3) -eq "fail_closed") -Message "Pre-signal stabilization self-test did not fail closed on a non-monotonic QPC boundary."
+
+    $validSingle = @([pscustomobject]@{ attempt = 1; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $true })
+    Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $validSingle -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Pre-signal stabilization trace self-test rejected a single accepted attempt."
+    $validRetry = @(
+        [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 251.0; maximum_gap_ms = 251.0; disposition = "restabilize_before_signal"; signal_published = $false },
+        [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 200.0; disposition = "accept"; signal_published = $true }
+    )
+    Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $validRetry -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Pre-signal stabilization trace self-test rejected a bounded retry followed by acceptance."
+    $invalidRetry = @(
+        [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 200.0; maximum_gap_ms = 200.0; disposition = "restabilize_before_signal"; signal_published = $false },
+        [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $false }
+    )
+    Assert-Condition -Condition (-not (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $invalidRetry -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed) -Message "Pre-signal stabilization trace self-test accepted an invalid retry or an unpublished accepted signal."
 }
 
 function Test-PresentMonConsoleLine {
@@ -2572,9 +2664,11 @@ $presentMonStdoutPath = Join-Path $outputPath "presentmon.stdout.log"
 $presentMonStderrPath = Join-Path $outputPath "presentmon.stderr.log"
 $presentMonStopPath = Join-Path $outputPath "presentmon.stop.log"
 $presentMonFallbackStopPath = Join-Path $outputPath "presentmon.fallback-stop.log"
+$abortPath = Join-Path $outputPath "gate1-gameplay-stutter.abort.json"
 $validationPath = Join-Path $outputPath $validationFileName
 $fifoDiagnosticMarkerPath = Join-Path $outputPath $fifoDiagnosticMarkerFileName
 $runtimeCapture = $null
+$runtimeProcessId = $null
 $presentMonCapture = $null
 $runtimeOutput = $null
 $presentMonOutput = $null
@@ -2590,6 +2684,9 @@ $preSignalPhaseOrder = $null
 $postSettleWindowContinuity = $null
 $finalPreSignalWindowSample = $null
 $postSettleObservedRows = 0
+$preSignalStabilizationAttempts = [Collections.Generic.List[object]]::new()
+$preSignalStabilizationAccepted = $false
+$preSignalStabilizationStartedAttempts = 0
 $presentMonHeaderWaitSamples = [Collections.Generic.List[object]]::new()
 $postSettleWindowSamples = [Collections.Generic.List[object]]::new()
 $nativeWindowSamples = [Collections.Generic.List[object]]::new()
@@ -2635,6 +2732,8 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "process_id" -Path "ready") -eq $runtimeProcessId) -Message "Ready PID does not match the launched runtime PID."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_source_commit" -Path "ready") -eq $gitCommit) -Message "Ready ledger is not linked to the exact repository commit."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_profile" -Path "ready") -eq "release") -Message "Runtime does not declare the exact Cargo release profile."
+    [int]$readyRuntimeWatchdogSeconds = Get-RequiredProperty -InputObject $ready -Name "watchdog_seconds" -Path "ready"
+    Assert-Condition -Condition ($readyRuntimeWatchdogSeconds -eq 75) -Message "Runtime ready watchdog is not the governed 75 seconds."
 
     $readyProtocol = Get-RequiredProperty -InputObject $ready -Name "protocol" -Path "ready"
     Assert-Condition -Condition (((Get-RequiredProperty -InputObject $readyProtocol -Name "physical_resolution_px" -Path "ready.protocol") -join "x") -eq "1920x1080") -Message "Ready resolution is not 1920x1080."
@@ -2644,7 +2743,12 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "qualification_eligible" -Path "ready.protocol") -eq $presentationContract.QualificationEligible) -Message "Ready qualification eligibility does not match route $PresentationRoute."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "observation_scope" -Path "ready.protocol") -eq "bevy_window_request_not_resolved_surface") -Message "Ready presentation observation scope changed."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "fixed_hz" -Path "ready.protocol") -eq 60) -Message "Ready fixed rate is not 60 Hz."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "post_measurement_window_hold_ms" -Path "ready.protocol") -eq 500) -Message "Ready post-measurement window hold is not 500 ms."
+    [int]$readyNominalMeasurementSeconds = Get-RequiredProperty -InputObject $readyProtocol -Name "nominal_measurement_seconds" -Path "ready.protocol"
+    [int]$readyPostMeasurementWindowHoldMilliseconds = Get-RequiredProperty -InputObject $readyProtocol -Name "post_measurement_window_hold_ms" -Path "ready.protocol"
+    Assert-Condition -Condition ($readyNominalMeasurementSeconds -eq 30) -Message "Ready nominal measurement duration is not 30 seconds."
+    Assert-Condition -Condition ($readyPostMeasurementWindowHoldMilliseconds -eq 500) -Message "Ready post-measurement window hold is not 500 ms."
+    [double]$maximumGovernedRuntimeBudgetSeconds = $preSignalStabilizationTimeoutSeconds + $readyNominalMeasurementSeconds + ($readyPostMeasurementWindowHoldMilliseconds / 1000.0) + $runtimeWatchdogSafetyMarginSeconds
+    Assert-Condition -Condition ($maximumGovernedRuntimeBudgetSeconds -lt $readyRuntimeWatchdogSeconds) -Message "Pre-signal stabilization, measurement, hold and safety margin do not fit inside the runtime watchdog."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "no_pause" -Path "ready.protocol") -eq $true) -Message "Ready protocol permits pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "screenshots_requested" -Path "ready.protocol") -eq $false) -Message "Ready protocol requests screenshots."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentmon_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require PresentMon."
@@ -2812,96 +2916,186 @@ try {
     $presentMonHeaderWaitMaximumSamplingGapMilliseconds = [double](([decimal]$presentMonHeaderWaitMaximumSamplingGapQpc * 1000) / [decimal]$qpcFrequencyHz)
     $presentMonHeaderWaitPassed = $presentMonHeaderWaitSamples.Count -ge 2 -and $presentMonHeaderWaitMaximumSamplingGapMilliseconds -le $nativeWindowMaximumSamplingGapMilliseconds
 
-    $foregroundSettleResult = Wait-Gate1RuntimeWindowForegroundSettle `
-        -Process $runtimeCapture.Process `
-        -ExpectedHandle $nativeWindowObservation.RawHandle `
-        -FrequencyHz $qpcFrequencyHz `
-        -PresentMonCapture $presentMonCapture `
-        -PresentMonStderrPath $presentMonStderrPath
-    $foregroundSettle = $foregroundSettleResult.Assessment
-    foreach ($settleSample in @($foregroundSettleResult.Samples)) {
-        $nativeWindowSamples.Add($settleSample)
-    }
-    Assert-Condition -Condition ([uint64]$foregroundSettle.StartQpc -ge $presentMonHeaderObservedQpc) -Message "The foreground-settle interval starts before the PresentMon CSV header was observed."
-    $headerWaitToSettleBoundary = Get-Gate1BoundedQpcGapAssessment `
-        -EarlierQpc ([uint64]$presentMonHeaderWaitSamples[-1].Qpc) `
-        -LaterQpc ([uint64]$foregroundSettle.StartQpc) `
-        -FrequencyHz $qpcFrequencyHz
-    Assert-Gate1PresentMonFailurePriority `
-        -PresentMonCapture $presentMonCapture `
-        -PresentMonStderrPath $presentMonStderrPath `
-        -GapPassed $headerWaitToSettleBoundary.Passed `
-        -Phase "during the fixed foreground-settle interval" `
-        -GapFailureMessage "The first foreground-settle sample is not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms of the last PresentMon-header-wait window sample."
-    $postSettleWindowSamples.Add($foregroundSettleResult.Samples[-1])
-
-    Assert-Gate1PresentMonFailurePriority `
-        -PresentMonCapture $presentMonCapture `
-        -PresentMonStderrPath $presentMonStderrPath `
-        -GapPassed $true `
-        -Phase "before the pre-signal PresentMon row" `
-        -GapFailureMessage "Native-window sampling exceeded its governed gap before the pre-signal PresentMon row."
-    $preSignalTimer = [Diagnostics.Stopwatch]::StartNew()
+    $preSignalStabilizationAttempts = [Collections.Generic.List[object]]::new()
+    $preSignalStabilizationAccepted = $false
+    $preSignalStabilizationStartedAttempts = 0
+    $foregroundSettle = $null
+    $foregroundSettleResult = $null
+    $headerWaitToSettleBoundary = $null
     $preSignalObservedRows = 0
     $postSettleObservedRows = 0
     [uint64]$lastPreSignalQpc = 0
-    while ($preSignalTimer.Elapsed.TotalSeconds -lt $presentMonReadyTimeoutSeconds) {
+    [uint64]$preSignalStabilizationBudgetQpc = [uint64][Math]::Floor(([decimal]$qpcFrequencyHz * [decimal]$preSignalStabilizationTimeoutSeconds))
+    Assert-Condition -Condition ($preSignalStabilizationBudgetQpc -gt 0) -Message "The pre-signal stabilization timeout could not be represented in host QPC ticks."
+    [double]$runtimeElapsedAtPreSignalStabilizationStartSeconds = $runtimeWatchdog.Elapsed.TotalSeconds
+    [double]$projectedRuntimeCompletionWithSafetySeconds = $runtimeElapsedAtPreSignalStabilizationStartSeconds + $maximumGovernedRuntimeBudgetSeconds
+    Assert-Condition -Condition ($projectedRuntimeCompletionWithSafetySeconds -lt $readyRuntimeWatchdogSeconds) -Message "The remaining runtime watchdog budget cannot contain stabilization, measurement, hold and safety margin."
+    [uint64]$preSignalStabilizationStartedQpc = [uint64][Diagnostics.Stopwatch]::GetTimestamp()
+    Assert-Condition -Condition ([decimal]$preSignalStabilizationStartedQpc + [decimal]$preSignalStabilizationBudgetQpc -le [decimal][uint64]::MaxValue) -Message "The pre-signal stabilization QPC deadline would overflow."
+    [uint64]$preSignalStabilizationDeadlineQpc = $preSignalStabilizationStartedQpc + $preSignalStabilizationBudgetQpc
+    $preSignalStabilizationTimer = [Diagnostics.Stopwatch]::StartNew()
+    for ($stabilizationAttempt = 1; $stabilizationAttempt -le $preSignalStabilizationMaximumAttempts; $stabilizationAttempt++) {
+        $preSignalStabilizationStartedAttempts = $stabilizationAttempt
+        Assert-Condition -Condition ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) -Message "Pre-signal stabilization exceeded its global $preSignalStabilizationTimeoutSeconds-second timeout before attempt $stabilizationAttempt."
+        $postSettleWindowSamples = [Collections.Generic.List[object]]::new()
+        $foregroundSettleResult = Wait-Gate1RuntimeWindowForegroundSettle `
+            -Process $runtimeCapture.Process `
+            -ExpectedHandle $nativeWindowObservation.RawHandle `
+            -FrequencyHz $qpcFrequencyHz `
+            -PresentMonCapture $presentMonCapture `
+            -PresentMonStderrPath $presentMonStderrPath `
+            -DeadlineQpc $preSignalStabilizationDeadlineQpc
+        Assert-Condition -Condition ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) -Message "Pre-signal stabilization exceeded its absolute QPC deadline after the fixed foreground-settle interval."
+        $foregroundSettle = $foregroundSettleResult.Assessment
+        foreach ($settleSample in @($foregroundSettleResult.Samples)) {
+            $nativeWindowSamples.Add($settleSample)
+        }
+        Assert-Condition -Condition ([uint64]$foregroundSettle.StartQpc -ge $presentMonHeaderObservedQpc) -Message "The foreground-settle interval starts before the PresentMon CSV header was observed."
+        if ($stabilizationAttempt -eq 1) {
+            $headerWaitToSettleBoundary = Get-Gate1BoundedQpcGapAssessment `
+                -EarlierQpc ([uint64]$presentMonHeaderWaitSamples[-1].Qpc) `
+                -LaterQpc ([uint64]$foregroundSettle.StartQpc) `
+                -FrequencyHz $qpcFrequencyHz
+            Assert-Gate1PresentMonFailurePriority `
+                -PresentMonCapture $presentMonCapture `
+                -PresentMonStderrPath $presentMonStderrPath `
+                -GapPassed $headerWaitToSettleBoundary.Passed `
+                -Phase "during the initial fixed foreground-settle interval" `
+                -GapFailureMessage "The first foreground-settle sample is not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms of the last PresentMon-header-wait window sample."
+        }
+        $postSettleWindowSamples.Add($foregroundSettleResult.Samples[-1])
+
         Assert-Gate1PresentMonFailurePriority `
             -PresentMonCapture $presentMonCapture `
             -PresentMonStderrPath $presentMonStderrPath `
             -GapPassed $true `
-            -Phase "before observing a complete target-PID display row" `
-            -GapFailureMessage "Native-window sampling exceeded its governed gap before a complete target-PID display row."
-        if ($runtimeCapture.Process.HasExited) {
-            throw "forge_runtime exited before a post-settle PresentMon row was observed."
-        }
-        $preSignalWindowState = Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
-        $postSettleSamplingGap = Get-Gate1BoundedQpcGapAssessment `
-            -EarlierQpc ([uint64]$postSettleWindowSamples[-1].Qpc) `
-            -LaterQpc ([uint64]$preSignalWindowState.Qpc) `
-            -FrequencyHz $qpcFrequencyHz
-        $postSettleWindowSamples.Add($preSignalWindowState)
-        $nativeWindowSamples.Add($preSignalWindowState)
-        Assert-Gate1PresentMonFailurePriority `
-            -PresentMonCapture $presentMonCapture `
-            -PresentMonStderrPath $presentMonStderrPath `
-            -GapPassed $postSettleSamplingGap.Passed `
-            -Phase "before observing a complete target-PID display row" `
-            -GapFailureMessage "Native-window sampling was not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms after foreground settle and before the start signal."
-        Assert-Condition -Condition (Test-Gate1QualifyingNativeWindowState -State $preSignalWindowState) -Message "The qualified forge_runtime HWND changed or lost foreground after settling and before the start signal."
-        try {
-            $streamSnapshot = Get-PresentMonStreamSnapshot -Path $presentMonRawStdoutPath -ExpectedHeader $expectedPresentMonHeader
-            Assert-Condition -Condition ($streamSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon stdout emitted unknown content before its exact governed CSV header."
-            $candidateRows = @($streamSnapshot.Rows)
-            $completeRows = @($candidateRows | Where-Object {
-                    Test-QualifiedPresentMonPreSignalRow `
-                        -Row $_ `
-                        -ExpectedColumnCount $expectedPresentMonColumns.Count `
-                        -ExpectedApplication ([IO.Path]::GetFileName($runtimePath)) `
-                        -ExpectedProcessId $runtimeProcessId `
-                        -ExpectedRuntime $expectedPresentRuntime
-                })
-            $preSignalObservedRows = $completeRows.Count
-            $postSettleRows = @($completeRows | Where-Object {
-                    [uint64]::Parse([string]$_.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture) -gt [uint64]$foregroundSettle.EndQpc
-                })
-            $postSettleObservedRows = $postSettleRows.Count
-            if ($postSettleRows.Count -gt 0) {
-                $lastPreSignalRow = $postSettleRows[$postSettleRows.Count - 1]
-                Assert-Condition -Condition ([string]::Equals([string]$lastPreSignalRow.Application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "PresentMon pre-signal row names the wrong application."
-                Assert-Condition -Condition ([string]$lastPreSignalRow.SwapChainAddress -match '^0x[0-9A-Fa-f]+$') -Message "PresentMon pre-signal row has no valid swap chain."
-                $lastPreSignalQpc = [uint64]::Parse([string]$lastPreSignalRow.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture)
+            -Phase "before the pre-signal PresentMon row" `
+            -GapFailureMessage "Native-window sampling exceeded its governed gap before the pre-signal PresentMon row."
+        $preSignalTimer = [Diagnostics.Stopwatch]::StartNew()
+        $preSignalObservedRows = 0
+        $postSettleObservedRows = 0
+        $lastPreSignalQpc = 0
+        $restartStabilization = $false
+        while ($preSignalTimer.Elapsed.TotalSeconds -lt $presentMonReadyTimeoutSeconds -and [uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) {
+            Assert-Gate1PresentMonFailurePriority `
+                -PresentMonCapture $presentMonCapture `
+                -PresentMonStderrPath $presentMonStderrPath `
+                -GapPassed $true `
+                -Phase "before observing a complete target-PID display row" `
+                -GapFailureMessage "Native-window sampling exceeded its governed gap before a complete target-PID display row."
+            if ($runtimeCapture.Process.HasExited) {
+                throw "forge_runtime exited before a post-settle PresentMon row was observed."
+            }
+            $preSignalWindowState = Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
+            $postSettleSamplingGap = Get-Gate1BoundedQpcGapAssessment `
+                -EarlierQpc ([uint64]$postSettleWindowSamples[-1].Qpc) `
+                -LaterQpc ([uint64]$preSignalWindowState.Qpc) `
+                -FrequencyHz $qpcFrequencyHz
+            $postSettleWindowSamples.Add($preSignalWindowState)
+            $nativeWindowSamples.Add($preSignalWindowState)
+            if (-not $postSettleSamplingGap.Passed) {
+                Assert-Gate1PresentMonFailurePriority `
+                    -PresentMonCapture $presentMonCapture `
+                    -PresentMonStderrPath $presentMonStderrPath `
+                    -GapPassed $true `
+                    -Phase "before observing a complete target-PID display row" `
+                    -GapFailureMessage "PresentMon failed while classifying a pre-signal controller gap."
+                Assert-Condition -Condition (Test-Gate1QualifyingNativeWindowState -State $preSignalWindowState) -Message "The qualified forge_runtime HWND changed or lost foreground while classifying a pre-signal controller gap."
+                $disposition = Get-Gate1PreSignalGapDisposition `
+                    -GapPassed $false `
+                    -StrictlyOrdered $postSettleSamplingGap.StrictlyOrdered `
+                    -Attempt $stabilizationAttempt `
+                    -MaximumAttempts $preSignalStabilizationMaximumAttempts
+                if ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -ge $preSignalStabilizationDeadlineQpc) {
+                    $disposition = "fail_closed"
+                }
+                $preSignalStabilizationAttempts.Add([pscustomobject][ordered]@{
+                        attempt = $stabilizationAttempt
+                        accepted = $false
+                        reason = "controller_sampling_gap_before_signal"
+                        settle_start_qpc = [uint64]$foregroundSettle.StartQpc
+                        settle_end_qpc = [uint64]$foregroundSettle.EndQpc
+                        gap_earlier_qpc = [uint64]$postSettleSamplingGap.EarlierQpc
+                        gap_later_qpc = [uint64]$postSettleSamplingGap.LaterQpc
+                        gap_qpc = [uint64]$postSettleSamplingGap.GapQpc
+                        gap_ms = [double]$postSettleSamplingGap.GapMilliseconds
+                        maximum_gap_ms = [double]$postSettleSamplingGap.GapMilliseconds
+                        strictly_ordered = [bool]$postSettleSamplingGap.StrictlyOrdered
+                        disposition = [string]$disposition
+                        elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
+                        signal_published = $false
+                    })
+                if ($disposition -eq "fail_closed") {
+                    Assert-Gate1PresentMonFailurePriority `
+                        -PresentMonCapture $presentMonCapture `
+                        -PresentMonStderrPath $presentMonStderrPath `
+                        -GapPassed $false `
+                        -Phase "before observing a complete target-PID display row" `
+                        -GapFailureMessage "Native-window sampling was not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms inside the bounded pre-signal stabilization budget."
+                }
+                $restartStabilization = $true
                 break
             }
-        }
-        catch {
-            if ($_.Exception.Message -like "PresentMon pre-signal row*" -or $_.Exception.Message -like "PresentMon stdout emitted unknown content*") {
-                throw
+            Assert-Condition -Condition (Test-Gate1QualifyingNativeWindowState -State $preSignalWindowState) -Message "The qualified forge_runtime HWND changed or lost foreground after settling and before the start signal."
+            try {
+                $streamSnapshot = Get-PresentMonStreamSnapshot -Path $presentMonRawStdoutPath -ExpectedHeader $expectedPresentMonHeader
+                Assert-Condition -Condition ($streamSnapshot.UnknownLines.Count -eq 0) -Message "PresentMon stdout emitted unknown content before its exact governed CSV header."
+                $candidateRows = @($streamSnapshot.Rows)
+                $completeRows = @($candidateRows | Where-Object {
+                        Test-QualifiedPresentMonPreSignalRow `
+                            -Row $_ `
+                            -ExpectedColumnCount $expectedPresentMonColumns.Count `
+                            -ExpectedApplication ([IO.Path]::GetFileName($runtimePath)) `
+                            -ExpectedProcessId $runtimeProcessId `
+                            -ExpectedRuntime $expectedPresentRuntime
+                    })
+                $preSignalObservedRows = $completeRows.Count
+                $postSettleRows = @($completeRows | Where-Object {
+                        [uint64]::Parse([string]$_.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture) -gt [uint64]$foregroundSettle.EndQpc
+                    })
+                $postSettleObservedRows = $postSettleRows.Count
+                if ($postSettleRows.Count -gt 0) {
+                    $lastPreSignalRow = $postSettleRows[$postSettleRows.Count - 1]
+                    Assert-Condition -Condition ([string]::Equals([string]$lastPreSignalRow.Application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "PresentMon pre-signal row names the wrong application."
+                    Assert-Condition -Condition ([string]$lastPreSignalRow.SwapChainAddress -match '^0x[0-9A-Fa-f]+$') -Message "PresentMon pre-signal row has no valid swap chain."
+                    $lastPreSignalQpc = [uint64]::Parse([string]$lastPreSignalRow.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture)
+                    break
+                }
             }
+            catch {
+                if ($_.Exception.Message -like "PresentMon pre-signal row*" -or $_.Exception.Message -like "PresentMon stdout emitted unknown content*") {
+                    throw
+                }
+            }
+            Start-Sleep -Milliseconds $nativeWindowSamplingIntervalMilliseconds
         }
-        Start-Sleep -Milliseconds $nativeWindowSamplingIntervalMilliseconds
+        if ($restartStabilization) {
+            continue
+        }
+        Assert-Condition -Condition ($lastPreSignalQpc -gt [uint64]$foregroundSettle.EndQpc -and $preSignalObservedRows -gt 0 -and $postSettleObservedRows -gt 0) -Message "PresentMon did not observe a complete target-PID row strictly after the fixed foreground-settle interval."
+        $preSignalStabilizationAttempts.Add([pscustomobject][ordered]@{
+                attempt = $stabilizationAttempt
+                accepted = $true
+                reason = "continuous_pre_signal_window_observed"
+                settle_start_qpc = [uint64]$foregroundSettle.StartQpc
+                settle_end_qpc = [uint64]$foregroundSettle.EndQpc
+                gap_earlier_qpc = [uint64]$postSettleSamplingGap.EarlierQpc
+                gap_later_qpc = [uint64]$postSettleSamplingGap.LaterQpc
+                gap_qpc = [uint64]$postSettleSamplingGap.GapQpc
+                gap_ms = [double]$postSettleSamplingGap.GapMilliseconds
+                maximum_gap_ms = $null
+                strictly_ordered = [bool]$postSettleSamplingGap.StrictlyOrdered
+                disposition = "accept"
+                elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
+                signal_published = $false
+            })
+        $preSignalStabilizationAccepted = $true
+        break
     }
-    Assert-Condition -Condition ($lastPreSignalQpc -gt [uint64]$foregroundSettle.EndQpc -and $preSignalObservedRows -gt 0 -and $postSettleObservedRows -gt 0) -Message "PresentMon did not observe a complete target-PID row strictly after the fixed foreground-settle interval."
+    if ($preSignalStabilizationAccepted) {
+        $preSignalStabilizationTimer.Stop()
+    }
+    Assert-Condition -Condition ($preSignalStabilizationAccepted -and [uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) -Message "Pre-signal stabilization did not produce a continuous accepted interval inside its bounded attempts and timeout."
     $finalPreSignalWindowSample = Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
     Assert-Condition -Condition ([uint64]$finalPreSignalWindowSample.Qpc -gt [uint64]$postSettleWindowSamples[-1].Qpc) -Message "Host QPC was not strictly monotonic at the final native-window sample before signal publication."
     [uint64]$finalPreSignalSamplingGapQpc = [uint64]$finalPreSignalWindowSample.Qpc - [uint64]$postSettleWindowSamples[-1].Qpc
@@ -2917,6 +3111,7 @@ try {
         -EndQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
         -FrequencyHz $qpcFrequencyHz
     Assert-Condition -Condition $postSettleWindowContinuity.StatePassed -Message "Native-window continuity from foreground-settle end through the final pre-publication sample failed."
+    $preSignalStabilizationAttempts[$preSignalStabilizationAttempts.Count - 1].maximum_gap_ms = [double]$postSettleWindowContinuity.MaximumSamplingGapMilliseconds
     Assert-Condition -Condition ($lastPreSignalQpc -lt [uint64]$finalPreSignalWindowSample.Qpc) -Message "The final native-window sample does not follow the complete post-settle PresentMon row."
     $lastPreSignalToFinalWindowSampleBoundary = Get-Gate1BoundedQpcGapAssessment `
         -EarlierQpc $lastPreSignalQpc `
@@ -2959,14 +3154,21 @@ try {
         -CapturePublicationBoundary `
         -PublicationFreshnessAnchorQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
         -PublicationFreshnessMaximumGapQpc $preSignalMaximumSamplingGapQpc
+    $preSignalStabilizationAttempts[$preSignalStabilizationAttempts.Count - 1].signal_published = $true
     [uint64]$signalPublicationLowerBoundQpc = $signalPublicationBoundary.PublicationLowerBoundQpc
     [uint64]$signalPublishedQpc = $signalPublicationBoundary.PublicationCompletedQpc
     Assert-Condition -Condition ($signalPublicationLowerBoundQpc -ge $measurementNotBeforeQpc -and $signalPublishedQpc -ge $signalPublicationLowerBoundQpc) -Message "The host QPC regressed while publishing the start signal."
+    Assert-Condition -Condition ($signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc) -Message "Signal publication completed after the absolute pre-signal stabilization deadline."
     $finalSampleToPublicationCompletedMilliseconds = [double]((([decimal]$signalPublishedQpc - [decimal][uint64]$finalPreSignalWindowSample.Qpc) * 1000) / [decimal]$qpcFrequencyHz)
     Assert-Condition -Condition ($signalPublicationBoundary.PublicationFreshnessPassed -and $finalSampleToPublicationCompletedMilliseconds -le $nativeWindowMaximumSamplingGapMilliseconds) -Message "Signal publication did not complete within $nativeWindowMaximumSamplingGapMilliseconds ms of the final qualified native-window sample."
+    $preSignalStabilizationTraceAssessment = Get-Gate1PreSignalStabilizationTraceAssessment `
+        -Attempts @($preSignalStabilizationAttempts) `
+        -MaximumAttempts $preSignalStabilizationMaximumAttempts `
+        -MaximumGapMilliseconds $nativeWindowMaximumSamplingGapMilliseconds
+    Assert-Condition -Condition $preSignalStabilizationTraceAssessment.Passed -Message "Pre-signal stabilization trace violated its bounded anti-selection invariants."
     $hostBoundary = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-host-boundary"
-        schema_version = 4
+        schema_version = 5
         repository_commit = $gitCommit
         repository_tree = $gitTree
         runtime_process_id = $runtimeProcessId
@@ -3017,6 +3219,39 @@ try {
             maximum_gap_ms = $headerWaitToSettleBoundary.MaximumGapMilliseconds
             strictly_ordered = $headerWaitToSettleBoundary.StrictlyOrdered
             passed = $headerWaitToSettleBoundary.Passed
+        }
+        pre_signal_stabilization = [ordered]@{
+            policy = "bounded_post_settle_controller_gap_restabilization_before_signal_only"
+            maximum_attempts = $preSignalStabilizationMaximumAttempts
+            timeout_seconds = $preSignalStabilizationTimeoutSeconds
+            elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
+            runtime_watchdog_seconds = $readyRuntimeWatchdogSeconds
+            runtime_watchdog_safety_margin_seconds = $runtimeWatchdogSafetyMarginSeconds
+            maximum_governed_runtime_budget_seconds = $maximumGovernedRuntimeBudgetSeconds
+            runtime_elapsed_at_start_seconds = $runtimeElapsedAtPreSignalStabilizationStartSeconds
+            projected_runtime_completion_with_safety_seconds = $projectedRuntimeCompletionWithSafetySeconds
+            fits_runtime_watchdog = ($projectedRuntimeCompletionWithSafetySeconds -lt $readyRuntimeWatchdogSeconds)
+            started_qpc = $preSignalStabilizationStartedQpc
+            deadline_qpc = $preSignalStabilizationDeadlineQpc
+            signal_published_qpc = $signalPublishedQpc
+            started_attempt_count = $preSignalStabilizationStartedAttempts
+            attempt_count = $preSignalStabilizationAttempts.Count
+            rejected_attempt_count = @($preSignalStabilizationAttempts | Where-Object { -not $_.accepted }).Count
+            accepted_attempt = @($preSignalStabilizationAttempts | Where-Object { $_.accepted })[0].attempt
+            rejected_attempts_never_published_signal = @($preSignalStabilizationAttempts | Where-Object { -not $_.accepted -and $_.signal_published }).Count -eq 0
+            attempts = @($preSignalStabilizationAttempts)
+            trace_assessment = [ordered]@{
+                count_bounded = $preSignalStabilizationTraceAssessment.CountBounded
+                indices_contiguous = $preSignalStabilizationTraceAssessment.IndicesContiguous
+                exactly_one_accepted = $preSignalStabilizationTraceAssessment.ExactlyOneAccepted
+                accepted_is_last = $preSignalStabilizationTraceAssessment.AcceptedIsLast
+                accepted_signal_published = $preSignalStabilizationTraceAssessment.AcceptedSignalPublished
+                accepted_gap_valid = $preSignalStabilizationTraceAssessment.AcceptedGapValid
+                rejected_signals_absent = $preSignalStabilizationTraceAssessment.RejectedSignalsAbsent
+                rejected_gaps_valid = $preSignalStabilizationTraceAssessment.RejectedGapsValid
+                passed = $preSignalStabilizationTraceAssessment.Passed
+            }
+            passed = ($preSignalStabilizationAccepted -and $signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc -and $preSignalStabilizationTraceAssessment.Passed)
         }
         acquisition_phase_order_before_signal = [ordered]@{
             foreground_acquired_before_presentmon_invocation = $foregroundAcquiredBeforePresentMonInvocation
@@ -3090,11 +3325,15 @@ try {
         }
     }
     Assert-Condition -Condition (
-        $hostBoundary.schema_version -eq 4 -and
+        $hostBoundary.schema_version -eq 5 -and
         [uint64]$hostBoundary.presentmon_invocation_qpc -eq $presentMonInvocationQpc -and
+        $hostBoundary.pre_signal_stabilization.passed -and
+        $hostBoundary.pre_signal_stabilization.fits_runtime_watchdog -and
+        $hostBoundary.pre_signal_stabilization.trace_assessment.passed -and
+        $hostBoundary.pre_signal_stabilization.rejected_attempts_never_published_signal -and
         $hostBoundary.acquisition_phase_order_before_signal.passed -and
         $hostBoundary.last_pre_signal_to_final_window_sample_boundary.passed
-    ) -Message "Host-boundary schema 4 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
+    ) -Message "Host-boundary schema 5 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
     Write-JsonAtomically -Path $hostBoundaryPath -Value $hostBoundary
 
     while (-not $runtimeCapture.Process.HasExited) {
@@ -3466,7 +3705,7 @@ try {
         -MaximumConsecutiveOver16 $maxConsecutiveOver16
     $displayThresholdsPassed = $displayStutterThresholdAssessment.ThresholdsPassed
     $executionStateGuardActiveThroughReplay = $executionStateGuard.Acquired -and $null -eq $executionStateGuardRelease
-    $boundedThresholdsPassed = $displayThresholdsPassed -and $executionStateGuardActiveThroughReplay -and $foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $presentMonHeaderWaitPassed -and $headerWaitToSettleBoundary.Passed -and $preSignalPhaseOrder.Passed -and $foregroundSettle.Passed -and $lastPreSignalToFinalWindowSampleBoundary.Passed -and $postSettleWindowContinuity.StatePassed -and $foregroundSettleBoundary.Passed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
+    $boundedThresholdsPassed = $displayThresholdsPassed -and $executionStateGuardActiveThroughReplay -and $foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $presentMonHeaderWaitPassed -and $headerWaitToSettleBoundary.Passed -and $preSignalStabilizationAccepted -and ($signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc) -and $preSignalStabilizationTraceAssessment.Passed -and $preSignalPhaseOrder.Passed -and $foregroundSettle.Passed -and $lastPreSignalToFinalWindowSampleBoundary.Passed -and $postSettleWindowContinuity.StatePassed -and $foregroundSettleBoundary.Passed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
     $validationStatus = if ($presentationContract.Name -eq "FifoDiagnostic") {
         if ($boundedThresholdsPassed) { "diagnostic_thresholds_passed" } else { "diagnostic_thresholds_failed" }
     }
@@ -3479,7 +3718,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 11
+        schema_version = 12
         status = $validationStatus
         presentation_route = $presentationContract.PresentationRoute
         requested_present_mode = $presentationContract.RequestedPresentMode
@@ -3554,6 +3793,39 @@ try {
                 settle_end_before_last_pre_signal = $preSignalPhaseOrder.SettleEndsBeforeLastPreSignal
                 last_pre_signal_before_final_window_sample = $preSignalPhaseOrder.LastPreSignalBeforeFinalWindowSample
                 passed = ($foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $preSignalPhaseOrder.Passed)
+            }
+            pre_signal_stabilization = [ordered]@{
+                policy = "bounded_post_settle_controller_gap_restabilization_before_signal_only"
+                maximum_attempts = $preSignalStabilizationMaximumAttempts
+                timeout_seconds = $preSignalStabilizationTimeoutSeconds
+                elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
+                runtime_watchdog_seconds = $readyRuntimeWatchdogSeconds
+                runtime_watchdog_safety_margin_seconds = $runtimeWatchdogSafetyMarginSeconds
+                maximum_governed_runtime_budget_seconds = $maximumGovernedRuntimeBudgetSeconds
+                runtime_elapsed_at_start_seconds = $runtimeElapsedAtPreSignalStabilizationStartSeconds
+                projected_runtime_completion_with_safety_seconds = $projectedRuntimeCompletionWithSafetySeconds
+                fits_runtime_watchdog = ($projectedRuntimeCompletionWithSafetySeconds -lt $readyRuntimeWatchdogSeconds)
+                started_qpc = $preSignalStabilizationStartedQpc
+                deadline_qpc = $preSignalStabilizationDeadlineQpc
+                signal_published_qpc = $signalPublishedQpc
+                started_attempt_count = $preSignalStabilizationStartedAttempts
+                attempt_count = $preSignalStabilizationAttempts.Count
+                rejected_attempt_count = @($preSignalStabilizationAttempts | Where-Object { -not $_.accepted }).Count
+                accepted_attempt = @($preSignalStabilizationAttempts | Where-Object { $_.accepted })[0].attempt
+                rejected_attempts_never_published_signal = @($preSignalStabilizationAttempts | Where-Object { -not $_.accepted -and $_.signal_published }).Count -eq 0
+                attempts = @($preSignalStabilizationAttempts)
+                trace_assessment = [ordered]@{
+                    count_bounded = $preSignalStabilizationTraceAssessment.CountBounded
+                    indices_contiguous = $preSignalStabilizationTraceAssessment.IndicesContiguous
+                    exactly_one_accepted = $preSignalStabilizationTraceAssessment.ExactlyOneAccepted
+                    accepted_is_last = $preSignalStabilizationTraceAssessment.AcceptedIsLast
+                    accepted_signal_published = $preSignalStabilizationTraceAssessment.AcceptedSignalPublished
+                    accepted_gap_valid = $preSignalStabilizationTraceAssessment.AcceptedGapValid
+                    rejected_signals_absent = $preSignalStabilizationTraceAssessment.RejectedSignalsAbsent
+                    rejected_gaps_valid = $preSignalStabilizationTraceAssessment.RejectedGapsValid
+                    passed = $preSignalStabilizationTraceAssessment.Passed
+                }
+                passed = ($preSignalStabilizationAccepted -and $signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc -and $preSignalStabilizationTraceAssessment.Passed)
             }
             header_to_foreground_settle_boundary = [ordered]@{
                 last_header_wait_sample_qpc = $headerWaitToSettleBoundary.EarlierQpc
@@ -3816,6 +4088,13 @@ try {
             foreground_settle_started_after_presentmon_header_observation = $preSignalPhaseOrder.HeaderObservedAtOrBeforeSettle
             pre_signal_acquisition_phase_order_passed = $preSignalPhaseOrder.Passed
             pre_signal_acquisition_phase_order_self_test_passed = $true
+            pre_signal_stabilization_bounded = ($preSignalStabilizationAttempts.Count -ge 1 -and $preSignalStabilizationAttempts.Count -le $preSignalStabilizationMaximumAttempts)
+            pre_signal_stabilization_within_global_timeout = ($signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc)
+            pre_signal_stabilization_fits_runtime_watchdog = ($projectedRuntimeCompletionWithSafetySeconds -lt $readyRuntimeWatchdogSeconds)
+            pre_signal_stabilization_passed = $preSignalStabilizationAccepted
+            rejected_pre_signal_attempts_never_published_signal = @($preSignalStabilizationAttempts | Where-Object { -not $_.accepted -and $_.signal_published }).Count -eq 0
+            pre_signal_stabilization_self_test_passed = $true
+            pre_signal_stabilization_trace_assessment_passed = $preSignalStabilizationTraceAssessment.Passed
             runtime_foreground_settle_fixed_2000_ms = ($foregroundSettle.RequiredDurationMilliseconds -eq 2000 -and $foregroundSettle.DurationPassed)
             runtime_foreground_settle_sampling_interval_100_ms = ($foregroundSettle.SamplingIntervalMilliseconds -eq 100)
             runtime_foreground_settle_maximum_sampling_gap_at_most_250_ms = $foregroundSettle.SamplingGapPassed
@@ -3835,7 +4114,7 @@ try {
             foreground_settle_contract_self_test_passed = $true
             foreground_settle_boundary_contract_self_test_passed = $true
             presentmon_failure_priority_self_test_passed = $true
-            host_boundary_schema_4 = $true
+            host_boundary_schema_5 = $true
             runtime_window_state_sampling_covers_controller_start = $nativeWindowContinuity.CoversControllerStart
             runtime_window_state_sampling_covers_controller_end = $nativeWindowContinuity.CoversControllerEnd
             runtime_window_maximum_sampling_gap_at_most_250_ms = $nativeWindowContinuity.SamplingGapPassed
@@ -3930,13 +4209,20 @@ try {
         $gate1SuccessMessage = "FORGE_GATE1_FIFO_DIAGNOSTIC_COMPLETE status={0} qualifying=false samples={1} mean_ms={2:F4} mean_display_fps={3:F3} p95_ms={4:F4} one_percent_low_fps={5:F3} not_foreground_samples={6}" -f $validationStatus, $displayedTimes.Count, $meanMilliseconds, $meanDisplayFps, $p95Milliseconds, $onePercentLowFps, $nativeWindowContinuity.NotForegroundSamples
     }
     Assert-Condition -Condition (
-        $validation.schema_version -eq 11 -and
+        $validation.schema_version -eq 12 -and
         [uint64]$validation.runtime.pre_signal_acquisition_order.presentmon_invocation_qpc -eq $presentMonInvocationQpc -and
         $validation.runtime.pre_signal_acquisition_order.passed -and
+        $validation.runtime.pre_signal_stabilization.passed -and
+        $validation.runtime.pre_signal_stabilization.rejected_attempts_never_published_signal -and
         $validation.runtime.last_pre_signal_to_final_window_sample_boundary.passed -and
         $validation.presentmon.last_pre_signal_to_final_window_sample_boundary.passed -and
-        $validation.checks.host_boundary_schema_4
-    ) -Message "Validation schema 11 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
+        $validation.checks.host_boundary_schema_5 -and
+        $validation.checks.pre_signal_stabilization_bounded -and
+        $validation.checks.pre_signal_stabilization_within_global_timeout -and
+        $validation.checks.pre_signal_stabilization_fits_runtime_watchdog -and
+        $validation.checks.pre_signal_stabilization_trace_assessment_passed -and
+        $validation.checks.rejected_pre_signal_attempts_never_published_signal
+    ) -Message "Validation schema 12 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
     $gate1ReplayPrepared = $true
 }
 catch {
@@ -4033,6 +4319,46 @@ if ($null -ne $gate1ReplayError) {
     }
     else {
         ""
+    }
+    if ([IO.Directory]::Exists($outputPath)) {
+        try {
+            $abortSignalPublished = [IO.File]::Exists($signalPath)
+            $abortEvidence = [ordered]@{
+                schema = "forge.gate1-gameplay-stutter-abort"
+                schema_version = 1
+                status = if ($abortSignalPublished) { "abort_after_measurement_signal_nonqualifying" } else { "abort_infrastructure_before_signal_nonqualifying" }
+                verdict = "no_qualified_performance_verdict"
+                error = $gate1ReplayError.Exception.Message
+                repository_commit = $gitCommit
+                repository_tree = $gitTree
+                runtime_process_id = $runtimeProcessId
+                presentmon_session_id = $sessionId
+                presentmon_had_exited_before_cleanup = $presentMonHadExitedBeforeCleanup
+                presentmon_exit_code_before_cleanup = $presentMonExitCodeBeforeCleanup
+                presentmon_stderr = $drainedPresentMonStderr
+                signal_published = $abortSignalPublished
+                host_boundary_published = [IO.File]::Exists($hostBoundaryPath)
+                runtime_ledger_published = [IO.File]::Exists($ledgerPath)
+                validation_published = [IO.File]::Exists($validationPath)
+                pre_signal_stabilization = [ordered]@{
+                    maximum_attempts = $preSignalStabilizationMaximumAttempts
+                    timeout_seconds = $preSignalStabilizationTimeoutSeconds
+                    started_attempt_count = $preSignalStabilizationStartedAttempts
+                    attempt_count = $preSignalStabilizationAttempts.Count
+                    accepted = $preSignalStabilizationAccepted
+                    attempts = @($preSignalStabilizationAttempts)
+                }
+                cleanup = [ordered]@{
+                    presentmon_session_absent = $presentMonSessionCleanupSucceeded
+                    presentmon_process_stopped = $presentMonStopped
+                    runtime_process_stopped = $runtimeStopped
+                }
+            }
+            Write-JsonAtomically -Path $abortPath -Value $abortEvidence
+        }
+        catch {
+            Write-Warning "Could not persist bounded Gate 1 abort evidence: $($_.Exception.Message)"
+        }
     }
     $postCleanupPresentMonFailure = Select-Gate1PresentMonFailure `
         -StderrText $drainedPresentMonStderr `
