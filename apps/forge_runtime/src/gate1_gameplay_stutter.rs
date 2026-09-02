@@ -28,12 +28,15 @@ use std::{
 };
 
 const READY_SCHEMA: &str = "forge.gate1-gameplay-stutter-ready";
+const READINESS_TIMEOUT_SCHEMA: &str = "forge.gate1-gameplay-stutter-readiness-timeout";
 const SIGNAL_SCHEMA: &str = "forge.gate1-gameplay-stutter-start-signal";
 const LEDGER_SCHEMA: &str = "forge.gate1-gameplay-stutter";
 const READY_SCHEMA_VERSION: u32 = 4;
+const READINESS_TIMEOUT_SCHEMA_VERSION: u32 = 1;
 const SIGNAL_SCHEMA_VERSION: u32 = 3;
 const LEDGER_SCHEMA_VERSION: u32 = 5;
 const READY_FILE: &str = "gate1-gameplay-stutter.ready.json";
+const READINESS_TIMEOUT_FILE: &str = "gate1-gameplay-stutter.readiness-timeout.json";
 const START_SIGNAL_FILE: &str = "gate1-gameplay-stutter.start.signal.json";
 const LEDGER_FILE: &str = "gate1-gameplay-stutter.json";
 const FAILURE_FILE: &str = "gate1-gameplay-stutter.failure.txt";
@@ -616,6 +619,43 @@ struct ReadyLedger<'a> {
 }
 
 #[derive(Serialize)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "the timeout diagnostic preserves every independent pending readiness predicate"
+)]
+struct PendingReadinessPredicates {
+    pipeline_ready: bool,
+    governed_scene_valid: bool,
+    governed_scene_validation_error: Option<String>,
+    quality_fixed_high: bool,
+    scenery_activated: bool,
+    gpu_present: bool,
+    player_profile_content_hash_present: bool,
+    player_grounded: bool,
+    camera_query_succeeded: bool,
+    runtime_binding_present: bool,
+}
+
+#[derive(Serialize)]
+struct ReadinessTimeoutDiagnostic<'a> {
+    schema: &'static str,
+    schema_version: u32,
+    status: &'static str,
+    qualifying: bool,
+    process_id: u32,
+    build_source_commit: Option<&'static str>,
+    build_profile: &'static str,
+    phase: &'static str,
+    ready_file_written: bool,
+    ready_wait_ticks: u32,
+    ready_max_fixed_ticks: u32,
+    presentation_route: &'static str,
+    predicates: &'a PendingReadinessPredicates,
+    pipeline_warmup: &'a PipelineWarmupObservation,
+    gpu: Option<&'a GpuDiagnostic>,
+}
+
+#[derive(Serialize)]
 struct ReadyEvidence {
     ready_file_written: bool,
     start_signal_file: &'static str,
@@ -939,6 +979,14 @@ fn observe_controller(
                 )?
                 else {
                     if runtime.ready_wait_ticks >= READY_MAX_FIXED_TICKS {
+                        let predicates =
+                            pending_readiness_predicates(&pipeline, &scene, &bindings, &snapshot);
+                        write_readiness_timeout_diagnostic(
+                            &runtime,
+                            &predicates,
+                            &pipeline,
+                            scene.gpu.as_deref(),
+                        )?;
                         return Err(format!(
                             "gameplay stutter proof remained unready after {READY_MAX_FIXED_TICKS} fixed ticks"
                         ));
@@ -1374,6 +1422,27 @@ fn ready_binding(
         ));
     }
     Ok(Some(binding))
+}
+
+fn pending_readiness_predicates(
+    pipeline: &PipelineWarmupObservation,
+    scene: &GovernedScene,
+    bindings: &PlayerRuntimeBindings,
+    snapshot: &PlayerRuntimeSnapshot,
+) -> PendingReadinessPredicates {
+    let governed_scene_validation_error = scene.validate().err();
+    PendingReadinessPredicates {
+        pipeline_ready: pipeline.is_ready(),
+        governed_scene_valid: governed_scene_validation_error.is_none(),
+        governed_scene_validation_error,
+        quality_fixed_high: quality_is_fixed_high(&scene.quality),
+        scenery_activated: scenery_is_activated(&scene.scenery),
+        gpu_present: scene.gpu.is_some(),
+        player_profile_content_hash_present: snapshot.profile_content_hash.is_some(),
+        player_grounded: snapshot.grounded,
+        camera_query_succeeded: snapshot.camera_query_succeeded,
+        runtime_binding_present: bindings.snapshot().is_some(),
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1862,6 +1931,41 @@ fn validate_start_signal(signal: &StartSignal, expected_process_id: u32) -> Resu
         return Err("PresentMon session id is empty or unsafe".to_owned());
     }
     Ok(())
+}
+
+fn write_readiness_timeout_diagnostic(
+    runtime: &Runtime,
+    predicates: &PendingReadinessPredicates,
+    pipeline: &PipelineWarmupObservation,
+    gpu: Option<&GpuDiagnostic>,
+) -> Result<(), String> {
+    let diagnostic = ReadinessTimeoutDiagnostic {
+        schema: READINESS_TIMEOUT_SCHEMA,
+        schema_version: READINESS_TIMEOUT_SCHEMA_VERSION,
+        status: "failed_before_ready",
+        qualifying: false,
+        process_id: std::process::id(),
+        build_source_commit: option_env!("FORGE_SOURCE_COMMIT"),
+        build_profile: env!("FORGE_BUILD_PROFILE"),
+        phase: runtime.phase.label(),
+        ready_file_written: runtime.ready_written,
+        ready_wait_ticks: runtime.ready_wait_ticks,
+        ready_max_fixed_ticks: READY_MAX_FIXED_TICKS,
+        presentation_route: runtime
+            .configuration
+            .presentation_route
+            .presentation_route(),
+        predicates,
+        pipeline_warmup: pipeline,
+        gpu,
+    };
+    write_json_atomic(
+        &runtime
+            .configuration
+            .output_dir
+            .join(READINESS_TIMEOUT_FILE),
+        &diagnostic,
+    )
 }
 
 fn write_ready(
@@ -2422,6 +2526,7 @@ fn fail(runtime: &mut Runtime, exit: &mut MessageWriter<AppExit>, reason: &str) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use forge_engine::PipelineWarmupStatus;
 
     fn test_runtime() -> Runtime {
         Runtime::new(Configuration {
@@ -2432,6 +2537,106 @@ mod tests {
             player_spawn_position: Vec3::ZERO,
             maximum_horizontal_step_m: 0.1,
         })
+    }
+
+    fn sample_pending_readiness_predicates() -> PendingReadinessPredicates {
+        PendingReadinessPredicates {
+            pipeline_ready: false,
+            governed_scene_valid: true,
+            governed_scene_validation_error: None,
+            quality_fixed_high: true,
+            scenery_activated: true,
+            gpu_present: true,
+            player_profile_content_hash_present: true,
+            player_grounded: true,
+            camera_query_succeeded: true,
+            runtime_binding_present: true,
+        }
+    }
+
+    #[test]
+    fn readiness_timeout_predicate_schema_names_every_pending_condition() {
+        let mut predicates = sample_pending_readiness_predicates();
+        predicates.governed_scene_valid = false;
+        predicates.governed_scene_validation_error = Some("scene pending".to_owned());
+        let serialized = serde_json::to_value(predicates).unwrap();
+        let object = serialized.as_object().unwrap();
+
+        assert_eq!(object.len(), 10);
+        for field in [
+            "pipeline_ready",
+            "governed_scene_valid",
+            "governed_scene_validation_error",
+            "quality_fixed_high",
+            "scenery_activated",
+            "gpu_present",
+            "player_profile_content_hash_present",
+            "player_grounded",
+            "camera_query_succeeded",
+            "runtime_binding_present",
+        ] {
+            assert!(object.contains_key(field), "missing predicate `{field}`");
+        }
+        assert_eq!(
+            serialized["governed_scene_validation_error"],
+            "scene pending"
+        );
+    }
+
+    #[test]
+    fn readiness_timeout_diagnostic_is_atomic_exact_and_nonqualifying() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!(
+            "openrpg-forge-gate1-readiness-timeout-{}-{unique}",
+            std::process::id()
+        ));
+        fs::create_dir_all(&root).unwrap();
+
+        let mut runtime = test_runtime();
+        runtime.configuration.output_dir.clone_from(&root);
+        runtime.ready_wait_ticks = READY_MAX_FIXED_TICKS;
+        let predicates = sample_pending_readiness_predicates();
+        let pipeline = PipelineWarmupObservation {
+            status: PipelineWarmupStatus::Warming,
+            total: 69,
+            creating: 1,
+            ready: 68,
+            observed_render_frames: 1_200,
+            ..default()
+        };
+
+        write_readiness_timeout_diagnostic(&runtime, &predicates, &pipeline, None).unwrap();
+
+        let diagnostic_path = root.join(READINESS_TIMEOUT_FILE);
+        let temporary_path = root.join(format!(".{READINESS_TIMEOUT_FILE}.tmp"));
+        let serialized: serde_json::Value =
+            serde_json::from_slice(&fs::read(&diagnostic_path).unwrap()).unwrap();
+        assert_eq!(serialized["schema"], READINESS_TIMEOUT_SCHEMA);
+        assert_eq!(
+            serialized["schema_version"],
+            READINESS_TIMEOUT_SCHEMA_VERSION
+        );
+        assert_eq!(serialized["status"], "failed_before_ready");
+        assert_eq!(serialized["qualifying"], false);
+        assert_eq!(serialized["phase"], "waiting_for_ready");
+        assert_eq!(serialized["ready_file_written"], false);
+        assert_eq!(serialized["ready_wait_ticks"], READY_MAX_FIXED_TICKS);
+        assert_eq!(serialized["ready_max_fixed_ticks"], READY_MAX_FIXED_TICKS);
+        assert_eq!(serialized["predicates"]["pipeline_ready"], false);
+        assert_eq!(serialized["pipeline_warmup"]["status"], "warming");
+        assert_eq!(serialized["pipeline_warmup"]["creating"], 1);
+        assert_eq!(serialized["pipeline_warmup"]["ready"], 68);
+        assert!(serialized["gpu"].is_null());
+        assert!(!root.join(READY_FILE).exists());
+        assert!(!temporary_path.exists());
+
+        let replacement =
+            write_readiness_timeout_diagnostic(&runtime, &predicates, &pipeline, None).unwrap_err();
+        assert!(replacement.contains("refusing to replace existing proof file"));
+        fs::remove_dir_all(root).unwrap();
     }
 
     fn valid_signal(process_id: u32) -> StartSignal {
