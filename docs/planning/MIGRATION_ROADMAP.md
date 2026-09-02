@@ -1,6 +1,6 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-09-01
+Dernière mise à jour : 2026-09-02
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
 automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gate 2 interdite sans
@@ -306,14 +306,23 @@ tests moteur/runtime/intégration, l'audit de provenance et le build Release pas
 Release produit 29 PNG et un MP4, zéro warning/erreur/panic, active une fois les neuf modèles CC0 sans
 fallback et réduit de 98,88 à 100 % le masque bleu-noir sur les six vues diagnostiques.
 
-La source courante `873618af59eb2e2b6426b91d4fff0ec615fc70d8`, arbre
+La campagne visuelle `873618af59eb2e2b6426b91d4fff0ec615fc70d8`, arbre
 `9ba6455fd632d6532bda27457312c7d229d46e2f`, remplace la trajectoire synthétique par le contrôleur
-gameplay, la caméra `ForgePlayerCamera` et les collisions Rapier réelles. Les 6 tests R1-048 ciblés
-Release, 40 tests runtime Release, 167 tests moteur/runtime/intégration, Clippy strict, l'audit de
-provenance et le build Release exact passent. La campagne schema v2 acquiert 29 PNG et un MP4 H.264
-de 24 frames : 173 ticks gameplay tous grounded/avec collision, 13,544837 m parcourus vers -Z,
-0,172029 m de dérive latérale et arrêt en 11 ticks. Les checkpoints sont pausés pendant leur capture ;
-le MP4 à 8 FPS ne qualifie donc pas le stutter temps réel.
+gameplay, la caméra `ForgePlayerCamera` et les collisions Rapier réelles. Elle conserve 29 PNG et un
+MP4 H.264 de 24 checkpoints. Les checkpoints sont pausés pendant leur capture ; le MP4 à 8 FPS ne
+qualifie donc pas le stutter temps réel.
+
+La source courante publiée `15635b3f85b623654e498b17ed299674928313e6`, arbre
+`187ae357e24c47403b9c638c0a0737ed01215e33`, borne le rafraîchissement des preuves et exige des reçus
+monotones d'audit de visibilité végétation au démarrage et à la frontière finale. Elle passe 140/140
+tests moteur Release, 52/52 tests runtime Release, 1/1 test d'intégration Release, Clippy strict et
+l'audit de provenance. Le ledger runtime enregistre sans pause 1 800 ticks en 29,997926 s, reçus 1/1
+puis 2/2, 3 672 frames main-world et 3 674 contrôles d'invariants. Séparément, l'hôte retient 719
+lignes PresentMon du PID 2864 avec `CPUStartQPC >= measurement_not_before_qpc`, sans borne haute issue
+du runtime. Les 680 présentations résolues échouent aux seuils : moyenne 44,2516 ms, p95 62,4861 ms,
+p99 76,4441 ms et 1 % low 12,5912 FPS. La frontière hôte n'est ni vérifiée ni ingérée par le runtime.
+La campagne est **non qualifiante** — target Cargo partagé, aucun rebuild gouverné en target propre —
+et le GPU cible comme la revue humaine restent à faux.
 
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
@@ -351,11 +360,13 @@ et supprime le warning natif observé à `a34596bd`. La campagne initiale `a7c9b
 contours/stipple noirs, silhouettes lointaines crénelées, grands aplats et eau masquée. La campagne
 corrective `6a24cabe` élimine le principal défaut depth-only et rend `R1-046`/`R1-047` candidates à
 revue humaine. La campagne `873618af` acquiert ensuite le vrai contrôleur gameplay, sa caméra et
-Rapier, mais pas une chronologie de présentation temps réel. Le ledger conserve les qualifications
-stutter, humaine, GPU météo et routes à faux. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048`
-restent donc ouverts. `R1-043` reste satisfaite ; matériel cible, stutter représentatif et revue
-humaine restent dus. L'audit provenance strict `873618af` passe sans asset Cadle ; la CI distante reste
-`NOT RUN` sous ADR-0006. Ce statut n'est pas un PASS. Gate 1 reste **OUVERTE**.
+Rapier. Au lot `15635b3f`, le ledger runtime et la sélection PresentMon hôte restent deux observations
+distinctes ; l'absence de borne haute runtime, de vérification et d'ingestion de la frontière hôte,
+ainsi que l'échec aux seuils empêchent de fermer le stutter. `R1-023`, `R1-025`, `R1-026`
+et `R1-046` à `R1-048` restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste
+satisfaite ; matériel cible, stutter représentatif et revue humaine restent dus. L'audit provenance
+strict `15635b3f` passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
+n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
 
@@ -464,8 +475,12 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-047` vue lointaine — PNG Release `873618af` réacquis ; correction bleu-noir préservée,
   revue humaine LOD/composition encore due.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
-  `ForgePlayerCamera`, 24 checkpoints 60 Hz et MP4 H.264 Release 3 s acquis à `873618af` ; parcours
-  temps réel représentatif, stutter et revue humaine non qualifiés.
+  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. À `15635b3f`, le ledger
+  runtime enregistre 1 800 ticks/29,997926 s/3 672 frames/3 674 contrôles ; la sélection hôte distincte
+  retient 719 lignes PresentMon du PID 2864 après une borne QPC basse seulement. Sans borne haute,
+  vérification ou ingestion runtime, elle reste non qualifiante et **FAIL seuils** (DisplayedTime
+  moyen 44,2516 ms, p95 62,4861 ms, 1 % low 12,5912 FPS) ; revue humaine non réalisée ;
+  [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
@@ -479,17 +494,19 @@ qualité                   Low / Medium / High / Ultra
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme ;
-- [ ] p95 ≤ 16,7 ms ;
-- [ ] 1 % low ≥ 45 FPS ;
-- [ ] absence de stutter récurrent — le MP4 8 FPS `873618af` est assemblé depuis des checkpoints
-  pausés et ne qualifie pas la présentation temps réel ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — sélection PresentMon hôte `15635b3f`
+  non qualifiant en échec à 44,2516 ms de DisplayedTime moyen ; GPU cible non mesuré ;
+- [ ] p95 ≤ 16,7 ms — sélection PresentMon hôte non qualifiante à 62,4861 ms ;
+- [ ] 1 % low ≥ 45 FPS — sélection PresentMon hôte non qualifiante à 12,5912 FPS ;
+- [ ] absence de stutter récurrent — la sélection PresentMon hôte `15635b3f` est non qualifiante et
+  échoue aux seuils avec 672/680 présentations au-dessus de 16,7 ms et 600/680 au-dessus de 33,3 ms ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
-- [x] rapport et captures versionnés — rapport Gate 1, preuves Browser, lot correctif `6a24cabe` et
-  lot contrôleur Release `873618af` ajoutés avec leurs SHA-256 et audit de provenance.
+- [x] rapport et captures versionnés — rapport Gate 1, preuves Browser, lot correctif `6a24cabe`,
+  lot contrôleur Release `873618af` et synthèse PresentMon `15635b3f` ajoutés avec leurs SHA-256 et
+  audit de provenance ; les artefacts bruts de la campagne non qualifiante restent externes et hashés.
 
 ---
 

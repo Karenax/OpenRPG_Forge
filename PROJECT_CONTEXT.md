@@ -1,9 +1,9 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **1er septembre 2026**
+Dernière mise à jour : **2 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte au commit source courant
-`873618af59eb2e2b6426b91d4fff0ec615fc70d8` ; Gate 2 interdite ; produit non qualifié**
+`15635b3f85b623654e498b17ed299674928313e6` ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -29,10 +29,10 @@ Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN`
 facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
 jamais transformer ce statut en CI verte.
 
-Le snapshot source courant de Gate 1 est `873618af`, arbre
-`9ba6455fd632d6532bda27457312c7d229d46e2f`. Sa validation passe le formatage, le diff,
-Clippy strict runtime, 167 tests moteur/runtime/intégration, 40 tests runtime Release, l'audit de
-provenance strict et le build Release exact. Les 28/28 tests Studio et l'acquisition temporelle
+Le snapshot source courant de Gate 1 est `15635b3f`, arbre
+`187ae357e24c47403b9c638c0a0737ed01215e33`. Sa validation passe 140/140 tests moteur Release,
+52/52 tests runtime Release, 1/1 test d'intégration Release, Clippy strict et l'audit de provenance
+strict. Les 28/28 tests Studio et l'acquisition temporelle
 Browser restent épinglés à `a4e9824a` ; la validation workspace **298/298** reste épinglée au commit
 overlay `afb270c3` tant que son rejeu au commit courant n'est pas consolidé. Le seul avertissement de
 build connu reste la future incompatibilité transitive de `proc-macro-error2 v2.0.1`.
@@ -86,15 +86,22 @@ conditionnel** au snapshot `28985328` : les neuf glTF gouvernés n'ont aucune
 animation, le manifeste ne contient que du décor et le joueur est une capsule procédurale sans asset
 animé.
 
-La campagne courante schema v2 `873618af` exerce maintenant le vrai contrôleur gameplay, sa caméra
-`ForgePlayerCamera` et Rapier à 60 Hz. Elle acquiert 24 checkpoints sur 173 ticks tous grounded/avec
-collision, franchit la couture centrale sur 13,544837 m vers -Z, puis s'arrête en 11 ticks. Le run
-Release exact produit 29 PNG et un MP4 H.264 de 24 frames/3 s, sans warning/erreur/panic ; l'audit
-provenance passe avec 1 manifeste, 27 fichiers, 9 modèles CC0 et aucun asset Cadle. Le MP4 8 FPS est
-assemblé depuis des checkpoints pausés : `gameplay_controller_exercised=true`, mais
-`real_time_stutter_qualified=false`. L'exécution GPU météo, l'acceptation humaine, la qualité visuelle
-et les routes restent également à faux. `R1-048` et Gate 1 restent ouvertes. Gate 2 ne peut commencer
-sans passage de Gate 1 ou nouvelle dérogation explicite acceptée.
+La campagne visuelle schema v2 `873618af` exerce le vrai contrôleur gameplay, sa caméra
+`ForgePlayerCamera` et Rapier à 60 Hz. Elle conserve 29 PNG et un MP4 H.264 de 24 checkpoints, mais ce
+MP4 8 FPS est assemblé depuis des pauses et ne qualifie pas le stutter temps réel.
+
+Le lot courant `15635b3f` borne le rafraîchissement des preuves, audite la visibilité de la végétation
+à 100 ms et exige des reçus monotones au démarrage et à la frontière finale. Le ledger runtime
+enregistre sans pause 1 800 ticks en 29,997926 s, les reçus 1/1 puis 2/2, 3 672 frames main-world et
+3 674 contrôles d'invariants. Séparément, l'hôte retient 719 lignes PresentMon 2.4.1 du PID 2864 avec
+`CPUStartQPC >= measurement_not_before_qpc`, sans borne haute issue du runtime. Ses 680 présentations
+résolues échouent aux seuils : 44,2516 ms de moyenne, p95 62,4861 ms, p99 76,4441 ms et 1 % low
+12,5912 FPS. Cette sélection externe n'est pas la fenêtre runtime exacte : sa frontière hôte n'est ni
+vérifiée ni ingérée par le runtime. Le target Cargo partagé, l'absence de rebuild gouverné propre et
+les timings internes de pass, statistiques de pipeline et compte runtime des frames présentées
+`not_observed` rendent la campagne **non qualifiante**. Le GPU cible et la revue humaine restent à
+faux. `R1-037`, `R1-041`, `R1-048` et Gate 1 restent ouvertes. Gate 2 ne peut commencer sans passage
+de Gate 1 ou nouvelle dérogation explicite acceptée.
 
 ---
 
@@ -1306,13 +1313,18 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé au commit source courant `873618af59eb2e2b6426b91d4fff0ec615fc70d8`, arbre
-`9ba6455fd632d6532bda27457312c7d229d46e2f` : la correction de prépasse végétation est conservée et
-le contrôleur gameplay/Rapier réel passe 167 tests moteur/runtime/intégration, 40 tests runtime
-Release, Clippy strict, provenance et build Release. Son harness natif acquiert cinq vues fixes,
-24 checkpoints contrôleur 60 Hz et un MP4 de trois secondes ; le défaut depth-only bleu-noir ne
-réapparaît pas dans l'inspection bornée. Le harnais temporel Browser `a4e9824a` reste acquis mais n'a
-pas été rejoué sur ce commit et laisse la revue humaine en attente. L'overlay CPU/GPU `afb270c3`
+État consolidé au commit source courant `15635b3f85b623654e498b17ed299674928313e6`, arbre
+`187ae357e24c47403b9c638c0a0737ed01215e33` : la correction de prépasse végétation et le contrôleur
+gameplay/Rapier réel sont conservés. Le lot passe 140/140 tests moteur Release, 52/52 tests runtime
+Release, 1/1 test d'intégration Release, Clippy strict et provenance. La campagne visuelle exacte
+`873618af` conserve cinq vues fixes, 24 checkpoints et un MP4 de trois secondes sans réapparition du
+défaut depth-only. Au commit courant, le ledger runtime enregistre 1 800 ticks en 29,997926 s,
+3 672 frames main-world, 3 674 contrôles et les reçus 1/1 puis 2/2. La sélection hôte distincte retient
+719 lignes PresentMon du PID 2864 après la seule borne basse QPC, sans borne haute runtime ; sa
+frontière n'est ni vérifiée ni ingérée. Ses 680 présentations résolues échouent aux seuils d'affichage :
+moyenne 44,2516 ms, p95 62,4861 ms et 1 % low 12,5912 FPS. La campagne reste non qualifiante. Le harnais temporel
+Browser `a4e9824a` reste acquis mais n'a pas été rejoué sur ce commit et laisse la revue humaine en
+attente. L'overlay CPU/GPU `afb270c3`
 reste acquis sur deux captures exactes et
 lisibles. La matrice native `5eadec7f`
 qualifie les quatre tiers fixes, clear/rain, l'adaptation High vers Ultra et le benchmark High. Les
@@ -1324,8 +1336,8 @@ reste une preuve historique intacte. L'inventaire automatisé `28985328` ferme `
 conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joueur n'est manifesté et la
 représentation joueur reste une capsule procédurale sans asset.
 
-Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, le MP4 issu de checkpoints
-pausés ne qualifie pas le stutter temps réel, l'eau n'est pas qualifiée par profil et aucune revue
+Gate 1 reste **OUVERTE** : la cible RTX 3060/RX 6600 n'est pas mesurée, la campagne PresentMon
+non qualifiante échoue aux seuils de stutter, l'eau n'est pas qualifiée par profil et aucune revue
 humaine comparative n'accepte encore le rendu corrigé. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
@@ -1853,16 +1865,20 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source `873618af` : la correction de
-prépasse végétation est conservée et le contrôleur gameplay/Rapier réel passe 167 tests, Clippy strict,
-provenance et preuve Release, avec 29 PNG et un MP4 de 24 checkpoints ; stutter temps réel, revue
-humaine et GPU cible restent dus. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit source `15635b3f` : 140/140 tests moteur
+Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance passent. Le
+ledger runtime enregistre 1 800 ticks en 29,997926 s, 3 672 frames, 3 674 contrôles et les reçus 1/1
+puis 2/2. Séparément, l'hôte retient 719 lignes PresentMon du PID 2864 après la borne QPC basse, sans
+borne haute runtime ; cette frontière n'est ni vérifiée ni ingérée. Les 680 présentations résolues
+échouent aux seuils avec 44,2516 ms de moyenne, p95 62,4861 ms et 1 % low 12,5912 FPS. La campagne
+reste non qualifiante. La preuve visuelle `873618af`
+conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
 3/3 ROIs végétation, témoin terrain, 4/4
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-Restent dus : qualification visuelle, stutter sur parcours temps réel, instrumentation exhaustive,
-GPU cible, preuves eau/Browser finales et revue humaine.
+Restent dus : qualification visuelle, requalification gouvernée du stutter temps réel,
+instrumentation exhaustive `R1-037`, GPU cible `R1-041`, preuves eau/Browser finales et revue humaine.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent pas.
 ```

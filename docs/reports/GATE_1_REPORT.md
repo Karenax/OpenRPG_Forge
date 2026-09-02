@@ -1,6 +1,6 @@
 # Rapport Gate 1 — Visual Valley
 
-Date de consolidation : **2026-09-01**
+Date de consolidation : **2026-09-02**
 
 Verdict : **POURSUIVRE GATE 1 — GATE 1 OUVERTE**
 
@@ -10,11 +10,11 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 
 Visual Valley conserve une paire native/Browser exacte au commit `d9e2670`, des captures fixes, des
 ledgers versionnés et une provenance CC0/Cadle auditée. Le correctif `6a24cabe` supprime le défaut
-depth-only majeur de la végétation. La source courante `873618af` conserve cette correction et exerce
-le vrai contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier ; 167 tests
-moteur/runtime/intégration, 40 tests runtime Release, Clippy strict, l'audit de provenance et le build
-Release exact passent. Sa réacquisition produit 29 PNG et un MP4 avec des logs propres et les neuf
-modèles CC0 actifs sans fallback.
+depth-only majeur de la végétation. La campagne `873618af` conserve cette correction et exerce le vrai
+contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La source courante publiée `15635b3f`
+borne le rafraîchissement des preuves et ajoute des reçus monotones d'audit de visibilité. Elle passe
+140/140 tests moteur Release, 52/52 tests runtime Release, 1/1 test d'intégration Release, Clippy strict
+et l'audit de provenance.
 Les deux variantes Browser passent chacune
 **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur croisé
 natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. La matrice native
@@ -23,13 +23,17 @@ tier eau synchronisé. Le commit `afb270c3` ajoute les temps CPU/GPU du pass opa
 rend lisibles dans deux captures natives exactes clear/rain. Le lot natif initial `a7c9b1e1` ajoute le
 harness visuel exact-commit. Le commit `a4e9824a` qualifie le harnais temporel Browser : 120 RAF,
 toutes les ROIs, les quatre bundles exacts et les journaux console/réseau passent ; cette preuve
-Browser n'a pas encore été rejouée sur `873618af`.
+Browser n'a pas encore été rejouée sur `15635b3f`.
 
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde. Le lot `6a24cabe`
 corrige ensuite les silhouettes bleu-noir laissées par la prépasse caméra. Le lot `873618af` acquiert
-le déplacement du contrôleur réel sur 173 ticks avec collisions, mais le MP4 8 FPS est assemblé depuis
-des checkpoints pausés et ne qualifie pas le stutter temps réel. La présentation GPU Browser reste
+le déplacement du contrôleur réel sur 173 ticks avec collisions. À `15635b3f`, le ledger runtime
+enregistre 1 800 ticks en 29,997926 s ; séparément, l'hôte sélectionne 719 lignes PresentMon du PID
+2864 après une borne QPC basse seulement. Sans borne haute runtime, vérification ou ingestion de cette
+frontière hôte, la campagne reste non qualifiante et ses métriques échouent aux seuils : 44,2516 ms de
+moyenne, p95 62,4861 ms et 1 % low 12,5912 FPS. La présentation GPU
+Browser reste
 `not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée et les captures n'ont pas reçu
 d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne constitue pas une
 acceptation artistique.
@@ -41,7 +45,8 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source courante et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | 167 tests moteur/runtime/intégration, 40 runtime Release, Clippy strict, provenance, build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
+| source courante et cadence de preuve | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant, seuils FAIL |
+| acquisition visuelle et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
 | correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
 | temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source courante |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
@@ -90,12 +95,21 @@ PowerShell du harnais et l'acquisition Browser exacte. L'avertissement de future
 transitive `proc-macro-error2 v2.0.1` reste distinct d'un warning projet. Aucun nouveau rejeu workspace
 complet n'est revendiqué à ce commit.
 
-Au commit source courant `873618af`, les 6 tests R1-048 ciblés et les 40 tests runtime passent en
+Au commit source `873618af`, les 6 tests R1-048 ciblés et les 40 tests runtime passent en
 Release. La matrice proportionnée moteur/runtime/intégration passe **167/167** en profil de test ;
 `cargo check --release --tests`, Clippy strict runtime, le formatage, la syntaxe PowerShell et les
 tests positifs/négatifs du watchdog passent également. Le build Release exact et l'acquisition native
 schema v2 sont rejoués depuis le worktree propre. Aucun rejeu workspace/all-targets complet ni nouveau
 check Studio WASM n'est revendiqué à `873618af`.
+
+Au commit source courant publié `15635b3f`, les tests Release passent **140/140** pour le moteur,
+**52/52** pour le runtime et **1/1** pour l'intégration. La commande
+`cargo clippy --release --locked -p forge_engine -p forge_runtime --all-targets --all-features -- -D warnings`
+passe. Ce résultat est borné aux packages `forge_engine` et `forge_runtime` : aucun Clippy workspace
+complet ni Clippy/check Studio WASM n'est revendiqué à ce commit. L'audit de provenance exact passe
+sur 378 fichiers suivis, 27 assets et neuf modèles CC0 ; il compare 39 fichiers Forge aux 507 fichiers
+Cadle sans copie exacte ni ligne normalisée commune. Aucun rejeu workspace all-targets complet ni CI
+distante n'est revendiqué à ce commit.
 
 ## Overlay CPU/GPU exact `afb270c3`
 
@@ -197,6 +211,35 @@ pausés pendant la capture et le MP4 est assemblé ensuite : `real_time_stutter_
 `weather_gpu_execution_observed`, `human_review_performed`, `visual_quality_accepted` et
 `gate1_routes_qualified` restent également faux. Le lot borné de 18 artefacts est versionné sous
 [`native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof`](../evidence/gate1/native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof).
+
+## Diagnostic PresentMon continu `15635b3f`
+
+Le commit publié `15635b3f85b623654e498b17ed299674928313e6`, arbre
+`187ae357e24c47403b9c638c0a0737ed01215e33`, produit le runtime SHA-256
+`65f0c24b76c644ddd2a4eef8e772c4b881d7e5f7000cd4465b190edc3ee1dd50`. Le lot borne l'overlay et
+l'audit de visibilité végétation. Le ledger runtime enregistre une route sans pause de 1 800 ticks en
+29,997926 s, couvre 3 672 frames main-world, effectue 3 674 contrôles d'invariants et reçoit 1/1 au
+démarrage puis 2/2 à la frontière finale.
+
+La campagne externe `cadence-15635b3-final-20260902T030459251Z` est explicitement
+**non qualifiante** : elle réutilise un target Cargo partagé et n'effectue aucun rebuild gouverné en
+target propre. Séparément du ledger, l'hôte retient 719 lignes PresentMon du PID 2864 avec
+`CPUStartQPC >= measurement_not_before_qpc`, sans borne haute issue du runtime. Trente-neuf lignes
+n'ont pas de présentation résolue. Les 680 DisplayedTime résolus mesurent 44,2516 ms de moyenne,
+p95 62,4861 ms, p99 76,4441 ms, maximum 83,3786 ms et 1 % low 12,5912 FPS. Ce 1 % low vaut
+`1000 / moyenne des 7 DisplayedTime les plus lents`. 672/680 dépassent 16,7 ms et 600/680 dépassent
+33,3 ms, avec séquences maximales de 87 et 64 présentations. Le diagnostic échoue donc aux seuils ;
+`R1-048` reste ouverte.
+
+Les temps CPU/GPU de pass, les statistiques de pipeline et le compte runtime des frames présentées
+restent `not_observed`. `FrameTime` et `CPUBusy` proviennent de PresentMon externe ; `GPUTime` n'est
+pas une instrumentation exhaustive de Forge. La source d'affichage est uniquement
+`external_presentmon_displayed_time`. Le runtime conserve `runtime_verified_capture=false` et
+`display_metrics_ingested=false` : sans borne haute runtime, la frontière hôte n'est ni vérifiée ni
+ingérée et la qualification QPC exacte n'est pas revendiquée. La machine est
+une RX 7800 XT/Vulkan de développement, pas la RTX 3060/RX 6600 cible, et aucune revue humaine n'a été
+effectuée. Le protocole, les métriques et les SHA-256 sont consignés dans
+[`R1_048_GAMEPLAY_STUTTER_PRESENTMON.md`](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 
 ## Preuve temporelle Browser exacte `a4e9824a`
 
@@ -364,8 +407,10 @@ Restent explicitement ouvertes :
 - `R1-046` à `R1-052`.
 
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `873618af`. Le principal défaut
-depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel, mais « acquis » ne signifie
-pas « qualifié » : la revue humaine comparative et le stutter temps réel restent dus.
+depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel. À `15635b3f`, le ledger
+runtime et la sélection PresentMon hôte sont deux observations distinctes ; la seconde n'a pas de
+borne haute runtime, n'est ni vérifiée ni ingérée, et échoue aux seuils : « acquis » ne signifie pas
+« qualifié ». La revue humaine comparative et le stutter temps réel restent dus.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
@@ -376,16 +421,16 @@ huitième match de ledger.
 
 | Condition | État | Motif |
 |---|---|---|
-| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé à `873618af`, mais aucune revue humaine comparative acceptée |
+| qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
-| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | RX 7800 XT seulement ; Browser canvas et boucle WASM non équivalents |
-| p95 `<=16,7 ms` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
-| 1 % low `>=45 FPS` | **OUVERTE** | paire exact-commit dans le budget, mais pas sur GPU cible |
-| absence de stutter récurrent | **OUVERTE** | contrôleur réel acquis à `873618af`, mais MP4 8 FPS assemblé depuis des checkpoints pausés |
+| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `15635b3f` non qualifiante, moyenne 44,2516 ms sur RX 7800 XT ; GPU cible non mesuré |
+| p95 `<=16,7 ms` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante, p95 62,4861 ms ; GPU cible non mesuré |
+| 1 % low `>=45 FPS` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante, 1 % low 12,5912 FPS ; GPU cible non mesuré |
+| absence de stutter récurrent | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante ; 672/680 présentations >16,7 ms et 1 % low 12,5912 FPS |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
-| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser et lot natif schema v2 `873618af` ajoutés avec hashes/provenance |
+| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser, lot natif `873618af` et synthèse PresentMon `15635b3f` ajoutés avec hashes/provenance ; bruts non qualifiants externes hashés |
 
 ## Limites visuelles et qualification humaine
 
@@ -397,14 +442,19 @@ wetness sont visibles, mais la réflexion/réfraction ne sont pas inspectables h
 CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
-hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la revue humaine FHD/QHD,
-le stutter sur parcours temps réel et les comparaisons matériaux/composition/A-B restent dus.
+hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la sélection PresentMon
+hôte confirme actuellement un échec diagnostique des seuils, tandis que la revue humaine FHD/QHD et les comparaisons
+matériaux/composition/A-B restent dues.
 
 ## CI distante
 
-La CI distante reste **NOT RUN — infrastructure billing**. ADR-0006 autorise une dérogation
-administrative bornée jusqu'à Gate 4 lorsque les runners ne démarrent aucune étape. Cette dérogation
-ne transforme pas la CI en PASS et n'efface aucune dette locale ou visuelle.
+Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
+cible `15635b3f85b623654e498b17ed299674928313e6`. Ses quatre jobs — `wasm`, `supply-chain`,
+`native (ubuntu-24.04)` et `native (windows-2025)` — ont chacun **0 étape exécutée** et aucun runner
+alloué. La conclusion GitHub `failure` correspond au blocage de facturation, pas à un test du code :
+la CI distante est qualifiée **NOT RUN — infrastructure billing**. ADR-0006 autorise une dérogation
+administrative bornée jusqu'à Gate 4. Elle ne transforme pas la CI en PASS et n'efface aucune dette
+locale ou visuelle.
 
 ## Verdict et travail suivant
 
@@ -412,11 +462,12 @@ Verdict : **POURSUIVRE GATE 1**.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. faire la revue humaine des vues corrigées, qualifier l'eau par profil et acquérir un parcours
-   temps réel représentatif avec qualification du stutter ;
+1. corriger les coûts de présentation, reconstruire dans un target gouverné propre puis réacquérir la
+   route continue avec qualification QPC exacte et seuils stutter satisfaits ;
 2. acquérir l'instrumentation exhaustive `R1-037` ou documenter une décision Gate 1 dédiée ;
 3. mesurer RTX 3060 ou RX 6600 en 1080p High ;
-4. effectuer la revue humaine comparative Godot/Cadle et statuer sur les routes visuelles restantes.
+4. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
+   statuer sur les routes visuelles restantes.
 
 Tant que ces éléments ne sont pas acquis, Gate 1 reste **OUVERTE** et Gate 2 est **INTERDITE** sans
 nouvelle dérogation explicite acceptée.
