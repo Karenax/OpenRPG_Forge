@@ -14,8 +14,8 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::{
-    ColorGradeProfile, VisualQualityPreset, VisualQualityTier, WeatherProfileDocument,
-    WeatherProfileError, WeatherQualityTier, WeatherState,
+    BloomProfile, ColorGradeProfile, VisualQualityPreset, VisualQualityTier,
+    WeatherProfileDocument, WeatherProfileError, WeatherQualityTier, WeatherState,
 };
 use serde::Serialize;
 use std::{error::Error, fmt};
@@ -341,7 +341,7 @@ impl Plugin for VisualValleyWeatherPlugin {
         .insert_resource(prepared.plan)
         .insert_resource(PreparedRainBatchResource(Some(prepared)))
         .insert_resource(initial_stats)
-        .init_resource::<WeatherCameraBinding>()
+        .init_resource::<WeatherPostProcessingCache>()
         .add_plugins(MaterialPlugin::<VisualValleyRainMaterial>::default())
         .add_systems(Startup, spawn_rain_batch)
         .add_systems(
@@ -392,8 +392,17 @@ struct PreparedRainBatchResource(Option<PreparedRainBatch>);
 #[derive(Resource)]
 struct RainBatchMaterial(Handle<VisualValleyRainMaterial>);
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct WeatherPostProcessingProjection {
+    camera: Entity,
+    color_grading: Option<ColorGradeProfile>,
+    bloom: Option<BloomProfile>,
+}
+
 #[derive(Default, Resource)]
-struct WeatherCameraBinding(Option<Entity>);
+struct WeatherPostProcessingCache {
+    applied: Option<WeatherPostProcessingProjection>,
+}
 
 fn prepare_rain_batch(
     document: &WeatherProfileDocument,
@@ -644,18 +653,27 @@ fn project_rain_batch(
     mut batches: Query<(&mut Transform, &mut Visibility), With<VisualValleyRainBatch>>,
 ) {
     let precipitation = precipitation_factor(&profile.document, state.current_wetness);
+    let rain_enabled = quality
+        .as_deref()
+        .is_none_or(|quality| quality.requested_preset.rain.enabled);
+    let rain_visible = precipitation > 0.0 && rain_enabled;
     if let Some(material_handle) = material_handle
         && let Some(mut material) = materials.get_mut(&material_handle.0)
     {
         let extension = rain_extension(&profile.document, &state);
-        material.extension = extension;
+        if rain_visible && material.extension.time_fall != extension.time_fall {
+            material.extension.time_fall = extension.time_fall;
+        }
         let rain = &profile.document.rain;
-        material.base.base_color = Color::srgba(
+        let base_color = Color::srgba(
             rain.color_srgb.red,
             rain.color_srgb.green,
             rain.color_srgb.blue,
             rain.opacity * precipitation,
         );
+        if material.base.base_color != base_color {
+            material.base.base_color = base_color;
+        }
     }
 
     let mut active_cameras = cameras
@@ -664,18 +682,19 @@ fn project_rain_batch(
         .map(|(_, transform)| transform.translation());
     let active_camera = active_cameras.next();
     let single_active_camera = active_camera.filter(|_| active_cameras.next().is_none());
-    let rain_enabled = quality
-        .as_deref()
-        .is_none_or(|quality| quality.requested_preset.rain.enabled);
-    for (mut transform, mut visibility) in &mut batches {
-        *visibility = if precipitation > 0.0 && rain_enabled {
+    for (transform, mut visibility) in &mut batches {
+        let desired_visibility = if rain_visible {
             Visibility::Visible
         } else {
             Visibility::Hidden
         };
+        visibility.set_if_neq(desired_visibility);
         if let Some(camera_translation) = single_active_camera {
-            transform.translation =
+            let desired_translation =
                 camera_translation + Vec3::Y * (profile.document.rain.volume_size_m.y * 0.25);
+            transform
+                .map_unchanged(|transform| &mut transform.translation)
+                .set_if_neq(desired_translation);
         }
     }
 }
@@ -692,13 +711,29 @@ fn project_wetness_materials(
 ) {
     let uniform = wetness_uniform(&profile.document, state.current_wetness);
     if let Some(mut materials) = terrain_materials {
-        for (_, material) in materials.iter_mut() {
-            material.extension.wetness_parameters = uniform;
+        let changed = materials
+            .iter()
+            .filter_map(|(id, material)| {
+                (material.extension.wetness_parameters != uniform).then_some(id)
+            })
+            .collect::<Vec<_>>();
+        for id in changed {
+            if let Some(mut material) = materials.get_mut(id) {
+                material.extension.wetness_parameters = uniform;
+            }
         }
     }
     if let Some(mut materials) = vegetation_materials {
-        for (_, material) in materials.iter_mut() {
-            material.extension.wetness_parameters = uniform;
+        let changed = materials
+            .iter()
+            .filter_map(|(id, material)| {
+                (material.extension.wetness_parameters != uniform).then_some(id)
+            })
+            .collect::<Vec<_>>();
+        for id in changed {
+            if let Some(mut material) = materials.get_mut(id) {
+                material.extension.wetness_parameters = uniform;
+            }
         }
     }
 }
@@ -713,7 +748,7 @@ fn project_post_processing(
     state: Res<WeatherRuntimeState>,
     quality: Option<Res<VisualValleyQualityStats>>,
     cameras: Query<(Entity, &Camera), With<Camera3d>>,
-    mut binding: ResMut<WeatherCameraBinding>,
+    mut cache: ResMut<WeatherPostProcessingCache>,
 ) {
     let mut active_cameras = cameras
         .iter()
@@ -721,40 +756,66 @@ fn project_post_processing(
     let active_camera = active_cameras.next();
     let single_active_camera = active_camera.filter(|_| active_cameras.next().is_none());
 
-    if binding.0 != single_active_camera {
-        if let Some(previous) = binding.0 {
-            commands.entity(previous).remove::<(Bloom, ColorGrading)>();
-        }
-        binding.0 = single_active_camera;
-    }
-    let Some(camera) = single_active_camera else {
-        return;
-    };
-
     let precipitation = precipitation_factor(&profile.document, state.current_wetness);
     let grade = interpolated_grade(&profile.document, precipitation);
     let color_grading_enabled = quality
         .as_deref()
         .is_none_or(|quality| quality.requested_preset.post_process.color_grading_enabled);
-    if color_grading_enabled {
-        commands
-            .entity(camera)
-            .insert(color_grading_component(grade));
-    } else {
-        commands.entity(camera).remove::<ColorGrading>();
-    }
     let bloom_enabled = quality
         .as_deref()
         .map_or(profile.document.post_processing.bloom.enabled, |quality| {
             quality.requested_preset.post_process.bloom_enabled
         });
-    if bloom_enabled {
-        commands
-            .entity(camera)
-            .insert(visual_valley_bloom_component(&profile.document));
-    } else {
-        commands.entity(camera).remove::<Bloom>();
+
+    let desired = single_active_camera.map(|camera| WeatherPostProcessingProjection {
+        camera,
+        color_grading: color_grading_enabled.then_some(grade),
+        bloom: bloom_enabled.then_some(profile.document.post_processing.bloom),
+    });
+    let previous = cache.applied;
+    if previous == desired {
+        return;
     }
+
+    let previous_camera = previous.map(|projection| projection.camera);
+    let desired_camera = desired.map(|projection| projection.camera);
+    if previous_camera != desired_camera {
+        if let Some(previous_camera) = previous_camera
+            && let Ok(mut entity) = commands.get_spawned_entity(previous_camera)
+        {
+            entity.remove::<(Bloom, ColorGrading)>();
+        }
+        if let Some(desired) = desired {
+            let mut entity = commands.entity(desired.camera);
+            if let Some(grade) = desired.color_grading {
+                entity.insert(color_grading_component(grade));
+            } else {
+                entity.remove::<ColorGrading>();
+            }
+            if desired.bloom.is_some() {
+                entity.insert(visual_valley_bloom_component(&profile.document));
+            } else {
+                entity.remove::<Bloom>();
+            }
+        }
+    } else if let (Some(previous), Some(desired)) = (previous, desired) {
+        let mut entity = commands.entity(desired.camera);
+        if previous.color_grading != desired.color_grading {
+            if let Some(grade) = desired.color_grading {
+                entity.insert(color_grading_component(grade));
+            } else {
+                entity.remove::<ColorGrading>();
+            }
+        }
+        if previous.bloom != desired.bloom {
+            if desired.bloom.is_some() {
+                entity.insert(visual_valley_bloom_component(&profile.document));
+            } else {
+                entity.remove::<Bloom>();
+            }
+        }
+    }
+    cache.applied = desired;
 }
 
 #[allow(
@@ -808,9 +869,14 @@ fn observe_weather_projection(
             .all(|(_, material)| material.extension.wetness_parameters == expected_uniform)
     }) && vegetation_count > 0;
     let precipitation = precipitation_factor(&profile.document, runtime.current_wetness);
+    let rain_animation_required = precipitation > 0.0
+        && quality
+            .as_deref()
+            .is_none_or(|quality| quality.requested_preset.rain.enabled);
     let expected_rain_extension = rain_extension(&profile.document, &runtime);
     let shader_animation_uniform_updated = rain_materials.iter().any(|(_, material)| {
-        material.extension.time_fall == expected_rain_extension.time_fall
+        (!rain_animation_required
+            || material.extension.time_fall == expected_rain_extension.time_fall)
             && material.extension.volume_opacity == expected_rain_extension.volume_opacity
             && material.extension.wind_velocity == expected_rain_extension.wind_velocity
     });
@@ -998,11 +1064,130 @@ fn color_grading_component(grade: ColorGradeProfile) -> ColorGrading {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::{asset::AssetPlugin, mesh::VertexAttributeValues};
+    use crate::{VisualValleyQualityPlugin, VisualValleyQualitySelection};
+    use bevy::{
+        asset::{AssetEvent, AssetId, AssetPlugin},
+        ecs::message::Messages,
+        mesh::VertexAttributeValues,
+    };
+    use forge_project::VisualValleyQualityProfileDocument;
     use forge_world::embedded_visual_valley_weather_profile;
+
+    const QUALITY_JSON: &str =
+        include_str!("../../../examples/visual_valley/quality-profile.v1.json");
 
     fn profile() -> WeatherProfileDocument {
         embedded_visual_valley_weather_profile().unwrap()
+    }
+
+    struct HeadlessWeatherHarness {
+        app: App,
+        camera: Entity,
+        terrain_material: Handle<VisualValleyTerrainMaterial>,
+        vegetation_material: Handle<VisualValleyVegetationMaterial>,
+    }
+
+    #[derive(Default, Resource)]
+    struct WeatherChangeProbe {
+        color_grading: usize,
+        bloom: usize,
+        rain_transform: usize,
+        rain_visibility: usize,
+    }
+
+    fn observe_weather_changes(
+        mut probe: ResMut<WeatherChangeProbe>,
+        color_gradings: Query<Ref<ColorGrading>, With<Camera3d>>,
+        blooms: Query<Ref<Bloom>, With<Camera3d>>,
+        rain_transforms: Query<Ref<Transform>, With<VisualValleyRainBatch>>,
+        rain_visibilities: Query<Ref<Visibility>, With<VisualValleyRainBatch>>,
+    ) {
+        *probe = WeatherChangeProbe {
+            color_grading: color_gradings
+                .iter()
+                .filter(DetectChanges::is_changed)
+                .count(),
+            bloom: blooms.iter().filter(DetectChanges::is_changed).count(),
+            rain_transform: rain_transforms
+                .iter()
+                .filter(DetectChanges::is_changed)
+                .count(),
+            rain_visibility: rain_visibilities
+                .iter()
+                .filter(DetectChanges::is_changed)
+                .count(),
+        };
+    }
+
+    fn headless_weather_harness(
+        initial_state: WeatherState,
+        quality: Option<VisualValleyQualityStats>,
+    ) -> HeadlessWeatherHarness {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
+        app.init_asset::<VisualValleyVegetationMaterial>();
+        let terrain_material = app
+            .world_mut()
+            .resource_mut::<Assets<VisualValleyTerrainMaterial>>()
+            .add(VisualValleyTerrainMaterial {
+                base: StandardMaterial::default(),
+                extension: crate::VisualValleyTerrainExtension::default(),
+            });
+        let vegetation_material = app
+            .world_mut()
+            .resource_mut::<Assets<VisualValleyVegetationMaterial>>()
+            .add(VisualValleyVegetationMaterial {
+                base: StandardMaterial::default(),
+                extension: crate::VisualValleyVegetationExtension::default(),
+            });
+        let camera = app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                Camera::default(),
+                Transform::from_xyz(3.0, 4.0, 5.0),
+                GlobalTransform::from_xyz(3.0, 4.0, 5.0),
+            ))
+            .id();
+        if let Some(quality) = quality {
+            app.insert_resource(quality);
+        }
+        app.add_plugins(
+            VisualValleyWeatherPlugin::new(profile()).with_initial_state(initial_state),
+        );
+        app.init_resource::<WeatherChangeProbe>().add_systems(
+            PostUpdate,
+            observe_weather_changes.after(observe_weather_projection),
+        );
+        app.update();
+        HeadlessWeatherHarness {
+            app,
+            camera,
+            terrain_material,
+            vegetation_material,
+        }
+    }
+
+    fn quality_stats(tier: VisualQualityTier) -> VisualValleyQualityStats {
+        let quality = VisualValleyQualityProfileDocument::from_json(QUALITY_JSON).unwrap();
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        app.add_plugins(VisualValleyQualityPlugin::new(
+            quality,
+            VisualValleyQualitySelection::Fixed(tier),
+        ));
+        app.update();
+        app.world().resource::<VisualValleyQualityStats>().clone()
+    }
+
+    fn drain_modified_asset_events<A: Asset>(app: &mut App, id: AssetId<A>) -> usize {
+        app.world_mut()
+            .resource_mut::<Messages<AssetEvent<A>>>()
+            .drain()
+            .filter(|event| event.is_modified(id))
+            .count()
     }
 
     fn positions(mesh: &Mesh) -> &Vec<[f32; 3]> {
@@ -1206,38 +1391,228 @@ mod tests {
     }
 
     #[test]
-    fn headless_plugin_projects_one_rain_batch_materials_and_camera_components() {
-        let mut app = App::new();
-        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
-        app.init_asset::<Mesh>();
-        app.init_asset::<VisualValleyTerrainMaterial>();
-        app.init_asset::<VisualValleyVegetationMaterial>();
-        let _terrain_material = app
-            .world_mut()
-            .resource_mut::<Assets<VisualValleyTerrainMaterial>>()
-            .add(VisualValleyTerrainMaterial {
-                base: StandardMaterial::default(),
-                extension: crate::VisualValleyTerrainExtension::default(),
-            });
-        let _vegetation_material = app
-            .world_mut()
-            .resource_mut::<Assets<VisualValleyVegetationMaterial>>()
-            .add(VisualValleyVegetationMaterial {
-                base: StandardMaterial::default(),
-                extension: crate::VisualValleyVegetationExtension::default(),
-            });
-        app.world_mut().spawn((
-            Camera3d::default(),
-            Camera::default(),
-            Transform::from_xyz(3.0, 4.0, 5.0),
-            GlobalTransform::from_xyz(3.0, 4.0, 5.0),
-        ));
-        app.add_plugins(
-            VisualValleyWeatherPlugin::new(profile()).with_initial_state(WeatherState::Rain),
-        );
-        app.update();
+    fn stable_rain_skips_static_reprojection_but_keeps_shader_time_animating() {
+        let mut harness = headless_weather_harness(WeatherState::Rain, None);
+        let terrain_id = harness.terrain_material.id();
+        let vegetation_id = harness.vegetation_material.id();
+        let rain_id = harness.app.world().resource::<RainBatchMaterial>().0.id();
+        let initial_extension = harness
+            .app
+            .world()
+            .resource::<Assets<VisualValleyRainMaterial>>()
+            .get(rain_id)
+            .unwrap()
+            .extension
+            .clone();
 
-        let stats = app.world().resource::<WeatherProjectionStats>();
+        drain_modified_asset_events::<VisualValleyTerrainMaterial>(&mut harness.app, terrain_id);
+        drain_modified_asset_events::<VisualValleyVegetationMaterial>(
+            &mut harness.app,
+            vegetation_id,
+        );
+        drain_modified_asset_events::<VisualValleyRainMaterial>(&mut harness.app, rain_id);
+        let document = harness
+            .app
+            .world()
+            .resource::<VisualValleyWeatherProfile>()
+            .document
+            .clone();
+        advance_runtime(
+            &document,
+            &mut harness
+                .app
+                .world_mut()
+                .resource_mut::<WeatherRuntimeState>(),
+            0.1,
+        );
+        harness.app.world_mut().clear_trackers();
+        harness.app.update();
+
+        assert_eq!(
+            drain_modified_asset_events::<VisualValleyTerrainMaterial>(
+                &mut harness.app,
+                terrain_id
+            ),
+            0
+        );
+        assert_eq!(
+            drain_modified_asset_events::<VisualValleyVegetationMaterial>(
+                &mut harness.app,
+                vegetation_id
+            ),
+            0
+        );
+        assert_eq!(
+            drain_modified_asset_events::<VisualValleyRainMaterial>(&mut harness.app, rain_id),
+            1
+        );
+        let world = harness.app.world();
+        let probe = world.resource::<WeatherChangeProbe>();
+        assert_eq!(probe.rain_transform, 0);
+        assert_eq!(probe.rain_visibility, 0);
+        assert_eq!(probe.bloom, 0);
+        assert_eq!(probe.color_grading, 0);
+        let animated = world
+            .resource::<Assets<VisualValleyRainMaterial>>()
+            .get(rain_id)
+            .unwrap();
+        assert_ne!(animated.extension.time_fall, initial_extension.time_fall);
+        assert_eq!(
+            animated.extension.volume_opacity,
+            initial_extension.volume_opacity
+        );
+        assert_eq!(
+            animated.extension.wind_velocity,
+            initial_extension.wind_velocity
+        );
+    }
+
+    #[test]
+    fn wetness_transition_reprojects_materials_and_grade_without_reinserting_bloom() {
+        let mut harness = headless_weather_harness(WeatherState::Rain, None);
+        let terrain_id = harness.terrain_material.id();
+        let vegetation_id = harness.vegetation_material.id();
+        let rain_id = harness.app.world().resource::<RainBatchMaterial>().0.id();
+        let initial_projection = harness
+            .app
+            .world()
+            .resource::<WeatherPostProcessingCache>()
+            .applied
+            .unwrap();
+        drain_modified_asset_events::<VisualValleyTerrainMaterial>(&mut harness.app, terrain_id);
+        drain_modified_asset_events::<VisualValleyVegetationMaterial>(
+            &mut harness.app,
+            vegetation_id,
+        );
+        drain_modified_asset_events::<VisualValleyRainMaterial>(&mut harness.app, rain_id);
+
+        let document = harness
+            .app
+            .world()
+            .resource::<VisualValleyWeatherProfile>()
+            .document
+            .clone();
+        {
+            let mut state = harness
+                .app
+                .world_mut()
+                .resource_mut::<WeatherRuntimeState>();
+            state.request_state(WeatherState::Clear);
+            advance_runtime(&document, &mut state, 0.1);
+        }
+        harness.app.world_mut().clear_trackers();
+        harness.app.update();
+
+        assert_eq!(
+            drain_modified_asset_events::<VisualValleyTerrainMaterial>(
+                &mut harness.app,
+                terrain_id
+            ),
+            1
+        );
+        assert_eq!(
+            drain_modified_asset_events::<VisualValleyVegetationMaterial>(
+                &mut harness.app,
+                vegetation_id
+            ),
+            1
+        );
+        let world = harness.app.world();
+        let probe = world.resource::<WeatherChangeProbe>();
+        assert_eq!(probe.color_grading, 1);
+        assert_eq!(probe.bloom, 0);
+        let changed_projection = world
+            .resource::<WeatherPostProcessingCache>()
+            .applied
+            .unwrap();
+        assert_ne!(
+            changed_projection.color_grading,
+            initial_projection.color_grading
+        );
+        assert_eq!(changed_projection.bloom, initial_projection.bloom);
+    }
+
+    #[test]
+    fn quality_and_camera_changes_invalidate_only_their_cached_projection() {
+        let high = quality_stats(VisualQualityTier::High);
+        let quality = VisualValleyQualityProfileDocument::from_json(QUALITY_JSON).unwrap();
+        let mut harness = headless_weather_harness(WeatherState::Rain, Some(high));
+
+        {
+            let mut stats = harness
+                .app
+                .world_mut()
+                .resource_mut::<VisualValleyQualityStats>();
+            stats.current_tier = VisualQualityTier::Low;
+            stats.requested_preset = quality.preset(VisualQualityTier::Low).clone();
+        }
+        harness.app.world_mut().clear_trackers();
+        harness.app.update();
+
+        let world = harness.app.world();
+        assert!(world.get::<Bloom>(harness.camera).is_none());
+        assert_eq!(world.resource::<WeatherChangeProbe>().color_grading, 0);
+        assert!(
+            world
+                .resource::<WeatherPostProcessingCache>()
+                .applied
+                .unwrap()
+                .bloom
+                .is_none()
+        );
+
+        let second_camera = harness
+            .app
+            .world_mut()
+            .spawn((
+                Camera3d::default(),
+                Camera::default(),
+                Transform::from_xyz(8.0, 9.0, 10.0),
+                GlobalTransform::from_xyz(8.0, 9.0, 10.0),
+            ))
+            .id();
+        harness
+            .app
+            .world_mut()
+            .entity_mut(harness.camera)
+            .get_mut::<Camera>()
+            .unwrap()
+            .is_active = false;
+        harness.app.world_mut().clear_trackers();
+        harness.app.update();
+
+        let world = harness.app.world();
+        assert!(world.get::<ColorGrading>(harness.camera).is_none());
+        assert!(world.get::<Bloom>(harness.camera).is_none());
+        assert!(world.get::<ColorGrading>(second_camera).is_some());
+        assert!(world.get::<Bloom>(second_camera).is_none());
+        assert_eq!(
+            world
+                .resource::<WeatherPostProcessingCache>()
+                .applied
+                .unwrap()
+                .camera,
+            second_camera
+        );
+        let probe = world.resource::<WeatherChangeProbe>();
+        assert_eq!(probe.rain_transform, 1);
+        assert_eq!(probe.rain_visibility, 0);
+
+        harness.app.world_mut().clear_trackers();
+        harness.app.update();
+        let world = harness.app.world();
+        let probe = world.resource::<WeatherChangeProbe>();
+        assert_eq!(probe.color_grading, 0);
+        assert_eq!(probe.bloom, 0);
+        assert_eq!(probe.rain_transform, 0);
+        assert_eq!(probe.rain_visibility, 0);
+    }
+
+    #[test]
+    fn headless_plugin_projects_one_rain_batch_materials_and_camera_components() {
+        let harness = headless_weather_harness(WeatherState::Rain, None);
+
+        let stats = harness.app.world().resource::<WeatherProjectionStats>();
         assert_eq!(stats.status, WeatherProjectionStatus::ObservedCpuProjection);
         assert_eq!(stats.rain.batch_entities, 1);
         assert_eq!(stats.rain.per_drop_entities, 0);
