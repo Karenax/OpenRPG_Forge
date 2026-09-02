@@ -1366,7 +1366,7 @@ function Invoke-CapturedProcessBounded {
         [Parameter(Mandatory = $true)][AllowEmptyCollection()][string[]]$ArgumentList,
         [Parameter(Mandatory = $true)][string]$WorkingDirectory,
         [Parameter(Mandatory = $true)][string]$Label,
-        [Parameter(Mandatory = $true)][string]$LogPath,
+        [AllowNull()][AllowEmptyString()][string]$LogPath,
         [Parameter(Mandatory = $true)][int]$ExitTimeoutMilliseconds,
         [Parameter(Mandatory = $true)][int]$DrainTimeoutMilliseconds
     )
@@ -1452,7 +1452,9 @@ function Invoke-CapturedProcessBounded {
         if (-not $stderrDrained) {
             $output.Add("[$Label watchdog] stderr did not drain within $DrainTimeoutMilliseconds ms.")
         }
-        [IO.File]::WriteAllLines($LogPath, [string[]]$output, [Text.UTF8Encoding]::new($false))
+        if (-not [string]::IsNullOrWhiteSpace($LogPath)) {
+            [IO.File]::WriteAllLines($LogPath, [string[]]$output, [Text.UTF8Encoding]::new($false))
+        }
 
         return [pscustomobject]@{
             ExitCode = $exitCode
@@ -1670,12 +1672,117 @@ function Get-ArtifactDescriptor {
     }
 }
 
+function ConvertFrom-Gate1PresentMonEtwSessionList {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [object[]]$Lines
+    )
+
+    $found = [Collections.Generic.HashSet[string]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($line in $Lines) {
+        $match = [regex]::Match(
+            [string]$line,
+            '^\s*(OpenRPGForge-Gate1-(?:Stutter|Diagnostic)-[0-9A-Fa-f]{32})(?=\s|$)',
+            [Text.RegularExpressions.RegexOptions]::CultureInvariant -bor
+                [Text.RegularExpressions.RegexOptions]::IgnoreCase
+        )
+        if ($match.Success) {
+            [void]$found.Add($match.Groups[1].Value)
+        }
+    }
+    return [string[]]@($found | Sort-Object)
+}
+
+function Get-ActiveGate1PresentMonEtwSessions {
+    $command = Get-Command logman.exe -CommandType Application -ErrorAction Stop |
+        Select-Object -First 1
+    $query = Invoke-CapturedProcessBounded `
+        -FilePath $command.Source `
+        -ArgumentList @("query", "-ets") `
+        -WorkingDirectory ([Environment]::SystemDirectory) `
+        -Label "Gate 1 ETW session query" `
+        -ExitTimeoutMilliseconds 5000 `
+        -DrainTimeoutMilliseconds 2000
+    Assert-Condition -Condition (-not $query.TimedOut -and $query.TerminationConfirmed) -Message "Cannot enumerate active ETW sessions inside the bounded process window."
+    Assert-Condition -Condition ($query.StdoutDrained -and $query.StderrDrained) -Message "ETW session query output did not drain inside the bounded process window."
+    Assert-Condition -Condition ($query.ExitCode -eq 0) -Message "Cannot enumerate active ETW sessions: logman exit code $($query.ExitCode)."
+    return [string[]]@(ConvertFrom-Gate1PresentMonEtwSessionList -Lines @($query.Output))
+}
+
+function Assert-NoPreexistingGate1PresentMonEtwSession {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [string[]]$ActiveSessions
+    )
+
+    if ($ActiveSessions.Count -gt 0) {
+        $names = ($ActiveSessions | Sort-Object -Unique | ForEach-Object { "'$_'" }) -join ", "
+        throw "Gate 1 ETW preflight refused: pre-existing PresentMon session(s): $names. No session was stopped. Verify ownership and explicitly terminate only the exact stale session before retrying."
+    }
+}
+
+function Assert-OwnedGate1PresentMonEtwSessionAbsent {
+    param(
+        [Parameter(Mandatory = $true)][string]$SessionId,
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [string[]]$ActiveSessions,
+        [Parameter(Mandatory = $true)][string]$Phase
+    )
+
+    if ($ActiveSessions -contains $SessionId) {
+        throw "Gate 1 ETW $Phase failed: owned session '$SessionId' is still active. No unrelated session was stopped."
+    }
+}
+
+function Invoke-Gate1PresentMonEtwSessionGuardSelfTest {
+    $stutter = "OpenRPGForge-Gate1-Stutter-85a698103aaf4186a480beabd1840099"
+    $diagnostic = "OpenRPGForge-Gate1-Diagnostic-86cd2791ab9e4398b2582dd8cce8e1fe"
+    $mixedCase = "openrpgforge-GATE1-StUtTeR-a5a698103aaf4186a480beabd1840099"
+    $parsed = @(ConvertFrom-Gate1PresentMonEtwSessionList -Lines @(
+            "header",
+            "  $diagnostic Trace Running",
+            "OpenRPGForge-Gate1-Stutter-not-a-guid Trace Running",
+            "$stutter Trace Running",
+            "$stutter Trace Running",
+            "$mixedCase Trace Running",
+            "UnrelatedSession Trace Running"
+        ))
+    Assert-Condition -Condition ($parsed.Count -eq 3 -and $parsed -contains $stutter -and $parsed -contains $diagnostic -and $parsed -contains $mixedCase) -Message "ETW session parser self-test failed."
+    Assert-NoPreexistingGate1PresentMonEtwSession -ActiveSessions @()
+
+    $refused = $false
+    try {
+        Assert-NoPreexistingGate1PresentMonEtwSession -ActiveSessions @($stutter, $diagnostic)
+    }
+    catch {
+        $refused = $_.Exception.Message.Contains($stutter) -and $_.Exception.Message.Contains("No session was stopped")
+    }
+    Assert-Condition -Condition $refused -Message "ETW preflight refusal self-test failed."
+    Assert-OwnedGate1PresentMonEtwSessionAbsent -SessionId $stutter -ActiveSessions @($diagnostic) -Phase "postflight"
+
+    $detected = $false
+    try {
+        Assert-OwnedGate1PresentMonEtwSessionAbsent -SessionId $stutter -ActiveSessions @($stutter, $diagnostic) -Phase "postflight"
+    }
+    catch {
+        $detected = $_.Exception.Message.Contains($stutter)
+    }
+    Assert-Condition -Condition $detected -Message "ETW postflight self-test failed."
+}
+
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
 Invoke-Gate1PresentationRouteSelfTest
 Invoke-Gate1NativeWindowContinuitySelfTest
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Invoke-PresentMonControllerQpcWindowSelfTest
 Invoke-Gate1CapturedProcessOutputSelfTest
+Invoke-Gate1PresentMonEtwSessionGuardSelfTest
+Assert-NoPreexistingGate1PresentMonEtwSession -ActiveSessions @(Get-ActiveGate1PresentMonEtwSessions)
 $presentationContract = Get-Gate1PresentationRouteContract -Route $PresentationRoute
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
@@ -1821,7 +1928,6 @@ $presentMonCapture = $null
 $runtimeOutput = $null
 $presentMonOutput = $null
 $nativeWindowObservation = $null
-$presentMonSessionStarted = $false
 $presentMonSessionStopped = $false
 $presentMonStopExitCode = $null
 $presentMonStopResult = $null
@@ -1829,8 +1935,21 @@ $foregroundAttempt = $null
 $nativeWindowSamples = [Collections.Generic.List[object]]::new()
 $runtimeSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
 $sessionId = "OpenRPGForge-Gate1-Stutter-$([Guid]::NewGuid().ToString('N'))"
+$presentMonSessionOwned = $false
+$etwGuardMutex = $null
+$etwGuardMutexHeld = $false
 
 try {
+    $etwGuardMutex = [Threading.Mutex]::new($false, "Global\OpenRPGForge-Gate1-PresentMon-Guard")
+    try {
+        $etwGuardMutexHeld = $etwGuardMutex.WaitOne(0)
+    }
+    catch [Threading.AbandonedMutexException] {
+        $etwGuardMutexHeld = $true
+    }
+    Assert-Condition -Condition $etwGuardMutexHeld -Message "Another Gate 1 acquisition owns the PresentMon ETW guard."
+    Assert-NoPreexistingGate1PresentMonEtwSession -ActiveSessions @(Get-ActiveGate1PresentMonEtwSessions)
+
     $runtimeArguments = @(
         "--visual-valley",
         "--quality", "high",
@@ -1949,8 +2068,9 @@ try {
         "--no_console_stats",
         "--set_circular_buffer_size", "4096"
     )
+    Assert-NoPreexistingGate1PresentMonEtwSession -ActiveSessions @(Get-ActiveGate1PresentMonEtwSessions)
+    $presentMonSessionOwned = $true
     $presentMonCapture = Start-CapturedProcess -FilePath $presentMonFullPath -ArgumentList $presentMonArguments -WorkingDirectory $outputPath -Label "PresentMon Gate 1 gameplay stutter" -StdoutPath $presentMonRawStdoutPath -StderrPath $presentMonStderrPath -Visible $false -StreamToFiles
-    $presentMonSessionStarted = $true
 
     $presentMonReadyTimer = [Diagnostics.Stopwatch]::StartNew()
     $presentMonHeaderObserved = $false
@@ -2093,6 +2213,10 @@ try {
     Assert-Condition -Condition ($unexpectedStopOutput.Count -eq 0) -Message "PresentMon session-stop control emitted unexpected output: $($unexpectedStopOutput -join '; ')."
     Assert-Condition -Condition ($presentMonCapture.Process.WaitForExit($presentMonExitTimeoutSeconds * 1000)) -Message "PresentMon did not terminate within $presentMonExitTimeoutSeconds seconds after target PID $runtimeProcessId exited."
     Assert-Condition -Condition ($presentMonCapture.Process.ExitCode -eq 0) -Message "PresentMon failed with exit code $($presentMonCapture.Process.ExitCode)."
+    Assert-OwnedGate1PresentMonEtwSessionAbsent `
+        -SessionId $sessionId `
+        -ActiveSessions @(Get-ActiveGate1PresentMonEtwSessions) `
+        -Phase "postflight"
     $presentMonSessionStopped = $true
 
     $runtimeOutput = Save-CapturedProcessOutput -Capture $runtimeCapture -DrainTimeoutMilliseconds $drainTimeoutMilliseconds
@@ -2414,7 +2538,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 6
+        schema_version = 7
         status = $validationStatus
         presentation_route = $presentationContract.PresentationRoute
         requested_present_mode = $presentationContract.RequestedPresentMode
@@ -2509,6 +2633,18 @@ try {
             authenticode_status = [string]$presentMonSignature.Status
             signer = $presentMonSigner
             session_id = $sessionId
+            session_guard = [ordered]@{
+                mutex_name = "Global\OpenRPGForge-Gate1-PresentMon-Guard"
+                mutex_scope = "machine_wide_windows_kernel_namespace"
+                recognized_session_prefixes = @(
+                    "OpenRPGForge-Gate1-Stutter-<32-hex>"
+                    "OpenRPGForge-Gate1-Diagnostic-<32-hex>"
+                )
+                initial_preflight_no_active_gate1_sessions = $true
+                pre_start_no_active_gate1_sessions = $true
+                exact_owned_session_postflight_absent = $true
+                unrelated_session_termination_permitted = $false
+            }
             target_process_id = $runtimeProcessId
             session_stop_mode = "terminate_existing_session"
             session_stop_exit_code = $presentMonStopExitCode
@@ -2606,6 +2742,11 @@ try {
             uninterrupted_1800_fixed_ticks = $true
             governed_scene_qualified_and_stable = $true
             presentmon_pid_exact = $true
+            presentmon_session_guard_self_test_passed = $true
+            presentmon_initial_preflight_no_active_gate1_sessions = $true
+            presentmon_pre_start_no_active_gate1_sessions = $true
+            presentmon_exact_owned_session_postflight_absent = $true
+            presentmon_unrelated_session_termination_permitted = $false
             presentmon_session_stopped_gracefully = (-not $presentMonStopResult.TimedOut -and $presentMonStopResult.TerminationConfirmed -and $presentMonStopResult.StdoutDrained -and $presentMonStopResult.StderrDrained -and $presentMonStopExitCode -eq 0)
             presentmon_stdout_stream_observed_live = $true
             presentmon_raw_stdout_partitioned = $true
@@ -2676,7 +2817,11 @@ try {
 }
 finally {
     $presentMonSessionCleanupSucceeded = $true
-    if ($presentMonSessionStarted -and -not $presentMonSessionStopped) {
+    if (
+        $presentMonSessionOwned -and
+        -not $presentMonSessionStopped -and
+        -not [string]::IsNullOrWhiteSpace([string]$sessionId)
+    ) {
         try {
             $presentMonFallbackStopResult = Invoke-CapturedProcessBounded `
                 -FilePath $presentMonFullPath `
@@ -2710,6 +2855,23 @@ finally {
     }
     if ($null -ne $runtimeCapture) {
         $runtimeCapture.Process.Dispose()
+    }
+    if ($presentMonSessionOwned -and -not [string]::IsNullOrWhiteSpace([string]$sessionId)) {
+        try {
+            Assert-OwnedGate1PresentMonEtwSessionAbsent `
+                -SessionId $sessionId `
+                -ActiveSessions @(Get-ActiveGate1PresentMonEtwSessions) `
+                -Phase "cleanup"
+        }
+        catch {
+            $presentMonSessionCleanupSucceeded = $false
+        }
+    }
+    if ($etwGuardMutexHeld -and $null -ne $etwGuardMutex) {
+        try { $etwGuardMutex.ReleaseMutex() } catch {}
+    }
+    if ($null -ne $etwGuardMutex) {
+        $etwGuardMutex.Dispose()
     }
     if (-not $presentMonSessionCleanupSucceeded -or -not $presentMonStopped -or -not $runtimeStopped) {
         Write-Warning "A process-tree watchdog could not confirm bounded termination."
