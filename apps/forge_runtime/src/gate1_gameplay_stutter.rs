@@ -30,13 +30,17 @@ use std::{
 const READY_SCHEMA: &str = "forge.gate1-gameplay-stutter-ready";
 const SIGNAL_SCHEMA: &str = "forge.gate1-gameplay-stutter-start-signal";
 const LEDGER_SCHEMA: &str = "forge.gate1-gameplay-stutter";
-const SCHEMA_VERSION: u32 = 3;
-const LEDGER_SCHEMA_VERSION: u32 = 4;
+const READY_SCHEMA_VERSION: u32 = 4;
+const SIGNAL_SCHEMA_VERSION: u32 = 3;
+const LEDGER_SCHEMA_VERSION: u32 = 5;
 const READY_FILE: &str = "gate1-gameplay-stutter.ready.json";
 const START_SIGNAL_FILE: &str = "gate1-gameplay-stutter.start.signal.json";
 const LEDGER_FILE: &str = "gate1-gameplay-stutter.json";
 const FAILURE_FILE: &str = "gate1-gameplay-stutter.failure.txt";
 const WATCHDOG: Duration = Duration::from_secs(75);
+const POST_MEASUREMENT_WINDOW_HOLD_MS: u64 = 500;
+const POST_MEASUREMENT_WINDOW_HOLD: Duration =
+    Duration::from_millis(POST_MEASUREMENT_WINDOW_HOLD_MS);
 const READY_MAX_FIXED_TICKS: u32 = 1_200;
 const FORWARD_TICKS: u32 = 900;
 const REVERSE_TICKS: u32 = 900;
@@ -55,6 +59,55 @@ const START_Z_M: f32 = 8.0;
 const PRESENTMON_VERSION: &str = "2.4.1";
 const MAX_START_SIGNAL_BYTES: u64 = 16 * 1024;
 const PRESENTMON_SHA256: &str = "d74183e7ae630f72cd3690be0373ecbfdc6cbb86578148aab8fa2a7166068f34";
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub(crate) enum Gate1PresentationRoute {
+    #[default]
+    AutoNoVsync,
+    FifoDiagnostic,
+}
+
+impl Gate1PresentationRoute {
+    pub(crate) const fn present_mode(self) -> PresentMode {
+        match self {
+            Self::AutoNoVsync => PresentMode::AutoNoVsync,
+            Self::FifoDiagnostic => PresentMode::Fifo,
+        }
+    }
+
+    pub(crate) const fn requested_present_mode(self) -> &'static str {
+        match self {
+            Self::AutoNoVsync => "auto_no_vsync",
+            Self::FifoDiagnostic => "fifo",
+        }
+    }
+
+    pub(crate) const fn vsync_requested(self) -> bool {
+        matches!(self, Self::FifoDiagnostic)
+    }
+
+    pub(crate) const fn presentation_route(self) -> &'static str {
+        match self {
+            Self::AutoNoVsync => "auto_no_vsync",
+            Self::FifoDiagnostic => "fifo_diagnostic",
+        }
+    }
+
+    pub(crate) const fn qualification_eligible(self) -> bool {
+        matches!(self, Self::AutoNoVsync)
+    }
+
+    const fn qualification_limitation(self) -> &'static str {
+        match self {
+            Self::AutoNoVsync => {
+                "runtime proves an uninterrupted controller/Rapier/camera window but cannot verify or ingest the external PresentMon display trace"
+            }
+            Self::FifoDiagnostic => {
+                "the explicit FIFO A/B route is diagnostic-only and cannot qualify Gate 1; runtime also cannot verify or ingest the external PresentMon display trace"
+            }
+        }
+    }
+}
 
 #[cfg(windows)]
 #[allow(
@@ -109,6 +162,7 @@ mod qpc_clock {
 #[derive(Clone, Resource)]
 struct Configuration {
     output_dir: PathBuf,
+    presentation_route: Gate1PresentationRoute,
     terrain_hash: String,
     player_profile_hash: String,
     player_spawn_position: Vec3,
@@ -122,6 +176,7 @@ pub(crate) struct Gate1GameplayStutterPlugin {
 impl Gate1GameplayStutterPlugin {
     pub(crate) fn new(
         output_dir: PathBuf,
+        presentation_route: Gate1PresentationRoute,
         terrain: &TerrainDocument,
         player: &PlayerControllerProfileDocument,
     ) -> Result<Self, String> {
@@ -141,6 +196,7 @@ impl Gate1GameplayStutterPlugin {
         Ok(Self {
             configuration: Configuration {
                 output_dir,
+                presentation_route,
                 terrain_hash: terrain
                     .content_hash()
                     .map_err(|error| format!("cannot hash stutter-proof terrain: {error}"))?
@@ -174,7 +230,7 @@ impl Plugin for Gate1GameplayStutterPlugin {
                 observe_controller.after(PlayerControllerSet::Camera),
             )
             .add_systems(Last, observe_main_world_window)
-            .add_systems(Update, watchdog);
+            .add_systems(Update, (watchdog, exit_after_completion_hold));
     }
 
     fn finish(&self, app: &mut App) {
@@ -295,6 +351,7 @@ struct Runtime {
     configuration: Configuration,
     started_at: Instant,
     phase: Phase,
+    completed_at: Option<Instant>,
     phase_ticks: u32,
     ready_wait_ticks: u32,
     ready_written: bool,
@@ -356,6 +413,7 @@ impl Runtime {
             configuration,
             started_at: Instant::now(),
             phase: Phase::WaitingForReady,
+            completed_at: None,
             phase_ticks: 0,
             ready_wait_ticks: 0,
             ready_written: false,
@@ -451,12 +509,16 @@ struct FileContract {
 )]
 struct ProtocolEvidence {
     physical_resolution_px: [u32; 2],
-    present_mode: &'static str,
+    requested_present_mode: &'static str,
     vsync_requested: bool,
+    presentation_route: &'static str,
+    qualification_eligible: bool,
+    observation_scope: &'static str,
     fixed_hz: u32,
     forward_ticks: u32,
     reverse_ticks: u32,
     nominal_measurement_seconds: u32,
+    post_measurement_window_hold_ms: u64,
     no_pause: bool,
     screenshots_requested: bool,
     presentmon_required: bool,
@@ -1105,6 +1167,7 @@ fn observe_controller(
                             .ok_or("GPU identity disappeared at final boundary")?,
                     )?;
                     runtime.phase = Phase::Completed;
+                    runtime.completed_at = Some(Instant::now());
                     tracing::info!(
                         target: "forge::proof",
                         schema = "forge.runtime-event",
@@ -1116,7 +1179,6 @@ fn observe_controller(
                         gate1_route_qualified = false,
                         "uninterrupted gameplay controller window completed; PresentMon analysis remains external"
                     );
-                    exit.write(AppExit::Success);
                 }
                 Ok(())
             }
@@ -1243,6 +1305,29 @@ fn watchdog(mut runtime: ResMut<Runtime>, mut exit: MessageWriter<AppExit>) {
 }
 
 #[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters are owned handles"
+)]
+fn exit_after_completion_hold(runtime: Res<Runtime>, mut exit: MessageWriter<AppExit>) {
+    if runtime.phase != Phase::Completed
+        || runtime
+            .completed_at
+            .is_none_or(|completed_at| completed_at.elapsed() < POST_MEASUREMENT_WINDOW_HOLD)
+    {
+        return;
+    }
+    tracing::info!(
+        target: "forge::proof",
+        schema = "forge.runtime-event",
+        schema_version = 1_u64,
+        event_kind = "gate1_gameplay_stutter_post_measurement_window_hold_completed",
+        hold_ms = POST_MEASUREMENT_WINDOW_HOLD_MS,
+        "post-measurement native-window observation hold completed"
+    );
+    exit.write(AppExit::Success);
+}
+
+#[allow(
     clippy::too_many_arguments,
     reason = "the readiness boundary deliberately names every independent runtime identity"
 )]
@@ -1270,7 +1355,7 @@ fn ready_binding(
     {
         return Ok(None);
     }
-    validate_window(windows)?;
+    validate_window(windows, configuration.presentation_route)?;
     validate_virtual_time(virtual_time)?;
     if !screenshots.is_empty() {
         return Err("a screenshot entity exists before stutter measurement".to_owned());
@@ -1357,7 +1442,7 @@ fn validate_main_world_invariants(
     screenshots: &Query<Entity, With<Screenshot>>,
     virtual_time: &Time<Virtual>,
 ) -> Result<(), String> {
-    validate_window(windows)?;
+    validate_window(windows, runtime.configuration.presentation_route)?;
     validate_virtual_time(virtual_time)?;
     scene.validate()?;
     let initial_scene = runtime
@@ -1477,7 +1562,10 @@ fn validate_virtual_time(time: &Time<Virtual>) -> Result<(), String> {
     Ok(())
 }
 
-fn validate_window(windows: &Query<&Window, With<PrimaryWindow>>) -> Result<(), String> {
+fn validate_window(
+    windows: &Query<&Window, With<PrimaryWindow>>,
+    presentation_route: Gate1PresentationRoute,
+) -> Result<(), String> {
     let window = windows
         .single()
         .map_err(|_| "stutter proof requires exactly one primary window".to_owned())?;
@@ -1485,10 +1573,15 @@ fn validate_window(windows: &Query<&Window, With<PrimaryWindow>>) -> Result<(), 
         window.resolution.physical_width(),
         window.resolution.physical_height(),
     ];
-    if resolution != [1920, 1080] || window.present_mode != PresentMode::AutoNoVsync {
+    let expected_present_mode = presentation_route.present_mode();
+    if resolution != [1920, 1080] || window.present_mode != expected_present_mode {
         return Err(format!(
-            "stutter proof requires 1920x1080 AutoNoVsync, observed {}x{} {:?}",
-            resolution[0], resolution[1], window.present_mode
+            "stutter proof route {} requires 1920x1080 {:?}, observed {}x{} {:?}",
+            presentation_route.presentation_route(),
+            expected_present_mode,
+            resolution[0],
+            resolution[1],
+            window.present_mode
         ));
     }
     Ok(())
@@ -1729,7 +1822,7 @@ fn read_start_signal(path: &Path, expected_process_id: u32) -> Result<Option<Sta
 }
 
 fn validate_start_signal(signal: &StartSignal, expected_process_id: u32) -> Result<(), String> {
-    if signal.schema != SIGNAL_SCHEMA || signal.schema_version != SCHEMA_VERSION {
+    if signal.schema != SIGNAL_SCHEMA || signal.schema_version != SIGNAL_SCHEMA_VERSION {
         return Err("PresentMon start signal schema identity is invalid".to_owned());
     }
     if signal.process_id != expected_process_id
@@ -1794,17 +1887,17 @@ fn write_ready(
     let process_id = std::process::id();
     let ledger = ReadyLedger {
         schema: READY_SCHEMA,
-        schema_version: SCHEMA_VERSION,
+        schema_version: READY_SCHEMA_VERSION,
         status: "ready_waiting_for_presentmon_start_signal",
         process_id,
         build_source_commit: embedded_source_commit()?,
         build_profile: embedded_build_profile()?,
         watchdog_seconds: WATCHDOG.as_secs(),
         files: file_contract(),
-        protocol: protocol(),
+        protocol: protocol(runtime.configuration.presentation_route),
         start_signal_contract: StartSignalContract {
             schema: SIGNAL_SCHEMA,
-            schema_version: SCHEMA_VERSION,
+            schema_version: SIGNAL_SCHEMA_VERSION,
             publish_atomically: true,
             required_process_id: process_id,
             required_presentmon_target_process_id: process_id,
@@ -1954,7 +2047,7 @@ fn write_ledger(
         build_source_commit: embedded_source_commit()?,
         build_profile: embedded_build_profile()?,
         watchdog_seconds: WATCHDOG.as_secs(),
-        protocol: protocol(),
+        protocol: protocol(runtime.configuration.presentation_route),
         sources: sources(&runtime.configuration),
         ready: ReadyEvidence {
             ready_file_written: runtime.ready_written,
@@ -2081,7 +2174,10 @@ fn write_ledger(
             human_review_performed: false,
             gate1_route_qualified: false,
             gate1_qualified: false,
-            limitation: "runtime proves an uninterrupted controller/Rapier/camera window but cannot verify or ingest the external PresentMon display trace",
+            limitation: runtime
+                .configuration
+                .presentation_route
+                .qualification_limitation(),
         },
     };
     write_json_atomic(&runtime.configuration.output_dir.join(LEDGER_FILE), &ledger)
@@ -2168,15 +2264,19 @@ fn validate_final_movement(
     Ok(())
 }
 
-fn protocol() -> ProtocolEvidence {
+fn protocol(presentation_route: Gate1PresentationRoute) -> ProtocolEvidence {
     ProtocolEvidence {
         physical_resolution_px: [1920, 1080],
-        present_mode: "auto_no_vsync",
-        vsync_requested: false,
+        requested_present_mode: presentation_route.requested_present_mode(),
+        vsync_requested: presentation_route.vsync_requested(),
+        presentation_route: presentation_route.presentation_route(),
+        qualification_eligible: presentation_route.qualification_eligible(),
+        observation_scope: "bevy_window_request_not_resolved_surface",
         fixed_hz: 60,
         forward_ticks: FORWARD_TICKS,
         reverse_ticks: REVERSE_TICKS,
         nominal_measurement_seconds: 30,
+        post_measurement_window_hold_ms: POST_MEASUREMENT_WINDOW_HOLD_MS,
         no_pause: true,
         screenshots_requested: false,
         presentmon_required: true,
@@ -2326,6 +2426,7 @@ mod tests {
     fn test_runtime() -> Runtime {
         Runtime::new(Configuration {
             output_dir: PathBuf::from("unused-test-output"),
+            presentation_route: Gate1PresentationRoute::AutoNoVsync,
             terrain_hash: "terrain".to_owned(),
             player_profile_hash: "player".to_owned(),
             player_spawn_position: Vec3::ZERO,
@@ -2336,7 +2437,7 @@ mod tests {
     fn valid_signal(process_id: u32) -> StartSignal {
         StartSignal {
             schema: SIGNAL_SCHEMA.to_owned(),
-            schema_version: SCHEMA_VERSION,
+            schema_version: SIGNAL_SCHEMA_VERSION,
             process_id,
             presentmon: PresentMonSignal {
                 capture_started: true,
@@ -2412,11 +2513,20 @@ mod tests {
 
     #[test]
     fn protocol_is_an_exact_unpaused_thirty_second_window() {
-        let protocol = protocol();
+        let protocol = protocol(Gate1PresentationRoute::AutoNoVsync);
         assert_eq!(protocol.physical_resolution_px, [1920, 1080]);
+        assert_eq!(protocol.requested_present_mode, "auto_no_vsync");
+        assert!(!protocol.vsync_requested);
+        assert_eq!(protocol.presentation_route, "auto_no_vsync");
+        assert!(protocol.qualification_eligible);
+        assert_eq!(
+            protocol.observation_scope,
+            "bevy_window_request_not_resolved_surface"
+        );
         assert_eq!(protocol.fixed_hz, 60);
         assert_eq!(protocol.forward_ticks + protocol.reverse_ticks, 1_800);
         assert_eq!(protocol.nominal_measurement_seconds, 30);
+        assert_eq!(protocol.post_measurement_window_hold_ms, 500);
         assert!(protocol.no_pause);
         assert!(!protocol.screenshots_requested);
         assert!(protocol.presentmon_required);
@@ -2447,6 +2557,27 @@ mod tests {
         ] {
             assert_eq!(serialized[field], "not_observed");
         }
+    }
+
+    #[test]
+    fn fifo_protocol_is_explicitly_nonqualifying() {
+        let protocol = protocol(Gate1PresentationRoute::FifoDiagnostic);
+        assert_eq!(
+            Gate1PresentationRoute::FifoDiagnostic.present_mode(),
+            PresentMode::Fifo
+        );
+        assert_eq!(protocol.requested_present_mode, "fifo");
+        assert!(protocol.vsync_requested);
+        assert_eq!(protocol.presentation_route, "fifo_diagnostic");
+        assert!(!protocol.qualification_eligible);
+        assert_eq!(READY_SCHEMA_VERSION, 4);
+        assert_eq!(SIGNAL_SCHEMA_VERSION, 3);
+        assert_eq!(LEDGER_SCHEMA_VERSION, 5);
+        assert!(
+            Gate1PresentationRoute::FifoDiagnostic
+                .qualification_limitation()
+                .contains("cannot qualify Gate 1")
+        );
     }
 
     #[test]

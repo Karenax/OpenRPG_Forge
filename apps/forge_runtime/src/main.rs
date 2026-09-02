@@ -34,7 +34,7 @@ use forge_world::{
     embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
-use gate1_gameplay_stutter::Gate1GameplayStutterPlugin;
+use gate1_gameplay_stutter::{Gate1GameplayStutterPlugin, Gate1PresentationRoute};
 use gate1_visual_proof::Gate1VisualProofPlugin;
 use player_camera_probe::PlayerCameraProbePlugin;
 use std::{
@@ -53,6 +53,11 @@ const NONQUALIFYING_RENDER_PROFILE_MARKER: &str = "NONQUALIFYING_RENDER_PROFILE.
 const NONQUALIFYING_RENDER_PROFILE_SCHEMA: &str = "forge.nonqualifying-render-profile";
 #[cfg(feature = "render-profile")]
 const NONQUALIFYING_RENDER_PROFILE_REASON: &str = "render-profile instrumentation changes runtime logging and render scheduling; this diagnostic run cannot qualify Gate 1";
+const NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_MARKER: &str = "NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC.json";
+const NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_SCHEMA: &str =
+    "forge.nonqualifying-gate1-fifo-diagnostic";
+const NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_REASON: &str = "the explicit FIFO presentation route changes the qualifying AutoNoVsync request and is diagnostic-only; this run cannot qualify Gate 1";
+const GATE1_PRESENTATION_OBSERVATION_SCOPE: &str = "bevy_window_request_not_resolved_surface";
 
 #[cfg(feature = "render-profile")]
 #[derive(serde::Serialize)]
@@ -62,6 +67,19 @@ struct NonqualifyingRenderProfileMarker {
     qualifying: bool,
     source_commit: Option<&'static str>,
     feature: &'static str,
+    reason: &'static str,
+}
+
+#[derive(serde::Serialize)]
+struct NonqualifyingGate1FifoDiagnosticMarker {
+    schema: &'static str,
+    schema_version: u32,
+    qualifying: bool,
+    source_commit: Option<&'static str>,
+    presentation_route: &'static str,
+    requested_present_mode: &'static str,
+    vsync_requested: bool,
+    observation_scope: &'static str,
     reason: &'static str,
 }
 
@@ -103,12 +121,15 @@ fn main() -> AppExit {
     if let Err(message) = options.write_nonqualifying_render_profile_marker() {
         return startup_error("render_profile_marker", &message);
     }
+    if let Err(message) = options.write_nonqualifying_gate1_fifo_diagnostic_marker() {
+        return startup_error("gate1_fifo_diagnostic_marker", &message);
+    }
     let document = match options.load_document() {
         Ok(document) => document,
         Err(message) => return startup_error("scene_load", &message),
     };
 
-    let present_mode = present_mode_for_vsync(options.vsync);
+    let present_mode = options.requested_present_mode();
     let runtime_mode = document.mode_label();
     let window_title = document.window_title();
     let render_plugin = RenderPlugin {
@@ -142,6 +163,7 @@ fn main() -> AppExit {
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
         gate1_gameplay_stutter = options.gate1_gameplay_stutter_output.is_some(),
+        gate1_presentation_route = options.gate1_presentation_route.presentation_route(),
         render_diagnostics_enabled = automation.render_diagnostics_policy
             == RenderDiagnosticsPolicy::Enabled,
         gate1_visual_proof = options.gate1_visual_proof_output.is_some(),
@@ -191,6 +213,7 @@ fn main() -> AppExit {
             terrain_partial_update_probe: options.terrain_partial_update_probe,
             player_camera: options.player_camera,
             gate1_gameplay_stutter_output: options.gate1_gameplay_stutter_output.clone(),
+            gate1_presentation_route: options.gate1_presentation_route,
             gate1_visual_proof_output: options.gate1_visual_proof_output.clone(),
             weather_state: options.weather_state,
             quality_selection: options.quality_selection,
@@ -241,6 +264,7 @@ struct RuntimePluginConfiguration {
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
     gate1_gameplay_stutter_output: Option<PathBuf>,
+    gate1_presentation_route: Gate1PresentationRoute,
     gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
@@ -262,6 +286,7 @@ fn add_runtime_plugin(
         terrain_partial_update_probe,
         player_camera,
         gate1_gameplay_stutter_output,
+        gate1_presentation_route,
         gate1_visual_proof_output,
         weather_state,
         quality_selection,
@@ -308,9 +333,15 @@ fn add_runtime_plugin(
                 let player = player_profile.as_ref().unwrap_or_else(|| {
                     panic!("Gate 1 gameplay stutter proof requires the embedded player-controller profile")
                 });
-                Gate1GameplayStutterPlugin::new(output_dir, &document, player).unwrap_or_else(
-                    |error| panic!("cannot prepare Gate 1 gameplay stutter harness: {error}"),
+                Gate1GameplayStutterPlugin::new(
+                    output_dir,
+                    gate1_presentation_route,
+                    &document,
+                    player,
                 )
+                .unwrap_or_else(|error| {
+                    panic!("cannot prepare Gate 1 gameplay stutter harness: {error}")
+                })
             });
             let visual_proof_plugin = gate1_visual_proof_output.map(|output_dir| {
                 let water = water.as_deref().unwrap_or_else(|| {
@@ -608,6 +639,7 @@ struct Options {
     terrain_partial_update_probe: TerrainPartialUpdateProbeMode,
     player_camera: PlayerCameraRuntimeMode,
     gate1_gameplay_stutter_output: Option<PathBuf>,
+    gate1_presentation_route: Gate1PresentationRoute,
     gate1_visual_proof_output: Option<PathBuf>,
     #[cfg(feature = "render-profile")]
     render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic,
@@ -636,6 +668,7 @@ impl Default for Options {
             terrain_partial_update_probe: TerrainPartialUpdateProbeMode::Disabled,
             player_camera: PlayerCameraRuntimeMode::Disabled,
             gate1_gameplay_stutter_output: None,
+            gate1_presentation_route: Gate1PresentationRoute::AutoNoVsync,
             gate1_visual_proof_output: None,
             #[cfg(feature = "render-profile")]
             render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic::Disabled,
@@ -680,6 +713,15 @@ impl Options {
                     }
                     options.gate1_gameplay_stutter_output =
                         Some(next_path(&mut arguments, "--gate1-gameplay-stutter")?);
+                }
+                "--gate1-fifo-diagnostic" => {
+                    if matches!(
+                        options.gate1_presentation_route,
+                        Gate1PresentationRoute::FifoDiagnostic
+                    ) {
+                        return Err("--gate1-fifo-diagnostic may only be specified once".to_owned());
+                    }
+                    options.gate1_presentation_route = Gate1PresentationRoute::FifoDiagnostic;
                 }
                 "--gate1-visual-proof" => {
                     if options.gate1_visual_proof_output.is_some() {
@@ -740,7 +782,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-gameplay-stutter output-dir | --gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-gameplay-stutter output-dir [--gate1-fifo-diagnostic] | --gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -767,6 +809,7 @@ impl Options {
         }
         #[cfg(feature = "render-profile")]
         self.validate_render_profile_gate1_diagnostic()?;
+        self.validate_gate1_fifo_diagnostic()?;
         self.validate_gate1_gameplay_stutter()?;
         self.validate_gate1_visual_proof()?;
         self.validate_terrain_partial_update_probe()?;
@@ -885,6 +928,28 @@ impl Options {
         Ok(())
     }
 
+    fn validate_gate1_fifo_diagnostic(&self) -> Result<(), String> {
+        if !matches!(
+            self.gate1_presentation_route,
+            Gate1PresentationRoute::FifoDiagnostic
+        ) {
+            return Ok(());
+        }
+        if self.gate1_gameplay_stutter_output.is_none() {
+            return Err("--gate1-fifo-diagnostic requires --gate1-gameplay-stutter".to_owned());
+        }
+        if !self.vsync {
+            return Err("--gate1-fifo-diagnostic cannot be combined with --no-vsync".to_owned());
+        }
+        #[cfg(feature = "render-profile")]
+        return Err(
+            "--gate1-fifo-diagnostic is unavailable in NONQUALIFYING render-profile builds"
+                .to_owned(),
+        );
+        #[cfg(not(feature = "render-profile"))]
+        Ok(())
+    }
+
     fn validate_gate1_gameplay_stutter(&self) -> Result<(), String> {
         let Some(output_dir) = self.gate1_gameplay_stutter_output.as_deref() else {
             return Ok(());
@@ -919,11 +984,17 @@ impl Options {
                     .to_owned(),
             );
         }
-        if self.vsync {
-            return Err(
-                "--gate1-gameplay-stutter requires --no-vsync for the governed acquisition protocol"
-                    .to_owned(),
-            );
+        match self.gate1_presentation_route {
+            Gate1PresentationRoute::AutoNoVsync if self.vsync => {
+                return Err(
+                    "--gate1-gameplay-stutter requires --no-vsync for the governed acquisition protocol"
+                        .to_owned(),
+                );
+            }
+            Gate1PresentationRoute::FifoDiagnostic if !self.vsync => {
+                return Err("--gate1-fifo-diagnostic cannot be combined with --no-vsync".to_owned());
+            }
+            _ => {}
         }
         Ok(())
     }
@@ -1076,6 +1147,14 @@ impl Options {
         }
     }
 
+    const fn requested_present_mode(&self) -> PresentMode {
+        if self.gate1_gameplay_stutter_output.is_some() {
+            self.gate1_presentation_route.present_mode()
+        } else {
+            present_mode_for_vsync(self.vsync)
+        }
+    }
+
     fn select_quality(&mut self, selection: VisualValleyQualitySelection) -> Result<(), String> {
         if self.quality_selection.is_some() {
             return Err(
@@ -1199,6 +1278,37 @@ impl Options {
             &marker,
         )
     }
+
+    fn write_nonqualifying_gate1_fifo_diagnostic_marker(&self) -> Result<(), String> {
+        if !matches!(
+            self.gate1_presentation_route,
+            Gate1PresentationRoute::FifoDiagnostic
+        ) {
+            return Ok(());
+        }
+        self.validate_gate1_fifo_diagnostic()?;
+        let output_dir = self
+            .gate1_gameplay_stutter_output
+            .as_deref()
+            .ok_or_else(|| {
+                "--gate1-fifo-diagnostic requires --gate1-gameplay-stutter".to_owned()
+            })?;
+        let marker = NonqualifyingGate1FifoDiagnosticMarker {
+            schema: NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_SCHEMA,
+            schema_version: 1,
+            qualifying: false,
+            source_commit: option_env!("FORGE_SOURCE_COMMIT"),
+            presentation_route: self.gate1_presentation_route.presentation_route(),
+            requested_present_mode: self.gate1_presentation_route.requested_present_mode(),
+            vsync_requested: self.gate1_presentation_route.vsync_requested(),
+            observation_scope: GATE1_PRESENTATION_OBSERVATION_SCOPE,
+            reason: NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_REASON,
+        };
+        write_nonqualifying_gate1_fifo_diagnostic_marker_atomic(
+            &output_dir.join(NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_MARKER),
+            &marker,
+        )
+    }
 }
 
 #[cfg(feature = "render-profile")]
@@ -1257,6 +1367,67 @@ fn write_nonqualifying_render_profile_marker_atomic(
     fs::remove_file(&temporary).map_err(|error| {
         format!(
             "render-profile marker {} was published but temporary link {} could not be removed: {error}",
+            path.display(),
+            temporary.display()
+        )
+    })
+}
+
+fn write_nonqualifying_gate1_fifo_diagnostic_marker_atomic(
+    path: &Path,
+    marker: &NonqualifyingGate1FifoDiagnosticMarker,
+) -> Result<(), String> {
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            format!(
+                "Gate 1 FIFO diagnostic marker has no UTF-8 filename: {}",
+                path.display()
+            )
+        })?;
+    let temporary = path.with_file_name(format!(".{file_name}.tmp"));
+    let json = serde_json::to_vec_pretty(marker)
+        .map_err(|error| format!("cannot serialize Gate 1 FIFO diagnostic marker: {error}"))?;
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&temporary)
+        .map_err(|error| {
+            format!(
+                "cannot create temporary Gate 1 FIFO diagnostic marker {}: {error}",
+                temporary.display()
+            )
+        })?;
+    if let Err(error) = std::io::Write::write_all(&mut file, &json).and_then(|()| file.sync_all()) {
+        drop(file);
+        let _ = fs::remove_file(&temporary);
+        return Err(format!(
+            "cannot write temporary Gate 1 FIFO diagnostic marker {}: {error}",
+            temporary.display()
+        ));
+    }
+    drop(file);
+
+    // The temporary and final entries share a directory. A hard link publishes atomically while
+    // preserving the proof contract's no-clobber behavior on Windows.
+    if let Err(error) = fs::hard_link(&temporary, path) {
+        let _ = fs::remove_file(&temporary);
+        if error.kind() == std::io::ErrorKind::AlreadyExists {
+            return Err(format!(
+                "refusing to replace existing Gate 1 FIFO diagnostic marker {}",
+                path.display()
+            ));
+        }
+        return Err(format!(
+            "cannot atomically publish Gate 1 FIFO diagnostic marker {} as {}: {error}",
+            temporary.display(),
+            path.display()
+        ));
+    }
+    fs::remove_file(&temporary).map_err(|error| {
+        format!(
+            "Gate 1 FIFO diagnostic marker {} was published but temporary link {} could not be removed: {error}",
             path.display(),
             temporary.display()
         )
@@ -1976,6 +2147,11 @@ mod tests {
             accepted.runtime_automation().render_diagnostics_policy,
             RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
         );
+        assert_eq!(
+            accepted.gate1_presentation_route,
+            Gate1PresentationRoute::AutoNoVsync
+        );
+        assert_eq!(accepted.requested_present_mode(), PresentMode::AutoNoVsync);
 
         let ordinary_high = Options::parse(
             [
@@ -2104,6 +2280,90 @@ mod tests {
             )
             .unwrap_err(),
             "--gate1-gameplay-stutter may only be specified once"
+        );
+    }
+
+    #[cfg(not(feature = "render-profile"))]
+    #[test]
+    fn gate1_fifo_diagnostic_is_explicit_owned_and_never_no_vsync() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--gate1-gameplay-stutter",
+                "stutter-output",
+                "--gate1-fifo-diagnostic",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        assert_eq!(
+            accepted.gate1_presentation_route,
+            Gate1PresentationRoute::FifoDiagnostic
+        );
+        assert!(accepted.vsync);
+        assert_eq!(accepted.requested_present_mode(), PresentMode::Fifo);
+
+        assert_eq!(
+            Options::parse(["--gate1-fifo-diagnostic"].into_iter().map(str::to_owned)).unwrap_err(),
+            "--gate1-fifo-diagnostic requires --gate1-gameplay-stutter"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley",
+                    "--quality",
+                    "high",
+                    "--gate1-gameplay-stutter",
+                    "stutter-output",
+                    "--gate1-fifo-diagnostic",
+                    "--no-vsync",
+                ]
+                .into_iter()
+                .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--gate1-fifo-diagnostic cannot be combined with --no-vsync"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley",
+                    "--quality",
+                    "high",
+                    "--gate1-gameplay-stutter",
+                    "stutter-output",
+                    "--gate1-fifo-diagnostic",
+                    "--gate1-fifo-diagnostic",
+                ]
+                .into_iter()
+                .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--gate1-fifo-diagnostic may only be specified once"
+        );
+    }
+
+    #[cfg(feature = "render-profile")]
+    #[test]
+    fn gate1_fifo_diagnostic_is_unavailable_in_render_profile_builds() {
+        assert_eq!(
+            Options::parse(
+                [
+                    "--visual-valley",
+                    "--quality",
+                    "high",
+                    "--gate1-gameplay-stutter",
+                    "stutter-output",
+                    "--gate1-fifo-diagnostic",
+                ]
+                .into_iter()
+                .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--gate1-fifo-diagnostic is unavailable in NONQUALIFYING render-profile builds"
         );
     }
 
@@ -2771,6 +3031,68 @@ mod tests {
         let error = options.prepare_output_paths().unwrap_err();
         assert!(error.contains("must be absent or empty"));
         assert!(root.join("stale.json").is_file());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[cfg(not(feature = "render-profile"))]
+    #[test]
+    fn gate1_fifo_diagnostic_writes_only_its_atomic_nonqualifying_marker() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-gate1-fifo-marker-{}-{unique}",
+            std::process::id()
+        ));
+        let options = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--gate1-gameplay-stutter".to_owned(),
+                root.display().to_string(),
+                "--gate1-fifo-diagnostic".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+
+        options.prepare_output_paths().unwrap();
+        options
+            .write_nonqualifying_gate1_fifo_diagnostic_marker()
+            .unwrap();
+
+        let marker_path = root.join(NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_MARKER);
+        let marker: serde_json::Value =
+            serde_json::from_slice(&fs::read(&marker_path).unwrap()).unwrap();
+        assert_eq!(
+            marker,
+            serde_json::json!({
+                "schema": "forge.nonqualifying-gate1-fifo-diagnostic",
+                "schema_version": 1,
+                "qualifying": false,
+                "source_commit": option_env!("FORGE_SOURCE_COMMIT"),
+                "presentation_route": "fifo_diagnostic",
+                "requested_present_mode": "fifo",
+                "vsync_requested": true,
+                "observation_scope": "bevy_window_request_not_resolved_surface",
+                "reason": "the explicit FIFO presentation route changes the qualifying AutoNoVsync request and is diagnostic-only; this run cannot qualify Gate 1",
+            })
+        );
+        assert_eq!(fs::read_dir(&root).unwrap().count(), 1);
+        assert!(
+            !root
+                .join(format!(".{NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC_MARKER}.tmp"))
+                .exists()
+        );
+
+        let original = fs::read(&marker_path).unwrap();
+        let error = options
+            .write_nonqualifying_gate1_fifo_diagnostic_marker()
+            .unwrap_err();
+        assert!(error.contains("refusing to replace existing Gate 1 FIFO diagnostic marker"));
+        assert_eq!(fs::read(&marker_path).unwrap(), original);
         fs::remove_dir_all(root).unwrap();
     }
 

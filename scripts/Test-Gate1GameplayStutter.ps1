@@ -14,7 +14,10 @@ param(
 
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
-    [string]$PresentMonPath
+    [string]$PresentMonPath,
+
+    [ValidateSet("AutoNoVsync", "FifoDiagnostic")]
+    [string]$PresentationRoute = "AutoNoVsync"
 )
 
 Set-StrictMode -Version Latest
@@ -28,6 +31,7 @@ $signalFileName = "gate1-gameplay-stutter.start.signal.json"
 $hostBoundaryFileName = "gate1-gameplay-stutter.host-boundary.json"
 $ledgerFileName = "gate1-gameplay-stutter.json"
 $validationFileName = "gate1-gameplay-stutter.validation.json"
+$fifoDiagnosticMarkerFileName = "NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC.json"
 $runtimeTimeoutSeconds = 120
 $readyTimeoutSeconds = 45
 $presentMonReadyTimeoutSeconds = 20
@@ -74,6 +78,62 @@ function Assert-Condition {
 
     if (-not $Condition) {
         throw $Message
+    }
+}
+
+function Get-Gate1PresentationRouteContract {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Route)
+
+    switch ($Route) {
+        "AutoNoVsync" {
+            return [pscustomobject]@{
+                Name = "AutoNoVsync"
+                RuntimeArguments = @("--no-vsync")
+                RequestedPresentMode = "auto_no_vsync"
+                PresentationRoute = "auto_no_vsync"
+                VsyncRequested = $false
+                QualificationEligible = $true
+                ExpectedSyncInterval = "0"
+                MarkerRequired = $false
+            }
+        }
+        "FifoDiagnostic" {
+            return [pscustomobject]@{
+                Name = "FifoDiagnostic"
+                RuntimeArguments = @("--gate1-fifo-diagnostic")
+                RequestedPresentMode = "fifo"
+                PresentationRoute = "fifo_diagnostic"
+                VsyncRequested = $true
+                QualificationEligible = $false
+                ExpectedSyncInterval = $null
+                MarkerRequired = $true
+            }
+        }
+        default {
+            throw "Unsupported Gate 1 presentation route '$Route'."
+        }
+    }
+}
+
+function Invoke-Gate1PresentationRouteSelfTest {
+    $auto = Get-Gate1PresentationRouteContract -Route "AutoNoVsync"
+    Assert-Condition -Condition ($auto.RuntimeArguments.Count -eq 1 -and $auto.RuntimeArguments[0] -eq "--no-vsync") -Message "Presentation-route self-test built the wrong AutoNoVsync arguments."
+    Assert-Condition -Condition ($auto.RequestedPresentMode -eq "auto_no_vsync" -and $auto.PresentationRoute -eq "auto_no_vsync" -and $auto.VsyncRequested -eq $false -and $auto.QualificationEligible -eq $true -and $auto.ExpectedSyncInterval -eq "0" -and $auto.MarkerRequired -eq $false) -Message "Presentation-route self-test built the wrong AutoNoVsync contract."
+
+    $fifo = Get-Gate1PresentationRouteContract -Route "FifoDiagnostic"
+    Assert-Condition -Condition ($fifo.RuntimeArguments.Count -eq 1 -and $fifo.RuntimeArguments[0] -eq "--gate1-fifo-diagnostic" -and $fifo.RuntimeArguments -notcontains "--no-vsync") -Message "Presentation-route self-test built the wrong FifoDiagnostic arguments."
+    Assert-Condition -Condition ($fifo.RequestedPresentMode -eq "fifo" -and $fifo.PresentationRoute -eq "fifo_diagnostic" -and $fifo.VsyncRequested -eq $true -and $fifo.QualificationEligible -eq $false -and $null -eq $fifo.ExpectedSyncInterval -and $fifo.MarkerRequired -eq $true) -Message "Presentation-route self-test built the wrong FifoDiagnostic contract."
+
+    foreach ($invalidRoute in @("", "Fifo", "AutoVsync")) {
+        $rejected = $false
+        try {
+            [void](Get-Gate1PresentationRouteContract -Route $invalidRoute)
+        }
+        catch {
+            $rejected = $true
+            Assert-Condition -Condition ($_.Exception.Message -like "*Unsupported Gate 1 presentation route*") -Message "Presentation-route negative self-test failed for an unexpected reason."
+        }
+        Assert-Condition -Condition $rejected -Message "Presentation-route negative self-test accepted '$invalidRoute'."
     }
 }
 
@@ -146,6 +206,13 @@ namespace ForgeGate1Stutter {
 
         [DllImport("user32.dll")]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
     }
 }
 '@
@@ -190,6 +257,7 @@ function Wait-ForQualifiedNativeWindow {
             ) {
                 return [pscustomobject]@{
                     Observed = $true
+                    RawHandle = $windowHandle
                     Handle = ("0x{0:x16}" -f $windowHandle.ToInt64())
                     OwnerProcessId = $ownerProcessId
                     Visible = $true
@@ -204,6 +272,155 @@ function Wait-ForQualifiedNativeWindow {
     }
 
     throw "forge_runtime native window was not qualified within $TimeoutSeconds seconds; last observation: $lastObservation"
+}
+
+function Get-Gate1NativeWindowState {
+    param(
+        [Parameter(Mandatory = $true)][Diagnostics.Process]$Process,
+        [Parameter(Mandatory = $true)][IntPtr]$ExpectedHandle
+    )
+
+    [uint64]$observedQpc = [Diagnostics.Stopwatch]::GetTimestamp()
+    $Process.Refresh()
+    $observedHandle = $Process.MainWindowHandle
+    [uint32]$ownerProcessId = 0
+    $windowThreadId = if ($observedHandle -ne [IntPtr]::Zero) {
+        [ForgeGate1Stutter.NativeWindow]::GetWindowThreadProcessId($observedHandle, [ref]$ownerProcessId)
+    }
+    else {
+        0
+    }
+    $visible = $observedHandle -ne [IntPtr]::Zero -and [ForgeGate1Stutter.NativeWindow]::IsWindowVisible($observedHandle)
+    $minimized = $observedHandle -eq [IntPtr]::Zero -or [ForgeGate1Stutter.NativeWindow]::IsIconic($observedHandle)
+    $foregroundHandle = [ForgeGate1Stutter.NativeWindow]::GetForegroundWindow()
+    return [pscustomobject]@{
+        Qpc = $observedQpc
+        Handle = ("0x{0:x16}" -f $observedHandle.ToInt64())
+        HandleMatches = ($observedHandle -eq $ExpectedHandle)
+        OwnerProcessId = $ownerProcessId
+        OwnerMatches = ($windowThreadId -ne 0 -and $ownerProcessId -eq [uint32]$Process.Id)
+        Visible = $visible
+        Minimized = $minimized
+        ForegroundHandle = ("0x{0:x16}" -f $foregroundHandle.ToInt64())
+        Foreground = ($foregroundHandle -eq $ExpectedHandle)
+    }
+}
+
+function Invoke-Gate1RuntimeWindowForegroundAttempt {
+    param(
+        [Parameter(Mandatory = $true)][Diagnostics.Process]$Process,
+        [Parameter(Mandatory = $true)][IntPtr]$ExpectedHandle,
+        [int]$TimeoutMilliseconds = 2000
+    )
+
+    $requestAccepted = [ForgeGate1Stutter.NativeWindow]::SetForegroundWindow($ExpectedHandle)
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    $lastState = $null
+    do {
+        if ($Process.HasExited) {
+            break
+        }
+        $lastState = Get-Gate1NativeWindowState -Process $Process -ExpectedHandle $ExpectedHandle
+        if ($lastState.Foreground) {
+            break
+        }
+        Start-Sleep -Milliseconds 50
+    } while ($timer.ElapsedMilliseconds -lt $TimeoutMilliseconds)
+
+    return [pscustomobject]@{
+        SetForegroundWindowReturned = $requestAccepted
+        ForegroundObserved = ($null -ne $lastState -and $lastState.Foreground)
+        ElapsedMilliseconds = $timer.Elapsed.TotalMilliseconds
+        LastState = $lastState
+    }
+}
+
+function Get-Gate1NativeWindowContinuity {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Samples,
+        [Parameter(Mandatory = $true)][uint64]$StartQpc,
+        [Parameter(Mandatory = $true)][uint64]$EndQpc,
+        [Parameter(Mandatory = $true)][uint64]$FrequencyHz
+    )
+
+    Assert-Condition -Condition ($FrequencyHz -gt 0) -Message "Native-window continuity QPC frequency is invalid."
+    $orderedSamples = @($Samples | Sort-Object { [uint64]$_.Qpc })
+    $predecessor = @($orderedSamples | Where-Object { [uint64]$_.Qpc -le $StartQpc } | Select-Object -Last 1)
+    $inside = @($orderedSamples | Where-Object { [uint64]$_.Qpc -gt $StartQpc -and [uint64]$_.Qpc -lt $EndQpc })
+    $successor = @($orderedSamples | Where-Object { [uint64]$_.Qpc -ge $EndQpc } | Select-Object -First 1)
+    $windowSamples = @($predecessor + $inside + $successor)
+    $coversStart = $predecessor.Count -eq 1
+    $coversEnd = $successor.Count -eq 1
+    $handleMismatchSamples = @($windowSamples | Where-Object { -not $_.HandleMatches })
+    $ownerMismatchSamples = @($windowSamples | Where-Object { -not $_.OwnerMatches })
+    $notVisibleSamples = @($windowSamples | Where-Object { -not $_.Visible })
+    $minimizedSamples = @($windowSamples | Where-Object { $_.Minimized })
+    $notForegroundSamples = @($windowSamples | Where-Object { -not $_.Foreground })
+    [uint64]$maximumSamplingGapQpc = 0
+    for ($index = 1; $index -lt $windowSamples.Count; $index++) {
+        [uint64]$gapQpc = [uint64]$windowSamples[$index].Qpc - [uint64]$windowSamples[$index - 1].Qpc
+        if ($gapQpc -gt $maximumSamplingGapQpc) {
+            $maximumSamplingGapQpc = $gapQpc
+        }
+    }
+    $maximumSamplingGapMilliseconds = [double](([decimal]$maximumSamplingGapQpc * 1000) / [decimal]$FrequencyHz)
+    $samplingGapPassed = $windowSamples.Count -gt 2 -and $maximumSamplingGapMilliseconds -le 250.0
+    $statePassed = $coversStart -and $coversEnd -and $samplingGapPassed -and $handleMismatchSamples.Count -eq 0 -and $ownerMismatchSamples.Count -eq 0 -and $notVisibleSamples.Count -eq 0 -and $minimizedSamples.Count -eq 0 -and $notForegroundSamples.Count -eq 0
+    return [pscustomobject]@{
+        SamplingIntervalMilliseconds = 100
+        TotalSamples = $orderedSamples.Count
+        ControllerEnvelopeSamples = $windowSamples.Count
+        CoversControllerStart = $coversStart
+        CoversControllerEnd = $coversEnd
+        FirstEnvelopeSampleQpc = if ($windowSamples.Count -gt 0) { [uint64]$windowSamples[0].Qpc } else { $null }
+        LastEnvelopeSampleQpc = if ($windowSamples.Count -gt 0) { [uint64]$windowSamples[-1].Qpc } else { $null }
+        MaximumSamplingGapQpc = $maximumSamplingGapQpc
+        MaximumSamplingGapMilliseconds = $maximumSamplingGapMilliseconds
+        MaximumSamplingGapThresholdMilliseconds = 250.0
+        SamplingGapPassed = $samplingGapPassed
+        HandleMismatchSamples = $handleMismatchSamples.Count
+        OwnerMismatchSamples = $ownerMismatchSamples.Count
+        NotVisibleSamples = $notVisibleSamples.Count
+        MinimizedSamples = $minimizedSamples.Count
+        NotForegroundSamples = $notForegroundSamples.Count
+        FirstHandleMismatchQpc = if ($handleMismatchSamples.Count -gt 0) { [uint64]$handleMismatchSamples[0].Qpc } else { $null }
+        FirstOwnerMismatchQpc = if ($ownerMismatchSamples.Count -gt 0) { [uint64]$ownerMismatchSamples[0].Qpc } else { $null }
+        FirstNotVisibleQpc = if ($notVisibleSamples.Count -gt 0) { [uint64]$notVisibleSamples[0].Qpc } else { $null }
+        FirstMinimizedQpc = if ($minimizedSamples.Count -gt 0) { [uint64]$minimizedSamples[0].Qpc } else { $null }
+        FirstNotForegroundQpc = if ($notForegroundSamples.Count -gt 0) { [uint64]$notForegroundSamples[0].Qpc } else { $null }
+        HandleStable = ($handleMismatchSamples.Count -eq 0)
+        OwnerStable = ($ownerMismatchSamples.Count -eq 0)
+        VisibleForAllSamples = ($notVisibleSamples.Count -eq 0)
+        NeverMinimized = ($minimizedSamples.Count -eq 0)
+        ForegroundForAllSamples = ($notForegroundSamples.Count -eq 0)
+        StatePassed = $statePassed
+    }
+}
+
+function Invoke-Gate1NativeWindowContinuitySelfTest {
+    $goodSamples = @(
+        [pscustomobject]@{ Qpc = [uint64]900; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true },
+        [pscustomobject]@{ Qpc = [uint64]1050; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true },
+        [pscustomobject]@{ Qpc = [uint64]1150; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true }
+    )
+    $good = Get-Gate1NativeWindowContinuity -Samples $goodSamples -StartQpc 1000 -EndQpc 1100 -FrequencyHz 1000
+    Assert-Condition -Condition ($good.StatePassed -and $good.CoversControllerStart -and $good.CoversControllerEnd -and $good.MaximumSamplingGapMilliseconds -eq 150.0) -Message "Native-window continuity self-test rejected a covered 150 ms sample envelope."
+
+    $gapSamples = @(
+        [pscustomobject]@{ Qpc = [uint64]900; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true },
+        [pscustomobject]@{ Qpc = [uint64]1050; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true },
+        [pscustomobject]@{ Qpc = [uint64]1400; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true }
+    )
+    $gap = Get-Gate1NativeWindowContinuity -Samples $gapSamples -StartQpc 1000 -EndQpc 1100 -FrequencyHz 1000
+    Assert-Condition -Condition (-not $gap.StatePassed -and -not $gap.SamplingGapPassed -and $gap.MaximumSamplingGapMilliseconds -eq 350.0) -Message "Native-window continuity self-test accepted a 350 ms sampling gap."
+
+    $backgroundSamples = @(
+        [pscustomobject]@{ Qpc = [uint64]900; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true },
+        [pscustomobject]@{ Qpc = [uint64]1050; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $false },
+        [pscustomobject]@{ Qpc = [uint64]1150; HandleMatches = $true; OwnerMatches = $true; Visible = $true; Minimized = $false; Foreground = $true }
+    )
+    $background = Get-Gate1NativeWindowContinuity -Samples $backgroundSamples -StartQpc 1000 -EndQpc 1100 -FrequencyHz 1000
+    Assert-Condition -Condition (-not $background.StatePassed -and $background.NotForegroundSamples -eq 1) -Message "Native-window continuity self-test accepted a background sample."
 }
 
 function Get-RequiredProperty {
@@ -1277,8 +1494,11 @@ function Get-ArtifactDescriptor {
 }
 
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 PresentMon acquisition requires Windows."
+Invoke-Gate1PresentationRouteSelfTest
+Invoke-Gate1NativeWindowContinuitySelfTest
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Invoke-PresentMonControllerQpcWindowSelfTest
+$presentationContract = Get-Gate1PresentationRouteContract -Route $PresentationRoute
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($RuntimeBinary)) -Message "RuntimeBinary must be an absolute prospective Cargo release path."
 $repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path
@@ -1417,6 +1637,7 @@ $presentMonStderrPath = Join-Path $outputPath "presentmon.stderr.log"
 $presentMonStopPath = Join-Path $outputPath "presentmon.stop.log"
 $presentMonFallbackStopPath = Join-Path $outputPath "presentmon.fallback-stop.log"
 $validationPath = Join-Path $outputPath $validationFileName
+$fifoDiagnosticMarkerPath = Join-Path $outputPath $fifoDiagnosticMarkerFileName
 $runtimeCapture = $null
 $presentMonCapture = $null
 $runtimeOutput = $null
@@ -1426,6 +1647,8 @@ $presentMonSessionStarted = $false
 $presentMonSessionStopped = $false
 $presentMonStopExitCode = $null
 $presentMonStopResult = $null
+$foregroundAttempt = $null
+$nativeWindowSamples = [Collections.Generic.List[object]]::new()
 $runtimeSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
 $sessionId = "OpenRPGForge-Gate1-Stutter-$([Guid]::NewGuid().ToString('N'))"
 
@@ -1433,9 +1656,9 @@ try {
     $runtimeArguments = @(
         "--visual-valley",
         "--quality", "high",
-        "--gate1-gameplay-stutter", $outputPath,
-        "--no-vsync"
+        "--gate1-gameplay-stutter", $outputPath
     )
+    $runtimeArguments += @($presentationContract.RuntimeArguments)
     $runtimeEnvironment = @{
         RUST_LOG = "info,forge=info,wgpu_hal=warn,wgpu_core=warn,naga=warn"
         WGPU_BACKEND = "vulkan"
@@ -1447,7 +1670,7 @@ try {
 
     $ready = Wait-ForReadyJson -Path $readyPath -Process $runtimeCapture.Process -TimeoutSeconds $readyTimeoutSeconds
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema" -Path "ready") -eq "forge.gate1-gameplay-stutter-ready") -Message "Unexpected ready schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 3) -Message "Unexpected ready schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 4) -Message "Unexpected ready schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "status" -Path "ready") -eq "ready_waiting_for_presentmon_start_signal") -Message "Runtime is not waiting for the PresentMon start signal."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "process_id" -Path "ready") -eq $runtimeProcessId) -Message "Ready PID does not match the launched runtime PID."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_source_commit" -Path "ready") -eq $gitCommit) -Message "Ready ledger is not linked to the exact repository commit."
@@ -1455,9 +1678,13 @@ try {
 
     $readyProtocol = Get-RequiredProperty -InputObject $ready -Name "protocol" -Path "ready"
     Assert-Condition -Condition (((Get-RequiredProperty -InputObject $readyProtocol -Name "physical_resolution_px" -Path "ready.protocol") -join "x") -eq "1920x1080") -Message "Ready resolution is not 1920x1080."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "present_mode" -Path "ready.protocol") -eq "auto_no_vsync") -Message "Ready present mode is not AutoNoVsync."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "vsync_requested" -Path "ready.protocol") -eq $false) -Message "Ready ledger reports VSync enabled."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "requested_present_mode" -Path "ready.protocol") -eq $presentationContract.RequestedPresentMode) -Message "Ready requested present mode does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentation_route" -Path "ready.protocol") -eq $presentationContract.PresentationRoute) -Message "Ready presentation route does not match $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "vsync_requested" -Path "ready.protocol") -eq $presentationContract.VsyncRequested) -Message "Ready VSync request does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "qualification_eligible" -Path "ready.protocol") -eq $presentationContract.QualificationEligible) -Message "Ready qualification eligibility does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "observation_scope" -Path "ready.protocol") -eq "bevy_window_request_not_resolved_surface") -Message "Ready presentation observation scope changed."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "fixed_hz" -Path "ready.protocol") -eq 60) -Message "Ready fixed rate is not 60 Hz."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "post_measurement_window_hold_ms" -Path "ready.protocol") -eq 500) -Message "Ready post-measurement window hold is not 500 ms."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "no_pause" -Path "ready.protocol") -eq $true) -Message "Ready protocol permits pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "screenshots_requested" -Path "ready.protocol") -eq $false) -Message "Ready protocol requests screenshots."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentmon_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require PresentMon."
@@ -1515,6 +1742,23 @@ try {
     }
     $readySources = Get-RequiredProperty -InputObject $ready -Name "sources" -Path "ready"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySources -Name "cadle_assets_used" -Path "ready.sources") -eq $false) -Message "Ready ledger reports Cadle asset use."
+
+    if ($presentationContract.MarkerRequired) {
+        Assert-Condition -Condition (Test-Path -LiteralPath $fifoDiagnosticMarkerPath -PathType Leaf) -Message "$fifoDiagnosticMarkerFileName is absent for the FIFO diagnostic route."
+        $fifoDiagnosticMarker = Get-Content -Raw -LiteralPath $fifoDiagnosticMarkerPath | ConvertFrom-Json -Depth 64
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "schema" -Path "fifo_marker") -eq "forge.nonqualifying-gate1-fifo-diagnostic") -Message "Unexpected FIFO diagnostic marker schema."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "schema_version" -Path "fifo_marker") -eq 1) -Message "Unexpected FIFO diagnostic marker schema version."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "qualifying" -Path "fifo_marker") -eq $false) -Message "FIFO diagnostic marker overstates qualification."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "source_commit" -Path "fifo_marker") -eq $gitCommit) -Message "FIFO diagnostic marker source commit mismatch."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "presentation_route" -Path "fifo_marker") -eq "fifo_diagnostic") -Message "FIFO diagnostic marker route mismatch."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "requested_present_mode" -Path "fifo_marker") -eq "fifo") -Message "FIFO diagnostic marker requested mode mismatch."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "vsync_requested" -Path "fifo_marker") -eq $true) -Message "FIFO diagnostic marker does not record VSync."
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "observation_scope" -Path "fifo_marker") -eq "bevy_window_request_not_resolved_surface") -Message "FIFO diagnostic marker observation scope mismatch."
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string](Get-RequiredProperty -InputObject $fifoDiagnosticMarker -Name "reason" -Path "fifo_marker"))) -Message "FIFO diagnostic marker reason is absent."
+    }
+    else {
+        Assert-Condition -Condition (-not (Test-Path -LiteralPath $fifoDiagnosticMarkerPath)) -Message "FIFO diagnostic marker exists on the AutoNoVsync route."
+    }
 
     $nativeWindowObservation = Wait-ForQualifiedNativeWindow -Process $runtimeCapture.Process -TimeoutSeconds 5
     $presentMonArguments = @(
@@ -1591,6 +1835,10 @@ try {
         Start-Sleep -Milliseconds 100
     }
     Assert-Condition -Condition ($lastPreSignalQpc -gt 0 -and $preSignalObservedRows -gt 0) -Message "PresentMon did not observe a complete target-PID row before the start signal."
+    $foregroundAttempt = Invoke-Gate1RuntimeWindowForegroundAttempt -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
+    if ($null -ne $foregroundAttempt.LastState) {
+        $nativeWindowSamples.Add($foregroundAttempt.LastState)
+    }
     [uint64]$qpcFrequencyHz = [Diagnostics.Stopwatch]::Frequency
     Assert-Condition -Condition ($qpcFrequencyHz -gt 0) -Message "The host QPC frequency is unavailable."
     [uint64]$measurementNotBeforeQpc = [Diagnostics.Stopwatch]::GetTimestamp()
@@ -1634,6 +1882,14 @@ try {
         }
         if ($runtimeWatchdog.Elapsed.TotalSeconds -ge $runtimeTimeoutSeconds) {
             throw "forge_runtime exceeded the host watchdog of $runtimeTimeoutSeconds seconds."
+        }
+        try {
+            $nativeWindowSamples.Add((Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle))
+        }
+        catch {
+            if (-not $runtimeCapture.Process.HasExited) {
+                throw
+            }
         }
         Start-Sleep -Milliseconds 100
     }
@@ -1696,7 +1952,7 @@ try {
     Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
     $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema" -Path "ledger") -eq "forge.gate1-gameplay-stutter") -Message "Unexpected runtime ledger schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 4) -Message "Unexpected runtime ledger schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 5) -Message "Unexpected runtime ledger schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "status" -Path "ledger") -eq "controller_window_complete_pending_presentmon_analysis") -Message "Runtime controller window did not complete cleanly."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
@@ -1708,8 +1964,12 @@ try {
 
     $ledgerProtocol = Get-RequiredProperty -InputObject $ledger -Name "protocol" -Path "ledger"
     Assert-Condition -Condition (((Get-RequiredProperty -InputObject $ledgerProtocol -Name "physical_resolution_px" -Path "ledger.protocol") -join "x") -eq "1920x1080") -Message "Ledger resolution is not 1920x1080."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "present_mode" -Path "ledger.protocol") -eq "auto_no_vsync") -Message "Ledger present mode is not AutoNoVsync."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vsync_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger reports VSync enabled."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "requested_present_mode" -Path "ledger.protocol") -eq $presentationContract.RequestedPresentMode) -Message "Ledger requested present mode does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "presentation_route" -Path "ledger.protocol") -eq $presentationContract.PresentationRoute) -Message "Ledger presentation route does not match $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vsync_requested" -Path "ledger.protocol") -eq $presentationContract.VsyncRequested) -Message "Ledger VSync request does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "qualification_eligible" -Path "ledger.protocol") -eq $presentationContract.QualificationEligible) -Message "Ledger qualification eligibility does not match route $PresentationRoute."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "observation_scope" -Path "ledger.protocol") -eq "bevy_window_request_not_resolved_surface") -Message "Ledger presentation observation scope changed."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "post_measurement_window_hold_ms" -Path "ledger.protocol") -eq 500) -Message "Ledger post-measurement window hold is not 500 ms."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "no_pause" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol allowed pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "screenshots_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger protocol requested screenshots."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vegetation_visibility_audit_interval_ms" -Path "ledger.protocol") -eq 100) -Message "Ledger protocol vegetation visibility audit cadence changed."
@@ -1782,6 +2042,11 @@ try {
         -HostFrequencyHz $qpcFrequencyHz
     Assert-Condition -Condition ($verifiedControllerQpcWindow.DurationSeconds -ge 29.5 -and $verifiedControllerQpcWindow.DurationSeconds -le 30.5) -Message "Runtime controller QPC duration is outside 29.5..30.5 seconds."
     $monotonicDurationDeltaMilliseconds = [Math]::Abs($verifiedControllerQpcWindow.DurationSeconds - $observedWallSeconds) * 1000.0
+    $nativeWindowContinuity = Get-Gate1NativeWindowContinuity `
+        -Samples @($nativeWindowSamples) `
+        -StartQpc $controllerWindowStartQpc `
+        -EndQpc $controllerWindowEndQpc `
+        -FrequencyHz $controllerWindowFrequencyHz
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "forward_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Forward controller leg is shorter than 60 m."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "reverse_distance_m" -Path "ledger.movement") -ge 60.0) -Message "Reverse controller leg is shorter than 60 m."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "return_distance_m" -Path "ledger.movement") -le 5.0) -Message "Controller did not return within 5 m."
@@ -1916,11 +2181,15 @@ try {
     }
     Assert-Condition -Condition ($swapChains.Count -eq 1) -Message "PresentMon recorded $($swapChains.Count) swap chains; one exact display surface is required."
     Assert-Condition -Condition ($presentRuntimes.Count -eq 1) -Message "PresentRuntime changed during the capture."
-    Assert-Condition -Condition ($presentModes.Count -eq 1) -Message "PresentMode changed during the capture."
-    Assert-Condition -Condition ($allowsTearingValues.Count -eq 1) -Message "AllowsTearing changed during the capture."
-    Assert-Condition -Condition ($syncIntervals.Count -eq 1) -Message "SyncInterval changed during the capture."
-    Assert-Condition -Condition ($presentFlagsValues.Count -eq 1) -Message "PresentFlags changed during the capture."
-    Assert-Condition -Condition (@($syncIntervals)[0] -eq "0") -Message "PresentMon observed a non-zero SyncInterval despite the governed no-vsync protocol."
+    Assert-Condition -Condition ($presentModes.Count -gt 0 -and $allowsTearingValues.Count -gt 0 -and $syncIntervals.Count -gt 0 -and $presentFlagsValues.Count -gt 0) -Message "PresentMon did not expose a complete presentation signature."
+    $presentationSignatureStable = ($presentModes.Count -eq 1 -and $allowsTearingValues.Count -eq 1 -and $syncIntervals.Count -eq 1 -and $presentFlagsValues.Count -eq 1)
+    if ($presentationContract.Name -eq "AutoNoVsync") {
+        Assert-Condition -Condition ($presentModes.Count -eq 1) -Message "PresentMode changed during the AutoNoVsync capture."
+        Assert-Condition -Condition ($allowsTearingValues.Count -eq 1) -Message "AllowsTearing changed during the AutoNoVsync capture."
+        Assert-Condition -Condition ($syncIntervals.Count -eq 1) -Message "SyncInterval changed during the AutoNoVsync capture."
+        Assert-Condition -Condition ($presentFlagsValues.Count -eq 1) -Message "PresentFlags changed during the AutoNoVsync capture."
+        Assert-Condition -Condition (@($syncIntervals)[0] -eq $presentationContract.ExpectedSyncInterval) -Message "PresentMon observed a non-zero SyncInterval despite the governed AutoNoVsync protocol."
+    }
 
     [decimal]$measurementStartQpc = $verifiedControllerQpcWindow.StartQpc
     [decimal]$measurementEndQpc = $verifiedControllerQpcWindow.EndQpc
@@ -1939,6 +2208,7 @@ try {
     $displayedTimes = [double[]]@($measurementRows | ForEach-Object { [double]$_.DisplayedTimeMs })
     $sortedDisplayedTimes = [double[]]@($displayedTimes | Sort-Object)
     $meanMilliseconds = [double](($displayedTimes | Measure-Object -Average).Average)
+    $meanDisplayFps = 1000.0 / $meanMilliseconds
     $p95Milliseconds = Get-NearestRankPercentile -SortedValues $sortedDisplayedTimes -Quantile 0.95
     $p99Milliseconds = Get-NearestRankPercentile -SortedValues $sortedDisplayedTimes -Quantile 0.99
     $slowestOnePercentCount = [Math]::Max(1, [int][Math]::Ceiling($displayedTimes.Count / 100.0))
@@ -1952,12 +2222,27 @@ try {
     $maxConsecutiveOver16 = if ($over16Sequences.Count -eq 0) { 0 } else { [int](($over16Sequences | Measure-Object -Property length -Maximum).Maximum) }
     $maxConsecutiveOver33 = if ($over33Sequences.Count -eq 0) { 0 } else { [int](($over33Sequences | Measure-Object -Property length -Maximum).Maximum) }
     $displayCoveragePassed = $presentMonControllerProjection.CoversStart -and $presentMonControllerProjection.CoversEnd -and [decimal]$presentMonControllerProjection.MaximumGapQpc -le [decimal]$presentMonControllerProjection.QuantizationToleranceQpc
-    $boundedThresholdsPassed = $displayCoveragePassed -and $measurementNotDisplayedRows.Count -eq 0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
+    $displayThresholdsPassed = $displayCoveragePassed -and $measurementNotDisplayedRows.Count -eq 0 -and $meanDisplayFps -ge 60.0 -and $p95Milliseconds -le 16.7 -and $onePercentLowFps -ge 45.0 -and $over33Count -eq 0 -and $maxConsecutiveOver16 -le 1
+    $boundedThresholdsPassed = $displayThresholdsPassed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
+    $validationStatus = if ($presentationContract.Name -eq "FifoDiagnostic") {
+        if ($boundedThresholdsPassed) { "diagnostic_thresholds_passed" } else { "diagnostic_thresholds_failed" }
+    }
+    elseif ($boundedThresholdsPassed) {
+        "runtime_qpc_display_overlap_thresholds_passed_pending_gate1_qualification"
+    }
+    else {
+        "runtime_qpc_display_overlap_thresholds_failed"
+    }
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 4
-        status = if ($boundedThresholdsPassed) { "runtime_qpc_display_overlap_thresholds_passed_pending_gate1_qualification" } else { "runtime_qpc_display_overlap_thresholds_failed" }
+        schema_version = 5
+        status = $validationStatus
+        presentation_route = $presentationContract.PresentationRoute
+        requested_present_mode = $presentationContract.RequestedPresentMode
+        vsync_requested = $presentationContract.VsyncRequested
+        qualification_eligible = $presentationContract.QualificationEligible
+        observation_scope = "bevy_window_request_not_resolved_surface"
         repository_commit = $gitCommit
         repository_tree = $gitTree
         runtime = [ordered]@{
@@ -1982,6 +2267,40 @@ try {
                 outer_rect_reported_px = @($nativeWindowObservation.OuterWidthReportedPx, $nativeWindowObservation.OuterHeightReportedPx)
                 minimum_outer_rect_reported_px = @(1920, 1080)
                 window_wait_elapsed_ms = $nativeWindowObservation.ObservedAfterWaitStartMilliseconds
+            }
+            foreground_attempt_before_signal = [ordered]@{
+                set_foreground_window_returned = $foregroundAttempt.SetForegroundWindowReturned
+                foreground_observed = $foregroundAttempt.ForegroundObserved
+                elapsed_ms = $foregroundAttempt.ElapsedMilliseconds
+            }
+            controller_window_state_sampling = [ordered]@{
+                interval_ms = $nativeWindowContinuity.SamplingIntervalMilliseconds
+                total_samples = $nativeWindowContinuity.TotalSamples
+                controller_envelope_samples = $nativeWindowContinuity.ControllerEnvelopeSamples
+                covers_controller_start = $nativeWindowContinuity.CoversControllerStart
+                covers_controller_end = $nativeWindowContinuity.CoversControllerEnd
+                first_envelope_sample_qpc = $nativeWindowContinuity.FirstEnvelopeSampleQpc
+                last_envelope_sample_qpc = $nativeWindowContinuity.LastEnvelopeSampleQpc
+                maximum_sampling_gap_qpc = $nativeWindowContinuity.MaximumSamplingGapQpc
+                maximum_sampling_gap_ms = $nativeWindowContinuity.MaximumSamplingGapMilliseconds
+                maximum_sampling_gap_threshold_ms = $nativeWindowContinuity.MaximumSamplingGapThresholdMilliseconds
+                sampling_gap_passed = $nativeWindowContinuity.SamplingGapPassed
+                handle_mismatch_samples = $nativeWindowContinuity.HandleMismatchSamples
+                owner_mismatch_samples = $nativeWindowContinuity.OwnerMismatchSamples
+                not_visible_samples = $nativeWindowContinuity.NotVisibleSamples
+                minimized_samples = $nativeWindowContinuity.MinimizedSamples
+                not_foreground_samples = $nativeWindowContinuity.NotForegroundSamples
+                first_handle_mismatch_qpc = $nativeWindowContinuity.FirstHandleMismatchQpc
+                first_owner_mismatch_qpc = $nativeWindowContinuity.FirstOwnerMismatchQpc
+                first_not_visible_qpc = $nativeWindowContinuity.FirstNotVisibleQpc
+                first_minimized_qpc = $nativeWindowContinuity.FirstMinimizedQpc
+                first_not_foreground_qpc = $nativeWindowContinuity.FirstNotForegroundQpc
+                handle_stable = $nativeWindowContinuity.HandleStable
+                owner_stable = $nativeWindowContinuity.OwnerStable
+                visible_for_all_samples = $nativeWindowContinuity.VisibleForAllSamples
+                never_minimized = $nativeWindowContinuity.NeverMinimized
+                foreground_for_all_samples = $nativeWindowContinuity.ForegroundForAllSamples
+                state_passed = $nativeWindowContinuity.StatePassed
             }
             release_profile_declared_by_runtime = $true
             controller_wall_duration_seconds = $observedWallSeconds
@@ -2045,10 +2364,12 @@ try {
             exact_display_qpc_bounds_observed = $false
             swap_chain = @($swapChains)[0]
             present_runtime = @($presentRuntimes)[0]
-            present_mode = @($presentModes)[0]
+            present_mode = if ($presentModes.Count -eq 1) { @($presentModes)[0] } else { $null }
+            present_mode_values = @($presentModes)
             allows_tearing_values = @($allowsTearingValues)
             sync_interval_values = @($syncIntervals)
             present_flags_values = @($presentFlagsValues)
+            presentation_signature_stable = $presentationSignatureStable
             etw_events_lost = 0
             etw_buffers_lost = 0
             stdout_etw_status_lines = $presentMonLogAssessment.EtwStatusCount
@@ -2060,6 +2381,7 @@ try {
             one_percent_low_method = "1000_divided_by_mean_of_slowest_ceil_one_percent_displayed_times"
             sample_count = $displayedTimes.Count
             mean_ms = $meanMilliseconds
+            mean_display_fps = $meanDisplayFps
             p95_ms = $p95Milliseconds
             p99_ms = $p99Milliseconds
             slowest_one_percent_count = $slowestOnePercentCount
@@ -2079,7 +2401,21 @@ try {
             governed_asset_root_is_clean_repository = $true
             release_asset_copy_absent = $true
             runtime_visible_window_observed_before_signal = $nativeWindowObservation.Observed
-            release_1920x1080_high_no_vsync = $true
+            runtime_foreground_requested_before_signal = $true
+            runtime_foreground_observed_before_signal = $foregroundAttempt.ForegroundObserved
+            runtime_window_state_sampling_covers_controller_start = $nativeWindowContinuity.CoversControllerStart
+            runtime_window_state_sampling_covers_controller_end = $nativeWindowContinuity.CoversControllerEnd
+            runtime_window_maximum_sampling_gap_at_most_250_ms = $nativeWindowContinuity.SamplingGapPassed
+            runtime_window_handle_stable_for_all_samples = $nativeWindowContinuity.HandleStable
+            runtime_window_owner_stable_for_all_samples = $nativeWindowContinuity.OwnerStable
+            runtime_window_visible_for_all_samples = $nativeWindowContinuity.VisibleForAllSamples
+            runtime_window_never_minimized = $nativeWindowContinuity.NeverMinimized
+            runtime_window_foreground_for_all_samples = $nativeWindowContinuity.ForegroundForAllSamples
+            runtime_window_state_passed = $nativeWindowContinuity.StatePassed
+            release_1920x1080_high_no_vsync = ($presentationContract.Name -eq "AutoNoVsync")
+            release_1920x1080_high_presentation_route_matches_request = $true
+            presentation_route_qualification_eligible = $presentationContract.QualificationEligible
+            fifo_diagnostic_marker_verified = (-not $presentationContract.MarkerRequired -or (Test-Path -LiteralPath $fifoDiagnosticMarkerPath -PathType Leaf))
             bevy_render_diagnostics_disabled_for_presentmon = $true
             real_gameplay_controller_exercised = $true
             uninterrupted_1800_fixed_ticks = $true
@@ -2097,6 +2433,7 @@ try {
             presentmon_display_intervals_derived_from_latency = $true
             exact_display_qpc_bounds_observed = $false
             presentmon_single_stable_swapchain_epoch = $true
+            presentmon_presentation_signature_stable = $presentationSignatureStable
             presentmon_etw_loss_zero = $true
             display_residency_covers_runtime_start = $presentMonControllerProjection.CoversStart
             display_residency_covers_runtime_end = $presentMonControllerProjection.CoversEnd
@@ -2105,10 +2442,12 @@ try {
             runtime_warning_error_panic_entries = 0
             presentmon_capture_disallowed_log_entries = 0
             presentmon_stop_disallowed_log_entries = $unexpectedStopOutput.Count
+            mean_display_fps_at_least_60 = ($meanDisplayFps -ge 60.0)
             p95_at_most_16_7_ms = ($p95Milliseconds -le 16.7)
             one_percent_low_at_least_45_fps = ($onePercentLowFps -ge 45.0)
             no_displayed_time_over_33_3_ms = ($over33Count -eq 0)
             no_two_consecutive_displayed_times_over_16_7_ms = ($maxConsecutiveOver16 -le 1)
+            display_thresholds_passed = $displayThresholdsPassed
             bounded_display_thresholds_passed = $boundedThresholdsPassed
             real_time_display_stutter_qualified = $false
             human_review_performed = $false
@@ -2130,6 +2469,7 @@ try {
         }
         limitations = [ordered]@{
             single_run_only = $true
+            fifo_diagnostic_non_qualifying = ($presentationContract.Name -eq "FifoDiagnostic")
             packaged_release_asset_layout_qualified = $false
             target_gpu_qualified = $false
             human_review_performed = $false
@@ -2137,9 +2477,17 @@ try {
             gate1_qualified = $false
         }
     }
+    if ($presentationContract.MarkerRequired) {
+        $validation.artifacts["fifo_diagnostic_marker"] = Get-ArtifactDescriptor -Path $fifoDiagnosticMarkerPath -RelativePath $fifoDiagnosticMarkerFileName
+    }
     Write-JsonAtomically -Path $validationPath -Value $validation
-    Assert-Condition -Condition $boundedThresholdsPassed -Message "PresentMon bounded display sample thresholds failed; see $validationPath."
-    Write-Output ("FORGE_GATE1_GAMEPLAY_STUTTER_BOUNDED_SAMPLE_RECORDED thresholds_passed=true samples={0} mean_ms={1:F4} p95_ms={2:F4} one_percent_low_fps={3:F3} over_16_7={4} over_33_3={5} max_consecutive_over_16_7={6}" -f $displayedTimes.Count, $meanMilliseconds, $p95Milliseconds, $onePercentLowFps, $over16Count, $over33Count, $maxConsecutiveOver16)
+    if ($presentationContract.Name -eq "AutoNoVsync") {
+        Assert-Condition -Condition $boundedThresholdsPassed -Message "PresentMon bounded display sample or continuous native-window-state thresholds failed; see $validationPath."
+        Write-Output ("FORGE_GATE1_GAMEPLAY_STUTTER_BOUNDED_SAMPLE_RECORDED route=auto_no_vsync thresholds_passed=true samples={0} mean_ms={1:F4} mean_display_fps={2:F3} p95_ms={3:F4} one_percent_low_fps={4:F3} over_16_7={5} over_33_3={6} max_consecutive_over_16_7={7}" -f $displayedTimes.Count, $meanMilliseconds, $meanDisplayFps, $p95Milliseconds, $onePercentLowFps, $over16Count, $over33Count, $maxConsecutiveOver16)
+    }
+    else {
+        Write-Output ("FORGE_GATE1_FIFO_DIAGNOSTIC_COMPLETE status={0} qualifying=false samples={1} mean_ms={2:F4} mean_display_fps={3:F3} p95_ms={4:F4} one_percent_low_fps={5:F3} not_foreground_samples={6}" -f $validationStatus, $displayedTimes.Count, $meanMilliseconds, $meanDisplayFps, $p95Milliseconds, $onePercentLowFps, $nativeWindowContinuity.NotForegroundSamples)
+    }
 }
 finally {
     $presentMonSessionCleanupSucceeded = $true

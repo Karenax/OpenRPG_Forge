@@ -174,17 +174,27 @@ output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
 
 ## Gate 1 gameplay-stutter acquisition
 
-`--gate1-gameplay-stutter <output-dir>` is a separate, self-bounded measurement mode. It requires
-`--visual-valley --quality high --no-vsync` and an absent or empty output directory. The governed
+`--gate1-gameplay-stutter <output-dir>` is a separate, self-bounded measurement mode with two explicit
+presentation routes. The default `AutoNoVsync` route requires
+`--visual-valley --quality high --no-vsync`. The diagnostic `FifoDiagnostic` route instead requires
+`--visual-valley --quality high --gate1-fifo-diagnostic`, refuses `--no-vsync`, requests Bevy
+`PresentMode::Fifo`, and atomically writes `NONQUALIFYING_GATE1_FIFO_DIAGNOSTIC.json`. That marker and
+the ready/final protocols keep `qualification_eligible=false` for FIFO; the route can compare display
+pacing but can never qualify or close Gate 1. Both routes require an absent or empty output directory. The governed
 host acquisition requires Windows, a Vulkan-capable adapter, a Bevy-observed physical 1920x1080
 surface and a visible, non-minimized native window whose reported outer rectangle is at least
-1920x1080. It additionally requires an absolute proof directory and a fresh, empty Cargo target
+1920x1080. Before publishing the start signal, the host requests that exact window in the foreground;
+it then samples handle ownership, visibility, minimized state and foreground state every 100 ms
+through the controller interval, requiring both boundary coverage and no sampling gap above 250 ms.
+After the ledger is written, the runtime keeps the native window alive for a declared 500 ms
+post-measurement observation hold; those frames are outside the QPC metric interval.
+It additionally requires an absolute proof directory and a fresh, empty Cargo target
 directory outside every registered Git worktree. After verifying the exact commit and clean tree,
 the host script rebuilds the Release binary itself with `--locked`, embeds that commit, rechecks Git
 state, and launches the resulting executable. The mode does not request any screenshot and never
 pauses virtual time.
 
-This qualifying mode keeps the exact fixed High preset and all scene/render plugins, but
+Both presentation routes keep the exact fixed High preset and all scene/render plugins, but
 automatically disables Bevy's `RenderDiagnosticsPlugin`. In Bevy 0.19 that plugin adds timestamp and
 pipeline-statistics collection plus a diagnostics resolve command encoder to every frame; retaining
 it would measure an instrumented workload instead of the qualifying High path without internal render
@@ -223,6 +233,11 @@ pwsh -NoProfile -File scripts/Test-Gate1GameplayStutter.ps1 `
   -PresentMonPath $presentMon
 ```
 
+The command above acquires the default AutoNoVsync route. A single diagnostic FIFO acquisition uses
+the same command with `-PresentationRoute FifoDiagnostic`; the host passes
+`--gate1-fifo-diagnostic` instead of `--no-vsync`, retains the nonqualifying marker and records metric
+failure without converting the diagnostic into qualification evidence.
+
 After every governed High subsystem (terrain, shadows, vegetation, scenery, environment, water and
 weather), the pipelines exercised by the process, the nine governed CC0 models and the
 player/Rapier/camera bindings are ready, the runtime writes
@@ -230,8 +245,10 @@ player/Rapier/camera bindings are ready, the runtime writes
 process to that exact PID and atomically publish
 `gate1-gameplay-stutter.start.signal.json`. The controller performs 900 fixed ticks forward and 900
 ticks backward at 60 Hz, crosses the central seam without teleportation, stops under a bounded
-watchdog, and writes `gate1-gameplay-stutter.json`. The ready and start-signal contracts use schema 3;
-the final runtime ledger uses schema 4 because it also publishes the controller's half-open
+watchdog, and writes `gate1-gameplay-stutter.json`. The ready contract uses schema 4, the start signal
+remains schema 3, and the final runtime ledger uses schema 5. These versions add the explicit
+presentation request/route, VSync request, qualification eligibility and observation scope while
+retaining the controller's half-open
 `[start, end)` Windows QPC interval. Forge's derived vegetation visibility audit runs at a bounded
 100 ms cadence while Bevy
 visibility, rendering, wind, interaction and controller work remain per-frame. The harness requests
@@ -261,8 +278,9 @@ interleaved or malformed record. Once the runtime exits, the host stops the exac
 with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
 failures, and requires the control and capture processes to exit cleanly. The runtime GPU
 backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
-route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 4 for
-this stdout-stream transport, exact runtime-QPC contract and explicit uninstrumented-runtime contract.
+route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 5 for
+this stdout-stream transport, exact runtime-QPC contract, continuous foreground-window contract and
+explicit uninstrumented-runtime contract.
 Bevy `FrameTime` is
 retained as an application-loop diagnostic but is never substituted for a missing displayed frame.
 For every numeric PresentMon pair, the host derives the displayed interval as
@@ -272,7 +290,9 @@ boundaries and may have no internal gap larger than the QPC equivalent of two pr
 Within an otherwise valid envelope that retains at least 120 numeric displayed rows,
 structurally valid `DisplayLatency=NA`/`DisplayedTime=NA` pairs mean that the frame was not displayed.
 They are counted separately when their CPU start falls inside the controller window; any such frame
-makes the thresholds fail. The host writes the failure validation before returning an error. If the
+makes the thresholds fail. The display thresholds also require mean displayed FPS at least 60,
+nearest-rank p95 at most 16.7 ms, 1 % low at least 45 FPS, no displayed interval above 33.3 ms and no
+two consecutive displayed intervals above 16.7 ms. The host writes the failure validation before returning an error. If the
 minimum sample or coverage prerequisites are absent, acquisition fails before metric validation and
 only the already-persisted host boundary is guaranteed. The 1 % low uses the mean of the slowest
 `ceil(samples / 100)` displayed times. The validation records
@@ -281,3 +301,14 @@ PresentMon CSV metrics, so `exact_display_qpc_bounds_observed=false` remains exp
 ingestion, `real_time_display_stutter_qualified`, human review,
 GPU-target qualification and the overall Gate 1 route remain separate. This protocol alone does not
 close `R1-048` or Gate 1, and Gate 2 remains forbidden while the remaining Gate 1 criteria are open.
+
+`scripts/Test-Gate1PresentationAB.ps1` analyzes exactly six nonqualifying shared-binary diagnostic
+summaries in counterbalanced order Auto, FIFO, FIFO, Auto, Auto, FIFO (AB/BA/AB). It requires the same
+commit, tree, acquisition-helper hashes, governed script, Release-binary bytes/hash, scene identity,
+instrumentation, GPU, operating system and display across all runs; each run must retain exact QPC
+coverage, zero ETW loss, continuous foreground-window evidence and a stable presentation signature.
+Frames are never pooled between runs and p95 values are never averaged for the verdict. Every FIFO
+run must pass the display thresholds, FIFO may be no worse than its paired Auto run for p95 and 1 %
+low, and at least two pairs must improve strictly. Infrastructure invalidity yields `INCONCLUSIVE`, a
+metric miss yields `FAIL`, and a fully satisfied campaign yields only
+`PROPOSE_FIFO_AS_CANONICAL_GATE1_PROTOCOL` with `qualifying=false` and `closes_gate=false`.
