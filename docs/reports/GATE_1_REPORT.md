@@ -11,10 +11,12 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 Visual Valley conserve une paire native/Browser exacte au commit `d9e2670`, des captures fixes, des
 ledgers versionnés et une provenance CC0/Cadle auditée. Le correctif `6a24cabe` supprime le défaut
 depth-only majeur de la végétation. La campagne `873618af` conserve cette correction et exerce le vrai
-contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La source courante publiée `15635b3f`
-borne le rafraîchissement des preuves et ajoute des reçus monotones d'audit de visibilité. Elle passe
-140/140 tests moteur Release, 52/52 tests runtime Release, 1/1 test d'intégration Release, Clippy strict
-et l'audit de provenance.
+contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La source publiée antérieure `15635b3f`
+borne le rafraîchissement des preuves et ajoute des reçus monotones d'audit de visibilité ; ses preuves
+et sa CI restent historiques. Le commit opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
+`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, permet un profilage explicitement marqué
+**NONQUALIFYING**. Ses checks normal/feature, ses deux variantes de Clippy strict, ses 2/2 tests
+unitaires, ses 4/4 tests du guard d'intégration, son formatage, son diff-check et sa provenance passent.
 Les deux variantes Browser passent chacune
 **24/24 contrôles automatisés**, sans échec réseau ni warning/erreur console. Le validateur croisé
 natif/Studio passe **46/46** contrôles et les sept hashes communs concordent. La matrice native
@@ -28,15 +30,17 @@ Browser n'a pas encore été rejouée sur `15635b3f`.
 Ces résultats ne ferment pas Gate 1. Le correctif forward + IBL supprime le warning wgpu enregistré
 dans la campagne historique `a34596bd` et corrige les palettes rose/moutarde. Le lot `6a24cabe`
 corrige ensuite les silhouettes bleu-noir laissées par la prépasse caméra. Le lot `873618af` acquiert
-le déplacement du contrôleur réel sur 173 ticks avec collisions. À `15635b3f`, le ledger runtime
-enregistre 1 800 ticks en 29,997926 s ; séparément, l'hôte sélectionne 719 lignes PresentMon du PID
-2864 après une borne QPC basse seulement. Sans borne haute runtime, vérification ou ingestion de cette
-frontière hôte, la campagne reste non qualifiante et ses métriques échouent aux seuils : 44,2516 ms de
-moyenne, p95 62,4861 ms et 1 % low 12,5912 FPS. La présentation GPU
-Browser reste
-`not_observed`, la cible RTX 3060/RX 6600 n'a pas été mesurée et les captures n'ont pas reçu
-d'acceptation humaine comparative. Les profils sont fonctionnels, mais cela ne constitue pas une
-acceptation artistique.
+le déplacement du contrôleur réel sur 173 ticks avec collisions. À `15635b3f`, la première sélection
+PresentMon non qualifiante échoue aux seuils et reste conservée comme preuve historique.
+
+À `2fe48485`, le nouveau ledger enregistre 1 800 ticks en 29,995543 s, avec 2 ticks de catch-up, 2 608
+frames main-world et 2 609 contrôles d'invariants. Séparément, l'hôte retient 2 184 lignes PresentMon
+après la seule borne QPC basse : 738 `DisplayedTime` sont non résolus et les 1 446 valeurs résolues
+mesurent 20,8579 ms de moyenne, p95 34,7319 ms, p99 83,4934 ms et 1 % low 4,1709 FPS. La trace interne
+stable mesure 11,445115 ms, soit 87,3735 FPS équivalents profilés, et suit de près la capture `8b` ;
+elle est NONQUALIFYING et ne remplace pas le **FAIL PresentMon**. La divergence trace/PresentMon n'est
+pas réconciliée. La présentation GPU Browser reste `not_observed`, la cible RTX 3060/RX 6600 n'a pas
+été mesurée et `human_review_performed=false`. Aucun correctif n'est appliqué maintenant.
 
 Le verdict `R1-055` est **poursuivre Gate 1**, corriger et requalifier les preuves manquantes. Il ne
 constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer Gate 2.
@@ -45,10 +49,11 @@ constitue ni un passage administratif de Gate 1, ni une autorisation implicite d
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| source courante et cadence de preuve | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant, seuils FAIL |
+| diagnostic opt-in `render-profile` courant | `2fe48485086e925422c667f49c38a80f96e1a81a` | `378f13f68e7689a6790aa544f1e5b4a1be30ad16` | runtime Release 90 245 632 octets ; checks normal/feature, Clippy strict normal/all-features, 2/2 unitaires, guard 4/4, formatage, diff-check et provenance PASS ; trace et PresentMon NONQUALIFYING, seuils FAIL |
+| source publiée et cadence de preuve historique | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant historique, seuils FAIL ; CI `33584774630` attachée à ce commit |
 | acquisition visuelle et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
 | correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
-| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source courante |
+| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur `2fe48485` |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
@@ -102,7 +107,7 @@ tests positifs/négatifs du watchdog passent également. Le build Release exact 
 schema v2 sont rejoués depuis le worktree propre. Aucun rejeu workspace/all-targets complet ni nouveau
 check Studio WASM n'est revendiqué à `873618af`.
 
-Au commit source courant publié `15635b3f`, les tests Release passent **140/140** pour le moteur,
+Au commit publié historique `15635b3f`, les tests Release passent **140/140** pour le moteur,
 **52/52** pour le runtime et **1/1** pour l'intégration. La commande
 `cargo clippy --release --locked -p forge_engine -p forge_runtime --all-targets --all-features -- -D warnings`
 passe. Ce résultat est borné aux packages `forge_engine` et `forge_runtime` : aucun Clippy workspace
@@ -110,6 +115,16 @@ complet ni Clippy/check Studio WASM n'est revendiqué à ce commit. L'audit de p
 sur 378 fichiers suivis, 27 assets et neuf modèles CC0 ; il compare 39 fichiers Forge aux 507 fichiers
 Cadle sans copie exacte ni ligne normalisée commune. Aucun rejeu workspace all-targets complet ni CI
 distante n'est revendiqué à ce commit.
+
+Au commit opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`, les checks `forge_runtime` en
+configuration normale puis avec la feature `render-profile` passent. Clippy strict passe pour
+`forge_runtime --all-targets` en configuration normale puis avec `--all-features`. Les tests unitaires
+ciblés passent **2/2**, le guard d'intégration passe **4/4**, le formatage et `git diff --check` passent,
+et l'audit de provenance est **PASS** avec le SHA-256
+`22c1d795f94eb8f247e1b7c173ae06602ff17dd664f0c8d0ef2f4aea4a383892`. Le marqueur
+schema 1 `qualifying=false` porte le SHA-256
+`5f365295110fca0a1f47c5419f05e6a1ff1c33d1fe29619a27f4c9f9c34b3e48`. Ces validations prouvent
+l'opt-in et son garde-fou, pas une cadence Release qualifiante.
 
 ## Overlay CPU/GPU exact `afb270c3`
 
@@ -240,6 +255,66 @@ ingérée et la qualification QPC exacte n'est pas revendiquée. La machine est
 une RX 7800 XT/Vulkan de développement, pas la RTX 3060/RX 6600 cible, et aucune revue humaine n'a été
 effectuée. Le protocole, les métriques et les SHA-256 sont consignés dans
 [`R1_048_GAMEPLAY_STUTTER_PRESENTMON.md`](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
+
+## Diagnostic opt-in `render-profile` `2fe48485`
+
+Le commit `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
+`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, produit un runtime Release de 90 245 632 octets,
+SHA-256 `e03bd61db8b5f8cf418390a5a78f3b5dc7b4e94dfb123ee6668abcf0d8e755cd`. La campagne externe
+est conservée sous :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\2fe48485-render-profile-20260902T060816358Z
+```
+
+Le marqueur `forge.nonqualifying-render-profile` schema 1 pose `qualifying=false` et porte le SHA-256
+`5f365295110fca0a1f47c5419f05e6a1ff1c33d1fe29619a27f4c9f9c34b3e48`. La feature modifie les logs
+et l'ordonnancement du rendu ; le target Cargo partagé est réutilisé et aucun rebuild gouverné en target
+propre n'est effectué. La campagne entière est donc **NONQUALIFYING**.
+
+Sur RX 7800 XT/Vulkan, pilote `26.8.1`, le ledger couvre 1 800 ticks en 29,995543 s, dont 2 ticks de
+catch-up, 2 608 frames main-world et 2 609 contrôles d'invariants. Le mouvement gameplay est réel,
+9/9 modèles sont chargés, le runtime sort avec le code 0 et ses logs comptent zéro warning et zéro
+erreur. La revue humaine reste fausse. Ces comptes prouvent la route CPU/ECS ; ils ne sont pas des
+frames présentées.
+
+PresentMon retient 2 184 lignes après la borne QPC basse, sans borne haute runtime ni ingestion. Parmi
+elles, 738 `DisplayedTime` sont non résolus et 1 446 sont résolus. Les pertes ETW sont nulles : zéro
+événement et zéro buffer perdus.
+
+| Mesure | Moyenne | p95 | p99 | Maximum |
+|---|---:|---:|---:|---:|
+| FrameTime, 2 184 valeurs | 13,8155 ms | 22,7558 ms | 50,3844 ms | 620,4266 ms |
+| CPUBusy, 2 184 valeurs | 13,7076 ms | 22,6474 ms | 50,2758 ms | 620,3147 ms |
+| GPUTime, 2 184 valeurs | 6,9942 ms | 11,3378 ms | 12,0886 ms | 13,0470 ms |
+| DisplayedTime, 1 446 valeurs | 20,8579 ms | 34,7319 ms | 83,4934 ms | 625,0145 ms |
+
+Le 1 % low est **4,1709 FPS**. Sur les 1 446 présentations résolues, **680** dépassent 16,667 ms et
+**111** dépassent 33,333 ms. La moyenne, le p95, le 1 % low et le stutter échouent donc aux seuils de
+Gate 1.
+
+La trace interne de 6 073 239 151 octets, SHA-256
+`79763e8306818b7b4f9ba36886a012c7b1cfee10afd830a2f92146b73084fb71`, est analysée deux fois sur
+22 604 221 lignes par passe. Elle contient 9 148 749 paires `B/E` complètes, zéro anomalie et huit
+scopes ouverts à la coupure, exclus. Les hashes de la synthèse JSON, de la synthèse Markdown, de la
+preuve brute et du parseur sont respectivement
+`5a35dff595fa02dee801ea8c99b5d7b857d558d8d9219580c6a7c9c2b044657e`,
+`28287a840f16528833baa4d3466d8c21608b5f93d8ebe221a1ab24508eba73bc`,
+`9e9ee27a8522e13aa049f79d3c780df99fec832303593db2dc9e51938a2512f7` et
+`64d3c90f4977c4f4ab7bec86a4af819a370587f59f1b8f4eb4b4591f155ef657`.
+
+La cadence stable interne vaut 11,445115 ms, soit 87,3735 FPS équivalents profilés, avec p95
+12,621560 ms, p99 13,256662 ms et maximum 27,217700 ms. Le chemin stable `Render` vaut 10,845757 ms
+inclusif et 6,514969 ms exclusif ; `Surface::get_current_texture` vaut 3,539034 ms exclusif,
+`prepare_windows` 3,649687 ms inclusif, `main_render_schedule` 3,006376 ms et `Core3d` 1,738853 ms.
+La queue `PostUpdate` atteint 4,676880 ms p95 exclusif. Les moyennes Vulkan brutes restent faibles :
+0,077400 ms pour acquire, 0,049984 ms par submit et 0,143264 ms pour present.
+
+Cette trace stable suit de près la distribution à faible interférence `8b`, mais elle mesure une
+instrumentation et une frontière différentes. Elle ne remplace pas le **FAIL PresentMon**. La
+divergence entre 11,445115 ms internes et 20,8579 ms affichées reste non réconciliée ; aucun correctif
+n'est appliqué dans ce lot documentaire. `R1-037`, `R1-041` et `R1-048` restent ouvertes,
+`human_review_performed=false`, Gate 1 reste ouverte et Gate 2 reste interdite.
 
 ## Preuve temporelle Browser exacte `a4e9824a`
 
@@ -403,14 +478,20 @@ Nouvelles cases fermées par les preuves consolidées :
 Restent explicitement ouvertes :
 
 - `R1-014`, `R1-023`, `R1-025` et `R1-026` ;
-- `R1-037` et `R1-041` ;
-- `R1-046` à `R1-052`.
+- `R1-037`, `R1-041` et `R1-048` ;
+- `R1-046`, `R1-047` et `R1-049` à `R1-052`.
 
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `873618af`. Le principal défaut
 depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel. À `15635b3f`, le ledger
-runtime et la sélection PresentMon hôte sont deux observations distinctes ; la seconde n'a pas de
-borne haute runtime, n'est ni vérifiée ni ingérée, et échoue aux seuils : « acquis » ne signifie pas
-« qualifié ». La revue humaine comparative et le stutter temps réel restent dus.
+runtime et la première sélection PresentMon hôte sont deux observations historiques distinctes ; la
+seconde n'a pas de borne haute runtime, n'est ni vérifiée ni ingérée, et échoue aux seuils.
+
+Le diagnostic courant `2fe48485` confirme une route gameplay réelle, mais sa sélection PresentMon
+retient 1 446 présentations résolues sur 2 184 lignes après la borne basse et échoue encore : moyenne
+20,8579 ms, p95 34,7319 ms, 1 % low 4,1709 FPS, 680 dépassements de 16,667 ms et 111 de 33,333 ms. La
+trace interne stable à 11,445115 ms, proche de `8b`, reste NONQUALIFYING et ne remplace pas ce FAIL.
+La divergence trace/PresentMon reste non réconciliée : « acquis » ne signifie pas « qualifié ».
+`human_review_performed=false` et aucun correctif n'est appliqué maintenant.
 
 `R1-043` est fermée : les deux cibles utilisent `d9e2670`, le scenery hash concorde et
 46/46 assertions croisées passent. Le ledger natif n'expose pas le hash autonome du contrôleur
@@ -423,14 +504,14 @@ huitième match de ledger.
 |---|---|---|
 | qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
-| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `15635b3f` non qualifiante, moyenne 44,2516 ms sur RX 7800 XT ; GPU cible non mesuré |
-| p95 `<=16,7 ms` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante, p95 62,4861 ms ; GPU cible non mesuré |
-| 1 % low `>=45 FPS` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante, 1 % low 12,5912 FPS ; GPU cible non mesuré |
-| absence de stutter récurrent | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte non qualifiante ; 672/680 présentations >16,7 ms et 1 % low 12,5912 FPS |
+| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, `DisplayedTime` moyen 20,8579 ms sur RX 7800 XT ; GPU cible non mesuré ; `15635b3f` conservé comme historique |
+| p95 `<=16,7 ms` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, p95 34,7319 ms ; GPU cible non mesuré |
+| 1 % low `>=45 FPS` | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante, 1 % low 4,1709 FPS ; GPU cible non mesuré |
+| absence de stutter récurrent | **OUVERTE / FAIL diagnostic** | sélection PresentMon hôte `2fe48485` non qualifiante ; 680/1 446 présentations >16,667 ms et 111/1 446 >33,333 ms ; trace interne NONQUALIFYING |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
-| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser, lot natif `873618af` et synthèse PresentMon `15635b3f` ajoutés avec hashes/provenance ; bruts non qualifiants externes hashés |
+| rapport et captures versionnés | **SATISFAITE** | rapports, preuves Browser, lot natif `873618af` et synthèse PresentMon historique `15635b3f` préservés ; diagnostic externe `2fe48485` et ses agrégats hashés et consignés, bruts non versionnés |
 
 ## Limites visuelles et qualification humaine
 
@@ -443,13 +524,15 @@ CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
 hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés ; la sélection PresentMon
-hôte confirme actuellement un échec diagnostique des seuils, tandis que la revue humaine FHD/QHD et les comparaisons
+hôte `2fe48485` confirme actuellement un échec diagnostique des seuils. Sa divergence avec la trace
+interne n'est pas réconciliée, tandis que la revue humaine FHD/QHD et les comparaisons
 matériaux/composition/A-B restent dues.
 
 ## CI distante
 
 Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
-cible `15635b3f85b623654e498b17ed299674928313e6`. Ses quatre jobs — `wasm`, `supply-chain`,
+reste attaché uniquement à `15635b3f85b623654e498b17ed299674928313e6` et ne valide pas le commit
+opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`. Ses quatre jobs — `wasm`, `supply-chain`,
 `native (ubuntu-24.04)` et `native (windows-2025)` — ont chacun **0 étape exécutée** et aucun runner
 alloué. La conclusion GitHub `failure` correspond au blocage de facturation, pas à un test du code :
 la CI distante est qualifiée **NOT RUN — infrastructure billing**. ADR-0006 autorise une dérogation
@@ -459,6 +542,9 @@ locale ou visuelle.
 ## Verdict et travail suivant
 
 Verdict : **POURSUIVRE GATE 1**.
+
+Aucun correctif n'est appliqué dans la présente consolidation documentaire. `R1-037`, `R1-041` et
+`R1-048` restent ouvertes, `human_review_performed=false`, et le travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
 

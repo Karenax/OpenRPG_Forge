@@ -312,7 +312,7 @@ gameplay, la caméra `ForgePlayerCamera` et les collisions Rapier réelles. Elle
 MP4 H.264 de 24 checkpoints. Les checkpoints sont pausés pendant leur capture ; le MP4 à 8 FPS ne
 qualifie donc pas le stutter temps réel.
 
-La source courante publiée `15635b3f85b623654e498b17ed299674928313e6`, arbre
+La dernière campagne Release normale publiée `15635b3f85b623654e498b17ed299674928313e6`, arbre
 `187ae357e24c47403b9c638c0a0737ed01215e33`, borne le rafraîchissement des preuves et exige des reçus
 monotones d'audit de visibilité végétation au démarrage et à la frontière finale. Elle passe 140/140
 tests moteur Release, 52/52 tests runtime Release, 1/1 test d'intégration Release, Clippy strict et
@@ -323,6 +323,19 @@ du runtime. Les 680 présentations résolues échouent aux seuils : moyenne 44,2
 p99 76,4441 ms et 1 % low 12,5912 FPS. La frontière hôte n'est ni vérifiée ni ingérée par le runtime.
 La campagne est **non qualifiante** — target Cargo partagé, aucun rebuild gouverné en target propre —
 et le GPU cible comme la revue humaine restent à faux.
+
+La source courante publiée `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
+`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, ajoute l'opt-in strictement diagnostique
+`--render-profile-gate1-diagnostic`. Il n'est disponible qu'avec la feature `render-profile`, exige la
+route gameplay-stutter et publie un marqueur `qualifying = false`. Le formatage, les checks Cargo
+normal/instrumenté, Clippy strict dans les deux configurations, 2/2 tests unitaires, 4/4 tests
+d'intégration de garde et la provenance passent. Sur 30 secondes, le ledger enregistre 1 800 ticks,
+2 608 frames main-world et 2 609 contrôles. PresentMon retient 2 184 lignes, dont 1 446 présentations
+résolues : `DisplayedTime` moyen 20,8579 ms, p95 34,7319 ms, p99 83,4934 ms et 1 % low 4,1709 FPS.
+La trace Chrome agrège 2 835 intervalles stables à 11,4451 ms de moyenne, p95 12,6216 ms, p99
+13,2567 ms et maximum 27,2177 ms. Elle oriente le diagnostic vers l'acquisition de surface et le
+pacing plutôt que les appels Vulkan bruts, mais ne supplante pas PresentMon : horloges et frontières
+ne sont pas corrélées, la borne QPC haute manque et la capture reste non qualifiante.
 
 Le commit `afb270c3` affiche dans l'overlay les temps CPU et GPU du pass opaque issus des diagnostics
 Bevy ; deux captures natives High clear/rain exactes, hashées et lisibles ferment `R1-034` sans
@@ -360,12 +373,13 @@ et supprime le warning natif observé à `a34596bd`. La campagne initiale `a7c9b
 contours/stipple noirs, silhouettes lointaines crénelées, grands aplats et eau masquée. La campagne
 corrective `6a24cabe` élimine le principal défaut depth-only et rend `R1-046`/`R1-047` candidates à
 revue humaine. La campagne `873618af` acquiert ensuite le vrai contrôleur gameplay, sa caméra et
-Rapier. Au lot `15635b3f`, le ledger runtime et la sélection PresentMon hôte restent deux observations
-distinctes ; l'absence de borne haute runtime, de vérification et d'ingestion de la frontière hôte,
-ainsi que l'échec aux seuils empêchent de fermer le stutter. `R1-023`, `R1-025`, `R1-026`
+Rapier. Aux lots `15635b3f` et `2fe48485`, le ledger runtime et la sélection PresentMon hôte restent
+deux observations distinctes ; la trace instrumentée du second lot ne résout pas la corrélation des
+horloges. L'absence de borne haute runtime, de vérification et d'ingestion de la frontière hôte, ainsi
+que l'échec externe aux seuils empêchent de fermer le stutter. `R1-023`, `R1-025`, `R1-026`
 et `R1-046` à `R1-048` restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste
 satisfaite ; matériel cible, stutter représentatif et revue humaine restent dus. L'audit provenance
-strict `15635b3f` passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
+strict `2fe48485` passe sans asset Cadle ; la CI distante reste `NOT RUN` sous ADR-0006. Ce statut
 n'est pas un PASS. Gate 1 reste **OUVERTE**.
 
 ## But
@@ -475,11 +489,12 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-047` vue lointaine — PNG Release `873618af` réacquis ; correction bleu-noir préservée,
   revue humaine LOD/composition encore due.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
-  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. À `15635b3f`, le ledger
-  runtime enregistre 1 800 ticks/29,997926 s/3 672 frames/3 674 contrôles ; la sélection hôte distincte
-  retient 719 lignes PresentMon du PID 2864 après une borne QPC basse seulement. Sans borne haute,
-  vérification ou ingestion runtime, elle reste non qualifiante et **FAIL seuils** (DisplayedTime
-  moyen 44,2516 ms, p95 62,4861 ms, 1 % low 12,5912 FPS) ; revue humaine non réalisée ;
+  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. La dernière campagne Release
+  normale `15635b3f` reste non qualifiante et en échec externe. Le diagnostic instrumenté
+  `2fe48485` enregistre 1 800 ticks/29,995543 s/2 608 frames/2 609 contrôles et 2 184 lignes PresentMon,
+  dont 1 446 présentations résolues. Il reste **FAIL seuils** (`DisplayedTime` moyen 20,8579 ms, p95
+  34,7319 ms, 1 % low 4,1709 FPS). Sa trace interne stable n'est pas corrélée à la fenêtre QPC ; sans
+  borne haute, vérification ou ingestion runtime, elle ne qualifie pas le stutter. Revue humaine non réalisée ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux.
 - [ ] `R1-050` revue de composition et lisibilité.
@@ -494,19 +509,21 @@ qualité                   Low / Medium / High / Ultra
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — sélection PresentMon hôte `15635b3f`
-  non qualifiant en échec à 44,2516 ms de DisplayedTime moyen ; GPU cible non mesuré ;
-- [ ] p95 ≤ 16,7 ms — sélection PresentMon hôte non qualifiante à 62,4861 ms ;
-- [ ] 1 % low ≥ 45 FPS — sélection PresentMon hôte non qualifiante à 12,5912 FPS ;
-- [ ] absence de stutter récurrent — la sélection PresentMon hôte `15635b3f` est non qualifiante et
-  échoue aux seuils avec 672/680 présentations au-dessus de 16,7 ms et 600/680 au-dessus de 33,3 ms ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — sélection PresentMon hôte `2fe48485`
+  non qualifiante en échec à 20,8579 ms de `DisplayedTime` moyen ; GPU cible non mesuré ;
+- [ ] p95 ≤ 16,7 ms — sélection PresentMon hôte non qualifiante à 34,7319 ms ;
+- [ ] 1 % low ≥ 45 FPS — sélection PresentMon hôte non qualifiante à 4,1709 FPS ;
+- [ ] absence de stutter récurrent — la sélection PresentMon hôte `2fe48485` est non qualifiante et
+  échoue aux seuils avec 680/1 446 présentations au-dessus de 16,7 ms et 111/1 446 au-dessus de
+  33,3 ms ; la trace interne stable n'est pas corrélée à cette sélection ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
 - [x] code sans dépendance propriétaire obligatoire — audit provenance/indépendance PASS local ;
 - [x] rapport et captures versionnés — rapport Gate 1, preuves Browser, lot correctif `6a24cabe`,
-  lot contrôleur Release `873618af` et synthèse PresentMon `15635b3f` ajoutés avec leurs SHA-256 et
-  audit de provenance ; les artefacts bruts de la campagne non qualifiante restent externes et hashés.
+  lot contrôleur Release `873618af`, synthèse PresentMon `15635b3f` et diagnostic instrumenté
+  `2fe48485` ajoutés avec leurs SHA-256 et audit de provenance ; les artefacts bruts des campagnes
+  non qualifiantes restent externes et hashés.
 
 ---
 

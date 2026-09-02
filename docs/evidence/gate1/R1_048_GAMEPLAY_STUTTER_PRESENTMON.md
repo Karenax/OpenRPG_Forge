@@ -6,15 +6,170 @@ Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
 
-Le lot de cadence est publié sur `Rust`, validé localement et indépendant des assets Cadle. Le ledger
-runtime enregistre une route gameplay continue sans pause de 1 800 ticks en 29,997926 s. Séparément,
-l'hôte retient 719 lignes PresentMon pour le PID 2864 à partir d'une borne QPC basse, sans borne haute
-issue du runtime. Cette sélection externe échoue nettement aux seuils d'affichage, mais ne qualifie pas
-la même fenêtre exacte que le ledger. Le target Cargo partagé, l'absence de rebuild gouverné propre,
-la frontière hôte ni vérifiée ni ingérée par le runtime, le GPU cible absent et la revue humaine non
-réalisée maintiennent `R1-048` ouverte.
+Le commit opt-in `2fe48485086e925422c667f49c38a80f96e1a81a`, arbre
+`378f13f68e7689a6790aa544f1e5b4a1be30ad16`, permet un profilage explicitement marqué. La campagne
+`2fe48485-render-profile-20260902T060816358Z` est **NONQUALIFYING** : le marqueur schema 1 porte
+`qualifying=false`, l'instrumentation `render-profile` modifie les logs et l'ordonnancement du rendu,
+le target Cargo partagé est réutilisé et aucun rebuild gouverné en target propre n'est effectué.
 
-## Identité source et validation
+Le ledger runtime prouve une route gameplay réelle de 1 800 ticks en 29,995543 s. Séparément,
+PresentMon retient 2 184 lignes après une borne QPC basse, sans borne haute runtime ni ingestion : 738
+n'ont pas de `DisplayedTime` résolu et les 1 446 valeurs résolues échouent aux seuils. La trace interne
+stable, proche de la distribution `8b`, mesure 11,445115 ms, soit 87,3735 FPS équivalents profilés ;
+elle ne remplace pas le **FAIL PresentMon**. La divergence trace/PresentMon reste non réconciliée.
+Aucun correctif n'est appliqué dans cette consolidation documentaire. `R1-037`, `R1-041` et `R1-048`
+restent ouvertes, la revue humaine reste fausse, Gate 1 reste ouverte et Gate 2 reste interdite.
+
+## Identité source, opt-in et validations `2fe48485`
+
+| Élément | Valeur |
+|---|---|
+| commit opt-in | `2fe48485086e925422c667f49c38a80f96e1a81a` |
+| arbre | `378f13f68e7689a6790aa544f1e5b4a1be30ad16` |
+| sujet | `chore(gate1): allow marked route profiling` |
+| feature | `render-profile`, opt-in et explicitement non qualifiante |
+| runtime Release | 90 245 632 octets ; SHA-256 `e03bd61db8b5f8cf418390a5a78f3b5dc7b4e94dfb123ee6668abcf0d8e755cd` |
+| marqueur | schema 1, `qualifying=false` ; SHA-256 `5f365295110fca0a1f47c5419f05e6a1ff1c33d1fe29619a27f4c9f9c34b3e48` |
+| provenance | **PASS** ; 915 octets ; SHA-256 `22c1d795f94eb8f247e1b7c173ae06602ff17dd664f0c8d0ef2f4aea4a383892` |
+
+| Validation locale du commit opt-in | Résultat |
+|---|---:|
+| check `forge_runtime`, configuration normale | **PASS** |
+| check `forge_runtime`, feature `render-profile` | **PASS** |
+| Clippy strict `forge_runtime --all-targets`, configuration normale | **PASS** |
+| Clippy strict `forge_runtime --all-targets --all-features` | **PASS** |
+| tests unitaires ciblés | **2/2 PASS** |
+| guard d'intégration `render_profile_guard` | **4/4 PASS** |
+| formatage et `git diff --check` | **PASS** |
+
+Ces validations bornées prouvent le contrat d'opt-in et son garde-fou. Elles ne transforment pas la
+capture instrumentée en benchmark Release qualifiant et ne constituent pas un rejeu workspace complet.
+L'audit exact compte 380 fichiers suivis, 27 assets et neuf modèles ; il compare 39 fichiers Forge aux
+507 fichiers Cadle et trouve zéro copie exacte comme zéro ligne normalisée commune. Aucun asset Cadle
+n'est copié dans Forge.
+
+## Protocole observé `2fe48485`
+
+Artefacts externes non versionnés :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\2fe48485-render-profile-20260902T060816358Z
+```
+
+La campagne utilise le runtime Release identifié ci-dessus sur une AMD Radeon RX 7800 XT, Vulkan et le
+pilote `26.8.1`. Le processus sort avec le code 0, charge 9/9 modèles gouvernés et ses logs runtime
+contiennent zéro warning et zéro erreur. La revue humaine reste `false`.
+
+### Ledger runtime `2fe48485`
+
+| Invariant runtime | Observation |
+|---|---:|
+| durée murale | 29,995543 s |
+| ticks fixes | 1 800, dont 2 ticks de catch-up |
+| commande gameplay | 900 ticks avant + 900 ticks arrière |
+| frames main-world couvertes | 2 608 |
+| contrôles d'invariants main-world | 2 609 |
+| mouvement réel | oui ; 1 800 ticks grounded, 1 059 avec collision |
+| modèles gouvernés chargés | 9/9 |
+| fenêtre native observée | oui |
+| sortie runtime | code 0 |
+| logs runtime | 0 warning ; 0 erreur |
+| revue humaine | `false` |
+
+Le ledger conserve `runtime_verified_capture=false`, `display_metrics_ingested=false` et
+`gate1_route_qualified=false`. Ses 2 608 frames main-world ne sont pas des présentations et ne doivent
+pas être converties en FPS d'affichage.
+
+### Sélection PresentMon hôte `2fe48485`
+
+| Frontière hôte | Observation |
+|---|---|
+| PID ciblé | 30 780 |
+| fréquence QPC déclarée | 10 000 000 Hz |
+| borne basse hôte | `measurement_not_before_qpc = 6526742631575` |
+| filtre hôte | PID 30 780 après la borne QPC basse |
+| borne haute issue du runtime | **aucune** |
+| lignes après borne basse | 2 184 |
+| `DisplayedTime` non résolus | 738 |
+| `DisplayedTime` résolus | 1 446 |
+| frontière vérifiée par le runtime | non, `runtime_verified_capture=false` |
+| métriques ingérées par le runtime | non, `display_metrics_ingested=false` |
+| pertes ETW | 0 événement ; 0 buffer |
+
+Sans borne QPC haute fournie par le runtime, les 2 184 lignes ne sont pas la même fenêtre exacte que
+les 29,995543 s du ledger. La frontière hôte n'est ni vérifiée ni ingérée par le runtime.
+
+## Résultats PresentMon `2fe48485`
+
+| Mesure | Nombre | Moyenne | p95 | p99 | Maximum |
+|---|---:|---:|---:|---:|---:|
+| FrameTime | 2 184 | 13,8155 ms | 22,7558 ms | 50,3844 ms | 620,4266 ms |
+| CPUBusy | 2 184 | 13,7076 ms | 22,6474 ms | 50,2758 ms | 620,3147 ms |
+| GPUTime | 2 184 | 6,9942 ms | 11,3378 ms | 12,0886 ms | 13,0470 ms |
+| DisplayedTime | 1 446 | 20,8579 ms | 34,7319 ms | 83,4934 ms | 625,0145 ms |
+
+Le 1 % low calculé sur les `DisplayedTime` résolus est **4,1709 FPS**.
+
+| Seuil de stutter | Dépassements | Verdict |
+|---|---:|---|
+| `>16,667 ms` | 680/1 446 | **FAIL** |
+| `>33,333 ms` | 111/1 446 | **FAIL** |
+| p95 `<=16,7 ms` | p95 34,7319 ms | **FAIL** |
+| 1 % low `>=45 FPS` | 4,1709 FPS | **FAIL** |
+
+Ces nombres restent un diagnostic externe non qualifiant, mais le verdict de seuil est sans ambiguïté :
+**FAIL**. L'absence de borne haute/runtime ingestion empêche de les attribuer à la fenêtre exacte du
+ledger ; elle ne permet pas d'effacer leur échec.
+
+## Trace interne agrégée `2fe48485`
+
+La trace `render-profile` de 6 073 239 151 octets est elle-même **NONQUALIFYING**. Deux passes de
+22 604 221 lignes produisent 9 148 749 paires `B/E` complètes, zéro anomalie et huit scopes `B` ouverts
+à la coupure, exclus des agrégats. Le parseur sort avec le code 0, sans stderr ; le fichier de trace et
+le hash du parseur restent inchangés pendant l'analyse.
+
+| Artefact | Octets | SHA-256 |
+|---|---:|---|
+| `gate1-gameplay-stutter.json` | 52 803 | `88134d3a80d5bc10de7443947ec3b42a37575e87b02654e751ec129e34386ec5` |
+| `gate1-gameplay-stutter.ready.json` | 25 321 | `eab58f51cc22aca297753cdb26e034d3e3a7f08d91430204930a35f73b490682` |
+| `gate1-gameplay-stutter.start.signal.json` | 566 | `8cada2b4116e9e7f62938c00d8ff2aa7a67f30416ba043d664404785445b8c6a` |
+| `presentmon.csv` | 422 143 | `d78eb048e3688b9a719a0c4370297d17613f99c22092ad8ca792976ed262accd` |
+| `presentmon.raw.stdout.log` | 425 117 | `561630f105c9f1c45dc9c6bbf878b84b0aad72736b692d9cc730798ed61b2046` |
+| `presentmon.stderr.log` | 303 | `fa8cc09eba927931fa1670be29df1558c531367d416e48cd784acabfa3c77fa6` |
+| `presentmon.stdout.log` | 2 974 | `253cbed43cdb12eea553fc45173d44e1bdd74663bea870d5e3417483d6dc90cf` |
+| `presentmon.stop.log` | 190 | `c1f3939f2269ef460bbf912d77e38c66779ac26edee7db721201c142f7cb4f0d` |
+| `runtime.stderr.log` | 5 445 | `801b20156bdc404fa9e69c44b08e8f2029cef2fc191c0193c93520201fa09e5a` |
+| `runtime.stdout.log` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| `trace.json` | 6 073 239 151 | `79763e8306818b7b4f9ba36886a012c7b1cfee10afd830a2f92146b73084fb71` |
+| `trace_aggregate_summary.json` | 9 763 | `5a35dff595fa02dee801ea8c99b5d7b857d558d8d9219580c6a7c9c2b044657e` |
+| `trace_aggregate_summary.md` | 5 042 | `28287a840f16528833baa4d3466d8c21608b5f93d8ebe221a1ab24508eba73bc` |
+| `trace_aggregate_evidence.raw.json` | 123 395 | `9e9ee27a8522e13aa049f79d3c780df99fec832303593db2dc9e51938a2512f7` |
+| parseur de référence | 32 179 | `64d3c90f4977c4f4ab7bec86a4af819a370587f59f1b8f4eb4b4591f155ef657` |
+| `NONQUALIFYING_RENDER_PROFILE.json` | 327 | `5f365295110fca0a1f47c5419f05e6a1ff1c33d1fe29619a27f4c9f9c34b3e48` |
+| `diagnostic-summary.json` | 2 767 | `4f20a58fa6d6a765778b60b38668f7005c2824f2c56d2cccd1b27333e84465b5` |
+
+| Cadence stable et attribution | Valeur |
+|---|---:|
+| frame interne moyenne | 11,445115 ms, soit 87,3735 FPS équivalents profilés |
+| frame interne p95 / p99 / max | 12,621560 / 13,256662 / 27,217700 ms |
+| `schedule: name=Render` | 10,845757 ms inclusive ; 6,514969 ms exclusive |
+| `Surface::get_current_texture` | 3,539034 ms exclusive |
+| `prepare_windows` | 3,649687 ms inclusive |
+| `main_render_schedule` | 3,006376 ms inclusive |
+| `schedule: name=Core3d` | 1,738853 ms inclusive |
+| `PostUpdate` | p95 4,676880 ms exclusive |
+| `vkAcquireNextImageKHR` | 0,077400 ms moyenne |
+| `vkQueueSubmit` | 0,049984 ms moyenne par appel |
+| `vkQueuePresentKHR` | 0,143264 ms moyenne |
+
+La cadence interne `2fe` suit de près la distribution à faible interférence `8b`. Cela aide à cibler
+`Surface::get_current_texture` / `prepare_windows`, puis la queue `PostUpdate`, sans démontrer une
+performance de production. Les appels Vulkan bruts ne sont pas le goulot récurrent observé. Surtout,
+11,445115 ms dans la trace et 20,8579 ms de `DisplayedTime` moyen PresentMon décrivent des frontières et
+des observables différents : leur divergence reste **non réconciliée**. Le 87,3735 FPS équivalent est
+NONQUALIFYING et ne remplace ni le FAIL PresentMon, ni un benchmark GPU cible, ni la revue humaine.
+
+## Campagne historique publiée `15635b3f` — identité et validation
 
 | Élément | Valeur |
 |---|---|
@@ -34,7 +189,7 @@ de 100 ms et exige des reçus monotones avant de déclarer les frontières initi
 Ces changements réduisent le coût de la preuve interne sans cadencer le contrôleur, la simulation,
 le rendu ou PresentMon.
 
-## Provenance et frontière Cadle
+## Provenance et frontière Cadle — historique `15635b3f`
 
 L'audit exact porte le SHA-256
 `e36bab2cceeac3a32902d2a920cca95e45a288b7c8c748234b8eb5556dc601c0` et retourne **PASS** :
@@ -54,7 +209,7 @@ L'audit exact porte le SHA-256
 La référence Cadle reste `ea0da62549980816a6a27e08b75808b1f56d70e7`, arbre
 `f0d52e434454fe302052d22eafde203bc361cc1f`. Aucun asset Cadle n'est copié dans Forge.
 
-## Protocole observé
+## Protocole observé — historique `15635b3f`
 
 Artefacts externes non versionnés :
 
@@ -101,7 +256,7 @@ La sélection hôte établit une chronologie externe après la borne basse. Sans
 par le runtime, elle ne prouve pas que ses 719 lignes coïncident exactement avec les 29,997926 s du
 ledger. Cette frontière hôte n'est ni vérifiée ni ingérée par le runtime.
 
-## Statut non qualifiant
+## Statut non qualifiant — historique `15635b3f`
 
 Le fichier de synthèse pose `qualifying=false` pour deux raisons explicites :
 
@@ -113,7 +268,7 @@ Le ledger runtime conserve également `runtime_verified_capture=false` et
 est appliquée par l'hôte ; aucune borne haute runtime n'existe. La frontière hôte n'est donc ni
 vérifiée ni ingérée, et aucune qualification « exact QPC » n'est revendiquée.
 
-## Résultats PresentMon
+## Résultats PresentMon — historique `15635b3f`
 
 La capture contient 759 lignes CSV. L'hôte en retient 719 pour le PID 2864 avec
 `CPUStartQPC >= measurement_not_before_qpc`, sans borne haute runtime ; il s'agit d'une sélection de
@@ -141,7 +296,7 @@ DisplayedTime les plus lents`**.
 Ces nombres sont un diagnostic externe utile, pas un benchmark gouverné accepté. Ils ne doivent pas
 être remplacés par les 3 672 frames main-world ni décrits comme provenant de la même fenêtre exacte.
 
-## Frontière d'instrumentation
+## Frontière d'instrumentation — historique `15635b3f`
 
 | Signal | Statut |
 |---|---|
@@ -158,16 +313,17 @@ Ces nombres sont un diagnostic externe utile, pas un benchmark gouverné accept�
 calls, triangles ou instances n'est acquis. La RX 7800 XT est le GPU de développement ; elle ne ferme
 pas `R1-041`, qui exige encore une RTX 3060 ou RX 6600.
 
-## CI distante — exception ADR-0006
+## CI distante historique — exception ADR-0006
 
 Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
-cible le commit exact `15635b3f85b623654e498b17ed299674928313e6`. Il expose quatre jobs — `wasm`,
+reste attaché au commit exact `15635b3f85b623654e498b17ed299674928313e6`, pas au commit opt-in
+`2fe48485086e925422c667f49c38a80f96e1a81a`. Il expose quatre jobs — `wasm`,
 `supply-chain`, `native (ubuntu-24.04)` et `native (windows-2025)` — avec **0 étape exécutée** et
 aucun runner alloué. La conclusion GitHub `failure` décrit le blocage d'infrastructure/facturation,
 pas un échec du code : la qualification reste **NOT RUN — infrastructure billing** sous ADR-0006.
 Ce run ne constitue ni une CI verte ni une validation distante du commit.
 
-## Hashes des artefacts externes
+## Hashes des artefacts externes — historique `15635b3f`
 
 | Artefact | SHA-256 |
 |---|---|
@@ -187,11 +343,16 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 - `R1-048` : **OUVERTE — FAIL seuils dans la campagne diagnostique non qualifiante** ;
 - `R1-037` : **OUVERTE** ;
 - `R1-041` : **OUVERTE** ;
-- revue humaine : **non réalisée** ;
+- campagne opt-in `2fe48485` : **NONQUALIFYING**, trace interne proche de `8b` mais divergence
+  trace/PresentMon non réconciliée ;
+- campagne historique `15635b3f` et ses hashes : **préservés** ;
+- revue humaine : **non réalisée**, `human_review_performed=false` ;
 - Gate 1 : **OUVERTE** ;
 - Gate 2 : **INTERDITE** sans passage formel de Gate 1 ou nouvelle dérogation explicite acceptée ;
-- CI distante : **NOT RUN** sous ADR-0006.
+- CI distante `33584774630` attachée à `15635b3f` : **NOT RUN** sous ADR-0006 ;
+- correctif : **aucun dans cette consolidation documentaire**.
 
-La prochaine acquisition qualifiante doit reconstruire dans un target gouverné propre, faire ingérer
-et vérifier la frontière QPC exacte par le runtime, conserver la route sans pause, satisfaire les
-seuils de présentation, puis être complétée par le benchmark GPU cible et la revue humaine.
+La prochaine acquisition qualifiante doit revenir à un runtime Release non instrumenté, reconstruire
+dans un target gouverné propre, faire ingérer et vérifier la frontière QPC exacte par le runtime,
+conserver la route sans pause, satisfaire les seuils de présentation, puis être complétée par le
+benchmark GPU cible et la revue humaine.
