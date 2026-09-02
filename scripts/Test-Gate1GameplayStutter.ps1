@@ -222,6 +222,28 @@ function Get-RequiredProperty {
     return $matches[0].Value
 }
 
+function Assert-QualifyingInstrumentationContract {
+    param(
+        [Parameter(Mandatory = $true)][object]$Instrumentation,
+        [Parameter(Mandatory = $true)][string]$Path
+    )
+
+    $renderDiagnosticsPluginEnabled = Get-RequiredProperty -InputObject $Instrumentation -Name "bevy_render_diagnostics_plugin_enabled" -Path $Path
+    Assert-Condition -Condition ($renderDiagnosticsPluginEnabled -is [bool] -and $renderDiagnosticsPluginEnabled -eq $false) -Message "$Path enables Bevy RenderDiagnosticsPlugin or reports a non-Boolean value."
+    $renderDiagnosticsResolveEncoderEnabled = Get-RequiredProperty -InputObject $Instrumentation -Name "bevy_render_diagnostics_resolve_encoder_enabled" -Path $Path
+    Assert-Condition -Condition ($renderDiagnosticsResolveEncoderEnabled -is [bool] -and $renderDiagnosticsResolveEncoderEnabled -eq $false) -Message "$Path enables the Bevy render-diagnostics resolve encoder or reports a non-Boolean value."
+    foreach ($field in @(
+            "bevy_render_pass_cpu_timing_status",
+            "bevy_render_pass_gpu_timing_status",
+            "bevy_render_pipeline_statistics_status",
+            "runtime_presented_frame_count_status"
+        )) {
+        Assert-Condition -Condition ((Get-RequiredProperty -InputObject $Instrumentation -Name $field -Path $Path) -eq "not_observed") -Message "$Path.$field must remain not_observed."
+    }
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $Instrumentation -Name "application_update_timing_status" -Path $Path) -eq "observed_non_presentation") -Message "$Path mislabels application-update timing."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $Instrumentation -Name "display_timing_source" -Path $Path) -eq "external_presentmon_displayed_time") -Message "$Path does not reserve display timing for external PresentMon DisplayedTime."
+}
+
 function Test-FiniteNumber {
     param([AllowNull()][object]$Value)
 
@@ -1259,7 +1281,7 @@ try {
 
     $ready = Wait-ForReadyJson -Path $readyPath -Process $runtimeCapture.Process -TimeoutSeconds $readyTimeoutSeconds
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema" -Path "ready") -eq "forge.gate1-gameplay-stutter-ready") -Message "Unexpected ready schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 1) -Message "Unexpected ready schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "schema_version" -Path "ready") -eq 2) -Message "Unexpected ready schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "status" -Path "ready") -eq "ready_waiting_for_presentmon_start_signal") -Message "Runtime is not waiting for the PresentMon start signal."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "process_id" -Path "ready") -eq $runtimeProcessId) -Message "Ready PID does not match the launched runtime PID."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ready -Name "build_source_commit" -Path "ready") -eq $gitCommit) -Message "Ready ledger is not linked to the exact repository commit."
@@ -1273,7 +1295,9 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "no_pause" -Path "ready.protocol") -eq $true) -Message "Ready protocol permits pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "screenshots_requested" -Path "ready.protocol") -eq $false) -Message "Ready protocol requests screenshots."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readyProtocol -Name "presentmon_required" -Path "ready.protocol") -eq $true) -Message "Ready protocol does not require PresentMon."
+    Assert-QualifyingInstrumentationContract -Instrumentation (Get-RequiredProperty -InputObject $readyProtocol -Name "instrumentation" -Path "ready.protocol") -Path "ready.protocol.instrumentation"
     $readySignalContract = Get-RequiredProperty -InputObject $ready -Name "start_signal_contract" -Path "ready"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "schema_version" -Path "ready.start_signal_contract") -eq 2) -Message "Ready start-signal contract schema version changed."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $readySignalContract -Name "qpc_boundary_required" -Path "ready.start_signal_contract") -eq $true) -Message "Ready contract does not require an observed QPC boundary."
 
     $readyPipeline = Get-RequiredProperty -InputObject $ready -Name "pipeline_warmup" -Path "ready"
@@ -1398,7 +1422,7 @@ try {
 
     $signal = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-start-signal"
-        schema_version = 1
+        schema_version = 2
         process_id = $runtimeProcessId
         presentmon = [ordered]@{
             capture_started = $true
@@ -1496,11 +1520,13 @@ try {
     Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Runtime did not publish $ledgerFileName."
     $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema" -Path "ledger") -eq "forge.gate1-gameplay-stutter") -Message "Unexpected runtime ledger schema."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 1) -Message "Unexpected runtime ledger schema version."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "schema_version" -Path "ledger") -eq 2) -Message "Unexpected runtime ledger schema version."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "status" -Path "ledger") -eq "controller_window_complete_pending_presentmon_analysis") -Message "Runtime controller window did not complete cleanly."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "process_id" -Path "ledger") -eq $runtimeProcessId) -Message "Runtime ledger PID mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_source_commit" -Path "ledger") -eq $gitCommit) -Message "Runtime ledger commit mismatch."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledger -Name "build_profile" -Path "ledger") -eq "release") -Message "Runtime ledger build profile is not release."
+    $ledgerReady = Get-RequiredProperty -InputObject $ledger -Name "ready" -Path "ledger"
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerReady -Name "signal_schema_version" -Path "ledger.ready") -eq 2) -Message "Runtime ledger start-signal schema version mismatch."
     $ledgerSources = Get-RequiredProperty -InputObject $ledger -Name "sources" -Path "ledger"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerSources -Name "cadle_assets_used" -Path "ledger.sources") -eq $false) -Message "Runtime ledger reports Cadle asset use."
 
@@ -1510,6 +1536,8 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "vsync_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger reports VSync enabled."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "no_pause" -Path "ledger.protocol") -eq $true) -Message "Ledger protocol allowed pausing."
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerProtocol -Name "screenshots_requested" -Path "ledger.protocol") -eq $false) -Message "Ledger protocol requested screenshots."
+    $ledgerInstrumentation = Get-RequiredProperty -InputObject $ledgerProtocol -Name "instrumentation" -Path "ledger.protocol"
+    Assert-QualifyingInstrumentationContract -Instrumentation $ledgerInstrumentation -Path "ledger.protocol.instrumentation"
 
     $ledgerPresentMon = Get-RequiredProperty -InputObject $ledger -Name "presentmon" -Path "ledger"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "required" -Path "ledger.presentmon") -eq $true) -Message "Runtime ledger does not require PresentMon."
@@ -1526,12 +1554,12 @@ try {
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPresentMon -Name "display_metrics_ingested" -Path "ledger.presentmon") -eq $false) -Message "Runtime falsely claims it ingested display metrics."
 
     $ledgerGovernedScene = Get-RequiredProperty -InputObject $ledger -Name "governed_scene" -Path "ledger"
-    foreach ($field in @("qualified_before_measurement", "qualified_for_entire_measurement", "structural_identity_stable", "final_render_boundary_validated")) {
+    foreach ($field in @("qualified_before_measurement", "qualified_for_entire_measurement", "structural_identity_stable", "final_main_world_boundary_validated")) {
         Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name $field -Path "ledger.governed_scene") -eq $true) -Message "Governed scene failed $field."
     }
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advanced_each_render_frame" -Path "ledger.governed_scene") -eq $true) -Message "Water animation did not advance on every rendered measurement frame."
-    $waterAnimationAdvancementFrames = [int](Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advancement_frames" -Path "ledger.governed_scene")
-    Assert-Condition -Condition ($waterAnimationAdvancementFrames -gt 0) -Message "No water animation advancement was observed during measurement."
+    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advanced_each_main_world_update" -Path "ledger.governed_scene") -eq $true) -Message "Water animation did not advance on every measured main-world update."
+    $waterAnimationAdvancementUpdates = [int](Get-RequiredProperty -InputObject $ledgerGovernedScene -Name "water_animation_advancement_updates" -Path "ledger.governed_scene")
+    Assert-Condition -Condition ($waterAnimationAdvancementUpdates -gt 0) -Message "No water animation advancement was observed during measurement."
 
     $ledgerPipeline = Get-RequiredProperty -InputObject $ledger -Name "pipeline_warmup" -Path "ledger"
     Assert-Condition -Condition ((Get-RequiredProperty -InputObject $ledgerPipeline -Name "ready_before_measurement" -Path "ledger.pipeline_warmup") -eq $true) -Message "Pipelines were not ready before measurement."
@@ -1572,10 +1600,13 @@ try {
     Assert-Condition -Condition ([double]::IsFinite($profileHorizontalStepLimit) -and $profileHorizontalStepLimit -gt 0.0 -and $profileHorizontalStepLimit -lt 0.5) -Message "Profile-derived horizontal step limit is invalid."
     Assert-Condition -Condition ([double]::IsFinite($maximumHorizontalStep) -and $maximumHorizontalStep -le $profileHorizontalStepLimit) -Message "Controller exceeded its profile-derived per-tick movement bound."
     Assert-Condition -Condition ([double]::IsFinite($maximumControllerTranslationError) -and $maximumControllerTranslationError -le 0.001) -Message "Observed player movement diverged from the controller/KCC effective translation."
-    Assert-Condition -Condition ((Get-RequiredProperty -InputObject $movement -Name "render_frames_spanned" -Path "ledger.movement") -gt 0) -Message "Controller window spans no rendered frame."
-    $renderInvariantChecks = [int](Get-RequiredProperty -InputObject $movement -Name "render_invariant_checks" -Path "ledger.movement")
-    Assert-Condition -Condition ($renderInvariantChecks -gt 0) -Message "No rendered-frame invariant was validated."
-    Assert-Condition -Condition ($waterAnimationAdvancementFrames -eq $renderInvariantChecks) -Message "Water animation advancement count does not match validated rendered frames."
+    $firstMainWorldFrame = [uint32](Get-RequiredProperty -InputObject $movement -Name "first_main_world_frame" -Path "ledger.movement")
+    $lastMainWorldFrame = [uint32](Get-RequiredProperty -InputObject $movement -Name "last_main_world_frame" -Path "ledger.movement")
+    $mainWorldFramesSpanned = [uint32](Get-RequiredProperty -InputObject $movement -Name "main_world_frames_spanned" -Path "ledger.movement")
+    Assert-Condition -Condition ($lastMainWorldFrame -ge $firstMainWorldFrame -and $mainWorldFramesSpanned -eq ($lastMainWorldFrame - $firstMainWorldFrame + 1)) -Message "Controller main-world frame span is inconsistent."
+    $mainWorldInvariantChecks = [int](Get-RequiredProperty -InputObject $movement -Name "main_world_invariant_checks" -Path "ledger.movement")
+    Assert-Condition -Condition ($mainWorldInvariantChecks -gt 0) -Message "No main-world invariant was validated."
+    Assert-Condition -Condition ($waterAnimationAdvancementUpdates -eq $mainWorldInvariantChecks) -Message "Water animation advancement count does not match validated main-world updates."
     $firstFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "first_fixed_tick" -Path "ledger.movement")
     $midpointFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "midpoint_fixed_tick" -Path "ledger.movement")
     $lastFixedTick = [uint64](Get-RequiredProperty -InputObject $movement -Name "last_fixed_tick" -Path "ledger.movement")
@@ -1727,7 +1758,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 2
+        schema_version = 3
         status = if ($boundedThresholdsPassed) { "bounded_sample_thresholds_passed_pending_exact_runtime_qpc" } else { "bounded_sample_thresholds_failed" }
         repository_commit = $gitCommit
         repository_tree = $gitTree
@@ -1756,6 +1787,16 @@ try {
             }
             release_profile_declared_by_runtime = $true
             controller_wall_duration_seconds = $observedWallSeconds
+            instrumentation = [ordered]@{
+                bevy_render_diagnostics_plugin_enabled = [bool](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "bevy_render_diagnostics_plugin_enabled" -Path "ledger.protocol.instrumentation")
+                bevy_render_diagnostics_resolve_encoder_enabled = [bool](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "bevy_render_diagnostics_resolve_encoder_enabled" -Path "ledger.protocol.instrumentation")
+                bevy_render_pass_cpu_timing_status = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "bevy_render_pass_cpu_timing_status" -Path "ledger.protocol.instrumentation")
+                bevy_render_pass_gpu_timing_status = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "bevy_render_pass_gpu_timing_status" -Path "ledger.protocol.instrumentation")
+                bevy_render_pipeline_statistics_status = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "bevy_render_pipeline_statistics_status" -Path "ledger.protocol.instrumentation")
+                runtime_presented_frame_count_status = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "runtime_presented_frame_count_status" -Path "ledger.protocol.instrumentation")
+                application_update_timing_status = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "application_update_timing_status" -Path "ledger.protocol.instrumentation")
+                display_timing_source = [string](Get-RequiredProperty -InputObject $ledgerInstrumentation -Name "display_timing_source" -Path "ledger.protocol.instrumentation")
+            }
         }
         presentmon = [ordered]@{
             version = $presentMonVersion
@@ -1830,6 +1871,7 @@ try {
             release_asset_copy_absent = $true
             runtime_visible_window_observed_before_signal = $nativeWindowObservation.Observed
             release_1920x1080_high_no_vsync = $true
+            bevy_render_diagnostics_disabled_for_presentmon = $true
             real_gameplay_controller_exercised = $true
             uninterrupted_1800_fixed_ticks = $true
             governed_scene_qualified_and_stable = $true

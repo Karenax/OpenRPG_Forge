@@ -16,7 +16,7 @@ use bevy::{
     window::{CursorGrabMode, CursorOptions, PresentMode, WindowResolution},
 };
 use forge_engine::{
-    PIPELINE_WARMUP_STABLE_FRAMES, ProofScenePlugin, RuntimeAutomation,
+    PIPELINE_WARMUP_STABLE_FRAMES, ProofScenePlugin, RenderDiagnosticsPolicy, RuntimeAutomation,
     VisualValleyEnvironmentPlugin, VisualValleyPlugin, VisualValleyQualityPlugin,
     VisualValleyQualitySelection, VisualValleySceneryPlugin, VisualValleyVegetationPlugin,
     VisualValleyWaterPlugin, VisualValleyWeatherPlugin, WindowResizeRequest,
@@ -103,6 +103,8 @@ fn main() -> AppExit {
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
         gate1_gameplay_stutter = options.gate1_gameplay_stutter_output.is_some(),
+        render_diagnostics_enabled = automation.render_diagnostics_policy
+            == RenderDiagnosticsPolicy::Enabled,
         gate1_visual_proof = options.gate1_visual_proof_output.is_some(),
         weather_override,
         player_input_enabled,
@@ -947,6 +949,11 @@ impl Options {
                 _ => None,
             },
             close_at_frame: self.close_at_frame,
+            render_diagnostics_policy: if self.gate1_gameplay_stutter_output.is_some() {
+                RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
+            } else {
+                RenderDiagnosticsPolicy::Enabled
+            },
         }
     }
 
@@ -1652,6 +1659,25 @@ mod tests {
             false,
         ));
         assert!(!accepted.player_camera.is_enabled());
+        assert_eq!(
+            accepted.runtime_automation().render_diagnostics_policy,
+            RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
+        );
+
+        let ordinary_high = Options::parse(
+            [
+                "--visual-valley".to_owned(),
+                "--quality".to_owned(),
+                "high".to_owned(),
+                "--no-vsync".to_owned(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(
+            ordinary_high.runtime_automation().render_diagnostics_policy,
+            RenderDiagnosticsPolicy::Enabled
+        );
 
         assert_eq!(
             Options::parse(

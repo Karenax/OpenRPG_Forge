@@ -3,16 +3,17 @@ use bevy::{
     diagnostic::FrameCount,
     ecs::system::SystemParam,
     prelude::*,
-    render::view::screenshot::Screenshot,
+    render::{diagnostic::RenderDiagnosticsPlugin, view::screenshot::Screenshot},
     window::{PresentMode, PrimaryWindow},
 };
 use forge_engine::{
     EnvironmentProjectionStats, ForgePlayerCamera, ForgePlayerCharacter, GpuDiagnostic,
     PendingPlayerControlCommand, PipelineWarmupObservation, PlayerControlCommand,
     PlayerControllerSet, PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings,
-    PlayerRuntimeSnapshot, SceneryProjectionStats, SceneryProjectionStatus, TERRAIN_PHYSICS_HZ,
-    VegetationProjectionStats, VisualValleyQualitySelection, VisualValleyQualityStats,
-    VisualValleyShadowStats, VisualValleyStats, WaterProjectionStats, WeatherProjectionStats,
+    PlayerRuntimeSnapshot, RenderDiagnosticsPolicy, RuntimeAutomation, SceneryProjectionStats,
+    SceneryProjectionStatus, TERRAIN_PHYSICS_HZ, VegetationProjectionStats,
+    VisualValleyQualitySelection, VisualValleyQualityStats, VisualValleyShadowStats,
+    VisualValleyStats, WaterProjectionStats, WeatherProjectionStats,
     validate_governed_gate1_render_state,
 };
 use forge_project::{PlayerControllerProfileDocument, TerrainDocument, VisualQualityTier};
@@ -28,7 +29,7 @@ use std::{
 const READY_SCHEMA: &str = "forge.gate1-gameplay-stutter-ready";
 const SIGNAL_SCHEMA: &str = "forge.gate1-gameplay-stutter-start-signal";
 const LEDGER_SCHEMA: &str = "forge.gate1-gameplay-stutter";
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 const READY_FILE: &str = "gate1-gameplay-stutter.ready.json";
 const START_SIGNAL_FILE: &str = "gate1-gameplay-stutter.start.signal.json";
 const LEDGER_FILE: &str = "gate1-gameplay-stutter.json";
@@ -120,9 +121,31 @@ impl Plugin for Gate1GameplayStutterPlugin {
                 FixedUpdate,
                 observe_controller.after(PlayerControllerSet::Camera),
             )
-            .add_systems(Last, observe_render_window)
+            .add_systems(Last, observe_main_world_window)
             .add_systems(Update, watchdog);
     }
+
+    fn finish(&self, app: &mut App) {
+        validate_external_presentation_instrumentation(app).unwrap_or_else(|error| {
+            panic!("Gate 1 gameplay stutter instrumentation is invalid: {error}")
+        });
+    }
+}
+
+fn validate_external_presentation_instrumentation(app: &App) -> Result<(), &'static str> {
+    let automation = app
+        .world()
+        .get_resource::<RuntimeAutomation>()
+        .ok_or("RuntimeAutomation is absent")?;
+    if automation.render_diagnostics_policy
+        != RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
+    {
+        return Err("RenderDiagnosticsPolicy is not disabled for external qualification");
+    }
+    if app.is_plugin_added::<RenderDiagnosticsPlugin>() {
+        return Err("RenderDiagnosticsPlugin must be absent from the qualifying runtime");
+    }
+    Ok(())
 }
 
 #[derive(SystemParam)]
@@ -249,16 +272,16 @@ struct Runtime {
     last_fixed_tick: Option<u64>,
     previous_sample_fixed_tick: Option<u64>,
     previous_sample_position: Option<Vec3>,
-    first_render_frame: Option<u32>,
-    last_render_frame: Option<u32>,
-    last_sample_render_frame: Option<u32>,
-    render_frames_spanned: u32,
-    render_invariant_checks: u32,
-    render_measurement_active: bool,
-    final_render_validation_pending: bool,
-    final_render_validation_completed: bool,
+    first_main_world_frame: Option<u32>,
+    last_main_world_frame: Option<u32>,
+    last_sample_main_world_frame: Option<u32>,
+    main_world_frames_spanned: u32,
+    main_world_invariant_checks: u32,
+    main_world_measurement_active: bool,
+    final_main_world_validation_pending: bool,
+    final_main_world_validation_completed: bool,
     last_water_animation_updates: Option<u64>,
-    water_animation_advancement_frames: u32,
+    water_animation_advancement_updates: u32,
     catch_up_fixed_ticks: u32,
     grounded_ticks: u32,
     collision_ticks: u32,
@@ -303,16 +326,16 @@ impl Runtime {
             last_fixed_tick: None,
             previous_sample_fixed_tick: None,
             previous_sample_position: None,
-            first_render_frame: None,
-            last_render_frame: None,
-            last_sample_render_frame: None,
-            render_frames_spanned: 0,
-            render_invariant_checks: 0,
-            render_measurement_active: false,
-            final_render_validation_pending: false,
-            final_render_validation_completed: false,
+            first_main_world_frame: None,
+            last_main_world_frame: None,
+            last_sample_main_world_frame: None,
+            main_world_frames_spanned: 0,
+            main_world_invariant_checks: 0,
+            main_world_measurement_active: false,
+            final_main_world_validation_pending: false,
+            final_main_world_validation_completed: false,
             last_water_animation_updates: None,
-            water_animation_advancement_frames: 0,
+            water_animation_advancement_updates: 0,
             catch_up_fixed_ticks: 0,
             grounded_ticks: 0,
             collision_ticks: 0,
@@ -371,6 +394,19 @@ struct ProtocolEvidence {
     no_pause: bool,
     screenshots_requested: bool,
     presentmon_required: bool,
+    instrumentation: InstrumentationEvidence,
+}
+
+#[derive(Clone, Copy, Serialize)]
+struct InstrumentationEvidence {
+    bevy_render_diagnostics_plugin_enabled: bool,
+    bevy_render_diagnostics_resolve_encoder_enabled: bool,
+    bevy_render_pass_cpu_timing_status: &'static str,
+    bevy_render_pass_gpu_timing_status: &'static str,
+    bevy_render_pipeline_statistics_status: &'static str,
+    runtime_presented_frame_count_status: &'static str,
+    application_update_timing_status: &'static str,
+    display_timing_source: &'static str,
 }
 
 #[derive(Serialize)]
@@ -517,9 +553,9 @@ struct GovernedSceneStability {
     qualified_before_measurement: bool,
     qualified_for_entire_measurement: bool,
     structural_identity_stable: bool,
-    final_render_boundary_validated: bool,
-    water_animation_advanced_each_render_frame: bool,
-    water_animation_advancement_frames: u32,
+    final_main_world_boundary_validated: bool,
+    water_animation_advanced_each_main_world_update: bool,
+    water_animation_advancement_updates: u32,
     initial_observation: GovernedSceneEvidence,
     final_observation: GovernedSceneEvidence,
 }
@@ -539,10 +575,10 @@ struct MovementEvidence {
     first_fixed_tick: u64,
     midpoint_fixed_tick: u64,
     last_fixed_tick: u64,
-    first_render_frame: u32,
-    last_render_frame: u32,
-    render_frames_spanned: u32,
-    render_invariant_checks: u32,
+    first_main_world_frame: u32,
+    last_main_world_frame: u32,
+    main_world_frames_spanned: u32,
+    main_world_invariant_checks: u32,
     catch_up_fixed_ticks: u32,
     start_position_m: [f32; 3],
     forward_endpoint_m: [f32; 3],
@@ -734,7 +770,7 @@ fn observe_controller(
                 runtime.previous_sample_position = Some(snapshot.player_position);
                 runtime.measurement_started_at = Some(Instant::now());
                 runtime.last_water_animation_updates = Some(scene.water.animation_updates);
-                runtime.render_measurement_active = true;
+                runtime.main_world_measurement_active = true;
                 enter_phase(&mut runtime, Phase::PreparingForward);
                 Ok(())
             }
@@ -835,7 +871,7 @@ fn observe_controller(
                             .elapsed()
                             .as_secs_f64(),
                     );
-                    runtime.final_render_validation_pending = true;
+                    runtime.final_main_world_validation_pending = true;
                     enter_phase(&mut runtime, Phase::PreparingStop);
                 }
                 Ok(())
@@ -892,7 +928,7 @@ fn observe_controller(
                     runtime.stop_stable_ticks = 0;
                 }
                 if runtime.stop_stable_ticks >= STOP_STABLE_TICKS {
-                    if !runtime.final_render_validation_completed {
+                    if !runtime.final_main_world_validation_completed {
                         return Ok(());
                     }
                     runtime.stopped_position = Some(snapshot.player_position);
@@ -932,9 +968,9 @@ fn observe_controller(
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_arguments,
-    reason = "Bevy system parameters are owned handles and every rendered frame keeps invariants explicit"
+    reason = "Bevy system parameters are owned handles and every main-world update keeps invariants explicit"
 )]
-fn observe_render_window(
+fn observe_main_world_window(
     virtual_time: Res<Time<Virtual>>,
     pipeline: Res<PipelineWarmupObservation>,
     scene: GovernedScene,
@@ -943,14 +979,14 @@ fn observe_render_window(
     mut runtime: ResMut<Runtime>,
     mut exit: MessageWriter<AppExit>,
 ) {
-    if !runtime.render_measurement_active {
+    if !runtime.main_world_measurement_active {
         return;
     }
     if let Err(error) = observe_water_animation(&mut runtime, scene.water.animation_updates) {
         fail(&mut runtime, &mut exit, &error);
         return;
     }
-    let result = validate_render_invariants(
+    let result = validate_main_world_invariants(
         &runtime,
         &pipeline,
         &scene,
@@ -962,11 +998,11 @@ fn observe_render_window(
         fail(&mut runtime, &mut exit, &error);
         return;
     }
-    runtime.render_invariant_checks = runtime.render_invariant_checks.saturating_add(1);
-    if runtime.final_render_validation_pending {
-        runtime.final_render_validation_pending = false;
-        runtime.final_render_validation_completed = true;
-        runtime.render_measurement_active = false;
+    runtime.main_world_invariant_checks = runtime.main_world_invariant_checks.saturating_add(1);
+    if runtime.final_main_world_validation_pending {
+        runtime.final_main_world_validation_pending = false;
+        runtime.final_main_world_validation_completed = true;
+        runtime.main_world_measurement_active = false;
     }
 }
 
@@ -976,12 +1012,13 @@ fn observe_water_animation(runtime: &mut Runtime, current_updates: u64) -> Resul
         .ok_or("water animation baseline is absent")?;
     if current_updates <= previous_updates {
         return Err(format!(
-            "water animation did not advance on a rendered measurement frame: previous={previous_updates}, current={current_updates}"
+            "water animation did not advance on a measured main-world update: previous={previous_updates}, current={current_updates}"
         ));
     }
     runtime.last_water_animation_updates = Some(current_updates);
-    runtime.water_animation_advancement_frames =
-        runtime.water_animation_advancement_frames.saturating_add(1);
+    runtime.water_animation_advancement_updates = runtime
+        .water_animation_advancement_updates
+        .saturating_add(1);
     Ok(())
 }
 
@@ -1063,7 +1100,7 @@ fn validate_common(
     screenshots: &Query<Entity, With<Screenshot>>,
     virtual_time: &Time<Virtual>,
 ) -> Result<(), String> {
-    validate_render_invariants(runtime, pipeline, scene, windows, screenshots, virtual_time)?;
+    validate_main_world_invariants(runtime, pipeline, scene, windows, screenshots, virtual_time)?;
     let expected = runtime
         .initial_binding
         .ok_or("initial player binding is absent")?;
@@ -1108,7 +1145,7 @@ fn validate_common_for_measurement(
     )
 }
 
-fn validate_render_invariants(
+fn validate_main_world_invariants(
     runtime: &Runtime,
     pipeline: &PipelineWarmupObservation,
     scene: &GovernedScene,
@@ -1364,7 +1401,7 @@ fn require_exact_sequence(
 fn sample_movement(
     runtime: &mut Runtime,
     snapshot: &PlayerRuntimeSnapshot,
-    render_frame: u32,
+    main_world_frame: u32,
     forward: bool,
 ) -> Result<(), String> {
     if !snapshot.player_position.is_finite()
@@ -1407,15 +1444,17 @@ fn sample_movement(
     runtime.previous_sample_position = Some(snapshot.player_position);
     runtime.first_fixed_tick.get_or_insert(snapshot.fixed_tick);
     runtime.last_fixed_tick = Some(snapshot.fixed_tick);
-    let first_render_frame = *runtime.first_render_frame.get_or_insert(render_frame);
-    runtime.last_render_frame = Some(render_frame);
-    runtime.render_frames_spanned = render_frame
-        .saturating_sub(first_render_frame)
+    let first_main_world_frame = *runtime
+        .first_main_world_frame
+        .get_or_insert(main_world_frame);
+    runtime.last_main_world_frame = Some(main_world_frame);
+    runtime.main_world_frames_spanned = main_world_frame
+        .saturating_sub(first_main_world_frame)
         .saturating_add(1);
-    if runtime.last_sample_render_frame == Some(render_frame) {
+    if runtime.last_sample_main_world_frame == Some(main_world_frame) {
         runtime.catch_up_fixed_ticks = runtime.catch_up_fixed_ticks.saturating_add(1);
     }
-    runtime.last_sample_render_frame = Some(render_frame);
+    runtime.last_sample_main_world_frame = Some(main_world_frame);
     if forward {
         runtime.forward_ticks = runtime.forward_ticks.saturating_add(1);
         if runtime.forward_ticks > FORWARD_TICKS {
@@ -1695,10 +1734,11 @@ fn write_ledger(
             qualified_before_measurement: true,
             qualified_for_entire_measurement: true,
             structural_identity_stable: true,
-            final_render_boundary_validated: runtime.final_render_validation_completed,
-            water_animation_advanced_each_render_frame: runtime.water_animation_advancement_frames
-                == runtime.render_invariant_checks,
-            water_animation_advancement_frames: runtime.water_animation_advancement_frames,
+            final_main_world_boundary_validated: runtime.final_main_world_validation_completed,
+            water_animation_advanced_each_main_world_update: runtime
+                .water_animation_advancement_updates
+                == runtime.main_world_invariant_checks,
+            water_animation_advancement_updates: runtime.water_animation_advancement_updates,
             initial_observation: initial_scene,
             final_observation: scene.snapshot(),
         },
@@ -1742,14 +1782,14 @@ fn write_ledger(
                 .midpoint_fixed_tick
                 .ok_or("midpoint fixed tick is absent")?,
             last_fixed_tick: runtime.last_fixed_tick.ok_or("last fixed tick is absent")?,
-            first_render_frame: runtime
-                .first_render_frame
-                .ok_or("first render frame is absent")?,
-            last_render_frame: runtime
-                .last_render_frame
-                .ok_or("last render frame is absent")?,
-            render_frames_spanned: runtime.render_frames_spanned,
-            render_invariant_checks: runtime.render_invariant_checks,
+            first_main_world_frame: runtime
+                .first_main_world_frame
+                .ok_or("first main-world frame is absent")?,
+            last_main_world_frame: runtime
+                .last_main_world_frame
+                .ok_or("last main-world frame is absent")?,
+            main_world_frames_spanned: runtime.main_world_frames_spanned,
+            main_world_invariant_checks: runtime.main_world_invariant_checks,
             catch_up_fixed_ticks: runtime.catch_up_fixed_ticks,
             start_position_m: start.to_array(),
             forward_endpoint_m: forward.to_array(),
@@ -1853,20 +1893,20 @@ fn validate_final_movement(
             "movement wall duration {observed_wall_duration_seconds} s is outside the governed 30-second window"
         ));
     }
-    if runtime.render_frames_spanned == 0 || runtime.render_invariant_checks == 0 {
-        return Err("movement window observed no validated rendered frame".to_owned());
+    if runtime.main_world_frames_spanned == 0 || runtime.main_world_invariant_checks == 0 {
+        return Err("movement window observed no validated main-world update".to_owned());
     }
-    if runtime.water_animation_advancement_frames != runtime.render_invariant_checks {
+    if runtime.water_animation_advancement_updates != runtime.main_world_invariant_checks {
         return Err(format!(
-            "water animation advanced on {}/{} validated rendered frames",
-            runtime.water_animation_advancement_frames, runtime.render_invariant_checks
+            "water animation advanced on {}/{} validated main-world updates",
+            runtime.water_animation_advancement_updates, runtime.main_world_invariant_checks
         ));
     }
-    if runtime.render_measurement_active
-        || runtime.final_render_validation_pending
-        || !runtime.final_render_validation_completed
+    if runtime.main_world_measurement_active
+        || runtime.final_main_world_validation_pending
+        || !runtime.final_main_world_validation_completed
     {
-        return Err("the final rendered measurement boundary was not validated".to_owned());
+        return Err("the final main-world measurement boundary was not validated".to_owned());
     }
     Ok(())
 }
@@ -1883,6 +1923,20 @@ fn protocol() -> ProtocolEvidence {
         no_pause: true,
         screenshots_requested: false,
         presentmon_required: true,
+        instrumentation: instrumentation(),
+    }
+}
+
+const fn instrumentation() -> InstrumentationEvidence {
+    InstrumentationEvidence {
+        bevy_render_diagnostics_plugin_enabled: false,
+        bevy_render_diagnostics_resolve_encoder_enabled: false,
+        bevy_render_pass_cpu_timing_status: "not_observed",
+        bevy_render_pass_gpu_timing_status: "not_observed",
+        bevy_render_pipeline_statistics_status: "not_observed",
+        runtime_presented_frame_count_status: "not_observed",
+        application_update_timing_status: "observed_non_presentation",
+        display_timing_source: "external_presentmon_displayed_time",
     }
 }
 
@@ -2074,6 +2128,59 @@ mod tests {
         assert!(protocol.no_pause);
         assert!(!protocol.screenshots_requested);
         assert!(protocol.presentmon_required);
+        assert!(
+            !protocol
+                .instrumentation
+                .bevy_render_diagnostics_plugin_enabled
+        );
+        assert!(
+            !protocol
+                .instrumentation
+                .bevy_render_diagnostics_resolve_encoder_enabled
+        );
+        assert_eq!(
+            protocol.instrumentation.application_update_timing_status,
+            "observed_non_presentation"
+        );
+        assert_eq!(
+            protocol.instrumentation.display_timing_source,
+            "external_presentmon_displayed_time"
+        );
+        let serialized = serde_json::to_value(protocol.instrumentation).unwrap();
+        for field in [
+            "bevy_render_pass_cpu_timing_status",
+            "bevy_render_pass_gpu_timing_status",
+            "bevy_render_pipeline_statistics_status",
+            "runtime_presented_frame_count_status",
+        ] {
+            assert_eq!(serialized[field], "not_observed");
+        }
+    }
+
+    #[test]
+    fn external_presentation_composition_rejects_render_diagnostics() {
+        let mut accepted = App::new();
+        accepted.insert_resource(RuntimeAutomation {
+            render_diagnostics_policy:
+                RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification,
+            ..default()
+        });
+        assert!(validate_external_presentation_instrumentation(&accepted).is_ok());
+
+        accepted.add_plugins(RenderDiagnosticsPlugin);
+        assert!(
+            validate_external_presentation_instrumentation(&accepted)
+                .unwrap_err()
+                .contains("must be absent")
+        );
+
+        let mut wrong_policy = App::new();
+        wrong_policy.insert_resource(RuntimeAutomation::default());
+        assert!(
+            validate_external_presentation_instrumentation(&wrong_policy)
+                .unwrap_err()
+                .contains("not disabled")
+        );
     }
 
     #[test]
@@ -2095,7 +2202,7 @@ mod tests {
     }
 
     #[test]
-    fn movement_tracks_render_span_separately_from_fixed_tick_catch_up() {
+    fn movement_tracks_main_world_span_separately_from_fixed_tick_catch_up() {
         let mut runtime = test_runtime();
         let mut snapshot = PlayerRuntimeSnapshot {
             fixed_tick: 100,
@@ -2110,9 +2217,9 @@ mod tests {
         snapshot.fixed_tick += 1;
         sample_movement(&mut runtime, &snapshot, 13, true).unwrap();
 
-        assert_eq!(runtime.first_render_frame, Some(10));
-        assert_eq!(runtime.last_render_frame, Some(13));
-        assert_eq!(runtime.render_frames_spanned, 4);
+        assert_eq!(runtime.first_main_world_frame, Some(10));
+        assert_eq!(runtime.last_main_world_frame, Some(13));
+        assert_eq!(runtime.main_world_frames_spanned, 4);
         assert_eq!(runtime.catch_up_fixed_ticks, 1);
     }
 
@@ -2151,12 +2258,12 @@ mod tests {
     }
 
     #[test]
-    fn rendered_measurement_requires_water_animation_to_advance() {
+    fn measured_main_world_update_requires_water_animation_to_advance() {
         let mut runtime = test_runtime();
         runtime.last_water_animation_updates = Some(10);
 
         observe_water_animation(&mut runtime, 11).unwrap();
-        assert_eq!(runtime.water_animation_advancement_frames, 1);
+        assert_eq!(runtime.water_animation_advancement_updates, 1);
         assert!(observe_water_animation(&mut runtime, 11).is_err());
         assert!(observe_water_animation(&mut runtime, 9).is_err());
     }
@@ -2169,10 +2276,10 @@ mod tests {
         runtime.grounded_ticks = TOTAL_MOVEMENT_TICKS;
         runtime.collision_ticks = 1;
         runtime.max_horizontal_step_m = 0.08;
-        runtime.render_frames_spanned = 1;
-        runtime.render_invariant_checks = 1;
-        runtime.water_animation_advancement_frames = 1;
-        runtime.final_render_validation_completed = true;
+        runtime.main_world_frames_spanned = 1;
+        runtime.main_world_invariant_checks = 1;
+        runtime.water_animation_advancement_updates = 1;
+        runtime.final_main_world_validation_completed = true;
 
         let start = Vec3::new(16.0, -24.30, 8.0);
         let forward = Vec3::new(17.34, -10.18, -61.51);

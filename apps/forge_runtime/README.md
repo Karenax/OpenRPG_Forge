@@ -97,6 +97,16 @@ the host script rebuilds the Release binary itself with `--locked`, embeds that 
 state, and launches the resulting executable. The mode does not request any screenshot and never
 pauses virtual time.
 
+This qualifying mode keeps the exact fixed High preset and all scene/render plugins, but
+automatically disables Bevy's `RenderDiagnosticsPlugin`. In Bevy 0.19 that plugin adds timestamp and
+pipeline-statistics collection plus a diagnostics resolve command encoder to every frame; retaining
+it would measure an instrumented workload instead of the qualifying High path without internal render
+diagnostics.
+`GpuPerformancePlugin`, pipeline-cache readiness, allocator observation, GPU adapter identity and the
+CPU-only `FrameTimeDiagnosticsPlugin` remain active. The overlay labels that CPU timing as an
+application-loop update rate, never as displayed FPS, and explicitly reports render-pass CPU/GPU
+timings and pipeline statistics as `not_observed` during this acquisition.
+
 The host passes the exact clean worktree as `BEVY_ASSET_ROOT`; Bevy therefore reads the governed
 `assets/` tree in place. The script rejects an `assets/` copy beside the external Release binary,
 and both runtime ledgers must report `cadle_assets_used=false`. This acquisition does not qualify a
@@ -137,6 +147,11 @@ watchdog, and writes `gate1-gameplay-stutter.json`.
 
 The runtime ledger deliberately leaves display qualification false: it can prove the uninterrupted
 controller, Rapier, camera, scene and pipeline window, but it cannot verify the external ETW trace.
+Its `main_world_*` counters describe Bevy application updates only; they are not render submissions or
+presented-frame counts. The ready and final ledgers explicitly record that Bevy render-pass timings,
+pipeline statistics and runtime presented-frame counts are `not_observed`, that the additional Bevy
+diagnostics resolve encoder is disabled, and that display timing belongs to external PresentMon
+`DisplayedTime`.
 `scripts/Test-Gate1GameplayStutter.ps1` owns that host boundary. It accepts only the pinned,
 Authenticode-valid PresentMon 2.4.1 console binary, observes a complete target-PID row before
 publishing the QPC-bound start signal, captures v2 display rows and ETW-loss counters, then computes
@@ -150,9 +165,10 @@ interleaved or malformed record. Once the runtime exits, the host stops the exac
 with a bounded `--terminate_existing_session` helper, retains a separate fallback-stop log on cleanup
 failures, and requires the control and capture processes to exit cleanly. The runtime GPU
 backend remains Vulkan; PresentMon separately reports the Windows presentation operation and this
-route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 2 for
-this stdout-stream transport. `FrameTime` is retained as a diagnostic but is never substituted for a
-missing displayed frame. Within an otherwise valid envelope that retains at least 120 numeric
+route requires the observed `PresentRuntime` to remain `DXGI`. The host validation uses schema 3 for
+this stdout-stream transport and explicit uninstrumented-runtime contract. Bevy `FrameTime` is
+retained as an application-loop diagnostic but is never substituted for a missing displayed frame.
+Within an otherwise valid envelope that retains at least 120 numeric
 displayed rows and the required boundary coverage, structurally valid
 `DisplayLatency=NA`/`DisplayedTime=NA` pairs are counted as unresolved displays; any inside the
 bounded measurement makes its thresholds fail, and the host writes the failure validation before

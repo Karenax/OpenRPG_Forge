@@ -16,6 +16,14 @@ evidence separate:
   primitives and shader invocations on supported Vulkan/DX12 adapters;
 - GPU draw calls, explicitly reported as unavailable.
 
+The governed `--gate1-gameplay-stutter` route is the deliberate exception: it keeps the same High
+scene and `GpuPerformancePlugin`, but selects
+`RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification`. Bevy's
+`RenderDiagnosticsPlugin` is omitted so its per-frame diagnostics resolve encoder cannot bias the
+external PresentMon measurement. The overlay and proof ledgers report render-pass CPU/GPU timing,
+pipeline statistics and runtime presented-frame counts as `not_observed`; Bevy application-update
+timing remains visible but is never relabeled as presentation timing.
+
 The v8 ledger additionally records:
 
 - optional current-device wgpu allocator suballocations and Bevy mesh-slab capacity, neither of

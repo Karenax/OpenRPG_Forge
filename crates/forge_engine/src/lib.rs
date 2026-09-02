@@ -121,6 +121,24 @@ pub struct ProofSelection(pub Option<EntityId>);
 #[derive(Clone, Debug, Resource)]
 pub struct ProofScene(pub SceneProofDocument);
 
+/// Controls whether Bevy's render-pass diagnostics are part of the runtime workload.
+///
+/// External presentation qualification deliberately disables the plugin because Bevy 0.19 adds a
+/// per-frame diagnostics resolve encoder. The pipeline warm-up and allocator observations remain
+/// active through `GpuPerformancePlugin`.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub enum RenderDiagnosticsPolicy {
+    #[default]
+    Enabled,
+    DisabledForExternalPresentationQualification,
+}
+
+impl RenderDiagnosticsPolicy {
+    const fn is_enabled(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+}
+
 #[derive(Clone, Debug, Default, Resource)]
 pub struct RuntimeAutomation {
     pub capture_path: Option<PathBuf>,
@@ -130,6 +148,7 @@ pub struct RuntimeAutomation {
     pub exit_after_frames: Option<u32>,
     pub resize_request: Option<WindowResizeRequest>,
     pub close_at_frame: Option<u32>,
+    pub render_diagnostics_policy: RenderDiagnosticsPolicy,
 }
 
 /// Deterministic native-window resize used only by the proof harness.
@@ -448,7 +467,6 @@ impl Plugin for RuntimeEvidencePlugin {
             .add_plugins((
                 FrameTimeDiagnosticsPlugin::default(),
                 EntityCountDiagnosticsPlugin::default(),
-                RenderDiagnosticsPlugin,
                 GpuPerformancePlugin,
             ))
             .add_systems(
@@ -474,6 +492,10 @@ impl Plugin for RuntimeEvidencePlugin {
                     .after(quality::VisualValleyQualitySet::Apply)
                     .after(scenery::VisualValleyScenerySet::ApplyQuality),
             );
+
+        if self.automation.render_diagnostics_policy.is_enabled() {
+            app.add_plugins(RenderDiagnosticsPlugin);
+        }
     }
 }
 
@@ -973,6 +995,7 @@ struct RuntimePerformanceEvidence<'w> {
 fn update_overlay(
     diagnostics: Res<DiagnosticsStore>,
     stats: Res<ProofSceneStats>,
+    automation: Res<RuntimeAutomation>,
     gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
@@ -1033,14 +1056,24 @@ fn update_overlay(
         format_runtime_diagnostics_overlay(
             "OpenRPG Forge | Gate 1 / Visual Valley",
             adapter,
-            fps,
-            frame_ms,
+            RuntimeOverlayTiming {
+                rate_hz: fps,
+                delta_ms: frame_ms,
+            },
+            automation.render_diagnostics_policy,
             &stats,
             &render_work,
             Some(&logical_details),
         )
     } else {
-        format_diagnostics_overlay(adapter, fps, frame_ms, &stats, &render_work)
+        format_diagnostics_overlay(
+            adapter,
+            fps,
+            frame_ms,
+            automation.render_diagnostics_policy,
+            &stats,
+            &render_work,
+        )
     });
 }
 
@@ -1048,49 +1081,84 @@ fn format_diagnostics_overlay(
     adapter: &str,
     fps: f64,
     frame_ms: f64,
+    render_diagnostics_policy: RenderDiagnosticsPolicy,
     stats: &ProofSceneStats,
     render_work: &RenderWorkReport,
 ) -> String {
     format_runtime_diagnostics_overlay(
         "OpenRPG Forge | Gate 0",
         adapter,
-        fps,
-        frame_ms,
+        RuntimeOverlayTiming {
+            rate_hz: fps,
+            delta_ms: frame_ms,
+        },
+        render_diagnostics_policy,
         stats,
         render_work,
         None,
     )
 }
 
+#[derive(Clone, Copy, Debug)]
+struct RuntimeOverlayTiming {
+    rate_hz: f64,
+    delta_ms: f64,
+}
+
 fn format_runtime_diagnostics_overlay(
     title: &str,
     adapter: &str,
-    fps: f64,
-    frame_ms: f64,
+    timing: RuntimeOverlayTiming,
+    render_diagnostics_policy: RenderDiagnosticsPolicy,
     stats: &ProofSceneStats,
     render_work: &RenderWorkReport,
     logical_details: Option<&str>,
 ) -> String {
-    let gpu_work = match (
-        render_work.gpu_main_opaque_primitives,
-        render_work.gpu_main_opaque_vertex_shader_invocations,
-    ) {
-        (Some(primitives), Some(vertices)) => {
-            format!("GPU opaque: {primitives:.0} primitives | {vertices:.0} vertex invocations")
+    let diagnostics_disabled = matches!(
+        render_diagnostics_policy,
+        RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
+    );
+    let gpu_work = if diagnostics_disabled {
+        "GPU pipeline statistics: not observed (disabled for external PresentMon qualification)"
+            .to_owned()
+    } else {
+        match (
+            render_work.gpu_main_opaque_primitives,
+            render_work.gpu_main_opaque_vertex_shader_invocations,
+        ) {
+            (Some(primitives), Some(vertices)) => {
+                format!("GPU opaque: {primitives:.0} primitives | {vertices:.0} vertex invocations")
+            }
+            (Some(primitives), None) => format!("GPU opaque: {primitives:.0} primitives"),
+            _ => "GPU pipeline statistics: unavailable".to_owned(),
         }
-        (Some(primitives), None) => format!("GPU opaque: {primitives:.0} primitives"),
-        _ => "GPU pipeline statistics: unavailable".to_owned(),
     };
-    let cpu_opaque_timing = render_work.main_opaque_cpu_elapsed_ms.map_or_else(
-        || "unavailable".to_owned(),
-        |elapsed_ms| format!("{elapsed_ms:.3} ms"),
-    );
-    let gpu_opaque_timing = render_work.main_opaque_gpu_elapsed_ms.map_or_else(
-        || "unavailable".to_owned(),
-        |elapsed_ms| format!("{elapsed_ms:.3} ms"),
-    );
+    let opaque_timing = if diagnostics_disabled {
+        "Opaque pass: not observed (disabled for external PresentMon qualification)".to_owned()
+    } else {
+        let cpu = render_work.main_opaque_cpu_elapsed_ms.map_or_else(
+            || "unavailable".to_owned(),
+            |elapsed_ms| format!("{elapsed_ms:.3} ms"),
+        );
+        let gpu = render_work.main_opaque_gpu_elapsed_ms.map_or_else(
+            || "unavailable".to_owned(),
+            |elapsed_ms| format!("{elapsed_ms:.3} ms"),
+        );
+        format!("Opaque pass: CPU {cpu} | GPU {gpu}")
+    };
+    let loop_timing = if diagnostics_disabled {
+        format!(
+            "App loop {:6.1} updates/s | delta {:5.2} ms (not presentation timing)",
+            timing.rate_hz, timing.delta_ms
+        )
+    } else {
+        format!(
+            "{:6.1} FPS | frame {:5.2} ms",
+            timing.rate_hz, timing.delta_ms
+        )
+    };
     let mut output = format!(
-        "{title}\n{adapter}\n{fps:6.1} FPS | frame {frame_ms:5.2} ms\nOpaque pass: CPU {cpu_opaque_timing} | GPU {gpu_opaque_timing}\n{} source entities | {} source meshes\nGPU draw calls: unavailable\n{gpu_work}\n{}",
+        "{title}\n{adapter}\n{loop_timing}\n{opaque_timing}\n{} source entities | {} source meshes\nGPU draw calls: unavailable\n{gpu_work}\n{}",
         stats.source_entities, stats.source_mesh_instances, stats.source_hash
     );
     if let Some(logical_details) = logical_details {
@@ -2952,7 +3020,14 @@ mod tests {
         );
         let render_work = build_render_work_report(&stats, &diagnostics);
 
-        let text = format_diagnostics_overlay("test adapter", 120.0, 8.3, &stats, &render_work);
+        let text = format_diagnostics_overlay(
+            "test adapter",
+            120.0,
+            8.3,
+            RenderDiagnosticsPolicy::Enabled,
+            &stats,
+            &render_work,
+        );
         assert!(text.contains("2 source meshes"));
         assert!(text.contains("Opaque pass: CPU 0.010 ms | GPU 0.720 ms"));
         assert!(text.contains("GPU draw calls: unavailable"));
@@ -2977,8 +3052,11 @@ mod tests {
         let gate1_text = format_runtime_diagnostics_overlay(
             "OpenRPG Forge | Gate 1 / Visual Valley",
             "GPU Etincelle é",
-            120.0,
-            8.3,
+            RuntimeOverlayTiming {
+                rate_hz: 120.0,
+                delta_ms: 8.3,
+            },
+            RenderDiagnosticsPolicy::Enabled,
             &stats,
             &render_work,
             Some(&logical_details),
@@ -3000,11 +3078,60 @@ mod tests {
         assert!(serialized.get("main_opaque_gpu_elapsed_ms").is_none());
 
         let unavailable = build_render_work_report(&stats, &DiagnosticsStore::default());
-        let unavailable_text =
-            format_diagnostics_overlay("test adapter", 0.0, 0.0, &stats, &unavailable);
+        let unavailable_text = format_diagnostics_overlay(
+            "test adapter",
+            0.0,
+            0.0,
+            RenderDiagnosticsPolicy::Enabled,
+            &stats,
+            &unavailable,
+        );
         assert!(unavailable_text.contains("Opaque pass: CPU unavailable | GPU unavailable"));
         assert_eq!(unavailable.main_opaque_cpu_elapsed_ms, None);
         assert_eq!(unavailable.main_opaque_gpu_elapsed_ms, None);
+    }
+
+    #[test]
+    fn external_presentation_overlay_never_claims_internal_render_timing() {
+        let stats = ProofSceneStats::default();
+        let render_work = build_render_work_report(&stats, &DiagnosticsStore::default());
+        let text = format_diagnostics_overlay(
+            "test adapter",
+            120.0,
+            8.3,
+            RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification,
+            &stats,
+            &render_work,
+        );
+
+        assert!(text.contains("App loop"));
+        assert!(text.contains("not presentation timing"));
+        assert!(text.contains(
+            "Opaque pass: not observed (disabled for external PresentMon qualification)"
+        ));
+        assert!(text.contains(
+            "GPU pipeline statistics: not observed (disabled for external PresentMon qualification)"
+        ));
+    }
+
+    #[test]
+    fn runtime_evidence_omits_only_render_diagnostics_for_external_qualification() {
+        let mut ordinary = App::new();
+        ordinary.add_plugins(RuntimeEvidencePlugin::new(RuntimeAutomation::default()));
+        assert!(ordinary.is_plugin_added::<RenderDiagnosticsPlugin>());
+        assert!(ordinary.is_plugin_added::<GpuPerformancePlugin>());
+        assert!(ordinary.is_plugin_added::<FrameTimeDiagnosticsPlugin>());
+
+        let mut external = App::new();
+        external.add_plugins(RuntimeEvidencePlugin::new(RuntimeAutomation {
+            render_diagnostics_policy:
+                RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification,
+            ..default()
+        }));
+        assert!(!external.is_plugin_added::<RenderDiagnosticsPlugin>());
+        assert!(external.is_plugin_added::<GpuPerformancePlugin>());
+        assert!(external.is_plugin_added::<FrameTimeDiagnosticsPlugin>());
+        assert!(external.is_plugin_added::<EntityCountDiagnosticsPlugin>());
     }
 
     fn add_test_diagnostic(store: &mut DiagnosticsStore, path: &'static str, value: f64) {
