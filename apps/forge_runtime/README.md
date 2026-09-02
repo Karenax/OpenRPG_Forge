@@ -34,6 +34,60 @@ dimensions, frame numbers, booleans and exit codes remain typed JSON values. `RU
 filter. `--log-probe` emits a bounded machine-parseable event and exits successfully without opening
 a GPU window.
 
+## Nonqualifying render profile
+
+The opt-in `render-profile` Cargo feature exists only to localize CPU-side Bevy and render-scheduling
+cost. It enables
+Bevy 0.19's `trace_chrome` feature, leaves Bevy's `LogPlugin` enabled and deliberately skips Forge's
+structured JSON tracing initialization so that Bevy can own the process-wide subscriber. The
+executable prints a `NONQUALIFYING` warning before argument processing. Normal builds do not enable
+this feature, keep Forge structured JSON tracing and continue to disable Bevy's `LogPlugin`.
+Conversely, `--all-features` enables `render-profile` and therefore cannot produce a qualifying
+runtime executable. Profiled builds refuse `--log-probe`, `--gate1-visual-proof` and
+`--gate1-gameplay-stutter` before any proof path is prepared; use a diagnostic Visual Valley route.
+
+Build and run the diagnostic explicitly, with `FORGE_GATE1_EXTERNAL_ROOT` resolving to an existing
+directory outside every Git worktree:
+
+```powershell
+$externalRoot = (Resolve-Path -LiteralPath $env:FORGE_GATE1_EXTERNAL_ROOT).Path
+$profileRoot = [IO.Path]::GetFullPath((Join-Path $externalRoot 'render-profile'))
+$worktreeLines = @(git worktree list --porcelain)
+if ($LASTEXITCODE -ne 0) { throw 'cannot enumerate Git worktrees' }
+$worktreeRoots = @($worktreeLines | ForEach-Object {
+    if ($_ -like 'worktree *') { [IO.Path]::GetFullPath($_.Substring(9)) }
+})
+foreach ($worktreeRoot in $worktreeRoots) {
+    $prefix = $worktreeRoot.TrimEnd([char[]]@('\', '/')) + [IO.Path]::DirectorySeparatorChar
+    if ($profileRoot.Equals($worktreeRoot, [StringComparison]::OrdinalIgnoreCase) -or
+        $profileRoot.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "render-profile root is inside Git worktree $worktreeRoot"
+    }
+}
+New-Item -ItemType Directory -Force -Path $profileRoot | Out-Null
+$previousCargoTarget = Get-Item Env:CARGO_TARGET_DIR -ErrorAction SilentlyContinue
+$previousTraceChrome = Get-Item Env:TRACE_CHROME -ErrorAction SilentlyContinue
+$previousRustLog = Get-Item Env:RUST_LOG -ErrorAction SilentlyContinue
+try {
+    $env:CARGO_TARGET_DIR = Join-Path $profileRoot 'cargo-target'
+    $env:TRACE_CHROME = Join-Path $profileRoot 'trace.json'
+    $env:RUST_LOG = 'trace'
+    cargo build --release -p forge_runtime --features render-profile --locked -j1
+    if ($LASTEXITCODE -ne 0) { throw 'render-profile build failed' }
+    & (Join-Path $env:CARGO_TARGET_DIR 'release\forge_runtime.exe') `
+        --visual-valley --quality high --no-vsync --player-camera-probe
+    if ($LASTEXITCODE -ne 0) { throw 'render-profile diagnostic failed' }
+} finally {
+    if ($null -eq $previousCargoTarget) { Remove-Item Env:CARGO_TARGET_DIR -ErrorAction SilentlyContinue } else { $env:CARGO_TARGET_DIR = $previousCargoTarget.Value }
+    if ($null -eq $previousTraceChrome) { Remove-Item Env:TRACE_CHROME -ErrorAction SilentlyContinue } else { $env:TRACE_CHROME = $previousTraceChrome.Value }
+    if ($null -eq $previousRustLog) { Remove-Item Env:RUST_LOG -ErrorAction SilentlyContinue } else { $env:RUST_LOG = $previousRustLog.Value }
+}
+```
+
+This feature changes logging and adds tracing instrumentation. Its executable, logs and trace are
+diagnostic evidence only: they must never be used to qualify a Gate 1 performance route or replace
+the normal clean-commit Release binary.
+
 ## Gate 1 visual-proof acquisition
 
 `--gate1-visual-proof <output-dir>` is a strict, self-bounded Visual Valley mode. It requires

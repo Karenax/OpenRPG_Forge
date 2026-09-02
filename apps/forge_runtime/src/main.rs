@@ -5,9 +5,10 @@ mod gate1_visual_proof;
 mod player_camera_probe;
 mod terrain_partial_update_probe;
 
+#[cfg(not(feature = "render-profile"))]
+use bevy::log::{DEFAULT_FILTER, LogPlugin};
 use bevy::{
     app::AppExit,
-    log::{DEFAULT_FILTER, LogPlugin},
     prelude::*,
     render::{
         RenderPlugin,
@@ -40,6 +41,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use terrain_partial_update_probe::TerrainPartialUpdateProbePlugin;
+#[cfg(not(feature = "render-profile"))]
 use tracing_subscriber::EnvFilter;
 
 #[allow(
@@ -47,6 +49,12 @@ use tracing_subscriber::EnvFilter;
     reason = "the executable entry point keeps CLI, logging and Bevy startup order explicit"
 )]
 fn main() -> AppExit {
+    #[cfg(feature = "render-profile")]
+    eprintln!(
+        "forge_runtime: NONQUALIFYING render-profile build; Bevy trace_chrome logging is active"
+    );
+
+    #[cfg(not(feature = "render-profile"))]
     if let Err(message) = initialize_structured_tracing() {
         eprintln!("forge_runtime: cannot initialize structured tracing: {message}");
         return AppExit::from_code(2);
@@ -56,6 +64,12 @@ fn main() -> AppExit {
         Ok(options) => options,
         Err(message) => return startup_error("arguments", &message),
     };
+
+    #[cfg(feature = "render-profile")]
+    if let Some(message) = options.render_profile_route_error() {
+        eprintln!("forge_runtime: {message}");
+        return AppExit::from_code(2);
+    }
 
     if options.log_probe {
         return run_structured_log_probe();
@@ -112,25 +126,25 @@ fn main() -> AppExit {
         "native runtime starting"
     );
 
+    let default_plugins = DefaultPlugins
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                title: window_title.to_owned(),
+                resolution: WindowResolution::new(1920, 1080).with_scale_factor_override(1.0),
+                present_mode,
+                resizable: true,
+                ..default()
+            }),
+            primary_cursor_options: Some(primary_cursor_options),
+            ..default()
+        })
+        .set(render_plugin);
+    #[cfg(not(feature = "render-profile"))]
+    let default_plugins = default_plugins.disable::<LogPlugin>();
+
     let mut app = App::new();
     app.insert_resource(ClearColor(Color::srgb(0.015, 0.025, 0.055)))
-        .add_plugins(
-            DefaultPlugins
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        title: window_title.to_owned(),
-                        resolution: WindowResolution::new(1920, 1080)
-                            .with_scale_factor_override(1.0),
-                        present_mode,
-                        resizable: true,
-                        ..default()
-                    }),
-                    primary_cursor_options: Some(primary_cursor_options),
-                    ..default()
-                })
-                .set(render_plugin)
-                .disable::<LogPlugin>(),
-        );
+        .add_plugins(default_plugins);
 
     add_runtime_plugin(
         &mut app,
@@ -768,6 +782,22 @@ impl Options {
         Ok(())
     }
 
+    #[cfg(feature = "render-profile")]
+    fn render_profile_route_error(&self) -> Option<&'static str> {
+        if self.log_probe {
+            return Some(
+                "NONQUALIFYING render-profile builds refuse --log-probe because Forge structured JSON tracing is disabled",
+            );
+        }
+        if self.gate1_gameplay_stutter_output.is_some() || self.gate1_visual_proof_output.is_some()
+        {
+            return Some(
+                "NONQUALIFYING render-profile builds refuse Gate 1 qualification routes; use a diagnostic --visual-valley route instead",
+            );
+        }
+        None
+    }
+
     fn validate_gate1_gameplay_stutter(&self) -> Result<(), String> {
         let Some(output_dir) = self.gate1_gameplay_stutter_output.as_deref() else {
             return Ok(());
@@ -1177,6 +1207,7 @@ fn prepare_gate1_visual_proof_directory(output_dir: &Path) -> Result<(), String>
     Ok(())
 }
 
+#[cfg(not(feature = "render-profile"))]
 fn initialize_structured_tracing() -> Result<(), String> {
     let fallback = format!("info,{DEFAULT_FILTER},forge=info");
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(fallback));
@@ -1196,6 +1227,8 @@ fn initialize_structured_tracing() -> Result<(), String> {
 }
 
 fn startup_error(phase: &str, message: &str) -> AppExit {
+    #[cfg(feature = "render-profile")]
+    eprintln!("forge_runtime: startup failed during {phase}: {message}");
     tracing::error!(
         target: "forge::runtime",
         schema = "forge.runtime-event",
@@ -1311,6 +1344,36 @@ const fn weather_state_label(state: WeatherState) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "render-profile")]
+    #[test]
+    fn render_profile_refuses_qualification_and_structured_log_routes() {
+        let mut options = Options::default();
+        assert_eq!(options.render_profile_route_error(), None);
+
+        options.log_probe = true;
+        assert!(
+            options
+                .render_profile_route_error()
+                .is_some_and(|message| message.contains("--log-probe"))
+        );
+
+        options.log_probe = false;
+        options.gate1_gameplay_stutter_output = Some(PathBuf::from("gameplay-stutter"));
+        assert!(
+            options
+                .render_profile_route_error()
+                .is_some_and(|message| message.contains("Gate 1 qualification routes"))
+        );
+
+        options.gate1_gameplay_stutter_output = None;
+        options.gate1_visual_proof_output = Some(PathBuf::from("visual-proof"));
+        assert!(
+            options
+                .render_profile_route_error()
+                .is_some_and(|message| message.contains("Gate 1 qualification routes"))
+        );
+    }
 
     #[test]
     fn options_reject_exit_before_capture_has_time_to_finish() {

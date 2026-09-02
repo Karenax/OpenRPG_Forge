@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![cfg(not(feature = "render-profile"))]
 
 use serde_json::Value;
 use std::process::Command;
