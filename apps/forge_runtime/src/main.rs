@@ -1,6 +1,7 @@
 #![deny(unsafe_code)]
 
 mod gate1_gameplay_stutter;
+mod gate1_renderdoc_capture;
 mod gate1_visual_proof;
 mod player_camera_probe;
 #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
@@ -37,6 +38,9 @@ use forge_world::{
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
 use gate1_gameplay_stutter::{Gate1GameplayStutterPlugin, Gate1PresentationRoute};
+use gate1_renderdoc_capture::{
+    Gate1RenderDocCapturePlugin, validate_nonce as validate_gate1_renderdoc_nonce,
+};
 use gate1_visual_proof::Gate1VisualProofPlugin;
 use player_camera_probe::PlayerCameraProbePlugin;
 #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
@@ -188,6 +192,7 @@ fn main() -> AppExit {
         player_camera = options.player_camera.is_interactive(),
         player_camera_probe = options.player_camera.is_probe(),
         gate1_gameplay_stutter = options.gate1_gameplay_stutter_output.is_some(),
+        gate1_renderdoc_capture = options.gate1_renderdoc_output.is_some(),
         gate1_presentation_route = options.gate1_presentation_route.presentation_route(),
         render_diagnostics_enabled = automation.render_diagnostics_policy
             == RenderDiagnosticsPolicy::Enabled,
@@ -243,6 +248,8 @@ fn main() -> AppExit {
             player_camera: options.player_camera,
             gate1_gameplay_stutter_output: options.gate1_gameplay_stutter_output.clone(),
             gate1_presentation_route: options.gate1_presentation_route,
+            gate1_renderdoc_output: options.gate1_renderdoc_output.clone(),
+            gate1_renderdoc_nonce: options.gate1_renderdoc_nonce.clone(),
             gate1_visual_proof_output: options.gate1_visual_proof_output.clone(),
             weather_state: options.weather_state,
             quality_selection: options.quality_selection,
@@ -294,6 +301,8 @@ struct RuntimePluginConfiguration {
     player_camera: PlayerCameraRuntimeMode,
     gate1_gameplay_stutter_output: Option<PathBuf>,
     gate1_presentation_route: Gate1PresentationRoute,
+    gate1_renderdoc_output: Option<PathBuf>,
+    gate1_renderdoc_nonce: Option<String>,
     gate1_visual_proof_output: Option<PathBuf>,
     weather_state: Option<WeatherState>,
     quality_selection: Option<VisualValleyQualitySelection>,
@@ -316,6 +325,8 @@ fn add_runtime_plugin(
         player_camera,
         gate1_gameplay_stutter_output,
         gate1_presentation_route,
+        gate1_renderdoc_output,
+        gate1_renderdoc_nonce,
         gate1_visual_proof_output,
         weather_state,
         quality_selection,
@@ -387,6 +398,47 @@ fn add_runtime_plugin(
                         panic!("cannot prepare Gate 1 visual proof harness: {error}")
                     })
             });
+            let renderdoc_capture_plugin =
+                gate1_renderdoc_output
+                    .zip(gate1_renderdoc_nonce)
+                    .map(|(output_dir, nonce)| {
+                        let vegetation = vegetation.as_deref().unwrap_or_else(|| {
+                            panic!(
+                                "Gate 1 RenderDoc capture requires the embedded vegetation document"
+                            )
+                        });
+                        let environment = environment.as_deref().unwrap_or_else(|| {
+                            panic!(
+                                "Gate 1 RenderDoc capture requires the embedded environment profile"
+                            )
+                        });
+                        let water = water.as_deref().unwrap_or_else(|| {
+                            panic!("Gate 1 RenderDoc capture requires the embedded water document")
+                        });
+                        let weather = weather.as_deref().unwrap_or_else(|| {
+                            panic!("Gate 1 RenderDoc capture requires the embedded weather profile")
+                        });
+                        let quality = quality.as_deref().unwrap_or_else(|| {
+                            panic!("Gate 1 RenderDoc capture requires the embedded quality profile")
+                        });
+                        let expected_weather = weather_state.unwrap_or_else(|| {
+                            panic!("Gate 1 RenderDoc capture requires an explicit weather state")
+                        });
+                        Gate1RenderDocCapturePlugin::new(
+                            output_dir,
+                            nonce,
+                            expected_weather,
+                            &document,
+                            vegetation,
+                            environment,
+                            water,
+                            weather,
+                            quality,
+                        )
+                        .unwrap_or_else(|error| {
+                            panic!("cannot prepare Gate 1 RenderDoc capture harness: {error}")
+                        })
+                    });
 
             let scenery_plugin = vegetation.as_deref().map(|vegetation| {
                 VisualValleySceneryPlugin::new(document.clone(), vegetation.clone())
@@ -481,6 +533,9 @@ fn add_runtime_plugin(
             }
             if let Some(visual_proof_plugin) = visual_proof_plugin {
                 app.add_plugins(visual_proof_plugin);
+            }
+            if let Some(renderdoc_capture_plugin) = renderdoc_capture_plugin {
+                app.add_plugins(renderdoc_capture_plugin);
             }
         }
     }
@@ -684,6 +739,8 @@ struct Options {
     player_camera: PlayerCameraRuntimeMode,
     gate1_gameplay_stutter_output: Option<PathBuf>,
     gate1_presentation_route: Gate1PresentationRoute,
+    gate1_renderdoc_output: Option<PathBuf>,
+    gate1_renderdoc_nonce: Option<String>,
     gate1_visual_proof_output: Option<PathBuf>,
     #[cfg(feature = "render-profile")]
     render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic,
@@ -715,6 +772,8 @@ impl Default for Options {
             player_camera: PlayerCameraRuntimeMode::Disabled,
             gate1_gameplay_stutter_output: None,
             gate1_presentation_route: Gate1PresentationRoute::AutoNoVsync,
+            gate1_renderdoc_output: None,
+            gate1_renderdoc_nonce: None,
             gate1_visual_proof_output: None,
             #[cfg(feature = "render-profile")]
             render_profile_gate1_diagnostic: RenderProfileGate1Diagnostic::Disabled,
@@ -774,6 +833,22 @@ impl Options {
                         return Err("--gate1-fifo-diagnostic may only be specified once".to_owned());
                     }
                     options.gate1_presentation_route = Gate1PresentationRoute::FifoDiagnostic;
+                }
+                "--gate1-renderdoc-capture" => {
+                    if options.gate1_renderdoc_output.is_some() {
+                        return Err(
+                            "--gate1-renderdoc-capture may only be specified once".to_owned()
+                        );
+                    }
+                    options.gate1_renderdoc_output =
+                        Some(next_path(&mut arguments, "--gate1-renderdoc-capture")?);
+                }
+                "--gate1-renderdoc-nonce" => {
+                    if options.gate1_renderdoc_nonce.is_some() {
+                        return Err("--gate1-renderdoc-nonce may only be specified once".to_owned());
+                    }
+                    options.gate1_renderdoc_nonce =
+                        Some(next_string(&mut arguments, "--gate1-renderdoc-nonce")?);
                 }
                 "--gate1-visual-proof" => {
                     if options.gate1_visual_proof_output.is_some() {
@@ -845,7 +920,7 @@ impl Options {
                 "--no-vsync" => options.vsync = false,
                 "--log-probe" => options.log_probe = true,
                 "--help" | "-h" => {
-                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-gameplay-stutter output-dir [--gate1-fifo-diagnostic] | --gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
+                    return Err("usage: forge_runtime [--scene file.json | --visual-valley | --terrain terrain.json] [--quality low|medium|high|ultra | --adaptive-quality | --benchmark-quality] [--gate1-gameplay-stutter output-dir [--gate1-fifo-diagnostic] | --gate1-renderdoc-capture output-dir --gate1-renderdoc-nonce nonce | --gate1-visual-proof output-dir] [--terrain-debug] [--terrain-partial-update-probe] [--player-camera | --player-camera-probe] [--weather clear|rain] [--capture file.png] [--capture-frame n] [--metrics file.json] [--metrics-warmup-frames n] [--exit-after-frames n] [--resize-at-frame n --resize-width px --resize-height px] [--close-at-frame n] [--no-vsync] [--log-probe]".to_owned());
                 }
                 _ => return Err(format!("unknown option `{argument}`")),
             }
@@ -876,6 +951,7 @@ impl Options {
         self.validate_presentation_profile_gate1_diagnostic()?;
         self.validate_gate1_fifo_diagnostic()?;
         self.validate_gate1_gameplay_stutter()?;
+        self.validate_gate1_renderdoc_capture()?;
         self.validate_gate1_visual_proof()?;
         self.validate_terrain_partial_update_probe()?;
         self.validate_player_camera()?;
@@ -936,6 +1012,8 @@ impl Options {
                 || self.terrain_partial_update_probe.is_enabled()
                 || self.player_camera.is_enabled()
                 || self.gate1_gameplay_stutter_output.is_some()
+                || self.gate1_renderdoc_output.is_some()
+                || self.gate1_renderdoc_nonce.is_some()
                 || self.gate1_visual_proof_output.is_some()
                 || self.weather_state.is_some()
                 || self.quality_selection.is_some()
@@ -958,7 +1036,8 @@ impl Options {
                 "NONQUALIFYING render-profile builds refuse --log-probe because Forge structured JSON tracing is disabled",
             );
         }
-        if self.gate1_visual_proof_output.is_some()
+        if self.gate1_renderdoc_output.is_some()
+            || self.gate1_visual_proof_output.is_some()
             || (self.gate1_gameplay_stutter_output.is_some()
                 && !self.render_profile_gate1_diagnostic.is_enabled())
         {
@@ -974,9 +1053,9 @@ impl Options {
         if !self.render_profile_gate1_diagnostic.is_enabled() {
             return Ok(());
         }
-        if self.gate1_visual_proof_output.is_some() {
+        if self.gate1_renderdoc_output.is_some() || self.gate1_visual_proof_output.is_some() {
             return Err(
-                "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+                "--render-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
                     .to_owned(),
             );
         }
@@ -995,7 +1074,8 @@ impl Options {
 
     #[cfg(all(feature = "presentation-profile", not(feature = "render-profile")))]
     fn presentation_profile_route_error(&self) -> Option<&'static str> {
-        if self.gate1_visual_proof_output.is_some()
+        if self.gate1_renderdoc_output.is_some()
+            || self.gate1_visual_proof_output.is_some()
             || (self.gate1_gameplay_stutter_output.is_some()
                 && !self.presentation_profile_gate1_diagnostic.is_enabled())
         {
@@ -1018,9 +1098,9 @@ impl Options {
         );
         #[cfg(not(feature = "render-profile"))]
         {
-            if self.gate1_visual_proof_output.is_some() {
+            if self.gate1_renderdoc_output.is_some() || self.gate1_visual_proof_output.is_some() {
                 return Err(
-                    "--presentation-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+                    "--presentation-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
                         .to_owned(),
                 );
             }
@@ -1093,6 +1173,7 @@ impl Options {
         if self.terrain_debug.is_enabled()
             || self.terrain_partial_update_probe.is_enabled()
             || self.player_camera.is_enabled()
+            || self.gate1_renderdoc_output.is_some()
             || self.gate1_visual_proof_output.is_some()
             || self.weather_state.is_some()
             || self.capture_path.is_some()
@@ -1118,6 +1199,76 @@ impl Options {
                 return Err("--gate1-fifo-diagnostic cannot be combined with --no-vsync".to_owned());
             }
             _ => {}
+        }
+        Ok(())
+    }
+
+    fn validate_gate1_renderdoc_capture(&self) -> Result<(), String> {
+        let (output_dir, nonce) = match (
+            self.gate1_renderdoc_output.as_deref(),
+            self.gate1_renderdoc_nonce.as_deref(),
+        ) {
+            (None, None) => return Ok(()),
+            (Some(_), None) => {
+                return Err("--gate1-renderdoc-capture requires --gate1-renderdoc-nonce".to_owned());
+            }
+            (None, Some(_)) => {
+                return Err("--gate1-renderdoc-nonce requires --gate1-renderdoc-capture".to_owned());
+            }
+            (Some(output_dir), Some(nonce)) => (output_dir, nonce),
+        };
+        if !cfg!(target_os = "windows") {
+            return Err(
+                "--gate1-renderdoc-capture is currently qualified only on Windows Vulkan"
+                    .to_owned(),
+            );
+        }
+        if output_dir.as_os_str().is_empty() {
+            return Err(
+                "--gate1-renderdoc-capture requires a non-empty output directory".to_owned(),
+            );
+        }
+        validate_gate1_renderdoc_nonce(nonce)?;
+        if !self.visual_valley {
+            return Err("--gate1-renderdoc-capture requires --visual-valley".to_owned());
+        }
+        if self.quality_selection
+            != Some(VisualValleyQualitySelection::Fixed(VisualQualityTier::High))
+        {
+            return Err("--gate1-renderdoc-capture requires explicit --quality high".to_owned());
+        }
+        if self.weather_state.is_none() {
+            return Err(
+                "--gate1-renderdoc-capture requires explicit --weather clear or --weather rain"
+                    .to_owned(),
+            );
+        }
+        if self.vsync {
+            return Err(
+                "--gate1-renderdoc-capture requires --no-vsync for the governed acquisition protocol"
+                    .to_owned(),
+            );
+        }
+        if self.terrain_debug.is_enabled()
+            || self.terrain_partial_update_probe.is_enabled()
+            || self.player_camera.is_enabled()
+            || self.gate1_gameplay_stutter_output.is_some()
+            || self.gate1_visual_proof_output.is_some()
+            || self.capture_path.is_some()
+            || self.metrics_path.is_some()
+            || self.exit_after_frames.is_some()
+            || self.resize_at_frame.is_some()
+            || self.close_at_frame.is_some()
+            || self.log_probe
+            || !matches!(
+                self.gate1_presentation_route,
+                Gate1PresentationRoute::AutoNoVsync
+            )
+        {
+            return Err(
+                "--gate1-renderdoc-capture owns camera, weather, capture synchronization and exit; it cannot be combined with debug, probes, player-camera, other Gate 1 routes, built-in capture, metrics, resize, close or logging modes"
+                    .to_owned(),
+            );
         }
         Ok(())
     }
@@ -1172,6 +1323,7 @@ impl Options {
         if self.terrain_debug.is_enabled()
             || self.terrain_partial_update_probe.is_enabled()
             || self.player_camera.is_enabled()
+            || self.gate1_renderdoc_output.is_some()
             || self.weather_state.is_some()
             || self.capture_path.is_some()
             || self.metrics_path.is_some()
@@ -1262,6 +1414,7 @@ impl Options {
             close_at_frame: self.close_at_frame,
             render_diagnostics_policy: if cfg!(feature = "render-profile")
                 || self.gate1_gameplay_stutter_output.is_some()
+                || self.gate1_renderdoc_output.is_some()
             {
                 RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
             } else {
@@ -1372,6 +1525,9 @@ impl Options {
         }
         if let Some(output_dir) = self.gate1_gameplay_stutter_output.as_deref() {
             prepare_gate1_gameplay_stutter_directory(output_dir)?;
+        }
+        if let Some(output_dir) = self.gate1_renderdoc_output.as_deref() {
+            prepare_gate1_renderdoc_directory(output_dir)?;
         }
         Ok(())
     }
@@ -1613,6 +1769,62 @@ fn prepare_gate1_gameplay_stutter_directory(output_dir: &Path) -> Result<(), Str
     Ok(())
 }
 
+fn prepare_gate1_renderdoc_directory(output_dir: &Path) -> Result<(), String> {
+    match fs::symlink_metadata(output_dir) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() {
+                return Err(format!(
+                    "Gate 1 RenderDoc output cannot be a symlink: {}",
+                    output_dir.display()
+                ));
+            }
+            if !metadata.is_dir() {
+                return Err(format!(
+                    "Gate 1 RenderDoc output is not a directory: {}",
+                    output_dir.display()
+                ));
+            }
+            let mut entries = fs::read_dir(output_dir).map_err(|error| {
+                format!(
+                    "cannot inspect Gate 1 RenderDoc output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+            if entries
+                .next()
+                .transpose()
+                .map_err(|error| {
+                    format!(
+                        "cannot inspect Gate 1 RenderDoc output {}: {error}",
+                        output_dir.display()
+                    )
+                })?
+                .is_some()
+            {
+                return Err(format!(
+                    "Gate 1 RenderDoc output must be absent or empty: {}",
+                    output_dir.display()
+                ));
+            }
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            fs::create_dir_all(output_dir).map_err(|error| {
+                format!(
+                    "cannot create Gate 1 RenderDoc output {}: {error}",
+                    output_dir.display()
+                )
+            })?;
+        }
+        Err(error) => {
+            return Err(format!(
+                "cannot inspect Gate 1 RenderDoc output {}: {error}",
+                output_dir.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn prepare_gate1_visual_proof_directory(output_dir: &Path) -> Result<(), String> {
     match fs::symlink_metadata(output_dir) {
         Ok(metadata) => {
@@ -1767,6 +1979,15 @@ fn next_path(
         .next()
         .map(PathBuf::from)
         .ok_or_else(|| format!("{option} requires a path"))
+}
+
+fn next_string(
+    arguments: &mut impl Iterator<Item = String>,
+    option: &str,
+) -> Result<String, String> {
+    arguments
+        .next()
+        .ok_or_else(|| format!("{option} requires a value"))
 }
 
 fn next_u32(arguments: &mut impl Iterator<Item = String>, option: &str) -> Result<u32, String> {
@@ -3183,6 +3404,114 @@ mod tests {
         assert!(capture.parent().unwrap().is_dir());
         assert!(!capture.exists());
         assert!(!metrics.exists());
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn gate1_renderdoc_requires_a_complete_paired_route() {
+        assert_eq!(
+            Options::parse(
+                [
+                    "--gate1-renderdoc-capture".to_owned(),
+                    "renderdoc-output".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-renderdoc-capture requires --gate1-renderdoc-nonce"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--gate1-renderdoc-nonce".to_owned(),
+                    "0123456789abcdef0123456789abcdef".to_owned(),
+                ]
+                .into_iter(),
+            )
+            .unwrap_err(),
+            "--gate1-renderdoc-nonce requires --gate1-renderdoc-capture"
+        );
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn gate1_renderdoc_is_a_strict_high_weather_no_vsync_route() {
+        let accepted = Options::parse(
+            [
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--weather",
+                "clear",
+                "--gate1-renderdoc-capture",
+                "renderdoc-output",
+                "--gate1-renderdoc-nonce",
+                "0123456789abcdef0123456789abcdef",
+                "--no-vsync",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .unwrap();
+        assert_eq!(
+            accepted.gate1_renderdoc_output,
+            Some(PathBuf::from("renderdoc-output"))
+        );
+        assert_eq!(accepted.weather_state, Some(WeatherState::Clear));
+        assert_eq!(accepted.requested_present_mode(), PresentMode::AutoNoVsync);
+        assert_eq!(
+            accepted.runtime_automation().render_diagnostics_policy,
+            RenderDiagnosticsPolicy::DisabledForExternalPresentationQualification
+        );
+
+        for arguments in [
+            vec![
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--gate1-renderdoc-capture",
+                "renderdoc-output",
+                "--gate1-renderdoc-nonce",
+                "0123456789abcdef0123456789abcdef",
+                "--no-vsync",
+            ],
+            vec![
+                "--visual-valley",
+                "--quality",
+                "high",
+                "--weather",
+                "rain",
+                "--gate1-renderdoc-capture",
+                "renderdoc-output",
+                "--gate1-renderdoc-nonce",
+                "0123456789abcdef0123456789abcdef",
+            ],
+        ] {
+            assert!(Options::parse(arguments.into_iter().map(str::to_owned)).is_err());
+        }
+    }
+
+    #[test]
+    fn gate1_renderdoc_preflight_refuses_stale_outputs_without_deleting_them() {
+        let unique = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = env::temp_dir().join(format!(
+            "openrpg-forge-gate1-renderdoc-{}-{unique}",
+            std::process::id()
+        ));
+        let options = Options {
+            gate1_renderdoc_output: Some(root.clone()),
+            ..Options::default()
+        };
+        options.prepare_output_paths().unwrap();
+        assert!(root.is_dir());
+
+        fs::write(root.join("stale.json"), b"stale proof").unwrap();
+        let error = options.prepare_output_paths().unwrap_err();
+        assert!(error.contains("must be absent or empty"));
+        assert!(root.join("stale.json").is_file());
         fs::remove_dir_all(root).unwrap();
     }
 
