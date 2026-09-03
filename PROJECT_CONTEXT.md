@@ -4,7 +4,8 @@ Dernière mise à jour : **3 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, quatre replays schema 12
 abandonnés avant signal au plus tard, dernier ABORT sur frontière finale `row→sample`, durcissement
-pré-signal validé statiquement mais non rejoué ; Gate 2 interdite ; produit non qualifié**
+pré-signal committé mais non rejoué ; acquisition Browser 534 en cours sans résultat revendiqué ;
+Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -59,12 +60,14 @@ pipelines, 314 frames observées et 32 stables ; PresentMon reçoit 25 lignes Fo
 la frontière finale entre le dernier `CPUStartQPC` et l'échantillon fenêtre : 743,6604 ms >250 ms.
 Aucun seuil de cadence n'est évalué.
 
-Le durcissement préparé depuis `83f02928` exécute désormais ce contrôle dans chaque tentative, avant
-de l'accepter et avant toute publication du signal. Un gap final ordonné >250 ms rejette l'essai et
+Le durcissement est désormais committé à
+`473abeaac1425f0fb991f88ba0495d3708978ea1`, arbre
+`6a40060a0b8f3c7d2f2f7188f7723a85c8fd9cb6`. Il exécute ce contrôle dans chaque tentative, avant de
+l'accepter et avant toute publication du signal. Un gap final ordonné >250 ms rejette l'essai et
 rejoue dans les trois tentatives/15 secondes existantes ; un QPC non monotone, la dernière tentative
 ou le timeout échoue fermé. Les bornes 2 000/100/250 ms, la fenêtre et les seuils restent inchangés.
 Les self-tests positifs/négatifs et validations PowerShell statiques passent ; aucun build ou replay
-corrigé n'est encore revendiqué.
+de ce durcissement committé n'est encore revendiqué.
 
 La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
 route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `e2d924b` et `798b55d`.
@@ -144,6 +147,14 @@ les deux PNG du canvas, ont leurs tailles et SHA-256 revérifiés et sont versio
 pour la revue humaine, mais reste ouverte tant que cette inspection n'est pas attestée. L'acquisition
 historique `a4e9824a` reste intacte.
 
+Le harnais de matrice météo Browser est committé à
+`48038854b828003dd514562e34d5930e614422b4`, puis son traitement fail-closed des entrées utilisateur
+et la conservation du reçu d'ABORT sont intégrés à
+`534ce4faef69972dc1a495981387ac24a3ca1cfd`, arbre
+`8576d501a02fee5eabfb246d7b5269f0b8b19f6f`. Une acquisition sur ce dernier commit est en cours au
+moment de ce lot documentaire. Aucun résultat, PASS, FAIL, artefact ou qualification de cette
+acquisition n'est encore revendiqué.
+
 L'audit Git initial de `R1-051` couvre les 154 commits atteignables jusqu'à `6fb33ca`, leurs URLs, les
 reflogs disponibles et les Git notes : il n'y trouvait aucune identité reproductible. La reprise de la
 conversation historique « Comparaison rendu Godot » retrouve toutefois le message utilisateur du
@@ -155,20 +166,24 @@ fortement établie, sans demander une confirmation utilisateur redondante ; Cadl
 Babylon.js « La Forêt des Brumes », créé après le message déclencheur, restent des références
 distinctes.
 
-Le protocole sémantique `R1-051` v1 est désormais défini et validé depuis `48038854`. Son SHA-256
+Le protocole sémantique `R1-051` v1 est introduit par le commit exact
+`73db783975251cf7b4439dce9a12328a4c55c5ec`, arbre
+`466cb51b12203e2358aec7ebcc9051eb58a1234e`; son snapshot de préparation interne reste
+`48038854`. Son SHA-256
 `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d` lie, sans les embarquer,
 trois JPEG Grassworks externes et quatre PNG Forge : sept tailles, hashes, signatures et dimensions
 passent le contrôle in situ. Quatre panneaux couvrent les cinq axes densité, naturel, profondeur,
 lumière et finition ; 24 cas synthétiques refusent notamment traversal, paths absolus, altération de
 hash, comparaison pixel à pixel, verdict inventé et fermeture de route. Le rendu actuel du post X est
-réservé à l'identité et ne peut pas noter ces axes. Le paquet humain actuel n'est pas encore modifié :
-le commit d'introduction du protocole devra d'abord être connu et lié explicitement.
+réservé à l'identité et ne peut pas noter ces axes. Le paquet humain lie désormais explicitement ce
+commit, ce hash, les trois références Grassworks externes et les quatre vues Forge ; il rend R1-051
+techniquement prête à une future revue humaine, sans enregistrer de verdict.
 
 `R1-051` reste **OUVERTE** : la démo Grassworks live est mutable, son code est privé, et aucun
 commit/version public, capture locale historique, hash du média déclencheur ou verdict humain n'est
 acquis. Les captures actuelles ne constituent ni une capture contemporaine du 29 août, ni les octets
 du média source. Aucun média, code ou asset Grassworks n'est copié dans Forge. Une acquisition source
-autorisée si requise, l'intégration au paquet humain puis la revue humaine restent dues ;
+autorisée si requise et la revue humaine restent dues ;
 voir
 [`R1_051_WEBGPU_REFERENCE_RECOVERY.md`](docs/evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md) et
 [`R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md`](docs/evidence/gate1/R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md).
@@ -176,10 +191,18 @@ voir
 Le protocole A/B `R1-052` versionné à `1bd5292` relie désormais, sans embarquer de média Cadle, trois
 vues Forge et trois références Cadle consultées in situ. Il fixe la même machine, 1920 × 1080 High,
 trois cadrages sémantiques, six axes de revue et des frontières de coût qui interdisent un duel de FPS
-bruts entre les deux moteurs. Le paquet humain fail-closed porte le SHA-256
-`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92` et passe ses contrôles statique,
-synthétique et externe avec 22 artefacts, 5 ensembles et 6 routes prêtes. `R1-052` reste ouverte : la
-revue humaine n'est pas effectuée et le protocole conserve `gate1_transition_authorized=false`.
+bruts entre les deux moteurs. Le paquet humain fail-closed, préparé depuis le snapshot suivi
+`73db783` sans prétendre être lui-même contenu dans ce commit, porte le SHA-256
+`1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725`. Il passe ses contrôles
+statique et synthétique avec 27 artefacts, 6 ensembles et 7 routes prêtes ; la vérification externe
+est rejouée séparément sur les trois racines locales. `R1-051` et `R1-052` restent ouvertes : aucune
+revue humaine n'est effectuée, `gate1_routes_closed=0` et
+`gate1_transition_authorized=false`.
+
+Au snapshot de travail exact `534ce4faef69972dc1a495981387ac24a3ca1cfd`, le contrôle de
+frontière Gate C sans checkout local dans ce worktree passe avec
+`CADLE_GATE_C_BOUNDARY_PASS tracked=439 checkout_present=False`. Ce décompte remplace uniquement le
+décompte courant ; les décomptes historiques liés à leurs anciens commits restent inchangés.
 
 Le runtime Release exact `5eadec7f` a été exécuté en Low/Medium/High/Ultra clear/rain, adaptatif
 clear et benchmark clear, 1920 x 1080, sur RX 7800 XT/Vulkan. Les dix ledgers contiennent 120
@@ -1506,9 +1529,10 @@ PresentMon vide. `2ced195b` reproduit le même ABORT après rebuild propre ; un 
 simultané écrit ETW 0/0 mais aucune ligne Forge. Ces replays prouvent la readiness corrigée
 `5/16/13`, pas la cadence. Un smoke non qualifiant `41b49f66` confirme ensuite que l'écran actif
 produit 22 lignes Forge ETW 0/0. Le replay propre `83f02928` reçoit 25 lignes Forge ETW 0/0, puis
-abandonne avant signal sur le gap final `row→sample` de 743,6604 ms. Le durcissement préparé rejoue
-désormais ce gap dans le budget pré-signal existant sans élargir la borne de 250 ms ; ses validations
-légères passent, mais un replay corrigé et qualifiant reste dû.
+abandonne avant signal sur le gap final `row→sample` de 743,6604 ms. Le durcissement committé exact
+`473abeaac1425f0fb991f88ba0495d3708978ea1` rejoue désormais ce gap dans le budget pré-signal
+existant sans élargir la borne de 250 ms ; ses validations légères passent, mais ce commit n'a pas
+encore été rejoué et un replay corrigé qualifiant reste dû.
 
 Le diagnostic officiel PresentMon 2.5.1 A4 historique retrouve 129,7334 FPS et 16 lignes `NA` sur le
 binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les diagnostics schema 8
@@ -2106,9 +2130,10 @@ pré-signal sur stdout PresentMon vide. `2ced195b` reproduit cet ABORT après un
 30 min 06 s. Le smoke non qualifiant `41b49f66` confirme ensuite que l'écran actif produit 22 lignes
 Forge ETW 0/0. Le replay propre `83f02928` reçoit 25 lignes Forge ETW 0/0 après 32 min 27 s de build,
 mais abandonne avant signal sur le gap final `row→sample` de 743,6604 ms >250 ms. Le durcissement
-préparé déplace ce contrôle avant acceptation et rejoue l'essai dans le budget existant de trois
-tentatives/15 secondes, sans signal prématuré ni seuil élargi. Ses validations légères passent ; aucun
-replay corrigé et aucun verdict de cadence schema 12 ne sont encore acquis.
+committé `473abeaac1425f0fb991f88ba0495d3708978ea1` déplace ce contrôle avant acceptation et rejoue
+l'essai dans le budget existant de trois tentatives/15 secondes, sans signal prématuré ni seuil
+élargi. Ses validations légères passent ; ce commit n'a pas été rejoué et aucun verdict de cadence
+schema 12 n'est encore acquis.
 La dernière campagne complète historique `15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime
 et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute historiquement 66/66 tests Release
 `forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne
@@ -2123,12 +2148,19 @@ Le harnais temporel Browser `4e476b31` est PASS sur 120 RAF,
 validateur statique sont maintenant alignés sur le candidat qualifié exact ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
+Le harnais de matrice météo est committé à `48038854`; le durcissement d'entrée et de reçu d'ABORT est
+intégré à `534ce4fa`. L'acquisition 534 est en cours : aucun résultat ni qualification n'est encore
+revendiqué.
 L'optique d'eau `e7e7d419`, durcie par `e2d924b`, est validée automatiquement et réacquise à
 `125ba0b`, sans qualification GPU/humaine. Le contrat/chemin de capture RenderDoc
 `dbe5eb86`/`140acbdd`, durci jusqu'à `798b55d`, passe ses validations hors GPU ; son préflight réel
 recoupe le bundle complet puis s'arrête sans mutation sur la couche Vulkan non enregistrée. Quatre
 captures Vulkan restent `NOT RUN`. Restent également dus : replay schema 12 PASS de `R1-048`, GPU
 cible `R1-041`, preuves Browser finales et revue humaine.
+Le protocole R1-051 exact `73db7839`/`466cb51b`, SHA-256 `cc6d4918…6baeb4d`, est intégré au paquet
+humain avec trois liens Grassworks externes et quatre vues Forge. Le paquet reste
+`gate1_transition_authorized=false`, `gate1_routes_closed=0` et `human_review_performed=false` ;
+R1-051 est prête à être relue mais reste ouverte.
 Le lot `815ddf3` ajoute les diagnostics retardés de passes de scène ; sa première acquisition est
 refusée pour neuf assets absents et n'est pas un PASS versionné. Le correctif `41b49f66` lie le runtime
 au worktree propre et acquiert Low/High **frames-only** avec 29 PNG par tier, 6/12 mesures, logs vides,

@@ -8,6 +8,8 @@ param(
 
     [string]$ForgeExternalRoot,
 
+    [string]$GrassworksExternalRoot,
+
     [string]$CadleReferenceRoot,
 
     [switch]$VerifyExternal,
@@ -17,7 +19,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$script:ExpectedPackageSha256 = "3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92"
+$script:ExpectedPackageSha256 = "1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725"
 
 function Assert-Condition {
     param(
@@ -234,6 +236,7 @@ function Assert-Package {
         [Parameter(Mandatory = $true)][string]$Repository,
         [Parameter(Mandatory = $true)][bool]$CheckExternal,
         [AllowEmptyString()][string]$ForgeRoot,
+        [AllowEmptyString()][string]$GrassworksRoot,
         [AllowEmptyString()][string]$CadleRoot
     )
 
@@ -252,6 +255,7 @@ function Assert-Package {
     Assert-ExactProperties -Value $Package.prepared_from -Expected @("branch", "commit") -Label "package.prepared_from"
     Assert-Condition -Condition ($Package.prepared_from.branch -ceq "Rust") -Message "The package must be prepared from Rust."
     Assert-HexDigest -Value $Package.prepared_from.commit -Length 40 -Label "package.prepared_from.commit"
+    Assert-Condition -Condition ($Package.prepared_from.commit -ceq "73db783975251cf7b4439dce9a12328a4c55c5ec") -Message "The package must bind the commit that introduced the R1-051 protocol."
     Assert-GitObjectAndAncestry -Repository $Repository -Commit $Package.prepared_from.commit -Label "Prepared-from"
 
     Assert-ExactProperties -Value $Package.qualified_software_baseline -Expected @("commit", "tree") -Label "package.qualified_software_baseline"
@@ -263,7 +267,20 @@ function Assert-Package {
     & git -C $Repository merge-base --is-ancestor $Package.qualified_software_baseline.commit $Package.prepared_from.commit 2>$null
     Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Qualified software baseline must be an ancestor of prepared_from."
     $branch = Get-GitText -Repository $Repository -Arguments @("branch", "--show-current") -Label "Current branch"
-    Assert-Condition -Condition ($branch -ceq "Rust") -Message "Human-review package validation must run on branch Rust."
+    if ([string]::IsNullOrEmpty($branch)) {
+        & git -C $Repository rev-parse --verify "refs/heads/Rust^{commit}" 2>$null | Out-Null
+        Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Detached validation requires a local Rust branch."
+        & git -C $Repository merge-base --is-ancestor $Package.prepared_from.commit refs/heads/Rust 2>$null
+        Assert-Condition -Condition ($LASTEXITCODE -eq 0) -Message "Detached validation HEAD is not based on the Rust package snapshot."
+        & git -C $Repository merge-base --is-ancestor HEAD refs/heads/Rust 2>$null
+        $headIsBehindRust = $LASTEXITCODE -eq 0
+        & git -C $Repository merge-base --is-ancestor refs/heads/Rust HEAD 2>$null
+        $headIsAheadOfRust = $LASTEXITCODE -eq 0
+        Assert-Condition -Condition ($headIsBehindRust -or $headIsAheadOfRust) -Message "Detached validation HEAD must be on the direct Rust lineage."
+    }
+    else {
+        Assert-Condition -Condition ($branch -ceq "Rust") -Message "Human-review package validation must run on branch Rust or on a detached Rust worktree."
+    }
 
     Assert-ExactProperties -Value $Package.cadle_policy -Expected @("assets_embedded", "captures_tracked", "review_in_place_only", "redistribution_authorized") -Label "package.cadle_policy"
     Assert-Condition -Condition ($Package.cadle_policy.assets_embedded -is [bool] -and -not $Package.cadle_policy.assets_embedded) -Message "Cadle assets must not be embedded."
@@ -274,6 +291,7 @@ function Assert-Package {
     $expectedRoots = @{
         repository = @("tracked_forge_evidence", "RepositoryRoot", $true, $true)
         forge_external_water_125ba0b = @("local_forge_evidence", "ForgeExternalRoot", $false, $true)
+        grassworks_external_current_20260903 = @("external_reference_observation", "GrassworksExternalRoot", $false, $false)
         cadle_gate_c_overlay = @("local_cadle_reference", "CadleReferenceRoot", $false, $false)
     }
     $rootMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
@@ -288,17 +306,23 @@ function Assert-Package {
         Assert-Condition -Condition ($root.tracked_in_forge -is [bool] -and $root.tracked_in_forge -eq $expected[2]) -Message "tracked_in_forge mismatch for $($root.id)."
         Assert-Condition -Condition ($root.redistributable -is [bool] -and $root.redistributable -eq $expected[3]) -Message "redistributable mismatch for $($root.id)."
     }
-    Assert-Condition -Condition ($rootMap.Count -eq $expectedRoots.Count) -Message "The package must declare exactly three evidence roots."
+    Assert-Condition -Condition ($rootMap.Count -eq $expectedRoots.Count) -Message "The package must declare exactly four evidence roots."
 
     if ($CheckExternal) {
         Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($ForgeRoot)) -Message "-ForgeExternalRoot is required with -VerifyExternal."
+        Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($GrassworksRoot)) -Message "-GrassworksExternalRoot is required with -VerifyExternal."
         Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace($CadleRoot)) -Message "-CadleReferenceRoot is required with -VerifyExternal."
         Assert-Condition -Condition (Test-Path -LiteralPath $ForgeRoot -PathType Container) -Message "Forge external evidence root is missing: $ForgeRoot"
+        Assert-Condition -Condition (Test-Path -LiteralPath $GrassworksRoot -PathType Container) -Message "Grassworks external observation root is missing: $GrassworksRoot"
         Assert-Condition -Condition (Test-Path -LiteralPath $CadleRoot -PathType Container) -Message "Cadle reference root is missing: $CadleRoot"
         Assert-DisjointRoots -First $Repository -Second $ForgeRoot -Label "Repository/Forge external evidence"
+        Assert-DisjointRoots -First $Repository -Second $GrassworksRoot -Label "Repository/Grassworks external observation"
         Assert-DisjointRoots -First $Repository -Second $CadleRoot -Label "Repository/Cadle reference"
+        Assert-DisjointRoots -First $ForgeRoot -Second $GrassworksRoot -Label "Forge external/Grassworks external"
         Assert-DisjointRoots -First $ForgeRoot -Second $CadleRoot -Label "Forge external/Cadle reference"
+        Assert-DisjointRoots -First $GrassworksRoot -Second $CadleRoot -Label "Grassworks external/Cadle reference"
         Assert-NotReparsePoint -Path $ForgeRoot -Label "Forge external evidence root"
+        Assert-NotReparsePoint -Path $GrassworksRoot -Label "Grassworks external observation root"
         Assert-NotReparsePoint -Path $CadleRoot -Label "Cadle reference root"
     }
 
@@ -308,12 +332,15 @@ function Assert-Package {
         "cadle_baseline_metadata", "native_human_clear", "native_distant_clear", "native_water_clear",
         "native_water_rain", "native_water_restored", "native_movement_video", "native_visual_ledger",
         "native_visual_validation", "native_video_probe", "cadle_vale_ground", "cadle_forest_ground",
-        "cadle_water_golden_shore", "cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide"
+        "cadle_water_golden_shore", "cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide",
+        "grassworks_semantic_protocol_json", "grassworks_semantic_review_guide",
+        "grassworks_high_sunny_current", "grassworks_high_rain_current", "grassworks_historical_post_current_render"
     )
     $artifactMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     $rootCounts = @{
         repository = 0
         forge_external_water_125ba0b = 0
+        grassworks_external_current_20260903 = 0
         cadle_gate_c_overlay = 0
     }
     foreach ($artifact in @($Package.artifacts)) {
@@ -325,7 +352,7 @@ function Assert-Package {
         Assert-Condition -Condition ($artifact.bytes -is [long] -or $artifact.bytes -is [int]) -Message "Artifact byte count must be an integer for $($artifact.id)."
         Assert-Condition -Condition ([long]$artifact.bytes -gt 0) -Message "Artifact byte count must be positive for $($artifact.id)."
         Assert-HexDigest -Value $artifact.sha256 -Length 64 -Label "artifact[$($artifact.id)].sha256"
-        Assert-Condition -Condition (@("image/png", "video/mp4", "application/json", "text/markdown") -ccontains [string]$artifact.media_type) -Message "Unsupported media type for $($artifact.id)."
+        Assert-Condition -Condition (@("image/png", "image/jpeg", "video/mp4", "application/json", "text/markdown") -ccontains [string]$artifact.media_type) -Message "Unsupported media type for $($artifact.id)."
         Assert-NonEmptyString -Value $artifact.notes -Label "artifact[$($artifact.id)].notes"
         $rootCounts[$artifact.root]++
 
@@ -350,6 +377,18 @@ function Assert-Package {
                 Assert-Condition -Condition ((Get-LowerSha256 -Path $filePath) -ceq $artifact.sha256) -Message "Forge external artifact hash mismatch: $($artifact.id)"
             }
         }
+        elseif ($artifact.root -ceq "grassworks_external_current_20260903") {
+            Assert-Condition -Condition ($artifact.redistribution -ceq "local_only_grassworks_observation_not_embedded") -Message "Grassworks external artifact label is invalid for $($artifact.id)."
+            Assert-Condition -Condition ($artifact.media_type -ceq "image/jpeg") -Message "Grassworks observations in this package must be JPEG images only."
+            if ($CheckExternal) {
+                $filePath = Resolve-SafeChildPath -Root $GrassworksRoot -RelativePath $artifact.path -Label "artifact[$($artifact.id)]"
+                Assert-Condition -Condition (Test-Path -LiteralPath $filePath -PathType Leaf) -Message "Grassworks external observation is missing: $($artifact.path)"
+                Assert-NotReparsePoint -Path $filePath -Label "Grassworks external observation $($artifact.id)"
+                $file = Get-Item -LiteralPath $filePath
+                Assert-Condition -Condition ($file.Length -eq [long]$artifact.bytes) -Message "Grassworks external artifact byte count mismatch: $($artifact.id)"
+                Assert-Condition -Condition ((Get-LowerSha256 -Path $filePath) -ceq $artifact.sha256) -Message "Grassworks external artifact hash mismatch: $($artifact.id)"
+            }
+        }
         else {
             Assert-Condition -Condition ($artifact.redistribution -ceq "local_only_excluded_cadle_media") -Message "Cadle artifact label is invalid for $($artifact.id)."
             Assert-Condition -Condition ($artifact.media_type -ceq "image/png") -Message "Cadle references in this package must be PNG images only."
@@ -363,12 +402,13 @@ function Assert-Package {
             }
         }
     }
-    Assert-Condition -Condition ($artifactMap.Count -eq 22) -Message "The package must contain exactly 22 artifact references."
+    Assert-Condition -Condition ($artifactMap.Count -eq 27) -Message "The package must contain exactly 27 artifact references."
     foreach ($id in $requiredArtifactIds) {
         Assert-Condition -Condition $artifactMap.ContainsKey($id) -Message "Required artifact is missing: $id"
     }
-    Assert-Condition -Condition ($rootCounts.repository -eq 10) -Message "The package must contain exactly ten tracked Forge artifacts."
+    Assert-Condition -Condition ($rootCounts.repository -eq 12) -Message "The package must contain exactly twelve tracked Forge artifacts."
     Assert-Condition -Condition ($rootCounts.forge_external_water_125ba0b -eq 9) -Message "The package must contain exactly nine local Forge artifacts."
+    Assert-Condition -Condition ($rootCounts.grassworks_external_current_20260903 -eq 3) -Message "The package must contain exactly three in-place Grassworks observations."
     Assert-Condition -Condition ($rootCounts.cadle_gate_c_overlay -eq 3) -Message "The package must contain exactly three in-place Cadle references."
 
     $expectedEvidenceSets = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
@@ -406,6 +446,15 @@ function Assert-Package {
         Tree = "d0135ec9a4d19a15378c07adcc3763c9b223b432"
         ArtifactIds = @("cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide")
     })
+    $expectedEvidenceSets.Add("grassworks_forge_semantic_protocol_73db783", [pscustomobject]@{
+        System = "forge"
+        Commit = "73db783975251cf7b4439dce9a12328a4c55c5ec"
+        Tree = "466cb51b12203e2358aec7ebcc9051eb58a1234e"
+        ArtifactIds = @(
+            "grassworks_semantic_protocol_json", "grassworks_semantic_review_guide",
+            "grassworks_high_sunny_current", "grassworks_high_rain_current", "grassworks_historical_post_current_render"
+        )
+    })
     $evidenceSetMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     $artifactEvidenceSetMap = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
     foreach ($evidenceSet in @($Package.evidence_sets)) {
@@ -435,8 +484,8 @@ function Assert-Package {
             Assert-Condition -Condition ($evidenceTree -ceq $evidenceSet.tree) -Message "Repository tree mismatch for evidence set $($evidenceSet.id)."
         }
     }
-    Assert-Condition -Condition ($evidenceSetMap.Count -eq 5) -Message "The package must declare exactly five evidence sets."
-    Assert-Condition -Condition ($artifactEvidenceSetMap.Count -eq 22) -Message "Every artifact must belong to exactly one evidence set."
+    Assert-Condition -Condition ($evidenceSetMap.Count -eq 6) -Message "The package must declare exactly six evidence sets."
+    Assert-Condition -Condition ($artifactEvidenceSetMap.Count -eq 27) -Message "Every artifact must belong to exactly one evidence set."
 
     $exactBaselineVisualArtifactCount = 0
     foreach ($evidenceSet in @($Package.evidence_sets)) {
@@ -531,6 +580,90 @@ function Assert-Package {
     Assert-Condition -Condition ($abProtocol.review_contract.machine_protocol_closes_route -is [bool] -and -not $abProtocol.review_contract.machine_protocol_closes_route) -Message "R1-052 machine protocol cannot close the route."
     Assert-Condition -Condition ($abProtocol.cadle_media_policy.review_in_place_only -and -not $abProtocol.cadle_media_policy.copied_into_forge -and -not $abProtocol.cadle_media_policy.tracked_in_forge -and -not $abProtocol.cadle_media_policy.published) -Message "R1-052 Cadle media policy mismatch."
     Assert-Condition -Condition (-not $abProtocol.qualification.human_review_performed -and -not $abProtocol.qualification.r1_052_qualified -and -not $abProtocol.qualification.gate1_transition_authorized) -Message "R1-052 protocol must not claim human review, qualification or Gate 1 transition."
+
+    $semanticProtocolArtifact = $artifactMap["grassworks_semantic_protocol_json"]
+    Assert-Condition -Condition ($semanticProtocolArtifact.sha256 -ceq "cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d") -Message "R1-051 protocol package hash mismatch."
+    $semanticProtocolPath = Resolve-SafeChildPath -Root $Repository -RelativePath $semanticProtocolArtifact.path -Label "R1-051 semantic protocol"
+    $semanticProtocol = ConvertFrom-StrictJson -Text (Get-Content -Raw -LiteralPath $semanticProtocolPath) -Label "R1-051 semantic protocol"
+    Assert-ExactProperties -Value $semanticProtocol -Expected @(
+        "schema", "schema_version", "protocol_id", "status", "route", "prepared_from", "reference_identity",
+        "roots", "artifacts", "comparison_panels", "context_bindings", "review_axes", "review_contract",
+        "boundaries", "qualification"
+    ) -Label "R1-051 semantic protocol"
+    Assert-Condition -Condition ($semanticProtocol.schema -ceq "forge.gate1-r1-051-grassworks-semantic-protocol") -Message "Unexpected R1-051 semantic protocol schema."
+    Assert-Condition -Condition ([int]$semanticProtocol.schema_version -eq 1) -Message "Unexpected R1-051 semantic protocol schema version."
+    Assert-Condition -Condition ($semanticProtocol.protocol_id -ceq "r1-051-grassworks-forge-semantic-v1") -Message "Unexpected R1-051 semantic protocol id."
+    Assert-Condition -Condition ($semanticProtocol.status -ceq "technically_ready_for_future_human_package_integration") -Message "R1-051 semantic protocol is not technically ready for package integration."
+    Assert-Condition -Condition ($semanticProtocol.route -ceq "R1-051") -Message "R1-051 semantic protocol route mismatch."
+    $semanticEvidenceSet = $evidenceSetMap["grassworks_forge_semantic_protocol_73db783"]
+    Assert-Condition -Condition ($semanticEvidenceSet.commit -ceq "73db783975251cf7b4439dce9a12328a4c55c5ec") -Message "R1-051 semantic evidence commit mismatch."
+    Assert-Condition -Condition ($semanticEvidenceSet.tree -ceq "466cb51b12203e2358aec7ebcc9051eb58a1234e") -Message "R1-051 semantic evidence tree mismatch."
+
+    $semanticArtifactMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
+    foreach ($artifact in @($semanticProtocol.artifacts)) {
+        Assert-Condition -Condition $semanticArtifactMap.TryAdd($artifact.id, $artifact) -Message "Duplicate R1-051 protocol artifact: $($artifact.id)"
+    }
+    Assert-Condition -Condition ($semanticArtifactMap.Count -eq 7) -Message "R1-051 semantic protocol must bind exactly seven visual artifacts."
+    $semanticArtifactBindings = @{
+        grassworks_high_sunny_current = "grassworks_high_sunny_current"
+        grassworks_high_rain_current = "grassworks_high_rain_current"
+        grassworks_historical_post_current_render = "grassworks_historical_post_current_render"
+        native_human_clear = "forge_human_clear_125ba0b"
+        native_distant_clear = "forge_distant_clear_125ba0b"
+        native_water_clear = "forge_water_clear_125ba0b"
+        native_water_rain = "forge_water_rain_125ba0b"
+    }
+    foreach ($packageArtifactId in $semanticArtifactBindings.Keys) {
+        $protocolArtifact = $semanticArtifactMap[$semanticArtifactBindings[$packageArtifactId]]
+        $packageArtifact = $artifactMap[$packageArtifactId]
+        Assert-Condition -Condition ($protocolArtifact.relative_path -ceq $packageArtifact.path) -Message "R1-051 protocol path mismatch for $packageArtifactId."
+        Assert-Condition -Condition ([long]$protocolArtifact.bytes -eq [long]$packageArtifact.bytes) -Message "R1-051 protocol byte count mismatch for $packageArtifactId."
+        Assert-Condition -Condition ($protocolArtifact.sha256 -ceq $packageArtifact.sha256) -Message "R1-051 protocol hash mismatch for $packageArtifactId."
+        Assert-Condition -Condition ($protocolArtifact.media_type -ceq $packageArtifact.media_type) -Message "R1-051 protocol media type mismatch for $packageArtifactId."
+    }
+    $semanticAxisIds = @($semanticProtocol.review_axes | ForEach-Object { [string]$_.id })
+    Assert-ExactStringArray -Actual $semanticAxisIds -Expected @("density", "naturalness", "depth", "lighting", "finish") -Label "R1-051 review axes"
+    $semanticPanels = @($semanticProtocol.comparison_panels)
+    Assert-Condition -Condition ($semanticPanels.Count -eq 4) -Message "R1-051 semantic protocol must define exactly four panels."
+    foreach ($panel in $semanticPanels) {
+        Assert-Condition -Condition ($panel.semantic_equivalence_only -is [bool] -and $panel.semantic_equivalence_only) -Message "R1-051 panels must remain semantic only."
+        Assert-Condition -Condition ($panel.direct_pixel_comparison_allowed -is [bool] -and -not $panel.direct_pixel_comparison_allowed) -Message "R1-051 direct pixel comparison must remain forbidden."
+        Assert-Condition -Condition ($panel.human_axis_verdict_required -is [bool] -and $panel.human_axis_verdict_required) -Message "R1-051 panels must require human axis verdicts."
+    }
+    $historicalContext = @($semanticProtocol.context_bindings | Where-Object { $_.id -ceq "historical_post_identity_only" })
+    Assert-Condition -Condition ($historicalContext.Count -eq 1 -and -not $historicalContext[0].axis_verdict_eligible) -Message "R1-051 current historical-post render must remain identity-only."
+    Assert-Condition -Condition (
+        $semanticProtocol.boundaries.historical_post_rendered_at_protocol_capture_time -and
+        -not $semanticProtocol.boundaries.contemporaneous_2026_08_29_capture_available -and
+        -not $semanticProtocol.boundaries.source_video_bytes_available -and
+        -not $semanticProtocol.boundaries.source_video_sha256_available -and
+        $semanticProtocol.boundaries.live_demo_mutable -and
+        -not $semanticProtocol.boundaries.public_version_or_commit_available -and
+        -not $semanticProtocol.boundaries.direct_pixel_comparison_allowed -and
+        -not $semanticProtocol.boundaries.grassworks_media_copied_into_forge -and
+        -not $semanticProtocol.boundaries.grassworks_assets_copied_into_forge -and
+        -not $semanticProtocol.boundaries.grassworks_code_or_bundles_retained -and
+        -not $semanticProtocol.boundaries.cadle_assets_present -and
+        -not $semanticProtocol.boundaries.human_review_performed
+    ) -Message "R1-051 semantic source boundaries mismatch."
+    Assert-Condition -Condition (
+        $semanticProtocol.review_contract.reviewer_kind -ceq "human_owner" -and
+        $semanticProtocol.review_contract.observation_per_axis_required -and
+        $semanticProtocol.review_contract.external_hash_verification_required -and
+        $semanticProtocol.review_contract.source_limitations_acknowledgement_required -and
+        -not $semanticProtocol.review_contract.protocol_may_close_r1_051 -and
+        -not $semanticProtocol.review_contract.protocol_may_authorize_gate1_transition -and
+        $null -eq $semanticProtocol.review_contract.current_human_verdict
+    ) -Message "R1-051 human review contract mismatch."
+    Assert-Condition -Condition (
+        $semanticProtocol.qualification.machine_protocol_defined -and
+        $semanticProtocol.qualification.external_artifact_hashes_required -and
+        $semanticProtocol.qualification.technically_ready_for_future_human_package_integration -and
+        -not $semanticProtocol.qualification.reference_snapshot_reproducible -and
+        -not $semanticProtocol.qualification.human_review_performed -and
+        -not $semanticProtocol.qualification.r1_051_closed -and
+        -not $semanticProtocol.qualification.gate1_transition_authorized
+    ) -Message "R1-051 semantic protocol must not claim a human verdict, route closure or Gate 1 transition."
 
     $browserLedgerArtifact = $artifactMap["browser_temporal_ledger"]
     $browserLedgerPath = Resolve-SafeChildPath -Root $Repository -RelativePath $browserLedgerArtifact.path -Label "browser temporal ledger"
@@ -635,7 +768,7 @@ function Assert-Package {
         "R1-048" = "requires_presentmon_pass_and_realtime_review"
         "R1-049" = "ready_for_human_review"
         "R1-050" = "ready_for_human_review"
-        "R1-051" = "blocked_reference_not_frozen"
+        "R1-051" = "ready_for_human_review"
         "R1-052" = "ready_for_human_review"
     }
     $expectedRouteEvidenceSets = @{
@@ -648,7 +781,7 @@ function Assert-Package {
         "R1-048" = @("native_water_125ba0b")
         "R1-049" = @("native_water_125ba0b", "quality_matrix_5eadec7f")
         "R1-050" = @("native_water_125ba0b", "quality_matrix_5eadec7f")
-        "R1-051" = @()
+        "R1-051" = @("native_water_125ba0b", "grassworks_forge_semantic_protocol_73db783")
         "R1-052" = @("native_water_125ba0b", "cadle_snapshot_ea0da625", "cadle_forge_ab_protocol_1bd5292")
     }
     $expectedRouteArtifacts = @{
@@ -661,7 +794,11 @@ function Assert-Package {
         "R1-048" = @("native_movement_video", "native_video_probe", "native_visual_ledger", "native_visual_validation")
         "R1-049" = @("native_human_clear", "native_distant_clear", "native_water_clear", "native_water_rain", "quality_low_clear", "quality_high_clear")
         "R1-050" = @("native_human_clear", "native_distant_clear", "native_water_clear", "quality_high_clear")
-        "R1-051" = @()
+        "R1-051" = @(
+            "grassworks_semantic_protocol_json", "grassworks_semantic_review_guide",
+            "grassworks_high_sunny_current", "grassworks_high_rain_current", "grassworks_historical_post_current_render",
+            "native_human_clear", "native_distant_clear", "native_water_clear", "native_water_rain"
+        )
         "R1-052" = @("native_human_clear", "native_distant_clear", "native_water_clear", "cadle_vale_ground", "cadle_forest_ground", "cadle_water_golden_shore", "cadle_baseline_metadata", "cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide")
     }
     $routeMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
@@ -680,7 +817,7 @@ function Assert-Package {
 
         $routeArtifactIds = @($route.artifact_ids)
         Assert-ExactStringArray -Actual $route.artifact_ids -Expected $expectedRouteArtifacts[$route.route] -Label "route[$($route.route)].artifact_ids"
-        Assert-Condition -Condition (($route.route -ceq "R1-051" -and $routeArtifactIds.Count -eq 0) -or ($route.route -cne "R1-051" -and $routeArtifactIds.Count -gt 0)) -Message "Unexpected artifact count for $($route.route)."
+        Assert-Condition -Condition ($routeArtifactIds.Count -gt 0) -Message "Route $($route.route) must cite at least one package artifact."
         $seenRouteArtifacts = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
         foreach ($artifactId in $routeArtifactIds) {
             Assert-NonEmptyString -Value $artifactId -Label "route[$($route.route)].artifact_ids[]"
@@ -725,12 +862,12 @@ function Assert-Package {
     Assert-Condition -Condition ($Package.review_receipt_contract.gate1_transition_authorized -is [bool] -and -not $Package.review_receipt_contract.gate1_transition_authorized) -Message "Review receipts cannot authorize Gate 1 transition."
 
     Assert-ExactProperties -Value $Package.summary -Expected @("artifact_count", "evidence_sets", "exact_baseline_visual_artifacts", "human_routes", "fully_review_ready_routes", "cadle_assets_embedded", "gate1_routes_closed") -Label "package.summary"
-    Assert-Condition -Condition ([int]$Package.summary.artifact_count -eq 22) -Message "Package artifact summary mismatch."
-    Assert-Condition -Condition ([int]$Package.summary.evidence_sets -eq 5) -Message "Package evidence-set summary mismatch."
+    Assert-Condition -Condition ([int]$Package.summary.artifact_count -eq 27) -Message "Package artifact summary mismatch."
+    Assert-Condition -Condition ([int]$Package.summary.evidence_sets -eq 6) -Message "Package evidence-set summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.exact_baseline_visual_artifacts -eq $exactBaselineVisualArtifactCount) -Message "Package exact-baseline visual artifact summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.human_routes -eq 11) -Message "Package route summary mismatch."
     $readyRouteCount = @($routeMap.Values | Where-Object { $_.review_readiness -ceq "ready_for_human_review" }).Count
-    Assert-Condition -Condition ($readyRouteCount -eq 6) -Message "Exactly six routes must be ready for human review."
+    Assert-Condition -Condition ($readyRouteCount -eq 7) -Message "Exactly seven routes must be ready for human review."
     Assert-Condition -Condition ([int]$Package.summary.fully_review_ready_routes -eq $readyRouteCount) -Message "Package ready-route summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.cadle_assets_embedded -eq 0) -Message "Package must embed zero Cadle assets."
     Assert-Condition -Condition ([int]$Package.summary.gate1_routes_closed -eq 0) -Message "Preparing the package must close zero Gate 1 routes."
@@ -837,6 +974,16 @@ function Assert-ReviewReceipt {
             Assert-NonEmptyString -Value $observation -Label "review.route[$($route.route)].observations[]"
             Assert-Condition -Condition (-not ([string]$observation -match '(?i)\b(?:todo|tbd|placeholder)\b')) -Message "Review observation for $($route.route) contains a placeholder."
         }
+        if ($route.route -ceq "R1-051") {
+            foreach ($label in @("density:", "naturalness:", "depth:", "lighting:", "finish:", "source_limitations:")) {
+                $matchingObservations = @($observations | Where-Object {
+                    $candidate = [string]$_
+                    $candidate.StartsWith($label, [StringComparison]::Ordinal) -and
+                        -not [string]::IsNullOrWhiteSpace($candidate.Substring($label.Length))
+                })
+                Assert-Condition -Condition ($matchingObservations.Count -gt 0) -Message "R1-051 review requires concrete non-blank text after prefix '$label'."
+            }
+        }
         Assert-JsonArray -Value $route.blocking_issues -Label "review.route[$($route.route)].blocking_issues"
         $blockingIssues = @($route.blocking_issues)
         if (@("rejected", "inconclusive") -ccontains [string]$route.verdict) {
@@ -912,6 +1059,40 @@ function Invoke-ReceiptSelfTest {
     }
     [void](Assert-ReviewReceipt -Receipt $valid -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true)
 
+    $validR1051 = Copy-JsonObject -Value $valid
+    $validR1051.routes[0].route = "R1-051"
+    $validR1051.routes[0].evidence_set_ids = @($PackageState.RouteMap["R1-051"].evidence_set_ids)
+    $validR1051.routes[0].artifact_ids = @($PackageState.RouteMap["R1-051"].artifact_ids)
+    $validR1051.routes[0].observations = @(
+        "density: Synthetic contract coverage only.",
+        "naturalness: Synthetic contract coverage only.",
+        "depth: Synthetic contract coverage only.",
+        "lighting: Synthetic contract coverage only.",
+        "finish: Synthetic contract coverage only.",
+        "source_limitations: Synthetic acknowledgement only; no real human verdict is recorded."
+    )
+    [void](Assert-ReviewReceipt -Receipt $validR1051 -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true)
+
+    $r1051MissingAxis = Copy-JsonObject -Value $validR1051
+    $r1051MissingAxis.routes[0].observations = @($r1051MissingAxis.routes[0].observations | Where-Object { -not ([string]$_).StartsWith("density:", [StringComparison]::Ordinal) })
+    Assert-Throws -Label "R1-051 missing density observation" -Action { Assert-ReviewReceipt -Receipt $r1051MissingAxis -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
+
+    $r1051MissingSourceLimits = Copy-JsonObject -Value $validR1051
+    $r1051MissingSourceLimits.routes[0].observations = @($r1051MissingSourceLimits.routes[0].observations | Where-Object { -not ([string]$_).StartsWith("source_limitations:", [StringComparison]::Ordinal) })
+    Assert-Throws -Label "R1-051 missing source-limitations acknowledgement" -Action { Assert-ReviewReceipt -Receipt $r1051MissingSourceLimits -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
+
+    $r1051EmptyAxis = Copy-JsonObject -Value $validR1051
+    $r1051EmptyAxis.routes[0].observations = @($r1051EmptyAxis.routes[0].observations | ForEach-Object {
+        if (([string]$_).StartsWith("density:", [StringComparison]::Ordinal)) { "density:" } else { $_ }
+    })
+    Assert-Throws -Label "R1-051 empty density observation" -Action { Assert-ReviewReceipt -Receipt $r1051EmptyAxis -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
+
+    $r1051WhitespaceSourceLimits = Copy-JsonObject -Value $validR1051
+    $r1051WhitespaceSourceLimits.routes[0].observations = @($r1051WhitespaceSourceLimits.routes[0].observations | ForEach-Object {
+        if (([string]$_).StartsWith("source_limitations:", [StringComparison]::Ordinal)) { "source_limitations:   " } else { $_ }
+    })
+    Assert-Throws -Label "R1-051 whitespace-only source-limitations acknowledgement" -Action { Assert-ReviewReceipt -Receipt $r1051WhitespaceSourceLimits -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
+
     $wrongHash = Copy-JsonObject -Value $valid
     $wrongHash.package_sha256 = "0" * 64
     Assert-Throws -Label "wrong package hash" -Action { Assert-ReviewReceipt -Receipt $wrongHash -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
@@ -975,7 +1156,7 @@ function Invoke-ReceiptSelfTest {
     $collapsedEvidenceSet.routes[0].artifact_ids = @($PackageState.RouteMap["R1-049"].artifact_ids)
     Assert-Throws -Label "collapsed evidence-set array" -Action { Assert-ReviewReceipt -Receipt $collapsedEvidenceSet -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
 
-    Write-Output "FORGE_GATE1_HUMAN_REVIEW_SELF_TEST_PASS cases=16 synthetic_only=true human_review_recorded=false"
+    Write-Output "FORGE_GATE1_HUMAN_REVIEW_SELF_TEST_PASS cases=21 synthetic_only=true human_review_recorded=false"
 }
 
 $repositoryFull = [IO.Path]::GetFullPath($RepositoryRoot)
@@ -996,12 +1177,12 @@ $package = ConvertFrom-StrictJson -Text $packageText -Label "Human-review packag
 $packageHash = Get-LowerSha256 -Path $packageFull
 Assert-Condition -Condition ($packageHash -ceq $script:ExpectedPackageSha256) -Message "Human-review package differs from the validator-pinned SHA-256."
 if (-not [string]::IsNullOrWhiteSpace($ReviewPath)) {
-    Assert-Condition -Condition $VerifyExternal.IsPresent -Message "-ReviewPath requires -VerifyExternal and both external evidence roots."
+    Assert-Condition -Condition $VerifyExternal.IsPresent -Message "-ReviewPath requires -VerifyExternal and all three external evidence roots."
 }
-$packageState = Assert-Package -Package $package -Repository $repositoryFull -CheckExternal $VerifyExternal.IsPresent -ForgeRoot $ForgeExternalRoot -CadleRoot $CadleReferenceRoot
+$packageState = Assert-Package -Package $package -Repository $repositoryFull -CheckExternal $VerifyExternal.IsPresent -ForgeRoot $ForgeExternalRoot -GrassworksRoot $GrassworksExternalRoot -CadleRoot $CadleReferenceRoot
 
 Write-Output (
-    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
+    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=27 evidence_sets=6 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=7 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
 )
 
 if ($SelfTest) {

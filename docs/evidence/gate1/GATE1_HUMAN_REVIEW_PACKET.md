@@ -7,7 +7,7 @@ Le paquet [`gate1-human-review-package.v1.json`](gate1-human-review-package.v1.j
 leurs champs `human_review_performed=false`, leurs verdicts techniques et leurs limites restent
 intacts.
 
-Le paquet est volontairement fail-closed : il lie une base technique exacte, vingt-deux références
+Le paquet est volontairement fail-closed : il lie une base technique exacte, vingt-sept références
 d'artefacts par taille et SHA-256, onze routes humaines et un contrat de reçu strict. Un fichier
 absent, altéré, déplacé hors de sa racine, un commit non ancêtre, une propriété JSON inconnue ou
 dupliquée, un verdict inconnu, un artefact non enregistré, un relecteur anonyme ou une tentative
@@ -24,15 +24,20 @@ gate1_routes_closed = 0
 
 La baseline logicielle qualifiée référencée est
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
-`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Le snapshot de préparation courant est
-`1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af`. Les cinq ensembles conservent séparément leurs commits
-et arbres exacts `4e476b31`, `5eadec7f`, `125ba0b`, Cadle `ea0da625` et le protocole A/B
-`1bd5292`. Les deux PNG Browser du premier ensemble correspondent exactement à la baseline logicielle
-qualifiée ; les autres preuves restent historiques ou locales. Le paquet courant porte le SHA-256
-`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92` ; toujours le recalculer avant une revue, car
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Le champ `prepared_from.commit` vaut
+`73db783975251cf7b4439dce9a12328a4c55c5ec` : il désigne le dernier snapshot Git déjà existant qui
+contient tous les artefacts **suivis** référencés, dont le protocole R1-051. Il ne prétend pas être
+l'identité Git de cette révision du paquet, qui n'existe pas avant son futur commit. Les six ensembles
+conservent séparément leurs commits et arbres exacts `4e476b31`, `5eadec7f`, `125ba0b`, Cadle
+`ea0da625`, le protocole A/B `1bd5292` et le protocole Grassworks
+`73db783`/`466cb51b12203e2358aec7ebcc9051eb58a1234e`. Les deux PNG Browser du premier ensemble
+correspondent exactement à la baseline logicielle qualifiée ; les autres preuves restent historiques
+ou locales. Le protocole R1-051 suivi porte le SHA-256
+`cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`. Le paquet courant porte le
+SHA-256 `1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725` ; toujours le recalculer avant une revue, car
 tout changement d'octets invalide un reçu antérieur.
 
-## Les six routes prêtes à la revue
+## Les sept routes prêtes à la revue
 
 Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Prête » ne vaut pas
 « acceptée » et aucune case de la roadmap n'est fermée par la seule préparation du paquet.
@@ -44,6 +49,7 @@ Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Pr
 | `R1-047` | `native_distant_clear` | LOD et silhouettes lointaines lisibles ; vallée, cheminement et rivière convaincants ; crénelage, bruit et popping acceptables |
 | `R1-049` | vues humaine, lointaine, eau clair/pluie et profils Low/High | palette cohérente entre terrain, végétation, roches, berges et eau ; matériaux ni plats, ni plastiques, ni surexposés ; cohérence météo et profils |
 | `R1-050` | vues humaine, lointaine, eau claire et High | hiérarchie visuelle et foyer lisibles ; cheminement, profondeur et rivière compréhensibles ; overlay sans masquage des zones jugées |
+| `R1-051` | protocole et guide `73db783`, deux JPEG Grassworks live actuels, rendu actuel du post historique et quatre vues Forge, tous liés par taille et hash | observations séparées `density`, `naturalness`, `depth`, `lighting`, `finish` ; comparaison sémantique uniquement ; reconnaissance explicite des limites de source |
 | `R1-052` | trois vues Forge, trois références Cadle consultées in situ et protocole A/B versionné | impact comparé sur terrain, végétation, eau, atmosphère, lisibilité et game feel ; coûts commentés séparément sans duel de FPS bruts |
 
 Le relecteur doit ouvrir les fichiers enregistrés dans le paquet, vérifier leurs hashes avec le
@@ -51,17 +57,14 @@ validateur, les examiner sans réencodage ni remplacement, puis consigner des ob
 
 ## Routes encore soumises à des prérequis
 
-Les cinq autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
+Les quatre autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
 prématurément un verdict favorable :
 
 - `R1-023` : observation instrumentée du pass optique GPU et matrice native/Browser par profil ;
 - `R1-025` : exécution GPU de la wetness et séquence Browser équivalente ;
 - `R1-026` : exécution GPU du bloom/color grading et matrice Browser Low/High ;
 - `R1-048` : replay PresentMon schema 12 qualifiant, acquisition réellement temps réel et revue de
-  jouabilité humaine ; le MP4 actuel assemble des checkpoints pausés et ne qualifie pas le stutter ;
-- `R1-051` : identité et URL Grassworks reprises, deux captures live actuelles et un rendu actuel du
-  post historique hashés hors dépôt ; protocole comparatif, verdict humain, capture contemporaine du
-  29 août et hash du média vidéo source encore absents.
+  jouabilité humaine ; le MP4 actuel assemble des checkpoints pausés et ne qualifie pas le stutter.
 
 Deux routes purement techniques restent hors du reçu humain :
 
@@ -70,8 +73,21 @@ Deux routes purement techniques restent hors du reçu humain :
 - `R1-041` attend un benchmark sur le matériel cible RTX 3060 ou RX 6600 ; la RX 7800 XT du poste de
   développement ne remplace pas cette preuve.
 
-Même si les six routes prêtes reçoivent un verdict humain `accepted`, ces prérequis et les autres
+Même si les sept routes prêtes reçoivent un verdict humain `accepted`, ces prérequis et les autres
 conditions de passage de Gate 1 restent dus.
+
+## Frontière Grassworks : observations actuelles, source non figée
+
+Le paquet lie trois JPEG Grassworks par chemin relatif, taille et SHA-256 sous une racine externe
+obligatoire. Aucun de leurs octets n'est copié ou suivi dans Forge. Les deux vues Sunny/Rain sont des
+observations de la démo live actuelle et mutable ; elles servent aux cinq axes sémantiques. Le rendu
+actuel du post X historique sert uniquement à l'identité et ne peut produire aucun verdict d'axe.
+
+Le protocole ne prétend donc pas disposer d'un snapshot Grassworks reproductible : aucun commit ou
+version publique n'est identifié, aucune capture contemporaine du 29 août 2026 n'est disponible et
+les octets puis le SHA-256 du média vidéo source manquent. Le relecteur R1-051 doit reconnaître ces
+limites dans une observation `source_limitations:`. Cette préparation n'est pas un verdict humain :
+`human_review_performed=false`, R1-051 reste ouverte et la transition Gate 1 reste fausse.
 
 ## Frontière Cadle : consultation locale uniquement
 
@@ -98,10 +114,11 @@ pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1
 Le contrôle statique doit terminer avec un marqueur de la forme :
 
 ```text
-FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92
+FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=27 evidence_sets=6 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=7 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725
 ```
 
-Rejouer aussi les seize cas synthétiques, dont quinze refus attendus. Ils testent le contrat du reçu et ne constituent
+Rejouer aussi les vingt-et-un cas synthétiques, dont dix-neuf refus attendus. Ils testent notamment les
+cinq observations d'axe et la reconnaissance des limites exigées pour R1-051 ; ils ne constituent
 pas une revue humaine :
 
 ```powershell
@@ -111,19 +128,21 @@ pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1 -SelfTest
 Le second marqueur attendu est :
 
 ```text
-FORGE_GATE1_HUMAN_REVIEW_SELF_TEST_PASS cases=16 synthetic_only=true human_review_recorded=false
+FORGE_GATE1_HUMAN_REVIEW_SELF_TEST_PASS cases=21 synthetic_only=true human_review_recorded=false
 ```
 
-Sur le poste où les preuves locales actuelles sont disponibles, vérifier les vingt-deux artefacts, y
-compris les trois références Cadle in situ :
+Sur le poste où les preuves locales actuelles sont disponibles, vérifier les vingt-sept artefacts, y
+compris les trois références Cadle et les trois observations Grassworks in situ :
 
 ```powershell
 $forgeEvidence = 'E:\OpenRPG_Forge\.gate1-tools\evidence\r1-023-water-125ba0b-001'
+$grassworksEvidence = 'E:\OpenRPG_Forge\.gate1-tools\evidence\r1-051-grassworks-current-20260903T142341Z'
 $cadleReference = 'E:\OpenRPG_Forge\Cadle-GateC-Overlay-Probe-A-20260830'
 
 pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1 `
     -VerifyExternal `
     -ForgeExternalRoot $forgeEvidence `
+    -GrassworksExternalRoot $grassworksEvidence `
     -CadleReferenceRoot $cadleReference
 ```
 
@@ -144,14 +163,14 @@ Le reçu est un nouveau fichier JSON séparé du paquet, des captures et des led
 relecteur humain nommé ne le remplit qu'après avoir réellement examiné les artefacts. Le gabarit
 ci-dessous est **délibérément non validable** tant que `TODO` et la date ne sont pas remplacés ; le
 validateur refuse ces placeholders. Il montre une route seulement, et une entrée analogue peut être
-ajoutée pour chacune des six routes prêtes.
+ajoutée pour chacune des sept routes prêtes.
 
 ```json
 {
   "schema": "forge.gate1-human-review-receipt",
   "schema_version": 1,
   "scope": "human_visual_review_only",
-  "package_sha256": "3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92",
+  "package_sha256": "1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725",
   "qualified_software_baseline_commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
   "reviewer": {
     "kind": "human_owner",
@@ -182,11 +201,13 @@ ajoutée pour chacune des six routes prêtes.
 ```
 
 Les verdicts autorisés sont `accepted`, `rejected` et `inconclusive`. Toute revue reprend exactement
-les `evidence_set_ids` de la route. Un verdict `accepted` n'est autorisé que pour l'une des six
+les `evidence_set_ids` de la route. Un verdict `accepted` n'est autorisé que pour l'une des sept
 routes prêtes, cite **tous** ses `artifact_ids` enregistrés et conserve `blocking_issues` vide. Tout
 autre verdict décisif cite au moins un artefact. Toute revue contient une observation concrète ;
 `rejected` et `inconclusive` contiennent au moins un problème bloquant. Le validateur refuse tout reçu
-si `-VerifyExternal` et les deux racines externes ne sont pas fournis. Ne jamais utiliser un nom
+si `-VerifyExternal` et les trois racines externes ne sont pas fournis. Pour R1-051, les observations
+portent exactement les préfixes `density:`, `naturalness:`, `depth:`, `lighting:`, `finish:` et
+`source_limitations:`. Ne jamais utiliser un nom
 générique ou attester au nom d'une autre personne.
 
 Une fois le reçu réellement complété et enregistré dans un emplacement local séparé, le vérifier avec
@@ -195,12 +216,14 @@ le paquet et les mêmes racines externes :
 ```powershell
 $receiptPath = 'E:\OpenRPG_Forge\.gate1-human-review-local\gate1-human-review-receipt.v1.json'
 $forgeEvidence = 'E:\OpenRPG_Forge\.gate1-tools\evidence\r1-023-water-125ba0b-001'
+$grassworksEvidence = 'E:\OpenRPG_Forge\.gate1-tools\evidence\r1-051-grassworks-current-20260903T142341Z'
 $cadleReference = 'E:\OpenRPG_Forge\Cadle-GateC-Overlay-Probe-A-20260830'
 
 pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1 `
     -ReviewPath $receiptPath `
     -VerifyExternal `
     -ForgeExternalRoot $forgeEvidence `
+    -GrassworksExternalRoot $grassworksEvidence `
     -CadleReferenceRoot $cadleReference
 ```
 

@@ -338,28 +338,34 @@ le shader. Elles ne ferment donc pas `R1-023`, `R1-025` ou `R1-026`; la matrice 
 humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **INTERDITE**, et la CI
 distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4, sans être déclarée PASS.
 
-Le protocole Browser séparé `r1-023-025-026-browser-weather-matrix-v1` est préparé depuis la base
-détachée `83f02928` : route opt-in fail-closed, contrôleur Rust même instance
+Le protocole Browser séparé `r1-023-025-026-browser-weather-matrix-v1` est committé à
+`48038854b828003dd514562e34d5930e614422b4`, puis son garde d'entrée utilisateur et son reçu d'ABORT
+fail-closed sont durcis à `534ce4faef69972dc1a495981387ac24a3ca1cfd` : route opt-in, contrôleur Rust même instance
 `clear → rain → clear`, huit frames de settle par endpoint, pose eau fixe, driver CDP Low/High,
 configuration et tests statiques. Les 4/4 tests ciblés, check et Clippy strict natifs, puis check et
 Clippy strict `wasm32-unknown-unknown` Release avec `--no-default-features --features web` sont
-**PASS**. Aucun `trunk build`, `trunk serve`, navigateur, test GPU ou acquisition Browser n'a été
-lancé ; les compilations ne sont pas une acquisition. Le lot ne fournit encore aucune capture ou
-ledger d'exécution, préserve le harnais `R1-014` intact et ne ferme pas `R1-023`, `R1-025` ou
-`R1-026`.
+**PASS** pour le lot committé. L'acquisition exacte 534 est en cours au moment de cette mise à jour ;
+aucun résultat, PASS, FAIL, capture, ledger ou qualification de cette acquisition n'est encore
+revendiqué. Le lot préserve le harnais `R1-014` intact et ne ferme pas `R1-023`, `R1-025` ou `R1-026`.
 
-Le paquet de revue humaine v1 est maintenant versionné avec 22 références contrôlées et le SHA-256
-`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92`. Son validateur passe le
-contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les cinq
+Le paquet de revue humaine v1 référence maintenant 27 artefacts contrôlés et porte le SHA-256
+`1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725`. Son validateur passe le
+contrôle statique, vingt-et-un cas synthétiques fail-closed et la vérification externe complète. Les six
 ensembles de preuves portent leur commit/arbre exact ; les deux PNG temporels revendiquent et vérifient
 l'identité de la baseline logicielle `4e476b31`, tandis que les autres preuves gardent leur identité
-historique ou locale. Il ne contient
+historique ou locale. `prepared_from.commit=73db783975251cf7b4439dce9a12328a4c55c5ec` désigne le
+dernier commit existant contenant tous les artefacts suivis référencés, dont le protocole R1-051 ; il
+ne prétend pas contenir les octets de cette révision encore non committée du paquet. Il ne contient
 aucun asset Cadle, ne modifie aucun ledger automatisé, conserve `gate1_transition_authorized=false` et
-ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050` et `R1-052` sont les seules routes
-prêtes à une revue humaine ; les cinq autres routes humaines gardent leurs prérequis explicites.
+ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`, `R1-051` et `R1-052` sont les
+sept routes prêtes à une revue humaine ; les quatre autres routes humaines gardent leurs prérequis
+explicites. Pour R1-051, « prête » ne signifie ni référence source reproductible, ni verdict humain :
+les deux vues live restent mutables, le rendu actuel du post est limité à l'identité, la capture
+contemporaine du 29 août et les octets/hash du média vidéo source restent absents.
 Le garde Gate C distingue désormais ces paquets documentaires des vraies configurations de
-distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=428
-checkout_present=True`; les contrôles de chemins et de hashes des médias restent stricts.
+distribution et repasse dans le worktree documentaire exact 534 avec
+`CADLE_GATE_C_BOUNDARY_PASS tracked=439 checkout_present=False`; les décomptes historiques restent
+liés à leurs anciens commits et les contrôles de chemins et de hashes des médias restent stricts.
 
 Quatre tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
 les trois suivantes avant signal. À `9d19cde5`,
@@ -376,10 +382,11 @@ prioritaire, pas un fait prouvé par le reçu. Un smoke non qualifiant sur le bi
 confirme ensuite que l'écran actif produit 22 lignes Forge ETW 0/0. Le replay propre `83f02928`
 reconstruit en 32 min 27 s et reçoit 25 lignes Forge ETW 0/0, mais s'arrête avant signal : la frontière
 finale entre la dernière ligne PresentMon et l'échantillon fenêtre vaut 743,6604 ms, au-dessus de la
-borne inchangée de 250 ms. Aucun seuil de cadence n'est évalué. Le durcissement préparé depuis ce HEAD
-déplace ce contrôle dans chaque tentative : un gap final >250 ms rejette l'essai sans signal et rejoue
-dans les trois tentatives/15 secondes existantes. Les self-tests positifs/négatifs et le parseur
-PowerShell passent ; aucun replay corrigé n'est encore revendiqué.
+borne inchangée de 250 ms. Aucun seuil de cadence n'est évalué. Le durcissement est committé à
+`473abeaac1425f0fb991f88ba0495d3708978ea1` et déplace ce contrôle dans chaque tentative : un gap
+final >250 ms rejette l'essai sans signal et rejoue dans les trois tentatives/15 secondes existantes.
+Les self-tests positifs/négatifs et le parseur PowerShell passent ; ce commit n'a pas encore été
+rejoué et aucun verdict corrigé n'est revendiqué.
 
 État des rejeux schema v8 : ADR-0008 et son validateur sont appliqués au commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -660,21 +667,23 @@ qualité                   Low / Medium / High / Ultra
   `41b49f66` ajoute deux acquisitions exactes Low/High **frames-only** avec respectivement six et douze
   mesures retardées de passes de scène synchronisées aux fenêtres de settle. Elles n'isolent toutefois
   ni le draw ni le matériau eau et n'identifient aucune frame de rendu exacte ;
-  `human_review_performed=false`. Le protocole Browser séparé Low/High est implémenté et son chemin
-  `wasm32-unknown-unknown` + `web` compile/lint en Release, mais sa campagne n'est pas lancée. Aucun
-  PASS GPU spécifique à l'eau ou humain n'est revendiqué.
+  `human_review_performed=false`. Le protocole Browser séparé Low/High est committé à `48038854`,
+  durci à `534ce4fa`, et son chemin `wasm32-unknown-unknown` + `web` compile/lint en Release. Son
+  acquisition 534 est en cours ; aucun résultat ni PASS GPU spécifique à l'eau ou humain n'est
+  revendiqué.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
   trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
   diagnostics de scène ne prouvent pas que les shaders terrain/végétation consomment la wetness. Qualification Browser
-  et acceptation visuelle humaine non acquises. Le nouveau contrôleur Browser même instance est
-  implémenté et validé au compilateur natif/WASM depuis `83f02928` ; aucune acquisition Browser de
-  cette séquence n'est encore enregistrée.
+  et acceptation visuelle humaine non acquises. Le contrôleur Browser même instance est committé à
+  `48038854`, durci à `534ce4fa` et validé au compilateur natif/WASM ; son acquisition 534 est en
+  cours, sans résultat encore enregistré.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
   campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
   post-process attendues, sans identité de frame de rendu exacte. La matrice Browser Low/High est
-  implémentée et compile/lint en natif et WASM depuis `83f02928`, sans Trunk/campagne ni identité de
-  frame ; rendu humain accepté non acquis.
+  committée à `48038854`, durcie à `534ce4fa`, compile/lint en natif et WASM et fait l'objet d'une
+  acquisition 534 en cours. Aucun résultat de campagne, aucune identité de frame qualifiée et aucun
+  rendu humain accepté ne sont encore acquis.
 
 ## R1-D — Personnage et caméra
 
@@ -739,17 +748,17 @@ qualité                   Low / Medium / High / Ultra
   Forge. Après un smoke écran actif non qualifiant, `83f02928` franchit encore la readiness et reçoit
   25 lignes Forge ETW 0/0, puis abandonne avant signal sur le gap final `row→sample` de 743,6604 ms.
   Aucun host boundary, ledger final, validation schema 12 ou verdict performance n'existe. Le
-  durcissement préparé rejette désormais ce gap dans la tentative pré-signal et consomme une des trois
-  tentatives sans élargir la borne de 250 ms ; ses validations légères passent, mais un replay corrigé
-  exact reste dû.
+  durcissement committé `473abeaac1425f0fb991f88ba0495d3708978ea1` rejette désormais ce gap dans
+  la tentative pré-signal et consomme une des trois tentatives sans élargir la borne de 250 ms ; ses
+  validations légères passent, mais ce commit n'a pas été rejoué et un replay corrigé exact reste dû.
   `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux — six preuves Forge hashées dans le paquet v1, **PRÊT POUR REVUE
   HUMAINE**, verdict encore dû.
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
-- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, IDENTITÉ
-  FORTEMENT ÉTABLIE, PROTOCOLE PRÊT MAIS RÉFÉRENCE NON FIGÉE** : la conversation historique retrouve le message utilisateur du
+- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, PAQUET PRÊT
+  POUR REVUE HUMAINE, RÉFÉRENCE SOURCE NON FIGÉE** : la conversation historique retrouve le message utilisateur du
   29 août 2026 et son URL exacte vers le post X `2093382978105966827` de Bilal Khan (`@Bk23544`). Les
   sources publiques contemporaines le relient à **Three.js Grassworks**, à
   `https://grassworks.techredux.co/demo` et au walkthrough YouTube `Nhim18rc-XE`. Le post constitue la
@@ -758,12 +767,16 @@ qualité                   Low / Medium / High / Ultra
   média déclencheur ou verdict humain n'est acquis. Deux captures
   Sunny/Rain de l'état live courant et un rendu actuel du post X historique avec frame vidéo sont
   figés et hashés hors dépôt ; ils ne sont ni une capture contemporaine du 29 août, ni les octets du
-  média source. Le protocole v1 depuis `48038854`, SHA-256
+  média source. Le protocole v1 est introduit au commit
+  `73db783975251cf7b4439dce9a12328a4c55c5ec`, arbre
+  `466cb51b12203e2358aec7ebcc9051eb58a1234e`, depuis la base interne `48038854`; son SHA-256
   `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`, relie ces trois JPEG et quatre
   vues Forge `125ba0b` sans copie. Son validateur passe sept artefacts externes, quatre panneaux, cinq
-  axes et 24 cas synthétiques fail-closed. Il est prêt pour une future intégration au paquet humain,
-  après connaissance de son commit ; il ne contient aucun verdict et ne ferme pas la route. Une
-  acquisition source autorisée si requise, l'intégration au paquet puis la revue humaine restent dues. Cadle
+  axes et 24 cas synthétiques fail-closed. Le paquet humain lie explicitement ce commit et ce hash,
+  classe la route `ready_for_human_review` et impose des observations séparées pour les cinq axes ainsi
+  qu'une reconnaissance des limites de source. Aucun verdict humain n'est présent,
+  `human_review_performed=false`, la route reste ouverte et `gate1_transition_authorized=false`. Une
+  acquisition source autorisée si requise et la revue humaine restent dues. Cadle
   et le prototype Babylon.js
   « La Forêt des Brumes », créé ensuite, sont distincts ;
   [reprise](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md),
@@ -799,8 +812,8 @@ qualité                   Low / Medium / High / Ultra
   respectivement avant ready sur le validateur qualité périmé, puis deux fois avant signal sur un flux
   PresentMon vide. `83f02928` reçoit 25 lignes Forge ETW 0/0 mais s'arrête avant signal sur le gap
   final `row→sample` de 743,6604 ms. La readiness `5/16/13` corrigée est prouvée, pas la cadence. Le
-  correctif pré-signal est validé statiquement sans replay ; un rejeu gouverné schema 12 strictement
-  PASS, la répétabilité et la revue humaine restent dus ;
+  correctif pré-signal est committé à `473abea` et validé statiquement sans replay ; un rejeu gouverné
+  schema 12 strictement PASS, la répétabilité et la revue humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;

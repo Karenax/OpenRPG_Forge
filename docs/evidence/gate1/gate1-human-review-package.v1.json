@@ -5,7 +5,7 @@
   "scope": "human_visual_review_only",
   "prepared_from": {
     "branch": "Rust",
-    "commit": "1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af"
+    "commit": "73db783975251cf7b4439dce9a12328a4c55c5ec"
   },
   "qualified_software_baseline": {
     "commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
@@ -78,6 +78,20 @@
         "cadle_forge_ab_protocol_json",
         "cadle_forge_ab_review_guide"
       ]
+    },
+    {
+      "id": "grassworks_forge_semantic_protocol_73db783",
+      "system": "forge",
+      "commit": "73db783975251cf7b4439dce9a12328a4c55c5ec",
+      "tree": "466cb51b12203e2358aec7ebcc9051eb58a1234e",
+      "exact_to_qualified_software_baseline": false,
+      "artifact_ids": [
+        "grassworks_semantic_protocol_json",
+        "grassworks_semantic_review_guide",
+        "grassworks_high_sunny_current",
+        "grassworks_high_rain_current",
+        "grassworks_historical_post_current_render"
+      ]
     }
   ],
   "gate1_transition_authorized": false,
@@ -101,6 +115,13 @@
       "required_parameter": "ForgeExternalRoot",
       "tracked_in_forge": false,
       "redistributable": true
+    },
+    {
+      "id": "grassworks_external_current_20260903",
+      "kind": "external_reference_observation",
+      "required_parameter": "GrassworksExternalRoot",
+      "tracked_in_forge": false,
+      "redistributable": false
     },
     {
       "id": "cadle_gate_c_overlay",
@@ -212,6 +233,26 @@
       "notes": "Guide humain R1-052; consultation in situ, six axes et interdiction de copier les images Cadle."
     },
     {
+      "id": "grassworks_semantic_protocol_json",
+      "root": "repository",
+      "path": "docs/evidence/gate1/r1-051-grassworks-forge-semantic-protocol.v1.json",
+      "bytes": 10667,
+      "sha256": "cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d",
+      "media_type": "application/json",
+      "redistribution": "tracked_metadata_only",
+      "notes": "Contrat machine R1-051 introduit au commit 73db783; cinq axes semantiques et frontieres fail-closed sans media Grassworks."
+    },
+    {
+      "id": "grassworks_semantic_review_guide",
+      "root": "repository",
+      "path": "docs/evidence/gate1/R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md",
+      "bytes": 7128,
+      "sha256": "0184decc4764b4fd249c8e7e1bc3a5f2a1073095464f0c39311f51306c94b07f",
+      "media_type": "text/markdown",
+      "redistribution": "tracked_metadata_only",
+      "notes": "Guide humain R1-051; comparaison semantique, limites de source et interdiction de copier les medias Grassworks."
+    },
+    {
       "id": "native_human_clear",
       "root": "forge_external_water_125ba0b",
       "path": "captures/human-clear.png",
@@ -300,6 +341,36 @@
       "media_type": "application/json",
       "redistribution": "local_forge_evidence_not_embedded",
       "notes": "Metadonnees FFprobe de la video de checkpoints."
+    },
+    {
+      "id": "grassworks_high_sunny_current",
+      "root": "grassworks_external_current_20260903",
+      "path": "grassworks-high-sunny-1920x1080.jpg",
+      "bytes": 456471,
+      "sha256": "96e5e96777ed63f778db989f0e77cb641618c0fe4bf7f401c9f9d1f1a73848d5",
+      "media_type": "image/jpeg",
+      "redistribution": "local_only_grassworks_observation_not_embedded",
+      "notes": "Echantillon live Sunny actuel et mutable, consulte in situ; ni snapshot versionne ni media redistribuable."
+    },
+    {
+      "id": "grassworks_high_rain_current",
+      "root": "grassworks_external_current_20260903",
+      "path": "grassworks-high-rain-1920x1080.jpg",
+      "bytes": 379020,
+      "sha256": "17703bcc42db55ea49b1caea5d804de9aee7f39c7470363fe8a470cc5a97f0d0",
+      "media_type": "image/jpeg",
+      "redistribution": "local_only_grassworks_observation_not_embedded",
+      "notes": "Echantillon live Rain actuel et mutable, consulte in situ; ni snapshot versionne ni media redistribuable."
+    },
+    {
+      "id": "grassworks_historical_post_current_render",
+      "root": "grassworks_external_current_20260903",
+      "path": "x-post-2093382978105966827-with-video-frame-1905x1072.jpg",
+      "bytes": 128035,
+      "sha256": "43be0cebbaf0bd7d58dbbe08de02c7b60932383133580146f95b1d75db7d5a3c",
+      "media_type": "image/jpeg",
+      "redistribution": "local_only_grassworks_observation_not_embedded",
+      "notes": "Rendu actuel du post historique pour l'identite seulement; ni capture contemporaine du 29 aout ni octets du media video source."
     },
     {
       "id": "cadle_vale_ground",
@@ -527,16 +598,28 @@
     },
     {
       "route": "R1-051",
-      "review_readiness": "blocked_reference_not_frozen",
-      "evidence_set_ids": [],
-      "artifact_ids": [],
-      "acceptance_criteria": [
-        "La reference WebGPU est identifiee par URL, version ou commit, date, capture locale et hash.",
-        "La comparaison utilise un protocole et des criteres de densite, naturel, profondeur, lumiere et finition versionnes."
+      "review_readiness": "ready_for_human_review",
+      "evidence_set_ids": [
+        "native_water_125ba0b",
+        "grassworks_forge_semantic_protocol_73db783"
       ],
-      "remaining_blockers": [
-        "L'identite et l'URL Grassworks sont reprises et trois captures actuelles sont hashees hors depot, mais aucun protocole comparatif versionne, verdict humain, capture contemporaine du 29 aout ou hash du media video source n'est acquis."
-      ]
+      "artifact_ids": [
+        "grassworks_semantic_protocol_json",
+        "grassworks_semantic_review_guide",
+        "grassworks_high_sunny_current",
+        "grassworks_high_rain_current",
+        "grassworks_historical_post_current_render",
+        "native_human_clear",
+        "native_distant_clear",
+        "native_water_clear",
+        "native_water_rain"
+      ],
+      "acceptance_criteria": [
+        "Le verdict humain documente separement densite, naturel, profondeur, lumiere et finition selon le protocole versionne au commit 73db783.",
+        "Les deux echantillons live Grassworks actuels sont compares semantiquement aux quatre vues Forge, sans comparaison pixel a pixel ni pretention de snapshot Grassworks reproductible.",
+        "Le relecteur reconnait explicitement que le rendu actuel du post historique sert seulement a l'identite, que la demo live est mutable et que ni capture contemporaine du 29 aout ni octets ou hash du media video source ne sont disponibles."
+      ],
+      "remaining_blockers": []
     },
     {
       "route": "R1-052",
@@ -589,11 +672,11 @@
     "gate1_transition_authorized": false
   },
   "summary": {
-    "artifact_count": 22,
-    "evidence_sets": 5,
+    "artifact_count": 27,
+    "evidence_sets": 6,
     "exact_baseline_visual_artifacts": 2,
     "human_routes": 11,
-    "fully_review_ready_routes": 6,
+    "fully_review_ready_routes": 7,
     "cadle_assets_embedded": 0,
     "gate1_routes_closed": 0
   }

@@ -2,10 +2,10 @@
 
 Date de l'audit : **2026-09-03**
 
-Statut : **IDENTITÉ FORTEMENT ÉTABLIE — ROUTE OUVERTE, RÉFÉRENCE NON FIGÉE**
+Statut : **PAQUET PRÊT POUR REVUE HUMAINE — ROUTE OUVERTE, RÉFÉRENCE SOURCE NON FIGÉE**
 
 Cette preuve corrige l'affirmation antérieure selon laquelle aucun nom ni URL de la référence n'était
-retrouvable et lie désormais le protocole sémantique versionné qui prépare sa future revue humaine.
+retrouvable et lie désormais le protocole sémantique versionné au paquet de revue humaine.
 Le dépôt ne contient aucun média externe, ne qualifie aucune comparaison visuelle et ne ferme ni
 `R1-051`, ni Gate 1. Deux captures de l'état live courant et une
 capture du rendu actuel du post X historique avec un frame de sa vidéo embarquée sont conservées
@@ -78,8 +78,8 @@ Les deux fichiers sont stockés sous
 `E:/OpenRPG_Forge/.gate1-tools/evidence/r1-051-grassworks-current-20260903T142341Z/`. Leur format et
 leurs dimensions 1920 x 1080 ont été relus depuis les fichiers, puis leurs hashes recalculés. Ils
 figent seulement ce qui était visible le **3 septembre 2026** aux presets Sunny et Rain. La démo live
-reste mutable, les compteurs FPS/TRIS sont dynamiques, les cadrages ne sont pas encore reliés à un
-protocole comparatif Forge et aucune appréciation humaine n'est enregistrée.
+reste mutable et les compteurs FPS/TRIS sont dynamiques. Les cadrages sont désormais reliés au
+protocole sémantique Forge, mais aucune appréciation humaine n'est enregistrée.
 
 Le même dossier externe contient aussi un rendu navigateur actuel du post canonique X : **1905 x
 1072**, 128 035 octets, SHA-256
@@ -100,9 +100,12 @@ fixent quatre panneaux sémantiques et les cinq axes **densité, naturel, profon
 finition**, sans comparaison pixel à pixel. Le validateur dédié recoupe les sept fichiers in situ et
 refuse les paths hors racine, les hashes altérés, un schéma divergent ou toute prétention de verdict.
 
-Ce protocole est seulement techniquement prêt pour une future intégration au paquet humain. Le paquet
-actuel n'est pas modifié avant que le commit d'introduction du protocole soit connu ; aucun relecteur
-humain et aucun verdict ne sont enregistrés par ce lot.
+Le protocole est introduit au commit exact
+`73db783975251cf7b4439dce9a12328a4c55c5ec`, arbre
+`466cb51b12203e2358aec7ebcc9051eb58a1234e`, et son fichier JSON porte le SHA-256
+`cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`. Le paquet humain lie
+explicitement ces identités, les trois JPEG Grassworks externes et les quatre vues Forge. Il classe
+R1-051 `ready_for_human_review`, sans enregistrer de relecteur ou de verdict et sans fermer la route.
 
 ## Pourquoi les autres références ne sont pas substituées
 
@@ -135,12 +138,13 @@ L'identification est acquise, mais la référence n'est pas encore une preuve re
 5. le protocole `R1-051` versionné fixe désormais des panneaux sémantiques à partir des observations
    courantes et des vues Forge existantes, mais il ne transforme pas ces observations en snapshot
    historique reproductible ;
-6. aucune revue humaine n'a produit de verdict et le protocole n'est pas encore lié par son commit et
-   son SHA-256 au paquet humain.
+6. aucune revue humaine n'a produit de verdict ; l'intégration du protocole au paquet ne remplace pas
+   cette attestation.
 
-Le statut fail-closed reste donc nécessaire. Le paquet humain emploie désormais le verrou exact
-`blocked_reference_not_frozen` : il reconnaît l'identité et les trois captures actuelles sans les
-transformer en protocole comparatif, en preuve source historique ou en verdict humain.
+Le statut fail-closed reste donc nécessaire. Le paquet humain emploie désormais
+`ready_for_human_review` pour la disponibilité technique des éléments, tout en conservant
+`human_review_performed=false`, `gate1_routes_closed=0` et `gate1_transition_authorized=false`. Cette
+readiness ne transforme pas les observations actuelles en preuve source historique ou en verdict.
 
 ## Travail restant pour fermer R1-051
 
@@ -151,13 +155,12 @@ Un lot ultérieur, exécuté hors d'une acquisition PresentMon et sans intégrer
 2. enregistrer hors des assets produit l'URL, la date d'acquisition, les métadonnées utiles, la taille
    et le SHA-256, avec une frontière de redistribution explicite ; ce point est acquis pour les deux
    captures live courantes et le rendu actuel du post historique, mais pas pour la vidéo source ;
-3. intégrer au paquet humain futur le protocole versionné, après connaissance de son commit, et
-   revérifier ses sept artefacts externes ;
-4. faire juger humainement densité, naturel, profondeur, lumière et finition ;
-5. conserver un verdict explicite `accepted`, `rejected` ou `inconclusive` sans transformer les
+3. faire juger humainement densité, naturel, profondeur, lumière et finition, en reconnaissant
+   explicitement les limites de source ;
+4. conserver un verdict explicite `accepted`, `rejected` ou `inconclusive` sans transformer les
    métriques automatisées en jugement visuel.
 
-Jusqu'à ces cinq résultats, `R1-051` reste ouverte. Aucun média, bundle, code source ou asset
+Jusqu'à ces quatre résultats, `R1-051` reste ouverte. Aucun média, bundle, code source ou asset
 Grassworks n'a été copié ou versionné dans Forge pendant la présente reprise. Seules deux captures
 d'écran de l'état live courant et un rendu du post historique sont conservés dans la racine de preuve
 externe `.gate1-tools`.
