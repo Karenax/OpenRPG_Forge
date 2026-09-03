@@ -1,0 +1,316 @@
+{
+  "schema": "forge.gate1-r1-051-grassworks-semantic-protocol",
+  "schema_version": 1,
+  "protocol_id": "r1-051-grassworks-forge-semantic-v1",
+  "status": "technically_ready_for_future_human_package_integration",
+  "route": "R1-051",
+  "prepared_from": {
+    "branch": "Rust",
+    "base_commit": "48038854b828003dd514562e34d5930e614422b4",
+    "base_tree": "f3fc51386cd1e46d241342d791d501953e4f384d"
+  },
+  "reference_identity": {
+    "name": "Three.js Grassworks",
+    "author": "Bilal Khan",
+    "historical_post_id": "2093382978105966827",
+    "historical_post_url": "https://x.com/Bk23544/status/2093382978105966827",
+    "interactive_demo_url": "https://grassworks.techredux.co/demo",
+    "user_reference_observed_at_utc": "2026-08-29T20:18:42Z",
+    "state_model": "historical_identity_with_current_mutable_visual_samples",
+    "public_commit_or_version_identified": false
+  },
+  "roots": [
+    {
+      "id": "grassworks_external_current_20260903",
+      "kind": "external_reference_observation",
+      "required_parameter": "GrassworksExternalRoot",
+      "tracked_in_forge": false,
+      "review_in_place_only": true,
+      "redistribution_authorized": false
+    },
+    {
+      "id": "forge_external_visual_125ba0b",
+      "kind": "local_forge_evidence",
+      "required_parameter": "ForgeExternalRoot",
+      "tracked_in_forge": false,
+      "review_in_place_only": true,
+      "redistribution_authorized": true
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "grassworks_high_sunny_current",
+      "root_id": "grassworks_external_current_20260903",
+      "relative_path": "grassworks-high-sunny-1920x1080.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 456471,
+      "sha256": "96e5e96777ed63f778db989f0e77cb641618c0fe4bf7f401c9f9d1f1a73848d5",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "current_mutable_live_reference",
+      "eligible_for_axis_review": true
+    },
+    {
+      "id": "grassworks_high_rain_current",
+      "root_id": "grassworks_external_current_20260903",
+      "relative_path": "grassworks-high-rain-1920x1080.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 379020,
+      "sha256": "17703bcc42db55ea49b1caea5d804de9aee7f39c7470363fe8a470cc5a97f0d0",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "current_mutable_live_reference",
+      "eligible_for_axis_review": true
+    },
+    {
+      "id": "grassworks_historical_post_current_render",
+      "root_id": "grassworks_external_current_20260903",
+      "relative_path": "x-post-2093382978105966827-with-video-frame-1905x1072.jpg",
+      "media_type": "image/jpeg",
+      "bytes": 128035,
+      "sha256": "43be0cebbaf0bd7d58dbbe08de02c7b60932383133580146f95b1d75db7d5a3c",
+      "width": 1905,
+      "height": 1072,
+      "observation_role": "historical_identity_context_current_render_not_source_media",
+      "eligible_for_axis_review": false
+    },
+    {
+      "id": "forge_human_clear_125ba0b",
+      "root_id": "forge_external_visual_125ba0b",
+      "relative_path": "captures/human-clear.png",
+      "media_type": "image/png",
+      "bytes": 2083983,
+      "sha256": "b144fe5b4b428f25467ddcb9e6c4060c8e027eb9ef81755aa710c2e3e62d7b42",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "fixed_forge_capture_125ba0b",
+      "eligible_for_axis_review": true
+    },
+    {
+      "id": "forge_distant_clear_125ba0b",
+      "root_id": "forge_external_visual_125ba0b",
+      "relative_path": "captures/distant-clear.png",
+      "media_type": "image/png",
+      "bytes": 2030378,
+      "sha256": "df3d5693d0dcd3120a4407cd17283dbe06dfb8fd5da9ec6c6185fd6e47185e8e",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "fixed_forge_capture_125ba0b",
+      "eligible_for_axis_review": true
+    },
+    {
+      "id": "forge_water_clear_125ba0b",
+      "root_id": "forge_external_visual_125ba0b",
+      "relative_path": "captures/water-clear.png",
+      "media_type": "image/png",
+      "bytes": 2138344,
+      "sha256": "ed03bfee3eaaecaf1af27cbe03e9af4cb4ad116157d99bfe37b8b6fc5f2b0cbc",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "fixed_forge_capture_125ba0b",
+      "eligible_for_axis_review": true
+    },
+    {
+      "id": "forge_water_rain_125ba0b",
+      "root_id": "forge_external_visual_125ba0b",
+      "relative_path": "captures/water-rain.png",
+      "media_type": "image/png",
+      "bytes": 2177341,
+      "sha256": "5a97f46289469c0f33a7c011b73eb59e209c4400b7068b323279667d2b284506",
+      "width": 1920,
+      "height": 1080,
+      "observation_role": "fixed_forge_capture_125ba0b",
+      "eligible_for_axis_review": true
+    }
+  ],
+  "comparison_panels": [
+    {
+      "id": "sunny_human_height",
+      "framing_class": "human_height_ground_cover",
+      "grassworks_artifact_ids": [
+        "grassworks_high_sunny_current"
+      ],
+      "forge_artifact_ids": [
+        "forge_human_clear_125ba0b"
+      ],
+      "review_axes": [
+        "density",
+        "naturalness",
+        "depth",
+        "lighting",
+        "finish"
+      ],
+      "semantic_equivalence_only": true,
+      "direct_pixel_comparison_allowed": false,
+      "human_axis_verdict_required": true
+    },
+    {
+      "id": "sunny_landscape_depth",
+      "framing_class": "landscape_depth_and_composition",
+      "grassworks_artifact_ids": [
+        "grassworks_high_sunny_current"
+      ],
+      "forge_artifact_ids": [
+        "forge_distant_clear_125ba0b"
+      ],
+      "review_axes": [
+        "density",
+        "naturalness",
+        "depth",
+        "lighting",
+        "finish"
+      ],
+      "semantic_equivalence_only": true,
+      "direct_pixel_comparison_allowed": false,
+      "human_axis_verdict_required": true
+    },
+    {
+      "id": "rain_atmosphere_and_water",
+      "framing_class": "rain_weather_water_and_banks",
+      "grassworks_artifact_ids": [
+        "grassworks_high_rain_current"
+      ],
+      "forge_artifact_ids": [
+        "forge_water_rain_125ba0b"
+      ],
+      "review_axes": [
+        "naturalness",
+        "depth",
+        "lighting",
+        "finish"
+      ],
+      "semantic_equivalence_only": true,
+      "direct_pixel_comparison_allowed": false,
+      "human_axis_verdict_required": true
+    },
+    {
+      "id": "clear_to_rain_response",
+      "framing_class": "semantic_weather_response_not_temporal_sync",
+      "grassworks_artifact_ids": [
+        "grassworks_high_sunny_current",
+        "grassworks_high_rain_current"
+      ],
+      "forge_artifact_ids": [
+        "forge_water_clear_125ba0b",
+        "forge_water_rain_125ba0b"
+      ],
+      "review_axes": [
+        "naturalness",
+        "lighting",
+        "finish"
+      ],
+      "semantic_equivalence_only": true,
+      "direct_pixel_comparison_allowed": false,
+      "human_axis_verdict_required": true
+    }
+  ],
+  "context_bindings": [
+    {
+      "id": "historical_post_identity_only",
+      "artifact_id": "grassworks_historical_post_current_render",
+      "purpose": "bind_current_render_to_historical_post_identity",
+      "axis_verdict_eligible": false,
+      "cannot_substitute_for": [
+        "contemporaneous_2026_08_29_capture",
+        "source_video_bytes",
+        "source_video_sha256"
+      ]
+    }
+  ],
+  "review_axes": [
+    {
+      "id": "density",
+      "label_fr": "densité",
+      "required_panel_ids": [
+        "sunny_human_height",
+        "sunny_landscape_depth"
+      ],
+      "question_fr": "La densité perçue du sous-bois, des herbes et des volumes végétaux Forge est-elle au moins aussi convaincante que l'échantillon Grassworks, sans masquer les chemins et les silhouettes ?"
+    },
+    {
+      "id": "naturalness",
+      "label_fr": "naturel",
+      "required_panel_ids": [
+        "sunny_human_height",
+        "sunny_landscape_depth",
+        "rain_atmosphere_and_water",
+        "clear_to_rain_response"
+      ],
+      "question_fr": "Les variations d'espèces, d'échelle, d'orientation, de sol et de météo évitent-elles la répétition artificielle et forment-elles un paysage crédible ?"
+    },
+    {
+      "id": "depth",
+      "label_fr": "profondeur",
+      "required_panel_ids": [
+        "sunny_human_height",
+        "sunny_landscape_depth",
+        "rain_atmosphere_and_water"
+      ],
+      "question_fr": "L'étagement premier plan, plan moyen et lointain, la brume et les silhouettes donnent-ils une profondeur au moins comparable ?"
+    },
+    {
+      "id": "lighting",
+      "label_fr": "lumière",
+      "required_panel_ids": [
+        "sunny_human_height",
+        "sunny_landscape_depth",
+        "rain_atmosphere_and_water",
+        "clear_to_rain_response"
+      ],
+      "question_fr": "La lumière, les ombres, l'exposition, les reflets et la réponse à la pluie restent-ils cohérents, lisibles et expressifs ?"
+    },
+    {
+      "id": "finish",
+      "label_fr": "finition",
+      "required_panel_ids": [
+        "sunny_human_height",
+        "sunny_landscape_depth",
+        "rain_atmosphere_and_water",
+        "clear_to_rain_response"
+      ],
+      "question_fr": "Le rendu global paraît-il intentionnel et abouti, sans artefact dominant, rupture de matériau, répétition évidente ou effet de démo vide ?"
+    }
+  ],
+  "review_contract": {
+    "reviewer_kind": "human_owner",
+    "allowed_verdicts": [
+      "accepted",
+      "rejected",
+      "inconclusive"
+    ],
+    "observation_per_axis_required": true,
+    "blocking_issue_required_for": [
+      "rejected",
+      "inconclusive"
+    ],
+    "external_hash_verification_required": true,
+    "protocol_sha256_binding_required_for_future_receipt": true,
+    "source_limitations_acknowledgement_required": true,
+    "protocol_may_close_r1_051": false,
+    "protocol_may_authorize_gate1_transition": false,
+    "current_human_verdict": null
+  },
+  "boundaries": {
+    "historical_post_rendered_at_protocol_capture_time": true,
+    "contemporaneous_2026_08_29_capture_available": false,
+    "source_video_bytes_available": false,
+    "source_video_sha256_available": false,
+    "live_demo_mutable": true,
+    "public_version_or_commit_available": false,
+    "direct_pixel_comparison_allowed": false,
+    "grassworks_media_copied_into_forge": false,
+    "grassworks_assets_copied_into_forge": false,
+    "grassworks_code_or_bundles_retained": false,
+    "cadle_assets_present": false,
+    "human_review_performed": false
+  },
+  "qualification": {
+    "machine_protocol_defined": true,
+    "external_artifact_hashes_required": true,
+    "technically_ready_for_future_human_package_integration": true,
+    "reference_snapshot_reproducible": false,
+    "human_review_performed": false,
+    "r1_051_closed": false,
+    "gate1_transition_authorized": false
+  }
+}

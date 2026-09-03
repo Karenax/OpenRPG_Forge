@@ -894,13 +894,22 @@ et ses quinze refus attendus passent, soit seize cas au total.
   utilisateur historique du 29 août 2026 cite le post X `2093382978105966827` de Bilal Khan
   (`@Bk23544`), relié publiquement à **Three.js Grassworks**, à
   `https://grassworks.techredux.co/demo` et au walkthrough YouTube `Nhim18rc-XE`. L'audit Git initial
-  n'avait pas accès à cette provenance conversationnelle. `R1-051` reste **OUVERTE** : live mutable,
-  code privé, aucun commit/version public, capture locale historique, hash du média déclencheur,
-  protocole comparatif versionné ou verdict humain. Deux captures live courantes Sunny/Rain et un
+  n'avait pas accès à cette provenance conversationnelle. Le protocole sémantique v1 préparé depuis
+  `48038854`, SHA-256
+  `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`, relie maintenant trois JPEG
+  Grassworks externes et quatre PNG Forge `125ba0b`. Les sept tailles, hashes, signatures et dimensions
+  passent in situ ; quatre panneaux couvrent densité, naturel, profondeur, lumière et finition, et
+  24 cas synthétiques vérifient ses refus fail-closed. Le rendu actuel du post historique reste un
+  contexte d'identité exclu du verdict. Le paquet humain courant n'est volontairement pas modifié
+  avant que le commit d'introduction du protocole soit connu. `R1-051` reste **OUVERTE** : live mutable,
+  code privé, aucun commit/version public, capture locale historique, hash du média déclencheur ou
+  verdict humain. Deux captures live courantes Sunny/Rain et un
   rendu actuel du post X historique avec frame vidéo sont figés et hashés hors dépôt, sans constituer
   une capture contemporaine du 29 août ni le média source. Aucun média ou asset externe n'est
-  embarqué ; acquisition source autorisée si requise et revue encore dues ;
-  [preuve](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md) ;
+  embarqué ; acquisition source autorisée si requise, intégration au paquet humain et revue encore
+  dues ;
+  [reprise](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md),
+  [protocole](../evidence/gate1/R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md) ;
 - protocole A/B Forge/Cadle aligné acquis et validé ; verdict humain versionné encore requis :
   `R1-052`.
 

@@ -155,16 +155,23 @@ fortement établie, sans demander une confirmation utilisateur redondante ; Cadl
 Babylon.js « La Forêt des Brumes », créé après le message déclencheur, restent des références
 distinctes.
 
+Le protocole sémantique `R1-051` v1 est désormais défini et validé depuis `48038854`. Son SHA-256
+`cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d` lie, sans les embarquer,
+trois JPEG Grassworks externes et quatre PNG Forge : sept tailles, hashes, signatures et dimensions
+passent le contrôle in situ. Quatre panneaux couvrent les cinq axes densité, naturel, profondeur,
+lumière et finition ; 24 cas synthétiques refusent notamment traversal, paths absolus, altération de
+hash, comparaison pixel à pixel, verdict inventé et fermeture de route. Le rendu actuel du post X est
+réservé à l'identité et ne peut pas noter ces axes. Le paquet humain actuel n'est pas encore modifié :
+le commit d'introduction du protocole devra d'abord être connu et lié explicitement.
+
 `R1-051` reste **OUVERTE** : la démo Grassworks live est mutable, son code est privé, et aucun
-commit/version public, capture locale historique, hash du média déclencheur, protocole comparatif
-versionné ou verdict humain n'est acquis. Deux captures de l'état live courant (Sunny/Rain, High,
-1920 x 1080) et un rendu actuel du post X historique avec frame vidéo sont figés et hashés dans
-`.gate1-tools`, hors dépôt ; ils ne constituent ni une capture contemporaine du 29 août, ni les octets
+commit/version public, capture locale historique, hash du média déclencheur ou verdict humain n'est
+acquis. Les captures actuelles ne constituent ni une capture contemporaine du 29 août, ni les octets
 du média source. Aucun média, code ou asset Grassworks n'est copié dans Forge. Une acquisition source
-autorisée si requise, puis une revue humaine de densité, naturel, profondeur, lumière et finition
-restent dues ;
+autorisée si requise, l'intégration au paquet humain puis la revue humaine restent dues ;
 voir
-[`R1_051_WEBGPU_REFERENCE_RECOVERY.md`](docs/evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md).
+[`R1_051_WEBGPU_REFERENCE_RECOVERY.md`](docs/evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md) et
+[`R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md`](docs/evidence/gate1/R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md).
 
 Le protocole A/B `R1-052` versionné à `1bd5292` relie désormais, sans embarquer de média Cadle, trois
 vues Forge et trois références Cadle consultées in situ. Il fixe la même machine, 1920 × 1080 High,

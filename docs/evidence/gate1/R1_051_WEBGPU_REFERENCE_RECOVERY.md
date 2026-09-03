@@ -4,9 +4,10 @@ Date de l'audit : **2026-09-03**
 
 Statut : **IDENTITÉ FORTEMENT ÉTABLIE — ROUTE OUVERTE, RÉFÉRENCE NON FIGÉE**
 
-Cette preuve corrige uniquement l'affirmation antérieure selon laquelle aucun nom ni URL de la
-référence n'était retrouvable. Le dépôt ne contient aucun média externe, ne qualifie aucune
-comparaison visuelle et ne ferme ni `R1-051`, ni Gate 1. Deux captures de l'état live courant et une
+Cette preuve corrige l'affirmation antérieure selon laquelle aucun nom ni URL de la référence n'était
+retrouvable et lie désormais le protocole sémantique versionné qui prépare sa future revue humaine.
+Le dépôt ne contient aucun média externe, ne qualifie aucune comparaison visuelle et ne ferme ni
+`R1-051`, ni Gate 1. Deux captures de l'état live courant et une
 capture du rendu actuel du post X historique avec un frame de sa vidéo embarquée sont conservées
 uniquement dans la racine de preuve externe `.gate1-tools` et liées par SHA-256 ci-dessous. Aucune ne
 constitue une capture contemporaine du rendu vu le 29 août 2026 ni le média source de la vidéo.
@@ -88,6 +89,21 @@ embarquee. Elle lie visuellement la référence au post historique, mais reste u
 3 septembre : les octets de la vidéo source ne sont pas conservés ni hashés, et cette image ne prouve
 pas à elle seule que l'état servi n'a jamais changé.
 
+## Protocole comparatif versionné
+
+Le contrat
+[`r1-051-grassworks-forge-semantic-protocol.v1.json`](r1-051-grassworks-forge-semantic-protocol.v1.json)
+et son
+[`guide de revue`](R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md) relient les trois JPEG externes et
+quatre vues Forge de la campagne `125ba0b` par chemins relatifs, tailles, dimensions et SHA-256. Ils
+fixent quatre panneaux sémantiques et les cinq axes **densité, naturel, profondeur, lumière et
+finition**, sans comparaison pixel à pixel. Le validateur dédié recoupe les sept fichiers in situ et
+refuse les paths hors racine, les hashes altérés, un schéma divergent ou toute prétention de verdict.
+
+Ce protocole est seulement techniquement prêt pour une future intégration au paquet humain. Le paquet
+actuel n'est pas modifié avant que le commit d'introduction du protocole soit connu ; aucun relecteur
+humain et aucun verdict ne sont enregistrés par ce lot.
+
 ## Pourquoi les autres références ne sont pas substituées
 
 - **Cadle** est la baseline Three.js/WebGL2 distincte de `R1-052` ; son identité, ses captures et son
@@ -116,9 +132,11 @@ L'identification est acquise, mais la référence n'est pas encore une preuve re
 4. aucune capture **contemporaine** du 29 août ni aucun SHA-256 du média vidéo source n'est
    disponible ; le rendu actuel hashé du post et les deux captures live courantes ne comblent pas
    complètement cette lacune ;
-5. aucun protocole `R1-051` versionné ne fixe encore les frames ou cadrages de référence, la
-   résolution, le profil Forge et la notation de densité, naturel, profondeur, lumière et finition ;
-6. aucune revue humaine n'a produit de verdict.
+5. le protocole `R1-051` versionné fixe désormais des panneaux sémantiques à partir des observations
+   courantes et des vues Forge existantes, mais il ne transforme pas ces observations en snapshot
+   historique reproductible ;
+6. aucune revue humaine n'a produit de verdict et le protocole n'est pas encore lié par son commit et
+   son SHA-256 au paquet humain.
 
 Le statut fail-closed reste donc nécessaire. Le paquet humain emploie désormais le verrou exact
 `blocked_reference_not_frozen` : il reconnaît l'identité et les trois captures actuelles sans les
@@ -133,8 +151,8 @@ Un lot ultérieur, exécuté hors d'une acquisition PresentMon et sans intégrer
 2. enregistrer hors des assets produit l'URL, la date d'acquisition, les métadonnées utiles, la taille
    et le SHA-256, avec une frontière de redistribution explicite ; ce point est acquis pour les deux
    captures live courantes et le rendu actuel du post historique, mais pas pour la vidéo source ;
-3. versionner un protocole comparatif qui désigne des frames/cadrages précis et les vues Forge
-   correspondantes ;
+3. intégrer au paquet humain futur le protocole versionné, après connaissance de son commit, et
+   revérifier ses sept artefacts externes ;
 4. faire juger humainement densité, naturel, profondeur, lumière et finition ;
 5. conserver un verdict explicite `accepted`, `rejected` ou `inconclusive` sans transformer les
    métriques automatisées en jugement visuel.

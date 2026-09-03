@@ -1,7 +1,7 @@
 {
   "schema": "forge.gate1-r1-051-reference-recovery",
   "schema_version": 1,
-  "status": "identity_strongly_established_current_live_state_sampled_historical_reference_not_frozen",
+  "status": "identity_strongly_established_current_live_state_sampled_protocol_versioned_historical_reference_not_frozen",
   "historical_provenance": {
     "conversation_title": "Comparaison rendu Godot",
     "conversation_id": "6a933ea2-af00-83eb-b408-a696ea67fa8b",
@@ -112,7 +112,7 @@
     "current_live_capture_available": true,
     "current_live_capture_sha256_available": true,
     "current_live_capture_repo_external": true,
-    "comparison_protocol_versioned": false,
+    "comparison_protocol_versioned": true,
     "grassworks_media_bundles_source_or_assets_retained": false,
     "grassworks_assets_copied_into_forge": false,
     "human_review_performed": false

@@ -749,19 +749,25 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, IDENTITÉ
-  FORTEMENT ÉTABLIE MAIS NON FIGÉE** : la conversation historique retrouve le message utilisateur du
+  FORTEMENT ÉTABLIE, PROTOCOLE PRÊT MAIS RÉFÉRENCE NON FIGÉE** : la conversation historique retrouve le message utilisateur du
   29 août 2026 et son URL exacte vers le post X `2093382978105966827` de Bilal Khan (`@Bk23544`). Les
   sources publiques contemporaines le relient à **Three.js Grassworks**, à
   `https://grassworks.techredux.co/demo` et au walkthrough YouTube `Nhim18rc-XE`. Le post constitue la
   provenance utilisateur ; aucune confirmation redondante n'est requise. La démo live est cependant
   mutable, son code est privé, et aucun commit/version public, capture locale historique, hash du
-  média déclencheur, protocole comparatif versionné ou verdict humain n'est acquis. Deux captures
+  média déclencheur ou verdict humain n'est acquis. Deux captures
   Sunny/Rain de l'état live courant et un rendu actuel du post X historique avec frame vidéo sont
   figés et hashés hors dépôt ; ils ne sont ni une capture contemporaine du 29 août, ni les octets du
-  média source. Une acquisition source autorisée si requise, puis la revue humaine restent dues. Cadle
+  média source. Le protocole v1 depuis `48038854`, SHA-256
+  `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`, relie ces trois JPEG et quatre
+  vues Forge `125ba0b` sans copie. Son validateur passe sept artefacts externes, quatre panneaux, cinq
+  axes et 24 cas synthétiques fail-closed. Il est prêt pour une future intégration au paquet humain,
+  après connaissance de son commit ; il ne contient aucun verdict et ne ferme pas la route. Une
+  acquisition source autorisée si requise, l'intégration au paquet puis la revue humaine restent dues. Cadle
   et le prototype Babylon.js
   « La Forêt des Brumes », créé ensuite, sont distincts ;
-  [preuve](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md).
+  [reprise](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md),
+  [protocole](../evidence/gate1/R1_051_GRASSWORKS_FORGE_SEMANTIC_PROTOCOL.md).
 - [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ;
   les trois captures Cadle sont référencées par chemin relatif et SHA-256, consultées uniquement in
   situ et jamais copiées dans Forge. Le protocole A/B versionné `1bd5292` fixe trois cadrages
