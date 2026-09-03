@@ -1,0 +1,203 @@
+{
+  "schema": "forge.gate1-cadle-forge-ab-protocol",
+  "schema_version": 1,
+  "status": "ready_for_human_review",
+  "scope": "r1-052_visual_impact_and_cost_context",
+  "qualified_software_baseline": {
+    "commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
+    "tree": "cc6efae0289b10dcf12f97e6bb4d97b3ead29f90"
+  },
+  "evidence": {
+    "forge": {
+      "evidence_set_id": "native_water_125ba0b",
+      "commit": "125ba0b8bb1fe04b2b34cae5abc41c26d1919b00",
+      "tree": "6d4639c824ccfa81c3d5ed911903cec2bb3c5074",
+      "runtime": "native_bevy_vulkan",
+      "world_extent_m": [
+        512,
+        512
+      ],
+      "capture_resolution_px": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "requested_vsync": false,
+      "visual_delta_to_qualified_baseline": "no_rendering_behavior_change_identified_by_reviewed_diff",
+      "visual_delta_review": {
+        "range": "125ba0b8bb1fe04b2b34cae5abc41c26d1919b00..4e476b31ee33533b6f4023804d8ecd1be02f9c55",
+        "stable_patch_id": "5b2a82aa589ec7d0fd0eedd5bb4d9ab9d15ae6ba",
+        "reviewed_runtime_paths": [
+          "apps/forge_runtime/src/main.rs",
+          "crates/forge_engine/src/lib.rs",
+          "crates/forge_engine/src/quality.rs",
+          "crates/forge_engine/src/water.rs"
+        ],
+        "conclusion": "capture route additions, validator correction and behavior-preserving refactors only"
+      }
+    },
+    "cadle": {
+      "evidence_set_id": "cadle_snapshot_ea0da625",
+      "commit": "ea0da62549980816a6a27e08b75808b1f56d70e7",
+      "tree": "f0d52e434454fe302052d22eafde203bc361cc1f",
+      "runtime": "browser_three_webgl2_angle_d3d11",
+      "world_extent_m": [
+        2000,
+        2000
+      ],
+      "capture_resolution_px": [
+        1920,
+        1080
+      ],
+      "quality": "high",
+      "seed": 1337,
+      "requested_vsync": false
+    }
+  },
+  "common_environment": {
+    "same_physical_machine": true,
+    "os": "Windows 11 Pro 10.0.26200 x64",
+    "cpu": "AMD Ryzen 5 7600, 6 cores / 12 threads",
+    "gpu": "AMD Radeon RX 7800 XT",
+    "windows_driver": "32.0.31041.1004",
+    "resolution_px": [
+      1920,
+      1080
+    ],
+    "quality": "high"
+  },
+  "comparison_pairs": [
+    {
+      "id": "terrain_and_macro_composition",
+      "framing_class": "landscape_context",
+      "forge_artifact_id": "native_distant_clear",
+      "cadle_artifact_id": "cadle_vale_ground",
+      "review_axes": [
+        "terrain",
+        "atmosphere",
+        "readability"
+      ],
+      "camera_equivalence": "semantic_only_not_geometric",
+      "direct_pixel_comparison_allowed": false
+    },
+    {
+      "id": "vegetation_at_human_height",
+      "framing_class": "human_height_ground_cover",
+      "forge_artifact_id": "native_human_clear",
+      "cadle_artifact_id": "cadle_forest_ground",
+      "review_axes": [
+        "vegetation",
+        "atmosphere",
+        "readability",
+        "game_feel"
+      ],
+      "camera_equivalence": "semantic_only_not_geometric",
+      "direct_pixel_comparison_allowed": false
+    },
+    {
+      "id": "water_from_shore_context",
+      "framing_class": "water_and_banks",
+      "forge_artifact_id": "native_water_clear",
+      "cadle_artifact_id": "cadle_water_golden_shore",
+      "review_axes": [
+        "water",
+        "atmosphere",
+        "readability",
+        "game_feel"
+      ],
+      "camera_equivalence": "semantic_only_not_geometric",
+      "direct_pixel_comparison_allowed": false
+    }
+  ],
+  "review_axes": [
+    "terrain",
+    "vegetation",
+    "water",
+    "atmosphere",
+    "readability",
+    "game_feel"
+  ],
+  "cost_context": {
+    "comparison_rule": "context_only_no_raw_fps_duel",
+    "forge": {
+      "observed_runtime": "native_bevy_vulkan",
+      "world_extent_m": [
+        512,
+        512
+      ],
+      "high_profile_observations": {
+        "terrain_chunks": 64,
+        "vegetation_placements": 8282,
+        "grass_batches": 64,
+        "hlod_batches": 64,
+        "water_triangles": 1088
+      },
+      "limits": [
+        "The capture overlay exposes the opaque pass only, not whole-frame GPU time.",
+        "Global GPU draw calls, triangles and instances remain pending R1-037.",
+        "The RX 7800 XT is the development GPU, not the required RTX 3060 or RX 6600 target."
+      ]
+    },
+    "cadle": {
+      "observed_runtime": "browser_three_webgl2_angle_d3d11",
+      "world_extent_m": [
+        2000,
+        2000
+      ],
+      "water_view": {
+        "fps": 203.3,
+        "mean_ms": 4.92,
+        "p95_ms": 6.2,
+        "gpu_mean_ms": 4.98,
+        "draw_calls": 252,
+        "triangles": 2869452,
+        "js_heap_mib": 468.3
+      },
+      "dense_village": {
+        "fps": 169.5,
+        "mean_ms": 5.9,
+        "p95_ms": 7.7,
+        "gpu_mean_ms": 4.59,
+        "draw_calls": 227,
+        "triangles": 2872960,
+        "js_heap_mib": 414.8
+      },
+      "limits": [
+        "Cadle measures a different engine, backend, scene area and gameplay workload.",
+        "Cadle frame metrics provide context only and cannot be ranked directly against Forge FPS."
+      ]
+    },
+    "non_comparable_dimensions": [
+      "native Vulkan versus browser WebGL2 over ANGLE D3D11",
+      "512 x 512 m Forge valley versus approximately 2 km2 Cadle world",
+      "different authored worlds, cameras, assets and gameplay overlays",
+      "Forge lacks qualified global submitted-work counters until R1-037 passes"
+    ]
+  },
+  "review_contract": {
+    "human_review_required": true,
+    "allowed_verdicts": [
+      "accepted",
+      "rejected",
+      "inconclusive"
+    ],
+    "required_observation_per_axis": true,
+    "acceptance_rule": "forge_impact_at_least_comparable_to_cadle_with_limits_acknowledged",
+    "machine_protocol_closes_route": false
+  },
+  "cadle_media_policy": {
+    "review_in_place_only": true,
+    "copied_into_forge": false,
+    "tracked_in_forge": false,
+    "published": false,
+    "only_paths_sizes_hashes_metrics_and_text_are_versioned": true
+  },
+  "qualification": {
+    "same_machine_resolution_and_quality_aligned": true,
+    "semantic_framing_classes_versioned": true,
+    "cost_boundaries_versioned": true,
+    "human_review_performed": false,
+    "r1_052_qualified": false,
+    "gate1_transition_authorized": false
+  }
+}
