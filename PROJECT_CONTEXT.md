@@ -50,13 +50,15 @@ ETW 0/0, mais zéro ligne Forge. Le code runtime d'attente et les arguments Pres
 au replay schema 11 réussi ; un nouveau replay exact après réveil manuel confirmé reste dû.
 
 La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
-route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `347d782`. Les validations
-ciblées passent : 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et 22/22 tests Python
-RenderDoc. La campagne eau exacte `125ba0b` produit 29 PNG uniques, un MP4 et des logs propres ; son
+route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `e2d924b` et `798b55d`.
+Les validations passent : Clippy strict moteur/runtime, 141/141 tests moteur, 69/69 tests runtime,
+4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 tests Python RenderDoc. La
+campagne eau exacte `125ba0b` produit 29 PNG uniques, un MP4 et des logs propres ; son
 statut reste `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`. Le préflight
 RenderDoc exact `347d782` vérifie l'inventaire externe des 72 fichiers puis s'arrête avant build sur
-l'absence d'une couche Vulkan déjà correctement enregistrée, sans mutation hôte ni capture. Ces
-preuves ciblées ne constituent pas une qualification GPU ou humaine.
+l'absence d'une couche Vulkan enregistrée, sans mutation hôte ni capture. Le portail complet du
+candidat `4e476b31`, arbre `cc6efae0`, passe 354/354 tests workspace, les checks WASM, Trunk Release,
+`cargo deny` et la politique RustSec. Ces preuves ne constituent pas une qualification GPU ou humaine.
 
 La source exacte des acquisitions schema 8 de Gate 1 est
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -83,12 +85,14 @@ validation porte le SHA-256 `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002
 Les diagnostics schema 8 A4/A5/A6 réutilisent tous le binaire `21228a…` et ne qualifient pas la Gate :
 A4 échoue sur un seul outlier, tandis qu'A5 et A6 passent les seuils et le focus. Leur target Cargo
 partagé et l'absence de rebuild gouverné propre imposent `qualifying=false`. Ils ne remplacent donc ni
-le Replay2 ni un PASS de `R1-048`. La dernière validation workspace **298/298** reste épinglée à
-l'overlay `afb270c3`. La validation proportionnée du lot schema 8 `49acfd56` passe **66/66** tests Release
-`forge_runtime --all-features` (62 unitaires et 4 intégration), ainsi que le formatage Rust, l'auto-test
-A/B schema 2 et `git diff --check`. Elle ne remplace pas un rejeu workspace complet. Le seul
-avertissement de build connu reste la future incompatibilité transitive de
-`proc-macro-error2 v2.0.1`.
+le Replay2 ni un PASS de `R1-048`. Le dernier rejeu workspace complet est épinglé à
+`4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Le portail `Test-Rust.ps1` passe le formatage, Clippy
+workspace strict, 354/354 tests natifs, le check moteur WASM, Clippy Studio WASM, Trunk Release,
+`cargo deny` et la politique RustSec, avec `FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`.
+L'ancien résultat 298/298 de `afb270c3` et les 66/66 tests schema 8 restent des preuves historiques
+ciblées. RustSec conserve le blocker de distribution `RUSTSEC-2024-0429` pour `glib 0.18.5` ;
+l'avertissement transitif connu reste `proc-macro-error2 v2.0.1`.
 
 Les preuves Browser High clear/rain restent épinglées au commit exact `d9e2670` : **24/24 contrôles** passent
 pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 200, sans requête `.meta`,
@@ -133,8 +137,9 @@ conserve `weather_gpu_execution_observed=false`, `human_review_performed=false`,
 `gameplay_controller_exercised=false` et `gate1_routes_qualified=false`. `R1-023`, `R1-025`,
 `R1-026`, `R1-046` à `R1-048`, le GPU cible, le parcours représentatif et les revues humaines restaient
 donc dus à cette campagne. Son audit de provenance strict est versionné avec `6a24cabe` ; la qualification
-historique complète `R1-053`/`R1-054` reste épinglée à
-`92286910a9bab622d5d54905551c0f03172e98e7`. `R1-033` est fermé **N/A
+historique complète `R1-053`/`R1-054` reste épinglée à `92286910`. Le rejeu qualifiant `4e476b31`
+repasse `CADLE_ACQUISITION_PASS`, `CADLE_GATE_C_BOUNDARY_PASS tracked=396 checkout_present=True` et
+l'audit strict : 27 fichiers, 9 modèles, 507 fichiers Cadle comparés, zéro correspondance. `R1-033` est fermé **N/A
 conditionnel** au snapshot `28985328` : les neuf glTF gouvernés n'ont aucune
 animation, le manifeste ne contient que du décor et le joueur est une capsule procédurale sans asset
 animé.
@@ -1390,9 +1395,10 @@ Créer `examples/visual_valley` :
 - overlay complet ;
 - captures déterministes.
 
-État consolidé à la source exacte `49acfd5695a7246062a86fb84f5d933130579187`, arbre
-`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` : la correction de prépasse végétation, le contrôleur
-gameplay/Rapier réel, les reçus de timeout, ADR-0008 et la garde `9db35a8e` sont conservés. La session
+État consolidé à la source exacte `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` : la correction de prépasse végétation, le contrôleur
+gameplay/Rapier réel, les reçus de timeout, ADR-0008 et la garde `9db35a8e` sont conservés. Les replays
+de cadence schema 8 restent attachés à `49acfd56`/`c6e7f6c5`. La session
 ETW orpheline qui contaminait les captures précédentes a été arrêtée par son seul identifiant ; le
 harnais gouverné refuse désormais toute session Gate 1 préexistante, sérialise les acquisitions avec
 un mutex machine et ne termine que la session qu'il possède.
@@ -1436,11 +1442,12 @@ secondes sans réapparition du défaut depth-only. Son validateur automatisé pa
 75 pipelines prêts et des journaux runtime vides. La campagne ne sérialise ni route `R1-023`, ni
 observation du pass optique GPU ; `weather_gpu_execution_observed=false` et
 `human_review_performed=false`. La dernière campagne Release normale complète
-`15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration ; ces validations
-doivent être rejouées sur le lot courant.
-Le harnais temporel
-Browser `a4e9824a` reste acquis mais n'a pas été rejoué sur ce commit et laisse la revue humaine en
-attente. L'overlay CPU/GPU `afb270c3`
+`15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration. Le portail qualifiant
+`4e476b31` les supersède avec 354/354 tests workspace, Clippy strict, WASM, Trunk Release et
+supply-chain PASS. Le validateur statique `Test-Gate1BrowserTemporal.ps1` est rejoué avec succès sur
+`4e476b31`, mais conserve `browser_run=not_performed_by_static_test` et
+`human_temporal_inspection=pending`. L'acquisition Browser réelle reste épinglée à `a4e9824a`.
+L'overlay CPU/GPU `afb270c3`
 reste acquis sur deux captures exactes et
 lisibles. La matrice native `5eadec7f`
 qualifie les quatre tiers fixes, clear/rain, l'adaptation High vers Ultra et le benchmark High. Les
@@ -1453,8 +1460,9 @@ conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joue
 représentation joueur reste une capsule procédurale sans asset.
 
 Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay qualifiant PASS et la cible RTX 3060/RX 6600
-reste due. `R1-023` et `R1-037` disposent maintenant de code intégré et de validations ciblées
-(`e7e7d419`, puis `dbe5eb86`/`140acbdd` jusqu'à `347d782`). Restent non acquis : observation GPU et
+reste due. `R1-023` et `R1-037` disposent maintenant de code intégré et de validations strictes
+(`e7e7d419`, `e2d924b`, puis `dbe5eb86`/`140acbdd` jusqu'à `798b55d`). `4e476b31` préserve les octets
+glTF et qualifie le workspace complet. Restent non acquis : observation GPU et
 revue humaine de l'eau, matrice Browser/profils, autorisation de couche Vulkan puis quatre captures
 RenderDoc. La CI distante reste
 `NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a été introduit. Voir
@@ -1984,8 +1992,9 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 reste ouverte au commit/arbre schema 8 exacts
-`49acfd5695a7246062a86fb84f5d933130579187`/`c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`.
+Gate C et Gate 0 sont passées. Gate 1 reste ouverte sur la base logicielle qualifiée
+`4e476b31ee33533b6f4023804d8ecd1be02f9c55` / `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`.
+Les derniers replays de cadence gouvernés restent attachés à `49acfd56` / `c6e7f6c5`.
 La session PresentMon orpheline qui contaminait les anciennes captures a été arrêtée par identifiant
 exact ; la garde `9db35a8e` refuse les sessions préexistantes et ne termine que la sienne. Le run
 schema 7 historique conserve 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS, zéro intervalle
@@ -2004,25 +2013,26 @@ qualité historique `5/14/15`. `4b283182` corrige le contrat, passe 141/141 mote
 runtime et 1/1 intégration, puis franchit réellement la readiness en `5/16/13` avant un ABORT
 pré-signal sur stdout PresentMon vide. `2ced195b` reproduit cet ABORT après un rebuild propre de
 30 min 06 s. Aucun verdict de cadence schema 12 n'est encore acquis.
-La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
-52/52 runtime et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute 66/66 tests Release
-`forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne intégrée
-courante ajoute 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et 22/22 tests Python RenderDoc
-PASS ; aucun nouveau replay workspace complet, Clippy workspace ou WASM courant n'est revendiqué ici.
+La dernière campagne complète historique `15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime
+et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute historiquement 66/66 tests Release
+`forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne
+intégrée qualifiée passe Clippy moteur/runtime, 141/141 moteur, 69/69 runtime, 4/4 garde, 4/4 Rust
+RenderDoc et 22/22 Python. Le portail complet `4e476b31` passe 354/354 tests workspace, Clippy
+workspace, le check moteur WASM, Clippy Studio WASM, Trunk Release, `cargo deny` et RustSec.
 La preuve visuelle exacte `125ba0b`, arbre `6d4639c8`,
 conserve 29 PNG uniques et un MP4 de 24 checkpoints/3 secondes, 75 pipelines prêts et des logs runtime
 vides. Son statut exact reste `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`.
 Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
-3/3 ROIs végétation, témoin terrain, 4/4
-bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
+3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres. Son validateur statique est
+rejoué sur `4e476b31`, sans nouvelle acquisition Browser ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-L'optique d'eau `e7e7d419` est validée automatiquement et réacquise à `125ba0b`, sans qualification
-GPU/humaine. Le contrat/chemin de capture RenderDoc `dbe5eb86`/`140acbdd`, durci jusqu'à `347d782`,
-passe ses validations hors GPU ; son préflight réel recoupe le bundle complet puis s'arrête sans
-mutation sur la couche Vulkan non enregistrée. Quatre captures Vulkan restent `NOT RUN`. Restent
-également dus : replay schema 12 PASS de `R1-048`, replay local transversal, GPU cible `R1-041`,
-preuves Browser finales et revue humaine.
+L'optique d'eau `e7e7d419`, durcie par `e2d924b`, est validée automatiquement et réacquise à
+`125ba0b`, sans qualification GPU/humaine. Le contrat/chemin de capture RenderDoc
+`dbe5eb86`/`140acbdd`, durci jusqu'à `798b55d`, passe ses validations hors GPU ; son préflight réel
+recoupe le bundle complet puis s'arrête sans mutation sur la couche Vulkan non enregistrée. Quatre
+captures Vulkan restent `NOT RUN`. Restent également dus : replay schema 12 PASS de `R1-048`, GPU
+cible `R1-041`, preuves Browser finales et revue humaine.
 Aucun asset Cadle n'a été ajouté à Forge.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners

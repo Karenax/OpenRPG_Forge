@@ -292,12 +292,30 @@ et sans transformer une acquisition automatisée en revue humaine.
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée
-`e7e7d419`, de 14/14 tests eau PASS et d'une campagne exacte `125ba0b` avec 29 PNG uniques, vidéo et
+`e7e7d419`, de la qualification stricte moteur `e2d924b` (Clippy, 141/141 tests bibliothèque et 1/1
+transition Low → Ultra → Low PASS) et d'une campagne exacte `125ba0b` avec 29 PNG uniques, vidéo et
 journaux propres. `R1-037` dispose du contrat/modèle `dbe5eb86`, de la route runtime/orchestrateur
-`140acbdd`, de 67/67 tests runtime + 1/1 intégration et des durcissements `9bb1d405` → `125ba0b` →
-`347d782`. Son préflight réel vérifie le bundle complet puis s'arrête avant build sur l'absence d'une
-couche Vulkan RenderDoc déjà correctement enregistrée. Ces routes restent décochées : qualification
-humaine/GPU de l'eau et quatre captures RenderDoc indépendantes ne sont pas acquises.
+`140acbdd`, des durcissements jusqu'à `347d782`, puis de la qualification stricte runtime `798b55d` :
+69/69 tests runtime, 4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 tests
+Python RenderDoc passent. Son préflight réel vérifie le bundle complet puis s'arrête avant build sur
+l'absence d'une couche Vulkan RenderDoc enregistrée.
+
+Le correctif `4e476b31`, arbre `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, classe les neuf
+descripteurs `.gltf` gouvernés comme binaires dans `.gitattributes` afin que leur checkout Windows
+préserve exactement les octets suivis. Le portail workspace complet `Test-Rust.ps1` passe sur ce
+commit : 354 tests natifs, check moteur WASM, Clippy Studio WASM, build Trunk Release, `cargo deny`
+et politique RustSec, avec le marqueur final
+`FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`. RustSec conserve explicitement le blocker
+de distribution connu `RUSTSEC-2024-0429` pour `glib 0.18.5`. Le rejeu non-GPU repasse aussi
+l'acquisition Cadle et Gate C, l'audit strict CC0/provenance (27 fichiers, 9 modèles, 507 fichiers
+Cadle comparés, zéro correspondance), test statique du harnais Browser temporel, Presentation A/B
+self-test et 22/22 tests Python RenderDoc. Le test statique n'a pas relancé l'acquisition Browser ;
+l'inspection Browser humaine reste `pending`. Les **13 routes**
+`R1-014`, `R1-023`, `R1-025`, `R1-026`,
+`R1-037`, `R1-041`, `R1-046`, `R1-047`, `R1-048`, `R1-049`, `R1-050`, `R1-051` et `R1-052`
+restent ouvertes : qualification humaine/GPU de l'eau, quatre captures RenderDoc indépendantes,
+benchmark cible et revues humaines ne sont pas acquis. Gate 1 reste **OUVERTE** et Gate 2 reste
+**INTERDITE**.
 
 Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
 les deux suivantes avant signal. À `9d19cde5`,
@@ -324,11 +342,12 @@ La campagne native initiale reste épinglée au commit
 `2066fce699e4dd178c3d679cf4b0168d2e727d3d`. Ce commit ajoute un harness natif exact-commit pour
 les vues hauteur humaine/lointaine/eau, la séquence clair → pluie → clair et une vidéo de trois
 secondes. Ses 37/37 tests ciblés, le formatage, Clippy strict du runtime et le validateur d'acquisition
-passent. La validation workspace 298/298 et le check Studio WASM restent épinglés au commit overlay
-`afb270c3` tant que le rejeu workspace du commit courant n'est pas consolidé. La validation
-proportionnée du lot schema 8 passe 66/66 tests Release `forge_runtime --all-features` (62 unitaires,
-4 intégration), le formatage Rust, l'auto-test A/B schema 2 et le diff-check ; elle n'est pas présentée
-comme un replay workspace complet.
+passent. La validation workspace historique 298/298 et le check Studio WASM restent attribués au
+commit overlay `afb270c3`. Ils sont désormais supplantés pour la base logicielle qualifiée par le portail complet
+`4e476b31` : 354/354 tests workspace, check moteur WASM, Clippy Studio WASM et Trunk Release PASS. La
+validation proportionnée du lot schema 8 passe historiquement 66/66 tests Release
+`forge_runtime --all-features` (62 unitaires, 4 intégration), le formatage Rust, l'auto-test A/B
+schema 2 et le diff-check ; elle reste distincte du replay workspace qualifiant de `4e476b31`.
 
 Le correctif prépasse `6a24cabe69e242ff551b265d44da67ca8d017c98`, arbre
 `38a6990ce02baa651773d23d1038b3ef9ff9e76d`, désactive la prépasse caméra du matériau de végétation
@@ -580,8 +599,9 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-021` brouillard volumétrique ou approximation mesurée — approximation de distance observée
   en natif et dans la scène Browser ; volumétrie réelle non revendiquée.
 - [x] `R1-022` eau de rivière — géométrie/composants observés ; présentation GPU non revendiquée.
-- [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée `e7e7d419` et 14/14
-  tests eau PASS ; la campagne native exacte `125ba0b` passe son contrôle d'artefacts. Les trois PNG
+- [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée `e7e7d419`, puis
+  qualification stricte moteur `e2d924b` avec 141/141 tests bibliothèque et 1/1 transition de profil
+  Low → Ultra → Low PASS ; la campagne native exacte `125ba0b` passe son contrôle d'artefacts. Les trois PNG
   eau clair/pluie/retour clair sont non vides et cohérents à l'inspection d'agent, mais la campagne ne
   sérialise ni route `R1-023`, ni observation du pass optique GPU ; `human_review_performed=false`.
   Aucun PASS GPU ou humain n'est revendiqué.
@@ -613,8 +633,9 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
 - [ ] `R1-037` draw calls, triangles, instances — contrat/modèle RenderDoc `dbe5eb86`, route
-  runtime/orchestrateur `140acbdd` et durcissements jusqu'à `347d782` intégrés ; 22/22 tests Python,
-  67/67 tests runtime + 1/1 intégration et inventaire préflight des 72 fichiers PASS. Le préflight
+  runtime/orchestrateur `140acbdd`, durcissements jusqu'à `347d782` et qualification stricte
+  `798b55d` intégrés ; 22/22 tests Python, 69/69 tests runtime, 4/4 tests du binaire de garde, 4/4
+  tests Rust RenderDoc ciblés et inventaire préflight des 72 fichiers PASS. Le préflight
   réel refuse l'absence d'une couche Vulkan enregistrée sans modifier l'hôte ; quatre captures indépendantes
   clear A/B + rain A/B restent `NOT RUN`, donc aucun compteur qualifiant n'est acquis.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.

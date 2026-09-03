@@ -18,13 +18,21 @@ documentées ; ils ne remplacent ni le benchmark GPU cible ni la revue humaine.
 
 La chaîne de travail courante intègre aussi l'optique d'eau native bornée `e7e7d419`, puis le contrat,
 le modèle et la route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à
-`347d782`. Les validations ciblées passent : 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et
-22/22 tests Python RenderDoc. La campagne eau exacte `125ba0b` passe son validateur automatisé avec
-29 PNG uniques, une vidéo et des logs propres. Le préflight RenderDoc réel vérifie les 72 fichiers du
-bundle puis refuse, avant build, l'absence d'une couche Vulkan déjà correctement enregistrée. Ces
-résultats ne ferment encore aucune route : les qualifications GPU/humaine de l'eau et les quatre
-captures Vulkan indépendantes restent dues. Aucun résultat GPU ou humain n'est déduit de la seule
-présence du code ou de composants ECS.
+`347d782`. Le lot `e2d924b` remet le moteur eau/qualité en conformité avec Clippy strict sans changer
+le contrat fonctionnel : 141/141 tests bibliothèque moteur et le test Low → Ultra → Low passent. Le
+lot `798b55d` durcit ensuite la machine d'état RenderDoc et sa garde de profil : 69/69 tests runtime,
+4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 tests Python RenderDoc passent.
+Le correctif de reproductibilité Windows `4e476b31` classe enfin les neuf descripteurs `.gltf`
+gouvernés comme binaires afin que Git préserve exactement leurs octets. Sur ce commit, le portail
+workspace complet `Test-Rust.ps1` passe : formatage, Clippy workspace strict, 354 tests natifs,
+check moteur WASM, Clippy Studio WASM, build Trunk Release, `cargo deny` et politique RustSec. Le
+marqueur final observé est `FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`.
+
+La campagne eau exacte `125ba0b` passe son validateur automatisé avec 29 PNG uniques, une vidéo et des
+logs propres. Le préflight RenderDoc réel vérifie les 72 fichiers du bundle puis refuse, avant build,
+l'absence d'une couche Vulkan enregistrée. Ces résultats ne ferment encore aucune
+route : les qualifications GPU/humaine de l'eau et les quatre captures Vulkan indépendantes restent
+dues. Aucun résultat GPU ou humain n'est déduit de la seule présence du code ou de composants ECS.
 
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
 Ils ont échoué ou sont restés non qualifiants selon leurs protocoles d'origine. Le lot `06b5fd40`
@@ -124,6 +132,9 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
+| préservation exacte des octets glTF sous Windows et qualification workspace | `4e476b31ee33533b6f4023804d8ecd1be02f9c55` | `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` | ajoute une règle `.gitattributes` binaire bornée aux neuf descripteurs glTF gouvernés ; checkout Windows 9/9 en octets canoniques ; `Test-Rust.ps1` PASS avec 354 tests natifs, WASM, Trunk Release, `cargo deny` et politique RustSec ; marqueur final `FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True` |
+| qualification stricte de la route runtime RenderDoc | `798b55ddbd903c1f5740d8fa23350268220430bf` | `f40c048befe2b5892f460e8ff4904da6fa192d0e` | Clippy strict runtime PASS ; 69/69 tests runtime + 4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 Python PASS ; aucune capture Vulkan qualifiante acquise |
+| qualification stricte eau et profils qualité | `e2d924b20fa9709b4455584aee513536b0f07f44` | `0cc0d1166dcd8d775771d2d52ffbc5b235ec89cf` | Clippy strict moteur PASS ; 141/141 tests bibliothèque moteur et 1/1 transition Low → Ultra → Low PASS ; aucune qualification GPU ou humaine ajoutée |
 | troisième replay schema 12 sans flux PresentMon | `2ced195bc2e396b599d1ed66680422e97cea7753` | `8a46bd4573863aa9eff91fe902423299bfe72add` | rebuild propre 30 min 06 s ; ready 69/69 et 401 frames de rendu observées ; ABORT avant signal sur stdout PresentMon vide ; probe host-wide ETW 0/0 sans ligne Forge ; aucun verdict performance |
 | correctif readiness et replay schema 12 sans flux PresentMon | `4b2831820fe6864046602f25ca5d92e1d63cbae8` | `16371171fc0b62a0d9064aff47cf5769e33b4106` | 141/141 moteur Release, 67/67 runtime + 1/1 intégration ; rebuild propre ; ready 69/69 et qualité `5/16/13` ; ABORT avant signal sur stdout PresentMon vide, aucun verdict performance |
 | premier replay schema 12, validateur qualité périmé | `9d19cde5a442ecfa7694a864aad0967c4acd65c9` | `1d7649bcda5862623ced8adcafd6b2a71cc31b41` | 34/34 champs exacts et distribution `5/16/13`, mais attente `5/14/15` ; ABORT avant ready, PresentMon non lancé, aucun verdict performance |
@@ -143,7 +154,7 @@ Gate 2.
 | source publiée et cadence de preuve historique | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant historique, seuils FAIL ; CI `33584774630` attachée à ce commit |
 | acquisition visuelle et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
 | correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
-| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source courante |
+| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source logicielle qualifiée |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
@@ -280,22 +291,34 @@ gouverné PASS sur un binaire propre.
 
 ## Validation source
 
-Le dernier rejeu workspace complet reste épinglé à la source exacte
-`afb270c328b7095a84d452b93b9fdd38e2737f33` :
+Le dernier rejeu workspace complet est épinglé à la source exacte
+`4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Il est exécuté dans le clone de qualification propre
+sur la branche `Rust`, avec `HEAD == origin/Rust` et une divergence `0/0` :
 
 | Contrôle | Résultat |
 |---|---|
-| `git diff --check` puis `cargo fmt --all -- --check` | **PASS** |
-| `cargo test -p forge_engine --lib --locked -j1` | **122/122 PASS** |
-| `cargo test --workspace --all-targets --locked -j1` | **298/298 PASS** — tous les crates et intégrations |
 | `cargo fmt --all -- --check` | **PASS** |
-| `cargo clippy --workspace --all-targets -- -D warnings` | **PASS**, zéro warning |
-| check Studio `wasm32-unknown-unknown`, features `web` | **PASS**, 8,24 s |
+| `cargo clippy --workspace --all-targets --locked -- -D warnings` | **PASS**, zéro warning projet |
+| `cargo test --workspace --all-targets --locked` | **354/354 PASS** dans 13 harnesses ; 141 moteur, 68 runtime, 52 monde, 44 projet et suites CLI/Studio/assets/intégration |
+| check `forge_engine` `wasm32-unknown-unknown`, feature `web` | **PASS**, 12 min 17 s |
+| Clippy strict `forge_studio` `wasm32-unknown-unknown`, feature `web` | **PASS**, 21 min 17 s |
+| `trunk build --release --config Trunk.toml` | **PASS** ; compilation Release 26 min 37 s puis optimisation/assemblage WASM |
+| `cargo deny check licenses bans sources advisories` | **PASS** — `advisories ok, bans ok, licenses ok, sources ok` |
+| `scripts/Test-RustSec.ps1` | **PASS politique** — `vulnerabilities=0 warnings=20 distribution_blockers=1` ; blocker conservé `RUSTSEC-2024-0429`, `glib 0.18.5` |
+| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS** — `CADLE_GATE_C_BOUNDARY_PASS tracked=396 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43` |
+| `scripts/Test-Gate1Provenance.ps1` SelfTest + Audit strict | **PASS** — 7 cas ; 1 manifeste, 27 fichiers, 9 modèles ; 507 fichiers Cadle comparés, 0 correspondance |
+| `scripts/Test-Gate1BrowserTemporal.ps1` | **PASS du test statique du harnais** ; `browser_run=not_performed_by_static_test`, acquisition réelle non rejouée et inspection temporelle humaine toujours `pending` |
+| `scripts/Test-Gate1PresentationAB.ps1 -SelfTest` | **PASS** |
+| tests Python RenderDoc | **22/22 PASS** |
+| marqueur portail | **`FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`** |
 
-Le check WASM conserve uniquement l'avertissement de future incompatibilité transitive connu pour
-`proc-macro-error2 v2.0.1`. Cette validation couvre la source et les contrats. Le rebuild Release et
-la preuve overlay afb et la matrice native 5e sont documentées ci-dessous ; la paire Browser/native d9
-reste une campagne historique exacte distincte.
+Le check et le build WASM conservent l'avertissement de future incompatibilité transitive connu pour
+`proc-macro-error2 v2.0.1`. Il reste distinct d'un warning projet. Cette validation couvre la source,
+les contrats, le bundle WebGPU Release et la politique supply-chain ; elle ne produit aucune capture
+GPU, revue humaine ou mesure de performance cible. Le précédent rejeu workspace `afb270c3`, la preuve
+overlay afb, la matrice native 5e et la paire Browser/native d9 restent des campagnes historiques
+exactes distinctes.
 
 Au lot natif `a7c9b1e1`, la validation proportionnée du nouveau harness passe 37/37 tests
 `forge_runtime`, le formatage, Clippy strict du runtime, la syntaxe PowerShell et l'acquisition native
@@ -722,7 +745,8 @@ complété par
 
 ## Provenance, CC0 et indépendance
 
-Le rejeu final de provenance sur `92286910` est **PASS automatisé local** :
+Le rejeu qualifiant de provenance sur `4e476b31`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, est **PASS automatisé local** :
 
 - sous-ensemble Quaternius Stylized Nature MegaKit Standard 1.0, licence `CC0-1.0` ;
 - 27 fichiers suivis, 9 modèles et 16 652 493 octets, tous déclarés et hashés ;
@@ -730,8 +754,11 @@ Le rejeu final de provenance sur `92286910` est **PASS automatisé local** :
 - 507 fichiers Cadle hachés, 39 fichiers Forge canoniques comparés ;
 - 0 copie exacte, 0 ligne normalisée commune d'au moins 40 caractères, 0 payload Cadle suivi et
   0 dépendance produit vers le clone ;
-- Visual Valley fonctionne sans clone Cadle produit ; le clone extérieur n'est qu'une référence de
-  comparaison en lecture seule.
+- l'acquisition épinglée et Gate C repassent avec `CADLE_ACQUISITION_PASS` puis
+  `CADLE_GATE_C_BOUNDARY_PASS tracked=396 checkout_present=True` ;
+- Visual Valley fonctionne sans clone Cadle produit ; le checkout ignoré n'est qu'une référence de
+  comparaison en lecture seule. La preuve JSON externe porte le SHA-256
+  `7d28d2df849a3243773b92993f4876280088c4fdb967fd33923a5255374923c6`.
 
 Cela qualifie `R1-053`, `R1-054` et la condition « code sans dépendance propriétaire obligatoire ».
 Cela ne constitue ni une expertise juridique exhaustive, ni une revue artistique, ni une preuve GPU.
@@ -766,7 +793,7 @@ Nouvelles cases fermées par les preuves consolidées :
 - `R1-033` comme **N/A conditionnel**, faute d'asset joueur animé gouverné dans le snapshot courant ;
 - `R1-055` par le présent rapport, avec verdict « poursuivre Gate 1 ».
 
-Restent explicitement ouvertes :
+Restent explicitement ouvertes, soit **13 routes** :
 
 - `R1-014`, `R1-023`, `R1-025` et `R1-026` ;
 - `R1-037`, `R1-041` et `R1-048` ;
@@ -840,18 +867,103 @@ DX12/DXC historiques restent invalides ; leur panne ETW est attribuée à la ses
 une métrique produit. La revue humaine FHD/QHD et les comparaisons matériaux/composition/A-B restent
 dues. Aucun asset Cadle n'a été ajouté à Forge.
 
-## CI distante
+## Exception CI distante ADR-0006
 
-Le [run officiel Rust gate `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630)
-reste attaché uniquement à `15635b3f85b623654e498b17ed299674928313e6` et ne valide ni
-`6f0e519afd01a701dd4d772d0d3837dd5cbf9814`, ni
-`06b5fd404bb4c3918b4b7ea154c8d7878609fa8d`, ni la chaîne `2bf5e44f`/`e1e818fc`/`9db35a8e`,
-ni le code schema 8 de ce lot. Ses quatre jobs — `wasm`, `supply-chain`,
-`native (ubuntu-24.04)` et `native (windows-2025)` — ont chacun **0 étape exécutée** et aucun runner
-alloué. La conclusion GitHub `failure` correspond au blocage de facturation, pas à un test du code :
-la CI distante est qualifiée **NOT RUN — infrastructure billing**. ADR-0006 autorise une dérogation
-administrative bornée jusqu'à Gate 4. Elle ne transforme pas la CI en PASS et n'efface aucune dette
-locale ou visuelle.
+Le [run d'origine de l'exception `33335683606`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33335683606)
+est attaché au commit `7286740c18fe9afa6cc207e388d5f335495fc650`. GitHub affiche la conclusion
+`failure`, mais aucun runner n'a été alloué et les quatre jobs ont une liste d'étapes vide :
+
+| Job | ID GitHub | Conclusion affichée | Étapes exécutées | Qualification Forge |
+|---|---:|---|---:|---|
+| `native (windows-2025)` | `99322040255` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `native (ubuntu-24.04)` | `99322040408` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `wasm` | `99322040420` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `supply-chain` | `99322040421` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+
+Le [run ultérieur `33584774630`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33584774630),
+attaché à `15635b3f85b623654e498b17ed299674928313e6`, reproduit la même frontière avec quatre jobs à zéro
+étape. Le [run exact du commit technique qualifié `33731403805`](https://github.com/Karenax/OpenRPG_Forge/actions/runs/33731403805)
+est attaché à `4e476b31ee33533b6f4023804d8ecd1be02f9c55`. Il est également affiché `failure`, mais ses quatre
+jobs ont zéro étape et l'annotation GitHub indique qu'ils n'ont pas démarré à cause des paiements ou du
+plafond de dépense :
+
+| Job du commit qualifié | ID GitHub | Conclusion affichée | Étapes exécutées | Qualification Forge |
+|---|---:|---|---:|---|
+| `wasm` | `100571949306` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `native (ubuntu-24.04)` | `100571949502` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `native (windows-2025)` | `100571949607` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+| `supply-chain` | `100571949654` | `failure` | 0 | `NOT RUN — infrastructure billing` |
+
+Ce run est attaché au commit qualifié, mais il n'a exécuté aucun test et n'a qualifié aucun octet de
+ce commit. Le commit qualifié est `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` ; il a été rejoué dans le clone de qualification
+`Rust` propre, aligné sur `origin/Rust` avec une divergence `0/0`. Le commit documentaire qui
+versionne ce rapport ne constitue pas un nouveau candidat logiciel et n'est pas présenté comme rejoué.
+
+Les commandes locales de substitution exécutées dans le clone de qualification propre sont :
+
+```powershell
+$env:CARGO_BUILD_JOBS = '1'
+pwsh -NoLogo -NoProfile -File .\scripts\Test-Rust.ps1
+pwsh -NoLogo -NoProfile -File .\scripts\Get-Cadle.ps1 -RepositoryRoot .
+pwsh -NoLogo -NoProfile -File .\scripts\Test-CadleGateC.ps1 -RepositoryRoot . -RequireCheckout
+pwsh -NoLogo -NoProfile -File .\scripts\Test-Gate1Provenance.ps1 -Mode SelfTest -RepositoryRoot .
+pwsh -NoLogo -NoProfile -File .\scripts\Test-Gate1Provenance.ps1 -Mode Audit -RepositoryRoot . `
+  -RequireCleanTree -RequireAssetManifest -CadleReferenceRoot .\upstream\cadle `
+  -OutputPath E:\OpenRPG_Forge\.gate1-nongpu-proof-4e476b31\gate1-provenance.json
+pwsh -NoLogo -NoProfile -File .\scripts\Test-Gate1BrowserTemporal.ps1
+pwsh -NoLogo -NoProfile -File .\scripts\Test-Gate1PresentationAB.ps1 -SelfTest
+python -S -B -m unittest discover -s scripts/renderdoc -p "test_*.py" -v
+```
+
+Toutes retournent le code `0`. Le portail se termine par
+`FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`; Gate C et la provenance se terminent par
+`CADLE_GATE_C_BOUNDARY_PASS tracked=396 checkout_present=True` et
+`FORGE_GATE1_PROVENANCE_AUDIT_PASS manifests=1 files=27 models=9`. Les substitutions locales ciblées
+consignées dans la table d'identités passent aussi : Clippy strict moteur/runtime, 141/141 tests
+bibliothèque moteur, 69/69 tests runtime, 4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc et
+22/22 tests Python RenderDoc.
+
+Hashes des artefacts réellement utilisés pour la décision :
+
+| Artefact | Octets | SHA-256 | Portée |
+|---|---:|---|---|
+| bundle qualifié `forge_studio_bg.wasm` | 39 330 367 | `a81b41acef355eb5682b016894af7037e86c2771fbb095c0031bf0a9b384d060` | Trunk Release `4e476b31` |
+| glue qualifié `forge_studio.js` | 184 652 | `97cd2b67f328d34643a0e7adefabc0a027f393c536b22ce8b241ebfbecc0075e` | Trunk Release `4e476b31` |
+| preuve provenance qualifiée | 915 | `7d28d2df849a3243773b92993f4876280088c4fdb967fd33923a5255374923c6` | Gate C / `R1-053` / `R1-054` |
+| binaire natif Replay2 schema 8 | 82 333 696 | `0c220f6980457a427dcf4f48c1204da07120fddc265c97e6ed61da2326a75a85` | dernière cadence gouvernée, FAIL strict |
+| validation Replay2 schema 8 | 16 111 | `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1` | verdict cadence FAIL |
+| CSV PresentMon Replay2 | 780 640 | `5d810261815fe74d0e556f638bd704ac94119667fa4868aa57716320a124ec22` | données de cadence |
+| ledger runtime Replay2 | 53 240 | `88cd702163b3094d22a54fb352db6c75aa742c4cfde0919c86e331c76494605b` | identité et frontière runtime |
+| vidéo native eau | 807 168 | `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226` | capture automatisée, non revue humainement |
+| manifeste Browser historique | 2 503 | `c566fe7d3b8f36ea27e4f428301236e659488d3ed909c9d50ccf2ff26b2b50c7` | acquisition réelle `d9e2670` |
+| capture Browser clear | 1 293 570 | `819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4` | acquisition réelle `d9e2670` |
+| capture Browser rain | 1 323 858 | `7703f0c4207052010343585d12b4e6bc94ca076114f6e39a4acf4cd10be76e5a` | acquisition réelle `d9e2670` |
+| reçu de refus RenderDoc | 351 | `e99fea9e92de493d0c85a3bb1f57d066b29428333509a702b3fa658076eb3b26` | absence de couche Vulkan enregistrée |
+
+Les deux sorties Trunk qualifiées sont conservées localement dans le `dist` ignoré du clone de
+qualification ; leurs octets ne sont pas versionnés. Aucun transcript fichier du portail complet
+n'est conservé, donc seul son résultat terminal et les artefacts produits sont consignés ici.
+
+La qualification workspace complète du commit et de l'arbre ci-dessus passe localement. RustSec
+rapporte zéro vulnérabilité, 20 avertissements et conserve le blocker de distribution connu
+`RUSTSEC-2024-0429` pour `glib 0.18.5` ; ce blocker n'est ni supprimé ni présenté comme résolu.
+ADR-0006 autorise une dérogation administrative bornée jusqu'à Gate 4 ; elle ne transforme pas la CI
+en PASS, ne ferme aucune des 13 routes et n'efface aucune dette locale, visuelle, GPU ou humaine. Les
+risques Linux distant et WASM distant restent ouverts : les validations locales Windows et WASM ne
+prouvent aucun runner GitHub.
+
+- tests locaux automatisés = PASS ;
+- CI distante Windows = NOT RUN — infrastructure billing ;
+- CI distante Linux = NOT RUN — infrastructure billing ;
+- CI distante WASM = NOT RUN — infrastructure billing ;
+- CI distante supply-chain = NOT RUN — infrastructure billing.
+
+Cette exception expire et la condition CI se rouvre dès qu'un runner exécute une étape, que le blocage
+de paiement ou de plafond disparaît, qu'un runner distant approuvé devient disponible, que le workflow,
+ses images ou ses commandes changent substantiellement, que la roadmap dépasse Gate 4, ou qu'une
+distribution, un installateur, une release publique ou une qualification multiplateforme est préparé.
+Le commit candidat de gate devra alors passer réellement les quatre jobs distants.
 
 ## Verdict et travail suivant
 
