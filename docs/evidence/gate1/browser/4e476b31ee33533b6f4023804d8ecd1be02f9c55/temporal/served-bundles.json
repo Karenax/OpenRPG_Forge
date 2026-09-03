@@ -1,0 +1,47 @@
+{
+  "schema": "forge.gate1-browser-served-bundles",
+  "schema_version": 1,
+  "exact_matches": 4,
+  "files": [
+    {
+      "relative_path": "index.html",
+      "url": "http://127.0.0.1:1420/index.html",
+      "content_type": "text/html",
+      "local_bytes": 791,
+      "served_bytes": 791,
+      "local_sha256": "28b9d68de5ef7f6cb22cf379657644cdafb4802a17aac132acf29df5d23b32df",
+      "served_sha256": "28b9d68de5ef7f6cb22cf379657644cdafb4802a17aac132acf29df5d23b32df",
+      "exact_match": true
+    },
+    {
+      "relative_path": "forge_studio.js",
+      "url": "http://127.0.0.1:1420/forge_studio.js",
+      "content_type": "text/javascript",
+      "local_bytes": 186387,
+      "served_bytes": 186387,
+      "local_sha256": "1c057569618029071f81b1572cb12e6ebacb0206d272c0934ed1376c40156f93",
+      "served_sha256": "1c057569618029071f81b1572cb12e6ebacb0206d272c0934ed1376c40156f93",
+      "exact_match": true
+    },
+    {
+      "relative_path": "forge_studio_bg.wasm",
+      "url": "http://127.0.0.1:1420/forge_studio_bg.wasm",
+      "content_type": "application/wasm",
+      "local_bytes": 145256031,
+      "served_bytes": 145256031,
+      "local_sha256": "39fe3c06c381027e701461248027a8f6b4bde3d6fe321438a34768aa3c442b78",
+      "served_sha256": "39fe3c06c381027e701461248027a8f6b4bde3d6fe321438a34768aa3c442b78",
+      "exact_match": true
+    },
+    {
+      "relative_path": "styles.css",
+      "url": "http://127.0.0.1:1420/styles.css",
+      "content_type": "text/css",
+      "local_bytes": 3161,
+      "served_bytes": 3161,
+      "local_sha256": "5875118af99d64d14299c3086855f7013fde7be9337613e30ac497901fd169df",
+      "served_sha256": "5875118af99d64d14299c3086855f7013fde7be9337613e30ac497901fd169df",
+      "exact_match": true
+    }
+  ]
+}

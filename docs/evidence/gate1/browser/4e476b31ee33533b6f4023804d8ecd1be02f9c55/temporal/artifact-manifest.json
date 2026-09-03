@@ -1,0 +1,57 @@
+{
+  "schema": "forge.gate1-browser-temporal-artifact-manifest",
+  "schema_version": 1,
+  "git_commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
+  "artifacts": [
+    {
+      "relative_path": "canvas-frame-a.png",
+      "bytes": 1089096,
+      "sha256": "cf4eb4af6f1d9fd297bdb2ef40d5900bf5b07f481ed9040a2577d82a37e2b8e5"
+    },
+    {
+      "relative_path": "canvas-frame-b.png",
+      "bytes": 1112007,
+      "sha256": "f4b805fa39248427a3fb037b9e1db4eb7c0eaf07ab72b751f54cc8eb083bf382"
+    },
+    {
+      "relative_path": "gate-ledger-before.json",
+      "bytes": 1443,
+      "sha256": "04b017c16700fe2d4ce9c37cb53c4ba3ab6587038d484b1b23118e0426c5e98f"
+    },
+    {
+      "relative_path": "gate-ledger-after.json",
+      "bytes": 1443,
+      "sha256": "04b017c16700fe2d4ce9c37cb53c4ba3ab6587038d484b1b23118e0426c5e98f"
+    },
+    {
+      "relative_path": "scene-ledger-before.json",
+      "bytes": 3452,
+      "sha256": "d3b0098c787a01fd52a892a524bb657847f0ad910aab9a342b809d57201b3963"
+    },
+    {
+      "relative_path": "scene-ledger-after.json",
+      "bytes": 3452,
+      "sha256": "d3b0098c787a01fd52a892a524bb657847f0ad910aab9a342b809d57201b3963"
+    },
+    {
+      "relative_path": "console.json",
+      "bytes": 7179,
+      "sha256": "d8a1255f8089d6d52c72d1ceeea397409226325df6ccd84560c441136eeb6a42"
+    },
+    {
+      "relative_path": "network.json",
+      "bytes": 11057,
+      "sha256": "53f141a9f2f9ca0c9c707e390d4d3ca6dad2557b8d7d6b96bcf5a87c2427af88"
+    },
+    {
+      "relative_path": "served-bundles.json",
+      "bytes": 1799,
+      "sha256": "fd864be3d75bfdadad6e0f4cc2ecbcb1264edd148f645c421ca359eb5bfea1db"
+    },
+    {
+      "relative_path": "r1-014-browser-temporal-ledger.json",
+      "bytes": 13297,
+      "sha256": "c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b"
+    }
+  ]
+}
