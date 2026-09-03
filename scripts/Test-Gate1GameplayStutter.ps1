@@ -919,6 +919,137 @@ function Get-Gate1BoundedQpcGapAssessment {
     }
 }
 
+function Get-Gate1PresentMonDisplayTimingQuantizationToleranceQpc {
+    param([Parameter(Mandatory = $true)][uint64]$FrequencyHz)
+
+    Assert-Condition -Condition ($FrequencyHz -gt 0) -Message "PresentMon display-timing quantization frequency is invalid."
+    # PresentMon prints DisplayLatency and DisplayedTime with four decimal places in milliseconds.
+    # Two printed quanta conservatively cover the adjacent-boundary rounding of both terms.
+    return [uint64][Math]::Max([decimal]1, [Math]::Ceiling([decimal]$FrequencyHz / [decimal]5000000))
+}
+
+function Get-Gate1PresentMonDisplayEndBoundaryAssessment {
+    param(
+        [Parameter(Mandatory = $true)][uint64]$CpuStartQpc,
+        [Parameter(Mandatory = $true)][decimal]$DisplayLatencyMilliseconds,
+        [Parameter(Mandatory = $true)][decimal]$DisplayedTimeMilliseconds,
+        [Parameter(Mandatory = $true)][uint64]$RowObservedQpc,
+        [Parameter(Mandatory = $true)][uint64]$FinalWindowSampleQpc,
+        [Parameter(Mandatory = $true)][uint64]$FrequencyHz
+    )
+
+    Assert-Condition -Condition ($CpuStartQpc -gt 0 -and $FrequencyHz -gt 0) -Message "PresentMon display-end boundary QPC inputs are invalid."
+    Assert-Condition -Condition ($DisplayLatencyMilliseconds -gt 0 -and $DisplayedTimeMilliseconds -gt 0) -Message "PresentMon display-end boundary metrics are invalid."
+    [uint64]$quantizationToleranceQpc = Get-Gate1PresentMonDisplayTimingQuantizationToleranceQpc -FrequencyHz $FrequencyHz
+    [decimal]$nominalDisplayEndQpc = [decimal]$CpuStartQpc + (($DisplayLatencyMilliseconds + $DisplayedTimeMilliseconds) * [decimal]$FrequencyHz / [decimal]1000)
+    [decimal]$displayEndLowerBoundDecimal = [Math]::Floor($nominalDisplayEndQpc - [decimal]$quantizationToleranceQpc)
+    Assert-Condition -Condition ($displayEndLowerBoundDecimal -ge 0 -and $displayEndLowerBoundDecimal -le [decimal][uint64]::MaxValue) -Message "PresentMon display-end lower bound is outside the host QPC range."
+    [uint64]$displayEndLowerBoundQpc = $displayEndLowerBoundDecimal
+    $cpuStartBeforeDisplayEndLowerBound = $CpuStartQpc -lt $displayEndLowerBoundQpc
+    $displayEndLowerBoundAtOrBeforeRowObservation = $displayEndLowerBoundQpc -le $RowObservedQpc
+    $rowObservationBeforeFinalWindowSample = $RowObservedQpc -lt $FinalWindowSampleQpc
+    $strictlyOrdered = $cpuStartBeforeDisplayEndLowerBound -and $displayEndLowerBoundAtOrBeforeRowObservation -and $rowObservationBeforeFinalWindowSample
+    $displayEndToFinalWindowSampleGap = Get-Gate1BoundedQpcGapAssessment `
+        -EarlierQpc $displayEndLowerBoundQpc `
+        -LaterQpc $FinalWindowSampleQpc `
+        -FrequencyHz $FrequencyHz
+    return [pscustomobject][ordered]@{
+        CpuStartQpc = $CpuStartQpc
+        DisplayLatencyMilliseconds = $DisplayLatencyMilliseconds
+        DisplayedTimeMilliseconds = $DisplayedTimeMilliseconds
+        NominalDisplayEndQpc = $nominalDisplayEndQpc
+        QuantizationToleranceQpc = $quantizationToleranceQpc
+        DisplayEndLowerBoundQpc = $displayEndLowerBoundQpc
+        RowObservedQpc = $RowObservedQpc
+        FinalWindowSampleQpc = $FinalWindowSampleQpc
+        CpuStartBeforeDisplayEndLowerBound = $cpuStartBeforeDisplayEndLowerBound
+        DisplayEndLowerBoundAtOrBeforeRowObservation = $displayEndLowerBoundAtOrBeforeRowObservation
+        RowObservationBeforeFinalWindowSample = $rowObservationBeforeFinalWindowSample
+        GapQpc = $displayEndToFinalWindowSampleGap.GapQpc
+        GapMilliseconds = $displayEndToFinalWindowSampleGap.GapMilliseconds
+        MaximumGapMilliseconds = $displayEndToFinalWindowSampleGap.MaximumGapMilliseconds
+        StrictlyOrdered = $strictlyOrdered
+        Passed = ($strictlyOrdered -and $displayEndToFinalWindowSampleGap.Passed)
+    }
+}
+
+function Invoke-Gate1PresentMonDisplayEndBoundarySelfTest {
+    Assert-Condition -Condition (
+        $preSignalStabilizationMaximumAttempts -eq 3 -and
+        $preSignalStabilizationTimeoutSeconds -eq 15 -and
+        $nativeWindowMaximumSamplingGapMilliseconds -eq 250.0
+    ) -Message "PresentMon display-end stabilization constants changed from the fixed 3-attempt/15-second/250 ms contract."
+
+    $atLimit = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+        -CpuStartQpc 100 `
+        -DisplayLatencyMilliseconds 5 `
+        -DisplayedTimeMilliseconds 6 `
+        -RowObservedQpc 120 `
+        -FinalWindowSampleQpc 360 `
+        -FrequencyHz 1000
+    Assert-Condition -Condition (
+        $atLimit.Passed -and
+        $atLimit.DisplayEndLowerBoundQpc -eq 110 -and
+        $atLimit.GapMilliseconds -eq 250.0 -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $atLimit.Passed -StrictlyOrdered $atLimit.StrictlyOrdered -Attempt 1 -MaximumAttempts $preSignalStabilizationMaximumAttempts) -eq "accept"
+    ) -Message "PresentMon display-end boundary self-test rejected the exact 250 ms limit."
+
+    $overLimit = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+        -CpuStartQpc 100 `
+        -DisplayLatencyMilliseconds 5 `
+        -DisplayedTimeMilliseconds 6 `
+        -RowObservedQpc 120 `
+        -FinalWindowSampleQpc 361 `
+        -FrequencyHz 1000
+    Assert-Condition -Condition (
+        -not $overLimit.Passed -and
+        $overLimit.StrictlyOrdered -and
+        $overLimit.GapMilliseconds -eq 251.0 -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $overLimit.Passed -StrictlyOrdered $overLimit.StrictlyOrdered -Attempt 1 -MaximumAttempts $preSignalStabilizationMaximumAttempts) -eq "restabilize_before_signal" -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $overLimit.Passed -StrictlyOrdered $overLimit.StrictlyOrdered -Attempt 3 -MaximumAttempts $preSignalStabilizationMaximumAttempts) -eq "fail_closed"
+    ) -Message "PresentMon display-end boundary self-test accepted a 251 ms gap."
+
+    $rounded = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+        -CpuStartQpc 1000 `
+        -DisplayLatencyMilliseconds 0.1234 `
+        -DisplayedTimeMilliseconds 0.5678 `
+        -RowObservedQpc 8000 `
+        -FinalWindowSampleQpc 8001 `
+        -FrequencyHz 10000000
+    Assert-Condition -Condition (
+        $rounded.QuantizationToleranceQpc -eq 2 -and
+        $rounded.NominalDisplayEndQpc -eq [decimal]7912 -and
+        $rounded.DisplayEndLowerBoundQpc -eq 7910 -and
+        $rounded.Passed
+    ) -Message "PresentMon display-end boundary self-test did not preserve the conservative printed-metric rounding bound."
+
+    $futureDisplayEnd = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+        -CpuStartQpc 100 `
+        -DisplayLatencyMilliseconds 5 `
+        -DisplayedTimeMilliseconds 6 `
+        -RowObservedQpc 109 `
+        -FinalWindowSampleQpc 360 `
+        -FrequencyHz 1000
+    Assert-Condition -Condition (
+        -not $futureDisplayEnd.Passed -and
+        -not $futureDisplayEnd.StrictlyOrdered -and
+        -not $futureDisplayEnd.DisplayEndLowerBoundAtOrBeforeRowObservation
+    ) -Message "PresentMon display-end boundary self-test accepted a display end in the future of its row observation."
+
+    $nonMonotonicObservation = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+        -CpuStartQpc 100 `
+        -DisplayLatencyMilliseconds 5 `
+        -DisplayedTimeMilliseconds 6 `
+        -RowObservedQpc 120 `
+        -FinalWindowSampleQpc 120 `
+        -FrequencyHz 1000
+    Assert-Condition -Condition (
+        -not $nonMonotonicObservation.Passed -and
+        -not $nonMonotonicObservation.StrictlyOrdered -and
+        -not $nonMonotonicObservation.RowObservationBeforeFinalWindowSample
+    ) -Message "PresentMon display-end boundary self-test accepted a non-monotonic row-observation boundary."
+}
+
 function Invoke-Gate1ForegroundSettleSelfTest {
     Assert-Condition -Condition (
         $foregroundSettleRequiredMilliseconds -eq 2000 -and
@@ -1448,20 +1579,20 @@ function Invoke-Gate1PresentMonFailureSelectionSelfTest {
     Assert-Condition -Condition (
         $finalRowBoundaryAtLimit.Passed -and
         (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryAtLimit.Passed -StrictlyOrdered $finalRowBoundaryAtLimit.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "accept"
-    ) -Message "Final PresentMon-row boundary self-test rejected the exact 250 ms contract limit."
+    ) -Message "Pre-signal gap-disposition self-test rejected the exact 250 ms contract limit."
     $finalRowBoundaryTooWide = Get-Gate1BoundedQpcGapAssessment -EarlierQpc 1000 -LaterQpc 1251 -FrequencyHz 1000
     Assert-Condition -Condition (
         -not $finalRowBoundaryTooWide.Passed -and
         $finalRowBoundaryTooWide.GapMilliseconds -eq 251.0 -and
         (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryTooWide.Passed -StrictlyOrdered $finalRowBoundaryTooWide.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "restabilize_before_signal" -and
         (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryTooWide.Passed -StrictlyOrdered $finalRowBoundaryTooWide.StrictlyOrdered -Attempt 3 -MaximumAttempts 3) -eq "fail_closed"
-    ) -Message "Final PresentMon-row boundary self-test did not consume a bounded retry before failing closed."
+    ) -Message "Pre-signal gap-disposition self-test did not consume a bounded retry before failing closed."
     $finalRowBoundaryNonMonotonic = Get-Gate1BoundedQpcGapAssessment -EarlierQpc 1000 -LaterQpc 1000 -FrequencyHz 1000
     Assert-Condition -Condition (
         -not $finalRowBoundaryNonMonotonic.Passed -and
         -not $finalRowBoundaryNonMonotonic.StrictlyOrdered -and
         (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryNonMonotonic.Passed -StrictlyOrdered $finalRowBoundaryNonMonotonic.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "fail_closed"
-    ) -Message "Final PresentMon-row boundary self-test did not fail closed on a non-monotonic QPC boundary."
+    ) -Message "Pre-signal gap-disposition self-test did not fail closed on a non-monotonic QPC boundary."
 
     $validSingle = @([pscustomobject]@{ attempt = 1; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $true })
     Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $validSingle -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Pre-signal stabilization trace self-test rejected a single accepted attempt."
@@ -1479,12 +1610,12 @@ function Invoke-Gate1PresentMonFailureSelectionSelfTest {
         [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 251.0; maximum_gap_ms = 251.0; disposition = "restabilize_before_signal"; signal_published = $false },
         [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 250.0; maximum_gap_ms = 250.0; disposition = "accept"; signal_published = $true }
     )
-    Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $finalBoundaryRetryTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Final PresentMon-row boundary trace self-test rejected a bounded retry followed by exact-limit acceptance."
+    Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $finalBoundaryRetryTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Pre-signal gap trace self-test rejected a bounded retry followed by exact-limit acceptance."
     $prematureFinalBoundarySignalTrace = @(
         [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 251.0; maximum_gap_ms = 251.0; disposition = "restabilize_before_signal"; signal_published = $true },
         [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $true }
     )
-    Assert-Condition -Condition (-not (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $prematureFinalBoundarySignalTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed) -Message "Final PresentMon-row boundary trace self-test accepted a rejected attempt that published the signal."
+    Assert-Condition -Condition (-not (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $prematureFinalBoundarySignalTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed) -Message "Pre-signal gap trace self-test accepted a rejected attempt that published the signal."
 }
 
 function Test-PresentMonConsoleLine {
@@ -1724,9 +1855,7 @@ function Get-PresentMonControllerWindowProjection {
     [decimal]$start = $StartQpc
     [decimal]$end = $EndQpc
     [decimal]$frequency = $FrequencyHz
-    # PresentMon prints DisplayLatency and DisplayedTime with four decimal places in milliseconds.
-    # Two printed quanta cover the worst-case adjacent-boundary rounding after both terms are added.
-    [decimal]$quantizationToleranceQpc = [Math]::Max(1, [Math]::Ceiling([decimal]$FrequencyHz / [decimal]5000000))
+    [decimal]$quantizationToleranceQpc = Get-Gate1PresentMonDisplayTimingQuantizationToleranceQpc -FrequencyHz $FrequencyHz
     $displayedRows = [Collections.Generic.List[object]]::new()
     $notDisplayedRows = [Collections.Generic.List[object]]::new()
     foreach ($row in $Rows) {
@@ -2539,6 +2668,7 @@ Invoke-Gate1ExecutionStateGuardSelfTest
 Invoke-Gate1ForegroundSettleSelfTest
 Invoke-Gate1NativeWindowContinuitySelfTest
 Invoke-Gate1PresentMonFailureSelectionSelfTest
+Invoke-Gate1PresentMonDisplayEndBoundarySelfTest
 Invoke-PresentMonStreamParserSelfTest -ExpectedHeader $expectedPresentMonHeader -ExpectedColumnCount $expectedPresentMonColumns.Count -ExpectedRuntime $expectedPresentRuntime
 Invoke-PresentMonControllerQpcWindowSelfTest
 Invoke-Gate1CapturedProcessOutputSelfTest
@@ -2713,6 +2843,10 @@ $preSignalPhaseOrder = $null
 $postSettleWindowContinuity = $null
 $finalPreSignalWindowSample = $null
 $postSettleObservedRows = 0
+[uint64]$lastPreSignalQpc = 0
+[uint64]$lastPreSignalRowObservedQpc = 0
+$lastPreSignalRow = $null
+$lastPreSignalDisplayEndBoundary = $null
 $preSignalStabilizationAttempts = [Collections.Generic.List[object]]::new()
 $preSignalStabilizationAccepted = $false
 $preSignalStabilizationStartedAttempts = 0
@@ -2953,7 +3087,10 @@ try {
     $headerWaitToSettleBoundary = $null
     $preSignalObservedRows = 0
     $postSettleObservedRows = 0
-    [uint64]$lastPreSignalQpc = 0
+    $lastPreSignalQpc = 0
+    $lastPreSignalRowObservedQpc = 0
+    $lastPreSignalRow = $null
+    $lastPreSignalDisplayEndBoundary = $null
     [uint64]$preSignalStabilizationBudgetQpc = [uint64][Math]::Floor(([decimal]$qpcFrequencyHz * [decimal]$preSignalStabilizationTimeoutSeconds))
     Assert-Condition -Condition ($preSignalStabilizationBudgetQpc -gt 0) -Message "The pre-signal stabilization timeout could not be represented in host QPC ticks."
     [double]$runtimeElapsedAtPreSignalStabilizationStartSeconds = $runtimeWatchdog.Elapsed.TotalSeconds
@@ -3004,6 +3141,9 @@ try {
         $preSignalObservedRows = 0
         $postSettleObservedRows = 0
         $lastPreSignalQpc = 0
+        $lastPreSignalRowObservedQpc = 0
+        $lastPreSignalRow = $null
+        $lastPreSignalDisplayEndBoundary = $null
         $restartStabilization = $false
         while ($preSignalTimer.Elapsed.TotalSeconds -lt $presentMonReadyTimeoutSeconds -and [uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) {
             Assert-Gate1PresentMonFailurePriority `
@@ -3078,6 +3218,7 @@ try {
                             -ExpectedProcessId $runtimeProcessId `
                             -ExpectedRuntime $expectedPresentRuntime
                     })
+                [uint64]$qualifiedRowsObservedQpc = [Diagnostics.Stopwatch]::GetTimestamp()
                 $preSignalObservedRows = $completeRows.Count
                 $postSettleRows = @($completeRows | Where-Object {
                         [uint64]::Parse([string]$_.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture) -gt [uint64]$foregroundSettle.EndQpc
@@ -3088,6 +3229,7 @@ try {
                     Assert-Condition -Condition ([string]::Equals([string]$lastPreSignalRow.Application, [IO.Path]::GetFileName($runtimePath), [StringComparison]::OrdinalIgnoreCase)) -Message "PresentMon pre-signal row names the wrong application."
                     Assert-Condition -Condition ([string]$lastPreSignalRow.SwapChainAddress -match '^0x[0-9A-Fa-f]+$') -Message "PresentMon pre-signal row has no valid swap chain."
                     $lastPreSignalQpc = [uint64]::Parse([string]$lastPreSignalRow.CPUStartQPC, [Globalization.CultureInfo]::InvariantCulture)
+                    $lastPreSignalRowObservedQpc = $qualifiedRowsObservedQpc
                     break
                 }
             }
@@ -3117,19 +3259,22 @@ try {
             -EndQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
             -FrequencyHz $qpcFrequencyHz
         Assert-Condition -Condition $postSettleWindowContinuity.StatePassed -Message "Native-window continuity from foreground-settle end through the final pre-publication sample failed."
-        $lastPreSignalToFinalWindowSampleBoundary = Get-Gate1BoundedQpcGapAssessment `
-            -EarlierQpc $lastPreSignalQpc `
-            -LaterQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
+        $lastPreSignalDisplayEndBoundary = Get-Gate1PresentMonDisplayEndBoundaryAssessment `
+            -CpuStartQpc $lastPreSignalQpc `
+            -DisplayLatencyMilliseconds ([decimal]::Parse([string]$lastPreSignalRow.DisplayLatency, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture)) `
+            -DisplayedTimeMilliseconds ([decimal]::Parse([string]$lastPreSignalRow.DisplayedTime, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture)) `
+            -RowObservedQpc $lastPreSignalRowObservedQpc `
+            -FinalWindowSampleQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
             -FrequencyHz $qpcFrequencyHz
         Assert-Gate1PresentMonFailurePriority `
             -PresentMonCapture $presentMonCapture `
             -PresentMonStderrPath $presentMonStderrPath `
             -GapPassed $true `
-            -Phase "while classifying the final pre-signal PresentMon-row boundary" `
-            -GapFailureMessage "PresentMon failed while classifying the final pre-signal PresentMon-row boundary."
+            -Phase "while classifying the final pre-signal PresentMon display-end boundary" `
+            -GapFailureMessage "PresentMon failed while classifying the final pre-signal PresentMon display-end boundary."
         $finalBoundaryDisposition = Get-Gate1PreSignalGapDisposition `
-            -GapPassed $lastPreSignalToFinalWindowSampleBoundary.Passed `
-            -StrictlyOrdered $lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered `
+            -GapPassed $lastPreSignalDisplayEndBoundary.Passed `
+            -StrictlyOrdered $lastPreSignalDisplayEndBoundary.StrictlyOrdered `
             -Attempt $stabilizationAttempt `
             -MaximumAttempts $preSignalStabilizationMaximumAttempts
         if ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -ge $preSignalStabilizationDeadlineQpc) {
@@ -3137,21 +3282,32 @@ try {
         }
         $attemptMaximumGapMilliseconds = [Math]::Max(
             [double]$postSettleWindowContinuity.MaximumSamplingGapMilliseconds,
-            [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+            [double]$lastPreSignalDisplayEndBoundary.GapMilliseconds
         )
         if ($finalBoundaryDisposition -ne "accept") {
             $preSignalStabilizationAttempts.Add([pscustomobject][ordered]@{
                     attempt = $stabilizationAttempt
                     accepted = $false
-                    reason = "final_presentmon_row_to_window_sample_gap_before_signal"
+                    reason = "final_presentmon_display_end_to_window_sample_boundary_before_signal"
                     settle_start_qpc = [uint64]$foregroundSettle.StartQpc
                     settle_end_qpc = [uint64]$foregroundSettle.EndQpc
-                    gap_earlier_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
-                    gap_later_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.LaterQpc
-                    gap_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.GapQpc
-                    gap_ms = [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+                    last_pre_signal_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+                    display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+                    displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+                    nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+                    display_end_quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+                    display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                    row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+                    final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                    cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+                    display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+                    row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+                    gap_earlier_qpc = [uint64]$lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                    gap_later_qpc = [uint64]$lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                    gap_qpc = [uint64]$lastPreSignalDisplayEndBoundary.GapQpc
+                    gap_ms = [double]$lastPreSignalDisplayEndBoundary.GapMilliseconds
                     maximum_gap_ms = [double]$attemptMaximumGapMilliseconds
-                    strictly_ordered = [bool]$lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
+                    strictly_ordered = [bool]$lastPreSignalDisplayEndBoundary.StrictlyOrdered
                     disposition = [string]$finalBoundaryDisposition
                     elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
                     signal_published = $false
@@ -3161,8 +3317,8 @@ try {
                     -PresentMonCapture $presentMonCapture `
                     -PresentMonStderrPath $presentMonStderrPath `
                     -GapPassed $false `
-                    -Phase "at the final pre-signal PresentMon-row boundary" `
-                    -GapFailureMessage "The final native-window sample was not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms of the complete post-settle PresentMon row inside the bounded pre-signal stabilization attempts and timeout."
+                    -Phase "at the final pre-signal PresentMon display-end boundary" `
+                    -GapFailureMessage "The complete post-settle PresentMon row did not prove CPUStart < conservative display-end lower bound <= row observation < final native-window sample with a display-end-to-sample gap at most $nativeWindowMaximumSamplingGapMilliseconds ms inside the bounded pre-signal stabilization attempts and timeout."
             }
             continue
         }
@@ -3172,12 +3328,23 @@ try {
                 reason = "continuous_pre_signal_window_observed"
                 settle_start_qpc = [uint64]$foregroundSettle.StartQpc
                 settle_end_qpc = [uint64]$foregroundSettle.EndQpc
-                gap_earlier_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
-                gap_later_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.LaterQpc
-                gap_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.GapQpc
-                gap_ms = [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+                last_pre_signal_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+                display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+                displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+                nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+                display_end_quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+                display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+                final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+                display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+                row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+                gap_earlier_qpc = [uint64]$lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                gap_later_qpc = [uint64]$lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                gap_qpc = [uint64]$lastPreSignalDisplayEndBoundary.GapQpc
+                gap_ms = [double]$lastPreSignalDisplayEndBoundary.GapMilliseconds
                 maximum_gap_ms = [double]$attemptMaximumGapMilliseconds
-                strictly_ordered = [bool]$lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
+                strictly_ordered = [bool]$lastPreSignalDisplayEndBoundary.StrictlyOrdered
                 disposition = "accept"
                 elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
                 signal_published = $false
@@ -3239,7 +3406,7 @@ try {
     Assert-Condition -Condition $preSignalStabilizationTraceAssessment.Passed -Message "Pre-signal stabilization trace violated its bounded anti-selection invariants."
     $hostBoundary = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-host-boundary"
-        schema_version = 5
+        schema_version = 6
         repository_commit = $gitCommit
         repository_tree = $gitTree
         runtime_process_id = $runtimeProcessId
@@ -3249,6 +3416,8 @@ try {
         foreground_acquired_qpc = $foregroundAcquiredQpc
         presentmon_header_observed_qpc = $presentMonHeaderObservedQpc
         last_pre_signal_qpc = $lastPreSignalQpc
+        last_pre_signal_display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+        last_pre_signal_row_observed_qpc = $lastPreSignalRowObservedQpc
         final_pre_signal_window_sample_qpc = [uint64]$finalPreSignalWindowSample.Qpc
         measurement_not_before_qpc = $measurementNotBeforeQpc
         signal_publication_lower_bound_qpc = $signalPublicationLowerBoundQpc
@@ -3292,7 +3461,7 @@ try {
             passed = $headerWaitToSettleBoundary.Passed
         }
         pre_signal_stabilization = [ordered]@{
-            policy = "bounded_post_settle_controller_gap_restabilization_before_signal_only"
+            policy = "bounded_post_settle_controller_and_presentmon_display_end_gap_restabilization_before_signal_only"
             maximum_attempts = $preSignalStabilizationMaximumAttempts
             timeout_seconds = $preSignalStabilizationTimeoutSeconds
             elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
@@ -3363,14 +3532,23 @@ try {
             passed = $foregroundSettle.Passed
             last_pre_signal_after_settle = ($lastPreSignalQpc -gt [uint64]$foregroundSettle.EndQpc)
         }
-        last_pre_signal_to_final_window_sample_boundary = [ordered]@{
-            earlier_qpc = $lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
-            later_qpc = $lastPreSignalToFinalWindowSampleBoundary.LaterQpc
-            gap_qpc = $lastPreSignalToFinalWindowSampleBoundary.GapQpc
-            gap_ms = $lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
-            maximum_gap_ms = $lastPreSignalToFinalWindowSampleBoundary.MaximumGapMilliseconds
-            strictly_ordered = $lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
-            passed = $lastPreSignalToFinalWindowSampleBoundary.Passed
+        last_pre_signal_display_end_to_final_window_sample_boundary = [ordered]@{
+            source_cpu_start_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+            display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+            displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+            nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+            quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+            display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+            row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+            final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+            cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+            display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+            row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+            gap_qpc = $lastPreSignalDisplayEndBoundary.GapQpc
+            gap_ms = $lastPreSignalDisplayEndBoundary.GapMilliseconds
+            maximum_gap_ms = $lastPreSignalDisplayEndBoundary.MaximumGapMilliseconds
+            strictly_ordered = $lastPreSignalDisplayEndBoundary.StrictlyOrdered
+            passed = $lastPreSignalDisplayEndBoundary.Passed
         }
         post_settle_pre_publication_window_state = [ordered]@{
             sampling_interval_ms = $postSettleWindowContinuity.SamplingIntervalMilliseconds
@@ -3396,15 +3574,15 @@ try {
         }
     }
     Assert-Condition -Condition (
-        $hostBoundary.schema_version -eq 5 -and
+        $hostBoundary.schema_version -eq 6 -and
         [uint64]$hostBoundary.presentmon_invocation_qpc -eq $presentMonInvocationQpc -and
         $hostBoundary.pre_signal_stabilization.passed -and
         $hostBoundary.pre_signal_stabilization.fits_runtime_watchdog -and
         $hostBoundary.pre_signal_stabilization.trace_assessment.passed -and
         $hostBoundary.pre_signal_stabilization.rejected_attempts_never_published_signal -and
         $hostBoundary.acquisition_phase_order_before_signal.passed -and
-        $hostBoundary.last_pre_signal_to_final_window_sample_boundary.passed
-    ) -Message "Host-boundary schema 5 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
+        $hostBoundary.last_pre_signal_display_end_to_final_window_sample_boundary.passed
+    ) -Message "Host-boundary schema 6 did not preserve the PresentMon invocation order and conservative display-end-to-window-sample boundary."
     Write-JsonAtomically -Path $hostBoundaryPath -Value $hostBoundary
 
     while (-not $runtimeCapture.Process.HasExited) {
@@ -3776,7 +3954,7 @@ try {
         -MaximumConsecutiveOver16 $maxConsecutiveOver16
     $displayThresholdsPassed = $displayStutterThresholdAssessment.ThresholdsPassed
     $executionStateGuardActiveThroughReplay = $executionStateGuard.Acquired -and $null -eq $executionStateGuardRelease
-    $boundedThresholdsPassed = $displayThresholdsPassed -and $executionStateGuardActiveThroughReplay -and $foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $presentMonHeaderWaitPassed -and $headerWaitToSettleBoundary.Passed -and $preSignalStabilizationAccepted -and ($signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc) -and $preSignalStabilizationTraceAssessment.Passed -and $preSignalPhaseOrder.Passed -and $foregroundSettle.Passed -and $lastPreSignalToFinalWindowSampleBoundary.Passed -and $postSettleWindowContinuity.StatePassed -and $foregroundSettleBoundary.Passed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
+    $boundedThresholdsPassed = $displayThresholdsPassed -and $executionStateGuardActiveThroughReplay -and $foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $presentMonHeaderWaitPassed -and $headerWaitToSettleBoundary.Passed -and $preSignalStabilizationAccepted -and ($signalPublishedQpc -lt $preSignalStabilizationDeadlineQpc) -and $preSignalStabilizationTraceAssessment.Passed -and $preSignalPhaseOrder.Passed -and $foregroundSettle.Passed -and $lastPreSignalDisplayEndBoundary.Passed -and $postSettleWindowContinuity.StatePassed -and $foregroundSettleBoundary.Passed -and $nativeWindowContinuity.StatePassed -and $presentationSignatureStable
     $validationStatus = if ($presentationContract.Name -eq "FifoDiagnostic") {
         if ($boundedThresholdsPassed) { "diagnostic_thresholds_passed" } else { "diagnostic_thresholds_failed" }
     }
@@ -3789,7 +3967,7 @@ try {
 
     $validation = [ordered]@{
         schema = "forge.gate1-gameplay-stutter-validation"
-        schema_version = 12
+        schema_version = 13
         status = $validationStatus
         presentation_route = $presentationContract.PresentationRoute
         requested_present_mode = $presentationContract.RequestedPresentMode
@@ -3866,7 +4044,7 @@ try {
                 passed = ($foregroundAcquiredBeforePresentMonInvocation -and $presentMonInvocationAtOrBeforeStarted -and $preSignalPhaseOrder.Passed)
             }
             pre_signal_stabilization = [ordered]@{
-                policy = "bounded_post_settle_controller_gap_restabilization_before_signal_only"
+                policy = "bounded_post_settle_controller_and_presentmon_display_end_gap_restabilization_before_signal_only"
                 maximum_attempts = $preSignalStabilizationMaximumAttempts
                 timeout_seconds = $preSignalStabilizationTimeoutSeconds
                 elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
@@ -3955,14 +4133,23 @@ try {
                 final_sample_to_publication_passed = $foregroundSettleBoundary.FinalSampleToPublicationPassed
                 passed = $foregroundSettleBoundary.Passed
             }
-            last_pre_signal_to_final_window_sample_boundary = [ordered]@{
-                earlier_qpc = $lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
-                later_qpc = $lastPreSignalToFinalWindowSampleBoundary.LaterQpc
-                gap_qpc = $lastPreSignalToFinalWindowSampleBoundary.GapQpc
-                gap_ms = $lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
-                maximum_gap_ms = $lastPreSignalToFinalWindowSampleBoundary.MaximumGapMilliseconds
-                strictly_ordered = $lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
-                passed = $lastPreSignalToFinalWindowSampleBoundary.Passed
+            last_pre_signal_display_end_to_final_window_sample_boundary = [ordered]@{
+                source_cpu_start_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+                display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+                displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+                nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+                quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+                display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+                final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+                display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+                row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+                gap_qpc = $lastPreSignalDisplayEndBoundary.GapQpc
+                gap_ms = $lastPreSignalDisplayEndBoundary.GapMilliseconds
+                maximum_gap_ms = $lastPreSignalDisplayEndBoundary.MaximumGapMilliseconds
+                strictly_ordered = $lastPreSignalDisplayEndBoundary.StrictlyOrdered
+                passed = $lastPreSignalDisplayEndBoundary.Passed
             }
             post_settle_pre_publication_window_state = [ordered]@{
                 sample_count = $postSettleWindowSamples.Count
@@ -4069,13 +4256,26 @@ try {
                 passed = $presentMonHeaderWaitPassed
             }
             last_pre_signal_qpc = $lastPreSignalQpc
+            last_pre_signal_display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+            last_pre_signal_row_observed_qpc = $lastPreSignalRowObservedQpc
             final_pre_signal_window_sample_qpc = [uint64]$finalPreSignalWindowSample.Qpc
-            last_pre_signal_to_final_window_sample_boundary = [ordered]@{
-                gap_qpc = $lastPreSignalToFinalWindowSampleBoundary.GapQpc
-                gap_ms = $lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
-                maximum_gap_ms = $lastPreSignalToFinalWindowSampleBoundary.MaximumGapMilliseconds
-                strictly_ordered = $lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
-                passed = $lastPreSignalToFinalWindowSampleBoundary.Passed
+            last_pre_signal_display_end_to_final_window_sample_boundary = [ordered]@{
+                source_cpu_start_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+                display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+                displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+                nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+                quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+                display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+                final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+                display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+                row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+                gap_qpc = $lastPreSignalDisplayEndBoundary.GapQpc
+                gap_ms = $lastPreSignalDisplayEndBoundary.GapMilliseconds
+                maximum_gap_ms = $lastPreSignalDisplayEndBoundary.MaximumGapMilliseconds
+                strictly_ordered = $lastPreSignalDisplayEndBoundary.StrictlyOrdered
+                passed = $lastPreSignalDisplayEndBoundary.Passed
             }
             measurement_not_before_qpc = $measurementNotBeforeQpc
             signal_publication_lower_bound_qpc = $signalPublicationLowerBoundQpc
@@ -4174,8 +4374,11 @@ try {
             runtime_foreground_settle_passed = $foregroundSettle.Passed
             presentmon_post_settle_row_observed_before_signal = ($postSettleObservedRows -gt 0)
             presentmon_last_pre_signal_row_after_foreground_settle = $foregroundSettleBoundary.SettleEndsBeforeLastPreSignal
-            final_native_window_sample_after_presentmon_row = $foregroundSettleBoundary.LastPreSignalBeforeFinalWindowSample
-            last_pre_signal_row_to_final_window_sample_gap_at_most_250_ms = $lastPreSignalToFinalWindowSampleBoundary.Passed
+            presentmon_cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+            presentmon_display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+            final_native_window_sample_after_presentmon_row_observation = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+            last_pre_signal_display_end_to_final_window_sample_gap_at_most_250_ms = $lastPreSignalDisplayEndBoundary.Passed
+            presentmon_display_end_boundary_self_test_passed = $true
             post_settle_window_sampling_gap_at_most_250_ms = $postSettleWindowContinuity.SamplingGapPassed
             post_settle_window_state_passed = $postSettleWindowContinuity.StatePassed
             final_window_sample_to_signal_publication_at_most_250_ms = $foregroundSettleBoundary.FinalSampleToPublicationPassed
@@ -4185,7 +4388,7 @@ try {
             foreground_settle_contract_self_test_passed = $true
             foreground_settle_boundary_contract_self_test_passed = $true
             presentmon_failure_priority_self_test_passed = $true
-            host_boundary_schema_5 = $true
+            host_boundary_schema_6 = $true
             runtime_window_state_sampling_covers_controller_start = $nativeWindowContinuity.CoversControllerStart
             runtime_window_state_sampling_covers_controller_end = $nativeWindowContinuity.CoversControllerEnd
             runtime_window_maximum_sampling_gap_at_most_250_ms = $nativeWindowContinuity.SamplingGapPassed
@@ -4280,20 +4483,20 @@ try {
         $gate1SuccessMessage = "FORGE_GATE1_FIFO_DIAGNOSTIC_COMPLETE status={0} qualifying=false samples={1} mean_ms={2:F4} mean_display_fps={3:F3} p95_ms={4:F4} one_percent_low_fps={5:F3} not_foreground_samples={6}" -f $validationStatus, $displayedTimes.Count, $meanMilliseconds, $meanDisplayFps, $p95Milliseconds, $onePercentLowFps, $nativeWindowContinuity.NotForegroundSamples
     }
     Assert-Condition -Condition (
-        $validation.schema_version -eq 12 -and
+        $validation.schema_version -eq 13 -and
         [uint64]$validation.runtime.pre_signal_acquisition_order.presentmon_invocation_qpc -eq $presentMonInvocationQpc -and
         $validation.runtime.pre_signal_acquisition_order.passed -and
         $validation.runtime.pre_signal_stabilization.passed -and
         $validation.runtime.pre_signal_stabilization.rejected_attempts_never_published_signal -and
-        $validation.runtime.last_pre_signal_to_final_window_sample_boundary.passed -and
-        $validation.presentmon.last_pre_signal_to_final_window_sample_boundary.passed -and
-        $validation.checks.host_boundary_schema_5 -and
+        $validation.runtime.last_pre_signal_display_end_to_final_window_sample_boundary.passed -and
+        $validation.presentmon.last_pre_signal_display_end_to_final_window_sample_boundary.passed -and
+        $validation.checks.host_boundary_schema_6 -and
         $validation.checks.pre_signal_stabilization_bounded -and
         $validation.checks.pre_signal_stabilization_within_global_timeout -and
         $validation.checks.pre_signal_stabilization_fits_runtime_watchdog -and
         $validation.checks.pre_signal_stabilization_trace_assessment_passed -and
         $validation.checks.rejected_pre_signal_attempts_never_published_signal
-    ) -Message "Validation schema 12 did not preserve the PresentMon invocation order and final pre-signal sampling boundary."
+    ) -Message "Validation schema 13 did not preserve the PresentMon invocation order and conservative display-end-to-window-sample boundary."
     $gate1ReplayPrepared = $true
 }
 catch {
@@ -4396,7 +4599,7 @@ if ($null -ne $gate1ReplayError) {
             $abortSignalPublished = [IO.File]::Exists($signalPath)
             $abortEvidence = [ordered]@{
                 schema = "forge.gate1-gameplay-stutter-abort"
-                schema_version = 1
+                schema_version = 2
                 status = if ($abortSignalPublished) { "abort_after_measurement_signal_nonqualifying" } else { "abort_infrastructure_before_signal_nonqualifying" }
                 verdict = "no_qualified_performance_verdict"
                 error = $gate1ReplayError.Exception.Message
@@ -4411,7 +4614,35 @@ if ($null -ne $gate1ReplayError) {
                 host_boundary_published = [IO.File]::Exists($hostBoundaryPath)
                 runtime_ledger_published = [IO.File]::Exists($ledgerPath)
                 validation_published = [IO.File]::Exists($validationPath)
+                last_pre_signal_qpc = if ($lastPreSignalQpc -gt 0) { $lastPreSignalQpc } else { $null }
+                last_pre_signal_display_end_lower_bound_qpc = if ($null -ne $lastPreSignalDisplayEndBoundary) { $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc } else { $null }
+                last_pre_signal_row_observed_qpc = if ($lastPreSignalRowObservedQpc -gt 0) { $lastPreSignalRowObservedQpc } else { $null }
+                final_pre_signal_window_sample_qpc = if ($null -ne $lastPreSignalDisplayEndBoundary) { $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc } else { $null }
+                last_pre_signal_display_end_to_final_window_sample_boundary = if ($null -ne $lastPreSignalDisplayEndBoundary) {
+                    [ordered]@{
+                        source_cpu_start_qpc = $lastPreSignalDisplayEndBoundary.CpuStartQpc
+                        display_latency_ms = $lastPreSignalDisplayEndBoundary.DisplayLatencyMilliseconds
+                        displayed_time_ms = $lastPreSignalDisplayEndBoundary.DisplayedTimeMilliseconds
+                        nominal_display_end_qpc = $lastPreSignalDisplayEndBoundary.NominalDisplayEndQpc
+                        quantization_tolerance_qpc = $lastPreSignalDisplayEndBoundary.QuantizationToleranceQpc
+                        display_end_lower_bound_qpc = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundQpc
+                        row_observed_qpc = $lastPreSignalDisplayEndBoundary.RowObservedQpc
+                        final_window_sample_qpc = $lastPreSignalDisplayEndBoundary.FinalWindowSampleQpc
+                        cpu_start_before_display_end_lower_bound = $lastPreSignalDisplayEndBoundary.CpuStartBeforeDisplayEndLowerBound
+                        display_end_lower_bound_at_or_before_row_observation = $lastPreSignalDisplayEndBoundary.DisplayEndLowerBoundAtOrBeforeRowObservation
+                        row_observation_before_final_window_sample = $lastPreSignalDisplayEndBoundary.RowObservationBeforeFinalWindowSample
+                        gap_qpc = $lastPreSignalDisplayEndBoundary.GapQpc
+                        gap_ms = $lastPreSignalDisplayEndBoundary.GapMilliseconds
+                        maximum_gap_ms = $lastPreSignalDisplayEndBoundary.MaximumGapMilliseconds
+                        strictly_ordered = $lastPreSignalDisplayEndBoundary.StrictlyOrdered
+                        passed = $lastPreSignalDisplayEndBoundary.Passed
+                    }
+                }
+                else {
+                    $null
+                }
                 pre_signal_stabilization = [ordered]@{
+                    policy = "bounded_post_settle_controller_and_presentmon_display_end_gap_restabilization_before_signal_only"
                     maximum_attempts = $preSignalStabilizationMaximumAttempts
                     timeout_seconds = $preSignalStabilizationTimeoutSeconds
                     started_attempt_count = $preSignalStabilizationStartedAttempts
