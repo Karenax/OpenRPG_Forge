@@ -26,6 +26,13 @@
       "license_md": "BA3B05B7F5BFDB4B4917BF8EA3AA9C4EA4C20FF6522DE9109A6CC982C5C35730",
       "acquisition_result": "1353372A67D364AF2B33A05833FAE6F8A355378C4202CFD4DA281BC78E97C77F"
     },
+    "bundle_inventory": {
+      "relative_path": "evidence/extracted-file-manifest.json",
+      "bundle_relative_path": "extract/RenderDoc_1.46_64",
+      "file_count": 72,
+      "total_bytes": 210237254,
+      "sha256": "C2F3D1C4F477F3DDB8B80C4AC2AB9BC72F881F0E95B612EAB40A59B3F3E300B1"
+    },
     "openpgp_primary_fingerprint": "1B039DB9A4718A2D699DE031AC612C3120C34695",
     "authenticode_signer_subject": "CN=Baldur Scott Karlsson, O=Baldur Scott Karlsson, S=Scotland, C=GB",
     "authenticode_signer_thumbprint": "F91353AE1E90CBEFF15585165D1611C5CE72E346",

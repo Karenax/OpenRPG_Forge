@@ -59,6 +59,10 @@ profil RoamingAppData jetable contient le seed analytics opt-out ; l'adaptateur 
 `qrenderdoc.ConfigFilePath("UI.config")` le chemin et le SHA-256 exacts avant `ExecuteAndInject`.
 Qt Core est épinglé à 5.15.2. Le profil nonce est supprimé par le host après conservation de la
 configuration finale ; le profil réel `qrenderdoc` doit garder la même empreinte.
+Le host recoupe aussi les 72 fichiers et 210 237 254 octets du bundle avec le manifeste d'extraction
+dont le SHA-256 est épinglé dans Forge. Il refuse tout fichier absent, altéré ou ajouté, tout
+chevauchement entre worktree, bundle, sortie et target Cargo, et ne supprime que les répertoires
+jetables dont il a acquis la propriété après une création réussie.
 
 Le champ `instanced` concorde obligatoirement avec le flag `Instanced`. Pour une action réellement
 non instanciée, `instanced=false` et `num_instances=0` forment le sentinel normalisé et contribuent

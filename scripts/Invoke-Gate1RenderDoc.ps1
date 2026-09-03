@@ -25,6 +25,8 @@ $ErrorActionPreference = "Stop"
 $requiredRenderDocVersion = "1.46"
 $requiredRenderDocCommit = "e4bd23b671d3d5a747ff5221dbe08a63eb6ca200"
 $requiredQtCoreFileVersion = "5.15.2.0"
+$requiredBundleFileCount = 72
+$governedBuildTimeoutSeconds = 2700
 $requiredActionSchema = "forge-gate1-renderdoc-actions/v2"
 $requiredAnalysisSchema = "forge-gate1-renderdoc-analysis/v2"
 $requiredPositiveMetrics = @("draws", "instances", "triangles")
@@ -73,6 +75,31 @@ function Test-PathInsideRoot {
     }
     $prefix = $rootPath + [IO.Path]::DirectorySeparatorChar
     return $candidatePath.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
+}
+
+function Assert-DisjointRoots {
+    param(
+        [Parameter(Mandatory = $true)][string]$First,
+        [Parameter(Mandatory = $true)][string]$Second,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+
+    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $First -Candidate $Second)) -Message "$Label roots overlap: $First and $Second"
+    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $Second -Candidate $First)) -Message "$Label roots overlap: $First and $Second"
+}
+
+function Test-PortableRelativePath {
+    param([AllowEmptyString()][string]$Path)
+
+    if ([string]::IsNullOrWhiteSpace($Path) -or [IO.Path]::IsPathRooted($Path) -or $Path.Contains("\") -or $Path.Contains(":")) {
+        return $false
+    }
+    foreach ($component in $Path.Split('/')) {
+        if ([string]::IsNullOrWhiteSpace($component) -or $component -in @('.', '..')) {
+            return $false
+        }
+    }
+    return $true
 }
 
 function Assert-NoReparsePointInExistingAncestors {
@@ -188,6 +215,46 @@ function Get-LowerSha256ForText {
     }
     finally {
         $algorithm.Dispose()
+    }
+}
+
+function Assert-RenderDocBundleInventory {
+    param(
+        [Parameter(Mandatory = $true)][string]$Root,
+        [Parameter(Mandatory = $true)][string]$InventoryPath,
+        [Parameter(Mandatory = $true)][string]$InventoryRootName,
+        [Parameter(Mandatory = $true)][int]$ExpectedFileCount
+    )
+
+    Assert-Condition -Condition ([IO.Directory]::Exists($Root)) -Message "RenderDoc bundle root is absent: $Root"
+    Assert-NoReparsePointInTree -Path $Root
+    $entries = @(Read-JsonDocument -Path $InventoryPath)
+    Assert-Condition -Condition ($entries.Count -eq $ExpectedFileCount) -Message "RenderDoc bundle inventory file count mismatch."
+    $expectedPaths = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    $prefix = "extract/$InventoryRootName/"
+    foreach ($entry in $entries) {
+        Assert-ExactProperties -Value $entry -Expected @('path', 'size', 'sha256') -Path "RenderDoc bundle inventory entry"
+        $inventoryPath = [string]$entry.path
+        Assert-Condition -Condition ($inventoryPath.StartsWith($prefix, [StringComparison]::Ordinal)) -Message "RenderDoc bundle inventory path has an unexpected root: $inventoryPath"
+        $relativePath = $inventoryPath.Substring($prefix.Length)
+        Assert-Condition -Condition (Test-PortableRelativePath -Path $relativePath) -Message "RenderDoc bundle inventory path is not portable: $inventoryPath"
+        Assert-Condition -Condition $expectedPaths.Add($relativePath) -Message "RenderDoc bundle inventory contains a duplicate path: $relativePath"
+        $candidatePath = Get-FullPathWithoutResolving -Path (Join-Path $Root $relativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
+        Assert-Condition -Condition (Test-PathInsideRoot -Root $Root -Candidate $candidatePath) -Message "RenderDoc bundle inventory path escapes its root: $inventoryPath"
+        Assert-Condition -Condition ([IO.File]::Exists($candidatePath)) -Message "RenderDoc bundle file is absent: $relativePath"
+        $file = Get-Item -LiteralPath $candidatePath -Force
+        Assert-Condition -Condition (($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) -Message "RenderDoc bundle file is a reparse point: $relativePath"
+        Assert-Condition -Condition ($file.Length -eq [int64]$entry.size) -Message "RenderDoc bundle file size mismatch: $relativePath"
+        Assert-Condition -Condition ((Get-LowerSha256 -Path $candidatePath) -ceq ([string]$entry.sha256).ToLowerInvariant()) -Message "RenderDoc bundle file SHA-256 mismatch: $relativePath"
+    }
+
+    $actualPaths = @(
+        Get-ChildItem -LiteralPath $Root -Force -Recurse -File |
+            ForEach-Object { [IO.Path]::GetRelativePath($Root, $_.FullName).Replace('\', '/') }
+    )
+    Assert-Condition -Condition ($actualPaths.Count -eq $ExpectedFileCount) -Message "RenderDoc bundle contains an unexpected file count."
+    foreach ($actualPath in $actualPaths) {
+        Assert-Condition -Condition $expectedPaths.Contains($actualPath) -Message "RenderDoc bundle contains an unpinned file: $actualPath"
     }
 }
 
@@ -486,6 +553,12 @@ $repositoryPath = (Resolve-Path -LiteralPath $RepoRoot).Path.TrimEnd('\')
 $outputPath = Get-FullPathWithoutResolving -Path $OutputRoot
 $cargoTargetPath = Get-FullPathWithoutResolving -Path $CargoTargetDirectory
 $renderDocPath = (Resolve-Path -LiteralPath $RenderDocRoot).Path.TrimEnd('\')
+$renderDocExtractPath = [IO.Directory]::GetParent($renderDocPath)
+Assert-Condition -Condition ($null -ne $renderDocExtractPath -and $renderDocExtractPath.Name -ceq 'extract') -Message "RenderDocRoot must be the pinned acquisition extract/RenderDoc_1.46_64 directory."
+$renderDocAcquisitionPath = $renderDocExtractPath.Parent.FullName
+$renderDocEvidencePath = Join-Path $renderDocAcquisitionPath 'evidence'
+$renderDocAcquisitionResultPath = Join-Path $renderDocEvidencePath 'acquisition-result.json'
+$renderDocBundleInventoryPath = Join-Path $renderDocEvidencePath 'extracted-file-manifest.json'
 $qrenderdocPath = Join-Path $renderDocPath "qrenderdoc.exe"
 $renderdoccmdPath = Join-Path $renderDocPath "renderdoccmd.exe"
 $renderdocDllPath = Join-Path $renderDocPath "renderdoc.dll"
@@ -520,9 +593,11 @@ Assert-Condition -Condition ($registeredWorktrees.Count -gt 0) -Message "Git rep
 foreach ($worktree in $registeredWorktrees) {
     Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $worktree -Candidate $outputPath)) -Message "OutputRoot overlaps registered worktree $worktree."
     Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $worktree -Candidate $cargoTargetPath)) -Message "CargoTargetDirectory overlaps registered worktree $worktree."
+    Assert-DisjointRoots -First $worktree -Second $renderDocPath -Label "RenderDocRoot and registered worktree"
 }
-Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $cargoTargetPath -Candidate $outputPath)) -Message "OutputRoot must not overlap CargoTargetDirectory."
-Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $outputPath -Candidate $cargoTargetPath)) -Message "CargoTargetDirectory must not overlap OutputRoot."
+Assert-DisjointRoots -First $outputPath -Second $cargoTargetPath -Label "OutputRoot and CargoTargetDirectory"
+Assert-DisjointRoots -First $renderDocPath -Second $outputPath -Label "RenderDocRoot and OutputRoot"
+Assert-DisjointRoots -First $renderDocPath -Second $cargoTargetPath -Label "RenderDocRoot and CargoTargetDirectory"
 Initialize-EmptyDirectory -Path $outputPath -Label "OutputRoot"
 Initialize-EmptyDirectory -Path $cargoTargetPath -Label "CargoTargetDirectory"
 Assert-NoReparsePointInExistingAncestors -Path $renderDocPath
@@ -533,12 +608,14 @@ $validation = $null
 $profileMutex = $null
 $profileMutexAcquired = $false
 $executionViewPath = $null
+$executionViewOwned = $false
 $activeProfilePath = $null
+$activeProfileOwned = $false
 $roamingAppDataPath = $null
 $realProfileFingerprintBefore = $null
 $realProfileFingerprintAfter = $null
 try {
-    foreach ($path in @($qrenderdocPath, $renderdoccmdPath, $renderdocDllPath, $qtCorePath, $adapterPath, $modelPath, $manifestPath)) {
+    foreach ($path in @($qrenderdocPath, $renderdoccmdPath, $renderdocDllPath, $qtCorePath, $adapterPath, $modelPath, $manifestPath, $renderDocAcquisitionResultPath, $renderDocBundleInventoryPath)) {
         Assert-Condition -Condition ([IO.File]::Exists($path)) -Message "Required acquisition component is absent: $path"
     }
     $adapterSha256 = Get-LowerSha256 -Path $adapterPath
@@ -565,6 +642,13 @@ try {
     ) -Path "RenderDoc manifest"
     Assert-Condition -Condition ($manifest.schema -ceq "forge-gate1-renderdoc-lock/v1" -and $manifest.route -ceq "R1-037") -Message "RenderDoc manifest identity mismatch."
     Assert-Condition -Condition ($manifest.tool.release -ceq $requiredRenderDocVersion -and $manifest.tool.release_commit -ceq $requiredRenderDocCommit) -Message "RenderDoc manifest tool pin mismatch."
+    Assert-ExactProperties -Value $manifest.tool.bundle_inventory -Expected @('relative_path', 'bundle_relative_path', 'file_count', 'total_bytes', 'sha256') -Path "RenderDoc manifest tool.bundle_inventory"
+    Assert-Condition -Condition (
+        $manifest.tool.bundle_inventory.relative_path -ceq 'evidence/extracted-file-manifest.json' -and
+        $manifest.tool.bundle_inventory.bundle_relative_path -ceq 'extract/RenderDoc_1.46_64' -and
+        $manifest.tool.bundle_inventory.file_count -eq $requiredBundleFileCount -and
+        $manifest.tool.bundle_inventory.total_bytes -eq 210237254
+    ) -Message "RenderDoc manifest bundle inventory contract mismatch."
     Assert-Condition -Condition ($manifest.normalized_input.schema -ceq $requiredActionSchema) -Message "RenderDoc manifest normalized action schema mismatch."
     Assert-Condition -Condition ($manifest.analysis.output_schema -ceq $requiredAnalysisSchema) -Message "RenderDoc manifest analysis schema mismatch."
     Assert-Condition -Condition ((@($manifest.analysis.required_positive_metrics) -join "`n") -ceq ($requiredPositiveMetrics -join "`n")) -Message "RenderDoc manifest required positive metrics mismatch."
@@ -610,6 +694,17 @@ try {
     Assert-Condition -Condition ($renderdocDllSha256 -ceq ([string]$manifest.tool.sha256.renderdoc_dll).ToLowerInvariant()) -Message "renderdoc.dll SHA-256 does not match the pinned manifest."
     Assert-Condition -Condition ($qtCoreSha256 -ceq ([string]$manifest.tool.sha256.qt5core_dll).ToLowerInvariant()) -Message "Qt5Core.dll SHA-256 does not match the pinned manifest."
     Assert-Condition -Condition ($qtCoreFileVersion -ceq $requiredQtCoreFileVersion -and $manifest.tool.embedded_qt_core_file_version -ceq $requiredQtCoreFileVersion) -Message "The embedded Qt Core version is not the pinned 5.15.2.0 build."
+    Assert-Condition -Condition ((Get-LowerSha256 -Path $renderDocAcquisitionResultPath) -ceq ([string]$manifest.tool.sha256.acquisition_result).ToLowerInvariant()) -Message "RenderDoc acquisition result SHA-256 does not match the pinned manifest."
+    Assert-Condition -Condition ((Get-LowerSha256 -Path $renderDocBundleInventoryPath) -ceq ([string]$manifest.tool.bundle_inventory.sha256).ToLowerInvariant()) -Message "RenderDoc extracted-file manifest SHA-256 does not match the pinned manifest."
+    $acquisitionResult = Read-JsonDocument -Path $renderDocAcquisitionResultPath
+    Assert-Condition -Condition (
+        $acquisitionResult.schema -ceq 'renderdoc-portable-acquisition/v1' -and
+        $acquisitionResult.status -ceq 'PASS' -and
+        $acquisitionResult.release -ceq $requiredRenderDocVersion -and
+        $acquisitionResult.release_commit -ceq $requiredRenderDocCommit -and
+        [string]::Equals((Get-FullPathWithoutResolving -Path $acquisitionResult.target), $renderDocAcquisitionPath, [StringComparison]::OrdinalIgnoreCase)
+    ) -Message "RenderDoc external acquisition result does not bind the pinned bundle."
+    Assert-RenderDocBundleInventory -Root $renderDocPath -InventoryPath $renderDocBundleInventoryPath -InventoryRootName 'RenderDoc_1.46_64' -ExpectedFileCount $requiredBundleFileCount
 
     foreach ($toolPath in @($qrenderdocPath, $renderdoccmdPath, $renderdocDllPath)) {
         $signature = Get-AuthenticodeSignature -LiteralPath $toolPath
@@ -644,7 +739,7 @@ try {
     Set-ProcessEnvironment -Saved $environmentBefore -Name "BEVY_ASSET_ROOT" -Value $repositoryPath
     Set-ProcessEnvironment -Saved $environmentBefore -Name "RUST_LOG" -Value "info,forge=info,wgpu_hal=warn,wgpu_core=warn,naga=warn"
 
-    $buildResult = Invoke-CapturedCommand -FilePath $cargoCommand.Source -ArgumentList @("build", "--release", "-p", "forge_runtime", "--locked", "-j", "1") -WorkingDirectory $repositoryPath -TimeoutSeconds 1800
+    $buildResult = Invoke-CapturedCommand -FilePath $cargoCommand.Source -ArgumentList @("build", "--release", "-p", "forge_runtime", "--locked", "-j", "1") -WorkingDirectory $repositoryPath -TimeoutSeconds $governedBuildTimeoutSeconds
     Assert-CommandSucceeded -Result $buildResult -Label "Governed forge_runtime release build"
     $runtimePath = Join-Path $cargoTargetPath "release\forge_runtime.exe"
     Assert-Condition -Condition ([IO.File]::Exists($runtimePath)) -Message "Governed build did not produce forge_runtime.exe."
@@ -655,8 +750,11 @@ try {
     Assert-Condition -Condition ($cadleBuildPaths.Count -eq 0) -Message "The external Cargo target contains a Cadle-named copied artifact."
 
     $executionViewName = ".qrenderdoc-execution-$([Guid]::NewGuid().ToString('N').ToLowerInvariant())"
-    $executionViewPath = Join-Path $outputPath $executionViewName
-    Copy-GovernedDirectoryTree -Source $renderDocPath -Destination $executionViewPath
+    $executionViewCandidate = Join-Path $outputPath $executionViewName
+    Copy-GovernedDirectoryTree -Source $renderDocPath -Destination $executionViewCandidate
+    $executionViewPath = $executionViewCandidate
+    $executionViewOwned = $true
+    Assert-RenderDocBundleInventory -Root $executionViewPath -InventoryPath $renderDocBundleInventoryPath -InventoryRootName 'RenderDoc_1.46_64' -ExpectedFileCount $requiredBundleFileCount
     $stagedQrenderdocPath = Join-Path $executionViewPath "qrenderdoc.exe"
     $stagedRenderdoccmdPath = Join-Path $executionViewPath "renderdoccmd.exe"
     $stagedRenderdocDllPath = Join-Path $executionViewPath "renderdoc.dll"
@@ -695,9 +793,11 @@ try {
             $nonce = [Guid]::NewGuid().ToString("N").ToLowerInvariant()
             $captureId = "gate1-renderdoc-$runName"
             $profileApplicationName = "$qrenderdocProfilePrefix$nonce"
-            $activeProfilePath = Join-Path $roamingAppDataPath $profileApplicationName
-            Assert-Condition -Condition (-not [IO.Directory]::Exists($activeProfilePath) -and -not [IO.File]::Exists($activeProfilePath)) -Message "Disposable QRenderDoc profile already exists: $activeProfilePath"
-            Initialize-EmptyDirectory -Path $activeProfilePath -Label "Disposable QRenderDoc profile $runName"
+            $activeProfileCandidate = Join-Path $roamingAppDataPath $profileApplicationName
+            Assert-Condition -Condition (-not [IO.Directory]::Exists($activeProfileCandidate) -and -not [IO.File]::Exists($activeProfileCandidate)) -Message "Disposable QRenderDoc profile already exists: $activeProfileCandidate"
+            Initialize-EmptyDirectory -Path $activeProfileCandidate -Label "Disposable QRenderDoc profile $runName"
+            $activeProfilePath = $activeProfileCandidate
+            $activeProfileOwned = $true
             $profileConfigPath = Join-Path $activeProfilePath $manifest.capture.automation_profile.ui_config_filename
             Write-JsonAtomically -Path $profileConfigPath -Value ([ordered]@{
                     rdocConfigData = 1
@@ -744,8 +844,9 @@ try {
                 $profileFinalSha256 = Get-LowerSha256 -Path $profileEvidencePath
             }
             finally {
-                if ($null -ne $activeProfilePath) {
+                if ($activeProfileOwned -and $null -ne $activeProfilePath) {
                     Remove-GovernedDirectoryTree -Root $roamingAppDataPath -Path $activeProfilePath -LeafPrefix $qrenderdocProfilePrefix
+                    $activeProfileOwned = $false
                     $activeProfilePath = $null
                 }
             }
@@ -884,6 +985,7 @@ try {
     $realProfileFingerprintAfter = Get-DirectoryTreeFingerprint -Path $realQrenderdocProfilePath
     Assert-Condition -Condition ($realProfileFingerprintAfter -ceq $realProfileFingerprintBefore) -Message "The real qrenderdoc profile changed during governed acquisition."
     Remove-GovernedDirectoryTree -Root $outputPath -Path $executionViewPath -LeafPrefix ".qrenderdoc-execution-"
+    $executionViewOwned = $false
     $executionViewPath = $null
     $profileMutex.ReleaseMutex()
     $profileMutexAcquired = $false
@@ -998,14 +1100,16 @@ catch {
 }
 finally {
     try {
-        if ($null -ne $activeProfilePath -and $null -ne $roamingAppDataPath) {
+        if ($activeProfileOwned -and $null -ne $activeProfilePath -and $null -ne $roamingAppDataPath) {
             Remove-GovernedDirectoryTree -Root $roamingAppDataPath -Path $activeProfilePath -LeafPrefix $qrenderdocProfilePrefix
+            $activeProfileOwned = $false
         }
     }
     finally {
         try {
-            if ($null -ne $executionViewPath) {
+            if ($executionViewOwned -and $null -ne $executionViewPath) {
                 Remove-GovernedDirectoryTree -Root $outputPath -Path $executionViewPath -LeafPrefix ".qrenderdoc-execution-"
+                $executionViewOwned = $false
             }
         }
         finally {

@@ -456,6 +456,11 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
         )
         automation_profile = capture["automation_profile"]
         self.assertEqual("5.15.2.0", manifest["tool"]["embedded_qt_core_file_version"])
+        self.assertEqual(72, manifest["tool"]["bundle_inventory"]["file_count"])
+        self.assertEqual(
+            "C2F3D1C4F477F3DDB8B80C4AC2AB9BC72F881F0E95B612EAB40A59B3F3E300B1",
+            manifest["tool"]["bundle_inventory"]["sha256"],
+        )
         self.assertEqual(
             "full_bundle_mirror_unique_executable_basename",
             automation_profile["strategy"],
@@ -464,6 +469,11 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
         self.assertTrue(automation_profile["adapter_config_path_check_before_injection"])
         self.assertIn("validate_automation_profile()", adapter)
         self.assertIn("Remove-GovernedDirectoryTree", orchestrator)
+        self.assertIn("Assert-RenderDocBundleInventory", orchestrator)
+        self.assertIn("$governedBuildTimeoutSeconds = 2700", orchestrator)
+        self.assertIn("Assert-DisjointRoots -First $renderDocPath", orchestrator)
+        self.assertIn("$executionViewOwned = $true", orchestrator)
+        self.assertIn("$activeProfileOwned = $true", orchestrator)
         self.assertIn("FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256", adapter)
         self.assertIn("FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256", orchestrator)
         adapter_namespace = _adapter_validation_namespace()

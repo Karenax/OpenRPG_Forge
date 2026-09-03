@@ -81,6 +81,12 @@ Le signal `forge.gate1-renderdoc-capture-signal` v1 lie aussi les SHA-256 exacts
 `qrenderdoc.exe`, `renderdoccmd.exe` et `renderdoc.dll` au ledger Rust. Le contrôleur externe recoupe
 ces trois binaires avec le manifeste avant tout build ou lancement.
 
+Le miroir d'exécution n'est pas validé par quatre fichiers sentinelles seulement : les 72 fichiers
+du bundle portable, leurs tailles et leurs SHA-256 sont recoupés avant et après copie avec le manifeste
+d'extraction externe dont l'empreinte est épinglée dans le manifeste Forge. Les racines Git, bundle,
+sortie et target Cargo doivent être disjointes dans les deux sens. Le build Release neuf dispose d'une
+borne de 45 minutes, supérieure au temps de référence déjà observé à un job.
+
 QRenderDoc 1.46 charge `UI.config` avant ses scripts Python et embarque Qt Core 5.15.2. Comme
 `AppDataLocation` passe par le Known Folder Windows, le contrôleur miroir le bundle complet, lance
 une copie de l'exécutable nommée avec le nonce et précrée son profil jetable avec

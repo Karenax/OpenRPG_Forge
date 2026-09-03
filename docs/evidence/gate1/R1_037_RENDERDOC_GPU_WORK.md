@@ -97,6 +97,10 @@ bundle embarque Qt Core 5.15.2, est intégralement recopié dans une vue externe
 `rdocConfigData=1` et `Analytics_TotalOptOut=true`. L'adaptateur vérifie le chemin et le hash du seed
 avant injection. Le host archive la configuration finale dans le dossier du run, supprime le profil
 jetable en `finally` et recoupe l'empreinte du profil réel `qrenderdoc` avant/après sous mutex global.
+Le manifeste d'extraction externe est lui-même épinglé dans Forge ; ses 72 fichiers, 210 237 254
+octets et SHA-256 sont recoupés sur la source et le miroir. Les racines worktree, RenderDoc, sortie et
+target Cargo sont disjointes, le build neuf a une borne de 45 minutes et les nettoyages exigent un
+marqueur de propriété acquis seulement après création réussie.
 
 ## Analyseur pur
 
@@ -143,18 +147,18 @@ conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 
 | Artefact suivi | SHA-256 |
 |---|---|
-| ADR-0009 | `B8343FAC65763A236BB21DAB14D26058725C3D3622389DA42CF1B7837FAB6C66` |
-| `scripts/gate1-renderdoc.v1.json` | `B020A45953C6721F6EC9B2642FC1F4A5B80BD070463FE462EC771324AF0B1A97` |
+| ADR-0009 | `F05B89BDEF572A93ED1A0EF7DAAE0ABFDC4501270E5A7D56988AD6A05D2A9446` |
+| `scripts/gate1-renderdoc.v1.json` | `C14BAD9189DB3656C70CEAAFC21DE3D5C8FB5C819BD0E473B5F63B64572CA447` |
 | `gate1_renderdoc_model.py` | `6575D76F43BD9F3F39E95C7F23C50A1C364850529B37CB00629769C386C57668` |
 | `test_gate1_renderdoc_model.py` | `A1AF6E2C803C74D9D7E11EBA5A9C874A89B528449C7DF70DC61E6FBB1474A281` |
 | `nominal_nested_actions.json` | `E7373B924A521112FBBB99F22107D19AE5A69DB4F9EBA48EFBC8F91A27151048` |
 | `action_rejections.json` | `705A3AC2B9F1FC6993F8B3ED9F791D672F1C0D5AD5CE5C7B6E46F0422E9D9123` |
 | `capture_rejections.json` | `C5AF8AF8E92FB8A956A07A419F11C326912365AB5495CF7CDE185E5FC388D33C` |
-| `scripts/renderdoc/README.md` | `97BF454FB19749F55D7CAFDF1FD6A02AF01F5DDC29594FBEA67E499DC341CC67` |
+| `scripts/renderdoc/README.md` | `EB796DE011908336EB3B41FA650F8F419FE256EA6699115B0C33702C9DC9E463` |
 | `gate1_renderdoc_qrenderdoc.py` | `ED4FB4DA97852A76669D5451B68BCBE9920B1E3C116281F18AA69BDABDA846DE` |
-| `scripts/Invoke-Gate1RenderDoc.ps1` | `84F2D01F1587ED74DB37DA375C84826B72887956D502B9F9DD1ADB35D2B9401C` |
+| `scripts/Invoke-Gate1RenderDoc.ps1` | `66B51D2B7AFB08B3F1E9DF33F5FEA7AD53978C1C4A3BA188E4F7C9A11CE776B8` |
 | `apps/forge_runtime/src/gate1_renderdoc_capture.rs` | `78B22F77530DDEC4A46119496CFE4673D82B7EDF9739663A4DFC2DEC371314CA` |
-| `test_gate1_renderdoc_contract_chain.py` | `68D452E6C45A0A65A74F42E8C481FB54E47F6A11BE17659424CCA6FFD63770B5` |
+| `test_gate1_renderdoc_contract_chain.py` | `7740F027121B088E500022644E15EEBD8DD6303F6DA1BAD44456BB0546B70BC5` |
 | `apps/forge_runtime/README.md` | `B8AC7459EF2816665238B839FDA7E12384635B18BAAB2AA7A4304C90BFE64EDD` |
 
 ## Limites et travail encore dû
