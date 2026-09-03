@@ -73,7 +73,7 @@ Les diagnostics schema 8 A4/A5/A6 réutilisent tous le binaire `21228a…` et ne
 A4 échoue sur un seul outlier, tandis qu'A5 et A6 passent les seuils et le focus. Leur target Cargo
 partagé et l'absence de rebuild gouverné propre imposent `qualifying=false`. Ils ne remplacent donc ni
 le Replay2 ni un PASS de `R1-048`. La dernière validation workspace **298/298** reste épinglée à
-l'overlay `afb270c3`. La validation proportionnée du lot courant passe **66/66** tests Release
+l'overlay `afb270c3`. La validation proportionnée du lot schema 8 `49acfd56` passe **66/66** tests Release
 `forge_runtime --all-features` (62 unitaires et 4 intégration), ainsi que le formatage Rust, l'auto-test
 A/B schema 2 et `git diff --check`. Elle ne remplace pas un rejeu workspace complet. Le seul
 avertissement de build connu reste la future incompatibilité transitive de
@@ -1985,9 +1985,9 @@ ETW 0/0, puis s'arrête avant signal sur un gap de sampling fenêtre `>250 ms` ;
 verdict de performance. Le harnais `9b847e99` utilise désormais host boundary schema 5 et validation
 schema 12 avec restabilisation pré-signal bornée, sans replay qualifiant encore acquis.
 La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
-52/52 runtime et 1/1 intégration. Le lot courant ajoute 66/66 tests Release `forge_runtime
---all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS ; aucun nouveau replay
-workspace complet n'est revendiqué ici.
+52/52 runtime et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute 66/66 tests Release `forge_runtime
+--all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS ; ces résultats ne
+valident pas le HEAD intégré et aucun nouveau replay workspace complet n'est revendiqué ici.
 La preuve visuelle `873618af`
 conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
 3/3 ROIs végétation, témoin terrain, 4/4
