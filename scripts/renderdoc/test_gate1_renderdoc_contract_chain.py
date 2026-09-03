@@ -471,7 +471,19 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
         self.assertIn("Remove-GovernedDirectoryTree", orchestrator)
         self.assertIn("Assert-RenderDocBundleInventory", orchestrator)
         self.assertIn("$governedBuildTimeoutSeconds = 2700", orchestrator)
-        self.assertIn("Assert-DisjointRoots -First $renderDocPath", orchestrator)
+        for disjoint_call in (
+            'Assert-DisjointRoots -First $worktree -Second $outputPath',
+            'Assert-DisjointRoots -First $worktree -Second $cargoTargetPath',
+            'Assert-DisjointRoots -First $worktree -Second $renderDocPath',
+            'Assert-DisjointRoots -First $outputPath -Second $cargoTargetPath',
+            'Assert-DisjointRoots -First $renderDocPath -Second $outputPath',
+            'Assert-DisjointRoots -First $renderDocPath -Second $cargoTargetPath',
+        ):
+            self.assertIn(disjoint_call, orchestrator)
+        self.assertIn("$process.WaitForExit(10000)", orchestrator)
+        self.assertNotIn("$process.WaitForExit()", orchestrator)
+        self.assertIn("$actualBundleRelativePath", orchestrator)
+        self.assertIn("$actualInventoryRelativePath", orchestrator)
         self.assertIn("$executionViewOwned = $true", orchestrator)
         self.assertIn("$activeProfileOwned = $true", orchestrator)
         self.assertIn("FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256", adapter)

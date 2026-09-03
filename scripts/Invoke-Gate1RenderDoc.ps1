@@ -391,12 +391,17 @@ function Invoke-CapturedCommand {
         $stderrTask = $process.StandardError.ReadToEndAsync()
         $completed = $process.WaitForExit($TimeoutSeconds * 1000)
         if (-not $completed) {
+            $killFailure = $null
             try {
-                $process.Kill($true)
+                if (-not $process.HasExited) {
+                    $process.Kill($true)
+                }
             }
             catch {
+                $killFailure = $_.Exception.Message
             }
-            $process.WaitForExit()
+            $terminatedAfterKill = $process.WaitForExit(10000)
+            Assert-Condition -Condition $terminatedAfterKill -Message "Governed command timed out and did not exit within 10 seconds after termination was requested: $FilePath; kill_error=$killFailure"
             throw "Governed command timed out after $TimeoutSeconds seconds: $FilePath"
         }
         return [pscustomobject]@{
@@ -591,8 +596,8 @@ $registeredWorktrees = @(
 )
 Assert-Condition -Condition ($registeredWorktrees.Count -gt 0) -Message "Git reported no registered worktree."
 foreach ($worktree in $registeredWorktrees) {
-    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $worktree -Candidate $outputPath)) -Message "OutputRoot overlaps registered worktree $worktree."
-    Assert-Condition -Condition (-not (Test-PathInsideRoot -Root $worktree -Candidate $cargoTargetPath)) -Message "CargoTargetDirectory overlaps registered worktree $worktree."
+    Assert-DisjointRoots -First $worktree -Second $outputPath -Label "Registered worktree and OutputRoot"
+    Assert-DisjointRoots -First $worktree -Second $cargoTargetPath -Label "Registered worktree and CargoTargetDirectory"
     Assert-DisjointRoots -First $worktree -Second $renderDocPath -Label "RenderDocRoot and registered worktree"
 }
 Assert-DisjointRoots -First $outputPath -Second $cargoTargetPath -Label "OutputRoot and CargoTargetDirectory"
@@ -649,6 +654,10 @@ try {
         $manifest.tool.bundle_inventory.file_count -eq $requiredBundleFileCount -and
         $manifest.tool.bundle_inventory.total_bytes -eq 210237254
     ) -Message "RenderDoc manifest bundle inventory contract mismatch."
+    $actualBundleRelativePath = [IO.Path]::GetRelativePath($renderDocAcquisitionPath, $renderDocPath).Replace('\', '/')
+    $actualInventoryRelativePath = [IO.Path]::GetRelativePath($renderDocAcquisitionPath, $renderDocBundleInventoryPath).Replace('\', '/')
+    Assert-Condition -Condition ($actualBundleRelativePath -ceq $manifest.tool.bundle_inventory.bundle_relative_path) -Message "RenderDocRoot does not match the bundle path pinned by the manifest."
+    Assert-Condition -Condition ($actualInventoryRelativePath -ceq $manifest.tool.bundle_inventory.relative_path) -Message "RenderDoc inventory path does not match the path pinned by the manifest."
     Assert-Condition -Condition ($manifest.normalized_input.schema -ceq $requiredActionSchema) -Message "RenderDoc manifest normalized action schema mismatch."
     Assert-Condition -Condition ($manifest.analysis.output_schema -ceq $requiredAnalysisSchema) -Message "RenderDoc manifest analysis schema mismatch."
     Assert-Condition -Condition ((@($manifest.analysis.required_positive_metrics) -join "`n") -ceq ($requiredPositiveMetrics -join "`n")) -Message "RenderDoc manifest required positive metrics mismatch."
