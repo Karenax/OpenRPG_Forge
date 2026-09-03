@@ -2113,7 +2113,20 @@ mod tests {
                 .map(str::to_owned)
             )
             .unwrap_err(),
-            "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+            "--render-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
+        );
+        assert_eq!(
+            Options::parse(
+                [
+                    "--gate1-renderdoc-capture",
+                    "renderdoc-output",
+                    "--render-profile-gate1-diagnostic",
+                ]
+                .into_iter()
+                .map(str::to_owned)
+            )
+            .unwrap_err(),
+            "--render-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
         );
         assert_eq!(
             Options::parse(

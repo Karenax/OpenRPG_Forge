@@ -43,11 +43,12 @@ structured JSON tracing initialization so that Bevy can own the process-wide sub
 executable prints a `NONQUALIFYING` warning before argument processing. Normal builds do not enable
 this feature, keep Forge structured JSON tracing and continue to disable Bevy's `LogPlugin`.
 Conversely, `--all-features` enables `render-profile` and therefore cannot produce a qualifying
-runtime executable. By default, profiled builds still refuse `--log-probe`, `--gate1-visual-proof`
-and `--gate1-gameplay-stutter` before any proof path is prepared. The feature-only
+runtime executable. By default, profiled builds still refuse `--log-probe`,
+`--gate1-renderdoc-capture`, `--gate1-visual-proof` and `--gate1-gameplay-stutter` before any proof
+path is prepared. The feature-only
 `--render-profile-gate1-diagnostic` flag is the sole exception: it requires the existing
-`--gate1-gameplay-stutter` route and can never be combined with `--gate1-visual-proof` or
-`--log-probe`. A normal build does not recognize this flag.
+`--gate1-gameplay-stutter` route and can never be combined with `--gate1-renderdoc-capture`,
+`--gate1-visual-proof` or `--log-probe`. A normal build does not recognize this flag.
 
 After the gameplay-stutter output preflight succeeds and before any Bevy plugin is added, the opt-in
 atomically publishes `NONQUALIFYING_RENDER_PROFILE.json` in that output directory. Its

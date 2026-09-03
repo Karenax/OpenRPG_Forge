@@ -76,12 +76,29 @@ fn profiled_gate1_diagnostic_opt_in_never_allows_visual_proof_or_log_probe() {
 
     assert_eq!(visual.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&visual.stderr).contains(
-        "--render-profile-gate1-diagnostic cannot be combined with --gate1-visual-proof"
+        "--render-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
     ));
     assert!(
         !visual_output_root.exists(),
         "profiled visual-proof route created forbidden output directory {}",
         visual_output_root.display()
+    );
+
+    let renderdoc_output_root = unique_absent_output_root("renderdoc-opt-in");
+    let renderdoc = Command::new(env!("CARGO_BIN_EXE_forge_runtime"))
+        .arg("--gate1-renderdoc-capture")
+        .arg(&renderdoc_output_root)
+        .arg("--render-profile-gate1-diagnostic")
+        .output()
+        .unwrap();
+    assert_eq!(renderdoc.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&renderdoc.stderr).contains(
+        "--render-profile-gate1-diagnostic cannot be combined with Gate 1 qualification capture routes"
+    ));
+    assert!(
+        !renderdoc_output_root.exists(),
+        "profiled RenderDoc route created forbidden output directory {}",
+        renderdoc_output_root.display()
     );
 
     let log = Command::new(env!("CARGO_BIN_EXE_forge_runtime"))

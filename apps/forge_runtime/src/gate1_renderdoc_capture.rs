@@ -218,6 +218,21 @@ struct GovernedSceneEvidence {
     weather: WeatherProjectionStats,
 }
 
+impl GovernedSceneEvidence {
+    fn validate(&self, quality: &VisualValleyQualityStats) -> Result<(), String> {
+        validate_governed_gate1_render_state(
+            &self.visual_valley,
+            &self.shadow,
+            &self.vegetation,
+            &self.scenery,
+            &self.environment,
+            &self.water,
+            &self.weather,
+            quality,
+        )
+    }
+}
+
 #[derive(SystemParam)]
 struct GovernedScene<'w> {
     visual_valley: Res<'w, VisualValleyStats>,
@@ -231,22 +246,15 @@ struct GovernedScene<'w> {
     gpu: Option<Res<'w, GpuDiagnostic>>,
 }
 
-impl GovernedScene<'_> {
-    fn validate(&self) -> Result<(), String> {
-        validate_governed_gate1_render_state(
-            &self.visual_valley,
-            &self.shadow,
-            &self.vegetation,
-            &self.scenery,
-            &self.environment,
-            &self.water,
-            &self.weather,
-            &self.quality,
-        )
-    }
-
-    fn snapshot(&self) -> GovernedSceneEvidence {
-        GovernedSceneEvidence {
+impl<'w> GovernedScene<'w> {
+    fn into_observation(
+        self,
+    ) -> (
+        GovernedSceneEvidence,
+        &'w VisualValleyQualityStats,
+        Option<&'w GpuDiagnostic>,
+    ) {
+        let evidence = GovernedSceneEvidence {
             visual_valley: self.visual_valley.clone(),
             shadow: self.shadow.clone(),
             vegetation: self.vegetation.clone(),
@@ -254,7 +262,12 @@ impl GovernedScene<'_> {
             environment: self.environment.clone(),
             water: self.water.clone(),
             weather: self.weather.clone(),
-        }
+        };
+        (
+            evidence,
+            self.quality.into_inner(),
+            self.gpu.map(Res::into_inner),
+        )
     }
 }
 
@@ -419,12 +432,24 @@ struct FileContract {
     failure: &'static str,
 }
 
+#[derive(Clone, Copy)]
+struct PendingExternalQualification;
+
+impl Serialize for PendingExternalQualification {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bool(false)
+    }
+}
+
 #[derive(Clone, Copy, Serialize)]
 struct QualificationBoundary {
     runtime_state_qualified: bool,
-    external_capture_observed_by_runtime: bool,
-    renderdoc_analysis_completed_by_runtime: bool,
-    gate1_route_qualified: bool,
+    external_capture_observed_by_runtime: PendingExternalQualification,
+    renderdoc_analysis_completed_by_runtime: PendingExternalQualification,
+    gate1_route_qualified: PendingExternalQualification,
     limitation: &'static str,
 }
 
@@ -440,9 +465,9 @@ fn file_contract() -> FileContract {
 fn qualification_boundary(runtime_state_qualified: bool) -> QualificationBoundary {
     QualificationBoundary {
         runtime_state_qualified,
-        external_capture_observed_by_runtime: false,
-        renderdoc_analysis_completed_by_runtime: false,
-        gate1_route_qualified: false,
+        external_capture_observed_by_runtime: PendingExternalQualification,
+        renderdoc_analysis_completed_by_runtime: PendingExternalQualification,
+        gate1_route_qualified: PendingExternalQualification,
         limitation: "the runtime validates only its frozen capture window; the host and qrenderdoc adapter must validate the external capture and action counters",
     }
 }
@@ -465,17 +490,14 @@ fn drive_capture_protocol(
     if runtime.phase.is_terminal() {
         return;
     }
-    if runtime.started_at.elapsed() > WATCHDOG {
-        fail(
-            &mut runtime,
-            &mut exit,
-            &format!("capture protocol exceeded {} seconds", WATCHDOG.as_secs()),
-        );
+    if capture_watchdog_expired(&mut runtime, &mut exit) {
         return;
     }
 
-    let scene_evidence = scene.snapshot();
-    let Some(gpu) = scene.gpu.as_deref() else {
+    let frame_count = frame_count.into_inner();
+    let pipeline = pipeline.into_inner();
+    let (scene_evidence, quality, gpu) = scene.into_observation();
+    let Some(gpu) = gpu else {
         if runtime.phase != Phase::WaitingForReady {
             fail(
                 &mut runtime,
@@ -488,8 +510,8 @@ fn drive_capture_protocol(
 
     if runtime.phase == Phase::WaitingForReady {
         if !pipeline.is_ready()
-            || scene.scenery.status != SceneryProjectionStatus::Activated
-            || scene.validate().is_err()
+            || scene_evidence.scenery.status != SceneryProjectionStatus::Activated
+            || scene_evidence.validate(quality).is_err()
         {
             return;
         }
@@ -497,30 +519,23 @@ fn drive_capture_protocol(
         *virtual_time = Time::<Virtual>::default();
         virtual_time.pause();
         *fixed_time = Time::<Fixed>::from_duration(fixed_timestep);
-        let observation = match observe_frozen_state(
+        let observation = observe_frozen_state(
             &runtime.configuration,
-            &pipeline,
+            pipeline,
             &scene_evidence,
-            &scene.quality,
+            quality,
             gpu,
             &windows,
             &cameras,
             &virtual_time,
             &fixed_time,
-        ) {
-            Ok(observation) => observation,
-            Err(error) => {
-                fail(&mut runtime, &mut exit, &error);
-                return;
-            }
+        );
+        let Some((observation, observation_hash)) =
+            capture_result_or_fail(&mut runtime, &mut exit, observation)
+        else {
+            return;
         };
-        runtime.frozen_state_sha256 = match content_hash(&observation, "frozen state") {
-            Ok(hash) => Some(hash),
-            Err(error) => {
-                fail(&mut runtime, &mut exit, &error);
-                return;
-            }
-        };
+        runtime.frozen_state_sha256 = Some(observation_hash);
         runtime.frozen_state = Some(observation);
         runtime.phase = Phase::FreezeSettling;
         return;
@@ -536,29 +551,21 @@ fn drive_capture_protocol(
     }
     let overstep = fixed_time.overstep();
     fixed_time.discard_overstep(overstep);
-    let observation = match observe_frozen_state(
+    let observation = observe_frozen_state(
         &runtime.configuration,
-        &pipeline,
+        pipeline,
         &scene_evidence,
-        &scene.quality,
+        quality,
         gpu,
         &windows,
         &cameras,
         &virtual_time,
         &fixed_time,
-    ) {
-        Ok(observation) => observation,
-        Err(error) => {
-            fail(&mut runtime, &mut exit, &error);
-            return;
-        }
-    };
-    let observation_hash = match content_hash(&observation, "frozen state") {
-        Ok(hash) => hash,
-        Err(error) => {
-            fail(&mut runtime, &mut exit, &error);
-            return;
-        }
+    );
+    let Some((observation, observation_hash)) =
+        capture_result_or_fail(&mut runtime, &mut exit, observation)
+    else {
+        return;
     };
     if runtime.frozen_state_sha256.as_deref() != Some(observation_hash.as_str()) {
         fail(
@@ -569,15 +576,60 @@ fn drive_capture_protocol(
         return;
     }
 
+    advance_capture_phase(
+        &mut runtime,
+        frame_count.0,
+        &observation,
+        &observation_hash,
+        &mut exit,
+    );
+}
+
+fn capture_watchdog_expired(
+    runtime: &mut CaptureRuntime,
+    exit: &mut MessageWriter<AppExit>,
+) -> bool {
+    if runtime.started_at.elapsed() <= WATCHDOG {
+        return false;
+    }
+    fail(
+        runtime,
+        exit,
+        &format!("capture protocol exceeded {} seconds", WATCHDOG.as_secs()),
+    );
+    true
+}
+
+fn capture_result_or_fail<T>(
+    runtime: &mut CaptureRuntime,
+    exit: &mut MessageWriter<AppExit>,
+    result: Result<T, String>,
+) -> Option<T> {
+    match result {
+        Ok(value) => Some(value),
+        Err(error) => {
+            fail(runtime, exit, &error);
+            None
+        }
+    }
+}
+
+fn advance_capture_phase(
+    runtime: &mut CaptureRuntime,
+    frame_count: u32,
+    observation: &FrozenStateEvidence,
+    observation_hash: &str,
+    exit: &mut MessageWriter<AppExit>,
+) {
     match runtime.phase {
         Phase::FreezeSettling => {
             runtime.freeze_settle_frames = runtime.freeze_settle_frames.saturating_add(1);
             if runtime.freeze_settle_frames < FREEZE_SETTLE_FRAMES {
                 return;
             }
-            runtime.ready_frame = Some(frame_count.0);
-            if let Err(error) = write_ready(&runtime) {
-                fail(&mut runtime, &mut exit, &error);
+            runtime.ready_frame = Some(frame_count);
+            if let Err(error) = write_ready(runtime) {
+                fail(runtime, exit, &error);
                 return;
             }
             tracing::info!(
@@ -598,16 +650,16 @@ fn drive_capture_protocol(
                 Ok(Some(signal)) => signal,
                 Ok(None) => return,
                 Err(error) => {
-                    fail(&mut runtime, &mut exit, &error);
+                    fail(runtime, exit, &error);
                     return;
                 }
             };
-            if let Err(error) = validate_signal(&signal, &runtime) {
-                fail(&mut runtime, &mut exit, &error);
+            if let Err(error) = validate_signal(&signal, runtime) {
+                fail(runtime, exit, &error);
                 return;
             }
             runtime.signal = Some(signal);
-            runtime.signal_frame = Some(frame_count.0);
+            runtime.signal_frame = Some(frame_count);
             runtime.phase = Phase::CaptureWindow;
         }
         Phase::CaptureWindow => {
@@ -615,8 +667,8 @@ fn drive_capture_protocol(
             if runtime.capture_window_frames < CAPTURE_WINDOW_FRAMES {
                 return;
             }
-            if let Err(error) = write_ledger(&runtime, &observation) {
-                fail(&mut runtime, &mut exit, &error);
+            if let Err(error) = write_ledger(runtime, observation) {
+                fail(runtime, exit, &error);
                 return;
             }
             runtime.phase = Phase::Completed;
@@ -650,55 +702,8 @@ fn observe_frozen_state(
     cameras: &Query<(&Camera, &Transform, &Projection), With<Camera3d>>,
     virtual_time: &Time<Virtual>,
     fixed_time: &Time<Fixed>,
-) -> Result<FrozenStateEvidence, String> {
-    validate_governed_gate1_render_state(
-        &scene.visual_valley,
-        &scene.shadow,
-        &scene.vegetation,
-        &scene.scenery,
-        &scene.environment,
-        &scene.water,
-        &scene.weather,
-        quality,
-    )?;
-    validate_sources(configuration, scene, quality)?;
-    validate_quality(quality)?;
-    if scene.weather.target_state != configuration.weather
-        || scene.weather.wetness.current.to_bits() != scene.weather.wetness.target.to_bits()
-    {
-        return Err(format!(
-            "weather is not fixed at {:?}: target={:?}, wetness={}/{}",
-            configuration.weather,
-            scene.weather.target_state,
-            scene.weather.wetness.current,
-            scene.weather.wetness.target
-        ));
-    }
-    if !pipeline.is_ready()
-        || pipeline.errors != 0
-        || pipeline.total == 0
-        || pipeline.ready != pipeline.total
-        || pipeline.queued != 0
-        || pipeline.creating != 0
-        || pipeline.waiting != 0
-    {
-        return Err(format!(
-            "pipelines are not stably ready: status={:?}, total={}, ready={}, queued={}, creating={}, waiting={}, errors={}",
-            pipeline.status,
-            pipeline.total,
-            pipeline.ready,
-            pipeline.queued,
-            pipeline.creating,
-            pipeline.waiting,
-            pipeline.errors
-        ));
-    }
-    if gpu.backend != "Vulkan" || gpu.name.trim().is_empty() {
-        return Err(format!(
-            "Gate 1 RenderDoc currently requires an identified Vulkan adapter, observed backend={:?}, name={:?}",
-            gpu.backend, gpu.name
-        ));
-    }
+) -> Result<(FrozenStateEvidence, String), String> {
+    validate_frozen_preconditions(configuration, pipeline, scene, quality, gpu)?;
     let tick = observe_clock_tick(virtual_time, fixed_time)?;
 
     let primary_window = windows
@@ -767,7 +772,7 @@ fn observe_frozen_state(
         active_camera_entities: scene.weather.post_processing.active_camera_3d_entities,
     };
 
-    Ok(FrozenStateEvidence {
+    let evidence = FrozenStateEvidence {
         sources: configuration.sources.clone(),
         seeds: configuration.seeds.clone(),
         tick,
@@ -794,7 +799,58 @@ fn observe_frozen_state(
             water_static: content_hash(&water_static, "static water observation")?,
             weather_static: content_hash(&weather_static, "static weather observation")?,
         },
-    })
+    };
+    let hash = content_hash(&evidence, "frozen state")?;
+    Ok((evidence, hash))
+}
+
+fn validate_frozen_preconditions(
+    configuration: &Configuration,
+    pipeline: &PipelineWarmupObservation,
+    scene: &GovernedSceneEvidence,
+    quality: &VisualValleyQualityStats,
+    gpu: &GpuDiagnostic,
+) -> Result<(), String> {
+    scene.validate(quality)?;
+    validate_sources(configuration, scene, quality)?;
+    validate_quality(quality)?;
+    if scene.weather.target_state != configuration.weather
+        || scene.weather.wetness.current.to_bits() != scene.weather.wetness.target.to_bits()
+    {
+        return Err(format!(
+            "weather is not fixed at {:?}: target={:?}, wetness={}/{}",
+            configuration.weather,
+            scene.weather.target_state,
+            scene.weather.wetness.current,
+            scene.weather.wetness.target
+        ));
+    }
+    if !pipeline.is_ready()
+        || pipeline.errors != 0
+        || pipeline.total == 0
+        || pipeline.ready != pipeline.total
+        || pipeline.queued != 0
+        || pipeline.creating != 0
+        || pipeline.waiting != 0
+    {
+        return Err(format!(
+            "pipelines are not stably ready: status={:?}, total={}, ready={}, queued={}, creating={}, waiting={}, errors={}",
+            pipeline.status,
+            pipeline.total,
+            pipeline.ready,
+            pipeline.queued,
+            pipeline.creating,
+            pipeline.waiting,
+            pipeline.errors
+        ));
+    }
+    if gpu.backend != "Vulkan" || gpu.name.trim().is_empty() {
+        return Err(format!(
+            "Gate 1 RenderDoc currently requires an identified Vulkan adapter, observed backend={:?}, name={:?}",
+            gpu.backend, gpu.name
+        ));
+    }
+    Ok(())
 }
 
 fn observe_clock_tick(
@@ -1257,6 +1313,24 @@ mod tests {
                 renderdoccmd_sha256: "2".repeat(64),
                 renderdoc_dll_sha256: "3".repeat(64),
             },
+        }
+    }
+
+    #[test]
+    fn qualification_boundary_keeps_the_fail_closed_boolean_contract() {
+        for runtime_state_qualified in [false, true] {
+            let actual = serde_json::to_value(qualification_boundary(runtime_state_qualified))
+                .expect("qualification boundary must serialize");
+            assert_eq!(
+                actual,
+                serde_json::json!({
+                    "runtime_state_qualified": runtime_state_qualified,
+                    "external_capture_observed_by_runtime": false,
+                    "renderdoc_analysis_completed_by_runtime": false,
+                    "gate1_route_qualified": false,
+                    "limitation": "the runtime validates only its frozen capture window; the host and qrenderdoc adapter must validate the external capture and action counters",
+                })
+            );
         }
     }
 
