@@ -2,47 +2,55 @@
 
 ## Verdict borné
 
-**NON QUALIFIÉ AU GLOBAL.** La paire `d9e2670…` possède une campagne native/Browser exacte,
-24/24 contrôles par météo et 46/46 contrôles croisés. L'eau et les berges utilisent le chemin
-forward ; le SSR écran est déclaré indisponible sous Bevy 0.19.1 et la réflexion se résout vers
-`disabled`, tandis que la réfraction utilise le fallback `surface_tint`. Zéro caméra SSR/différée est
-observée et les logs natifs n'enregistrent plus le warning historique. Cette correction ne transforme
-pas le fallback en réflexion/réfraction GPU qualifiée.
+**NON QUALIFIÉ AU GLOBAL.** La paire `d9e2670…` conserve sa campagne native/Browser exacte,
+24/24 contrôles par météo et 46/46 contrôles croisés. La campagne native la plus récente est liée au
+commit exact `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
+`6d4639c824ccfa81c3d5ed911903cec2bb3c5074`. Son validateur schema 2 passe avec 29 PNG aux hashes
+uniques, un MP4 de 24 frames/3 secondes, 75 pipelines prêts, zéro erreur de pipeline et zéro entrée
+warning/erreur/panic dans les journaux runtime. Les vues `water-clear`, `water-rain` et
+`water-restored` sont non vides, distinctes et cohérentes à l'inspection d'agent ; la pluie et le
+retour clair y sont lisibles.
 
-Le commit courant `a7c9b1e1…` ajoute une acquisition même processus clair → pluie → clair et trois
-captures eau dédiées. Les endpoints CPU/ECS sont exacts, mais l'eau y reste étroite et masquée par les
-berges ; l'exécution GPU météo et l'acceptation visuelle restent explicitement fausses.
+Cette acquisition ne transforme pas le fallback en réflexion/réfraction GPU qualifiée. Le ledger
+conserve `weather_gpu_execution_observed=false`, le validateur conserve
+`human_review_performed=false` et son statut exact reste
+`automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`.
 
 État des cinq critères :
 
 | Critère | État de cette preuve |
 |---|---|
-| `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; eau non isolable visuellement, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
-| `R1-023` réflexion/réfraction selon profil | demande authored conservée ; SSR indisponible → réflexion `disabled`, réfraction → `surface_tint` ; trois PNG eau dédiés `a7c9b1e1`, mais résultat toujours trop masqué pour être qualifié |
+| `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; trois vues natives dédiées `125ba0b` inspectables, vue Browser d9 encore masquée, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
+| `R1-023` réflexion/réfraction selon profil | SSR indisponible résolu vers Environment IBL ; réfraction résolue vers Bevy `ScreenSpaceTransmission` High ; trois PNG eau exacts `125ba0b` inspectables, mais aucune observation instrumentée de l'exécution GPU ni acceptation humaine formelle |
 | `R1-024` pluie | **acquise fonctionnellement** en natif et Browser High : cible rain, lot visible et stries dans les PNG ; animation et présentation GPU non prouvées |
-| `R1-025` wetness réversible | séquence réelle même processus `clear → rain → clear` et endpoints CPU/ECS 0 → 0,78 → 0 acquis ; exécution GPU et retour visuel accepté dus |
-| `R1-026` bloom et color grading bornés | endpoints de grade et présence du composant Bloom acquis ; paramètres numériques, exécution GPU et qualification visuelle dus |
+| `R1-025` wetness réversible | séquence réelle même processus `clear → rain → clear`, endpoints CPU/ECS 0 → 0,78 → 0 et trois PNG exacts acquis ; exécution GPU instrumentée, qualification Browser et retour visuel humain accepté dus |
+| `R1-026` bloom et color grading bornés | endpoints numériques clear/rain, présence du composant Bloom et trois PNG ciblés acquis ; exécution GPU instrumentée, matrice de profils et qualification visuelle humaine dues |
 
-Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. `R1-023`, `R1-025` et
-`R1-026` restent ouvertes en raison des profils optiques/qualité, de la présentation GPU non observée
-et de la qualification visuelle encore dues. Les sections historiques plus bas conservent les
+Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. La validation automatisée et
+les pixels natifs ciblés de `R1-023`/`R1-025`/`R1-026` sont maintenant acquis, mais ces trois routes
+restent ouvertes en raison de la présentation GPU non instrumentée, de la qualification Browser et
+de l'acceptation visuelle humaine encore dues. Les sections historiques plus bas conservent les
 campagnes précédentes. La correction d9 est détaillée dans
-[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md) et l'acquisition
-courante dans
-[`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](R1_025_026_046_048_NATIVE_VISUAL_PROOF.md).
+[`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md), la campagne
+historique `a7c9b1e1` dans
+[`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](R1_025_026_046_048_NATIVE_VISUAL_PROOF.md) et
+l'identité `125ba0b` dans le présent document ; ses artefacts bruts restent externes.
 
 ## Validation automatisée de l'état intégré courant
 
 | Validation intégrée | Résultat exact consigné |
 |---|---|
-| tests `forge_engine` | **120/120 PASS** |
-| tests workspace/all-targets | **296/296 PASS** |
-| check de compilation WASM exact courant | **PASS — 8,71 s** |
-| `cargo fmt --all -- --check` | **PASS** |
-| `git diff --check` | **PASS** |
-| Clippy strict workspace/all-targets | **PASS**, zéro warning |
+| tests `forge_engine` historiques d9 | **120/120 PASS** |
+| tests workspace/all-targets historiques d9 | **296/296 PASS** |
+| check de compilation WASM historique d9 | **PASS — 8,71 s** |
+| `cargo fmt --all -- --check` historique d9 | **PASS** |
+| `git diff --check` historique d9 | **PASS** |
+| Clippy strict workspace/all-targets historique d9 | **PASS**, zéro warning |
 | smoke GPU natif et captures `clear`/`rain` High | **PASS exact d9** — deux codes de sortie 0, logs sans warning/erreur |
 | smoke/captures Browser clear/rain High | **PASS exact d9** — 24/24 contrôles chacun ; voir [`R1_BROWSER_WEBGPU_SMOKE.md`](R1_BROWSER_WEBGPU_SMOKE.md) |
+| tests eau ciblés `forge_engine` | **PASS — 14/14** |
+| tests `forge_runtime` après intégration RenderDoc v2 | **PASS — 67/67 unitaires + 1/1 intégration** |
+| preuve visuelle native exacte `125ba0b` | **PASS automatisé** — 29 PNG uniques, MP4 24 frames/3 s, 75 pipelines prêts, logs runtime vides |
 
 Ces résultats valident la compilation et les contrats automatisés intégrés. Les exécutions natives
 ci-dessous ajoutent une observation Vulkan et des pixels capturés. Le Browser charge 9/9 modèles et
@@ -188,9 +196,10 @@ par inférence depuis la seule existence d'un PNG.
 - la berge est une bande opaque de substitution : carving, blend authored, érosion et wet edge sont
   explicitement différés dans `WaterProjectionStats` ;
 - l'opacité authored est enregistrée mais la surface reste opaque pour le chemin forward ;
-- les captures natives 1920 × 1080 clear/rain sont acquises, mais l'eau et les berges n'y sont pas
-  suffisamment isolables pour juger mouvement, intersections, SSR, réfraction ou stabilité ; une
-  capture dédiée et une séquence temporelle restent dues ;
+- les captures natives 1920 × 1080 clear/rain historiques sont complétées par trois vues eau
+  dédiées exactes `125ba0b`. Elles rendent le changement météo et le retour clair inspectables, mais
+  ne prouvent ni le chemin GPU optique réellement exécuté, ni la stabilité temporelle, ni une
+  acceptation humaine comparative ;
 - le Browser clear/rain High confirme le même hash eau et le statut ECS
   `observed_main_world_components` dans les deux scene ledgers ; l'eau reste toutefois masquée par le
   cadrage et `gpu_presentation=not_observed`, donc une capture dédiée et une preuve GPU restent dues.
@@ -204,12 +213,18 @@ par inférence depuis la seule existence d'un PNG.
   3,2 m, avec repli `surface_tint`.
 - `WaterDocument::resolve_optics_path` distingue capacité `available`, `unavailable` et
   `not_qualified`, sans confondre sélection logique et exécution GPU.
-- l'adapter retire `ScreenSpaceReflections` et `DeferredPrepass` lorsque le chemin résolu n'est pas
-  `screen_space`. Le chemin Bevy courant déclare SSR et réfraction écran indisponibles et applique un
-  tint de surface de force 0,18 ;
-- le profil qualité conserve l'intention Low/Medium/High/Ultra, mais consulte la résolution eau avant
-  toute projection. Il ne peut plus réactiver SSR après un changement de tier. Intensité, distance,
-  pas SSR et réfraction restent non appliqués dans le fallback courant.
+- l'adapter déclare le SSR Bevy 0.19.1 indisponible sur le chemin forward courant. High résout donc la
+  réflexion vers le fallback Environment IBL ; l'intensité authored 0,72 est mappée à la réflectance
+  du matériau. Les 48 pas et la distance 96 m restent enregistrés mais non appliqués au fallback ;
+- la réfraction écran est déclarée disponible via le chemin forward transmissif Bevy. Le matériau
+  reçoit `specular_transmission=0,18` et une épaisseur uniforme bornée à 3,2 m ; la caméra reçoit
+  `ScreenSpaceTransmission` High, soit 16 taps de flou et une copie de couche. Les 24 pas authored
+  sont conservés mais ne sont pas assimilés au nombre de copies de couche Bevy ;
+- l'adapter retire `ScreenSpaceReflections` et `DeferredPrepass`, conserve MSAA 4 et exige la source
+  `AtmosphereEnvironmentMapLight`. Les composants, paramètres CPU et matériaux sont observés dans le
+  main world, sans prétendre que le GPU a exécuté la réflexion ou la transmission ;
+- le profil qualité conserve l'intention Low/Medium/High/Ultra et ne peut plus réactiver le SSR
+  indisponible après un changement de tier.
 
 **Tests concernés inventoriés dans le candidat**
 
@@ -222,13 +237,16 @@ par inférence depuis la seule existence d'un PNG.
 
 **Limites et preuve encore dues**
 
-- la disponibilité structurelle de `ScreenSpaceReflections` ne prouve ni compilation ni exécution
-  du pipeline sur D3D12/Vulkan/WebGPU ;
-- l'intensité et la distance SSR demandées ne sont pas mappées par le composant Bevy actuel ;
-- la réfraction écran demandée en High/Ultra n'est pas implémentée. Le repli tint est honnête mais ne
-  permet pas de fermer le critère comme « réfraction écran » ;
-- les trois vues eau `a7c9b1e1` sont acquises, mais la bande d'eau est étroite et largement masquée
-  par des berges sombres ; elles refusent donc plutôt qu'elles ne ferment la qualification ;
+- la source Environment IBL et la réflectance du matériau sont observées côté CPU/ECS, mais le
+  filtrage de la carte d'environnement et son échantillonnage GPU ne le sont pas ;
+- l'intensité de réflexion est mappée à la réflectance, mais les 48 pas et la distance SSR demandés ne
+  s'appliquent pas au fallback Environment IBL ;
+- la réfraction High configure bien `ScreenSpaceTransmission`, la transmission matériau, l'épaisseur
+  et le preset 16 taps. Cette observation de composants n'est pas une preuve d'exécution GPU native
+  ou WebGPU ;
+- les trois vues eau exactes `125ba0b` sont acquises et cohérentes à l'inspection d'agent. Le ledger
+  conserve toutefois explicitement l'exécution GPU à faux et aucune revue humaine formelle n'est
+  enregistrée ; elles ne ferment donc pas la qualification ;
 - capturer et comparer Low/Medium/High/Ultra en natif et WebGPU, vérifier visuellement la réflexion,
   le fallback de réfraction, les artefacts de bord et le coût ; décider explicitement si le critère
   accepte le fallback authored ou exige un vrai chemin de réfraction avant qualification.
@@ -296,11 +314,11 @@ par inférence depuis la seule existence d'un PNG.
 - pas encore de flaques, réaction de normal map ni wet edge de berge ;
 - l'adapter qualité documente `rain.wetness_enabled` comme appliqué au démarrage, pas comme une
   reconstruction dynamique de matériaux à chaque changement de tier ;
-- le harness `a7c9b1e1` prouve désormais une transition native réelle dans le même processus et le
-  retour CPU/ECS exact 0 → 0,78 → 0 ; `weather_gpu_execution_observed=false` empêche de l'étendre au
-  GPU ou au Browser ;
-- `water-clear` et `water-restored` ont un SSIM de 0,946502. Ce score montre des images proches mais
-  non identiques et ne remplace pas l'inspection GPU dry → wet → dry ;
+- le harness exact `125ba0b` prouve une transition native réelle dans le même processus, le retour
+  CPU/ECS exact 0 → 0,78 → 0 et trois PNG liés au ledger ;
+- les trois PNG ont des hashes distincts. Cela prouve leur acquisition, pas une identité visuelle
+  parfaite après restauration ; `weather_gpu_execution_observed=false` empêche d'étendre la preuve
+  CPU/ECS au GPU ou au Browser ;
 - vérifier par inspection humaine que terrain et végétation s'assombrissent et deviennent moins
   rugueux sans dérive permanente, puis rejouer la séquence sous WebGPU.
 
@@ -331,11 +349,13 @@ par inférence depuis la seule existence d'un PNG.
 **Limites et preuve encore dues**
 
 - ni la présence de composants ECS ni leur sérialisation ne prouvent le post-traitement final. Le
-  harness `a7c9b1e1` borne honnêtement son statut à
+  harness exact `125ba0b` borne honnêtement son statut à
   `color_grade_endpoints_and_bloom_component_presence_observed` ;
-- les captures d9 corrigent la dérive colorimétrique et les grandes zones noires, mais les captures
-  `a7c9b1e1` confirment contours sombres/stipple, aplats et cadrage eau insuffisant ; produire Low et
-  une inspection ciblée de l'eau, du clipping, du pompage et du halo ;
+- les captures exactes `125ba0b` acquièrent les endpoints High clear
+  `(0 ; 0,008 ; 0,001 ; 1,04 ; 1,06 ; 1)` et rain
+  `(-0,35 ; -0,012 ; 0,002 ; 0,86 ; 1,08 ; 1)` pour exposition, température, tint, saturation,
+  contraste et gamma. Produire encore Low et une inspection humaine ciblée du clipping, pompage et
+  halo ;
 - consigner backend, résolution, profil, seed, commit, warm-up, métriques et inspection humaine avant
   de cocher `R1-026`.
 
@@ -343,16 +363,23 @@ par inférence depuis la seule existence d'un PNG.
 
 | Cible | Variantes obligatoires | Preuves minimales |
 |---|---|---|
-| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **PARTIEL ACQUIS à d9** : captures, métriques, backend/GPU/driver et logs sans warning/erreur ; revue visuelle non acceptée |
+| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **AUTOMATISATION ACQUISE à `125ba0b`** : 29 PNG uniques, vidéo, identité GPU/driver, 75 pipelines prêts et logs propres ; exécution GPU optique instrumentée et revue humaine non acquises |
 | Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `d9e2670…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
-| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `a7c9b1e1`** : wetness CPU/ECS terminale exacte ; exécution GPU, retour visuel accepté et Browser dus |
+| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `125ba0b`** : wetness CPU/ECS terminale exacte et trois PNG liés ; exécution GPU instrumentée, retour visuel humain accepté et Browser dus |
 | Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | chemin SSR/fallback observé, paramètres appliqués, coût et artefacts comparés |
 
-Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain sont désormais
-consignés sur la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
+Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain restent consignés sur
+la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
 moyenne 10,1175 ms, p95 12,1 ms, 1 % low 77,519 FPS ; rain moyenne 9,5633 ms, p95 10,9 ms, 1 % low
-85,106 FPS ; zéro hitch. Le lot `a7c9b1e1` ajoute la séquence native et les captures eau dédiées,
-mais celles-ci échouent à isoler les effets. Restent dus : séquence Browser, matrice optique,
-sonde GPU, correction des résidus visuels et acceptation humaine.
+85,106 FPS ; zéro hitch. Le lot exact `125ba0b` ajoute une preuve native automatisée réacquise :
+SHA-256 runtime `0e7ba27a1a11b2d49181db4324bab5248de821c81ebe36d5cbd3513fc4a8400e`,
+ledger `d6a50c665c2f8836e5dc28ae741fc5095f12b60e1cb8fa84e7cc89e2920188ec`, validation
+`6F50AB274E98D6F850F3BD55D08D04878A643FDC87C3BD67470EE4454B3A6F11` et vidéo
+`29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226`. Restent dus : séquence
+Browser, matrice optique, sonde GPU et acceptation humaine.
+Les trois PNG eau portent respectivement les SHA-256
+`ED03BFEE3EAAECAF1AF27CBE03E9AF4CB4AD116157D99BFE37B8B6FC5F2B0CBC` (clear),
+`5A97F46289469C0F33A7C011B73EB59E209C4400B7068B323279667D2B284506` (rain) et
+`8F519DD1D335F5E382B2DFA58149DF82D7BAA8A2F4583517D85CBCE0C20EDF5C` (restored).
 `R1-023`, `R1-025` et `R1-026` restent explicitement ouverts ; `R1-022` et `R1-024` sont acquis
 fonctionnellement mais restent bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE**.

@@ -292,9 +292,12 @@ et sans transformer une acquisition automatisée en revue humaine.
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
 
 État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée
-`e7e7d419` ; `R1-037` dispose du contrat/modèle `dbe5eb86` et de la route
-runtime/orchestrateur `140acbdd`. Ces routes restent décochées : validations Rust/runtime, captures
-finales et qualification humaine/GPU ne sont pas encore acquises.
+`e7e7d419`, de 14/14 tests eau PASS et d'une campagne exacte `125ba0b` avec 29 PNG uniques, vidéo et
+journaux propres. `R1-037` dispose du contrat/modèle `dbe5eb86`, de la route runtime/orchestrateur
+`140acbdd`, de 67/67 tests runtime + 1/1 intégration et des durcissements `9bb1d405` → `125ba0b` →
+`347d782`. Son préflight réel vérifie le bundle complet puis s'arrête avant build sur l'absence d'une
+couche Vulkan RenderDoc déjà correctement enregistrée. Ces routes restent décochées : qualification
+humaine/GPU de l'eau et quatre captures RenderDoc indépendantes ne sont pas acquises.
 
 Le dernier rejeu PresentMon au commit exact `1912806fc6e90277cd779a21a2557e6c820d5d44`, arbre
 `4bfb863255dd865432093c5e7291287b8e78dc43`, publie le ready schema 4 et collecte 338 lignes Forge
@@ -505,8 +508,10 @@ produit un run normal gouverné qui passe localement les objectifs numériques d
 sémantique ADR-0008. Une répétition Auto sur deux échoue encore au critère « au plus une valeur
 consécutive > 16,7 ms ». Deux runs schema v8 gouvernés existent maintenant : le premier perd le
 premier plan et le second passe tous les objectifs sauf une valeur unique à 35,3837 ms. A5/A6 passent
-en diagnostic mais restent non qualifiants. `R1-023`, `R1-025`, `R1-026` et `R1-046` à `R1-048`
-restent donc ouverts. `R1-037` et `R1-041` restent ouverts. `R1-043` reste satisfaite ; un rejeu
+en diagnostic mais restent non qualifiants. La campagne `125ba0b` valide automatiquement l'eau et la
+séquence clair/pluie/clair sans revendiquer l'exécution GPU ou la revue humaine. `R1-023`, `R1-025`,
+`R1-026` et `R1-046` à `R1-048` restent donc ouverts. `R1-037` reste ouverte après un préflight
+fail-closed sur la couche Vulkan non enregistrée, et `R1-041` reste ouverte. `R1-043` reste satisfaite ; un rejeu
 gouverné répétable qui passe tous les seuils, le matériel cible et la revue humaine restent dus.
 L'audit provenance strict passe sans asset Cadle ; aucun asset Cadle n'entre dans Forge. La CI distante
 reste `NOT RUN` sous ADR-0006 et ce statut n'est pas un PASS. Gate 1 reste **OUVERTE** et Gate 2 reste
@@ -570,16 +575,18 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-021` brouillard volumétrique ou approximation mesurée — approximation de distance observée
   en natif et dans la scène Browser ; volumétrie réelle non revendiquée.
 - [x] `R1-022` eau de rivière — géométrie/composants observés ; présentation GPU non revendiquée.
-- [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée intégrée à
-  `e7e7d419` ; validations Rust/runtime et nouvelles captures encore dues. Les anciennes captures eau
-  `873618af` restent trop étroites/masquées pour inspecter honnêtement les effets optiques ; aucun PASS
-  GPU ou humain n'est revendiqué.
+- [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée `e7e7d419` et 14/14
+  tests eau PASS ; la campagne native exacte `125ba0b` passe son contrôle d'artefacts. Les trois PNG
+  eau clair/pluie/retour clair sont non vides et cohérents à l'inspection d'agent, mais la campagne ne
+  sérialise ni route `R1-023`, ni observation du pass optique GPU ; `human_review_performed=false`.
+  Aucun PASS GPU ou humain n'est revendiqué.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
-- [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus
-  schema v2 `873618af` ;
-  exécution GPU et acceptation visuelle non acquises.
-- [ ] `R1-026` bloom et color grading bornés — endpoints de grade et présence du composant Bloom
-  observés ; paramètres numériques, exécution GPU et rendu accepté non acquis.
+- [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
+  trois PNG liés acquis au commit exact `125ba0b` ; exécution GPU instrumentée, qualification Browser
+  et acceptation visuelle humaine non acquises.
+- [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
+  campagne native exacte `125ba0b` acquis ; exécution GPU instrumentée, matrice Low/High et rendu
+  humain accepté non acquis.
 
 ## R1-D — Personnage et caméra
 
@@ -600,9 +607,11 @@ qualité                   Low / Medium / High / Ultra
   fallback indisponible testé ; ne vaut ni temps GPU frame entière ni instrumentation `R1-037`.
 - [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
-- [ ] `R1-037` draw calls, triangles, instances — contrat/modèle RenderDoc `dbe5eb86` et route
-  runtime/orchestrateur `140acbdd` intégrés ; validation finale et quatre captures Vulkan indépendantes
-  clear A/B + rain A/B encore dues, donc aucun compteur qualifiant acquis.
+- [ ] `R1-037` draw calls, triangles, instances — contrat/modèle RenderDoc `dbe5eb86`, route
+  runtime/orchestrateur `140acbdd` et durcissements jusqu'à `347d782` intégrés ; 22/22 tests Python,
+  67/67 tests runtime + 1/1 intégration et inventaire préflight des 72 fichiers PASS. Le préflight
+  réel refuse l'absence d'une couche Vulkan enregistrée sans modifier l'hôte ; quatre captures indépendantes
+  clear A/B + rain A/B restent `NOT RUN`, donc aucun compteur qualifiant n'est acquis.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,
   clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.
@@ -618,12 +627,13 @@ qualité                   Low / Medium / High / Ultra
 
 - [x] `R1-044` captures fixes de jour — acquisitions natives et Browser hashées.
 - [x] `R1-045` captures sous pluie — acquisitions natives et Browser hashées.
-- [ ] `R1-046` vue à hauteur humaine — PNG Release `873618af` réacquis ; défaut depth-only corrigé,
-  revue humaine comparative encore due.
-- [ ] `R1-047` vue lointaine — PNG Release `873618af` réacquis ; correction bleu-noir préservée,
+- [ ] `R1-046` vue à hauteur humaine — PNG Release exact `125ba0b` réacquis, non vide et cohérent à
+  l'inspection d'agent ; défaut depth-only corrigé, revue humaine comparative encore due.
+- [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
   revue humaine LOD/composition encore due.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
-  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 acquis à `873618af`. Le run normal gouverné
+  `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 réacquis au commit exact `125ba0b`, vidéo SHA-256
+  `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226`. Le run normal gouverné
   schema v7 `9db35a8e` sur RX 7800 XT relève 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
   17 lignes `NA`, zéro perte ETW, zéro valeur > 33,3 ms et maximum consécutif > 16,7 ms égal à un ;
   la résidence couvre toute la fenêtre sans trou. Sous ADR-0008, ces objectifs sont candidats à un

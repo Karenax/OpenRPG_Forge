@@ -5,7 +5,9 @@
 - Date de l'alignement runtime/adaptateur/hôte : **3 septembre 2026**
 - Base du lot : `1912806fc6e90277cd779a21a2557e6c820d5d44`
 - Arbre de base : `4bfb863255dd865432093c5e7291287b8e78dc43`
-- Statut R1-037 : **OUVERTE — ACQUISITION OUTIL PASS, CAPTURES NOT RUN**
+- Intégration durcie : `347d78264e52363c769e2f2807303d84c65ea946`
+- Arbre intégré : `4d6121f3dbc85fb090c1663c8257bee47c64300a`
+- Statut R1-037 : **OUVERTE — VALIDATIONS HORS GPU PASS, PRÉFLIGHT ARRÊTÉ SUR COUCHE VULKAN, CAPTURES NOT RUN**
 - Gate 1 : **OUVERTE**
 
 ## Résultat borné
@@ -15,8 +17,11 @@ Git. L'acquisition passe ses contrôles HTTPS, tailles, SHA-256, signature OpenP
 ZIP, comparaison de l'extraction, signatures Authenticode, versions et licence.
 
 La chaîne intégrée aligne désormais ADR-0009, manifeste épinglé, reçu/ledger Rust, adaptateur
-QRenderDoc, analyseur Python pur et orchestrateur PowerShell. Ce lot correctif ne lance ni Cargo, ni
-runtime, ni GPU, ni capture et ne modifie pas le registre. Il ne ferme donc pas `R1-037`.
+QRenderDoc, analyseur Python pur et orchestrateur PowerShell. Les tests Rust et Python passent. Un
+préflight réel du host a validé l'inventaire portable complet puis s'est arrêté, comme prévu, avant
+build/runtime sur l'absence d'une couche Vulkan RenderDoc déjà correctement enregistrée. Le host n'a
+modifié ni registre ni profil utilisateur et aucune capture n'a été lancée. Il ne ferme donc pas
+`R1-037`.
 
 ## Identité de l'acquisition externe
 
@@ -102,6 +107,12 @@ octets et SHA-256 sont recoupés sur la source et le miroir. Les racines worktre
 target Cargo sont disjointes, le build neuf a une borne de 45 minutes et les nettoyages exigent un
 marqueur de propriété acquis seulement après création réussie.
 
+Les deux revues correctives suivantes ferment également les chevauchements bidirectionnels entre les
+quatre racines, bornent à dix secondes l'attente post-kill et lient les chemins réels du bundle et de
+son inventaire aux chemins épinglés dans le manifeste. Elles sont intégrées respectivement à
+`125ba0b8bb1fe04b2b34cae5abc41c26d1919b00` puis
+`347d78264e52363c769e2f2807303d84c65ea946`.
+
 ## Analyseur pur
 
 `scripts/renderdoc/gate1_renderdoc_model.py` consomme uniquement le schéma normalisé
@@ -137,6 +148,10 @@ que le comptage des actions `Present` sans déduplication par identifiant d'év�
 exerce le garde fail-closed du profil QRenderDoc jetable.
 `-B` n'a produit aucun `__pycache__`.
 
+La validation Rust ciblée de la chaîne intégrée passe **67/67 tests unitaires** et **1/1 test
+d'intégration** de `forge_runtime`. Les durcissements suivants `125ba0b` et `347d782` ne modifient pas
+le code Rust ; ils resserrent l'orchestrateur et ses contrats, tests Python et documentation.
+
 Le smoke CLI pur sur `nominal_nested_actions.json` retourne `PASS` avec 8 actions visitées, 4 draws,
 7 instances, 5 triangles, 2 lignes et 15 points. Le parent `MultiAction` marqué `Drawcall` porte des
 valeurs volontairement non qualifiantes mais n'est pas compté, ce qui prouve le parcours des seules
@@ -161,6 +176,39 @@ conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 | `test_gate1_renderdoc_contract_chain.py` | `51B6182BA1ABFAFC17DD11F12FA73C757822BAAFF9B802F3B711F0F2CB3DFF28` |
 | `apps/forge_runtime/README.md` | `B8AC7459EF2816665238B839FDA7E12384635B18BAAB2AA7A4304C90BFE64EDD` |
 
+## Préflight réel du host au commit intégré
+
+Commande exécutée avec la racine officielle externe, un dossier de preuve neuf et un target Cargo
+neuf dédié :
+
+```powershell
+pwsh -NoProfile -File scripts/Invoke-Gate1RenderDoc.ps1 `
+  -RepoRoot E:\OpenRPG_Forge\.gate1-presentation-profile-fff9251 `
+  -OutputRoot E:\OpenRPG_Forge\.gate1-tools\evidence\renderdoc-preflight-347d782-001 `
+  -CargoTargetDirectory E:\OpenRPG_Forge\.gate1-tools\cargo-target\renderdoc-preflight-347d782-001 `
+  -RenderDocRoot E:\OpenRPG_Forge\.gate1-tools\renderdoc\v1.46\official-win64-acq-001\extract\RenderDoc_1.46_64
+```
+
+Résultat borné :
+
+- les 72 fichiers et 210 237 254 octets du bundle concordent avec
+  `extracted-file-manifest.json`, SHA-256
+  `C2F3D1C4F477F3DDB8B80C4AC2AB9BC72F881F0E95B612EAB40A59B3F3E300B1` ;
+- les chemins réels du bundle, de l'inventaire, de la sortie, du target Cargo et du worktree passent
+  les gardes de disjonction ;
+- le host s'arrête avant build avec le message exact : `The RenderDoc Vulkan layer is not already
+  correctly registered; this orchestrator will not alter host registration.` ;
+- le reçu `gate1-renderdoc.failure.json` porte le commit `347d78264e52363c769e2f2807303d84c65ea946`
+  et le SHA-256 `E99FEA9E92DE493D0C85A3BB1F57D066B29428333509A702B3FA658076EB3B26` ;
+- le target Cargo existe mais contient zéro entrée ; aucun profil jetable `forge-gate1-qrenderdoc-*`,
+  runtime, QRenderDoc ou fichier `.rdc` n'a été créé ;
+- l'empreinte du profil réel `%APPDATA%\qrenderdoc` et l'état d'enregistrement Vulkan restent
+  inchangés.
+
+Ce FAIL est un arrêt de sécurité reproductible et non un résultat GPU. L'enregistrement de la couche
+Vulkan est une mutation hôte distincte qui exige une autorisation explicite ; l'orchestrateur refuse
+de l'effectuer implicitement.
+
 ## Limites et travail encore dû
 
 | Élément | État |
@@ -168,15 +216,17 @@ conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 | acquisition portable, signatures, licence et hashes | **PASS** |
 | ADR, manifeste et modèle pur | **AJOUTÉS DANS CE LOT** |
 | tests Python purs et chaîne statique cross-language | **PASS — 22/22, 34 sous-cas de rejet chargés** |
+| tests Rust `forge_runtime` | **PASS — 67/67 unitaires + 1/1 intégration** |
+| inventaire complet et gardes du préflight réel | **PASS — 72 fichiers, 210 237 254 octets, racines disjointes** |
 | couche Vulkan RenderDoc enregistrée | **NON — BLOCAGE EXPLICITE** |
-| workload runtime déterministe | **INTÉGRÉ — CARGO/RUNTIME NOT RUN DANS CE LOT** |
-| adaptateur et orchestrateur QRenderDoc | **INTÉGRÉS — GPU/CAPTURE NOT RUN** |
+| workload runtime déterministe | **INTÉGRÉ ET TESTÉ — EXÉCUTION DE CAPTURE NOT RUN** |
+| adaptateur et orchestrateur QRenderDoc | **INTÉGRÉS ET VALIDÉS HORS GPU — QRENDERDOC/CAPTURE NOT RUN** |
 | captures Vulkan clear A/B et rain A/B | **NOT RUN** |
 | replay/analyse de `.rdc` | **NOT RUN** |
 | égalité inter-répétitions | **NOT RUN** |
 | R1-037 | **OUVERTE** |
 
-La prochaine étape n'est autorisée qu'après intégration du workload et de l'orchestrateur, puis
-autorisation séparée de la couche Vulkan. Quatre captures indépendantes, leurs reçus, hashes, replays
-et analyses restent indispensables. Ce document n'altère ni les verdicts PresentMon, ni le verdict
-global Gate 1, ni la roadmap.
+La prochaine étape exige une autorisation séparée pour enregistrer/corriger la couche Vulkan
+RenderDoc sur l'hôte, puis un nouveau run exact-commit. Quatre captures indépendantes, leurs reçus,
+hashes, replays et analyses restent indispensables. Ce document n'altère ni les verdicts PresentMon,
+ni le verdict global Gate 1, ni la roadmap.

@@ -11,16 +11,20 @@ Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogatio
 Visual Valley conserve la paire native/Browser exacte `d9e2670`, les captures fixes, les ledgers
 versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié dans Forge. Les lots
 `6a24cabe` et `873618af` préservent respectivement la correction du défaut depth-only puis le vrai
-contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier. La matrice native `5eadec7f`, le harnais
+contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier ; la campagne exacte `125ba0b` les
+réacquiert avec l'optique d'eau courante. La matrice native `5eadec7f`, le harnais
 temporel Browser `a4e9824a` et les preuves visuelles antérieures restent valides dans leurs frontières
 documentées ; ils ne remplacent ni le benchmark GPU cible ni la revue humaine.
 
-La chaîne de travail courante intègre aussi l'implémentation d'optique d'eau native bornée
-`e7e7d419`, le contrat/modèle RenderDoc `dbe5eb86` et la route runtime/orchestrateur RenderDoc
-`140acbdd`. Ces intégrations ne ferment encore aucune route : les validations Rust/runtime finales et
-les nouvelles captures d'eau restent dues pour `R1-023` ; la validation finale du modèle, le smoke
-runtime et les quatre captures Vulkan indépendantes restent dus pour `R1-037`. Aucun résultat GPU ou
-humain n'est déduit de la seule présence du code.
+La chaîne de travail courante intègre aussi l'optique d'eau native bornée `e7e7d419`, puis le contrat,
+le modèle et la route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à
+`347d782`. Les validations ciblées passent : 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et
+22/22 tests Python RenderDoc. La campagne eau exacte `125ba0b` passe son validateur automatisé avec
+29 PNG uniques, une vidéo et des logs propres. Le préflight RenderDoc réel vérifie les 72 fichiers du
+bundle puis refuse, avant build, l'absence d'une couche Vulkan déjà correctement enregistrée. Ces
+résultats ne ferment encore aucune route : les qualifications GPU/humaine de l'eau et les quatre
+captures Vulkan indépendantes restent dues. Aucun résultat GPU ou humain n'est déduit de la seule
+présence du code ou de composants ECS.
 
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
 Ils ont échoué ou sont restés non qualifiants selon leurs protocoles d'origine. Le lot `06b5fd40`
@@ -81,8 +85,24 @@ de 15 secondes, exclusivement avant le signal, et publie un reçu d'abandon v1 e
 self-tests, la syntaxe PowerShell et le diff-check passent ; aucun replay qualifiant schema 12 n'a
 encore été acquis.
 
-Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte : son contrat et son
-chemin d'acquisition sont intégrés, mais le runtime et les captures finales restent `NOT RUN` ;
+La campagne eau exacte `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
+`6d4639c824ccfa81c3d5ed911903cec2bb3c5074`, produit 29 PNG aux hashes uniques et un MP4 de 24
+frames/3 secondes. Son validateur schema 2 passe, les 75 pipelines sont prêts et les logs runtime ne
+contiennent aucune entrée warning/erreur/panic. Les trois vues eau clair/pluie/retour clair sont
+cohérentes à l'inspection d'agent. Les tests du chemin CPU/ECS résolvent le SSR indisponible vers
+Environment IBL et la réfraction vers `ScreenSpaceTransmission` High. La campagne ne sérialise ni
+route `R1-023`, ni observation du pass optique GPU ; `weather_gpu_execution_observed=false` et
+`human_review_performed=false`. `R1-023`, `R1-025` et `R1-026` restent honnêtement ouvertes.
+
+Au commit intégré `347d78264e52363c769e2f2807303d84c65ea946`, arbre
+`4d6121f3dbc85fb090c1663c8257bee47c64300a`, le préflight RenderDoc réel recoupe 72 fichiers et
+210 237 254 octets avec l'inventaire externe épinglé, puis s'arrête sur la couche Vulkan non
+enregistrée sans créer de build, profil jetable, runtime ou capture. Son reçu de FAIL de sécurité
+porte le SHA-256 `E99FEA9E92DE493D0C85A3BB1F57D066B29428333509A702B3FA658076EB3B26`.
+
+Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte : son contrat, son
+workload runtime et son chemin d'acquisition sont intégrés et testés, mais l'exécution QRenderDoc et
+les captures finales restent `NOT RUN` ;
 `R1-041`, `R1-048`, le GPU
 cible RTX 3060/RX 6600, la revue humaine et la CI distante restent dus. Gate 1 reste ouverte ; ce
 rapport ne constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer
@@ -92,8 +112,9 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| route runtime/orchestrateur RenderDoc intégrée, non qualifiée | `140acbddf2b0bdd6d1c5a5115269edcc729be564` | `b2edfa2c1b5c4e99b5488fc288714d876b5ddb4d` | code d'acquisition R1-037 présent ; validation runtime et quatre captures Vulkan encore dues |
-| optique d'eau native bornée intégrée, non qualifiée | `e7e7d41951a3579936a1c9f8b8601fa639898679` | `5e7e5ec10c5f654c84d52e4d8bbc4f951dcfe83d` | implémentation R1-023 présente ; tests/runtime/captures et revue humaine encore dus |
+| préflight RenderDoc intégré et durci, non qualifié | `347d78264e52363c769e2f2807303d84c65ea946` | `4d6121f3dbc85fb090c1663c8257bee47c64300a` | 22/22 Python, 67/67 runtime + 1/1 intégration ; inventaire des 72 fichiers contrôlé ; arrêt fail-closed sur couche Vulkan non enregistrée, quatre captures encore dues |
+| preuve eau native automatisée, non qualifiée | `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00` | `6d4639c824ccfa81c3d5ed911903cec2bb3c5074` | 14/14 tests eau, 29 PNG uniques, MP4, 75 pipelines prêts et logs propres ; pass optique GPU non instrumenté, aucune route R1-023 sérialisée, revue humaine due |
+| optique d'eau native bornée intégrée | `e7e7d41951a3579936a1c9f8b8601fa639898679` | `5e7e5ec10c5f654c84d52e4d8bbc4f951dcfe83d` | implémentation R1-023 : Environment IBL fallback et ScreenSpaceTransmission High |
 | harnais de restabilisation pré-signal | `9b847e996c39e76a9620e18cc1d7c5b2440e6145` | `9ee511f7d529098d003a78795e0d9cc94fcc3726` | host boundary schema 5, validation schema 12, trois tentatives/15 s maximum avant signal et reçu d'abandon v1 ; pas encore rejoué de façon qualifiante |
 | dernier replay gouverné avorté avant signal | `1912806fc6e90277cd779a21a2557e6c820d5d44` | `4bfb863255dd865432093c5e7291287b8e78dc43` | ready schema 4 et 338 lignes Forge PresentMon, ETW 0/0 ; gap de sampling fenêtre `>250 ms`, aucun signal/host boundary/ledger/validation et aucun verdict performance |
 | source et replays gouvernés schema 8 | `49acfd5695a7246062a86fb84f5d933130579187` | `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` | deux rebuilds/replays propres distincts ; Replay1 FAIL avec focus perdu, Replay2 FAIL sur un unique `DisplayedTime` de 35,3837 ms ; aucun PASS de `R1-048` |
@@ -736,12 +757,14 @@ Restent explicitement ouvertes :
 - `R1-037`, `R1-041` et `R1-048` ;
 - `R1-046`, `R1-047` et `R1-049` à `R1-052`.
 
-`R1-023` et `R1-037` ont désormais du code intégré dans la chaîne courante, sans changer leur état :
-les validations/runtime et captures finales ne sont pas acquises. Une route ouverte avec une
-implémentation partielle ou non rejouée reste une route ouverte.
+`R1-023` et `R1-037` ont désormais du code intégré et des validations ciblées dans la chaîne courante,
+sans changer leur état : la preuve GPU/humaine de l'eau et les quatre captures RenderDoc finales ne
+sont pas acquises. Une route ouverte avec une implémentation validée seulement sous une portée plus
+étroite reste une route ouverte.
 
-Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `873618af`. Le principal défaut
-depth-only reste corrigé et la vidéo exerce le contrôleur gameplay réel. À `15635b3f`, le ledger
+Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `125ba0b`. Le principal défaut
+depth-only reste corrigé, les vues eau ciblées sont inspectables et la vidéo exerce le contrôleur
+gameplay réel. À `15635b3f`, le ledger
 runtime et la première sélection PresentMon hôte sont deux observations historiques distinctes ; la
 seconde n'a pas de borne haute runtime, n'est ni vérifiée ni ingérée, et échoue aux seuils.
 
@@ -786,9 +809,11 @@ huitième match de ledger.
 Les captures d9 corrigent nettement la palette rose/moutarde. Le lot initial `a7c9b1e1` rendait les
 défauts restants explicites ; le lot `6a24cabe` supprime ensuite les grandes silhouettes/stries
 bleu-noir depth-only sur les vues lointaine, humaine, eau et mouvement. Le lot `873618af` conserve la
-correction et ajoute le vrai contrôleur/Rapier. La pluie et le changement de
-wetness sont visibles, mais la réflexion/réfraction ne sont pas inspectables honnêtement et le retour
-CPU/ECS exact au profil clair n'est pas une preuve d'identité GPU.
+correction et ajoute le vrai contrôleur/Rapier. La campagne `125ba0b` réacquiert 29 PNG uniques, dont
+trois vues eau clair/pluie/retour clair inspectables, et un MP4. La pluie, le changement de wetness et
+la surface d'eau sont visibles, mais les pixels seuls ne prouvent pas l'exécution GPU du fallback
+Environment IBL ou de `ScreenSpaceTransmission` ; le retour CPU/ECS exact au profil clair n'est pas
+une preuve d'identité GPU.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
 hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés. Les runs PresentMon
@@ -830,9 +855,10 @@ Ordre minimal avant toute nouvelle décision de passage :
 1. exécuter un rebuild/replay gouverné complet avec le harnais schema 12 sans couper
    rétrospectivement la fenêtre ni affaiblir le contrat, puis obtenir tous les seuils PASS pour
    `R1-048` ;
-2. terminer la validation/runtime et les captures eau de `R1-023` ;
-3. valider le modèle et la route runtime `R1-037`, puis acquérir les quatre captures RenderDoc
-   indépendantes exigées par ADR-0009 ;
+2. qualifier humainement et par observation GPU instrumentée les captures eau de `R1-023`, puis
+   compléter la matrice de profils/Browser ;
+3. après autorisation explicite de la mutation hôte, enregistrer/corriger la couche Vulkan RenderDoc
+   puis acquérir les quatre captures indépendantes exigées par ADR-0009 ;
 4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
 5. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
    statuer sur les routes visuelles restantes.

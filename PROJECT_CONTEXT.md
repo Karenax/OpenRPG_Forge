@@ -44,8 +44,13 @@ validation au schema 12. Il borne la restabilisation à trois tentatives et 15 s
 avant signal, refuse un QPC non monotone et publie un reçu d'abandon v1 en cas d'échec. Ses self-tests,
 sa syntaxe PowerShell et son diff-check passent, mais aucun replay qualifiant schema 12 n'est encore
 acquis. La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
-route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd` ; les validations Rust/runtime et captures
-finales de `R1-023`/`R1-037` restent dues. Leur code intégré n'est pas une qualification.
+route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `347d782`. Les validations
+ciblées passent : 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et 22/22 tests Python
+RenderDoc. La campagne eau exacte `125ba0b` produit 29 PNG uniques, un MP4 et des logs propres ; son
+statut reste `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`. Le préflight
+RenderDoc exact `347d782` vérifie l'inventaire externe des 72 fichiers puis s'arrête avant build sur
+l'absence d'une couche Vulkan déjà correctement enregistrée, sans mutation hôte ni capture. Ces
+preuves ciblées ne constituent pas une qualification GPU ou humaine.
 
 La source exacte des acquisitions schema 8 de Gate 1 est
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -1419,8 +1424,11 @@ binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les di
 A4/A5/A6 sont distincts : A4 échoue sur un outlier, A5 et A6 passent les seuils, mais tous réutilisent
 le binaire `21228a…` dans un target partagé sans rebuild gouverné et restent donc non qualifiants.
 
-La campagne visuelle exacte `873618af` conserve cinq vues fixes, 24 checkpoints et un MP4 de trois
-secondes sans réapparition du défaut depth-only. La dernière campagne Release normale complète
+La campagne visuelle exacte `125ba0b` réacquiert cinq vues fixes, 24 checkpoints et un MP4 de trois
+secondes sans réapparition du défaut depth-only. Son validateur automatisé passe avec 29 PNG uniques,
+75 pipelines prêts et des journaux runtime vides. La campagne ne sérialise ni route `R1-023`, ni
+observation du pass optique GPU ; `weather_gpu_execution_observed=false` et
+`human_review_performed=false`. La dernière campagne Release normale complète
 `15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration ; ces validations
 doivent être rejouées sur le lot courant.
 Le harnais temporel
@@ -1438,9 +1446,10 @@ conditionnel** : aucun des neuf glTF gouvernés n'est animé, aucun modèle joue
 représentation joueur reste une capsule procédurale sans asset.
 
 Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay qualifiant PASS et la cible RTX 3060/RX 6600
-reste due. `R1-023` et `R1-037` disposent maintenant de code intégré (`e7e7d419`, puis
-`dbe5eb86`/`140acbdd`), mais leurs validations/runtime et captures finales ne sont pas acquises. Les
-preuves finales eau/Browser et la revue humaine comparative restent dues. La CI distante reste
+reste due. `R1-023` et `R1-037` disposent maintenant de code intégré et de validations ciblées
+(`e7e7d419`, puis `dbe5eb86`/`140acbdd` jusqu'à `347d782`). Restent non acquis : observation GPU et
+revue humaine de l'eau, matrice Browser/profils, autorisation de couche Vulkan puis quatre captures
+RenderDoc. La CI distante reste
 `NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a été introduit. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
@@ -1985,19 +1994,24 @@ ETW 0/0, puis s'arrête avant signal sur un gap de sampling fenêtre `>250 ms` ;
 verdict de performance. Le harnais `9b847e99` utilise désormais host boundary schema 5 et validation
 schema 12 avec restabilisation pré-signal bornée, sans replay qualifiant encore acquis.
 La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
-52/52 runtime et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute 66/66 tests Release `forge_runtime
---all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS ; ces résultats ne
-valident pas le HEAD intégré et aucun nouveau replay workspace complet n'est revendiqué ici.
-La preuve visuelle `873618af`
-conserve 29 PNG et un MP4 de 24 checkpoints. Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
+52/52 runtime et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute 66/66 tests Release
+`forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne intégrée
+courante ajoute 14/14 tests eau, 67/67 tests runtime + 1/1 intégration et 22/22 tests Python RenderDoc
+PASS ; aucun nouveau replay workspace complet, Clippy workspace ou WASM courant n'est revendiqué ici.
+La preuve visuelle exacte `125ba0b`, arbre `6d4639c8`,
+conserve 29 PNG uniques et un MP4 de 24 checkpoints/3 secondes, 75 pipelines prêts et des logs runtime
+vides. Son statut exact reste `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`.
+Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
 3/3 ROIs végétation, témoin terrain, 4/4
 bundles et journaux propres, mais n'a pas été rejoué sur le correctif ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
-L'optique d'eau `e7e7d419` et le contrat/chemin de capture RenderDoc
-`dbe5eb86`/`140acbdd` sont intégrés, sans qualification : validations Rust/runtime, captures eau et
-quatre captures Vulkan RenderDoc restent dues. Restent également dus : replay schema 12 PASS de
-`R1-048`, replay local transversal, GPU cible `R1-041`, preuves Browser finales et revue humaine.
+L'optique d'eau `e7e7d419` est validée automatiquement et réacquise à `125ba0b`, sans qualification
+GPU/humaine. Le contrat/chemin de capture RenderDoc `dbe5eb86`/`140acbdd`, durci jusqu'à `347d782`,
+passe ses validations hors GPU ; son préflight réel recoupe le bundle complet puis s'arrête sans
+mutation sur la couche Vulkan non enregistrée. Quatre captures Vulkan restent `NOT RUN`. Restent
+également dus : replay schema 12 PASS de `R1-048`, replay local transversal, GPU cible `R1-041`,
+preuves Browser finales et revue humaine.
 Aucun asset Cadle n'a été ajouté à Forge.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
