@@ -34,6 +34,14 @@ l'absence d'une couche Vulkan enregistrée. Ces résultats ne ferment encore auc
 route : les qualifications GPU/humaine de l'eau et les quatre captures Vulkan indépendantes restent
 dues. Aucun résultat GPU ou humain n'est déduit de la seule présence du code ou de composants ECS.
 
+Le paquet de revue humaine fail-closed
+[`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
+`4ac603a736507b7943d6cdcd1330601adaaf0e8b9b415434bade0edbb57c0ea0`, référence désormais 20
+artefacts contrôlés sans en incorporer aucun depuis Cadle. Son validateur passe en contrôle statique,
+self-test synthétique et contrôle externe complet. Seules `R1-046`, `R1-047`, `R1-049` et `R1-050`
+sont prêtes à recevoir un verdict humain ; le paquet ferme zéro route et conserve
+`gate1_transition_authorized=false`.
+
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
 Ils ont échoué ou sont restés non qualifiants selon leurs protocoles d'origine. Le lot `06b5fd40`
 isole séparément le timeout DX12/FXC à la compilation de pipelines. Les captures DX12/DXC vides et
@@ -798,6 +806,32 @@ Restent explicitement ouvertes, soit **13 routes** :
 - `R1-014`, `R1-023`, `R1-025` et `R1-026` ;
 - `R1-037`, `R1-041` et `R1-048` ;
 - `R1-046`, `R1-047` et `R1-049` à `R1-052`.
+
+### Paquet de revue humaine fail-closed
+
+Le manifeste v1 sépare la revue humaine des ledgers automatisés, qui restent intacts avec
+`human_review_performed=false`. Il est rattaché à la base technique qualifiée
+`4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, et recense 20 références : huit preuves Forge
+versionnées, neuf preuves Forge externes hashées et trois captures Cadle consultées uniquement in situ.
+Le validateur confirme `artifacts=20`, `evidence_sets=4`, `exact_baseline_visual_artifacts=0`,
+`human_routes=11`, `review_ready=4`,
+`external_verified=true`, `cadle_assets_embedded=0` et `routes_closed=0`; son cas positif synthétique
+et ses quinze refus attendus passent, soit seize cas au total.
+
+- prêtes à la revue humaine : `R1-046`, `R1-047`, `R1-049`, `R1-050` ;
+- réacquisition du candidat exact requise : `R1-014` ;
+- observation GPU requise : `R1-023`, `R1-025`, `R1-026` ;
+- replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
+- référence WebGPU reproductible absente — URL, version/commit, capture, hash et protocole dus :
+  `R1-051` ;
+- protocole A/B Forge/Cadle aligné et verdict humain versionné requis : `R1-052`.
+
+`R1-037` et `R1-041` restent volontairement hors du reçu humain : la première attend la couche Vulkan
+RenderDoc et quatre captures indépendantes ; la seconde attend le GPU cible. Le guide
+[`GATE1_HUMAN_REVIEW_PACKET.md`](../evidence/gate1/GATE1_HUMAN_REVIEW_PACKET.md) décrit le contrôle et
+le reçu séparé. Même accepté humainement, ce reçu ne peut ni muter les ledgers machine, ni autoriser la
+transition Gate 1.
 
 `R1-023` et `R1-037` ont désormais du code intégré et des validations ciblées dans la chaîne courante,
 sans changer leur état : la preuve GPU/humaine de l'eau et les quatre captures RenderDoc finales ne

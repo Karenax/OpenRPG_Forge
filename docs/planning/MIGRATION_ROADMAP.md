@@ -317,6 +317,15 @@ restent ouvertes : qualification humaine/GPU de l'eau, quatre captures RenderDoc
 benchmark cible et revues humaines ne sont pas acquis. Gate 1 reste **OUVERTE** et Gate 2 reste
 **INTERDITE**.
 
+Le paquet de revue humaine v1 est maintenant versionné avec 20 références contrôlées et le SHA-256
+`4ac603a736507b7943d6cdcd1330601adaaf0e8b9b415434bade0edbb57c0ea0`. Son validateur passe le
+contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les quatre
+ensembles de preuves portent leur commit/arbre exact et aucun artefact visuel ne revendique l'identité
+de la baseline logicielle plus récente `4e476b31`. Il ne contient
+aucun asset Cadle, ne modifie aucun ledger automatisé, conserve `gate1_transition_authorized=false` et
+ferme zéro route. `R1-046`, `R1-047`, `R1-049` et `R1-050` sont les seules routes prêtes à une revue
+humaine ; les sept autres routes humaines gardent leurs prérequis explicites.
+
 Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
 les deux suivantes avant signal. À `9d19cde5`,
 le runtime expose 69/69 pipelines et un contrat qualité 34/34 exact en `5/16/13`, mais le validateur
@@ -654,9 +663,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-044` captures fixes de jour — acquisitions natives et Browser hashées.
 - [x] `R1-045` captures sous pluie — acquisitions natives et Browser hashées.
 - [ ] `R1-046` vue à hauteur humaine — PNG Release exact `125ba0b` réacquis, non vide et cohérent à
-  l'inspection d'agent ; défaut depth-only corrigé, revue humaine comparative encore due.
+  l'inspection d'agent ; défaut depth-only corrigé, paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict
+  humain comparatif encore dû.
 - [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
-  revue humaine LOD/composition encore due.
+  paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict LOD/composition encore dû.
 - [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
   `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 réacquis au commit exact `125ba0b`, vidéo SHA-256
   `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226`. Le run normal gouverné
@@ -677,10 +687,17 @@ qualité                   Low / Medium / High / Ultra
   replay exact après réveil manuel de l'affichage dû.
   `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
-- [ ] `R1-049` revue des matériaux.
-- [ ] `R1-050` revue de composition et lisibilité.
-- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot.
-- [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ; séparer impact visuel et coûts par système, car Cadle couvre 2 km² contre 512 × 512 m pour Visual Valley.
+- [ ] `R1-049` revue des matériaux — six preuves Forge hashées dans le paquet v1, **PRÊT POUR REVUE
+  HUMAINE**, verdict encore dû.
+- [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
+  **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
+- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **BLOQUÉE** : aucune URL,
+  version/commit, capture locale, hash ou protocole reproductible n'est identifié dans Rust.
+- [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ;
+  les trois captures Cadle sont référencées par chemin relatif et SHA-256, consultées uniquement in
+  situ et jamais copiées dans Forge. Un rapport A/B à cadrages/versions alignés et un verdict humain
+  restent dus ; séparer impact visuel et coûts par système, car Cadle couvre 2 km² contre 512 × 512 m
+  pour Visual Valley.
 - [x] `R1-053` vérification de provenance : aucun asset, nom, lore ou texte Cadle dans Visual Valley.
 - [x] `R1-054` vérification d’indépendance : Visual Valley fonctionne sans clone Cadle produit.
 - [x] `R1-055` rapport Gate 1 — verdict : poursuivre Gate 1 ; Gate 1 reste ouverte.
