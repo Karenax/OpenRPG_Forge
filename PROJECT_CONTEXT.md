@@ -3,8 +3,8 @@
 Dernière mise à jour : **3 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, schema 12 abandonné avant
-ready puis avant signal, readiness `5/16/13` corrigée et nouveau replay après réveil manuel dû ;
-Gate 2 interdite ; produit non qualifié**
+ready puis deux fois avant signal, readiness `5/16/13` corrigée et nouveau replay après réveil manuel
+confirmé dû ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -43,7 +43,11 @@ intégration passent. Son rebuild gouverné termine en 29 min 23 s et publie le 
 pipelines, zéro erreur et `5/16/13`, puis PresentMon reste vivant avec un stdout vide pendant 20 s.
 Le harnais abandonne avant signal ; aucun host boundary, ledger final, validation schema 12 ou verdict
 performance n'existe. Le nettoyage processus/ETW passe. L'écran physique déjà endormi est l'hypothèse
-locale prioritaire, non prouvée par le reçu ; un replay exact après réveil manuel reste dû.
+locale prioritaire, non prouvée par le reçu. Le replay suivant `2ced195b`, arbre `8a46bd45`, reproduit
+exactement l'ABORT après un rebuild propre de 30 min 06 s : ready 69/69, 401 frames de rendu observées,
+puis aucun octet PresentMon. Un probe host-wide simultané écrit six lignes d'une autre application et
+ETW 0/0, mais zéro ligne Forge. Le code runtime d'attente et les arguments PresentMon sont identiques
+au replay schema 11 réussi ; un nouveau replay exact après réveil manuel confirmé reste dû.
 
 La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
 route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `347d782`. Les validations
@@ -1418,8 +1422,9 @@ Le replay suivant, au commit/arbre exacts `1912806f`/`4bfb8632`, atteint le read
 338 lignes Forge PresentMon avec ETW 0/0, mais un gap d'échantillonnage de fenêtre `>250 ms` apparaît
 après le settle. L'hôte abandonne avant signal. Les tentatives schema 12 suivantes s'arrêtent avant
 ready à `9d19cde5` sur le décompte qualité périmé, puis avant signal à `4b283182` sur un stdout
-PresentMon vide. Le second replay prouve la readiness corrigée `5/16/13`, pas la cadence. Un replay
-qualifiant après réveil manuel de l'affichage reste dû.
+PresentMon vide. `2ced195b` reproduit le même ABORT après rebuild propre ; un probe host-wide
+simultané écrit ETW 0/0 mais aucune ligne Forge. Ces replays prouvent la readiness corrigée
+`5/16/13`, pas la cadence. Un replay qualifiant après réveil manuel de l'affichage reste dû.
 
 Le diagnostic officiel PresentMon 2.5.1 A4 historique retrouve 129,7334 FPS et 16 lignes `NA` sur le
 binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les diagnostics schema 8
@@ -1997,7 +2002,8 @@ verdict de performance. Le harnais `9b847e99` utilise désormais host boundary s
 schema 12 avec restabilisation pré-signal bornée. `9d19cde5` s'arrête avant ready sur le validateur
 qualité historique `5/14/15`. `4b283182` corrige le contrat, passe 141/141 moteur Release, 67/67
 runtime et 1/1 intégration, puis franchit réellement la readiness en `5/16/13` avant un ABORT
-pré-signal sur stdout PresentMon vide. Aucun verdict de cadence schema 12 n'est encore acquis.
+pré-signal sur stdout PresentMon vide. `2ced195b` reproduit cet ABORT après un rebuild propre de
+30 min 06 s. Aucun verdict de cadence schema 12 n'est encore acquis.
 La dernière campagne complète `15635b3f` conserve ses validations historiques 140/140 moteur,
 52/52 runtime et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute 66/66 tests Release
 `forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne intégrée

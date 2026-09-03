@@ -84,7 +84,7 @@ validation au schema 12. Il autorise au plus trois tentatives de restabilisation
 de 15 secondes, exclusivement avant le signal, et publie un reçu d'abandon v1 en cas d'échec. Ses
 self-tests, la syntaxe PowerShell et le diff-check passent.
 
-Deux tentatives schema 12 ont ensuite été acquises sans atteindre le signal. À `9d19cde5`, le runtime
+Trois tentatives schema 12 ont ensuite été acquises sans atteindre le signal. À `9d19cde5`, le runtime
 observe 69/69 pipelines et un ledger qualité 34/34 exact en `5/16/13`, mais l'attente historique
 `5/14/15` bloque la readiness. Le correctif `4b283182` dérive les comptes attendus du contrat canonique
 et conserve une assertion explicite `5/16/13` ; 141/141 tests moteur Release, 67/67 runtime et 1/1
@@ -92,7 +92,10 @@ intégration passent. Son rebuild propre termine en 29 min 23 s et franchit rée
 mais PresentMon reste vivant avec un stdout vide pendant 20 secondes. Le harnais abandonne avant
 signal, sans host boundary, ledger final, validation schema 12 ou verdict performance. Les processus
 et la session ETW sont nettoyés. Un écran déjà endormi est l'hypothèse locale prioritaire, non prouvée
-par le reçu ; un nouveau replay exact après réveil manuel reste dû.
+par le reçu. Le replay `2ced195b`, arbre `8a46bd45`, reconstruit ensuite en 30 min 06 s et reproduit
+l'ABORT avant signal : ready 69/69, 401 frames de rendu observées, puis stdout PresentMon vide. Un
+probe host-wide simultané écrit six lignes d'une autre application avec ETW 0/0, mais aucune ligne
+Forge. Aucun nouveau verdict n'existe ; un replay exact après réveil manuel confirmé reste dû.
 
 La campagne eau exacte `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
 `6d4639c824ccfa81c3d5ed911903cec2bb3c5074`, produit 29 PNG aux hashes uniques et un MP4 de 24
@@ -121,6 +124,7 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
+| troisième replay schema 12 sans flux PresentMon | `2ced195bc2e396b599d1ed66680422e97cea7753` | `8a46bd4573863aa9eff91fe902423299bfe72add` | rebuild propre 30 min 06 s ; ready 69/69 et 401 frames de rendu observées ; ABORT avant signal sur stdout PresentMon vide ; probe host-wide ETW 0/0 sans ligne Forge ; aucun verdict performance |
 | correctif readiness et replay schema 12 sans flux PresentMon | `4b2831820fe6864046602f25ca5d92e1d63cbae8` | `16371171fc0b62a0d9064aff47cf5769e33b4106` | 141/141 moteur Release, 67/67 runtime + 1/1 intégration ; rebuild propre ; ready 69/69 et qualité `5/16/13` ; ABORT avant signal sur stdout PresentMon vide, aucun verdict performance |
 | premier replay schema 12, validateur qualité périmé | `9d19cde5a442ecfa7694a864aad0967c4acd65c9` | `1d7649bcda5862623ced8adcafd6b2a71cc31b41` | 34/34 champs exacts et distribution `5/16/13`, mais attente `5/14/15` ; ABORT avant ready, PresentMon non lancé, aucun verdict performance |
 | préflight RenderDoc intégré et durci, non qualifié | `347d78264e52363c769e2f2807303d84c65ea946` | `4d6121f3dbc85fb090c1663c8257bee47c64300a` | 22/22 Python, 67/67 runtime + 1/1 intégration ; inventaire des 72 fichiers contrôlé ; arrêt fail-closed sur couche Vulkan non enregistrée, quatre captures encore dues |
@@ -792,8 +796,8 @@ Replay2 conserve un outlier de 35,3837 ms. Les PASS A5/A6 restent diagnostiques 
 binaire partagé `21228a…`. Le rejeu suivant `1912806` est un ABORT avant signal sur un gap de sampling
 fenêtre `>250 ms` ; il conserve ready + PresentMon ETW 0/0 mais n'ajoute aucune métrique qualifiante.
 Les tentatives schema 12 suivantes s'arrêtent avant ready sur le validateur qualité périmé à
-`9d19cde5`, puis avant signal sur un flux PresentMon vide à `4b283182`. Le second replay prouve la
-readiness corrigée `5/16/13`, pas la cadence.
+`9d19cde5`, puis avant signal sur un flux PresentMon vide à `4b283182` et de nouveau à `2ced195b`.
+Les deux derniers replays prouvent la readiness corrigée `5/16/13`, pas la cadence.
 « Acquis » ne signifie pas « qualifié » et
 `human_review_performed=false`.
 
@@ -861,7 +865,8 @@ diagnostics A5/A6 PASS ne sont pas qualifiants parce qu'ils réutilisent le targ
 fenêtre `>250 ms` ; il ne remplace pas ce verdict. Le harnais `9b847e99` expose désormais host boundary
 schema 5 / validation schema 12 avec restabilisation pré-signal bornée. `9d19cde5` révèle ensuite le
 décompte qualité périmé ; `4b283182` le corrige, passe ses tests et franchit la readiness réelle, mais
-son replay s'arrête avant signal faute de flux PresentMon. Aucun replay schema 12 qualifiant n'existe.
+son replay s'arrête avant signal faute de flux PresentMon. `2ced195b` reproduit exactement cet ABORT
+après rebuild propre. Aucun replay schema 12 qualifiant n'existe.
 `R1-023`, `R1-037`, `R1-041` et `R1-048` restent ouvertes,
 `human_review_performed=false`, et le travail ci-dessous reste futur.
 

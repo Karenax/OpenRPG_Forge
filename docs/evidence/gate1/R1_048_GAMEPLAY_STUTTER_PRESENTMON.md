@@ -1,8 +1,8 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-03**
-Route : **`R1-048` OUVERTE — schema 12 ABORT avant ready puis avant signal ; readiness corrigée,
-aucun nouveau verdict performance**
+Route : **`R1-048` OUVERTE — schema 12 ABORT avant ready puis deux fois avant signal ; readiness
+corrigée, aucun nouveau verdict performance**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
@@ -32,6 +32,15 @@ réveille pas un écran déjà éteint. Cette cause reste une **inférence**, pa
 reçu. Une nouvelle acquisition complète, après réveil manuel de l'affichage et dans des chemins frais,
 reste due ; aucune entrée synthétique ne sera utilisée. Le dernier verdict de performance demeure donc
 le FAIL strict schema 8 décrit ci-dessous.
+
+Le troisième replay gouverné, au commit exact `2ced195bc2e396b599d1ed66680422e97cea7753`, arbre
+`8a46bd4573863aa9eff91fe902423299bfe72add`, confirme le même état après un rebuild propre de
+30 min 06 s : readiness réelle, puis stdout PresentMon vide pendant 20 secondes. Un diagnostic
+host-wide lancé avec ce même binaire encore en attente écrit six lignes d'une autre application avec
+ETW 0/0, mais aucune ligne Forge. L'audit Git confirme que le chemin runtime d'attente du signal et les
+arguments PresentMon sont byte-for-byte identiques au replay schema 11 qui avait produit 338 lignes
+Forge. L'état de l'affichage physique reste donc le diagnostic prioritaire ; il n'est pas converti en
+fait prouvé et aucun quatrième rebuild n'est lancé sans réveil manuel confirmé.
 
 Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` avait durci le harnais : frontière hôte schema 5,
 validation schema 12, restabilisation bornée à trois tentatives et 15 secondes uniquement avant le
@@ -140,6 +149,39 @@ Deux probes non qualifiants isolent ensuite le problème. Le binaire Forge parta
 `logioptionsplus_agent.exe` et ETW `EventsLost=0` / `BuffersLost=0`. Ces probes montrent que
 PresentMon/ETW fonctionne sur l'hôte tout en confirmant l'absence de ligne Forge dans l'état observé ;
 ils ne qualifient ni le binaire ni la cadence.
+
+### Replay 3 `2ced195b` — reproduction exacte sur le commit documentaire courant
+
+Identité exacte : commit `2ced195bc2e396b599d1ed66680422e97cea7753`, arbre
+`8a46bd4573863aa9eff91fe902423299bfe72add`. Le build Release gouverné termine en 30 min 06 s dans
+un target Cargo externe neuf. Son binaire de 82 656 256 octets porte le SHA-256
+`D62750DBF6F01ADCB75AFD1B47795443652FCA32B2F30D4ED0E9EE2FC2370572`. Les artefacts sont sous :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-schema12-replay3-2ced195b-20260903T042036392Z
+```
+
+Le reçu prêt schema 4 confirme Vulkan sur RX 7800 XT, 69/69 pipelines, zéro erreur, 33 frames stables
+pour 30 requises, 401 frames de rendu observées et le contrat qualité `5/16/13`. PresentMon reste
+vivant mais son stdout demeure vide durant les 20 secondes bornées. Le replay s'arrête donc avant
+signal avec `no_qualified_performance_verdict` ; aucune restabilisation, frontière hôte, ledger final
+ou validation schema 12 n'est publiée. Le reçu confirme l'arrêt du runtime, de PresentMon et de la
+session ETW possédée.
+
+| Artefact replay 3 | Octets | SHA-256 |
+|---|---:|---|
+| reçu d'abandon v1 | 1 486 | `AB3AEA89567B6841F6EFD91EA5550589D714DC51BAA2AB8A4FFE9702D71A13FF` |
+| reçu prêt schema 4 | 26 803 | `E501B7DBEC821BFE06C6B05AD376379B843D66190E88456F8C63916052544F03` |
+| stdout brut PresentMon vide | 0 | `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855` |
+| stderr PresentMon | 303 | `FA8CC09EBA927931FA1670BE29DF1558C531367D416E48CD784ACABFA3C77FA6` |
+| stderr runtime | 8 074 | `E848827A42F9D1061CC250314C211659CF463BE307F6603C39B6A02852D7F871` |
+| arrêt de secours PresentMon | 190 | `C1F3939F2269EF460BBF912D77E38C66779AC26EDEE7DB721201C142F7CB4F0D` |
+
+Un probe host-wide de huit secondes conserve séparément un CSV de 1 401 octets, SHA-256
+`3D9BC727E6FB7EAAB704F54BDF9BDDD9B1892664ADA0E02C4D96DF3581605C7F`, sous
+`hostwide-with-forge-logs-2ced195b-20260903T045331394Z`. Il contient six lignes
+`logioptionsplus_agent.exe`, aucune ligne `forge_runtime.exe` et des états ETW 0/0. Ce diagnostic
+prouve que la session ETW sait écrire sur l'hôte au même instant, pas que l'affichage Forge est actif.
 
 ## Rejeu schema 11 `1912806` — abandon pré-signal
 
@@ -804,13 +846,16 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 - replay schema 12 `4b283182` : rebuild propre et readiness **PASS** avec 69/69 pipelines, mais
   **ABORT avant signal** parce que PresentMon est resté vivant avec un stdout vide pendant 20 s ;
   aucun host boundary, ledger, validation ou verdict performance ; nettoyage processus/ETW confirmé ;
+- replay schema 12 `2ced195b` : rebuild propre 30 min 06 s, readiness **PASS** avec 69/69 pipelines et
+  401 frames de rendu observées, puis même **ABORT avant signal** sur stdout PresentMon vide ; probe
+  host-wide ETW 0/0 sans ligne Forge, aucun verdict performance ;
 - affichage déjà endormi : **hypothèse locale prioritaire, non prouvée par le reçu** ; réveil manuel
   puis nouveau rebuild/replay exact encore dus, sans entrée synthétique ;
 - rejeu schema 11 `1912806` : **ABORT avant signal** pour trou d'échantillonnage de fenêtre
   `>250 ms` après le settle ; ready + flux PresentMon ETW 0/0 conservés, mais aucun signal, aucune
   frontière hôte, aucun ledger final, aucune validation et aucun verdict de performance ;
 - harnais `9b847e99` : frontière hôte schema 5 et validation schema 12, restabilisation pré-signal
-  bornée et reçu d'abandon v1 ; deux replay schema 12 tentés, aucun arrivé au signal ;
+  bornée et reçu d'abandon v1 ; trois replay schema 12 tentés, aucun arrivé au signal ;
 - `R1-048` : **OUVERTE** — le rejeu gouverné schema 8 a été effectué à `49acfd5`, mais le replay 2
   échoue strictement sur une valeur `DisplayedTime=35,3837 ms` ; GPU cible et revue humaine restent
   dus ;

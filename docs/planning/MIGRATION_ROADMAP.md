@@ -299,16 +299,18 @@ journaux propres. `R1-037` dispose du contrat/modèle `dbe5eb86`, de la route ru
 couche Vulkan RenderDoc déjà correctement enregistrée. Ces routes restent décochées : qualification
 humaine/GPU de l'eau et quatre captures RenderDoc indépendantes ne sont pas acquises.
 
-Deux tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et la
-seconde avant signal. À `9d19cde5`,
+Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
+les deux suivantes avant signal. À `9d19cde5`,
 le runtime expose 69/69 pipelines et un contrat qualité 34/34 exact en `5/16/13`, mais le validateur
 attend encore l'historique `5/14/15` et bloque avant ready. Le correctif `4b283182` dérive l'attente du
 contrat canonique ; 141/141 tests moteur Release, 67/67 tests runtime et 1/1 intégration passent. Son
 rebuild gouverné franchit réellement la readiness avec la distribution corrigée, puis PresentMon reste
 vivant avec un stdout vide pendant 20 secondes. Aucun signal, host boundary, ledger final ou validation
 schema 12 n'est publié. Le nettoyage processus/ETW passe ; un nouveau replay exact après réveil manuel
-de l'affichage reste dû. L'écran déjà endormi est l'hypothèse locale prioritaire, pas un fait prouvé par
-le reçu.
+de l'affichage reste dû. Le replay propre `2ced195b` reproduit cet ABORT après 30 min 06 s avec 69/69
+pipelines et 401 frames de rendu observées. Son probe host-wide simultané écrit pour une autre
+application avec ETW 0/0 mais aucune ligne Forge ; l'écran déjà endormi reste l'hypothèse locale
+prioritaire, pas un fait prouvé par le reçu.
 
 État des rejeux schema v8 : ADR-0008 et son validateur sont appliqués au commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -645,9 +647,11 @@ qualité                   Low / Medium / High / Ultra
   valeur unique `DisplayedTime=35,3837 ms`. `R1-048` reste décochée : une répétition Auto atteint
   deux valeurs consécutives > 16,7 ms, les PASS A5/A6 sont non qualifiants, le GPU cible n'est pas
   mesuré et la revue humaine n'est pas réalisée. Le replay schema 11 `1912806` suivant est un
-  **ABORT avant signal** sur un gap de sampling fenêtre `>250 ms`. Les deux tentatives schema 12 sont
-  également non qualifiantes : `9d19cde5` bloque avant ready sur l'ancien décompte qualité, puis
-  `4b283182` corrige et franchit la readiness mais s'arrête avant signal sur stdout PresentMon vide.
+  **ABORT avant signal** sur un gap de sampling fenêtre `>250 ms`. Les trois tentatives schema 12 sont
+  également non qualifiantes : `9d19cde5` bloque avant ready sur l'ancien décompte qualité,
+  `4b283182` corrige et franchit la readiness mais s'arrête avant signal sur stdout PresentMon vide,
+  puis `2ced195b` reproduit cet ABORT après un rebuild propre et un probe host-wide ETW 0/0 sans ligne
+  Forge.
   Aucun host boundary, ledger final, validation schema 12 ou verdict performance n'existe ; nouveau
   replay exact après réveil manuel de l'affichage dû.
   `R1-037` reste un bloqueur distinct de Gate 1 ;
@@ -676,9 +680,9 @@ qualité                   Low / Medium / High / Ultra
   > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; le premier
   rejeu schema v8 perd le premier plan et le second échoue sur une valeur unique à 35,3837 ms. Le
   replay schema 11 `1912806` suivant est abandonné avant signal sur un gap fenêtre `>250 ms` et ne
-  produit aucun verdict. Les tentatives schema 12 `9d19cde5` et `4b283182` s'arrêtent respectivement
-  avant ready sur le validateur qualité périmé, puis avant signal sur un flux PresentMon vide ; la
-  readiness `5/16/13` corrigée est prouvée, pas la cadence. Un rejeu gouverné schema 12 strictement
+  produit aucun verdict. Les tentatives schema 12 `9d19cde5`, `4b283182` et `2ced195b` s'arrêtent
+  respectivement avant ready sur le validateur qualité périmé, puis deux fois avant signal sur un flux
+  PresentMon vide ; la readiness `5/16/13` corrigée est prouvée, pas la cadence. Un rejeu gouverné schema 12 strictement
   PASS, la répétabilité et la revue humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
