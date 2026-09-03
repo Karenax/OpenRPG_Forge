@@ -334,7 +334,7 @@ Assert-Condition -Condition ([IO.File]::Exists($ledgerPath)) -Message "Missing G
 $ledger = [IO.File]::ReadAllText($ledgerPath) | ConvertFrom-Json -Depth 64
 
 Assert-Condition -Condition ($ledger.schema -eq "forge.gate1-visual-proof") -Message "Unexpected ledger schema."
-Assert-Condition -Condition ($ledger.schema_version -eq 2) -Message "Unexpected ledger schema version."
+Assert-Condition -Condition ($ledger.schema_version -eq 3) -Message "Unexpected ledger schema version."
 Assert-Condition -Condition ($ledger.status -eq "automated_capture_complete_pending_stutter_and_qualification") -Message "The acquisition did not finish cleanly."
 Assert-Condition -Condition ($ledger.build_source_commit -eq $gitCommit) -Message "The runtime binary is not linked to the exact repository commit."
 Assert-Condition -Condition (($ledger.protocol.physical_resolution_px -join "x") -eq "1920x1080") -Message "Unexpected final physical resolution."
@@ -364,12 +364,13 @@ Assert-Condition -Condition ($ledger.qualification.visual_quality_accepted -eq $
 Assert-Condition -Condition ($ledger.qualification.gate1_routes_qualified -eq $false) -Message "Artifact acquisition alone cannot close Gate 1 routes."
 
 $expectedRouteStatuses = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
+$expectedRouteStatuses.Add("R1-023", "scene_gpu_pass_diagnostics_sampled_at_water_views_for_selected_tier_pending_water_isolation_low_high_browser_and_human_review")
 $expectedRouteStatuses.Add("R1-025", "clear_rain_clear_cpu_ecs_endpoints_observed")
-$expectedRouteStatuses.Add("R1-026", "color_grade_endpoints_and_bloom_component_presence_observed")
+$expectedRouteStatuses.Add("R1-026", "color_grade_endpoints_and_scene_postprocess_gpu_pass_diagnostics_sampled_for_selected_tier_pending_low_high_browser_and_human_review")
 $expectedRouteStatuses.Add("R1-046", "human_height_png_acquired_pending_human_review")
 $expectedRouteStatuses.Add("R1-047", "distant_png_acquired_pending_human_review")
 $expectedRouteStatuses.Add("R1-048", "gameplay_controller_frames_acquired_pending_mp4_stutter_and_human_review")
-Assert-Condition -Condition (@($ledger.routes).Count -eq $expectedRouteStatuses.Count) -Message "The Gate 1 proof must contain exactly five route entries."
+Assert-Condition -Condition (@($ledger.routes).Count -eq $expectedRouteStatuses.Count) -Message "The Gate 1 proof must contain exactly six route entries."
 $routeIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($route in @($ledger.routes)) {
     $routeId = [string]$route.route
@@ -382,7 +383,7 @@ foreach ($expectedRouteId in $expectedRouteStatuses.Keys) {
 }
 $r1026 = @($ledger.routes | Where-Object route -eq "R1-026")
 Assert-Condition -Condition ($r1026.Count -eq 1) -Message "R1-026 must have exactly one route entry."
-Assert-Condition -Condition ($r1026[0].automated_status -eq "color_grade_endpoints_and_bloom_component_presence_observed") -Message "R1-026 must not overstate Bloom qualification."
+Assert-Condition -Condition ($r1026[0].automated_status -eq "color_grade_endpoints_and_scene_postprocess_gpu_pass_diagnostics_sampled_for_selected_tier_pending_low_high_browser_and_human_review") -Message "R1-026 must keep the Low/High Browser matrix and human review pending."
 $r1048 = @($ledger.routes | Where-Object route -eq "R1-048")
 Assert-Condition -Condition ($r1048.Count -eq 1) -Message "R1-048 must have exactly one route entry."
 Assert-Condition -Condition ($r1048[0].automated_status -eq "gameplay_controller_frames_acquired_pending_mp4_stutter_and_human_review") -Message "R1-048 must distinguish gameplay acquisition from stutter and human qualification."
@@ -496,6 +497,70 @@ Assert-NearlyEqual -Actual $restored.current_wetness -Expected $weather.wetness.
 Assert-Condition -Condition ($clear.clear_target_restored_exactly -eq $true) -Message "Initial clear endpoint is not exact."
 Assert-Condition -Condition ($restored.clear_target_restored_exactly -eq $true) -Message "Restored clear endpoint is not exact."
 Assert-Condition -Condition ($clear.simulation_seconds -lt $rain.simulation_seconds -and $rain.simulation_seconds -lt $restored.simulation_seconds) -Message "Weather checkpoint times are not monotone."
+
+foreach ($id in @("distant-clear", "human-clear")) {
+    Assert-Condition -Condition ($null -eq $checkpointById[$id].gpu_pass_diagnostics) -Message "Non-water checkpoint $id must not claim GPU pass diagnostics."
+}
+$transmissionExpected = $expectedQuality -in @("high", "ultra")
+$bloomExpected = $expectedQuality -ne "low"
+$expectedGpuPasses = [ordered]@{
+    main_opaque_pass_3d = [pscustomobject]@{
+        Path = "render/main_opaque_pass_3d/elapsed_gpu"
+        Expected = $true
+    }
+    main_transmissive_pass_3d = [pscustomobject]@{
+        Path = "render/main_transmissive_pass_3d/elapsed_gpu"
+        Expected = $transmissionExpected
+    }
+    bloom = [pscustomobject]@{
+        Path = "render/bloom/elapsed_gpu"
+        Expected = $bloomExpected
+    }
+    tonemapping = [pscustomobject]@{
+        Path = "render/tonemapping/elapsed_gpu"
+        Expected = $true
+    }
+}
+$waterCheckpoints = @($clear, $rain, $restored)
+$expectedGpuMeasurementCount = 0
+for ($checkpointIndex = 0; $checkpointIndex -lt $waterCheckpoints.Count; $checkpointIndex++) {
+    $checkpoint = $waterCheckpoints[$checkpointIndex]
+    $gpuPasses = $checkpoint.gpu_pass_diagnostics
+    Assert-Condition -Condition ($null -ne $gpuPasses) -Message "Checkpoint $($checkpoint.capture_id) has no GPU pass diagnostics."
+    Assert-Condition -Condition ([int]$gpuPasses.sampled_at_frame -eq [int]$checkpoint.requested_frame) -Message "GPU diagnostics are not linked to checkpoint $($checkpoint.capture_id)."
+    Assert-Condition -Condition ([int]$gpuPasses.settle_started_at_frame -lt [int]$gpuPasses.sampled_at_frame) -Message "GPU diagnostic settle boundary is not earlier than the sample for $($checkpoint.capture_id)."
+    Assert-Condition -Condition ([int]$gpuPasses.minimum_settled_frames_before_sample -eq 8) -Message "Unexpected GPU diagnostic settle-frame contract for $($checkpoint.capture_id)."
+    Assert-Condition -Condition ([int]$gpuPasses.settled_frames_before_sample -eq ([int]$gpuPasses.sampled_at_frame - [int]$gpuPasses.settle_started_at_frame)) -Message "GPU diagnostic settled-frame count is inconsistent for $($checkpoint.capture_id)."
+    Assert-Condition -Condition (([int]$gpuPasses.sampled_at_frame - [int]$gpuPasses.settle_started_at_frame) -ge [int]$gpuPasses.minimum_settled_frames_before_sample) -Message "GPU diagnostic sample for $($checkpoint.capture_id) was taken before eight settled frames."
+    Assert-Condition -Condition ($gpuPasses.render_frame_identity -eq "not_available_from_bevy_diagnostics_store") -Message "GPU diagnostics must not invent a render-frame identity."
+    Assert-Condition -Condition ($gpuPasses.quality_tier -eq $expectedQuality) -Message "GPU diagnostics use an unexpected quality tier at $($checkpoint.capture_id)."
+    Assert-Condition -Condition ($gpuPasses.weather_state -eq $checkpoint.state) -Message "GPU diagnostics use an unexpected weather state at $($checkpoint.capture_id)."
+    Assert-Condition -Condition (Test-FiniteNumber -Value $gpuPasses.wetness) -Message "Checkpoint $($checkpoint.capture_id) has no finite GPU-diagnostic wetness link."
+    Assert-NearlyEqual -Actual $gpuPasses.wetness -Expected $checkpoint.current_wetness -Field "$($checkpoint.capture_id) GPU wetness link"
+    Assert-Condition -Condition ($gpuPasses.evidence_source -eq "bevy_render_diagnostics_latest_delayed_gpu_measurement") -Message "Unexpected GPU diagnostic evidence source."
+
+    foreach ($passName in $expectedGpuPasses.Keys) {
+        $pass = $gpuPasses.$passName
+        $expectedPass = $expectedGpuPasses[$passName]
+        Assert-Condition -Condition ($null -ne $pass) -Message "Checkpoint $($checkpoint.capture_id) has no $passName diagnostic entry."
+        Assert-Condition -Condition ($pass.diagnostic_path -eq $expectedPass.Path) -Message "Checkpoint $($checkpoint.capture_id) uses an unexpected path for $passName."
+        Assert-Condition -Condition ($pass.expected -is [bool] -and $pass.expected -eq $expectedPass.Expected) -Message "Checkpoint $($checkpoint.capture_id) has an incorrect expectation for $passName."
+        if ($expectedPass.Expected) {
+            Assert-Condition -Condition (Test-FiniteNumber -Value $pass.elapsed_gpu_ms) -Message "Checkpoint $($checkpoint.capture_id) has no finite GPU millisecond value for $passName."
+            Assert-Condition -Condition ([double]$pass.elapsed_gpu_ms -ge 0.0) -Message "Checkpoint $($checkpoint.capture_id) has a negative GPU millisecond value for $passName."
+            Assert-Condition -Condition (Test-FiniteNumber -Value $pass.measurement_sync_age_seconds) -Message "Checkpoint $($checkpoint.capture_id) has no finite measurement synchronization age for $passName."
+            Assert-Condition -Condition ([double]$pass.measurement_sync_age_seconds -ge 0.0) -Message "Checkpoint $($checkpoint.capture_id) has a negative measurement synchronization age for $passName."
+            Assert-Condition -Condition ($pass.measurement_synced_after_settle_started -is [bool] -and $pass.measurement_synced_after_settle_started) -Message "Checkpoint $($checkpoint.capture_id) has no $passName measurement synchronized during its settle window."
+            $expectedGpuMeasurementCount++
+        }
+        else {
+            Assert-Condition -Condition ($null -eq $pass.elapsed_gpu_ms -and $null -eq $pass.measurement_sync_age_seconds -and $null -eq $pass.measurement_synced_after_settle_started) -Message "Checkpoint $($checkpoint.capture_id) reports an unexpected $passName GPU measurement synchronized during the current settle window."
+        }
+    }
+}
+Assert-Condition -Condition ($clear.gpu_pass_diagnostics.sampled_at_frame -lt $rain.gpu_pass_diagnostics.sampled_at_frame -and $rain.gpu_pass_diagnostics.sampled_at_frame -lt $restored.gpu_pass_diagnostics.sampled_at_frame) -Message "GPU diagnostic checkpoint frames are not strictly monotone."
+$expectedMeasurementsPerCheckpoint = 2 + [int]$transmissionExpected + [int]$bloomExpected
+Assert-Condition -Condition ($expectedGpuMeasurementCount -eq (3 * $expectedMeasurementsPerCheckpoint)) -Message "Unexpected count of required GPU pass measurements."
 
 $gradeCases = @(
     [pscustomobject]@{ Checkpoint = $clear; Grade = $weather.post_processing.clear_grade; Label = "clear" },
@@ -674,14 +739,14 @@ if ($null -ne $runtimeFullPath) {
     $runtimeSha256 = (Get-FileHash -LiteralPath $runtimeFullPath -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 $validationStatus = if ($SkipVideo) {
-    "automated_frames_valid_pending_video_stutter_human_and_gpu_qualification"
+    "automated_frames_and_native_scene_gpu_pass_diagnostics_sampled_pending_video_browser_water_isolation_wetness_stutter_human_and_target_gpu_qualification"
 }
 else {
-    "automated_artifacts_valid_pending_stutter_human_and_gpu_qualification"
+    "automated_artifacts_and_native_scene_gpu_pass_diagnostics_sampled_pending_browser_water_isolation_wetness_stutter_human_and_target_gpu_qualification"
 }
 $validation = [ordered]@{
     schema = "forge.gate1-visual-proof-validation"
-    schema_version = 2
+    schema_version = 3
     status = $validationStatus
     repository_commit = $gitCommit
     repository_tree = $gitTree
@@ -711,6 +776,11 @@ $validation = [ordered]@{
         clean_worktree_before_and_after = $true
         no_vsync_requested = $true
         gpu_identity_recorded = $true
+        native_scene_gpu_pass_diagnostics_sampled = $true
+        native_gpu_pass_measurements = $expectedGpuMeasurementCount
+        gpu_measurements_synced_during_settle_window = $true
+        render_frame_identity_observed = $false
+        water_draw_or_material_isolated = $false
         runtime_warning_error_panic_entries = 0
         png_1920x1080_nonuniform = $true
         gameplay_controller_exercised = $true
@@ -732,8 +802,8 @@ $validationPath = Join-Path $evidencePath "gate1-visual-proof.validation.json"
 )
 
 if ($SkipVideo) {
-    Write-Output ("FORGE_GATE1_VISUAL_FRAMES_ONLY captures={0} video_requested=false video_acquired=false gameplay_controller=true stutter_qualified=false qualification=pending_video_stutter_human_gpu" -f $captures.Count)
+    Write-Output ("FORGE_GATE1_VISUAL_FRAMES_ONLY captures={0} native_scene_gpu_pass_diagnostics_sampled=true gpu_measurements={1} water_isolated=false video_requested=false video_acquired=false gameplay_controller=true weather_gpu_execution=false stutter_qualified=false qualification=pending_video_browser_water_isolation_wetness_stutter_human_target_gpu" -f $captures.Count, $expectedGpuMeasurementCount)
 }
 else {
-    Write-Output ("FORGE_GATE1_VISUAL_PROOF_AUTOMATED_PASS captures={0} video_requested=true video_acquired=true gameplay_controller=true stutter_qualified=false gpu_execution=false human_review=false routes_qualified=false" -f $captures.Count)
+    Write-Output ("FORGE_GATE1_VISUAL_PROOF_AUTOMATED_PASS captures={0} native_scene_gpu_pass_diagnostics_sampled=true gpu_measurements={1} water_isolated=false video_requested=true video_acquired=true gameplay_controller=true weather_gpu_execution=false stutter_qualified=false human_review=false routes_qualified=false" -f $captures.Count, $expectedGpuMeasurementCount)
 }

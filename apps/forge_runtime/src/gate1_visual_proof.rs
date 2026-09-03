@@ -1,6 +1,6 @@
 use bevy::{
     app::AppExit,
-    diagnostic::FrameCount,
+    diagnostic::{DiagnosticsStore, FrameCount},
     prelude::*,
     render::view::screenshot::{Screenshot, save_to_disk},
     window::{PresentMode, PrimaryWindow},
@@ -13,8 +13,8 @@ use forge_engine::{
     WeatherProjectionStatus, WeatherRuntimeState,
 };
 use forge_project::{
-    PlayerControllerProfileDocument, TerrainDocument, WaterDocument, WeatherProfileDocument,
-    WeatherState,
+    PlayerControllerProfileDocument, TerrainDocument, VisualQualityTier, WaterDocument,
+    WeatherProfileDocument, WeatherState,
 };
 use forge_world::{TerrainGenerationPlan, sample_river_centerline};
 use serde::Serialize;
@@ -25,7 +25,7 @@ use std::{
 };
 
 const SCHEMA: &str = "forge.gate1-visual-proof";
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 const LEDGER_FILE: &str = "gate1-visual-proof.json";
 const FAILURE_FILE: &str = "gate1-visual-proof.failure.txt";
 const POSE_SETTLE_FRAMES: u32 = 8;
@@ -47,11 +47,18 @@ const WATER_VIEW_DISTANCE_M: f32 = 10.0;
 const MOVEMENT_START_X_M: f32 = 16.0;
 const MOVEMENT_START_Z_M: f32 = 8.0;
 const NORMALIZED_GRADE_TO_CIE_OFFSET: f32 = 0.1;
+const MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC: &str = "render/main_opaque_pass_3d/elapsed_gpu";
+const MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC: &str = "render/main_transmissive_pass_3d/elapsed_gpu";
+const BLOOM_GPU_DIAGNOSTIC: &str = "render/bloom/elapsed_gpu";
+const TONEMAPPING_GPU_DIAGNOSTIC: &str = "render/tonemapping/elapsed_gpu";
+const GPU_DIAGNOSTIC_EVIDENCE_SOURCE: &str =
+    "bevy_render_diagnostics_latest_delayed_gpu_measurement";
+const GPU_DIAGNOSTIC_RENDER_FRAME_IDENTITY: &str = "not_available_from_bevy_diagnostics_store";
 
 /// Native, single-process acquisition harness for the still-open Gate 1 visual routes.
 ///
-/// It records rendered artifacts and CPU/ECS endpoint evidence. It deliberately does not qualify
-/// GPU pipeline execution, visual quality, or human acceptance.
+/// It records rendered artifacts, CPU/ECS endpoints, and bounded native GPU pass diagnostics. It
+/// deliberately does not qualify weather shader consumption, visual quality, or human acceptance.
 pub struct Gate1VisualProofPlugin {
     configuration: ProofConfiguration,
 }
@@ -175,6 +182,7 @@ struct Gate1VisualProofRuntime {
     pending_capture: Option<PendingCapture>,
     captures: Vec<CaptureEvidence>,
     weather_checkpoints: Vec<WeatherCheckpoint>,
+    gpu_diagnostic_sampling_window: Option<GpuDiagnosticSamplingWindow>,
     movement: GameplayMovementRuntime,
 }
 
@@ -187,9 +195,16 @@ impl Gate1VisualProofRuntime {
             pending_capture: None,
             captures: Vec::with_capacity(usize::from(MOVEMENT_FRAME_COUNT) + 5),
             weather_checkpoints: Vec::with_capacity(5),
+            gpu_diagnostic_sampling_window: None,
             movement: GameplayMovementRuntime::default(),
         }
     }
+}
+
+#[derive(Clone, Copy)]
+struct GpuDiagnosticSamplingWindow {
+    settle_started_at: Instant,
+    settle_started_at_frame: u32,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -274,6 +289,13 @@ impl CaptureKind {
             Self::Fixed(shot) => shot.expected_weather(),
             Self::Movement(_) => WeatherState::Clear,
         }
+    }
+
+    const fn is_water_fixed(self) -> bool {
+        matches!(
+            self,
+            Self::Fixed(FixedShot::WaterClear | FixedShot::WaterRain | FixedShot::WaterRestored)
+        )
     }
 }
 
@@ -380,8 +402,72 @@ struct WeatherCheckpoint {
     mapped_post_saturation: f32,
     mapped_contrast: f32,
     mapped_gamma: f32,
+    gpu_pass_diagnostics: Option<WaterGpuPassDiagnostics>,
     weather_gpu_execution_observed: bool,
     evidence_source: &'static str,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct WaterGpuPassDiagnostics {
+    settle_started_at_frame: u32,
+    sampled_at_frame: u32,
+    settled_frames_before_sample: u32,
+    minimum_settled_frames_before_sample: u32,
+    render_frame_identity: &'static str,
+    quality_tier: VisualQualityTier,
+    weather_state: WeatherState,
+    wetness: f32,
+    evidence_source: &'static str,
+    main_opaque_pass_3d: GpuPassTimingEvidence,
+    main_transmissive_pass_3d: GpuPassTimingEvidence,
+    bloom: GpuPassTimingEvidence,
+    tonemapping: GpuPassTimingEvidence,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize)]
+struct GpuPassTimingEvidence {
+    diagnostic_path: &'static str,
+    expected: bool,
+    elapsed_gpu_ms: Option<f64>,
+    measurement_sync_age_seconds: Option<f64>,
+    measurement_synced_after_settle_started: Option<bool>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "each quality tier explicitly declares the four bounded GPU pass expectations"
+)]
+struct GpuPassExpectations {
+    main_opaque_pass_3d: bool,
+    main_transmissive_pass_3d: bool,
+    bloom: bool,
+    tonemapping: bool,
+}
+
+impl GpuPassExpectations {
+    const fn for_tier(tier: VisualQualityTier) -> Self {
+        match tier {
+            VisualQualityTier::Low => Self {
+                main_opaque_pass_3d: true,
+                main_transmissive_pass_3d: false,
+                bloom: false,
+                tonemapping: true,
+            },
+            VisualQualityTier::Medium => Self {
+                main_opaque_pass_3d: true,
+                main_transmissive_pass_3d: false,
+                bloom: true,
+                tonemapping: true,
+            },
+            VisualQualityTier::High | VisualQualityTier::Ultra => Self {
+                main_opaque_pass_3d: true,
+                main_transmissive_pass_3d: true,
+                bloom: true,
+                tonemapping: true,
+            },
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -392,7 +478,7 @@ struct Gate1VisualProofLedger {
     process_id: u32,
     build_source_commit: &'static str,
     protocol: ProtocolEvidence,
-    routes: [RouteEvidence; 5],
+    routes: [RouteEvidence; 6],
     sources: SourceEvidence,
     pipeline_warmup: PipelineWarmupObservation,
     quality: VisualValleyQualityStats,
@@ -980,6 +1066,7 @@ fn movement_tick_offset(index: u8) -> Result<u64, String> {
 fn advance_gate1_visual_proof(
     mut commands: Commands,
     frame: Res<FrameCount>,
+    diagnostics: Res<DiagnosticsStore>,
     pipeline: Res<PipelineWarmupObservation>,
     quality: Res<VisualValleyQualityStats>,
     gpu: Option<Res<GpuDiagnostic>>,
@@ -1057,6 +1144,8 @@ fn advance_gate1_visual_proof(
                 &mut cameras,
                 &weather_stats,
                 &weather_runtime,
+                &quality,
+                &diagnostics,
                 &virtual_time,
                 CaptureKind::Fixed(shot),
                 current_frame,
@@ -1076,6 +1165,8 @@ fn advance_gate1_visual_proof(
                 &mut cameras,
                 &weather_stats,
                 &weather_runtime,
+                &quality,
+                &diagnostics,
                 &virtual_time,
                 CaptureKind::Movement(index),
                 current_frame,
@@ -1237,6 +1328,10 @@ fn enter_fixed_shot(
             apply_camera_pose(cameras, runtime.configuration.water_pose)?;
         }
     }
+    runtime.gpu_diagnostic_sampling_window = Some(GpuDiagnosticSamplingWindow {
+        settle_started_at: Instant::now(),
+        settle_started_at_frame: current_frame,
+    });
     runtime.phase = ProofPhase::SettlingFixed {
         shot,
         ready_frame: current_frame.saturating_add(POSE_SETTLE_FRAMES),
@@ -1319,6 +1414,8 @@ fn request_capture(
     >,
     weather_stats: &WeatherProjectionStats,
     weather_runtime: &WeatherRuntimeState,
+    quality: &VisualValleyQualityStats,
+    diagnostics: &DiagnosticsStore,
     virtual_time: &Time<Virtual>,
     kind: CaptureKind,
     current_frame: u32,
@@ -1361,6 +1458,15 @@ fn request_capture(
     }
     let relative_path = kind.relative_path();
     let output_path = runtime.configuration.output_dir.join(&relative_path);
+    let weather = weather_checkpoint(
+        kind,
+        current_frame,
+        weather_stats,
+        weather_runtime,
+        quality,
+        diagnostics,
+        runtime.gpu_diagnostic_sampling_window,
+    )?;
     commands
         .spawn(Screenshot::primary_window())
         .observe(save_to_disk(output_path.clone()));
@@ -1369,7 +1475,7 @@ fn request_capture(
         relative_path,
         requested_frame: current_frame,
         camera,
-        weather: weather_checkpoint(kind.id(), current_frame, weather_stats, weather_runtime)?,
+        weather,
         physical_width,
         physical_height,
         movement_fixed_tick,
@@ -1694,14 +1800,38 @@ fn validate_fixed_quality(quality: &VisualValleyQualityStats) -> Result<(), Stri
 }
 
 fn weather_checkpoint(
-    capture_id: String,
+    kind: CaptureKind,
     requested_frame: u32,
     stats: &WeatherProjectionStats,
     runtime: &WeatherRuntimeState,
+    quality: &VisualValleyQualityStats,
+    diagnostics: &DiagnosticsStore,
+    gpu_diagnostic_sampling_window: Option<GpuDiagnosticSamplingWindow>,
 ) -> Result<WeatherCheckpoint, String> {
+    validate_fixed_quality(quality)?;
     let mapped = &stats.post_processing;
+    let gpu_pass_diagnostics = kind
+        .is_water_fixed()
+        .then(|| {
+            let sampling_window = gpu_diagnostic_sampling_window.ok_or_else(|| {
+                format!(
+                    "water capture {} has no GPU diagnostic settle boundary",
+                    kind.id()
+                )
+            })?;
+            observe_water_gpu_pass_diagnostics(
+                sampling_window,
+                requested_frame,
+                quality.current_tier,
+                stats.target_state,
+                stats.wetness.current,
+                mapped.bloom_requested,
+                diagnostics,
+            )
+        })
+        .transpose()?;
     Ok(WeatherCheckpoint {
-        capture_id,
+        capture_id: kind.id(),
         state: stats.target_state,
         requested_frame,
         simulation_seconds: runtime.simulation_seconds(),
@@ -1725,9 +1855,146 @@ fn weather_checkpoint(
         mapped_post_saturation: required_grade(mapped.mapped_post_saturation, "post_saturation")?,
         mapped_contrast: required_grade(mapped.mapped_contrast, "contrast")?,
         mapped_gamma: required_grade(mapped.mapped_gamma, "gamma")?,
+        gpu_pass_diagnostics,
         weather_gpu_execution_observed: stats.gpu_execution_observed,
         evidence_source: stats.evidence_source,
     })
+}
+
+fn observe_water_gpu_pass_diagnostics(
+    sampling_window: GpuDiagnosticSamplingWindow,
+    sampled_at_frame: u32,
+    quality_tier: VisualQualityTier,
+    weather_state: WeatherState,
+    wetness: f32,
+    bloom_requested: bool,
+    diagnostics: &DiagnosticsStore,
+) -> Result<WaterGpuPassDiagnostics, String> {
+    let settled_frames_before_sample = sampled_at_frame
+        .checked_sub(sampling_window.settle_started_at_frame)
+        .ok_or_else(|| {
+            format!(
+                "water GPU diagnostic sample frame {sampled_at_frame} predates settle start frame {}",
+                sampling_window.settle_started_at_frame
+            )
+        })?;
+    if settled_frames_before_sample < POSE_SETTLE_FRAMES {
+        return Err(format!(
+            "water GPU diagnostic sample settled for {settled_frames_before_sample} frames, expected at least {POSE_SETTLE_FRAMES}"
+        ));
+    }
+    if !wetness.is_finite() || wetness < 0.0 {
+        return Err(format!(
+            "water GPU diagnostic sample has invalid wetness {wetness}"
+        ));
+    }
+    let expected = GpuPassExpectations::for_tier(quality_tier);
+    if bloom_requested != expected.bloom {
+        return Err(format!(
+            "quality tier {quality_tier:?} expects bloom={}, but weather projection requested bloom={bloom_requested}",
+            expected.bloom
+        ));
+    }
+    let sampled_at = Instant::now();
+    Ok(WaterGpuPassDiagnostics {
+        settle_started_at_frame: sampling_window.settle_started_at_frame,
+        sampled_at_frame,
+        settled_frames_before_sample,
+        minimum_settled_frames_before_sample: POSE_SETTLE_FRAMES,
+        render_frame_identity: GPU_DIAGNOSTIC_RENDER_FRAME_IDENTITY,
+        quality_tier,
+        weather_state,
+        wetness,
+        evidence_source: GPU_DIAGNOSTIC_EVIDENCE_SOURCE,
+        main_opaque_pass_3d: gpu_pass_timing_evidence(
+            diagnostics,
+            MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC,
+            expected.main_opaque_pass_3d,
+            quality_tier,
+            sampling_window.settle_started_at,
+            sampled_at,
+        )?,
+        main_transmissive_pass_3d: gpu_pass_timing_evidence(
+            diagnostics,
+            MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC,
+            expected.main_transmissive_pass_3d,
+            quality_tier,
+            sampling_window.settle_started_at,
+            sampled_at,
+        )?,
+        bloom: gpu_pass_timing_evidence(
+            diagnostics,
+            BLOOM_GPU_DIAGNOSTIC,
+            expected.bloom,
+            quality_tier,
+            sampling_window.settle_started_at,
+            sampled_at,
+        )?,
+        tonemapping: gpu_pass_timing_evidence(
+            diagnostics,
+            TONEMAPPING_GPU_DIAGNOSTIC,
+            expected.tonemapping,
+            quality_tier,
+            sampling_window.settle_started_at,
+            sampled_at,
+        )?,
+    })
+}
+
+fn gpu_pass_timing_evidence(
+    diagnostics: &DiagnosticsStore,
+    path: &'static str,
+    expected: bool,
+    quality_tier: VisualQualityTier,
+    settle_started_at: Instant,
+    sampled_at: Instant,
+) -> Result<GpuPassTimingEvidence, String> {
+    let diagnostic_path = bevy::diagnostic::DiagnosticPath::const_new(path);
+    let measurement = diagnostics.get_measurement(&diagnostic_path);
+    match (expected, measurement) {
+        (true, None) => Err(format!(
+            "required GPU diagnostic `{path}` is absent for quality tier {quality_tier:?}"
+        )),
+        (false, Some(measurement)) if measurement.time >= settle_started_at => Err(format!(
+            "GPU diagnostic `{path}` synchronized {} ms during the current settle window although its pass is not expected for quality tier {quality_tier:?}",
+            measurement.value
+        )),
+        (false, _) => Ok(GpuPassTimingEvidence {
+            diagnostic_path: path,
+            expected,
+            elapsed_gpu_ms: None,
+            measurement_sync_age_seconds: None,
+            measurement_synced_after_settle_started: None,
+        }),
+        (true, Some(measurement)) => {
+            if !measurement.value.is_finite() || measurement.value < 0.0 {
+                return Err(format!(
+                    "GPU diagnostic `{path}` is {}, expected a finite non-negative millisecond value",
+                    measurement.value
+                ));
+            }
+            if measurement.time < settle_started_at {
+                return Err(format!(
+                    "GPU diagnostic `{path}` cannot qualify the current quality tier {quality_tier:?}: its latest main-world synchronization predates the fixed-shot settle boundary"
+                ));
+            }
+            let measurement_sync_age_seconds = sampled_at
+                .saturating_duration_since(measurement.time)
+                .as_secs_f64();
+            if !measurement_sync_age_seconds.is_finite() {
+                return Err(format!(
+                    "GPU diagnostic `{path}` has a non-finite main-world synchronization age"
+                ));
+            }
+            Ok(GpuPassTimingEvidence {
+                diagnostic_path: path,
+                expected,
+                elapsed_gpu_ms: Some(measurement.value),
+                measurement_sync_age_seconds: Some(measurement_sync_age_seconds),
+                measurement_synced_after_settle_started: Some(true),
+            })
+        }
+    }
 }
 
 fn required_grade(value: Option<f32>, field: &'static str) -> Result<f32, String> {
@@ -2007,12 +2274,16 @@ fn write_ledger(
         },
         routes: [
             RouteEvidence {
+                route: "R1-023",
+                automated_status: "scene_gpu_pass_diagnostics_sampled_at_water_views_for_selected_tier_pending_water_isolation_low_high_browser_and_human_review",
+            },
+            RouteEvidence {
                 route: "R1-025",
                 automated_status: "clear_rain_clear_cpu_ecs_endpoints_observed",
             },
             RouteEvidence {
                 route: "R1-026",
-                automated_status: "color_grade_endpoints_and_bloom_component_presence_observed",
+                automated_status: "color_grade_endpoints_and_scene_postprocess_gpu_pass_diagnostics_sampled_for_selected_tier_pending_low_high_browser_and_human_review",
             },
             RouteEvidence {
                 route: "R1-046",
@@ -2052,7 +2323,7 @@ fn write_ledger(
             human_review_performed: false,
             visual_quality_accepted: false,
             gate1_routes_qualified: false,
-            limitation: "machine acquisition only: screenshot presence, CPU/ECS projections and a paused fixed-tick gameplay trajectory do not qualify GPU execution, real-time stutter, comparative visual quality, or human acceptance",
+            limitation: "machine acquisition only: Bevy's latest delayed render-pass GPU measurements do not identify their exact render frame or prove weather wetness shader consumption, real-time stutter, comparative visual quality, or human acceptance",
         },
     };
     let path = runtime.configuration.output_dir.join(LEDGER_FILE);
@@ -2137,6 +2408,7 @@ fn fail_proof(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::diagnostic::{Diagnostic, DiagnosticMeasurement, DiagnosticPath};
     use forge_engine::{WeatherPostProcessingStats, WeatherRainStats, WeatherWetnessStats};
     use forge_project::WeatherQualityTier;
     use forge_world::{
@@ -2400,6 +2672,327 @@ mod tests {
                 .unwrap_err()
                 .contains("temperature")
         );
+    }
+
+    #[test]
+    fn low_water_gpu_diagnostics_require_opaque_and_tonemapping_only() {
+        let settle_started_at = Instant::now();
+        let measurement_time = Instant::now();
+        let diagnostics = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 0.0),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.125),
+            ],
+            measurement_time,
+        );
+
+        let evidence = observe_water_gpu_pass_diagnostics(
+            GpuDiagnosticSamplingWindow {
+                settle_started_at,
+                settle_started_at_frame: 20,
+            },
+            28,
+            VisualQualityTier::Low,
+            WeatherState::Clear,
+            0.0,
+            false,
+            &diagnostics,
+        )
+        .unwrap();
+
+        assert_eq!(evidence.settle_started_at_frame, 20);
+        assert_eq!(evidence.sampled_at_frame, 28);
+        assert_eq!(evidence.settled_frames_before_sample, 8);
+        assert_eq!(evidence.minimum_settled_frames_before_sample, 8);
+        assert_eq!(evidence.quality_tier, VisualQualityTier::Low);
+        assert_eq!(evidence.weather_state, WeatherState::Clear);
+        assert_eq!(evidence.main_opaque_pass_3d.elapsed_gpu_ms, Some(0.0));
+        assert_eq!(
+            evidence
+                .main_opaque_pass_3d
+                .measurement_synced_after_settle_started,
+            Some(true)
+        );
+        assert!(!evidence.main_transmissive_pass_3d.expected);
+        assert_eq!(evidence.main_transmissive_pass_3d.elapsed_gpu_ms, None);
+        assert!(!evidence.bloom.expected);
+        assert_eq!(evidence.bloom.elapsed_gpu_ms, None);
+        assert_eq!(evidence.tonemapping.elapsed_gpu_ms, Some(0.125));
+        assert!(
+            evidence
+                .tonemapping
+                .measurement_sync_age_seconds
+                .is_some_and(f64::is_finite)
+        );
+    }
+
+    #[test]
+    fn high_water_gpu_diagnostics_require_all_four_native_passes() {
+        let settle_started_at = Instant::now();
+        let measurement_time = Instant::now();
+        let diagnostics = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.5),
+                (MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC, 0.75),
+                (BLOOM_GPU_DIAGNOSTIC, 0.25),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+
+        let evidence = observe_water_gpu_pass_diagnostics(
+            GpuDiagnosticSamplingWindow {
+                settle_started_at,
+                settle_started_at_frame: 100,
+            },
+            108,
+            VisualQualityTier::High,
+            WeatherState::Rain,
+            0.85,
+            true,
+            &diagnostics,
+        )
+        .unwrap();
+
+        assert!(evidence.main_opaque_pass_3d.expected);
+        assert!(evidence.main_transmissive_pass_3d.expected);
+        assert!(evidence.bloom.expected);
+        assert!(evidence.tonemapping.expected);
+        assert_eq!(evidence.main_opaque_pass_3d.elapsed_gpu_ms, Some(1.5));
+        assert_eq!(
+            evidence.main_transmissive_pass_3d.elapsed_gpu_ms,
+            Some(0.75)
+        );
+        assert_eq!(evidence.bloom.elapsed_gpu_ms, Some(0.25));
+        assert_eq!(evidence.tonemapping.elapsed_gpu_ms, Some(0.1));
+        assert_eq!(evidence.wetness.to_bits(), 0.85_f32.to_bits());
+    }
+
+    #[test]
+    fn water_gpu_diagnostics_reject_too_early_or_missing_expected_samples() {
+        let settle_started_at = Instant::now();
+        let measurement_time = Instant::now();
+        let too_early = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.0),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                GpuDiagnosticSamplingWindow {
+                    settle_started_at,
+                    settle_started_at_frame: 2,
+                },
+                9,
+                VisualQualityTier::Low,
+                WeatherState::Clear,
+                0.0,
+                false,
+                &too_early,
+            )
+            .unwrap_err()
+            .contains("expected at least 8")
+        );
+
+        let sampling_window = GpuDiagnosticSamplingWindow {
+            settle_started_at,
+            settle_started_at_frame: 1,
+        };
+        let missing_transmission = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.0),
+                (BLOOM_GPU_DIAGNOSTIC, 0.2),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                sampling_window,
+                9,
+                VisualQualityTier::High,
+                WeatherState::Clear,
+                0.0,
+                true,
+                &missing_transmission,
+            )
+            .unwrap_err()
+            .contains(MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC)
+        );
+    }
+
+    #[test]
+    fn water_gpu_diagnostics_reject_negative_and_nan_expected_samples() {
+        let settle_started_at = Instant::now();
+        let measurement_time = Instant::now();
+        let sampling_window = GpuDiagnosticSamplingWindow {
+            settle_started_at,
+            settle_started_at_frame: 1,
+        };
+        let negative = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, -0.01),
+                (MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC, 0.5),
+                (BLOOM_GPU_DIAGNOSTIC, 0.2),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                sampling_window,
+                9,
+                VisualQualityTier::High,
+                WeatherState::Clear,
+                0.0,
+                true,
+                &negative,
+            )
+            .unwrap_err()
+            .contains("finite non-negative")
+        );
+
+        let not_a_number = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, f64::NAN),
+                (MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC, 0.5),
+                (BLOOM_GPU_DIAGNOSTIC, 0.2),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                sampling_window,
+                9,
+                VisualQualityTier::High,
+                WeatherState::Clear,
+                0.0,
+                true,
+                &not_a_number,
+            )
+            .unwrap_err()
+            .contains("finite non-negative")
+        );
+    }
+
+    #[test]
+    fn water_gpu_diagnostics_reject_expected_samples_synced_before_settle() {
+        let measurement_time = Instant::now();
+        let predating = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.0),
+                (MAIN_TRANSMISSIVE_PASS_GPU_DIAGNOSTIC, 0.5),
+                (BLOOM_GPU_DIAGNOSTIC, 0.2),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                GpuDiagnosticSamplingWindow {
+                    settle_started_at: measurement_time + Duration::from_millis(1),
+                    settle_started_at_frame: 1,
+                },
+                9,
+                VisualQualityTier::High,
+                WeatherState::Clear,
+                0.0,
+                true,
+                &predating,
+            )
+            .unwrap_err()
+            .contains("predates")
+        );
+    }
+
+    #[test]
+    fn water_gpu_diagnostics_distinguish_current_and_historical_unexpected_samples() {
+        let settle_started_at = Instant::now();
+        let measurement_time = Instant::now();
+        let unexpected_bloom = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.0),
+                (BLOOM_GPU_DIAGNOSTIC, 0.2),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            measurement_time,
+        );
+        assert!(
+            observe_water_gpu_pass_diagnostics(
+                GpuDiagnosticSamplingWindow {
+                    settle_started_at,
+                    settle_started_at_frame: 1,
+                },
+                9,
+                VisualQualityTier::Low,
+                WeatherState::Clear,
+                0.0,
+                false,
+                &unexpected_bloom,
+            )
+            .unwrap_err()
+            .contains("not expected")
+        );
+
+        let current_sync = Instant::now();
+        let historical_sync = current_sync.checked_sub(Duration::from_millis(2)).unwrap();
+        let historical_settle_start = current_sync.checked_sub(Duration::from_millis(1)).unwrap();
+        let mut historical_unexpected_bloom = gpu_diagnostics_store(
+            &[
+                (MAIN_OPAQUE_PASS_GPU_DIAGNOSTIC, 1.0),
+                (TONEMAPPING_GPU_DIAGNOSTIC, 0.1),
+            ],
+            current_sync,
+        );
+        add_gpu_diagnostic(
+            &mut historical_unexpected_bloom,
+            BLOOM_GPU_DIAGNOSTIC,
+            0.2,
+            historical_sync,
+        );
+        let evidence = observe_water_gpu_pass_diagnostics(
+            GpuDiagnosticSamplingWindow {
+                settle_started_at: historical_settle_start,
+                settle_started_at_frame: 1,
+            },
+            9,
+            VisualQualityTier::Low,
+            WeatherState::Clear,
+            0.0,
+            false,
+            &historical_unexpected_bloom,
+        )
+        .unwrap();
+        assert_eq!(evidence.bloom.elapsed_gpu_ms, None);
+        assert_eq!(evidence.bloom.measurement_synced_after_settle_started, None);
+    }
+
+    fn gpu_diagnostics_store(
+        values: &[(&'static str, f64)],
+        measurement_time: Instant,
+    ) -> DiagnosticsStore {
+        let mut diagnostics = DiagnosticsStore::default();
+        for &(path, value) in values {
+            add_gpu_diagnostic(&mut diagnostics, path, value, measurement_time);
+        }
+        diagnostics
+    }
+
+    fn add_gpu_diagnostic(
+        diagnostics: &mut DiagnosticsStore,
+        path: &'static str,
+        value: f64,
+        measurement_time: Instant,
+    ) {
+        let mut diagnostic = Diagnostic::new(DiagnosticPath::const_new(path)).with_suffix("ms");
+        diagnostic.add_measurement(DiagnosticMeasurement {
+            time: measurement_time,
+            value,
+        });
+        diagnostics.add(diagnostic);
     }
 
     fn sample_weather_stats(

@@ -148,7 +148,7 @@ embedded third-person gameplay controller and Rapier terrain collision at 60 Hz:
 drives a central-seam crossing, the same `ForgePlayerCamera` is sampled at 24 exact fixed-tick
 checkpoints, and an immediately following stop command must settle inside 30 fixed ticks. The harness
 pauses virtual time and discards fixed overstep while each checkpoint screenshot is acquired. It
-writes five fixed PNGs, `movement/frame-000.png` through `frame-023.png`, and the schema-v2
+writes five fixed PNGs, `movement/frame-000.png` through `frame-023.png`, and the schema-v3
 `gate1-visual-proof.json` ledger.
 
 The PowerShell validator can run an existing binary, validate all PNGs and endpoint evidence, hash
@@ -166,12 +166,27 @@ that worktree, records the requested no-VSync mode, GPU/backend/driver and runti
 warning, error or panic entries. It validates the controller command sequences, stable player,
 camera and Rapier identities, exact 60 Hz checkpoints, grounded/collision continuity, bounded stop,
 canonical PNG paths, and the 24-frame H.264 artifact. Because the MP4 is assembled at 8 FPS from
-paused checkpoints, it does not qualify real-time stutter. Screenshot acquisition proves only that
-rendered artifacts were produced, while the weather ledger remains CPU/ECS projection evidence. For
-`R1-026`, automation observes the mapped color-grade endpoints and only the presence of the requested
-Bloom component, not numeric Bloom parameters or GPU execution. The harness and validator always
-leave real-time stutter, GPU execution, comparative visual quality and human review false; their
-output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
+paused checkpoints, it does not qualify real-time stutter.
+
+At `water-clear`, `water-rain` and `water-restored`, schema v3 also records Bevy's raw delayed
+`elapsed_gpu` measurements for the opaque, transmissive, bloom and tonemapping passes. Every required
+measurement must be finite, non-negative and synchronized into the main world after the current
+fixed-shot settle boundary. The ledger records the main-world sampling frame and synchronization age,
+while explicitly keeping the exact render-frame identity unavailable. For a pass not expected in the
+selected tier, a historical measurement synchronized before that boundary is ignored, while a new
+measurement synchronized during the window is rejected. Low expects opaque and tonemapping only;
+High expects all four passes. A qualifying native matrix therefore runs the same clean commit once in
+Low and once in High.
+
+The values show that the named scene passes reported delayed GPU execution measurements in the
+acquisition process. `DiagnosticMeasurement.time` is the main-world synchronization time, not the GPU
+execution time, so it neither identifies the exact fixed-shot render frame nor attributes an opaque or
+transmissive draw to the water material. The measurements are not a whole-frame GPU time, do not prove
+that the wetness uniform was consumed by the terrain/vegetation fragment shader, and do not provide
+Browser presentation evidence. The harness therefore keeps `weather_gpu_execution_observed=false`,
+real-time stutter, comparative visual quality, human review and Gate 1 route qualification false. Its
+output advances bounded evidence for `R1-023` and `R1-026`, but cannot by itself close `R1-023`,
+`R1-025`, `R1-026`, the Browser matrix, target-GPU qualification or any human-review route.
 
 ## Gate 1 RenderDoc acquisition route
 
