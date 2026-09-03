@@ -172,7 +172,28 @@ foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cad
 }
 
 $protocol = Get-Content -LiteralPath $protocolPath -Raw
-Assert-Condition -Condition $protocol.Contains('ACQUISITION BROWSER NON LANCÉE', [StringComparison]::Ordinal) -Message 'Protocol must state that Browser acquisition was not run.'
+Assert-Condition -Condition (-not $protocol.Contains('ACQUISITION BROWSER NON LANCÉE', [StringComparison]::Ordinal)) -Message 'Protocol must not retain the obsolete non-acquisition status.'
+foreach ($requiredEvidenceToken in @(
+    '48038854b828003dd514562e34d5930e614422b4',
+    '534ce4faef69972dc1a495981387ac24a3ca1cfd',
+    '8576d501a02fee5eabfb246d7b5269f0b8b19f6f',
+    '534ce4faef69-20260903T161148993Z',
+    'pass_pending_human_and_precise_gpu_evidence',
+    '6 checkpoints, 6 captures page et 6 captures canvas',
+    'aae5df2efe336e2521d0d9a19a9c77be4484fe82b5a5a6869f2008a4c33c021a',
+    '40952f814fde7b433a9b443a8157cb20f3bfb59bcfd9bfd044b72aa5dc1e1267',
+    'c43c9ef797f47138d29cc437646d5fae311eeceea1cf99b5b5df3bd9dfece5d9',
+    '29 fichiers',
+    'gpu_presentation=not_observed',
+    'headed_observed=false',
+    'weather_shader_consumption_proven=false',
+    'water_draw_attribution_proven=false',
+    'exact_render_frame_identity_proven=false',
+    'human_review_performed=false',
+    'gate1_routes_qualified=false'
+)) {
+    Assert-Condition -Condition $protocol.Contains($requiredEvidenceToken, [StringComparison]::Ordinal) -Message "Protocol is missing registered acquisition token '$requiredEvidenceToken'."
+}
 Assert-Condition -Condition $protocol.Contains('83f02928da72774a49d3d62ee68be85335b0bf01', [StringComparison]::Ordinal) -Message 'Protocol must bind the detached implementation base.'
 Assert-Condition -Condition $protocol.Contains('`R1-023`, `R1-025` et `R1-026` restent ouvertes', [StringComparison]::Ordinal) -Message 'Protocol must keep all three routes open.'
 
@@ -199,6 +220,8 @@ Assert-Condition -Condition ($roadmap -cmatch '(?m)^- \[ \] `R1-014`') -Message 
     expected_canvas_captures = 6
     r1_014_hashes_unchanged = 3
     browser_run = 'not_performed_by_static_test'
+    registered_browser_run = '534ce4faef69-20260903T161148993Z'
+    registered_browser_status = 'pass_pending_human_and_precise_gpu_evidence'
     cargo_build = 'not_performed'
     r1_023 = 'open'
     r1_025 = 'open'

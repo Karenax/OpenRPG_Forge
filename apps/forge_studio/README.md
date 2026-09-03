@@ -54,13 +54,12 @@ consecutive Bevy updates at the exact CPU/ECS endpoint; the external CDP driver 
 two ordered transitions and performs captures. The versioned contract and non-claims are documented
 in `docs/evidence/gate1/R1_023_026_BROWSER_WEATHER_MATRIX_PROTOCOL.md`.
 
-Only after this lot is integrated on a clean commit may the matrix be acquired with
-`scripts/Invoke-Gate1BrowserWeatherMatrix.ps1`. The implementation worktree has not run that Browser
-campaign, `trunk build`, `trunk serve`, or a GPU test. It has passed the four targeted native tests,
-native all-targets/all-features check and strict Clippy, plus release `wasm32-unknown-unknown` check
-and strict Clippy with only the `web` feature. These compilation-only results are not an acquisition.
-The controller does not prove shader consumption, water draw attribution, an exact render frame, GPU
-presentation or human acceptance, and it does not close any Gate 1 route.
+The matrix was acquired once, Low then High, from clean exact commit
+`534ce4faef69972dc1a495981387ac24a3ca1cfd`. The external driver recorded six checkpoints, six page
+captures, six canvas captures, 4/4 exact served bundles, and clean console/network results. Its
+automated status is `pass_pending_human_and_precise_gpu_evidence`; the evidence remains outside Git.
+The controller and captures do not prove shader consumption, water draw attribution, an exact render
+frame, GPU presentation or human acceptance, and they do not close any Gate 1 route.
 
 ## Gate 0 diagnostic protocol
 

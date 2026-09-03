@@ -374,9 +374,9 @@ par inférence depuis la seule existence d'un PNG.
 | Cible | Variantes obligatoires | Preuves minimales |
 |---|---|---|
 | Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **AUTOMATISATION ACQUISE** : historique `125ba0b` pour PNG/vidéo ; `41b49f6` pour la matrice de passes de scène Low/High ; isolation eau et revue humaine non acquises |
-| Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `d9e2670…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed`. Le nouveau protocole Low/High même instance est implémenté et validé au compilateur natif/WASM depuis `83f02928`, mais son acquisition n'est pas exécutée. |
-| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `41b49f6`** : wetness CPU/ECS terminale exacte et pixels Low/High ; consommation shader et retour visuel humain accepté dus. Le contrôleur Browser correspondant exige huit frames stables par endpoint, mais son acquisition n'est pas lancée. |
-| Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | **LOW/HIGH NATIF ACQUIS à `41b49f6`** pour les passes de scène ; Medium/Ultra, attribution eau et qualification humaine dus. La matrice Browser Low/High est seulement prête statiquement, sans capture ni preuve GPU. |
+| Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **LOW/HIGH ACQUIS à `534ce4f…`** : 6 checkpoints, 12 captures, 4/4 bundles, console/réseau propres et une instance par tier ; `gpu_presentation=not_observed`, preuve GPU précise et revue humaine dues. |
+| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `41b49f6` + BROWSER `534ce4f`** : wetness CPU/ECS exacte `0 → 0,78 → 0`, huit frames stables par endpoint et pixels Low/High ; consommation shader et retour visuel humain accepté dus. |
+| Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | **LOW/HIGH NATIF `41b49f6` + BROWSER `534ce4f` ACQUIS** : Bloom absent en Low, présent en High, color grading présent ; Medium/Ultra, attribution GPU exacte et qualification humaine dues. |
 
 Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain restent consignés sur
 la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
@@ -387,9 +387,9 @@ ledger `d6a50c665c2f8836e5dc28ae741fc5095f12b60e1cb8fa84e7cc89e2920188ec`, valid
 `6F50AB274E98D6F850F3BD55D08D04878A643FDC87C3BD67470EE4454B3A6F11` et vidéo
 `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226`. Le protocole séparé
 [`R1_023_026_BROWSER_WEATHER_MATRIX_PROTOCOL.md`](R1_023_026_BROWSER_WEATHER_MATRIX_PROTOCOL.md)
-prépare désormais la séquence Browser Low/High sans l'avoir exécutée. Restent dus : acquisition de
-cette séquence, attribution optique eau, consommation shader wetness, sonde GPU précise et acceptation
-humaine.
+consigne désormais la séquence Browser Low/High acquise à `534ce4fa`, ledger externe SHA-256
+`aae5df2efe336e2521d0d9a19a9c77be4484fe82b5a5a6869f2008a4c33c021a`. Restent dus : attribution
+optique eau, consommation shader wetness, sonde GPU précise et acceptation humaine.
 Les trois PNG eau portent respectivement les SHA-256
 `ED03BFEE3EAAECAF1AF27CBE03E9AF4CB4AD116157D99BFE37B8B6FC5F2B0CBC` (clear),
 `5A97F46289469C0F33A7C011B73EB59E209C4400B7068B323279667D2B284506` (rain) et

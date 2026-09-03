@@ -445,7 +445,7 @@
       ],
       "remaining_blockers": [
         "Le pass optique GPU n'a pas ete observe par instrumentation.",
-        "La matrice native et Browser par profil n'est pas complete."
+        "La matrice Browser Low/High automatisee 534ce4f est acquise hors de ce paquet, mais elle n'attribue ni draw ou materiau eau ni frame exacte et n'est pas relue humainement."
       ]
     },
     {
@@ -467,7 +467,7 @@
       ],
       "remaining_blockers": [
         "Le ledger prouve seulement les endpoints CPU/ECS 0 vers 0,78 vers 0; l'execution GPU wetness n'est pas observee.",
-        "La sequence Browser equivalente n'est pas acquise."
+        "La sequence Browser equivalente est acquise hors de ce paquet a 534ce4f; sa consommation shader GPU et sa revue humaine ne sont pas observees."
       ]
     },
     {
@@ -493,7 +493,7 @@
       ],
       "remaining_blockers": [
         "La presence ECS du composant Bloom et les endpoints de grade ne prouvent pas leur execution GPU.",
-        "La matrice Browser Low/High n'est pas acquise."
+        "La matrice Browser Low/High est acquise hors de ce paquet a 534ce4f; l'execution GPU precise et la revue humaine ne sont pas observees."
       ]
     },
     {

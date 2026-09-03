@@ -47,7 +47,7 @@ humaine. `R1-023`, `R1-025` et `R1-026` restent ouvertes.
 
 Le paquet de revue humaine fail-closed
 [`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
-`1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725`, référence désormais 27
+`6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8`, référence désormais 27
 artefacts contrôlés sans incorporer de média Grassworks ni d'asset Cadle. Son
 `prepared_from.commit=73db783975251cf7b4439dce9a12328a4c55c5ec` désigne le dernier commit
 existant contenant tous les artefacts suivis référencés ; il ne prétend pas être l'identité Git de
@@ -58,9 +58,11 @@ et `R1-052` sont prêtes à recevoir un verdict humain ; le paquet ferme zéro r
 
 Le harnais de matrice météo Browser est committé à
 `48038854b828003dd514562e34d5930e614422b4` et son garde d'entrée ainsi que son reçu d'ABORT sont
-durcis à `534ce4faef69972dc1a495981387ac24a3ca1cfd`. Une acquisition exacte 534 est en cours au moment
-de cette consolidation documentaire. Aucun résultat, PASS, FAIL, artefact ou qualification de cette
-acquisition n'est encore revendiqué.
+durcis à `534ce4faef69972dc1a495981387ac24a3ca1cfd`. L'acquisition canonique unique Low puis High sur
+ce commit est **PASS automatisé** avec le statut `pass_pending_human_and_precise_gpu_evidence` : six
+checkpoints, douze captures, 4/4 bundles exacts et console/réseau propres. Le ledger, le manifeste et
+les médias restent externes ; aucune preuve GPU précise, revue humaine ou fermeture de route n'en est
+déduite.
 
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
 Ils ont échoué ou sont restés non qualifiants selon leurs protocoles d'origine. Le lot `06b5fd40`
@@ -179,9 +181,9 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
-| garde Browser et reçu d'ABORT, acquisition en cours | `534ce4faef69972dc1a495981387ac24a3ca1cfd` | `8576d501a02fee5eabfb246d7b5269f0b8b19f6f` | durcissement du harnais `48038854`; acquisition exacte en cours, sans résultat ni qualification revendiqués |
+| garde Browser, reçu d'ABORT et acquisition automatisée | `534ce4faef69972dc1a495981387ac24a3ca1cfd` | `8576d501a02fee5eabfb246d7b5269f0b8b19f6f` | durcissement du harnais `48038854`; matrice Low/High PASS automatisé, preuves GPU précises et humaines absentes |
 | protocole sémantique R1-051 | `73db783975251cf7b4439dce9a12328a4c55c5ec` | `466cb51b12203e2358aec7ebcc9051eb58a1234e` | protocole JSON SHA-256 `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`, guide, sept références visuelles et cinq axes ; aucune revue humaine ni fermeture |
-| harnais de matrice météo Browser | `48038854b828003dd514562e34d5930e614422b4` | `f3fc51386cd1e46d241342d791d501953e4f384d` | protocole Low/High clear/rain/clear et validations statiques ; résultat de l'acquisition 534 encore inconnu |
+| harnais de matrice météo Browser | `48038854b828003dd514562e34d5930e614422b4` | `f3fc51386cd1e46d241342d791d501953e4f384d` | protocole Low/High clear/rain/clear et validations statiques ; acquisition exacte portée par `534ce4fa` |
 | durcissement PresentMon final | `473abeaac1425f0fb991f88ba0495d3708978ea1` | `6a40060a0b8f3c7d2f2f7188f7723a85c8fd9cb6` | rejet/retry pré-signal du gap final `row→sample`; validations statiques acquises, aucun rebuild/replay de ce commit |
 | préservation exacte des octets glTF sous Windows et qualification workspace | `4e476b31ee33533b6f4023804d8ecd1be02f9c55` | `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` | ajoute une règle `.gitattributes` binaire bornée aux neuf descripteurs glTF gouvernés ; checkout Windows 9/9 en octets canoniques ; `Test-Rust.ps1` PASS avec 354 tests natifs, WASM, Trunk Release, `cargo deny` et politique RustSec ; marqueur final `FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True` |
 | acquisitions Low/High des diagnostics de passes de scène | `41b49f66d4573de505be44dfd38da75704d697f7` | `8da220873059e91daed6accc2c3ab0cfabe54e11` | correctif d'asset-root et acquisitions exactes **frames-only** du binaire Release SHA-256 `0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48` ; 29 PNG par tier, 6 mesures Low, 12 mesures High, logs propres, assets CC0 lus en place ; aucune fermeture de route |
@@ -495,7 +497,7 @@ humaine et `human_review_performed=false` reste inchangé.
 La portée demeure stricte : `DiagnosticMeasurement.time` décrit la synchronisation retardée dans le
 monde principal, pas la frame GPU exacte. Les passes mesurées rendent la scène entière et n'isolent ni
 un draw ni le matériau eau ; elles ne prouvent pas non plus que le shader consomme la valeur de
-wetness. Les preuves Browser, la revue humaine et la mesure sur GPU cible restent dues. Ce lot ne ferme
+wetness. Les preuves GPU Browser précises, la revue humaine et la mesure sur GPU cible restent dues. Ce lot ne ferme
 donc ni `R1-023`, ni `R1-025`, ni `R1-026`, et n'autorise ni le passage de Gate 1 ni le démarrage de
 Gate 2. La CI distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4 ; ce statut n'est pas
 un PASS.
@@ -903,9 +905,9 @@ révision encore non committée du paquet. Le validateur confirme `artifacts=27`
 synthétiques et ses dix-neuf refus attendus passent, soit vingt-et-un cas au total.
 
 - prêtes à la revue humaine : `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`, `R1-051`, `R1-052` ;
-- attribution GPU spécifique au matériau eau, consommation shader de la wetness et compléments
-  Browser/humains requis : `R1-023`, `R1-025`, `R1-026` ; les diagnostics retardés de passes de scène
-  Low/High `41b49f66` sont acquis mais ne satisfont pas ces critères ;
+- attribution GPU spécifique au matériau eau, consommation shader de la wetness et revue humaine
+  requises : `R1-023`, `R1-025`, `R1-026` ; la matrice Browser automatisée `534ce4fa` est acquise,
+  mais ses captures et diagnostics CPU/ECS ne satisfont pas ces critères ;
 - replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
 - identité de la référence WebGPU `R1-051` fortement établie mais source non figée : le message
   utilisateur historique du 29 août 2026 cite le post X `2093382978105966827` de Bilal Khan
@@ -939,9 +941,9 @@ le reçu séparé. Même accepté humainement, ce reçu ne peut ni muter les led
 transition Gate 1.
 
 `R1-023` et `R1-037` ont désormais du code intégré et des validations ciblées dans la chaîne courante,
-sans changer leur état : les diagnostics de scène Low/High ne sont pas une attribution GPU au matériau
-eau, la consommation shader de la wetness n'est pas prouvée, la revue humaine de l'eau reste due et
-les quatre captures RenderDoc finales ne sont pas acquises. Une route ouverte avec une implémentation
+sans changer leur état : la matrice Browser Low/High `534ce4fa` est PASS automatisé, mais n'est pas une
+attribution GPU au matériau eau ; la consommation shader de la wetness n'est pas prouvée, la revue
+humaine de l'eau reste due et les quatre captures RenderDoc finales ne sont pas acquises. Une route ouverte avec une implémentation
 validée seulement sous une portée plus étroite reste une route ouverte.
 
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `125ba0b`. Le principal défaut
@@ -1007,6 +1009,11 @@ Les acquisitions Low/High `41b49f66` ajoutent bien des mesures des passes de sc�
 checkpoints eau, mais leur lecture retardée ne possède pas d'identité de frame de rendu et leur portée
 englobe toute la scène. Elles ne peuvent donc pas être réinterprétées comme preuve du draw/matériau eau
 ou de la consommation de wetness par le shader.
+
+La matrice Browser `534ce4fa` ajoute six checkpoints et douze captures exactes Low/High dans deux
+instances séparées, chacune conservée sur `clear → rain → clear`. Elle confirme les endpoints CPU/ECS,
+la présence attendue de Bloom et du color grading et des captures de pixels via CDP, mais conserve
+`gpu_presentation=not_observed`, `human_review_performed=false` et les trois routes ouvertes.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
 hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés. Les runs PresentMon
@@ -1091,6 +1098,9 @@ Hashes des artefacts réellement utilisés pour la décision :
 | manifeste Browser historique | 2 503 | `c566fe7d3b8f36ea27e4f428301236e659488d3ed909c9d50ccf2ff26b2b50c7` | acquisition réelle `d9e2670` |
 | capture Browser clear | 1 293 570 | `819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4` | acquisition réelle `d9e2670` |
 | capture Browser rain | 1 323 858 | `7703f0c4207052010343585d12b4e6bc94ca076114f6e39a4acf4cd10be76e5a` | acquisition réelle `d9e2670` |
+| ledger matrice Browser Low/High | 42 460 | `aae5df2efe336e2521d0d9a19a9c77be4484fe82b5a5a6869f2008a4c33c021a` | acquisition externe `534ce4fa`, PASS automatisé borné |
+| manifeste matrice Browser Low/High | 5 163 | `40952f814fde7b433a9b443a8157cb20f3bfb59bcfd9bfd044b72aa5dc1e1267` | 28 descripteurs ; manifeste lui-même exclu |
+| inventaire canonique matrice Browser | — | `c43c9ef797f47138d29cc437646d5fae311eeceea1cf99b5b5df3bd9dfece5d9` | hash de 29 lignes `relative|bytes|sha256`, hors Git |
 | reçu de refus RenderDoc | 351 | `e99fea9e92de493d0c85a3bb1f57d066b29428333509a702b3fa658076eb3b26` | absence de couche Vulkan enregistrée |
 
 Les deux sorties Trunk qualifiées sont conservées localement dans le `dist` ignoré du clone de
@@ -1137,8 +1147,9 @@ avant signal sur la frontière finale `row→sample` de 743,6604 ms. Le durcisse
 >250 ms dans le budget inchangé de trois tentatives et 15 secondes ; ses tests légers passent, mais
 ce commit n'a pas été rejoué. Aucun replay schema 12 qualifiant
 n'existe.
-Les acquisitions Low/High `41b49f66` ajoutent des mesures retardées de passes de scène sans attribution
-à l'eau ni identité de frame exacte. `R1-023`, `R1-025`, `R1-026`, `R1-037`, `R1-041` et `R1-048`
+Les acquisitions Low/High `41b49f66` ajoutent des mesures retardées de passes de scène et la matrice
+Browser `534ce4fa` ajoute ses pixels/checkpoints automatisés, toujours sans attribution à l'eau ni
+identité de frame exacte. `R1-023`, `R1-025`, `R1-026`, `R1-037`, `R1-041` et `R1-048`
 restent ouvertes,
 `human_review_performed=false`, et le travail ci-dessous reste futur.
 
@@ -1148,7 +1159,7 @@ Ordre minimal avant toute nouvelle décision de passage :
    harnais schema 12 sans couper rétrospectivement la fenêtre ni affaiblir le contrat, et obtenir tous
    les seuils PASS pour `R1-048` ;
 2. isoler et attribuer au matériau eau l'exécution GPU, prouver la consommation shader de la wetness,
-   qualifier humainement les captures, puis compléter la matrice de profils/Browser ;
+   qualifier humainement les captures, puis compléter les profils non couverts ;
 3. après autorisation explicite de la mutation hôte, enregistrer/corriger la couche Vulkan RenderDoc
    puis acquérir les quatre captures indépendantes exigées par ADR-0009 ;
 4. mesurer RTX 3060 ou RX 6600 en 1080p High ;

@@ -334,8 +334,8 @@ bornée par agent des six vues eau retenues réussit, mais ne vaut pas revue hum
 
 Ces mesures retardées portent sur les passes de la scène entière : elles ne fournissent ni identité de
 frame de rendu exacte, ni attribution au draw/matériau eau, ni preuve de consommation de la wetness par
-le shader. Elles ne ferment donc pas `R1-023`, `R1-025` ou `R1-026`; la matrice Browser, la revue
-humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **INTERDITE**, et la CI
+le shader. Elles ne ferment donc pas `R1-023`, `R1-025` ou `R1-026`; les preuves GPU précises, la
+revue humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **INTERDITE**, et la CI
 distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4, sans être déclarée PASS.
 
 Le protocole Browser séparé `r1-023-025-026-browser-weather-matrix-v1` est committé à
@@ -344,12 +344,14 @@ fail-closed sont durcis à `534ce4faef69972dc1a495981387ac24a3ca1cfd` : route op
 `clear → rain → clear`, huit frames de settle par endpoint, pose eau fixe, driver CDP Low/High,
 configuration et tests statiques. Les 4/4 tests ciblés, check et Clippy strict natifs, puis check et
 Clippy strict `wasm32-unknown-unknown` Release avec `--no-default-features --features web` sont
-**PASS** pour le lot committé. L'acquisition exacte 534 est en cours au moment de cette mise à jour ;
-aucun résultat, PASS, FAIL, capture, ledger ou qualification de cette acquisition n'est encore
-revendiqué. Le lot préserve le harnais `R1-014` intact et ne ferme pas `R1-023`, `R1-025` ou `R1-026`.
+**PASS** pour le lot committé. L'acquisition canonique unique Low puis High sur `534ce4fa`, arbre
+`8576d501`, est **PASS automatisé** avec le statut `pass_pending_human_and_precise_gpu_evidence` :
+6 checkpoints, 12 captures, 4/4 bundles exacts et console/réseau propres. Le ledger externe porte le
+SHA-256 `aae5df2efe336e2521d0d9a19a9c77be4484fe82b5a5a6869f2008a4c33c021a`. Aucun média externe
+n'est ajouté à Git. Le lot préserve `R1-014` intact et ne ferme pas `R1-023`, `R1-025` ou `R1-026`.
 
 Le paquet de revue humaine v1 référence maintenant 27 artefacts contrôlés et porte le SHA-256
-`1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725`. Son validateur passe le
+`6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8`. Son validateur passe le
 contrôle statique, vingt-et-un cas synthétiques fail-closed et la vérification externe complète. Les six
 ensembles de preuves portent leur commit/arbre exact ; les deux PNG temporels revendiquent et vérifient
 l'identité de la baseline logicielle `4e476b31`, tandis que les autres preuves gardent leur identité
@@ -668,22 +670,21 @@ qualité                   Low / Medium / High / Ultra
   mesures retardées de passes de scène synchronisées aux fenêtres de settle. Elles n'isolent toutefois
   ni le draw ni le matériau eau et n'identifient aucune frame de rendu exacte ;
   `human_review_performed=false`. Le protocole Browser séparé Low/High est committé à `48038854`,
-  durci à `534ce4fa`, et son chemin `wasm32-unknown-unknown` + `web` compile/lint en Release. Son
-  acquisition 534 est en cours ; aucun résultat ni PASS GPU spécifique à l'eau ou humain n'est
-  revendiqué.
+  durci puis acquis à `534ce4fa`. La campagne automatisée Low/High passe ses 6 checkpoints et 12
+  captures, mais ne prouve ni draw/matériau eau, ni frame exacte, ni revue humaine.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
   trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
-  diagnostics de scène ne prouvent pas que les shaders terrain/végétation consomment la wetness. Qualification Browser
-  et acceptation visuelle humaine non acquises. Le contrôleur Browser même instance est committé à
-  `48038854`, durci à `534ce4fa` et validé au compilateur natif/WASM ; son acquisition 534 est en
-  cours, sans résultat encore enregistré.
+  diagnostics de scène ne prouvent pas que les shaders terrain/végétation consomment la wetness. Le
+  contrôleur Browser même instance committé à `48038854` et durci à `534ce4fa` acquiert aussi les
+  endpoints exacts Low/High `0 → 0,78 → 0` avec huit frames stables ; consommation shader GPU et
+  acceptation visuelle humaine non acquises.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
   campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
   post-process attendues, sans identité de frame de rendu exacte. La matrice Browser Low/High est
-  committée à `48038854`, durcie à `534ce4fa`, compile/lint en natif et WASM et fait l'objet d'une
-  acquisition 534 en cours. Aucun résultat de campagne, aucune identité de frame qualifiée et aucun
-  rendu humain accepté ne sont encore acquis.
+  committée à `48038854`, durcie et acquise à `534ce4fa` : Bloom absent en Low, présent en High et
+  color grading présent dans les deux tiers. Aucune exécution GPU précise, identité de frame qualifiée
+  ou acceptation humaine n'est acquise.
 
 ## R1-D — Personnage et caméra
 

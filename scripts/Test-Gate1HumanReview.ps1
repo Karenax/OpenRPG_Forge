@@ -19,7 +19,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$script:ExpectedPackageSha256 = "1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725"
+$script:ExpectedPackageSha256 = "6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8"
 
 function Assert-Condition {
     param(

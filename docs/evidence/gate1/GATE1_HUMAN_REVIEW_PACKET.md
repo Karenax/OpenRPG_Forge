@@ -34,7 +34,7 @@ conservent séparément leurs commits et arbres exacts `4e476b31`, `5eadec7f`, `
 correspondent exactement à la baseline logicielle qualifiée ; les autres preuves restent historiques
 ou locales. Le protocole R1-051 suivi porte le SHA-256
 `cc6d49185493084f96c5ec987d088e69db2b888fb49d2f7b5512492976baeb4d`. Le paquet courant porte le
-SHA-256 `1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725` ; toujours le recalculer avant une revue, car
+SHA-256 `6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8` ; toujours le recalculer avant une revue, car
 tout changement d'octets invalide un reçu antérieur.
 
 ## Les sept routes prêtes à la revue
@@ -60,9 +60,12 @@ validateur, les examiner sans réencodage ni remplacement, puis consigner des ob
 Les quatre autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
 prématurément un verdict favorable :
 
-- `R1-023` : observation instrumentée du pass optique GPU et matrice native/Browser par profil ;
-- `R1-025` : exécution GPU de la wetness et séquence Browser équivalente ;
-- `R1-026` : exécution GPU du bloom/color grading et matrice Browser Low/High ;
+- `R1-023` : la matrice Browser Low/High automatisée `534ce4f` est acquise hors paquet ; observation
+  instrumentée du pass optique GPU, attribution eau exacte et revue humaine restent dues ;
+- `R1-025` : la séquence Browser même instance est acquise hors paquet ; exécution GPU de la wetness
+  et revue humaine restent dues ;
+- `R1-026` : la matrice Browser Low/High est acquise hors paquet ; exécution GPU précise du
+  bloom/color grading et revue humaine restent dues ;
 - `R1-048` : replay PresentMon schema 12 qualifiant, acquisition réellement temps réel et revue de
   jouabilité humaine ; le MP4 actuel assemble des checkpoints pausés et ne qualifie pas le stutter.
 
@@ -114,7 +117,7 @@ pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1
 Le contrôle statique doit terminer avec un marqueur de la forme :
 
 ```text
-FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=27 evidence_sets=6 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=7 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725
+FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=27 evidence_sets=6 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=7 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8
 ```
 
 Rejouer aussi les vingt-et-un cas synthétiques, dont dix-neuf refus attendus. Ils testent notamment les
@@ -170,7 +173,7 @@ ajoutée pour chacune des sept routes prêtes.
   "schema": "forge.gate1-human-review-receipt",
   "schema_version": 1,
   "scope": "human_visual_review_only",
-  "package_sha256": "1d996c54af7652997357c64dd726a304c830d8b6ec8a05913e917ca26cfec725",
+  "package_sha256": "6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8",
   "qualified_software_baseline_commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
   "reviewer": {
     "kind": "human_owner",
