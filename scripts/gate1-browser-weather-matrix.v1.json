@@ -1,0 +1,125 @@
+{
+  "schema": "forge.gate1-browser-weather-matrix-config",
+  "schema_version": 1,
+  "protocol_id": "r1-023-025-026-browser-weather-matrix-v1",
+  "implementation_base_commit": "83f02928da72774a49d3d62ee68be85335b0bf01",
+  "route": {
+    "path": "/",
+    "query": {
+      "forge_scene": "visual-valley",
+      "forge_weather": "clear",
+      "forge_gate1_weather_proof": "v1"
+    },
+    "quality_tiers": [
+      "low",
+      "high"
+    ]
+  },
+  "server": {
+    "origin": "http://127.0.0.1:1420/",
+    "dist_root": "apps/forge_studio/dist",
+    "bundle_files": [
+      "index.html",
+      "forge_studio.js",
+      "forge_studio_bg.wasm",
+      "styles.css"
+    ]
+  },
+  "browser": {
+    "canvas_selector": "#forge-canvas",
+    "viewport_width_px": 1920,
+    "viewport_height_px": 1080,
+    "device_scale_factor": 1,
+    "headed_capture_required": true
+  },
+  "readiness": {
+    "timeout_seconds": 120,
+    "minimum_stable_layout_observations": 8,
+    "stable_layout_poll_interval_ms": 150,
+    "require_navigator_gpu": true,
+    "require_no_page_scrollbars": true,
+    "require_canvas_fully_visible": true,
+    "require_backing_matches_css": true,
+    "require_single_viewport_start": true,
+    "require_completed_frame_window": true
+  },
+  "controller": {
+    "advance_event": "forge-gate1-browser-weather-proof-advance",
+    "ledger_element_id": "forge-gate1-browser-weather-proof-ledger",
+    "same_bevy_instance_required": true,
+    "minimum_settled_frames": 8,
+    "transition_timeout_ms": 30000,
+    "water_camera": {
+      "mode": "registered_river_anchor",
+      "anchor_x_m": 16,
+      "anchor_z_m": 160,
+      "view_distance_m": 10
+    }
+  },
+  "sequence": [
+    {
+      "sequence": 1,
+      "stage": "initial_clear",
+      "weather": "clear",
+      "expected_wetness": 0,
+      "advance_to": "rain"
+    },
+    {
+      "sequence": 2,
+      "stage": "rain",
+      "weather": "rain",
+      "expected_wetness": 0.78,
+      "advance_to": "restored_clear"
+    },
+    {
+      "sequence": 3,
+      "stage": "restored_clear",
+      "weather": "clear",
+      "expected_wetness": 0,
+      "advance_to": null
+    }
+  ],
+  "fixed_context": {
+    "scene": "visual_valley",
+    "quality_mode": "fixed",
+    "camera_owner": "visual_valley_player_controller",
+    "active_camera_count": 1,
+    "block_browser_input": true,
+    "blocked_event_types": [
+      "keydown",
+      "keyup",
+      "keypress",
+      "mousedown",
+      "mouseup",
+      "mousemove",
+      "wheel",
+      "click",
+      "dblclick",
+      "contextmenu",
+      "touchstart",
+      "touchmove",
+      "touchend",
+      "touchcancel",
+      "pointerdown",
+      "pointerup",
+      "pointermove",
+      "pointercancel"
+    ]
+  },
+  "acceptance": {
+    "required_checkpoints_per_tier": 3,
+    "required_page_captures_per_tier": 3,
+    "required_canvas_captures_per_tier": 3,
+    "maximum_console_errors": 0,
+    "maximum_console_warnings": 0,
+    "maximum_network_failures": 0,
+    "require_exact_served_bundles": true,
+    "require_low_bloom_absent": true,
+    "require_high_bloom_present": true,
+    "require_clear_restored_exactly": true,
+    "human_inspection_required": true,
+    "weather_shader_consumption_required_for_route_closure": true,
+    "water_draw_attribution_required_for_route_closure": true,
+    "exact_render_frame_identity_required_for_route_closure": true
+  }
+}

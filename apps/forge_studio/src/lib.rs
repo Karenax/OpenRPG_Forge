@@ -7,6 +7,17 @@
     )
 )]
 
+mod gate1_browser_weather_matrix;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod gate1_browser_weather_matrix_web;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+use gate1_browser_weather_matrix::{BrowserWeatherProofLedger, browser_weather_proof_camera_pose};
+pub use gate1_browser_weather_matrix::{
+    StudioGate1WeatherProofQueryError, StudioGate1WeatherProofSelection,
+    parse_studio_gate1_weather_proof_selection,
+};
+
 use forge_core::EntityId;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 use forge_core::canonical_json_sha256;
@@ -1274,13 +1285,15 @@ mod web {
         parse_gate0_probe,
     };
     use super::{
-        EntityId, FrameQualityFingerprint, FrameSamplingProgress, LoadedStudioScene,
-        StableQualityFrameWindow, StudioCommand, StudioGpuPresentationStatus,
-        StudioQualitySelection, StudioResponse, StudioScene, StudioSceneManifest,
-        StudioSceneParityStatus, StudioSceneRuntimeObservation, StudioSceneSourceHashes,
-        StudioSceneTelemetry, StudioSceneryInstanceCounts, StudioSceneryRuntimeObservation,
-        StudioViewportMode, StudioWaterAdapterStatus, VisualQualityTier,
-        is_validated_gate0_runtime, parse_studio_quality_selection, parse_studio_scene_selection,
+        BrowserWeatherProofLedger, EntityId, FrameQualityFingerprint, FrameSamplingProgress,
+        LoadedStudioScene, StableQualityFrameWindow, StudioCommand,
+        StudioGate1WeatherProofSelection, StudioGpuPresentationStatus, StudioQualitySelection,
+        StudioResponse, StudioScene, StudioSceneManifest, StudioSceneParityStatus,
+        StudioSceneRuntimeObservation, StudioSceneSourceHashes, StudioSceneTelemetry,
+        StudioSceneryInstanceCounts, StudioSceneryRuntimeObservation, StudioViewportMode,
+        StudioWaterAdapterStatus, VisualQualityTier, browser_weather_proof_camera_pose,
+        is_validated_gate0_runtime, parse_studio_gate1_weather_proof_selection,
+        parse_studio_quality_selection, parse_studio_scene_selection,
         parse_studio_weather_selection, validate_selection_response,
     };
     use bevy::{
@@ -1321,6 +1334,10 @@ mod web {
         static INITIAL_CANVAS: RefCell<Option<web_sys::Element>> = const { RefCell::new(None) };
     }
 
+    pub(super) fn viewport_starts() -> usize {
+        VIEWPORT_STARTS.load(Ordering::SeqCst)
+    }
+
     #[derive(Clone, Debug, Eq, PartialEq)]
     enum WebGpuStatus {
         Checking,
@@ -1352,6 +1369,19 @@ mod web {
             .filter(|_| selected_scene == StudioScene::VisualValley)
             .map(|selection| selection.state);
         let selected_quality = quality_selection.as_ref().copied().unwrap_or_default();
+        let weather_proof_selection = match (&weather_selection, &quality_selection) {
+            (Ok(weather), Ok(quality)) => {
+                current_gate1_weather_proof_selection(selected_scene, weather.state, *quality)
+            }
+            _ => Ok(StudioGate1WeatherProofSelection::Disabled),
+        };
+        let weather_proof_configuration_error = weather_proof_selection
+            .as_ref()
+            .err()
+            .map(ToString::to_string);
+        let weather_proof_enabled = weather_proof_selection
+            .as_ref()
+            .is_ok_and(|selection| selection.is_enabled());
         let loaded_scene = LoadedStudioScene::load(selected_scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
         let scene_manifest = loaded_scene
@@ -1411,7 +1441,12 @@ mod web {
         if let Some(reason) = quality_configuration_error.as_ref() {
             initial_scene_telemetry.fail_configuration(reason.clone());
         }
+        if let Some(reason) = weather_proof_configuration_error.as_ref() {
+            initial_scene_telemetry.fail_configuration(reason.clone());
+        }
         let (scene_telemetry, set_scene_telemetry) = signal(initial_scene_telemetry);
+        let (weather_proof_ledger, set_weather_proof_ledger) =
+            signal(None::<BrowserWeatherProofLedger>);
 
         install_viewport_selection_listener(
             set_selected,
@@ -1420,6 +1455,9 @@ mod web {
             set_telemetry,
         );
         install_runtime_telemetry_listener(set_telemetry, set_scene_telemetry, set_webgpu_status);
+        if weather_proof_enabled {
+            super::gate1_browser_weather_matrix_web::install_listeners(set_weather_proof_ledger);
+        }
 
         if probe_mode == Gate0ProbeMode::TauriPermission {
             wasm_bindgen_futures::spawn_local(run_tauri_permission_probe(set_telemetry));
@@ -1427,7 +1465,8 @@ mod web {
 
         let launch_configuration_error = weather_configuration_error
             .clone()
-            .or_else(|| quality_configuration_error.clone());
+            .or_else(|| quality_configuration_error.clone())
+            .or_else(|| weather_proof_configuration_error.clone());
         wasm_bindgen_futures::spawn_local(async move {
             if let Some(reason) = launch_configuration_error {
                 set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
@@ -1439,6 +1478,7 @@ mod web {
                         selected_scene,
                         selected_weather_state.unwrap_or(super::WeatherState::Clear),
                         selected_quality,
+                        weather_proof_enabled,
                     );
                 }
                 Err(reason) => {
@@ -1578,6 +1618,13 @@ mod web {
                         <pre id="forge-scene-telemetry-ledger" hidden>{move || {
                             serde_json::to_string(&scene_telemetry.get()).unwrap_or_else(|error| {
                                 format!("{{\"serialization_error\":\"{error}\"}}")
+                            })
+                        }}</pre>
+                        <pre id="forge-gate1-browser-weather-proof-ledger" hidden>{move || {
+                            weather_proof_ledger.get().map_or_else(String::new, |ledger| {
+                                serde_json::to_string(&ledger).unwrap_or_else(|error| {
+                                    format!("{{\"serialization_error\":\"{error}\"}}")
+                                })
                             })
                         }}</pre>
                     </aside>
@@ -1930,6 +1977,17 @@ mod web {
             .and_then(|window| window.location().search().ok())
             .unwrap_or_default();
         parse_studio_quality_selection(&search, scene)
+    }
+
+    fn current_gate1_weather_proof_selection(
+        scene: StudioScene,
+        weather: super::WeatherState,
+        quality: StudioQualitySelection,
+    ) -> Result<StudioGate1WeatherProofSelection, super::StudioGate1WeatherProofQueryError> {
+        let search = web_sys::window()
+            .and_then(|window| window.location().search().ok())
+            .unwrap_or_default();
+        parse_studio_gate1_weather_proof_selection(&search, scene, weather, quality)
     }
 
     const fn studio_mode_label(mode: StudioViewportMode) -> &'static str {
@@ -2293,10 +2351,16 @@ mod web {
         scene: StudioScene,
         weather_state: super::WeatherState,
         quality_selection: StudioQualitySelection,
+        browser_weather_proof_enabled: bool,
     ) {
         if !VIEWPORT_LAUNCH_REQUESTED.swap(true, Ordering::SeqCst) {
             INITIAL_CANVAS.with(|initial| initial.replace(current_canvas()));
-            start_viewport(scene, weather_state, quality_selection);
+            start_viewport(
+                scene,
+                weather_state,
+                quality_selection,
+                browser_weather_proof_enabled,
+            );
         }
     }
 
@@ -2304,6 +2368,7 @@ mod web {
         scene: StudioScene,
         weather_state: super::WeatherState,
         quality_selection: StudioQualitySelection,
+        browser_weather_proof_enabled: bool,
     ) {
         let loaded_scene = LoadedStudioScene::load(scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
@@ -2351,7 +2416,13 @@ mod web {
                     .add_systems(Update, publish_viewport_selection);
             }
             LoadedStudioScene::VisualValley(loaded) => {
-                install_visual_valley_plugins(&mut app, *loaded, weather_state, quality_selection);
+                install_visual_valley_plugins(
+                    &mut app,
+                    *loaded,
+                    weather_state,
+                    quality_selection,
+                    browser_weather_proof_enabled,
+                );
             }
         }
         app.add_systems(Update, collect_browser_frame_telemetry)
@@ -2363,7 +2434,18 @@ mod web {
         loaded: super::LoadedVisualValley,
         weather_state: super::WeatherState,
         quality_selection: StudioQualitySelection,
+        browser_weather_proof_enabled: bool,
     ) {
+        let browser_weather_proof_camera = browser_weather_proof_enabled.then(|| {
+            browser_weather_proof_camera_pose(
+                &loaded.terrain,
+                &loaded.water,
+                &loaded.player_controller,
+            )
+            .expect(
+                "embedded Visual Valley documents must provide the registered Browser water pose",
+            )
+        });
         let super::LoadedVisualValley {
             terrain,
             vegetation,
@@ -2402,6 +2484,16 @@ mod web {
             .add_plugins(weather_plugin)
             .add_plugins(scenery_plugin)
             .add_plugins(quality_plugin);
+        if let Some(camera_pose) = browser_weather_proof_camera {
+            let StudioQualitySelection::Fixed(quality_tier) = quality_selection else {
+                unreachable!("the Browser weather proof query parser accepts only fixed tiers");
+            };
+            super::gate1_browser_weather_matrix_web::install_controller(
+                app,
+                quality_tier,
+                camera_pose,
+            );
+        }
     }
 
     struct BrowserFrameCollector {

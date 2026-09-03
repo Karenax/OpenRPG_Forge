@@ -338,6 +338,16 @@ le shader. Elles ne ferment donc pas `R1-023`, `R1-025` ou `R1-026`; la matrice 
 humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **INTERDITE**, et la CI
 distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4, sans être déclarée PASS.
 
+Le protocole Browser séparé `r1-023-025-026-browser-weather-matrix-v1` est préparé depuis la base
+détachée `83f02928` : route opt-in fail-closed, contrôleur Rust même instance
+`clear → rain → clear`, huit frames de settle par endpoint, pose eau fixe, driver CDP Low/High,
+configuration et tests statiques. Les 4/4 tests ciblés, check et Clippy strict natifs, puis check et
+Clippy strict `wasm32-unknown-unknown` Release avec `--no-default-features --features web` sont
+**PASS**. Aucun `trunk build`, `trunk serve`, navigateur, test GPU ou acquisition Browser n'a été
+lancé ; les compilations ne sont pas une acquisition. Le lot ne fournit encore aucune capture ou
+ledger d'exécution, préserve le harnais `R1-014` intact et ne ferme pas `R1-023`, `R1-025` ou
+`R1-026`.
+
 Le paquet de revue humaine v1 est maintenant versionné avec 22 références contrôlées et le SHA-256
 `3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92`. Son validateur passe le
 contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les cinq
@@ -650,16 +660,21 @@ qualité                   Low / Medium / High / Ultra
   `41b49f66` ajoute deux acquisitions exactes Low/High **frames-only** avec respectivement six et douze
   mesures retardées de passes de scène synchronisées aux fenêtres de settle. Elles n'isolent toutefois
   ni le draw ni le matériau eau et n'identifient aucune frame de rendu exacte ;
-  `human_review_performed=false`. Aucun PASS GPU spécifique à l'eau ou humain n'est revendiqué.
+  `human_review_performed=false`. Le protocole Browser séparé Low/High est implémenté et son chemin
+  `wasm32-unknown-unknown` + `web` compile/lint en Release, mais sa campagne n'est pas lancée. Aucun
+  PASS GPU spécifique à l'eau ou humain n'est revendiqué.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
   trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
   diagnostics de scène ne prouvent pas que les shaders terrain/végétation consomment la wetness. Qualification Browser
-  et acceptation visuelle humaine non acquises.
+  et acceptation visuelle humaine non acquises. Le nouveau contrôleur Browser même instance est
+  implémenté et validé au compilateur natif/WASM depuis `83f02928` ; aucune acquisition Browser de
+  cette séquence n'est encore enregistrée.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
   campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
-  post-process attendues, sans identité de frame de rendu exacte. Matrice Browser et rendu humain
-  accepté non acquis.
+  post-process attendues, sans identité de frame de rendu exacte. La matrice Browser Low/High est
+  implémentée et compile/lint en natif et WASM depuis `83f02928`, sans Trunk/campagne ni identité de
+  frame ; rendu humain accepté non acquis.
 
 ## R1-D — Personnage et caméra
 

@@ -41,6 +41,27 @@ while Gate 1 reports `Runtime ECS observé · présentation GPU non observée`. 
 prove contracts and target compatibility only; a browser or WebView launch plus a dedicated
 presentation/capture proof is still required to observe GPU presentation.
 
+## Gate 1 Browser weather matrix (proof-only)
+
+The opt-in `forge_gate1_weather_proof=v1` route is reserved for the bounded R1-023/R1-025/R1-026
+protocol. It is not an interactive product path. It accepts only `visual-valley`, initial `clear`
+weather, and a fixed `low` or `high` quality tier. Invalid, duplicated or broader selections fail
+closed before the viewport starts.
+
+Within one Bevy/WASM instance per tier, the Rust controller holds a deterministic water-facing
+camera and records `initial_clear → rain → restored_clear`. Each checkpoint requires eight
+consecutive Bevy updates at the exact CPU/ECS endpoint; the external CDP driver alone requests the
+two ordered transitions and performs captures. The versioned contract and non-claims are documented
+in `docs/evidence/gate1/R1_023_026_BROWSER_WEATHER_MATRIX_PROTOCOL.md`.
+
+Only after this lot is integrated on a clean commit may the matrix be acquired with
+`scripts/Invoke-Gate1BrowserWeatherMatrix.ps1`. The implementation worktree has not run that Browser
+campaign, `trunk build`, `trunk serve`, or a GPU test. It has passed the four targeted native tests,
+native all-targets/all-features check and strict Clippy, plus release `wasm32-unknown-unknown` check
+and strict Clippy with only the `web` feature. These compilation-only results are not an acquisition.
+The controller does not prove shader consumption, water draw attribution, an exact render frame, GPU
+presentation or human acceptance, and it does not close any Gate 1 route.
+
 ## Gate 0 diagnostic protocol
 
 The page exposes a machine-readable JSON ledger in `#gate0-telemetry-ledger`. Its contract is
