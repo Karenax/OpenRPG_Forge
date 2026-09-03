@@ -82,8 +82,17 @@ et aucune validation ne sont publiés. Cette acquisition a donc le verdict
 Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` porte désormais la frontière hôte au schema 5 et la
 validation au schema 12. Il autorise au plus trois tentatives de restabilisation dans un budget global
 de 15 secondes, exclusivement avant le signal, et publie un reçu d'abandon v1 en cas d'échec. Ses
-self-tests, la syntaxe PowerShell et le diff-check passent ; aucun replay qualifiant schema 12 n'a
-encore été acquis.
+self-tests, la syntaxe PowerShell et le diff-check passent.
+
+Deux tentatives schema 12 ont ensuite été acquises sans atteindre le signal. À `9d19cde5`, le runtime
+observe 69/69 pipelines et un ledger qualité 34/34 exact en `5/16/13`, mais l'attente historique
+`5/14/15` bloque la readiness. Le correctif `4b283182` dérive les comptes attendus du contrat canonique
+et conserve une assertion explicite `5/16/13` ; 141/141 tests moteur Release, 67/67 runtime et 1/1
+intégration passent. Son rebuild propre termine en 29 min 23 s et franchit réellement la readiness,
+mais PresentMon reste vivant avec un stdout vide pendant 20 secondes. Le harnais abandonne avant
+signal, sans host boundary, ledger final, validation schema 12 ou verdict performance. Les processus
+et la session ETW sont nettoyés. Un écran déjà endormi est l'hypothèse locale prioritaire, non prouvée
+par le reçu ; un nouveau replay exact après réveil manuel reste dû.
 
 La campagne eau exacte `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
 `6d4639c824ccfa81c3d5ed911903cec2bb3c5074`, produit 29 PNG aux hashes uniques et un MP4 de 24
@@ -112,6 +121,8 @@ Gate 2.
 
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
+| correctif readiness et replay schema 12 sans flux PresentMon | `4b2831820fe6864046602f25ca5d92e1d63cbae8` | `16371171fc0b62a0d9064aff47cf5769e33b4106` | 141/141 moteur Release, 67/67 runtime + 1/1 intégration ; rebuild propre ; ready 69/69 et qualité `5/16/13` ; ABORT avant signal sur stdout PresentMon vide, aucun verdict performance |
+| premier replay schema 12, validateur qualité périmé | `9d19cde5a442ecfa7694a864aad0967c4acd65c9` | `1d7649bcda5862623ced8adcafd6b2a71cc31b41` | 34/34 champs exacts et distribution `5/16/13`, mais attente `5/14/15` ; ABORT avant ready, PresentMon non lancé, aucun verdict performance |
 | préflight RenderDoc intégré et durci, non qualifié | `347d78264e52363c769e2f2807303d84c65ea946` | `4d6121f3dbc85fb090c1663c8257bee47c64300a` | 22/22 Python, 67/67 runtime + 1/1 intégration ; inventaire des 72 fichiers contrôlé ; arrêt fail-closed sur couche Vulkan non enregistrée, quatre captures encore dues |
 | preuve eau native automatisée, non qualifiée | `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00` | `6d4639c824ccfa81c3d5ed911903cec2bb3c5074` | 14/14 tests eau, 29 PNG uniques, MP4, 75 pipelines prêts et logs propres ; pass optique GPU non instrumenté, aucune route R1-023 sérialisée, revue humaine due |
 | optique d'eau native bornée intégrée | `e7e7d41951a3579936a1c9f8b8601fa639898679` | `5e7e5ec10c5f654c84d52e4d8bbc4f951dcfe83d` | implémentation R1-023 : Environment IBL fallback et ScreenSpaceTransmission High |
@@ -780,7 +791,9 @@ schema 8 exacts `49acfd56` sont maintenant acquis, mais aucun n'est PASS : Repla
 Replay2 conserve un outlier de 35,3837 ms. Les PASS A5/A6 restent diagnostiques non qualifiants sur le
 binaire partagé `21228a…`. Le rejeu suivant `1912806` est un ABORT avant signal sur un gap de sampling
 fenêtre `>250 ms` ; il conserve ready + PresentMon ETW 0/0 mais n'ajoute aucune métrique qualifiante.
-Le harnais `9b847e99` corrige ce cas en schema hôte 5 / validation 12, sans replay final à ce stade.
+Les tentatives schema 12 suivantes s'arrêtent avant ready sur le validateur qualité périmé à
+`9d19cde5`, puis avant signal sur un flux PresentMon vide à `4b283182`. Le second replay prouve la
+readiness corrigée `5/16/13`, pas la cadence.
 « Acquis » ne signifie pas « qualifié » et
 `human_review_performed=false`.
 
@@ -798,7 +811,7 @@ huitième match de ledger.
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
 | p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
 | 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
-| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, NOUVEAU REPLAY ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; le rejeu schema 11 `1912806` s'arrête avant signal sur un gap fenêtre `>250 ms` et ne produit aucun verdict ; replay schema 12 dû |
+| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, REJEUX SUIVANTS ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; schema 11 s'arrête avant signal sur un gap fenêtre ; schema 12 bloque d'abord avant ready, puis franchit la readiness corrigée mais s'arrête avant signal sur stdout PresentMon vide ; replay schema 12 PASS encore dû |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -846,13 +859,16 @@ Replay2 passe focus, résidence et ETW, mais échoue sur un unique `DisplayedTim
 diagnostics A5/A6 PASS ne sont pas qualifiants parce qu'ils réutilisent le target et le binaire
 `21228a…`. Le rejeu schema 11 `1912806` suivant est abandonné avant signal pour un gap de sampling
 fenêtre `>250 ms` ; il ne remplace pas ce verdict. Le harnais `9b847e99` expose désormais host boundary
-schema 5 / validation schema 12 avec restabilisation pré-signal bornée, mais n'a pas encore produit de
-replay qualifiant. `R1-023`, `R1-037`, `R1-041` et `R1-048` restent ouvertes,
+schema 5 / validation schema 12 avec restabilisation pré-signal bornée. `9d19cde5` révèle ensuite le
+décompte qualité périmé ; `4b283182` le corrige, passe ses tests et franchit la readiness réelle, mais
+son replay s'arrête avant signal faute de flux PresentMon. Aucun replay schema 12 qualifiant n'existe.
+`R1-023`, `R1-037`, `R1-041` et `R1-048` restent ouvertes,
 `human_review_performed=false`, et le travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. exécuter un rebuild/replay gouverné complet avec le harnais schema 12 sans couper
+1. réveiller manuellement l'affichage, puis exécuter un rebuild/replay gouverné complet avec le
+   harnais schema 12 sans couper
    rétrospectivement la fenêtre ni affaiblir le contrat, puis obtenir tous les seuils PASS pour
    `R1-048` ;
 2. qualifier humainement et par observation GPU instrumentée les captures eau de `R1-023`, puis

@@ -1,31 +1,43 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-03**
-Route : **`R1-048` OUVERTE — dernier rejeu schema 11 ABORT avant signal ; aucun nouveau verdict
-performance**
+Route : **`R1-048` OUVERTE — schema 12 ABORT avant ready puis avant signal ; readiness corrigée,
+aucun nouveau verdict performance**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
 
-Le rejeu le plus récent a été construit proprement sur le commit exact
-`1912806fc6e90277cd779a21a2557e6c820d5d44`, arbre
-`4bfb863255dd865432093c5e7291287b8e78dc43`, avec le harnais dont la validation attendue était
-schema 11. Le runtime a publié son reçu prêt schema 4 et PresentMon 2.4.1 a produit un flux exploitable
-sans perte ETW. Le harnais a toutefois détecté, après le settle de premier plan et **avant toute
-publication du signal**, un trou strictement supérieur à 250 ms dans l'échantillonnage de la fenêtre
-native. Il a donc arrêté le run en infrastructure fail-closed. Aucun signal de départ, aucune frontière
-hôte, aucun ledger runtime final et aucune validation de performance n'ont été publiés. Ce rejeu est
-un **ABORT avant signal**, pas un FAIL de cadence et encore moins un PASS ; les lignes PresentMon
-pré-signal ne sont pas une fenêtre de mesure.
+La première tentative schema 12, au commit exact
+`9d19cde5a442ecfa7694a864aad0967c4acd65c9`, s'arrête avant l'état prêt. Le runtime présente pourtant
+69/69 pipelines prêts, zéro erreur et un ledger qualité exact de 34/34 champs, avec 5 projections au
+démarrage, 16 lors des transitions et 13 non applicables. Le validateur attendait encore la
+distribution historique `5/14/15`. Le correctif `4b2831820fe6864046602f25ca5d92e1d63cbae8`
+dérive désormais les comptes du contrat canonique et conserve un test explicite `5/16/13` ; 141/141
+tests moteur Release, 67/67 tests runtime et 1/1 intégration passent.
 
-Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` durcit ensuite le harnais : frontière hôte schema 5,
+La seconde tentative reconstruit proprement ce commit corrigé en 29 min 23 s. Le runtime publie cette
+fois son reçu prêt schema 4 : Vulkan, RX 7800 XT, High 1920 × 1080, requête `AutoNoVsync`, 69/69
+pipelines, zéro erreur et distribution qualité `5/16/13`. Le mode de surface résolu n'est pas observé
+à ce stade. PresentMon 2.4.1 reste toutefois vivant sans publier le
+moindre octet sur stdout pendant les 20 secondes bornées. Le harnais s'arrête donc **avant le signal**.
+Aucune frontière hôte, aucun ledger final, aucune validation schema 12 et aucun verdict de performance
+ne sont publiés. Le nettoyage confirme l'absence du runtime, du processus PresentMon et de la session
+ETW possédée.
+
+Un probe hôte borné ultérieur prouve que PresentMon et ETW savent encore écrire, pour une autre
+application de l'hôte, un CSV exact avec zéro perte, tandis qu'un probe du même binaire Forge reproduit
+l'absence de ligne cible. L'hypothèse locale
+prioritaire est un écran physique déjà endormi : le garde d'exécution maintient un écran actif mais ne
+réveille pas un écran déjà éteint. Cette cause reste une **inférence**, pas un fait sérialisé par le
+reçu. Une nouvelle acquisition complète, après réveil manuel de l'affichage et dans des chemins frais,
+reste due ; aucune entrée synthétique ne sera utilisée. Le dernier verdict de performance demeure donc
+le FAIL strict schema 8 décrit ci-dessous.
+
+Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` avait durci le harnais : frontière hôte schema 5,
 validation schema 12, restabilisation bornée à trois tentatives et 15 secondes uniquement avant le
 signal, refus immédiat d'un QPC non monotone, et reçu d'abandon
 `forge.gate1-gameplay-stutter-abort` v1. Un essai rejeté ne peut jamais publier le signal et aucune
-restabilisation n'est permise après le signal ou après le début des métriques. Les self-tests, la
-syntaxe PowerShell et le diff-check de ce changement passent, mais aucun replay qualifiant schema 12
-n'est encore acquis. Le dernier verdict de performance demeure donc le FAIL strict schema 8 décrit
-ci-dessous.
+restabilisation n'est permise après le signal ou après le début des métriques.
 
 Le protocole schema 8 a été construit et rejoué sur le commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -63,6 +75,71 @@ Le diagnostic opt-in historique `2fe48485086e925422c667f49c38a80f96e1a81a` et la
 et `R1-048` restent ouvertes. La RX 7800 XT de développement ne remplace pas la RTX 3060/RX 6600
 cible, `human_review_performed=false`, aucune CI distante n'a exécuté le commit courant et aucun
 asset Cadle n'est copié dans Forge. Gate 1 reste ouverte et Gate 2 reste interdite.
+
+## Tentatives schema 12 — aucun verdict de performance
+
+### Replay 1 `9d19cde5` — validateur de readiness périmé
+
+Artefacts externes non versionnés :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-schema12-replay1-9d19cde5-20260903T022930207Z
+```
+
+Le runtime sort avec le code 1 avant ready. Le reçu de timeout prouve que tous les prédicats sont vrais
+sauf `governed_scene_valid` : contrat 34/34 exact, champs uniques et documentés, distribution observée
+`5/16/13`, mais attente codée en dur `5/14/15`. Aucun signal, aucune frontière hôte, aucun ledger final
+et aucune validation schema 12 ne sont produits ; PresentMon n'est jamais lancé.
+
+| Artefact replay 1 | Octets | SHA-256 |
+|---|---:|---|
+| reçu d'abandon v1 | 1 138 | `D1504675CDABF7445D4FB5805ADD790994DA52D687B25015188D4889875D6459` |
+| reçu de timeout readiness | 1 819 | `2913D198F42F9257CE76AA9E005306D1BA37E6F71479AA79593623642BA0A5E9` |
+| message d'échec | 155 | `9E9E6A9445D56C0ED243A00B8621A2538DFDF0F1DE6E65A9AE64EBB9FC01233E` |
+| stderr runtime | 8 490 | `C1CB64E42606AD75D10ECBBBA67E5828EE25EE67FEE3E7508C3E7DD96020A89E` |
+
+### Replay 2 `4b283182` — readiness corrigée, flux PresentMon absent
+
+Identité exacte : commit `4b2831820fe6864046602f25ca5d92e1d63cbae8`, arbre
+`16371171fc0b62a0d9064aff47cf5769e33b4106`. Le binaire Release mesure 82 656 256 octets et porte
+le SHA-256 `587F48761517DEF4FB4F253C8786DF720F7E7846D32ABC66FC51A3A804A0462E`.
+Les artefacts externes sont conservés sous :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\vulkan-governed-schema12-replay2-4b283182-20260903T033359901Z
+```
+
+Le reçu prêt confirme que le correctif a franchi la readiness avec 69/69 pipelines, zéro erreur,
+33 frames de stabilité pour 30 requises, 450 frames observées et la distribution `5/16/13`. Le flux
+PresentMon reste vide pendant 20 secondes. Le reçu d'abandon est donc
+`abort_infrastructure_before_signal_nonqualifying` / `no_qualified_performance_verdict` ; la
+stabilisation pré-signal n'a pas commencé et aucun signal, frontière hôte, ledger ou validation n'est
+publié.
+
+| Artefact replay 2 | Octets | SHA-256 |
+|---|---:|---|
+| reçu d'abandon v1 | 1 485 | `C487976B784163BCE0B18F9165BCDEDDB2CB4EA04FF80D559A9859750BEBF012` |
+| reçu prêt schema 4 | 26 799 | `97B2DEA6DBD74B703F34D281D3F7F8F658B5072377B7D0ED9E6DA402EFBEDE5D` |
+| stdout brut PresentMon vide | 0 | `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855` |
+| stderr PresentMon | 303 | `FA8CC09EBA927931FA1670BE29DF1558C531367D416E48CD784ACABFA3C77FA6` |
+| stderr runtime | 8 076 | `B598AB479C57A0E957C8F91B88CEFB67414E403EC94B2BCD3E82483FA4878AB0` |
+| arrêt de secours PresentMon | 190 | `C1F3939F2269EF460BBF912D77E38C66779AC26EDEE7DB721201C142F7CB4F0D` |
+
+Le stderr PresentMon ne contient que l'avertissement non-administrateur déjà observé lors du replay
+schema 11 réussi. Le reçu confirme l'arrêt des deux processus et l'absence de la session ETW exacte.
+Le succès explicite de la restauration du garde d'alimentation n'est pas sérialisé dans ce reçu ;
+aucun processus du harnais ne reste actif après le nettoyage.
+
+Deux probes non qualifiants isolent ensuite le problème. Le binaire Forge partagé reproduit
+`No qualified PresentMon row appeared before the signal` avec un stdout vide sous
+`vulkan-shared-probe-header3-20260903T040833791Z` ; son reçu prêt porte le SHA-256
+`8C6AAA3DCE2496729FB79733DD21AC5E9E0BE704619C1CC1E4D4038662D67A91` et le diagnostic
+`3EE2512BD53231FA781AAB0ED89322A2506231E91D79CEC942AB7537CFB16F4F`. Le probe hôte direct
+`host-wide-etw-probe-20260903T040950305Z` termine en code 0 et produit au contraire un CSV exact de
+886 octets, SHA-256 `CF264C61A4EBB4C5AFEC99E0DA1801F7DAE41EC272574D536A2EBFCC938B7CC4`, avec des lignes
+`logioptionsplus_agent.exe` et ETW `EventsLost=0` / `BuffersLost=0`. Ces probes montrent que
+PresentMon/ETW fonctionne sur l'hôte tout en confirmant l'absence de ligne Forge dans l'état observé ;
+ils ne qualifient ni le binaire ni la cadence.
 
 ## Rejeu schema 11 `1912806` — abandon pré-signal
 
@@ -720,11 +797,20 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 
 ## État final
 
+- replay schema 12 `9d19cde5` : **ABORT avant ready** sur validateur qualité périmé `5/14/15` ;
+  contrat observé 34/34 exact et `5/16/13`, aucun lancement PresentMon ni verdict performance ;
+- correctif `4b283182` : attente dérivée du contrat canonique, assertion explicite `5/16/13`,
+  141/141 moteur Release, 67/67 runtime et 1/1 intégration **PASS** ;
+- replay schema 12 `4b283182` : rebuild propre et readiness **PASS** avec 69/69 pipelines, mais
+  **ABORT avant signal** parce que PresentMon est resté vivant avec un stdout vide pendant 20 s ;
+  aucun host boundary, ledger, validation ou verdict performance ; nettoyage processus/ETW confirmé ;
+- affichage déjà endormi : **hypothèse locale prioritaire, non prouvée par le reçu** ; réveil manuel
+  puis nouveau rebuild/replay exact encore dus, sans entrée synthétique ;
 - rejeu schema 11 `1912806` : **ABORT avant signal** pour trou d'échantillonnage de fenêtre
   `>250 ms` après le settle ; ready + flux PresentMon ETW 0/0 conservés, mais aucun signal, aucune
   frontière hôte, aucun ledger final, aucune validation et aucun verdict de performance ;
 - harnais `9b847e99` : frontière hôte schema 5 et validation schema 12, restabilisation pré-signal
-  bornée et reçu d'abandon v1 ; changements testés statiquement, replay schema 12 encore dû ;
+  bornée et reçu d'abandon v1 ; deux replay schema 12 tentés, aucun arrivé au signal ;
 - `R1-048` : **OUVERTE** — le rejeu gouverné schema 8 a été effectué à `49acfd5`, mais le replay 2
   échoue strictement sur une valeur `DisplayedTime=35,3837 ms` ; GPU cible et revue humaine restent
   dus ;

@@ -23,6 +23,14 @@ build/runtime sur l'absence d'une couche Vulkan RenderDoc déjà correctement en
 modifié ni registre ni profil utilisateur et aucune capture n'a été lancée. Il ne ferme donc pas
 `R1-037`.
 
+PresentMon et RenderDoc appellent le même `validate_governed_gate1_render_state`. La tentative
+PresentMon `9d19cde5` a révélé que ce chemin attendait encore la distribution qualité historique
+`5/14/15`, alors que l'optique d'eau expose désormais le contrat canonique `5/16/13`. Le correctif
+`4b283182` dérive les comptes attendus du contrat exact et son replay réel franchit la readiness avec
+69/69 pipelines. Le prochain build RenderDoc devra inclure ce correctif. Le préflight `347d782` reste
+valide dans sa frontière : il s'était arrêté avant build/runtime sur la couche Vulkan non enregistrée
+et n'a donc jamais rencontré ce défaut pendant une capture.
+
 ## Identité de l'acquisition externe
 
 Le dossier local ignoré observé est :
