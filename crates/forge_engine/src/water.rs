@@ -1336,7 +1336,7 @@ fn applied_water_optics(stats: &WaterProjectionStats) -> AppliedWaterOptics {
         uniform_thickness_m,
         // Bevy's `steps` counts copied transmissive layers, not authored ray-march steps. One
         // river layer is exact here; quality maps only to Bevy's documented blur-tap preset.
-        transmission_steps: if screen_space_transmission { 1 } else { 0 },
+        transmission_steps: usize::from(screen_space_transmission),
         transmission_quality,
         transmission_quality_name,
         transmission_blur_taps: if screen_space_transmission {
@@ -1489,6 +1489,16 @@ pub(crate) fn apply_quality_optics_projection(
         water.optics.reflection_fallback,
         water.optics.refraction_fallback,
     );
+    apply_reflection_quality_optics_projection(stats, water, quality, resolved);
+    apply_refraction_quality_optics_projection(stats, water, quality, resolved);
+}
+
+fn apply_reflection_quality_optics_projection(
+    stats: &mut WaterProjectionStats,
+    water: &WaterDocument,
+    quality: WaterQualitySettings,
+    resolved: WaterOpticsResolution,
+) {
     let (authored_reflection_intensity, _) = requested_reflection_parameters(water);
     stats.requested_reflection_intensity = match quality.reflection {
         QualityWaterReflection::Disabled => None,
@@ -1544,6 +1554,14 @@ pub(crate) fn apply_quality_optics_projection(
             "not_applicable"
         }
     };
+}
+
+fn apply_refraction_quality_optics_projection(
+    stats: &mut WaterProjectionStats,
+    water: &WaterDocument,
+    quality: WaterQualitySettings,
+    resolved: WaterOpticsResolution,
+) {
     stats.requested_refraction_strength = match quality.refraction {
         QualityWaterRefraction::Disabled => None,
         QualityWaterRefraction::SurfaceTint | QualityWaterRefraction::ScreenSpace => {
@@ -1803,12 +1821,10 @@ fn synchronize_water_optics(
     let expected_transmission = screen_space_transmission_configuration(&stats);
     for (camera, transmission, msaa, has_ssr, has_deferred) in &cameras {
         let mut entity = commands.entity(camera);
-        if transmission.is_none()
-            || transmission.is_some_and(|current| {
-                current.steps != expected_transmission.steps
-                    || current.quality != expected_transmission.quality
-            })
-        {
+        if transmission.is_none_or(|current| {
+            current.steps != expected_transmission.steps
+                || current.quality != expected_transmission.quality
+        }) {
             entity.insert(expected_transmission.clone());
         }
         if msaa != Some(&Msaa::Sample4) {
@@ -1905,15 +1921,22 @@ fn observe_water_components(
             transmission.steps == expected_transmission.steps
                 && transmission.quality == expected_transmission.quality
         });
-    stats.screen_space_transmission_status = if transmission_cameras_match {
-        if expected_transmission.steps > 0 {
-            "observed_main_world_bevy_screen_space_transmission_component_gpu_not_observed"
-        } else {
-            "observed_main_world_screen_space_transmission_disabled"
-        }
-    } else {
-        "main_world_screen_space_transmission_component_incomplete_gpu_not_observed"
-    };
+    update_water_observation_statuses(
+        &mut stats,
+        transmission_cameras_match,
+        expected_transmission.steps,
+    );
+}
+
+fn update_water_observation_statuses(
+    stats: &mut WaterProjectionStats,
+    transmission_cameras_match: bool,
+    expected_transmission_steps: usize,
+) {
+    stats.screen_space_transmission_status = screen_space_transmission_observation_status(
+        transmission_cameras_match,
+        expected_transmission_steps,
+    );
     let environment_reflection_expected = matches!(
         stats.resolved_optics.reflection,
         ResolvedWaterReflectionPath::Environment
@@ -1951,6 +1974,19 @@ fn observe_water_components(
     } else {
         "incomplete_main_world_or_cpu_material_observation"
     };
+}
+
+const fn screen_space_transmission_observation_status(
+    cameras_match: bool,
+    expected_steps: usize,
+) -> &'static str {
+    match (cameras_match, expected_steps > 0) {
+        (true, true) => {
+            "observed_main_world_bevy_screen_space_transmission_component_gpu_not_observed"
+        }
+        (true, false) => "observed_main_world_screen_space_transmission_disabled",
+        (false, _) => "main_world_screen_space_transmission_component_incomplete_gpu_not_observed",
+    }
 }
 
 #[allow(

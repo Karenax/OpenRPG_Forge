@@ -689,6 +689,43 @@ mod tests {
         }
     }
 
+    fn assert_ultra_water_optics(app: &App, camera: Entity) {
+        let world = app.world();
+        let water = world.resource::<WaterProjectionStats>();
+        assert_eq!(
+            water.resolved_optics.requested_quality,
+            forge_project::WaterQualityTier::Ultra
+        );
+        assert_eq!(water.requested_reflection_max_distance_m, Some(128.0));
+        assert_eq!(
+            water.resolved_optics.reflection,
+            ResolvedWaterReflectionPath::Environment
+        );
+        assert!(water.resolved_optics.reflection_fallback_used);
+        assert_eq!(
+            water.resolved_optics.refraction,
+            ResolvedWaterRefractionPath::ScreenSpace { max_steps: 40 }
+        );
+        assert_eq!(water.applied_surface_tint_strength, None);
+        assert_eq!(water.applied_specular_transmission, Some(0.18));
+        assert_eq!(water.applied_uniform_thickness_m, Some(3.5));
+        assert_eq!(water.screen_space_transmission_steps, 1);
+        assert_eq!(water.screen_space_transmission_quality, "ultra");
+        assert_eq!(water.screen_space_transmission_blur_taps, 32);
+        assert!(water.shader_uniforms_match_profile);
+        assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
+        assert!(world.get::<DeferredPrepass>(camera).is_none());
+        assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
+        assert_eq!(water.msaa_off_camera_entities, 0);
+        assert_eq!(water.msaa_sample4_camera_entities, 1);
+        assert_eq!(
+            world
+                .get::<ScreenSpaceTransmission>(camera)
+                .map(|transmission| (transmission.steps, transmission.quality)),
+            Some((1, ScreenSpaceTransmissionQuality::Ultra))
+        );
+    }
+
     #[test]
     fn benchmark_is_fixed_high_even_under_sustained_slow_frames() {
         let mut runtime = runtime(VisualValleyQualitySelection::Benchmark);
@@ -793,43 +830,7 @@ mod tests {
         }
         app.update();
         app.update();
-
-        {
-            let world = app.world();
-            let water = world.resource::<WaterProjectionStats>();
-            assert_eq!(
-                water.resolved_optics.requested_quality,
-                forge_project::WaterQualityTier::Ultra
-            );
-            assert_eq!(water.requested_reflection_max_distance_m, Some(128.0));
-            assert_eq!(
-                water.resolved_optics.reflection,
-                ResolvedWaterReflectionPath::Environment
-            );
-            assert!(water.resolved_optics.reflection_fallback_used);
-            assert_eq!(
-                water.resolved_optics.refraction,
-                ResolvedWaterRefractionPath::ScreenSpace { max_steps: 40 }
-            );
-            assert_eq!(water.applied_surface_tint_strength, None);
-            assert_eq!(water.applied_specular_transmission, Some(0.18));
-            assert_eq!(water.applied_uniform_thickness_m, Some(3.5));
-            assert_eq!(water.screen_space_transmission_steps, 1);
-            assert_eq!(water.screen_space_transmission_quality, "ultra");
-            assert_eq!(water.screen_space_transmission_blur_taps, 32);
-            assert!(water.shader_uniforms_match_profile);
-            assert!(world.get::<ScreenSpaceReflections>(camera).is_none());
-            assert!(world.get::<DeferredPrepass>(camera).is_none());
-            assert_eq!(world.get::<Msaa>(camera), Some(&Msaa::Sample4));
-            assert_eq!(water.msaa_off_camera_entities, 0);
-            assert_eq!(water.msaa_sample4_camera_entities, 1);
-            assert_eq!(
-                world
-                    .get::<ScreenSpaceTransmission>(camera)
-                    .map(|transmission| (transmission.steps, transmission.quality)),
-                Some((1, ScreenSpaceTransmissionQuality::Ultra))
-            );
-        }
+        assert_ultra_water_optics(&app, camera);
 
         {
             let mut runtime = app.world_mut().resource_mut::<VisualValleyQualityRuntime>();
