@@ -1,11 +1,70 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-03**
-Route : **`R1-048` OUVERTE — quatre replays schema 12 ABORT avant signal au plus tard ; dernier
-ABORT sur frontière finale `row→sample`, aucun nouveau verdict performance**
+Route : **`R1-048` OUVERTE — dernier replay schema 13 FAIL ; cadence différée sous ADR-0010,
+vidéo et revue humaine non dérogées ; campagne suspendue**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
+
+Le propriétaire autorise le report des critères stricts de performance le 3 septembre 2026 selon
+[ADR-0010](../../ADR/ADR-0010-gate1-strict-performance-deferral.md). Le dernier FAIL reste intact ;
+aucun PASS n'est attribué à la route. Les demandes de replay dans l'historique ci-dessous sont
+supplantées par ce report : aucun nouvel audit de cadence sans nouvelle demande explicite.
+
+## Dernier replay gouverné — schema 13, acquisition valide et performance FAIL
+
+Source `6171388761e3c2f22903116cad537a2612679c7b`, arbre
+`7fbcae7bf4acd33cb4d2f931e3a56047d462ddb7`, worktree de qualification propre avant/après.
+Dossier externe :
+`E:\OpenRPG_Forge\.gate1-tools\presentmon\evidence\gate1-stutter-61713887-7fbcae7b-20260903T193400000Z`.
+Les résultats et hashes suivants ont été relus/recalculés lors du report, sans rejouer l'acquisition.
+
+Le binaire Release du run porte le SHA-256
+`cb74efa8336934165fb8f3b20eff4bf03faa8761022c24c46bfbccf3296a44b7` ; le target a ensuite été réutilisé
+pour des diagnostics et son exécutable actuel ne doit pas être confondu avec le binaire de ce run.
+PresentMon reste épinglé à 2.4.1. La frontière hôte schema 6 accepte la première tentative pré-signal
+avec un gap final de 200,3496 ms ≤ 250 ms. Les pipelines sont prêts (69/69), la fenêtre reste au premier
+plan et les pertes ETW valent 0/0. Les 1 800 ticks durent 29,9752997 s. Contrairement aux ABORT schema 12,
+un ledger final et une validation schema 13 existent, avec le statut exact
+`runtime_qpc_display_overlap_thresholds_failed` et `gate1_qualified=false`.
+
+| Mesure d'affichage | Résultat |
+|---|---:|
+| échantillons `DisplayedTime` | 785 |
+| FPS moyens affichés | 26,1661 |
+| p95 / p99 | 131,956 / 243,098 ms |
+| 1 % low | 3,4183 FPS |
+| intervalles > 33,3 ms | 279 |
+| maximum consécutif > 16,7 ms | 6 |
+
+Matériel : RX 7800 XT/Vulkan ; `target_gpu_qualified=false`, `human_review_performed=false`.
+Ce FAIL ne se réduit pas à l'outlier historique de 35,3837 ms. Sa cause et sa représentativité en usage
+normal restent non établies ; les bonnes mesures historiques ne l'annulent pas.
+
+| Artefact externe | Octets | SHA-256 |
+|---|---:|---|
+| `gate1-gameplay-stutter.validation.json` | 93311 | `2100dd5bcfc9b2f1973ef15442885c72ee9763977938ea6b276e816f6c9c8bfa` |
+| `gate1-gameplay-stutter.host-boundary.json` | 7668 | `81410505ddaffd64a5003915bd72a6c89ef64a32466dd6a1ec7b6cb3c0f1f61b` |
+| `gate1-gameplay-stutter.json` | 55856 | `15f201527c182ec01a9f249d1e3a0bbe1404df5366f2a6343a5270f26a2bea9a` |
+| `gate1-gameplay-stutter.ready.json` | 26803 | `c33f1234535b899e883233fdfe312239cf18f130a849deef8f27e33b429a6f72` |
+| `gate1-gameplay-stutter.start.signal.json` | 564 | `669aae42017c140d6a0b75c2bf4a659a03ca1e696ec65fe74b43b4c000e21929` |
+| `presentmon.csv` | 258020 | `5ad47f872d27a37379580be8405f0276b3aa11d740b3a5c967c7b2f2dda487e6` |
+
+### Arrêt des expériences non qualifiantes
+
+Les essais locaux de transmission d'eau désactivée, de priorité du processus concurrent et de binaire
+historique n'ont pas isolé une amélioration produit : les acquisitions ne partagent pas toutes le
+même état de focus/présentation. La comparaison transmission activée/désactivée ne démontre pas le gain
+causal annoncé initialement. Le binaire historique plus rapide ne prouve pas à lui seul une régression
+de code. Aucune de ces hypothèses n'est retenue comme cause établie.
+
+Les modifications temporaires de `water.rs` sont retirées ; aucune optimisation expérimentale n'est
+promue. Le build de l'essai sans synchronisation finale a été interrompu : aucun résultat n'existe et
+la séquence A-B-A envisagée n'a pas été exécutée. Les diagnostics restent non qualifiants et les
+preuves brutes externes sont conservées. Aucun benchmark ni build n'est relancé pour ce report.
+
+## Historique avant dérogation — résultats et instructions de reprise d'origine
 
 La première tentative schema 12, au commit exact
 `9d19cde5a442ecfa7694a864aad0967c4acd65c9`, s'arrête avant l'état prêt. Le runtime présente pourtant
@@ -934,7 +993,11 @@ Les artefacts bruts restent externes afin de ne pas alourdir ou republier une ca
 qualifiante. La présente synthèse est la preuve versionnée incluse dans le commit documentaire ; elle
 en fixe l'identité, les limites et les résultats sans modifier les preuves historiques.
 
-## État final
+## État historique avant ADR-0010
+
+État courant : dernier verdict schema 13 FAIL conservé ; `R1-041` et qualification quantitative de
+`R1-048` différées, campagne suspendue. Les éléments ci-dessous décrivent l'état antérieur et ne
+commandent aucune relance. La revue humaine et `R1-037` restent dues.
 
 - replay schema 12 `9d19cde5` : **ABORT avant ready** sur validateur qualité périmé `5/14/15` ;
   contrat observé 34/34 exact et `5/16/13`, aucun lancement PresentMon ni verdict performance ;
@@ -997,7 +1060,8 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
   `15635b3f` reste **NOT RUN** sous ADR-0006 ;
 - asset Cadle copié dans Forge : **aucun**.
 
-La prochaine acquisition qualifiante doit conserver le runtime Release normal, le target gouverné
+Lors d'une future reprise explicitement demandée sous ADR-0010, l'acquisition qualifiante devra
+conserver le runtime Release normal, le target gouverné
 propre, les 30 secondes et les 1 800 ticks complets. Elle doit conserver et compter toutes les
 présentations non affichées, prouver une résidence continue et appliquer l'intégralité des seuils
 d'ADR-0008, notamment l'absence absolue de valeur numérique `DisplayedTime>33,3 ms`, sans choisir

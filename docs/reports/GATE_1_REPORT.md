@@ -2,11 +2,26 @@
 
 Date de consolidation : **2026-09-03**
 
-Verdict : **POURSUIVRE GATE 1 — GATE 1 OUVERTE**
+Verdict : **POURSUIVRE GATE 1 HORS AUDITS DE CADENCE — PERFORMANCE DIFFÉRÉE ADR-0010, GATE 1 OUVERTE**
 
 Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogation explicite acceptée**
 
 ## Résumé de décision
+
+Le propriétaire accepte explicitement le report des critères stricts de performance selon
+[ADR-0010](../ADR/ADR-0010-gate1-strict-performance-deferral.md). Les quatre conditions
+FPS/p95/1 % low/stutter et le benchmark cible `R1-041` sont différés, non bloquants administrativement
+pour Gate 1, mais jamais déclarés PASS. Le volet cadence de `R1-048` est différé ; les revues humaines,
+la vidéo et les preuves d'exécution GPU restent dues. Les 42/55 routes cochées sont inchangées.
+
+Le dernier replay exact `61713887` / `7fbcae7b` franchit l'acquisition et produit un **FAIL schema 13** :
+26,1661 FPS affichés, p95 131,956 ms, 1 % low 3,4183 FPS, fenêtre stable et ETW 0/0. Voir la
+[preuve et les hashes](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
+Les expériences n'établissent ni cause certaine ni optimisation produit ; leurs modifications sont
+retirées. Les audits de performance et leurs rebuilds restent suspendus jusqu'à nouvelle demande.
+Cet état courant prévaut sur les demandes de replay de la chronologie historique ci-dessous.
+
+### Preuves acquises et historique conservé
 
 Visual Valley conserve la paire native/Browser exacte `d9e2670`, les captures fixes, les ledgers
 versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié dans Forge. Les lots
@@ -908,7 +923,8 @@ synthétiques et ses dix-neuf refus attendus passent, soit vingt-et-un cas au to
 - attribution GPU spécifique au matériau eau, consommation shader de la wetness et revue humaine
   requises : `R1-023`, `R1-025`, `R1-026` ; la matrice Browser automatisée `534ce4fa` est acquise,
   mais ses captures et diagnostics CPU/ECS ne satisfont pas ces critères ;
-- replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
+- qualification quantitative PresentMon différée sous ADR-0010 ; vidéo et revue humaine temps réel
+  toujours requises : `R1-048`. Le paquet historique reste inchangé, sans faux reçu humain ;
 - identité de la référence WebGPU `R1-051` fortement établie mais source non figée : le message
   utilisateur historique du 29 août 2026 cite le post X `2093382978105966827` de Bilal Khan
   (`@Bk23544`), relié publiquement à **Three.js Grassworks**, à
@@ -985,10 +1001,10 @@ huitième match de ledger.
 |---|---|---|
 | qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
 | impact au moins comparable à Cadle | **OUVERTE — PROTOCOLE PRÊT** | protocole A/B aligné acquis et fail-closed ; verdict humain encore dû |
-| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
-| p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
-| 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
-| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, REJEUX SUIVANTS ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; schema 11 s'arrête avant signal sur un gap fenêtre ; schema 12 bloque d'abord avant ready, puis deux fois sur stdout PresentMon vide et enfin sur un gap final `row→sample` de 743,6604 ms ; correctif validé statiquement, replay schema 12 PASS encore dû |
+| 60 FPS moyens en 1080p High sur GPU milieu de gamme | **DIFFÉRÉE — ADR-0010** | G1-PERF-001, GPU cible non qualifié ; dernier replay local schema 13 : 26,1661 FPS |
+| p95 `<=16,7 ms` | **DIFFÉRÉE — ADR-0010** | G1-PERF-002 ; dernier replay local : 131,956 ms, FAIL inchangé |
+| 1 % low `>=45 FPS` | **DIFFÉRÉE — ADR-0010** | G1-PERF-003 ; dernier replay local : 3,4183 FPS, FAIL inchangé |
+| absence de stutter récurrent | **QUALIFICATION QUANTITATIVE DIFFÉRÉE — ADR-0010** | G1-PERF-004 ; dernier replay schema 13 FAIL, 279 intervalles >33,3 ms ; revue humaine de jouabilité non dérogée |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -1129,7 +1145,10 @@ Le commit candidat de gate devra alors passer réellement les quatre jobs distan
 
 ## Verdict et travail suivant
 
-Verdict : **POURSUIVRE GATE 1**.
+Verdict : **POURSUIVRE GATE 1 HORS AUDITS DE CADENCE**, sous ADR-0010.
+
+La synthèse historique qui suit conserve les anciens résultats, mais n'est plus une prescription de
+replay : le dernier verdict est désormais le FAIL schema 13 `61713887` documenté en tête du rapport.
 
 La capture schema 7 `9db35a8e` reste une preuve historique intacte. ADR-0008/schema 8 a désormais deux
 replays gouvernés exacts à `49acfd56` : Replay1 est confondu par 182/275 échantillons hors premier plan ;
@@ -1153,18 +1172,25 @@ identité de frame exacte. `R1-023`, `R1-025`, `R1-026`, `R1-037`, `R1-041` et `
 restent ouvertes,
 `human_review_performed=false`, et le travail ci-dessous reste futur.
 
-Ordre minimal avant toute nouvelle décision de passage :
+Travail restant non couvert par le report :
 
-1. revoir le durcissement `row→sample`, puis exécuter un rebuild/replay gouverné complet avec le
-   harnais schema 12 sans couper rétrospectivement la fenêtre ni affaiblir le contrat, et obtenir tous
-   les seuils PASS pour `R1-048` ;
-2. isoler et attribuer au matériau eau l'exécution GPU, prouver la consommation shader de la wetness,
-   qualifier humainement les captures, puis compléter les profils non couverts ;
-3. après autorisation explicite de la mutation hôte, enregistrer/corriger la couche Vulkan RenderDoc
-   puis acquérir les quatre captures indépendantes exigées par ADR-0009 ;
-4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
-5. faire la revue humaine des vues corrigées, qualifier l'eau par profil, comparer Godot/Cadle et
-   statuer sur les routes visuelles restantes.
+1. qualifier les effets eau/wetness/post-traitement déjà intégrés, avec les preuves d'exécution GPU
+   encore absentes, puis traiter les défauts fonctionnels ou visuels constatés ;
+2. obtenir les quatre captures RenderDoc d'ADR-0009, après autorisation explicite séparée de la mutation
+   hôte ; aucune modification de registre n'est autorisée par le report de performance ;
+3. recueillir les revues humaines des vues corrigées, du déplacement et des comparaisons visuelles ;
+4. décider du passage de Gate 1 avec distinction entre preuves acquises et dettes différées.
+
+Le benchmark cible et les seuils stricts de cadence restent dans `G1-PERF-001` à `004`, sans campagne
+active ni relance automatique. Aucun seuil, test ou ledger n'est assoupli. Le présent lot documentaire
+est vérifié par diff-check, liens de décision, décomptes de roadmap et hashes des six artefacts R1-048 ;
+il ne revendique aucun nouveau build ni test runtime.
+
+Vérification du lot ADR-0010 le 3 septembre : **PASS** pour `git diff --check`, huit liens de
+décision/preuve, six tailles/SHA-256 d'artefacts, décompte inchangé 42/55 routes et absence de modification
+de code. `Test-CadleGateC.ps1` passe avec le checkout Cadle exact et intact, `tracked=439` avant ajout
+du nouvel ADR à l'index ; aucun média ajouté. Aucun processus Cargo, rustc, runtime Forge ou PresentMon
+n'est observé au contrôle final local. Ces contrôles documentaires ne requalifient pas le produit.
 
 Tant que ces éléments ne sont pas acquis, Gate 1 reste **OUVERTE** et Gate 2 est **INTERDITE** sans
 nouvelle dérogation explicite acceptée.

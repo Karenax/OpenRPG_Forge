@@ -2,16 +2,27 @@
 
 Dernière mise à jour : **3 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, quatre replays schema 12
-abandonnés avant signal au plus tard, dernier ABORT sur frontière finale `row→sample`, durcissement
-pré-signal committé mais non rejoué ; matrice Browser 534 automatisée PASS, preuves GPU précises et
-revue humaine dues ; Gate 2 interdite ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, critères stricts de
+performance différés par accord explicite ADR-0010 ; dernier replay schema 13 FAIL, audits suspendus ;
+preuves GPU précises et revue humaine dues ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
 Ce document est la source de vérité narrative de la branche `Rust`. Il doit permettre à un agent de
 développement de comprendre le produit, les objectifs, les frontières, l’architecture cible, la
 stratégie de migration et les critères d’acceptation sans charger le dépôt C#/Godot complet.
+
+Décision courante du 3 septembre :
+[ADR-0010](docs/ADR/ADR-0010-gate1-strict-performance-deferral.md) rend non bloquantes pour Gate 1
+les quatre conditions quantitatives FPS/p95/1 % low/stutter et diffère le benchmark cible `R1-041`.
+Le volet cadence de `R1-048` est différé, pas sa revue humaine. Les dettes `G1-PERF-001` à `004`
+restent dans la roadmap, sans seuil assoupli ni faux PASS. Le replay gouverné exact `61713887` /
+`7fbcae7b` a franchi l'acquisition et échoue réellement aux seuils : 26,1661 FPS affichés,
+p95 131,956 ms, 1 % low 3,4183 FPS. Cause et représentativité en usage normal non établies ; aucune
+optimisation produit promue. Les expérimentations sont retirées et la campagne de performance reste
+suspendue jusqu'à nouvelle demande explicite. Cette décision prévaut sur les demandes historiques
+de replay ci-dessous. Les preuves GPU, les revues visuelles et les autres exigences non couvertes
+restent dues : Gate 1 n'est pas passée et Gate 2 ne commence pas.
 
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
@@ -1480,6 +1491,11 @@ cause du blocage de facturation couvert par ADR-0006. Gate 1 est ouverte.
 
 ### Gate 1 — Preuve visuelle et performance
 
+État courant : **critères stricts de performance DIFFÉRÉS sous ADR-0010**. Les chronologies de
+mesure ci-dessous sont historiques ; elles ne demandent plus de replay immédiat. Le dernier verdict
+est le FAIL schema 13 de `61713887`, documenté dans R1-048. Les objectifs O2 restent inchangés pour
+la vérification ultérieure ; toutes les exigences non couvertes restent applicables.
+
 Créer `examples/visual_valley` :
 
 - 512 × 512 m ;
@@ -1593,7 +1609,8 @@ Aucun asset Cadle n'a été introduit. Voir
 
 La gate passe si :
 
-- l’objectif de performance O2 est tenu sur machine de référence ;
+- l’objectif de performance O2 est tenu sur machine de référence — vérification différée et condition
+  non bloquante administrativement pour Gate 1 sous ADR-0010, sans PASS technique ;
 - la revue humaine juge le rendu au moins comparable en impact à la référence WebGPU ;
 - les mêmes données s’affichent dans le runtime natif et le viewport Studio ;
 - le code reste modulaire et documenté ;
@@ -2115,6 +2132,13 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
+Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.
+Ne pas relancer les audits PresentMon, leurs rebuilds ou les micro-optimisations sans nouvelle demande
+explicite. Dernier replay gouverné 61713887 / 7fbcae7b : schema 13 FAIL (26,1661 FPS, p95 131,956 ms,
+1 % low 3,4183 FPS), acquisition valide ; aucune optimisation produit promue. Les instructions de
+replay qui suivent sont historiques. Poursuivre seulement les exigences non différées de Gate 1 ;
+revues humaines et preuves GPU restent dues, Gate 2 n'est pas ouverte.
+
 Gate C et Gate 0 sont passées. Gate 1 reste ouverte sur la base logicielle qualifiée
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55` / `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`.
 Les derniers replays de cadence gouvernés restent attachés à `49acfd56` / `c6e7f6c5`.

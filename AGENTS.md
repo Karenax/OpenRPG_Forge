@@ -34,6 +34,11 @@ la gate active. La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le bloc
 empêche les runners de démarrer et ne doit jamais être décrite comme verte. Chaque gate conserve les
 preuves de la précédente.
 
+ADR-0010 (`docs/ADR/ADR-0010-gate1-strict-performance-deferral.md`) reporte explicitement les
+critères stricts de performance de Gate 1. Ne pas relancer la campagne PresentMon, ses rebuilds ou
+les micro-optimisations exploratoires sans nouvelle demande explicite. Les FAIL restent FAIL ;
+les validations humaines, GPU et fonctionnelles non couvertes restent dues, et Gate 2 n'est pas ouverte.
+
 La branche `main` est une référence historique C#/Godot, pas une dépendance. Sa référence initiale est
 `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`.
 

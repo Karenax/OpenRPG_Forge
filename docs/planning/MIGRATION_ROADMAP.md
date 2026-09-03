@@ -7,6 +7,10 @@ automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gat
 nouvelle dérogation explicite**
 Gate active : **Gate 1 — Visual Valley (OUVERTE)**
 
+Décision courante : **critères stricts de performance DIFFÉRÉS sous ADR-0010**, accord explicite du
+propriétaire le 3 septembre 2026. Aucun FAIL n'est reclassé PASS. La campagne de cadence reste
+suspendue ; les demandes historiques de replay ci-dessous ne sont plus le travail suivant.
+
 Cette roadmap transforme `PROJECT_CONTEXT.md` en lots exécutables. Elle n’est pas un calendrier et ne
 contient aucune promesse de délai. Une gate ne passe qu’avec ses preuves.
 
@@ -290,6 +294,26 @@ et sans transformer une acquisition automatisée en revue humaine.
 # Gate 1 — Visual Valley
 
 Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
+
+## Report de performance accepté — ADR-0010
+
+[Décision et limites](../ADR/ADR-0010-gate1-strict-performance-deferral.md) : 42/55 routes cochées
+inchangées ; quatre conditions de passage satisfaites, quatre différées, deux visuelles encore
+ouvertes. Les routes non couvertes restent dues. Gate 2 n'est pas autorisée par ce seul report.
+
+- [ ] `G1-PERF-001` 60 FPS moyens 1080p High sur RTX 3060/RX 6600 — **DIFFÉRÉ**, `R1-041`.
+- [ ] `G1-PERF-002` p95 ≤ 16,7 ms sur machine de référence — **DIFFÉRÉ**, `R1-041`.
+- [ ] `G1-PERF-003` 1 % low ≥ 45 FPS sur machine de référence — **DIFFÉRÉ**, `R1-041`.
+- [ ] `G1-PERF-004` stutter automatisé/répétabilité selon ADR-0008 — **DIFFÉRÉ**, volet cadence
+  `R1-048` seulement ; vidéo et revue humaine restent dues.
+
+Ces dettes sont non bloquantes administrativement pour Gate 1, sans réussite technique. Reprise de
+la campagne uniquement sur nouvelle demande explicite ; objectifs, seuils, preuves et FAIL conservés.
+Dernier replay gouverné `61713887` / `7fbcae7b` : **FAIL schema 13**, acquisition valide,
+26,1661 FPS affichés, p95 131,956 ms, 1 % low 3,4183 FPS. Les expériences n'ont démontré aucune
+optimisation produit et ont été retirées. R1-037 et les preuves GPU/humaines restent hors dérogation.
+
+## Historique des preuves avant report
 
 État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée
 `e7e7d419`, de la qualification stricte moteur `e2d924b` (Clippy, 141/141 tests bibliothèque et 1/1
@@ -716,7 +740,8 @@ qualité                   Low / Medium / High / Ultra
   clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.
 - [x] `R1-040` profil dynamique — quatre tiers fixes, adaptation High vers Ultra, benchmark High,
   LOD scenery et tier eau concordants au commit `5eadec7f`.
-- [ ] `R1-041` benchmark RTX 3060 ou RX 6600.
+- [ ] `R1-041` benchmark RTX 3060 ou RX 6600 — **DIFFÉRÉ / NON BLOQUANT sous ADR-0010**,
+  dettes `G1-PERF-001/002/003`, aucune qualification du GPU cible revendiquée.
 - [x] `R1-042` benchmark RX 7800 XT de développement — smoke natif High clear/rain exact
   `d9e2670`, Vulkan, 1920 × 1080, zéro hitch.
 - [x] `R1-043` comparaison native vs Studio WebGPU — paire exact-commit `d9e2670`, 46/46 contrôles
@@ -731,7 +756,9 @@ qualité                   Low / Medium / High / Ultra
   humain comparatif encore dû.
 - [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
   paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict LOD/composition encore dû.
-- [ ] `R1-048` vidéo de déplacement courte — contrôleur gameplay/Rapier réel, caméra
+- [ ] `R1-048` vidéo de déplacement courte — **CADENCE DIFFÉRÉE sous ADR-0010 / REVUE HUMAINE DUE**.
+  Dernier replay gouverné `61713887` : FAIL schema 13, preuve ci-dessous ; aucune campagne à relancer.
+  Historique : contrôleur gameplay/Rapier réel, caméra
   `ForgePlayerCamera`, 24 checkpoints et MP4 H.264 réacquis au commit exact `125ba0b`, vidéo SHA-256
   `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226`. Le run normal gouverné
   schema v7 `9db35a8e` sur RX 7800 XT relève 128,7260 FPS, p95 13,9112 ms, 1 % low 58,3489 FPS,
@@ -795,26 +822,17 @@ qualité                   Low / Medium / High / Ultra
 
 ## Conditions de passage Gate 1
 
+Les quatre conditions quantitatives différées sont non bloquantes administrativement sous ADR-0010,
+pas techniquement satisfaites. Les cases restent décochées et toutes les autres exigences subsistent.
+
 - [ ] qualité visuelle jugée clairement supérieure à la base Godot — défaut depth-only corrigé et
   réacquis à `873618af`, comparaison humaine toujours due ;
 - [ ] impact visuel jugé au moins comparable à la baseline Cadle sans en copier les assets ;
-- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — candidat PASS local RX 7800 XT au rejeu
-  gouverné schema v8 `49acfd56` : 129,9968 FPS ; GPU cible dû ;
-- [ ] p95 ≤ 16,7 ms — candidat PASS local RX 7800 XT au rejeu schema v8 `49acfd56` : 13,8805 ms ;
-  GPU cible dû ;
-- [ ] 1 % low ≥ 45 FPS — candidat PASS local RX 7800 XT au rejeu schema v8 `49acfd56` : 61,2708 FPS ;
-  GPU cible dû ;
-- [ ] absence de stutter récurrent — candidat PASS local du run gouverné schema v7 sous ADR-0008 :
-  résidence sans trou, fenêtre stable, ETW 0/0, 17 lignes `NA` diagnostiques conservées, aucune valeur
-  > 33,3 ms et maximum consécutif > 16,7 ms égal à un. Une répétition Auto atteint deux ; le premier
-  rejeu schema v8 perd le premier plan et le second échoue sur une valeur unique à 35,3837 ms. Le
-  replay schema 11 `1912806` suivant est abandonné avant signal sur un gap fenêtre `>250 ms` et ne
-  produit aucun verdict. Les tentatives schema 12 `9d19cde5`, `4b283182` et `2ced195b` s'arrêtent
-  respectivement avant ready sur le validateur qualité périmé, puis deux fois avant signal sur un flux
-  PresentMon vide. `83f02928` reçoit 25 lignes Forge ETW 0/0 mais s'arrête avant signal sur le gap
-  final `row→sample` de 743,6604 ms. La readiness `5/16/13` corrigée est prouvée, pas la cadence. Le
-  correctif pré-signal est committé à `473abea` et validé statiquement sans replay ; un rejeu gouverné
-  schema 12 strictement PASS, la répétabilité et la revue humaine restent dus ;
+- [ ] 60 FPS moyens en 1080p High sur GPU milieu de gamme — **DIFFÉRÉ ADR-0010**, `G1-PERF-001` ;
+- [ ] p95 ≤ 16,7 ms — **DIFFÉRÉ ADR-0010**, `G1-PERF-002` ;
+- [ ] 1 % low ≥ 45 FPS — **DIFFÉRÉ ADR-0010**, `G1-PERF-003` ;
+- [ ] absence de stutter récurrent — qualification quantitative **DIFFÉRÉE ADR-0010**, `G1-PERF-004` ;
+  dernier verdict gouverné schema 13 FAIL conservé, revue humaine de jouabilité non dérogée ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
   croisés et sept hashes communs MATCH, dont scenery `6b41ec73…` ;
