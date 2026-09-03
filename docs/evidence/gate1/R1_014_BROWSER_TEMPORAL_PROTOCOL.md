@@ -7,10 +7,11 @@ Branche cible : **`Rust`**
 Base de conception : commit **`28985328f0d2de1fa79c705d5c3aa1bc522dbe35`**, tree
 **`ec71501d231ea6469eb97dc0af3d0230f4daf6eb`**
 
-`R1-014` reste ouvert. Le harnais reproductible a exécuté Browser sur le commit exact `a4e9824a`,
-produit une paire temporelle du canvas et satisfait ses critères automatisés préenregistrés. Cette
-acquisition ne remplace ni l'inspection humaine des deux images, ni la qualification artistique, ni
-une timestamp query GPU. Aucun asset Cadle n'est copié dans Forge.
+`R1-014` reste ouvert. Le harnais reproductible a exécuté Browser sur le commit candidat qualifié exact
+`4e476b31`, produit une paire temporelle du canvas et satisfait ses critères automatisés
+préenregistrés. La route est désormais prête pour une inspection humaine, mais cette acquisition ne
+remplace ni cette inspection des deux images, ni la qualification artistique, ni une timestamp query
+GPU. Aucun asset Cadle n'est copié dans Forge.
 
 ## Contrat préenregistré
 
@@ -115,17 +116,19 @@ Le ledger principal est `r1-014-browser-temporal-ledger.json` et le manifeste fi
 seuils préenregistrés et les invariants de contexte. Le ledger conserve toujours
 `human_temporal_inspection=required_not_performed_by_harness` et `r1_014_claim=not_made_by_harness`.
 
-## Résultat automatisé exact `a4e9824a`
+## Résultat automatisé exact du candidat `4e476b31`
 
-L'acquisition du **1er septembre 2026 à 13:52 UTC** qualifie le commit
-`a4e9824abc3d0f5ec824edfa58155207467f3e99`, arbre
-`25ff4fd075050ae60ad1904a9de00900a2c8a1fc`, depuis un worktree propre avant et après. Les preuves
+L'acquisition du **3 septembre 2026 à 10:54 UTC** qualifie le commit
+`4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, depuis un worktree propre avant et après. Les preuves
 versionnées sont sous
-[`browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal`](browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal).
+[`browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal`](browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal).
 
 - manifeste : **10/10 artefacts** présents, tailles et SHA-256 revérifiés ;
+- manifeste : SHA-256
+  `3ec9f4372026cabc5d9b35ff67852c322d3213f354241bde49bbceadebf4f9bc` ;
 - ledger principal : SHA-256
-  `df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9` ;
+  `c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b` ;
 - Edge headed `152.0.4191.53`, `navigator.gpu=true`, page `1920 x 1080` sans scrollbar et canvas
   `1408 x 966` entièrement visible ;
 - **120/120** callbacks RAF observés entre les deux captures ;
@@ -133,10 +136,15 @@ versionnées sont sous
 - **4/4** bundles servis byte-for-byte identiques à `dist` ;
 - **0** erreur console, **0** warning console et **0** échec réseau.
 
-Les deux PNG ont été ouverts à leur résolution originale pendant la consolidation technique. Ils
-confirment une animation temporelle hors overlay/ciel/eau, mais montrent encore le stipple noir, les
-silhouettes lointaines crénelées et les aplats déjà refusés par la preuve native. Cela justifie le
-PASS automatisé du harnais, pas la fermeture humaine de `R1-014` ni le passage de Gate 1.
+Les deux PNG ont été ouverts à leur résolution originale pendant la consolidation technique. La caméra
+et le terrain restent stables tandis que la végétation varie dans les trois ROIs, conformément aux
+métriques. Cette inspection d'agent n'est pas une attestation humaine : elle justifie le PASS
+automatisé du harnais et la préparation de la revue, pas la fermeture de `R1-014` ni le passage de
+Gate 1.
+
+L'acquisition historique `a4e9824abc3d0f5ec824edfa58155207467f3e99` reste versionnée sous son
+dossier d'origine et n'est ni remplacée ni réinterprétée. Elle n'est plus l'ensemble présenté pour la
+revue du candidat qualifié.
 
 ## Validation statique du lot
 

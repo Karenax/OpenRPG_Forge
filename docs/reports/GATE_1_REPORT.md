@@ -12,9 +12,9 @@ Visual Valley conserve la paire native/Browser exacte `d9e2670`, les captures fi
 versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié dans Forge. Les lots
 `6a24cabe` et `873618af` préservent respectivement la correction du défaut depth-only puis le vrai
 contrôleur gameplay, la caméra `ForgePlayerCamera` et Rapier ; la campagne exacte `125ba0b` les
-réacquiert avec l'optique d'eau courante. La matrice native `5eadec7f`, le harnais
-temporel Browser `a4e9824a` et les preuves visuelles antérieures restent valides dans leurs frontières
-documentées ; ils ne remplacent ni le benchmark GPU cible ni la revue humaine.
+réacquiert avec l'optique d'eau courante. La matrice native `5eadec7f` et le harnais temporel Browser
+réacquis sur le candidat exact `4e476b31` restent valides dans leurs frontières documentées ; ils ne
+remplacent ni le benchmark GPU cible ni la revue humaine.
 
 La chaîne de travail courante intègre aussi l'optique d'eau native bornée `e7e7d419`, puis le contrat,
 le modèle et la route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à
@@ -36,9 +36,9 @@ dues. Aucun résultat GPU ou humain n'est déduit de la seule présence du code 
 
 Le paquet de revue humaine fail-closed
 [`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
-`4ac603a736507b7943d6cdcd1330601adaaf0e8b9b415434bade0edbb57c0ea0`, référence désormais 20
+`fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27`, référence désormais 20
 artefacts contrôlés sans en incorporer aucun depuis Cadle. Son validateur passe en contrôle statique,
-self-test synthétique et contrôle externe complet. Seules `R1-046`, `R1-047`, `R1-049` et `R1-050`
+self-test synthétique et contrôle externe complet. `R1-014`, `R1-046`, `R1-047`, `R1-049` et `R1-050`
 sont prêtes à recevoir un verdict humain ; le paquet ferme zéro route et conserve
 `gate1_transition_authorized=false`.
 
@@ -162,7 +162,7 @@ Gate 2.
 | source publiée et cadence de preuve historique | `15635b3f85b623654e498b17ed299674928313e6` | `187ae357e24c47403b9c638c0a0737ed01215e33` | 140/140 moteur Release, 52/52 runtime Release, 1/1 intégration Release, Clippy strict et provenance PASS ; diagnostic PresentMon non qualifiant historique, seuils FAIL ; CI `33584774630` attachée à ce commit |
 | acquisition visuelle et contrôleur réel | `873618af59eb2e2b6426b91d4fff0ec615fc70d8` | `9ba6455fd632d6532bda27457312c7d229d46e2f` | build Release, 29 PNG + MP4 ; contrôleur/Rapier/caméra acquis, stutter/humain/GPU en attente |
 | correctif prépasse | `6a24cabe69e242ff551b265d44da67ca8d017c98` | `38a6990ce02baa651773d23d1038b3ef9ff9e76d` | défaut depth-only corrigé et réacquisition historique ; qualification humaine/GPU en attente |
-| temporel Browser antérieur | `a4e9824abc3d0f5ec824edfa58155207467f3e99` | `25ff4fd075050ae60ad1904a9de00900a2c8a1fc` | acquisition temporelle automatisée PASS, 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; non rejouée sur la source logicielle qualifiée |
+| temporel Browser du candidat qualifié | `4e476b31ee33533b6f4023804d8ecd1be02f9c55` | `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` | acquisition temporelle automatisée PASS réacquise : 120 RAF, deux PNG, 3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres ; revue humaine due |
 | harness visuel natif | `a7c9b1e1d5e32f826b606778434a5fae91cc947d` | `2066fce699e4dd178c3d679cf4b0168d2e727d3d` | acquisition native exact-commit de 29 PNG, séquence clair/pluie/clair et MP4 3 s ; qualification refusée |
 | overlay CPU/GPU | `afb270c328b7095a84d452b93b9fdd38e2737f33` | `5eeb9098b8300dead8679de7d478f5096a572fd1` | temps CPU/GPU du pass opaque visibles, fallback indisponible testé, deux ledgers/captures High exacts |
 | matrice profils | `5eadec7f6f9f9b5b6734ce62ea3518f0297496f9` | `a2fb4df0b7e2eff4d686dda575d4a2bf18cb12a1` | 10 ledgers/captures natifs, quatre tiers, adaptation High vers Ultra, benchmark High et eau synchronisée |
@@ -314,9 +314,9 @@ sur la branche `Rust`, avec `HEAD == origin/Rust` et une divergence `0/0` :
 | `trunk build --release --config Trunk.toml` | **PASS** ; compilation Release 26 min 37 s puis optimisation/assemblage WASM |
 | `cargo deny check licenses bans sources advisories` | **PASS** — `advisories ok, bans ok, licenses ok, sources ok` |
 | `scripts/Test-RustSec.ps1` | **PASS politique** — `vulnerabilities=0 warnings=20 distribution_blockers=1` ; blocker conservé `RUSTSEC-2024-0429`, `glib 0.18.5` |
-| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS** — `CADLE_GATE_C_BOUNDARY_PASS tracked=396 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43` |
+| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS courant** — `CADLE_GATE_C_BOUNDARY_PASS tracked=410 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43`; les paquets documentaires ne sont pas classés comme configurations de distribution |
 | `scripts/Test-Gate1Provenance.ps1` SelfTest + Audit strict | **PASS** — 7 cas ; 1 manifeste, 27 fichiers, 9 modèles ; 507 fichiers Cadle comparés, 0 correspondance |
-| `scripts/Test-Gate1BrowserTemporal.ps1` | **PASS du test statique du harnais** ; `browser_run=not_performed_by_static_test`, acquisition réelle non rejouée et inspection temporelle humaine toujours `pending` |
+| `scripts/Test-Gate1BrowserTemporal.ps1` | **PASS du test statique du harnais** ; ce test ne lance pas Browser (`browser_run=not_performed_by_static_test`), mais l'acquisition réelle a été réacquise séparément sur `4e476b31` ; inspection temporelle humaine toujours `pending` |
 | `scripts/Test-Gate1PresentationAB.ps1 -SelfTest` | **PASS** |
 | tests Python RenderDoc | **22/22 PASS** |
 | marqueur portail | **`FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True`** |
@@ -638,26 +638,28 @@ spans applicatifs de préparation/acquisition/présentation. Ces valeurs décriv
 demandes de présentation, pas `DisplayedTime`, la composition ou le scan-out ; elles restent
 explicitement non qualifiantes et ne remplacent pas PresentMon.
 
-## Preuve temporelle Browser exacte `a4e9824a`
+## Preuve temporelle Browser exacte du candidat `4e476b31`
 
 Le harnais préenregistré a exécuté Edge headed `152.0.4191.53` sur la route High/clear exacte, depuis
 un worktree propre avant et après. La page reste `1920 x 1080` sans scrollbar globale ; le canvas
 `1408 x 966` et son backing store sont stables entre les captures. L'identité embarquée correspond au
-commit `a4e9824abc3d0f5ec824edfa58155207467f3e99` et à l'arbre
-`25ff4fd075050ae60ad1904a9de00900a2c8a1fc`.
+commit candidat qualifié `4e476b31ee33533b6f4023804d8ecd1be02f9c55` et à l'arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`.
 
 Le verdict automatisé est **PASS** : 120/120 callbacks RAF, 3/3 ROIs végétation PASS, témoin terrain
 PASS, 4/4 bundles servis byte-for-byte identiques à `dist`, zéro erreur/warning console et zéro échec
 réseau. Les dix entrées du manifeste ont été revérifiées contre leurs tailles et SHA-256. Le ledger
 principal porte le SHA-256
-`df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9`.
+`c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b` et le manifeste
+`3ec9f4372026cabc5d9b35ff67852c322d3213f354241bde49bbceadebf4f9bc`.
 
 Les copies versionnées sont sous
-[`browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal`](../evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal).
+[`browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal`](../evidence/gate1/browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal).
 Les deux PNG ont été ouverts à leur résolution originale pendant la consolidation technique. Ils
-montrent bien une variation temporelle de la végétation, mais aussi le stipple noir, les silhouettes
-lointaines crénelées et les aplats déjà refusés côté natif. Le ledger conserve
-`human_temporal_inspection=required_not_performed_by_harness` : `R1-014` et Gate 1 restent ouvertes.
+montrent une variation temporelle dans les trois ROIs végétation, avec caméra et témoin terrain
+stables. Le ledger conserve `human_temporal_inspection=required_not_performed_by_harness` : la route
+est prête pour une revue humaine, mais `R1-014` et Gate 1 restent ouvertes. L'acquisition historique
+`a4e9824a` reste versionnée séparément et intacte.
 
 ## Preuve Browser d9 clear/rain
 
@@ -814,17 +816,17 @@ Le manifeste v1 sépare la revue humaine des ledgers automatisés, qui restent i
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
 `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, et recense 20 références : huit preuves Forge
 versionnées, neuf preuves Forge externes hashées et trois captures Cadle consultées uniquement in situ.
-Le validateur confirme `artifacts=20`, `evidence_sets=4`, `exact_baseline_visual_artifacts=0`,
-`human_routes=11`, `review_ready=4`,
+Le validateur confirme `artifacts=20`, `evidence_sets=4`, `exact_baseline_visual_artifacts=2`,
+`human_routes=11`, `review_ready=5`,
 `external_verified=true`, `cadle_assets_embedded=0` et `routes_closed=0`; son cas positif synthétique
 et ses quinze refus attendus passent, soit seize cas au total.
 
-- prêtes à la revue humaine : `R1-046`, `R1-047`, `R1-049`, `R1-050` ;
-- réacquisition du candidat exact requise : `R1-014` ;
+- prêtes à la revue humaine : `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050` ;
 - observation GPU requise : `R1-023`, `R1-025`, `R1-026` ;
 - replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
 - référence WebGPU reproductible absente — URL, version/commit, capture, hash et protocole dus :
-  `R1-051` ;
+  `R1-051`. L'audit des 154 commits atteignables jusqu'à `6fb33ca`, des URLs, reflogs disponibles et
+  Git notes ne retrouve aucune identité ; Cadle est la référence WebGL2 distincte de `R1-052` ;
 - protocole A/B Forge/Cadle aligné et verdict humain versionné requis : `R1-052`.
 
 `R1-037` et `R1-041` restent volontairement hors du reçu humain : la première attend la couche Vulkan

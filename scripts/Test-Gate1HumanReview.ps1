@@ -17,7 +17,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$script:ExpectedPackageSha256 = "4ac603a736507b7943d6cdcd1330601adaaf0e8b9b415434bade0edbb57c0ea0"
+$script:ExpectedPackageSha256 = "fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27"
 
 function Assert-Condition {
     param(
@@ -372,10 +372,10 @@ function Assert-Package {
     Assert-Condition -Condition ($rootCounts.cadle_gate_c_overlay -eq 3) -Message "The package must contain exactly three in-place Cadle references."
 
     $expectedEvidenceSets = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
-    $expectedEvidenceSets.Add("browser_temporal_a4e9824", [pscustomobject]@{
+    $expectedEvidenceSets.Add("browser_temporal_4e476b31", [pscustomobject]@{
         System = "forge"
-        Commit = "a4e9824abc3d0f5ec824edfa58155207467f3e99"
-        Tree = "25ff4fd075050ae60ad1904a9de00900a2c8a1fc"
+        Commit = "4e476b31ee33533b6f4023804d8ecd1be02f9c55"
+        Tree = "cc6efae0289b10dcf12f97e6bb4d97b3ead29f90"
         ArtifactIds = @("browser_temporal_frame_a", "browser_temporal_frame_b", "browser_temporal_ledger")
     })
     $expectedEvidenceSets.Add("quality_matrix_5eadec7f", [pscustomobject]@{
@@ -412,10 +412,11 @@ function Assert-Package {
         Assert-Condition -Condition ($evidenceSet.system -ceq $expectedSet.System) -Message "Evidence system mismatch for $($evidenceSet.id)."
         Assert-Condition -Condition ($evidenceSet.commit -ceq $expectedSet.Commit) -Message "Evidence commit mismatch for $($evidenceSet.id)."
         Assert-Condition -Condition ($evidenceSet.tree -ceq $expectedSet.Tree) -Message "Evidence tree mismatch for $($evidenceSet.id)."
+        $expectedExactBaselineIdentity = $evidenceSet.id -ceq "browser_temporal_4e476b31"
         Assert-Condition -Condition (
             $evidenceSet.exact_to_qualified_software_baseline -is [bool] -and
-            -not $evidenceSet.exact_to_qualified_software_baseline
-        ) -Message "Historical visual evidence must not claim exact qualified-baseline identity."
+            $evidenceSet.exact_to_qualified_software_baseline -eq $expectedExactBaselineIdentity
+        ) -Message "Exact qualified-baseline identity mismatch for $($evidenceSet.id)."
         $evidenceArtifactIds = @($evidenceSet.artifact_ids)
         Assert-ExactStringArray -Actual $evidenceSet.artifact_ids -Expected $expectedSet.ArtifactIds -Label "evidence_set[$($evidenceSet.id)].artifact_ids"
         foreach ($artifactId in $evidenceArtifactIds) {
@@ -430,6 +431,18 @@ function Assert-Package {
     }
     Assert-Condition -Condition ($evidenceSetMap.Count -eq 4) -Message "The package must declare exactly four evidence sets."
     Assert-Condition -Condition ($artifactEvidenceSetMap.Count -eq 20) -Message "Every artifact must belong to exactly one evidence set."
+
+    $exactBaselineVisualArtifactCount = 0
+    foreach ($evidenceSet in @($Package.evidence_sets)) {
+        if ($evidenceSet.exact_to_qualified_software_baseline) {
+            foreach ($artifactId in @($evidenceSet.artifact_ids)) {
+                if (@("image/png", "video/mp4") -ccontains [string]$artifactMap[$artifactId].media_type) {
+                    $exactBaselineVisualArtifactCount++
+                }
+            }
+        }
+    }
+    Assert-Condition -Condition ($exactBaselineVisualArtifactCount -eq 2) -Message "Exactly two visual artifacts must match the qualified software baseline."
 
     foreach ($artifactId in $requiredArtifactIds) {
         $artifact = $artifactMap[$artifactId]
@@ -455,7 +468,7 @@ function Assert-Package {
     $browserLedgerArtifact = $artifactMap["browser_temporal_ledger"]
     $browserLedgerPath = Resolve-SafeChildPath -Root $Repository -RelativePath $browserLedgerArtifact.path -Label "browser temporal ledger"
     $browserLedger = ConvertFrom-StrictJson -Text (Get-Content -Raw -LiteralPath $browserLedgerPath) -Label "Browser temporal ledger"
-    $browserEvidenceSet = $evidenceSetMap["browser_temporal_a4e9824"]
+    $browserEvidenceSet = $evidenceSetMap["browser_temporal_4e476b31"]
     Assert-Condition -Condition ($browserLedger.git.commit -ceq $browserEvidenceSet.commit) -Message "Browser ledger source commit mismatch."
     Assert-Condition -Condition ($browserLedger.git.tree -ceq $browserEvidenceSet.tree) -Message "Browser ledger source tree mismatch."
     foreach ($binding in @(
@@ -546,7 +559,7 @@ function Assert-Package {
     }
 
     $expectedReadiness = @{
-        "R1-014" = "requires_exact_candidate_reacquisition"
+        "R1-014" = "ready_for_human_review"
         "R1-023" = "requires_gpu_observation"
         "R1-025" = "requires_gpu_observation"
         "R1-026" = "requires_gpu_observation"
@@ -559,7 +572,7 @@ function Assert-Package {
         "R1-052" = "requires_aligned_ab_protocol"
     }
     $expectedRouteEvidenceSets = @{
-        "R1-014" = @("browser_temporal_a4e9824")
+        "R1-014" = @("browser_temporal_4e476b31")
         "R1-023" = @("native_water_125ba0b", "quality_matrix_5eadec7f")
         "R1-025" = @("native_water_125ba0b")
         "R1-026" = @("quality_matrix_5eadec7f", "native_water_125ba0b")
@@ -647,9 +660,11 @@ function Assert-Package {
     Assert-ExactProperties -Value $Package.summary -Expected @("artifact_count", "evidence_sets", "exact_baseline_visual_artifacts", "human_routes", "fully_review_ready_routes", "cadle_assets_embedded", "gate1_routes_closed") -Label "package.summary"
     Assert-Condition -Condition ([int]$Package.summary.artifact_count -eq 20) -Message "Package artifact summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.evidence_sets -eq 4) -Message "Package evidence-set summary mismatch."
-    Assert-Condition -Condition ([int]$Package.summary.exact_baseline_visual_artifacts -eq 0) -Message "Package must not claim exact-baseline visual artifacts."
+    Assert-Condition -Condition ([int]$Package.summary.exact_baseline_visual_artifacts -eq $exactBaselineVisualArtifactCount) -Message "Package exact-baseline visual artifact summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.human_routes -eq 11) -Message "Package route summary mismatch."
-    Assert-Condition -Condition ([int]$Package.summary.fully_review_ready_routes -eq 4) -Message "Package ready-route summary mismatch."
+    $readyRouteCount = @($routeMap.Values | Where-Object { $_.review_readiness -ceq "ready_for_human_review" }).Count
+    Assert-Condition -Condition ($readyRouteCount -eq 5) -Message "Exactly five routes must be ready for human review."
+    Assert-Condition -Condition ([int]$Package.summary.fully_review_ready_routes -eq $readyRouteCount) -Message "Package ready-route summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.cadle_assets_embedded -eq 0) -Message "Package must embed zero Cadle assets."
     Assert-Condition -Condition ([int]$Package.summary.gate1_routes_closed -eq 0) -Message "Preparing the package must close zero Gate 1 routes."
 
@@ -819,10 +834,10 @@ function Invoke-ReceiptSelfTest {
         gate1_transition_authorized = $false
         routes = @(
             [pscustomobject]@{
-                route = "R1-046"
+                route = "R1-014"
                 verdict = "accepted"
-                evidence_set_ids = @("native_water_125ba0b")
-                artifact_ids = @("native_human_clear", "native_visual_ledger", "native_visual_validation")
+                evidence_set_ids = @("browser_temporal_4e476b31")
+                artifact_ids = @("browser_temporal_frame_a", "browser_temporal_frame_b", "browser_temporal_ledger")
                 observations = @("Synthetic contract exercise only; no real human verdict is recorded.")
                 blocking_issues = @()
             }
@@ -878,7 +893,7 @@ function Invoke-ReceiptSelfTest {
     Assert-Throws -Label "accepted route with blocker" -Action { Assert-ReviewReceipt -Receipt $acceptedWithBlocker -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
 
     $acceptedPartialEvidence = Copy-JsonObject -Value $valid
-    $acceptedPartialEvidence.routes[0].artifact_ids = @("native_human_clear")
+    $acceptedPartialEvidence.routes[0].artifact_ids = @("browser_temporal_frame_a")
     Assert-Throws -Label "accepted route with incomplete evidence" -Action { Assert-ReviewReceipt -Receipt $acceptedPartialEvidence -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $true }
 
     Assert-Throws -Label "receipt without external verification" -Action { Assert-ReviewReceipt -Receipt $valid -Package $Package -PackageState $PackageState -PackageHash $PackageHash -ExternalVerified $false }
@@ -919,7 +934,7 @@ if (-not [string]::IsNullOrWhiteSpace($ReviewPath)) {
 $packageState = Assert-Package -Package $package -Repository $repositoryFull -CheckExternal $VerifyExternal.IsPresent -ForgeRoot $ForgeExternalRoot -CadleRoot $CadleReferenceRoot
 
 Write-Output (
-    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=20 evidence_sets=4 exact_baseline_visual_artifacts=0 human_routes=11 review_ready=4 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
+    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=20 evidence_sets=4 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=5 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
 )
 
 if ($SelfTest) {

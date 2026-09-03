@@ -78,9 +78,14 @@ foreach ($relative in $productionManifests) {
     }
 }
 
+# Documentation and evidence may identify local Cadle references by path and hash for in-place review;
+# they are not executable distribution configuration and carry no Cadle bytes. Keep the broad scan for
+# actual CI, packaging and script surfaces outside those non-executable trees.
 $distributionConfigs = @($tracked | Where-Object {
-    $_ -match "(?i)^(\.github/|\.gitlab-ci|azure-pipelines|buildkite|Dockerfile|docker-compose|packaging/|installer/|release/|distribution/)" -or
-    $_ -match "(?i)(package|publish|release|cache|artifact).*(\.ps1|\.sh|\.ya?ml|\.json|\.toml)$"
+    $_ -notmatch "(?i)^(docs|examples)/" -and (
+        $_ -match "(?i)^(\.github/|\.gitlab-ci|azure-pipelines|buildkite|Dockerfile|docker-compose|packaging/|installer/|release/|distribution/)" -or
+        $_ -match "(?i)(package|publish|release|cache|artifact).*(\.ps1|\.sh|\.ya?ml|\.json|\.toml)$"
+    )
 })
 foreach ($relative in $distributionConfigs) {
     $content = Get-Content -LiteralPath (Join-Path $root $relative) -Raw

@@ -13,6 +13,9 @@ $trunkPath = Join-Path $PSScriptRoot 'Invoke-StudioTrunk.ps1'
 $trunkConfigPath = Join-Path $repositoryRoot 'apps/forge_studio/Trunk.toml'
 $studioSourcePath = Join-Path $repositoryRoot 'apps/forge_studio/src/lib.rs'
 $studioStylesPath = Join-Path $repositoryRoot 'apps/forge_studio/styles.css'
+$evidenceRoot = Join-Path $repositoryRoot 'docs/evidence/gate1/browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal'
+$evidenceManifestPath = Join-Path $evidenceRoot 'artifact-manifest.json'
+$evidenceLedgerPath = Join-Path $evidenceRoot 'r1-014-browser-temporal-ledger.json'
 
 function Assert-Condition {
     param(
@@ -25,7 +28,7 @@ function Assert-Condition {
     }
 }
 
-foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $trunkConfigPath, $studioSourcePath, $studioStylesPath)) {
+foreach ($path in @($driverPath, $configPath, $protocolPath, $roadmapPath, $trunkPath, $trunkConfigPath, $studioSourcePath, $studioStylesPath, $evidenceManifestPath, $evidenceLedgerPath)) {
     Assert-Condition -Condition (Test-Path -LiteralPath $path -PathType Leaf) -Message "Required R1-014 harness file is missing: $path"
 }
 
@@ -83,9 +86,29 @@ foreach ($forbiddenToken in @('npm install', 'npx ', 'playwright', 'upstream/cad
 
 $protocol = Get-Content -LiteralPath $protocolPath -Raw
 Assert-Condition -Condition $protocol.Contains('ACQUISITION AUTOMATISÉE PASS — INSPECTION HUMAINE EN ATTENTE', [StringComparison]::Ordinal) -Message 'Protocol must record the automated Browser pass without claiming human inspection.'
-Assert-Condition -Condition $protocol.Contains('a4e9824abc3d0f5ec824edfa58155207467f3e99', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal acquisition commit.'
-Assert-Condition -Condition $protocol.Contains('df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal ledger hash.'
+Assert-Condition -Condition $protocol.Contains('4e476b31ee33533b6f4023804d8ecd1be02f9c55', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal acquisition commit.'
+Assert-Condition -Condition $protocol.Contains('c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b', [StringComparison]::Ordinal) -Message 'Protocol must bind the qualifying temporal ledger hash.'
 Assert-Condition -Condition $protocol.Contains('R1-014` reste ouvert', [StringComparison]::Ordinal) -Message 'Protocol must keep R1-014 open.'
+$evidenceManifestHash = (Get-FileHash -LiteralPath $evidenceManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+Assert-Condition -Condition ($evidenceManifestHash -ceq '3ec9f4372026cabc5d9b35ff67852c322d3213f354241bde49bbceadebf4f9bc') -Message 'Exact-candidate artifact manifest hash mismatch.'
+$evidenceManifest = Get-Content -LiteralPath $evidenceManifestPath -Raw | ConvertFrom-Json -Depth 64
+Assert-Condition -Condition ($evidenceManifest.schema -ceq 'forge.gate1-browser-temporal-artifact-manifest') -Message 'Unexpected exact-candidate artifact manifest schema.'
+Assert-Condition -Condition ($evidenceManifest.git_commit -ceq '4e476b31ee33533b6f4023804d8ecd1be02f9c55') -Message 'Exact-candidate artifact manifest commit mismatch.'
+Assert-Condition -Condition (@($evidenceManifest.artifacts).Count -eq 10) -Message 'Exact-candidate artifact manifest must bind exactly ten artifacts.'
+foreach ($artifact in @($evidenceManifest.artifacts)) {
+    $artifactPath = Join-Path $evidenceRoot $artifact.relative_path
+    Assert-Condition -Condition (Test-Path -LiteralPath $artifactPath -PathType Leaf) -Message "Exact-candidate artifact is missing: $($artifact.relative_path)"
+    Assert-Condition -Condition ((Get-Item -LiteralPath $artifactPath).Length -eq [long]$artifact.bytes) -Message "Exact-candidate artifact byte count mismatch: $($artifact.relative_path)"
+    $artifactHash = (Get-FileHash -LiteralPath $artifactPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    Assert-Condition -Condition ($artifactHash -ceq [string]$artifact.sha256) -Message "Exact-candidate artifact hash mismatch: $($artifact.relative_path)"
+}
+$evidenceLedgerHash = (Get-FileHash -LiteralPath $evidenceLedgerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+Assert-Condition -Condition ($evidenceLedgerHash -ceq 'c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b') -Message 'Exact-candidate temporal ledger hash mismatch.'
+$evidenceLedger = Get-Content -LiteralPath $evidenceLedgerPath -Raw | ConvertFrom-Json -Depth 64
+Assert-Condition -Condition ($evidenceLedger.git.commit -ceq '4e476b31ee33533b6f4023804d8ecd1be02f9c55') -Message 'Exact-candidate temporal ledger commit mismatch.'
+Assert-Condition -Condition ($evidenceLedger.git.tree -ceq 'cc6efae0289b10dcf12f97e6bb4d97b3ead29f90') -Message 'Exact-candidate temporal ledger tree mismatch.'
+Assert-Condition -Condition ($evidenceLedger.automated_result.status -ceq 'pass') -Message 'Exact-candidate temporal ledger must retain automated PASS.'
+Assert-Condition -Condition ($evidenceLedger.automated_result.human_temporal_inspection -ceq 'required_not_performed_by_harness') -Message 'Exact-candidate temporal ledger must keep human inspection pending.'
 $roadmap = Get-Content -LiteralPath $roadmapPath -Raw
 Assert-Condition -Condition ($roadmap -cmatch '(?m)^- \[ \] `R1-014`') -Message 'Roadmap must keep R1-014 unchecked.'
 Assert-Condition -Condition $roadmap.Contains('ACQUISITION AUTOMATISÉE PASS / INSPECTION HUMAINE EN ATTENTE', [StringComparison]::Ordinal) -Message 'Roadmap must record the automated pass and pending human inspection.'
@@ -101,7 +124,7 @@ Assert-Condition -Condition $roadmap.Contains('ACQUISITION AUTOMATISÉE PASS / I
     stable_layout_observations = 8
     canvas_containment_contract = 'pass'
     browser_run = 'not_performed_by_static_test'
-    qualifying_browser_evidence = 'pass_versioned'
+    qualifying_browser_evidence = 'pass_exact_candidate_versioned'
     human_temporal_inspection = 'pending'
     cargo_build = 'not_performed'
 }

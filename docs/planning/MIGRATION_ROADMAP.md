@@ -309,8 +309,8 @@ et politique RustSec, avec le marqueur final
 de distribution connu `RUSTSEC-2024-0429` pour `glib 0.18.5`. Le rejeu non-GPU repasse aussi
 l'acquisition Cadle et Gate C, l'audit strict CC0/provenance (27 fichiers, 9 modèles, 507 fichiers
 Cadle comparés, zéro correspondance), test statique du harnais Browser temporel, Presentation A/B
-self-test et 22/22 tests Python RenderDoc. Le test statique n'a pas relancé l'acquisition Browser ;
-l'inspection Browser humaine reste `pending`. Les **13 routes**
+self-test et 22/22 tests Python RenderDoc. L'acquisition Browser est maintenant réacquise sur le
+candidat exact `4e476b31` ; l'inspection humaine reste `pending`. Les **13 routes**
 `R1-014`, `R1-023`, `R1-025`, `R1-026`,
 `R1-037`, `R1-041`, `R1-046`, `R1-047`, `R1-048`, `R1-049`, `R1-050`, `R1-051` et `R1-052`
 restent ouvertes : qualification humaine/GPU de l'eau, quatre captures RenderDoc indépendantes,
@@ -318,13 +318,17 @@ benchmark cible et revues humaines ne sont pas acquis. Gate 1 reste **OUVERTE** 
 **INTERDITE**.
 
 Le paquet de revue humaine v1 est maintenant versionné avec 20 références contrôlées et le SHA-256
-`4ac603a736507b7943d6cdcd1330601adaaf0e8b9b415434bade0edbb57c0ea0`. Son validateur passe le
+`fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27`. Son validateur passe le
 contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les quatre
-ensembles de preuves portent leur commit/arbre exact et aucun artefact visuel ne revendique l'identité
-de la baseline logicielle plus récente `4e476b31`. Il ne contient
+ensembles de preuves portent leur commit/arbre exact ; les deux PNG temporels revendiquent et vérifient
+l'identité de la baseline logicielle `4e476b31`, tandis que les autres preuves gardent leur identité
+historique ou locale. Il ne contient
 aucun asset Cadle, ne modifie aucun ledger automatisé, conserve `gate1_transition_authorized=false` et
-ferme zéro route. `R1-046`, `R1-047`, `R1-049` et `R1-050` sont les seules routes prêtes à une revue
-humaine ; les sept autres routes humaines gardent leurs prérequis explicites.
+ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049` et `R1-050` sont les seules routes prêtes à
+une revue humaine ; les six autres routes humaines gardent leurs prérequis explicites.
+Le garde Gate C distingue désormais ces paquets documentaires des vraies configurations de
+distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=410
+checkout_present=True`; les contrôles de chemins et de hashes des médias restent stricts.
 
 Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
 les deux suivantes avant signal. À `9d19cde5`,
@@ -511,12 +515,13 @@ Le smoke Browser High clear/rain reste épinglé au commit exact `d9e2670` et pa
 contrôles pour chaque météo** : huit hashes présents, 9/9 modèles, 26/26 assets HTTP 200, aucune
 requête `.meta`, aucun échec réseau et aucune entrée warning/erreur console.
 
-Le harnais temporel Browser qualifie désormais son acquisition automatisée exacte au commit
-`a4e9824abc3d0f5ec824edfa58155207467f3e99`, arbre
-`25ff4fd075050ae60ad1904a9de00900a2c8a1fc` : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin
+Le harnais temporel Browser qualifie désormais son acquisition automatisée sur le candidat logiciel
+exact `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin
 terrain PASS, 4/4 bundles servis identiques à `dist`, zéro warning/erreur console et zéro échec
-réseau. Les deux PNG et les dix artefacts hashés sont versionnés. `R1-014` reste ouvert : l'inspection
-humaine est en attente et les images montrent encore le stipple/crénelage et les aplats déjà refusés.
+réseau. Les deux PNG et les dix artefacts hashés sont versionnés. L'acquisition historique `a4e9824a`
+reste intacte. `R1-014` est prête pour la revue humaine, mais reste ouverte tant que cette inspection
+n'est pas attestée.
 
 La boucle WASM mesure 120 frames après 60 frames de warm-up. Clear relève 10,1175 ms de moyenne,
 p95 12,1 ms, 1 % low 77,519 FPS ; rain 9,5633 ms, p95 10,9 ms, 1 % low 85,106 FPS ; zéro hitch dans
@@ -592,10 +597,12 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-011` LOD arbres — near/medium distincts et plages complémentaires testées.
 - [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
 - [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
-- [ ] `R1-014` vent shader — PASS natif et acquisition temporelle Browser automatisée `a4e9824a`
+- [ ] `R1-014` vent shader — PASS natif et acquisition temporelle Browser automatisée exacte
+  `4e476b31`/`cc6efae0`
   PASS : 120 RAF, 3/3 ROIs végétation, témoin terrain, 4/4 bundles exacts, console/réseau propres.
   **ACQUISITION AUTOMATISÉE PASS / INSPECTION HUMAINE EN ATTENTE** ; `gpu_presentation` reste
-  `not_observed` et la paire ne ferme pas la route sans revue humaine versionnée.
+  `not_observed`. Le paquet fail-closed classe désormais la route `ready_for_human_review`, sans la
+  fermer avant un reçu humain versionné.
 - [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
 - [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
 - [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.
@@ -691,8 +698,10 @@ qualité                   Low / Medium / High / Ultra
   HUMAINE**, verdict encore dû.
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
-- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **BLOQUÉE** : aucune URL,
-  version/commit, capture locale, hash ou protocole reproductible n'est identifié dans Rust.
+- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **BLOQUÉE** : l'audit des
+  154 commits atteignables jusqu'à `6fb33ca`, de leurs URLs, des reflogs disponibles et des Git notes
+  ne retrouve aucun nom, URL, version/commit, capture locale, hash ou protocole reproductible. Cadle
+  est une référence distincte Three.js/WebGL2 rattachée à `R1-052`, pas l'identité manquante.
 - [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ;
   les trois captures Cadle sont référencées par chemin relatif et SHA-256, consultées uniquement in
   situ et jamais copiées dans Forge. Un rapport A/B à cadrages/versions alignés et un verdict humain

@@ -101,11 +101,17 @@ pour chaque météo, 9/9 modèles sont chargés, 26/26 assets répondent HTTP 20
 1 % low 85,106 FPS. Les deux runs ont zéro hitch. Ces mesures décrivent la boucle Bevy WASM ;
 `gpu_presentation` reste honnêtement `not_observed`.
 
-Le harnais temporel Browser exact `a4e9824a` qualifie désormais son acquisition automatisée High
-clear : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin terrain PASS, 4/4 bundles servis
-identiques à `dist`, zéro warning/erreur console et zéro échec réseau. Les dix artefacts, dont les deux
-PNG du canvas, ont leurs tailles et SHA-256 revérifiés et sont versionnés. L'inspection humaine reste
-en attente ; les images montrent encore le stipple/crénelage et les aplats, donc `R1-014` reste ouvert.
+Le harnais temporel Browser a désormais réacquis High clear sur le candidat logiciel exact
+`4e476b31`/`cc6efae0` : 120/120 callbacks RAF, 3/3 ROIs végétation et témoin terrain PASS, 4/4 bundles
+servis identiques à `dist`, zéro warning/erreur console et zéro échec réseau. Les dix artefacts, dont
+les deux PNG du canvas, ont leurs tailles et SHA-256 revérifiés et sont versionnés. `R1-014` est prête
+pour la revue humaine, mais reste ouverte tant que cette inspection n'est pas attestée. L'acquisition
+historique `a4e9824a` reste intacte.
+
+L'audit de `R1-051` couvre les 154 commits atteignables jusqu'à `6fb33ca`, leurs URLs, les reflogs
+disponibles et les Git notes : aucune identité reproductible de la « démonstration de forêt WebGPU »
+ayant motivé le reboot n'y existe. Cadle est une référence distincte Three.js/WebGL2 liée à `R1-052` ;
+`R1-051` reste donc bloquée, sans substitution inventée.
 
 Le runtime Release exact `5eadec7f` a été exécuté en Low/Medium/High/Ultra clear/rain, adaptatif
 clear et benchmark clear, 1920 x 1080, sur RX 7800 XT/Vulkan. Les dix ledgers contiennent 120
@@ -1445,8 +1451,9 @@ observation du pass optique GPU ; `weather_gpu_execution_observed=false` et
 `15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime et 1/1 intégration. Le portail qualifiant
 `4e476b31` les supersède avec 354/354 tests workspace, Clippy strict, WASM, Trunk Release et
 supply-chain PASS. Le validateur statique `Test-Gate1BrowserTemporal.ps1` est rejoué avec succès sur
-`4e476b31`, mais conserve `browser_run=not_performed_by_static_test` et
-`human_temporal_inspection=pending`. L'acquisition Browser réelle reste épinglée à `a4e9824a`.
+`4e476b31` et conserve `browser_run=not_performed_by_static_test` et
+`human_temporal_inspection=pending`. L'acquisition Browser réelle est désormais épinglée au même
+commit/arbre `4e476b31`/`cc6efae0`.
 L'overlay CPU/GPU `afb270c3`
 reste acquis sur deux captures exactes et
 lisibles. La matrice native `5eadec7f`
@@ -2022,9 +2029,9 @@ workspace, le check moteur WASM, Clippy Studio WASM, Trunk Release, `cargo deny`
 La preuve visuelle exacte `125ba0b`, arbre `6d4639c8`,
 conserve 29 PNG uniques et un MP4 de 24 checkpoints/3 secondes, 75 pipelines prêts et des logs runtime
 vides. Son statut exact reste `automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`.
-Le harnais temporel Browser `a4e9824a` reste PASS sur 120 RAF,
-3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres. Son validateur statique est
-rejoué sur `4e476b31`, sans nouvelle acquisition Browser ; overlay CPU/GPU afb270c3
+Le harnais temporel Browser `4e476b31` est PASS sur 120 RAF,
+3/3 ROIs végétation, témoin terrain, 4/4 bundles et journaux propres. L'acquisition réelle et son
+validateur statique sont maintenant alignés sur le candidat qualifié exact ; overlay CPU/GPU afb270c3
 acquis ; matrice native 5eadec7f 10/10, profils et pipelines acquis, eau synchronisée ; la paire
 Browser/native d9e2670 conserve 24/24 par météo et 46/46 croisés. R1-033 est fermé N/A conditionnel.
 L'optique d'eau `e7e7d419`, durcie par `e2d924b`, est validée automatiquement et réacquise à

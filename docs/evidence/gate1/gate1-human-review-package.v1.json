@@ -5,7 +5,7 @@
   "scope": "human_visual_review_only",
   "prepared_from": {
     "branch": "Rust",
-    "commit": "52d96f09cb65f76a70e87db51b0ff7940dd5a1b0"
+    "commit": "aaed16c03965a1ec08a4f044194622f60137353b"
   },
   "qualified_software_baseline": {
     "commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
@@ -13,11 +13,11 @@
   },
   "evidence_sets": [
     {
-      "id": "browser_temporal_a4e9824",
+      "id": "browser_temporal_4e476b31",
       "system": "forge",
-      "commit": "a4e9824abc3d0f5ec824edfa58155207467f3e99",
-      "tree": "25ff4fd075050ae60ad1904a9de00900a2c8a1fc",
-      "exact_to_qualified_software_baseline": false,
+      "commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
+      "tree": "cc6efae0289b10dcf12f97e6bb4d97b3ead29f90",
+      "exact_to_qualified_software_baseline": true,
       "artifact_ids": [
         "browser_temporal_frame_a",
         "browser_temporal_frame_b",
@@ -103,29 +103,29 @@
     {
       "id": "browser_temporal_frame_a",
       "root": "repository",
-      "path": "docs/evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal/canvas-frame-a.png",
-      "bytes": 1168678,
-      "sha256": "cb1bc0dce0266a43dc616b3a6a2b4b121f65d309a4a2812e331c579fe8c00673",
+      "path": "docs/evidence/gate1/browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal/canvas-frame-a.png",
+      "bytes": 1089096,
+      "sha256": "cf4eb4af6f1d9fd297bdb2ef40d5900bf5b07f481ed9040a2577d82a37e2b8e5",
       "media_type": "image/png",
       "redistribution": "tracked_forge_evidence",
-      "notes": "Premiere image de l'acquisition temporelle Browser historique a4e9824a."
+      "notes": "Premiere image de l'acquisition temporelle Browser exacte du candidat qualifie 4e476b31."
     },
     {
       "id": "browser_temporal_frame_b",
       "root": "repository",
-      "path": "docs/evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal/canvas-frame-b.png",
-      "bytes": 1179872,
-      "sha256": "494029b2301f3dd8577ec1b557a71f2867b2036376c529de6c23fcba4ada5c95",
+      "path": "docs/evidence/gate1/browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal/canvas-frame-b.png",
+      "bytes": 1112007,
+      "sha256": "f4b805fa39248427a3fb037b9e1db4eb7c0eaf07ab72b751f54cc8eb083bf382",
       "media_type": "image/png",
       "redistribution": "tracked_forge_evidence",
-      "notes": "Seconde image de l'acquisition temporelle Browser historique a4e9824a."
+      "notes": "Seconde image de l'acquisition temporelle Browser exacte du candidat qualifie 4e476b31."
     },
     {
       "id": "browser_temporal_ledger",
       "root": "repository",
-      "path": "docs/evidence/gate1/browser/a4e9824abc3d0f5ec824edfa58155207467f3e99/temporal/r1-014-browser-temporal-ledger.json",
-      "bytes": 13284,
-      "sha256": "df7d375aafbce9dffb817f5def12e1d4b4f9ce64c9706def024dd79828d039a9",
+      "path": "docs/evidence/gate1/browser/4e476b31ee33533b6f4023804d8ecd1be02f9c55/temporal/r1-014-browser-temporal-ledger.json",
+      "bytes": 13297,
+      "sha256": "c2b32eb15f7a05e67e3687fe3fdf7e128051dfb32460b6b6f4416875a581ff1b",
       "media_type": "application/json",
       "redistribution": "tracked_forge_evidence",
       "notes": "120 RAF, trois regions vegetation, temoin terrain et quatre bundles exacts."
@@ -304,9 +304,9 @@
   "routes": [
     {
       "route": "R1-014",
-      "review_readiness": "requires_exact_candidate_reacquisition",
+      "review_readiness": "ready_for_human_review",
       "evidence_set_ids": [
-        "browser_temporal_a4e9824"
+        "browser_temporal_4e476b31"
       ],
       "artifact_ids": [
         "browser_temporal_frame_a",
@@ -318,9 +318,7 @@
         "Le terrain et la camera restent stables entre les deux images.",
         "Le stipple, le crenelage et les aplats sont juges acceptables a la resolution originale."
       ],
-      "remaining_blockers": [
-        "L'acquisition a4e9824a precede le candidat technique 4e476b31 et les changements visuels ulterieurs; un rejeu Browser exact-candidate est requis."
-      ]
+      "remaining_blockers": []
     },
     {
       "route": "R1-023",
@@ -562,9 +560,9 @@
   "summary": {
     "artifact_count": 20,
     "evidence_sets": 4,
-    "exact_baseline_visual_artifacts": 0,
+    "exact_baseline_visual_artifacts": 2,
     "human_routes": 11,
-    "fully_review_ready_routes": 4,
+    "fully_review_ready_routes": 5,
     "cadle_assets_embedded": 0,
     "gate1_routes_closed": 0
   }
