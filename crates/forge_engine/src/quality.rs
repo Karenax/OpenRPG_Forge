@@ -875,11 +875,27 @@ mod tests {
                 && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
         }));
         assert!(fields.iter().any(|field| {
+            field.field == "water.reflection"
+                && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
+        }));
+        assert!(fields.iter().any(|field| {
             field.field == "water.reflection_steps"
                 && field.status == QualityFieldProjectionStatus::NotApplicable
         }));
         assert!(fields.iter().any(|field| {
+            field.field == "water.reflection_max_distance_m"
+                && field.status == QualityFieldProjectionStatus::NotApplicable
+        }));
+        assert!(fields.iter().any(|field| {
             field.field == "water.refraction"
+                && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
+        }));
+        assert!(fields.iter().any(|field| {
+            field.field == "water.refraction_steps"
+                && field.status == QualityFieldProjectionStatus::NotApplicable
+        }));
+        assert!(fields.iter().any(|field| {
+            field.field == "water.refraction_max_depth_m"
                 && field.status == QualityFieldProjectionStatus::AppliedOnTierTransition
         }));
     }

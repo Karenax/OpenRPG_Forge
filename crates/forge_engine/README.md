@@ -59,7 +59,7 @@ quality tier has not been applied, when the scenery replacement LOD range differ
 quality preset, or when the pipeline cache was not ready for the whole sampling window. The full
 composition is mandatory: terrain, shadows, vegetation, scenery, environment, water, weather and
 quality must all be present and internally consistent. The quality ledger must contain its 34 unique
-documented fields (5 applied at startup, 14 applied on tier transition and 15 explicitly not
+documented fields (5 applied at startup, 16 applied on tier transition and 13 explicitly not
 applicable), and a governed report requires at least 120 finite positive post-warmup frame samples.
 
 The native sampling window fingerprints the current/applied quality tier together with scenery load,

@@ -39,8 +39,11 @@ conservent ces champs à `null`.
 
 Une métrique Gate 1 gouvernée exige la composition complète terrain, ombres, végétation, scenery,
 environnement, eau, météo et qualité. Le bloc qualité doit exposer exactement 34 champs uniques et
-documentés : 5 `applied_at_startup`, 14 `applied_on_tier_transition` et 15 `not_applicable`. La
-fenêtre native doit contenir au minimum **120 échantillons post-warm-up** finis et positifs.
+documentés : 5 `applied_at_startup`, 16 `applied_on_tier_transition` et 13 `not_applicable`. Cette
+distribution courante remplace le contrat `5/14/15` depuis `e7e7d419`, qui a rendu la réfraction et
+sa profondeur maximale applicables lors des transitions ; les preuves antérieures conservent leur
+distribution historique exacte. La fenêtre native doit contenir au minimum **120 échantillons
+post-warm-up** finis et positifs.
 
 | Sous-système | Projection réelle | Limite déclarée, non simulée |
 |---|---|---|
@@ -49,7 +52,7 @@ fenêtre native doit contenir au minimum **120 échantillons post-warm-up** fini
 | Scenery gouvernée | la plage de visibilité des remplacements suit le preset appliqué : Low `48-128 m`, Medium `60-160 m`, High `72-180 m`, Ultra `96-240 m` | la concordance ECS/ledger ne constitue pas une preuve de présentation GPU ni une revue visuelle |
 | Ombres | activation, nombre de cascades, distance, résolution `DirectionalLightShadowMap` et `ContactShadows` | exécution GPU non déduite des composants main-world |
 | Environnement | activation atmosphère et résolution du milieu de diffusion au démarrage ; tonemapping projeté | volumétrie non qualifiée, donc trois champs `not_applicable` ; résolution atmosphère non reconstruite lors d'une transition |
-| Eau | le tier et le preset sont projetés dans le ledger eau à chaque démarrage/transition ; la qualité consulte ensuite la réflexion réellement résolue et aucun composant SSR/différé n'est réinséré quand elle vaut `disabled` | les capacités indisponibles restent des fallbacks explicites ; SSR et réfraction écran ne sont pas prétendus exécutés |
+| Eau | réflexion et réfraction sont `applied_on_tier_transition` ; la réflexion résolue utilise le fallback IBL quand SSR est indisponible, tandis que la réfraction pilote `ScreenSpaceTransmission` et sa profondeur maximale | `reflection_steps`, `reflection_max_distance_m` et `refraction_steps` restent `not_applicable` ; les composants CPU/ECS ne prouvent pas à eux seuls l'exécution GPU |
 | Météo | budget exact de gouttes appliqué au mesh de démarrage ; visibilité pluie projetée | budget de gouttes non reconstruit lors d'une transition ; wetness appliqué seulement au démarrage |
 | Post-traitement | bloom, color grading et tonemapping ajoutés/retirés via leurs composants réels | aucune présentation GPU n'est inférée |
 

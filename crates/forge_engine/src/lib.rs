@@ -1970,17 +1970,29 @@ fn validate_gate1_quality_projection_ledger(
         .iter()
         .filter(|projection| projection.status == QualityFieldProjectionStatus::NotApplicable)
         .count();
+    let expected_startup_projection_count = QUALITY_FIELD_PROJECTION_CONTRACT
+        .iter()
+        .filter(|entry| entry.1 == QualityFieldProjectionStatus::AppliedAtStartup)
+        .count();
+    let expected_transition_projection_count = QUALITY_FIELD_PROJECTION_CONTRACT
+        .iter()
+        .filter(|entry| entry.1 == QualityFieldProjectionStatus::AppliedOnTierTransition)
+        .count();
+    let expected_not_applicable_projection_count = QUALITY_FIELD_PROJECTION_CONTRACT
+        .iter()
+        .filter(|entry| entry.1 == QualityFieldProjectionStatus::NotApplicable)
+        .count();
     if quality.schema != "forge.visual-valley-quality-runtime"
         || quality.schema_version != 1
         || quality.profile_hash.is_empty()
         || !quality_fields_match_contract
         || !quality_fields_are_unique_and_described
-        || startup_projection_count != 5
-        || transition_projection_count != 14
-        || not_applicable_projection_count != 15
+        || startup_projection_count != expected_startup_projection_count
+        || transition_projection_count != expected_transition_projection_count
+        || not_applicable_projection_count != expected_not_applicable_projection_count
     {
         return Err(format!(
-            "governed Gate 1 quality projection ledger is not qualified: schema={} v{}, profile_hash_present={}, fields={}/{}, exact_contract={}, unique_and_described={}, statuses=startup:{}, transition:{}, not_applicable:{}",
+            "governed Gate 1 quality projection ledger is not qualified: schema={} v{}, profile_hash_present={}, fields={}/{}, exact_contract={}, unique_and_described={}, statuses=startup:{}/{}, transition:{}/{}, not_applicable:{}/{}",
             quality.schema,
             quality.schema_version,
             !quality.profile_hash.is_empty(),
@@ -1989,8 +2001,11 @@ fn validate_gate1_quality_projection_ledger(
             quality_fields_match_contract,
             quality_fields_are_unique_and_described,
             startup_projection_count,
+            expected_startup_projection_count,
             transition_projection_count,
-            not_applicable_projection_count
+            expected_transition_projection_count,
+            not_applicable_projection_count,
+            expected_not_applicable_projection_count
         ));
     }
     Ok(())
@@ -3153,6 +3168,33 @@ mod tests {
         large_scale_shadow.configured_maximum_distance_m = Some(6_734.002_4);
         validate_gate1_shadow_quality_projection(&large_scale_shadow, &large_scale_quality)
             .unwrap();
+    }
+
+    #[test]
+    fn gate1_quality_projection_validator_tracks_the_canonical_status_distribution() {
+        let quality = sample_applied_quality();
+        let startup = quality
+            .field_projections
+            .iter()
+            .filter(|projection| {
+                projection.status == QualityFieldProjectionStatus::AppliedAtStartup
+            })
+            .count();
+        let transition = quality
+            .field_projections
+            .iter()
+            .filter(|projection| {
+                projection.status == QualityFieldProjectionStatus::AppliedOnTierTransition
+            })
+            .count();
+        let not_applicable = quality
+            .field_projections
+            .iter()
+            .filter(|projection| projection.status == QualityFieldProjectionStatus::NotApplicable)
+            .count();
+
+        assert_eq!((startup, transition, not_applicable), (5, 16, 13));
+        validate_gate1_quality_projection_ledger(&quality).unwrap();
     }
 
     #[test]
