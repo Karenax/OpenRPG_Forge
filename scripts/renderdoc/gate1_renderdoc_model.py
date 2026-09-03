@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Pure, fail-closed RenderDoc action accounting for Gate 1 route R1-037.
 
-The module deliberately does not import RenderDoc. A future qrenderdoc adapter is
-responsible for converting the capture into the strict normalized schema accepted
-here. This keeps the accounting policy deterministic and testable without a GPU.
+The module deliberately does not import RenderDoc. The governed qrenderdoc adapter
+converts each capture into the strict normalized schema accepted here. This keeps
+the accounting policy deterministic and testable without a GPU.
 """
 
 from __future__ import annotations

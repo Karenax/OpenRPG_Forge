@@ -48,10 +48,17 @@ active_stages
 children
 ```
 
-Le futur adaptateur exécuté par QRenderDoc doit convertir explicitement les enums RenderDoc vers ces
-noms canoniques. Il ne doit jamais transmettre une chaîne de repli pour une valeur inconnue. Les
+L'adaptateur exécuté par QRenderDoc convertit explicitement les enums RenderDoc vers ces noms
+canoniques et émet ce schéma v2 exact, notamment le booléen `instanced`. Il ne doit jamais transmettre
+une chaîne de repli pour une valeur inconnue. Les
 actions indirectes ne sont admises que lorsque leur compte exact a déjà été résolu ; dans ce cas le
 flag `Indirect`, `indirect=true` et `indirect_resolved=true` concordent.
+
+Avant ce script, le host lance une copie nonce d'un miroir complet du bundle QRenderDoc 1.46. Son
+profil RoamingAppData jetable contient le seed analytics opt-out ; l'adaptateur confirme par
+`qrenderdoc.ConfigFilePath("UI.config")` le chemin et le SHA-256 exacts avant `ExecuteAndInject`.
+Qt Core est épinglé à 5.15.2. Le profil nonce est supprimé par le host après conservation de la
+configuration finale ; le profil réel `qrenderdoc` doit garder la même empreinte.
 
 Le champ `instanced` concorde obligatoirement avec le flag `Instanced`. Pour une action réellement
 non instanciée, `instanced=false` et `num_instances=0` forment le sentinel normalisé et contribuent
@@ -68,6 +75,11 @@ Le modèle compte séparément chaque action portant le flag `Present`, exige ex
 et la recoupe avec `capture.present_count`. Zéro, deux occurrences ou une valeur déclarée incohérente
 échouent sans métriques partielles. Les résultats sont bornés à `uint64`. L'analyse ne produit
 volontairement aucun champ FPS.
+
+Le même test recoupe désormais les formes exactes du reçu Rust, du signal, du ledger, du manifeste,
+de l'adaptateur et des assertions PowerShell. Le reçu fige explicitement les quatre seeds de source,
+la requête `AutoNoVsync` et les horloges virtuelle/fixe remises au tick zéro avant les 30 frames de
+settle. Il ne présente pas cette requête comme une observation du mode WSI négocié.
 
 ## Test pur
 

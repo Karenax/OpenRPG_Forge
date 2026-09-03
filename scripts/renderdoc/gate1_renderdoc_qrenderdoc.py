@@ -26,12 +26,240 @@ ANALYSIS_FILE = "gate1-renderdoc.analysis.json"
 ADAPTER_RECEIPT_FILE = "gate1-renderdoc.adapter.json"
 ADAPTER_FAILURE_FILE = "gate1-renderdoc.adapter.failure.json"
 REQUIRED_RENDERDOC_VERSION = "1.46"
+NORMALIZED_ACTION_SCHEMA = "forge-gate1-renderdoc-actions/v2"
 READY_TIMEOUT_SECONDS = 95.0
 CAPTURE_TIMEOUT_SECONDS = 45.0
+
+READY_FIELDS = {
+    "schema",
+    "schema_version",
+    "status",
+    "nonce",
+    "process_id",
+    "source_commit",
+    "build_profile",
+    "required_backend",
+    "required_renderdoc_version",
+    "ready_frame",
+    "freeze_settle_frames",
+    "virtual_time_paused",
+    "frozen_state_sha256",
+    "frozen_state",
+    "files",
+    "qualification",
+}
+FROZEN_STATE_FIELDS = {
+    "sources",
+    "seeds",
+    "tick",
+    "vsync_requested",
+    "expected_weather",
+    "weather_target",
+    "weather_wetness_current_bits",
+    "weather_wetness_target_bits",
+    "quality_selection",
+    "quality_startup_tier",
+    "quality_current_tier",
+    "quality_transition_count",
+    "pipeline_total",
+    "pipeline_ready",
+    "camera",
+    "window",
+    "gpu",
+    "governed_scene_hashes",
+}
+SOURCE_FIELDS = {
+    "terrain",
+    "vegetation",
+    "environment",
+    "water",
+    "weather",
+    "quality",
+    "cadle_assets_used",
+}
+SEED_FIELDS = {"terrain", "vegetation", "water", "weather"}
+TICK_FIELDS = {
+    "virtual_elapsed_nanoseconds",
+    "fixed_elapsed_nanoseconds",
+    "fixed_timestep_nanoseconds",
+    "fixed_tick",
+}
+CAMERA_FIELDS = {"translation_m", "forward", "vertical_fov_degrees", "active"}
+WINDOW_FIELDS = {
+    "physical_width",
+    "physical_height",
+    "scale_factor",
+    "visible",
+    "resizable",
+}
+GPU_FIELDS = {
+    "name",
+    "vendor",
+    "device",
+    "device_type",
+    "driver",
+    "driver_info",
+    "backend",
+    "max_texture_dimension_2d",
+    "max_bind_groups",
+    "max_uniform_buffer_binding_size",
+    "max_storage_buffer_binding_size",
+}
+GOVERNED_SCENE_HASH_FIELDS = {
+    "visual_valley",
+    "shadow",
+    "vegetation",
+    "scenery",
+    "environment",
+    "water_static",
+    "weather_static",
+}
+FILE_CONTRACT_FIELDS = {"ready", "signal", "ledger", "failure"}
+QUALIFICATION_FIELDS = {
+    "runtime_state_qualified",
+    "external_capture_observed_by_runtime",
+    "renderdoc_analysis_completed_by_runtime",
+    "gate1_route_qualified",
+    "limitation",
+}
+SIGNAL_FIELDS = {
+    "schema",
+    "schema_version",
+    "nonce",
+    "process_id",
+    "source_commit",
+    "ready_sha256",
+    "capture_id",
+    "renderdoc",
+}
+RENDERDOC_SIGNAL_FIELDS = {
+    "capture_triggered",
+    "target_control_ident",
+    "target_api",
+    "tool_version",
+    "qrenderdoc_sha256",
+    "renderdoccmd_sha256",
+    "renderdoc_dll_sha256",
+}
+RUNTIME_LEDGER_FIELDS = {
+    "schema",
+    "schema_version",
+    "status",
+    "nonce",
+    "process_id",
+    "source_commit",
+    "build_profile",
+    "ready_frame",
+    "signal_frame",
+    "capture_window_frames",
+    "ready_sha256",
+    "capture_id",
+    "renderdoc",
+    "frozen_state_sha256",
+    "frozen_state_initial",
+    "frozen_state_final",
+    "frozen_state_stable",
+    "files",
+    "qualification",
+}
+ADAPTER_RECEIPT_SCHEMA = "forge-gate1-renderdoc-adapter/v1"
+ADAPTER_RECEIPT_FIELDS = {
+    "schema",
+    "status",
+    "source_commit",
+    "nonce",
+    "weather",
+    "capture_id",
+    "target",
+    "capture",
+    "files",
+    "qualification",
+}
+ADAPTER_TARGET_FIELDS = {"process_id", "target_control_ident", "api"}
+ADAPTER_CAPTURE_FIELDS = {
+    "path",
+    "sha256",
+    "renderdoc_capture_id",
+    "frame_number",
+    "byte_size",
+    "captured_frame_count",
+}
+ADAPTER_FILE_FIELDS = {
+    READY_FILE,
+    SIGNAL_FILE,
+    LEDGER_FILE,
+    ACTION_DOCUMENT_FILE,
+    ANALYSIS_FILE,
+}
+ADAPTER_QUALIFICATION_FIELDS = {
+    "runtime_state_qualified",
+    "external_capture_observed",
+    "renderdoc_analysis_completed",
+    "renderdoc_metrics_are_fps_evidence",
+}
 
 
 class AdapterError(RuntimeError):
     """A fail-closed acquisition or replay error."""
+
+
+def expect_exact_fields(value, expected, label):
+    if not isinstance(value, dict):
+        raise AdapterError("{} is not an object".format(label))
+    actual = set(value)
+    if actual != expected:
+        missing = sorted(expected - actual)
+        unexpected = sorted(actual - expected)
+        raise AdapterError(
+            "{} field set mismatch: missing={} unexpected={}".format(
+                label, missing, unexpected
+            )
+        )
+    return value
+
+
+def expect_nonempty_string(value, label):
+    if not isinstance(value, str) or not value.strip():
+        raise AdapterError("{} is not a non-empty string".format(label))
+    return value
+
+
+def expect_uint64(value, label):
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < 0
+        or value > (1 << 64) - 1
+    ):
+        raise AdapterError("{} is not an unsigned 64-bit integer".format(label))
+    return value
+
+
+def expect_finite_number(value, label):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise AdapterError("{} is not a finite number".format(label))
+    if isinstance(value, float) and (value != value or value in (float("inf"), float("-inf"))):
+        raise AdapterError("{} is not a finite number".format(label))
+    return value
+
+
+def validate_sha256(value, label):
+    expect_nonempty_string(value, label)
+    if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+        raise AdapterError("{} is not a lowercase SHA-256".format(label))
+
+
+def validate_source_commit(value, label):
+    expect_nonempty_string(value, label)
+    if len(value) != 40 or any(character not in "0123456789abcdef" for character in value):
+        raise AdapterError("{} is not a lowercase 40-character Git object id".format(label))
+
+
+def validate_capture_id(value):
+    expect_nonempty_string(value, "capture id")
+    allowed = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:"
+    if len(value) > 96 or any(character not in allowed for character in value):
+        raise AdapterError("capture id is too long or contains unsupported characters")
 
 
 def required_environment(name):
@@ -74,6 +302,34 @@ def read_json(path):
         return json.load(handle)
 
 
+def validate_automation_profile():
+    import qrenderdoc
+
+    config_environment = "FORGE_GATE1_RENDERDOC_PROFILE_CONFIG"
+    seed_environment = "FORGE_GATE1_RENDERDOC_PROFILE_SEED_SHA256"
+    expected_path = Path(required_environment(config_environment)).resolve(strict=True)
+    expected_sha256 = required_environment(seed_environment)
+    validate_sha256(expected_sha256, "QRenderDoc profile seed SHA-256")
+    actual_path = Path(str(qrenderdoc.ConfigFilePath("UI.config"))).resolve(strict=True)
+    if os.path.normcase(str(actual_path)) != os.path.normcase(str(expected_path)):
+        raise AdapterError("QRenderDoc did not load the governed disposable UI.config")
+    if sha256_file(actual_path) != expected_sha256:
+        raise AdapterError("QRenderDoc disposable UI.config seed changed before injection")
+    config = expect_exact_fields(
+        read_json(actual_path),
+        {"rdocConfigData", "Analytics_TotalOptOut"},
+        "QRenderDoc disposable UI.config seed",
+    )
+    if (
+        isinstance(config["rdocConfigData"], bool)
+        or config["rdocConfigData"] != 1
+        or config["Analytics_TotalOptOut"] is not True
+    ):
+        raise AdapterError("QRenderDoc disposable UI.config does not enforce analytics opt-out")
+    os.environ.pop(config_environment, None)
+    os.environ.pop(seed_environment, None)
+
+
 def result_succeeded(result):
     return getattr(result, "code", result) == rd.ResultCode.Succeeded
 
@@ -87,29 +343,11 @@ def has_flag(flags, flag):
     return bool(flags & flag)
 
 
-def validate_ready(document, nonce, source_commit, target_pid):
-    required = {
-        "schema",
-        "schema_version",
-        "status",
-        "nonce",
-        "process_id",
-        "source_commit",
-        "build_profile",
-        "required_backend",
-        "required_renderdoc_version",
-        "ready_frame",
-        "freeze_settle_frames",
-        "virtual_time_paused",
-        "frozen_state_sha256",
-        "frozen_state",
-        "files",
-        "qualification",
-    }
-    if set(document) != required:
-        raise AdapterError("runtime ready receipt has an unexpected field set")
+def validate_ready(document, nonce, source_commit, target_pid, weather):
+    expect_exact_fields(document, READY_FIELDS, "runtime ready receipt")
     if document["schema"] != "forge.gate1-renderdoc-ready":
         raise AdapterError("runtime ready receipt schema mismatch")
+    expect_uint64(document["schema_version"], "runtime ready schema version")
     if (
         document["schema_version"] != 1
         or document["status"]
@@ -118,26 +356,153 @@ def validate_ready(document, nonce, source_commit, target_pid):
         raise AdapterError("runtime ready receipt status or schema version mismatch")
     if document["nonce"] != nonce:
         raise AdapterError("runtime ready nonce does not match the acquisition nonce")
+    expect_uint64(document["process_id"], "runtime ready process id")
     if document["process_id"] != target_pid:
         raise AdapterError("runtime ready PID does not match RenderDoc target control")
     if document["source_commit"] != source_commit:
         raise AdapterError("runtime ready commit does not match the requested exact commit")
+    validate_source_commit(document["source_commit"], "runtime ready source commit")
     if document["build_profile"] != "release":
         raise AdapterError("runtime ready receipt is not from a release build")
     if document["required_backend"] != "Vulkan":
         raise AdapterError("runtime ready receipt does not require Vulkan")
     if document["required_renderdoc_version"] != REQUIRED_RENDERDOC_VERSION:
         raise AdapterError("runtime ready receipt requires a different RenderDoc version")
-    if document["freeze_settle_frames"] != 30 or not document["virtual_time_paused"]:
+    expect_uint64(document["freeze_settle_frames"], "runtime freeze settle frames")
+    if document["freeze_settle_frames"] != 30 or document["virtual_time_paused"] is not True:
         raise AdapterError("runtime ready receipt does not prove the governed frozen settle")
-    frozen = document["frozen_state"]
-    if not isinstance(frozen, dict):
-        raise AdapterError("runtime ready frozen_state is not an object")
-    if frozen.get("gpu", {}).get("backend") != "Vulkan":
-        raise AdapterError("runtime ready GPU identity is not Vulkan")
-    if frozen.get("sources", {}).get("cadle_assets_used") is not False:
+    expect_uint64(document["ready_frame"], "runtime ready frame")
+    validate_sha256(document["frozen_state_sha256"], "runtime frozen-state hash")
+
+    frozen = expect_exact_fields(
+        document["frozen_state"], FROZEN_STATE_FIELDS, "runtime frozen state"
+    )
+    sources = expect_exact_fields(
+        frozen["sources"], SOURCE_FIELDS, "runtime frozen-state sources"
+    )
+    for name in SOURCE_FIELDS - {"cadle_assets_used"}:
+        validate_sha256(sources[name], "runtime source hash {}".format(name))
+    if sources["cadle_assets_used"] is not False:
         raise AdapterError("runtime ready receipt does not exclude Cadle assets")
-    qualification = document["qualification"]
+
+    seeds = expect_exact_fields(
+        frozen["seeds"], SEED_FIELDS, "runtime frozen-state seeds"
+    )
+    for name in SEED_FIELDS:
+        expect_uint64(seeds[name], "runtime source seed {}".format(name))
+
+    tick = expect_exact_fields(frozen["tick"], TICK_FIELDS, "runtime frozen-state tick")
+    for name in TICK_FIELDS:
+        expect_uint64(tick[name], "runtime frozen-state tick {}".format(name))
+    if (
+        tick["virtual_elapsed_nanoseconds"] != 0
+        or tick["fixed_elapsed_nanoseconds"] != 0
+        or tick["fixed_tick"] != 0
+        or tick["fixed_timestep_nanoseconds"] == 0
+    ):
+        raise AdapterError("runtime ready receipt is not frozen at deterministic tick zero")
+    if frozen["vsync_requested"] is not False:
+        raise AdapterError("runtime ready receipt does not prove the AutoNoVsync request")
+    if frozen["expected_weather"] != weather:
+        raise AdapterError("runtime ready weather does not match the requested weather")
+    expected_weather_target = "Clear" if weather == "clear" else "Rain"
+    if frozen["weather_target"] != expected_weather_target:
+        raise AdapterError("runtime ready weather target does not match the request")
+    for name in ("weather_wetness_current_bits", "weather_wetness_target_bits"):
+        expect_uint64(frozen[name], "runtime frozen-state {}".format(name))
+    if frozen["weather_wetness_current_bits"] != frozen["weather_wetness_target_bits"]:
+        raise AdapterError("runtime ready weather transition is not settled")
+    if (
+        frozen["quality_selection"] != "Fixed(High)"
+        or frozen["quality_startup_tier"] != "High"
+        or frozen["quality_current_tier"] != "High"
+        or frozen["quality_transition_count"] != 0
+    ):
+        raise AdapterError("runtime ready quality is not fixed High")
+    expect_uint64(
+        frozen["quality_transition_count"], "runtime frozen-state quality transition count"
+    )
+    pipeline_total = expect_uint64(
+        frozen["pipeline_total"], "runtime frozen-state pipeline_total"
+    )
+    pipeline_ready = expect_uint64(
+        frozen["pipeline_ready"], "runtime frozen-state pipeline_ready"
+    )
+    if pipeline_total == 0 or pipeline_ready != pipeline_total:
+        raise AdapterError("runtime ready pipelines are not completely ready")
+
+    camera = expect_exact_fields(
+        frozen["camera"], CAMERA_FIELDS, "runtime frozen-state camera"
+    )
+    for vector_name in ("translation_m", "forward"):
+        vector = camera[vector_name]
+        if not isinstance(vector, list) or len(vector) != 3:
+            raise AdapterError("runtime camera {} is not a three-vector".format(vector_name))
+        for index, component in enumerate(vector):
+            expect_finite_number(
+                component, "runtime camera {}[{}]".format(vector_name, index)
+            )
+    if camera["active"] is not True:
+        raise AdapterError("runtime ready camera is not active")
+    if expect_finite_number(camera["vertical_fov_degrees"], "runtime camera FOV") <= 0:
+        raise AdapterError("runtime ready camera FOV is not positive")
+
+    window = expect_exact_fields(
+        frozen["window"], WINDOW_FIELDS, "runtime frozen-state window"
+    )
+    expect_uint64(window["physical_width"], "runtime window physical width")
+    expect_uint64(window["physical_height"], "runtime window physical height")
+    if (
+        window["physical_width"] != 1920
+        or window["physical_height"] != 1080
+        or window["visible"] is not True
+    ):
+        raise AdapterError("runtime ready window is not visible 1920x1080")
+    if expect_finite_number(window["scale_factor"], "runtime window scale factor") <= 0:
+        raise AdapterError("runtime window scale factor is not positive")
+    if not isinstance(window["visible"], bool) or not isinstance(window["resizable"], bool):
+        raise AdapterError("runtime window visibility/resizable state is not boolean")
+
+    gpu = expect_exact_fields(frozen["gpu"], GPU_FIELDS, "runtime frozen-state GPU")
+    if gpu["backend"] != "Vulkan":
+        raise AdapterError("runtime ready GPU identity is not Vulkan")
+    for name in ("name", "device_type"):
+        expect_nonempty_string(gpu[name], "runtime GPU {}".format(name))
+    for name in ("driver", "driver_info"):
+        if not isinstance(gpu[name], str):
+            raise AdapterError("runtime GPU {} is not a string".format(name))
+    if not gpu["driver"] and not gpu["driver_info"]:
+        raise AdapterError("runtime ready GPU identity has no driver information")
+    for name in GPU_FIELDS - {
+        "name",
+        "device_type",
+        "driver",
+        "driver_info",
+        "backend",
+    }:
+        expect_uint64(gpu[name], "runtime GPU {}".format(name))
+
+    scene_hashes = expect_exact_fields(
+        frozen["governed_scene_hashes"],
+        GOVERNED_SCENE_HASH_FIELDS,
+        "runtime governed-scene hashes",
+    )
+    for name in GOVERNED_SCENE_HASH_FIELDS:
+        validate_sha256(scene_hashes[name], "runtime governed-scene hash {}".format(name))
+
+    files = expect_exact_fields(document["files"], FILE_CONTRACT_FIELDS, "runtime file contract")
+    expected_files = {
+        "ready": READY_FILE,
+        "signal": SIGNAL_FILE,
+        "ledger": LEDGER_FILE,
+        "failure": RUNTIME_FAILURE_FILE,
+    }
+    if files != expected_files:
+        raise AdapterError("runtime ready file contract mismatch")
+
+    qualification = expect_exact_fields(
+        document["qualification"], QUALIFICATION_FIELDS, "runtime ready qualification"
+    )
     for field in (
         "runtime_state_qualified",
         "external_capture_observed_by_runtime",
@@ -146,9 +511,10 @@ def validate_ready(document, nonce, source_commit, target_pid):
     ):
         if qualification.get(field) is not False:
             raise AdapterError("runtime ready receipt crosses its qualification boundary")
+    expect_nonempty_string(qualification["limitation"], "runtime qualification limitation")
 
 
-def wait_for_ready(output_dir, target, nonce, source_commit):
+def wait_for_ready(output_dir, target, nonce, source_commit, weather):
     ready_path = output_dir / READY_FILE
     failure_path = output_dir / RUNTIME_FAILURE_FILE
     deadline = time.monotonic() + READY_TIMEOUT_SECONDS
@@ -161,7 +527,7 @@ def wait_for_ready(output_dir, target, nonce, source_commit):
             )
         if ready_path.is_file():
             document = read_json(ready_path)
-            validate_ready(document, nonce, source_commit, int(target.GetPID()))
+            validate_ready(document, nonce, source_commit, int(target.GetPID()), weather)
             return ready_path, document
         if not target.Connected():
             raise AdapterError("RenderDoc target disconnected before runtime readiness")
@@ -246,6 +612,7 @@ def normalize_action(controller, structured_file, action):
     ]
     flags = action_flags(action)
     is_draw = "Drawcall" in flags
+    is_instanced = "Instanced" in flags
     is_indirect = "Indirect" in flags
     if "MultiAction" in flags and not children:
         raise AdapterError(
@@ -276,6 +643,7 @@ def normalize_action(controller, structured_file, action):
         "topology": topology,
         "num_indices": num_indices,
         "num_instances": num_instances,
+        "instanced": is_instanced,
         "indirect": is_indirect,
         "indirect_resolved": indirect_resolved,
         "active_stages": stages,
@@ -283,18 +651,19 @@ def normalize_action(controller, structured_file, action):
     }
 
 
-def count_present_events(actions):
-    present_events = set()
+def count_present_actions(actions):
+    present_count = 0
 
     def visit(action):
+        nonlocal present_count
         if has_flag(action.flags, rd.ActionFlags.Present):
-            present_events.add(int(action.eventId))
+            present_count += 1
         for child in action.children:
             visit(child)
 
     for action in actions:
         visit(action)
-    return len(present_events)
+    return present_count
 
 
 def analyze_capture(capture_path, model_directory):
@@ -327,10 +696,10 @@ def analyze_capture(capture_path, model_directory):
         roots = controller.GetRootActions()
         structured = controller.GetStructuredFile()
         document = {
-            "schema": "forge-gate1-renderdoc-actions/v1",
+            "schema": NORMALIZED_ACTION_SCHEMA,
             "capture": {
                 "captured_frame_count": 1,
-                "present_count": count_present_events(roots),
+                "present_count": count_present_actions(roots),
                 "local_replay_support": "Supported",
                 "pipeline_type": "Vulkan",
                 "degraded": False,
@@ -393,9 +762,20 @@ def receive_capture_and_ledger(target, output_dir):
     raise AdapterError("capture message or runtime ledger timed out")
 
 
-def validate_runtime_ledger(document, nonce, source_commit, ready_sha256, capture_id):
+def validate_runtime_ledger(
+    document,
+    nonce,
+    source_commit,
+    ready_sha256,
+    capture_id,
+    target_pid,
+    ready_document,
+    signal_document,
+):
+    expect_exact_fields(document, RUNTIME_LEDGER_FIELDS, "runtime ledger")
     if document.get("schema") != "forge.gate1-renderdoc-runtime":
         raise AdapterError("runtime ledger schema mismatch")
+    expect_uint64(document.get("schema_version"), "runtime ledger schema version")
     if (
         document.get("schema_version") != 1
         or document.get("status")
@@ -404,19 +784,51 @@ def validate_runtime_ledger(document, nonce, source_commit, ready_sha256, captur
         raise AdapterError("runtime ledger status or schema version mismatch")
     if document.get("nonce") != nonce or document.get("source_commit") != source_commit:
         raise AdapterError("runtime ledger nonce or commit mismatch")
+    expect_uint64(document.get("process_id"), "runtime ledger process id")
+    if document.get("process_id") != target_pid:
+        raise AdapterError("runtime ledger PID does not match RenderDoc target control")
+    if document.get("build_profile") != "release":
+        raise AdapterError("runtime ledger is not from a release build")
+    expect_uint64(document.get("ready_frame"), "runtime ledger ready frame")
+    if document.get("ready_frame") != ready_document["ready_frame"]:
+        raise AdapterError("runtime ledger ready frame changed")
+    expect_uint64(document.get("signal_frame"), "runtime ledger signal frame")
+    if document["signal_frame"] < document["ready_frame"]:
+        raise AdapterError("runtime ledger signal frame precedes the ready frame")
     if document.get("ready_sha256") != ready_sha256:
         raise AdapterError("runtime ledger ready SHA-256 mismatch")
     if document.get("capture_id") != capture_id:
         raise AdapterError("runtime ledger capture identifier mismatch")
+    expect_uint64(
+        document.get("capture_window_frames"), "runtime ledger capture window frames"
+    )
     if document.get("capture_window_frames") != 120:
         raise AdapterError("runtime ledger did not preserve the full capture window")
     if document.get("frozen_state_stable") is not True:
         raise AdapterError("runtime ledger reports an unstable frozen state")
-    qualification = document.get("qualification", {})
+    if document.get("renderdoc") != signal_document["renderdoc"]:
+        raise AdapterError("runtime ledger RenderDoc signal changed")
+    if document.get("frozen_state_sha256") != ready_document["frozen_state_sha256"]:
+        raise AdapterError("runtime ledger frozen-state SHA-256 changed")
+    if document.get("frozen_state_initial") != ready_document["frozen_state"]:
+        raise AdapterError("runtime ledger initial frozen state changed")
+    if document.get("frozen_state_final") != ready_document["frozen_state"]:
+        raise AdapterError("runtime ledger final frozen state changed")
+    if document.get("files") != ready_document["files"]:
+        raise AdapterError("runtime ledger file contract changed")
+    qualification = expect_exact_fields(
+        document["qualification"], QUALIFICATION_FIELDS, "runtime ledger qualification"
+    )
     if qualification.get("runtime_state_qualified") is not True:
         raise AdapterError("runtime ledger did not qualify its owned state")
-    if qualification.get("gate1_route_qualified") is not False:
-        raise AdapterError("runtime ledger improperly claims external qualification")
+    for field in (
+        "external_capture_observed_by_runtime",
+        "renderdoc_analysis_completed_by_runtime",
+        "gate1_route_qualified",
+    ):
+        if qualification.get(field) is not False:
+            raise AdapterError("runtime ledger improperly claims external qualification")
+    expect_nonempty_string(qualification["limitation"], "runtime qualification limitation")
 
 
 def main():
@@ -436,11 +848,20 @@ def main():
     renderdoccmd_sha256 = required_environment(
         "FORGE_GATE1_RENDERDOC_RENDERDOCCMD_SHA256"
     )
+    renderdoc_dll_sha256 = required_environment(
+        "FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256"
+    )
     capture_id = required_environment("FORGE_GATE1_RENDERDOC_CAPTURE_ID")
     if weather not in ("clear", "rain"):
         raise AdapterError("weather must be clear or rain")
     if len(nonce) != 32 or any(character not in "0123456789abcdef" for character in nonce):
         raise AdapterError("nonce must be 32 lowercase hexadecimal characters")
+    validate_source_commit(source_commit, "requested source commit")
+    validate_capture_id(capture_id)
+    validate_sha256(qrenderdoc_sha256, "qrenderdoc SHA-256")
+    validate_sha256(renderdoccmd_sha256, "renderdoccmd SHA-256")
+    validate_sha256(renderdoc_dll_sha256, "renderdoc.dll SHA-256")
+    validate_automation_profile()
 
     command_line = subprocess.list2cmdline(
         [
@@ -485,8 +906,9 @@ def main():
     if target is None:
         raise AdapterError("RenderDoc target control connection failed")
     try:
-        ready_path, _ = wait_for_ready(
-            output_dir, target, nonce, source_commit
+        target_pid = int(target.GetPID())
+        ready_path, ready_document = wait_for_ready(
+            output_dir, target, nonce, source_commit, weather
         )
         target_api = str(target.GetAPI())
         if target_api != "Vulkan":
@@ -498,7 +920,7 @@ def main():
             "schema": "forge.gate1-renderdoc-capture-signal",
             "schema_version": 1,
             "nonce": nonce,
-            "process_id": int(target.GetPID()),
+            "process_id": target_pid,
             "source_commit": source_commit,
             "ready_sha256": ready_sha256,
             "capture_id": capture_id,
@@ -509,8 +931,13 @@ def main():
                 "tool_version": REQUIRED_RENDERDOC_VERSION,
                 "qrenderdoc_sha256": qrenderdoc_sha256,
                 "renderdoccmd_sha256": renderdoccmd_sha256,
+                "renderdoc_dll_sha256": renderdoc_dll_sha256,
             },
         }
+        expect_exact_fields(signal, SIGNAL_FIELDS, "capture signal")
+        expect_exact_fields(
+            signal["renderdoc"], RENDERDOC_SIGNAL_FIELDS, "capture signal RenderDoc identity"
+        )
         signal_path = output_dir / SIGNAL_FILE
         write_json_atomic(signal_path, signal)
         capture_message, ledger_path = receive_capture_and_ledger(target, output_dir)
@@ -533,9 +960,20 @@ def main():
     capture_files = list(output_dir.glob("*.rdc"))
     if len(capture_files) != 1 or capture_files[0].resolve() != capture_path:
         raise AdapterError("governed output does not contain exactly the announced capture")
+    if capture_path.stat().st_size != capture_message["byte_size"]:
+        raise AdapterError("RenderDoc capture byte size does not match the announced capture")
 
     ledger = read_json(ledger_path)
-    validate_runtime_ledger(ledger, nonce, source_commit, ready_sha256, capture_id)
+    validate_runtime_ledger(
+        ledger,
+        nonce,
+        source_commit,
+        ready_sha256,
+        capture_id,
+        target_pid,
+        ready_document,
+        signal,
+    )
     action_document, analysis = analyze_capture(
         capture_path, repository_root / "scripts" / "renderdoc"
     )
@@ -545,7 +983,7 @@ def main():
     write_json_atomic(analysis_path, analysis)
 
     receipt = {
-        "schema": "forge-gate1-renderdoc-adapter/v1",
+        "schema": ADAPTER_RECEIPT_SCHEMA,
         "status": "PASS",
         "source_commit": source_commit,
         "nonce": nonce,
@@ -578,6 +1016,15 @@ def main():
             "renderdoc_metrics_are_fps_evidence": False,
         },
     }
+    expect_exact_fields(receipt, ADAPTER_RECEIPT_FIELDS, "adapter receipt")
+    expect_exact_fields(receipt["target"], ADAPTER_TARGET_FIELDS, "adapter receipt target")
+    expect_exact_fields(receipt["capture"], ADAPTER_CAPTURE_FIELDS, "adapter receipt capture")
+    expect_exact_fields(receipt["files"], ADAPTER_FILE_FIELDS, "adapter receipt files")
+    expect_exact_fields(
+        receipt["qualification"],
+        ADAPTER_QUALIFICATION_FIELDS,
+        "adapter receipt qualification",
+    )
     write_json_atomic(output_dir / ADAPTER_RECEIPT_FILE, receipt)
 
 

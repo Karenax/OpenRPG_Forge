@@ -177,9 +177,12 @@ output alone cannot close `R1-025`, `R1-026` or `R1-046` through `R1-048`.
 The runtime now contains a strictly bounded `--gate1-renderdoc-capture <output-dir>` route paired
 with `--gate1-renderdoc-nonce <nonce>` for the R1-037 accounting protocol. It is accepted only on
 Windows Vulkan with `--visual-valley --quality high --weather clear|rain --no-vsync`, and it owns the
-camera, weather, capture synchronization and exit lifecycle. The runtime waits for stable pipelines,
-freezes the governed scene, writes an atomic nonce/PID/commit/GPU/source-hash ready receipt, validates
-the external capture signal, holds the frozen workload for 120 frames and writes a runtime ledger. It
+camera, weather, capture synchronization and exit lifecycle. Its receipt records the verified
+`AutoNoVsync` request, not the WSI mode ultimately negotiated by the driver. The runtime waits for
+stable pipelines, resets and freezes the virtual/fixed clocks at tick zero, writes an atomic
+nonce/PID/commit/GPU/source-seed/source-hash ready receipt, validates the external capture signal,
+holds the frozen workload for 120 frames and writes a runtime ledger. The signal binds the exact
+`qrenderdoc.exe`, `renderdoccmd.exe` and `renderdoc.dll` hashes. It
 does not analyze RenderDoc actions and cannot qualify R1-037 by itself.
 
 `scripts/Invoke-Gate1RenderDoc.ps1` and the QRenderDoc adapter implement the external four-run matrix
@@ -188,8 +191,15 @@ orchestrator requires the pinned external RenderDoc 1.46 distribution, a clean e
 fresh external output/target directories and an already-correct Vulkan layer registration. It checks
 the layer read-only and deliberately refuses to register, repair or remove it. The route and
 orchestrator are integrated, but their Rust/runtime validation and the four real captures have not
-yet been completed; **R1-037 remains open**. RenderDoc counters are GPU-work evidence only and never
+yet been completed. The normalized adapter/model/host contract is v2 and rejects any disagreement in
+explicit instancing or actual `Present` actions; **R1-037 remains open**. RenderDoc counters are GPU-work evidence only and never
 replace PresentMon FPS/stutter evidence.
+
+For unattended QRenderDoc startup, the host mirrors the complete pinned bundle and gives each copied
+executable a nonce basename. Qt Core 5.15.2 therefore selects a disposable RoamingAppData profile
+seeded with analytics opt-out; the adapter verifies its exact `ConfigFilePath` before injection. The
+host retains the final config as evidence, removes the disposable profile in `finally`, and requires
+the real `qrenderdoc` profile fingerprint to remain unchanged.
 
 ## Gate 1 gameplay-stutter acquisition
 

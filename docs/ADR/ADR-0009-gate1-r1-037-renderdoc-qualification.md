@@ -30,7 +30,7 @@ La seule matrice qualifiable par ce protocole est actuellement :
 
 - Windows x64 réel ;
 - backend `Vulkan` exact ;
-- `visual_valley`, profil `High`, 1920 × 1080, VSync désactivée ;
+- `visual_valley`, profil `High`, 1920 × 1080, requête de présentation `AutoNoVsync` ;
 - météo `clear` puis `rain` ;
 - deux lancements indépendants par météo, soit quatre processus et quatre captures au total.
 
@@ -45,18 +45,28 @@ du chemin de capture et une mise à jour explicite de la présente décision.
 
 Avant le déclenchement externe, le runtime doit :
 
-1. charger la composition complète Visual Valley High avec caméra fixe, seed fixe et tick fixe ;
+1. charger la composition complète Visual Valley High avec caméra fixe et sources à seeds fixes ;
 2. atteindre l'état météo demandé (`clear` ou `rain`) sans adaptation de qualité ;
 3. constater les pipelines prêts et stables pendant 30 frames Render consécutives ;
-4. figer le temps virtuel et l'état de la scène ;
+4. remettre les horloges virtuelle et fixe au tick zéro, les figer, puis laisser 30 frames de rendu
+   supplémentaires propager cet état déterministe ;
 5. vérifier que la caméra, la projection, la qualité, la météo et les hashes des sources gouvernées ne
    changent plus ;
 6. écrire atomiquement un reçu prêt avant capture.
 
-Le reçu porte au minimum son schéma, un nonce cryptographique, le PID exact, le commit et le profil de
-build, le backend, l'identité GPU, le pilote, la résolution, l'état VSync, la météo, la seed, le tick,
-la caméra et les hashes des sources gouvernées. Le contrôleur refuse toute divergence de nonce, PID,
-backend, GPU, pilote ou hash.
+Le reçu `forge.gate1-renderdoc-ready` v1 porte exactement le nonce, `process_id`, commit, profil de
+build, backend requis, version RenderDoc, frame prête, settle, hash et objet `frozen_state`, contrat de
+fichiers et frontière de qualification. `frozen_state` porte exactement les hashes et quatre seeds de
+sources, l'objet `tick` (temps virtuel/fixe et tick à zéro, timestep positif),
+`vsync_requested=false`, météo,
+qualité High fixe, état des pipelines, caméra, fenêtre 1920 x 1080, identité GPU/pilote et hashes de la
+scène gouvernée. Le manifeste versionne chaque ensemble de champs exact. L'adaptateur et
+l'orchestrateur refusent toute propriété manquante ou supplémentaire ainsi que toute divergence de
+nonce, PID, backend, GPU, pilote, horloge, seed ou hash.
+
+`vsync_requested=false` prouve la requête Bevy `PresentMode::AutoNoVsync`, également imposée par
+`CaptureOptions.allowVSync=false`; ce champ ne prétend pas observer le mode WSI finalement négocié
+par le pilote.
 
 ### Capture externe
 
@@ -66,6 +76,22 @@ Le contrôleur utilise le `qrenderdoc.exe` épinglé et son mode Python. Il lanc
 `Present` du processus attendu. Le replay compte les actions portant réellement `ActionFlags.Present`
 et recoupe ce total avec `present_count` déclaré par l'adaptateur ; les deux valeurs doivent être
 exactement égales à un.
+
+Le signal `forge.gate1-renderdoc-capture-signal` v1 lie aussi les SHA-256 exacts de
+`qrenderdoc.exe`, `renderdoccmd.exe` et `renderdoc.dll` au ledger Rust. Le contrôleur externe recoupe
+ces trois binaires avec le manifeste avant tout build ou lancement.
+
+QRenderDoc 1.46 charge `UI.config` avant ses scripts Python et embarque Qt Core 5.15.2. Comme
+`AppDataLocation` passe par le Known Folder Windows, le contrôleur miroir le bundle complet, lance
+une copie de l'exécutable nommée avec le nonce et précrée son profil jetable avec
+`Analytics_TotalOptOut=true`. L'adaptateur confirme le `ConfigFilePath` exact avant toute injection ;
+le host conserve la configuration finale comme preuve, supprime le profil nonce en `finally` sous
+mutex global et exige que l'empreinte du vrai profil `qrenderdoc` soit inchangée. Cette route écrit
+transitoirement sous RoamingAppData, sans réutiliser ni modifier durablement le profil utilisateur.
+
+Le reçu final `forge-gate1-renderdoc-adapter/v1` et ses objets `target`, `capture`, `files` et
+`qualification` ont eux aussi des ensembles de champs exacts versionnés dans le manifeste. Le host
+refuse une propriété manquante ou supplémentaire avant de publier le verdict local.
 
 La capture est invalide si le processus sort avant le reçu, si plusieurs captures apparaissent, si le
 nonce ou le PID divergent, si la scène se défige, ou si l'outil ne peut pas identifier sans ambiguïté
@@ -118,6 +144,8 @@ géométrie, tessellation, mesh/task shader, `MultiAction` feuille non développ
 compte indivisible, métadonnées d'instanciation incohérentes, nombre de `Present` différent de un,
 divergence entre `present_count` et les actions, identifiant d'événement dupliqué ou overflow. Une
 action indirecte est admissible seulement si l'adaptateur a résolu ses comptes exacts avant l'analyse.
+La qualification R1-037 exige en outre `draws > 0`, `instances > 0` et `triangles > 0` dans chacune
+des quatre analyses ; le host dérive ses booléens de verdict de ces résultats contrôlés.
 
 ### Frontière temporelle
 

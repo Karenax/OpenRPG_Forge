@@ -2,6 +2,7 @@
 
 - Date de l'audit d'acquisition : **2 septembre 2026**
 - Date du lot contrat/modèle : **3 septembre 2026**
+- Date de l'alignement runtime/adaptateur/hôte : **3 septembre 2026**
 - Base du lot : `1912806fc6e90277cd779a21a2557e6c820d5d44`
 - Arbre de base : `4bfb863255dd865432093c5e7291287b8e78dc43`
 - Statut R1-037 : **OUVERTE — ACQUISITION OUTIL PASS, CAPTURES NOT RUN**
@@ -13,8 +14,9 @@ La distribution portable officielle RenderDoc 1.46 a été acquise et contrôlé
 Git. L'acquisition passe ses contrôles HTTPS, tailles, SHA-256, signature OpenPGP détachée, sécurité du
 ZIP, comparaison de l'extraction, signatures Authenticode, versions et licence.
 
-Ce lot versionne ADR-0009, le manifeste épinglé et un analyseur Python pur avec fixtures. Il ne lance
-ni runtime, ni GPU, ni capture et ne modifie pas le registre. Il ne ferme donc pas `R1-037`.
+La chaîne intégrée aligne désormais ADR-0009, manifeste épinglé, reçu/ledger Rust, adaptateur
+QRenderDoc, analyseur Python pur et orchestrateur PowerShell. Ce lot correctif ne lance ni Cargo, ni
+runtime, ni GPU, ni capture et ne modifie pas le registre. Il ne ferme donc pas `R1-037`.
 
 ## Identité de l'acquisition externe
 
@@ -74,12 +76,27 @@ la matrice qualifiable, le workload et les rejets de l'analyse. ADR-0009 impose 
 - Windows x64/Vulkan seulement ;
 - D3D12 `NOT QUALIFIED` ;
 - Browser WebGPU `UNSUPPORTED BY RENDERDOC 1.46` ;
-- Visual Valley High, 1920 × 1080, VSync off, caméra/seed/tick fixes ;
+- Visual Valley High, 1920 × 1080, requête `AutoNoVsync`, caméra/seed/tick fixes ;
 - pipelines stables 30 frames puis état figé et reçu atomique ;
+- seeds de sources explicites, requête `AutoNoVsync` et horloges virtuelle/fixe remises au tick zéro
+  avant les 30 frames de settle ; le reçu ne prétend pas observer le mode WSI négocié ;
 - exactement une action `Present` observée par capture, recoupée avec `present_count=1` ;
 - deux lancements indépendants pour chacune des météos `clear` et `rain` ;
 - replay local `Supported`, pipeline Vulkan exact et mode non dégradé ;
 - aucun FPS dérivé de RenderDoc.
+
+Les formes exactes du reçu, du signal et du ledger sont versionnées dans le manifeste puis recoupées
+par l'adaptateur et l'orchestrateur. Le signal lie les SHA-256 de `qrenderdoc.exe`,
+`renderdoccmd.exe` et `renderdoc.dll` ; le host refuse un binaire différent avant le build. Le reçu
+final de l'adaptateur et ses quatre objets imbriqués sont également décrits champ par champ dans le
+manifeste et validés avant publication.
+
+Le dialogue analytics de premier lancement est fermé par contrat, sans interaction humaine : le
+bundle embarque Qt Core 5.15.2, est intégralement recopié dans une vue externe, puis sa copie
+`forge-gate1-qrenderdoc-<nonce>.exe` utilise un profil RoamingAppData unique contenant le seed minimal
+`rdocConfigData=1` et `Analytics_TotalOptOut=true`. L'adaptateur vérifie le chemin et le hash du seed
+avant injection. Le host archive la configuration finale dans le dossier du run, supprime le profil
+jetable en `finally` et recoupe l'empreinte du profil réel `qrenderdoc` avant/après sous mutex global.
 
 ## Analyseur pur
 
@@ -93,16 +110,28 @@ Le format d'enveloppe du lock reste `forge-gate1-renderdoc-lock/v1`. Le payload 
 façon incompatible par ces deux invariants, est explicitement monté à
 `forge-gate1-renderdoc-actions/v2` et sa sortie à `forge-gate1-renderdoc-analysis/v2`.
 
+L'adaptateur émet maintenant réellement `actions/v2`, dérive `instanced` du flag RenderDoc exact et
+compte chaque action `Present` au lieu de faire confiance à une constante déclarée. L'orchestrateur
+exige réellement `actions/v2` et `analysis/v2`, recalcule le nombre de `Present`, vérifie
+`metrics.present_actions == 1` et inclut ce compteur dans la signature de répétabilité. Chaque
+analyse doit aussi observer au moins un draw, une instance et un triangle ; les trois booléens du
+verdict final sont dérivés de ces résultats au lieu d'être publiés en dur.
+
 Commande exécutée depuis la racine du worktree :
 
 ```powershell
 python -S -B -m unittest discover -s scripts/renderdoc -p "test_*.py" -v
 ```
 
-Résultat : **17/17 tests PASS**. La matrice chargée couvre 25 rejets d'actions et 9 rejets
+Résultat : **22/22 tests PASS**. La matrice chargée couvre 25 rejets d'actions et 9 rejets
 d'enveloppe de capture, en plus des tests programmatiques de cycle, identifiant dupliqué, overflow de
-cumul, arbre sans draw, forme stricte et payload d'erreur sans métriques partielles. `-B` n'a produit
-aucun `__pycache__`.
+cumul, arbre sans draw, forme stricte et payload d'erreur sans métriques partielles. Trois tests de
+chaîne recoupent statiquement les ensembles de champs Rust, manifeste et adaptateur, les schémas v2,
+les gardes PowerShell `instanced`/`Present`, puis exercent les rejets de dérive du reçu et du ledger.
+Un quatrième exécute les fonctions isolées de l'adaptateur et prouve le booléen d'instanciation ainsi
+que le comptage des actions `Present` sans déduplication par identifiant d'événement ; un cinquième
+exerce le garde fail-closed du profil QRenderDoc jetable.
+`-B` n'a produit aucun `__pycache__`.
 
 Le smoke CLI pur sur `nominal_nested_actions.json` retourne `PASS` avec 8 actions visitées, 4 draws,
 7 instances, 5 triangles, 2 lignes et 15 points. Le parent `MultiAction` marqué `Drawcall` porte des
@@ -114,14 +143,19 @@ conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 
 | Artefact suivi | SHA-256 |
 |---|---|
-| ADR-0009 | `2D82EAD0B7713D9AEE1DC836E7C7E6159D45576BD5E0C2C976264036CC84BB40` |
-| `scripts/gate1-renderdoc.v1.json` | `7C9C81A43154E7AFA7CAE7CEA7E18B915E87B032312D5D2A632601C34A8D2BB6` |
-| `gate1_renderdoc_model.py` | `74348096DBC5B43D982270519130A42F675C2E3E47B0FE43027A71ECDF38E96B` |
+| ADR-0009 | `B8343FAC65763A236BB21DAB14D26058725C3D3622389DA42CF1B7837FAB6C66` |
+| `scripts/gate1-renderdoc.v1.json` | `B020A45953C6721F6EC9B2642FC1F4A5B80BD070463FE462EC771324AF0B1A97` |
+| `gate1_renderdoc_model.py` | `6575D76F43BD9F3F39E95C7F23C50A1C364850529B37CB00629769C386C57668` |
 | `test_gate1_renderdoc_model.py` | `A1AF6E2C803C74D9D7E11EBA5A9C874A89B528449C7DF70DC61E6FBB1474A281` |
 | `nominal_nested_actions.json` | `E7373B924A521112FBBB99F22107D19AE5A69DB4F9EBA48EFBC8F91A27151048` |
 | `action_rejections.json` | `705A3AC2B9F1FC6993F8B3ED9F791D672F1C0D5AD5CE5C7B6E46F0422E9D9123` |
 | `capture_rejections.json` | `C5AF8AF8E92FB8A956A07A419F11C326912365AB5495CF7CDE185E5FC388D33C` |
-| `scripts/renderdoc/README.md` | `E007E17C93474BC35E8830DCC6B9330A43CE0EF9CE04FC97997842CF0EEB2012` |
+| `scripts/renderdoc/README.md` | `97BF454FB19749F55D7CAFDF1FD6A02AF01F5DDC29594FBEA67E499DC341CC67` |
+| `gate1_renderdoc_qrenderdoc.py` | `ED4FB4DA97852A76669D5451B68BCBE9920B1E3C116281F18AA69BDABDA846DE` |
+| `scripts/Invoke-Gate1RenderDoc.ps1` | `84F2D01F1587ED74DB37DA375C84826B72887956D502B9F9DD1ADB35D2B9401C` |
+| `apps/forge_runtime/src/gate1_renderdoc_capture.rs` | `78B22F77530DDEC4A46119496CFE4673D82B7EDF9739663A4DFC2DEC371314CA` |
+| `test_gate1_renderdoc_contract_chain.py` | `68D452E6C45A0A65A74F42E8C481FB54E47F6A11BE17659424CCA6FFD63770B5` |
+| `apps/forge_runtime/README.md` | `B8AC7459EF2816665238B839FDA7E12384635B18BAAB2AA7A4304C90BFE64EDD` |
 
 ## Limites et travail encore dû
 
@@ -129,10 +163,10 @@ conserve zéro instance et zéro primitive. Aucun champ FPS n'est émis.
 |---|---|
 | acquisition portable, signatures, licence et hashes | **PASS** |
 | ADR, manifeste et modèle pur | **AJOUTÉS DANS CE LOT** |
-| tests Python purs | **PASS — 17/17, 34 sous-cas de rejet chargés** |
+| tests Python purs et chaîne statique cross-language | **PASS — 22/22, 34 sous-cas de rejet chargés** |
 | couche Vulkan RenderDoc enregistrée | **NON — BLOCAGE EXPLICITE** |
-| workload runtime déterministe | **NON LIVRÉ PAR CE LOT** |
-| orchestrateur QRenderDoc | **NON LIVRÉ PAR CE LOT** |
+| workload runtime déterministe | **INTÉGRÉ — CARGO/RUNTIME NOT RUN DANS CE LOT** |
+| adaptateur et orchestrateur QRenderDoc | **INTÉGRÉS — GPU/CAPTURE NOT RUN** |
 | captures Vulkan clear A/B et rain A/B | **NOT RUN** |
 | replay/analyse de `.rdc` | **NOT RUN** |
 | égalité inter-répétitions | **NOT RUN** |

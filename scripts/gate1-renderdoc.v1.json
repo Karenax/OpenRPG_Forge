@@ -22,12 +22,14 @@
       "qrenderdoc_exe": "C5E9D3F254D80A7649FBD9EAE1C67618CB19278C603710370C220DE469397277",
       "renderdoccmd_exe": "400CB013EA52B9BAA818D69DC0A6341776D2A9560EDAD5BCC6E200FE8C03806D",
       "renderdoc_dll": "809DA38E3867D9FD09CC5C30DD5310500DEE75E999166D7A14AD1EF6E9ECA65D",
+      "qt5core_dll": "8D2FF4CE9096DDCCC4F4CD62C2E41FC854CFD1B0D6E8D296645A7F5FD4AE565A",
       "license_md": "BA3B05B7F5BFDB4B4917BF8EA3AA9C4EA4C20FF6522DE9109A6CC982C5C35730",
       "acquisition_result": "1353372A67D364AF2B33A05833FAE6F8A355378C4202CFD4DA281BC78E97C77F"
     },
     "openpgp_primary_fingerprint": "1B039DB9A4718A2D699DE031AC612C3120C34695",
     "authenticode_signer_subject": "CN=Baldur Scott Karlsson, O=Baldur Scott Karlsson, S=Scotland, C=GB",
     "authenticode_signer_thumbprint": "F91353AE1E90CBEFF15585165D1611C5CE72E346",
+    "embedded_qt_core_file_version": "5.15.2.0",
     "license": {
       "spdx": "MIT",
       "preserved_with_external_package": true,
@@ -69,10 +71,15 @@
     "quality": "high",
     "width": 1920,
     "height": 1080,
-    "vsync": false,
+    "vsync_requested": false,
     "camera": "fixed",
-    "seed": "fixed",
-    "tick": "fixed",
+    "seed": "fixed_and_explicit_per_governed_source",
+    "tick": {
+      "virtual_elapsed_nanoseconds": 0,
+      "fixed_elapsed_nanoseconds": 0,
+      "fixed_tick": 0,
+      "fixed_timestep_nanoseconds": "positive_runtime_value"
+    },
     "weather_order": [
       "clear",
       "rain"
@@ -80,26 +87,120 @@
     "pipeline_stable_render_frames": 30,
     "freeze_before_ready_receipt": true,
     "ready_receipt_atomic": true,
+    "ready_receipt_schema": {
+      "name": "forge.gate1-renderdoc-ready",
+      "version": 1
+    },
     "ready_receipt_required_fields": [
       "schema",
+      "schema_version",
+      "status",
       "nonce",
-      "pid",
+      "process_id",
       "source_commit",
       "build_profile",
-      "backend",
-      "gpu",
-      "driver",
-      "resolution",
-      "vsync",
-      "weather",
-      "seed",
+      "required_backend",
+      "required_renderdoc_version",
+      "ready_frame",
+      "freeze_settle_frames",
+      "virtual_time_paused",
+      "frozen_state_sha256",
+      "frozen_state",
+      "files",
+      "qualification"
+    ],
+    "ready_receipt_frozen_state_fields": [
+      "sources",
+      "seeds",
       "tick",
+      "vsync_requested",
+      "expected_weather",
+      "weather_target",
+      "weather_wetness_current_bits",
+      "weather_wetness_target_bits",
+      "quality_selection",
+      "quality_startup_tier",
+      "quality_current_tier",
+      "quality_transition_count",
+      "pipeline_total",
+      "pipeline_ready",
       "camera",
-      "source_hashes"
+      "window",
+      "gpu",
+      "governed_scene_hashes"
+    ],
+    "ready_receipt_seed_fields": [
+      "terrain",
+      "vegetation",
+      "water",
+      "weather"
+    ],
+    "ready_receipt_source_fields": [
+      "terrain",
+      "vegetation",
+      "environment",
+      "water",
+      "weather",
+      "quality",
+      "cadle_assets_used"
+    ],
+    "ready_receipt_tick_fields": [
+      "virtual_elapsed_nanoseconds",
+      "fixed_elapsed_nanoseconds",
+      "fixed_timestep_nanoseconds",
+      "fixed_tick"
+    ],
+    "ready_receipt_camera_fields": [
+      "translation_m",
+      "forward",
+      "vertical_fov_degrees",
+      "active"
+    ],
+    "ready_receipt_window_fields": [
+      "physical_width",
+      "physical_height",
+      "scale_factor",
+      "visible",
+      "resizable"
+    ],
+    "ready_receipt_gpu_fields": [
+      "name",
+      "vendor",
+      "device",
+      "device_type",
+      "driver",
+      "driver_info",
+      "backend",
+      "max_texture_dimension_2d",
+      "max_bind_groups",
+      "max_uniform_buffer_binding_size",
+      "max_storage_buffer_binding_size"
+    ],
+    "ready_receipt_governed_scene_hash_fields": [
+      "visual_valley",
+      "shadow",
+      "vegetation",
+      "scenery",
+      "environment",
+      "water_static",
+      "weather_static"
+    ],
+    "ready_receipt_file_fields": [
+      "ready",
+      "signal",
+      "ledger",
+      "failure"
+    ],
+    "ready_receipt_qualification_fields": [
+      "runtime_state_qualified",
+      "external_capture_observed_by_runtime",
+      "renderdoc_analysis_completed_by_runtime",
+      "gate1_route_qualified",
+      "limitation"
     ]
   },
   "capture": {
-    "launcher": "qrenderdoc.exe --py",
+    "launcher": "forge-gate1-qrenderdoc-<nonce>.exe --python",
     "launch_api": "ExecuteAndInject",
     "target_control_required": true,
     "trigger_api": "TriggerCapture",
@@ -110,7 +211,110 @@
     "pipeline_type": "Vulkan",
     "degraded": false,
     "fresh_process_per_capture": true,
-    "registry_mutation_by_harness": false
+    "registry_mutation_by_harness": false,
+    "automation_profile": {
+      "strategy": "full_bundle_mirror_unique_executable_basename",
+      "application_name_prefix": "forge-gate1-qrenderdoc-",
+      "location": "QStandardPaths::AppDataLocation",
+      "ui_config_filename": "UI.config",
+      "json_magic_field": "rdocConfigData",
+      "json_magic_version": 1,
+      "analytics_total_opt_out": true,
+      "global_mutex": "Global\\OpenRPGForge-Gate1-QRenderDoc-Profile-v1",
+      "real_profile_application_name": "qrenderdoc",
+      "staged_bundle_complete": true,
+      "staged_binary_hash_and_signature_required": true,
+      "transient_host_profile_removed": true,
+      "real_profile_fingerprint_unchanged": true,
+      "adapter_config_path_check_before_injection": true
+    },
+    "signal_schema": {
+      "name": "forge.gate1-renderdoc-capture-signal",
+      "version": 1
+    },
+    "signal_fields": [
+      "schema",
+      "schema_version",
+      "nonce",
+      "process_id",
+      "source_commit",
+      "ready_sha256",
+      "capture_id",
+      "renderdoc"
+    ],
+    "signal_renderdoc_fields": [
+      "capture_triggered",
+      "target_control_ident",
+      "target_api",
+      "tool_version",
+      "qrenderdoc_sha256",
+      "renderdoccmd_sha256",
+      "renderdoc_dll_sha256"
+    ],
+    "runtime_ledger_schema": {
+      "name": "forge.gate1-renderdoc-runtime",
+      "version": 1
+    },
+    "runtime_ledger_fields": [
+      "schema",
+      "schema_version",
+      "status",
+      "nonce",
+      "process_id",
+      "source_commit",
+      "build_profile",
+      "ready_frame",
+      "signal_frame",
+      "capture_window_frames",
+      "ready_sha256",
+      "capture_id",
+      "renderdoc",
+      "frozen_state_sha256",
+      "frozen_state_initial",
+      "frozen_state_final",
+      "frozen_state_stable",
+      "files",
+      "qualification"
+    ],
+    "adapter_receipt_schema": "forge-gate1-renderdoc-adapter/v1",
+    "adapter_receipt_fields": [
+      "schema",
+      "status",
+      "source_commit",
+      "nonce",
+      "weather",
+      "capture_id",
+      "target",
+      "capture",
+      "files",
+      "qualification"
+    ],
+    "adapter_target_fields": [
+      "process_id",
+      "target_control_ident",
+      "api"
+    ],
+    "adapter_capture_fields": [
+      "path",
+      "sha256",
+      "renderdoc_capture_id",
+      "frame_number",
+      "byte_size",
+      "captured_frame_count"
+    ],
+    "adapter_file_fields": [
+      "gate1-renderdoc.ready.json",
+      "gate1-renderdoc.capture.signal.json",
+      "gate1-renderdoc.runtime.json",
+      "gate1-renderdoc.actions.json",
+      "gate1-renderdoc.analysis.json"
+    ],
+    "adapter_qualification_fields": [
+      "runtime_state_qualified",
+      "external_capture_observed",
+      "renderdoc_analysis_completed",
+      "renderdoc_metrics_are_fps_evidence"
+    ]
   },
   "normalized_input": {
     "schema": "forge-gate1-renderdoc-actions/v2",
@@ -143,6 +347,27 @@
   },
   "analysis": {
     "output_schema": "forge-gate1-renderdoc-analysis/v2",
+    "output_fields": [
+      "schema",
+      "status",
+      "capture",
+      "metrics"
+    ],
+    "metric_fields": [
+      "actions_visited",
+      "present_actions",
+      "draws",
+      "instances",
+      "triangles",
+      "lines",
+      "points",
+      "draws_by_topology"
+    ],
+    "required_positive_metrics": [
+      "draws",
+      "instances",
+      "triangles"
+    ],
     "leaf_flag": "Drawcall",
     "containers_recursed_without_counting_parent": true,
     "present_action_flag": "Present",

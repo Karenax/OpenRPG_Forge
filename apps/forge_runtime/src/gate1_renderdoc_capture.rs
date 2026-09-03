@@ -1,6 +1,10 @@
 use bevy::{
-    app::AppExit, diagnostic::FrameCount, ecs::system::SystemParam, prelude::*,
-    render::diagnostic::RenderDiagnosticsPlugin, window::PrimaryWindow,
+    app::AppExit,
+    diagnostic::FrameCount,
+    ecs::system::SystemParam,
+    prelude::*,
+    render::diagnostic::RenderDiagnosticsPlugin,
+    window::{PresentMode, PrimaryWindow},
 };
 use forge_core::{canonical_json_bytes, canonical_json_sha256};
 use forge_engine::{
@@ -40,6 +44,7 @@ const MAX_SIGNAL_BYTES: u64 = 32 * 1024;
 const MAX_READY_BYTES: u64 = 4 * 1024 * 1024;
 const REQUIRED_WIDTH: u32 = 1_920;
 const REQUIRED_HEIGHT: u32 = 1_080;
+const FROZEN_CAPTURE_TICK: u64 = 0;
 
 #[derive(Clone, Resource)]
 struct Configuration {
@@ -47,6 +52,7 @@ struct Configuration {
     nonce: String,
     weather: WeatherState,
     sources: SourceHashes,
+    seeds: SourceSeeds,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -58,6 +64,14 @@ struct SourceHashes {
     weather: String,
     quality: String,
     cadle_assets_used: bool,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+struct SourceSeeds {
+    terrain: u64,
+    vegetation: u64,
+    water: u64,
+    weather: u64,
 }
 
 pub(crate) struct Gate1RenderDocCapturePlugin {
@@ -94,6 +108,12 @@ impl Gate1RenderDocCapturePlugin {
                     weather: content_hash(weather, "weather")?,
                     quality: content_hash(quality, "quality")?,
                     cadle_assets_used: false,
+                },
+                seeds: SourceSeeds {
+                    terrain: terrain.seed,
+                    vegetation: vegetation.seed,
+                    water: water.seed,
+                    weather: weather.seed,
                 },
             },
         })
@@ -258,6 +278,9 @@ struct WindowEvidence {
 #[derive(Clone, Serialize)]
 struct FrozenStateEvidence {
     sources: SourceHashes,
+    seeds: SourceSeeds,
+    tick: ClockTickEvidence,
+    vsync_requested: bool,
     expected_weather: &'static str,
     weather_target: String,
     weather_wetness_current_bits: u32,
@@ -272,6 +295,14 @@ struct FrozenStateEvidence {
     window: WindowEvidence,
     gpu: GpuDiagnostic,
     governed_scene_hashes: GovernedSceneHashes,
+}
+
+#[derive(Clone, Serialize)]
+struct ClockTickEvidence {
+    virtual_elapsed_nanoseconds: u64,
+    fixed_elapsed_nanoseconds: u64,
+    fixed_timestep_nanoseconds: u64,
+    fixed_tick: u64,
 }
 
 #[derive(Clone, Serialize)]
@@ -334,6 +365,7 @@ struct RenderDocSignal {
     tool_version: String,
     qrenderdoc_sha256: String,
     renderdoccmd_sha256: String,
+    renderdoc_dll_sha256: String,
 }
 
 #[derive(Serialize)]
@@ -461,6 +493,10 @@ fn drive_capture_protocol(
         {
             return;
         }
+        let fixed_timestep = fixed_time.timestep();
+        *virtual_time = Time::<Virtual>::default();
+        virtual_time.pause();
+        *fixed_time = Time::<Fixed>::from_duration(fixed_timestep);
         let observation = match observe_frozen_state(
             &runtime.configuration,
             &pipeline,
@@ -469,6 +505,8 @@ fn drive_capture_protocol(
             gpu,
             &windows,
             &cameras,
+            &virtual_time,
+            &fixed_time,
         ) {
             Ok(observation) => observation,
             Err(error) => {
@@ -476,9 +514,6 @@ fn drive_capture_protocol(
                 return;
             }
         };
-        virtual_time.pause();
-        let overstep = fixed_time.overstep();
-        fixed_time.discard_overstep(overstep);
         runtime.frozen_state_sha256 = match content_hash(&observation, "frozen state") {
             Ok(hash) => Some(hash),
             Err(error) => {
@@ -509,6 +544,8 @@ fn drive_capture_protocol(
         gpu,
         &windows,
         &cameras,
+        &virtual_time,
+        &fixed_time,
     ) {
         Ok(observation) => observation,
         Err(error) => {
@@ -611,6 +648,8 @@ fn observe_frozen_state(
     gpu: &GpuDiagnostic,
     windows: &Query<&Window, With<PrimaryWindow>>,
     cameras: &Query<(&Camera, &Transform, &Projection), With<Camera3d>>,
+    virtual_time: &Time<Virtual>,
+    fixed_time: &Time<Fixed>,
 ) -> Result<FrozenStateEvidence, String> {
     validate_governed_gate1_render_state(
         &scene.visual_valley,
@@ -660,16 +699,23 @@ fn observe_frozen_state(
             gpu.backend, gpu.name
         ));
     }
+    let tick = observe_clock_tick(virtual_time, fixed_time)?;
 
-    let window = windows
+    let primary_window = windows
         .single()
         .map_err(|_| "Gate 1 RenderDoc requires exactly one primary window".to_owned())?;
+    if primary_window.present_mode != PresentMode::AutoNoVsync {
+        return Err(format!(
+            "Gate 1 RenderDoc requires the AutoNoVsync presentation request, observed {:?}",
+            primary_window.present_mode
+        ));
+    }
     let window = WindowEvidence {
-        physical_width: window.resolution.physical_width(),
-        physical_height: window.resolution.physical_height(),
-        scale_factor: window.resolution.scale_factor(),
-        visible: window.visible,
-        resizable: window.resizable,
+        physical_width: primary_window.resolution.physical_width(),
+        physical_height: primary_window.resolution.physical_height(),
+        scale_factor: primary_window.resolution.scale_factor(),
+        visible: primary_window.visible,
+        resizable: primary_window.resizable,
     };
     if window.physical_width != REQUIRED_WIDTH
         || window.physical_height != REQUIRED_HEIGHT
@@ -723,6 +769,9 @@ fn observe_frozen_state(
 
     Ok(FrozenStateEvidence {
         sources: configuration.sources.clone(),
+        seeds: configuration.seeds.clone(),
+        tick,
+        vsync_requested: false,
         expected_weather: weather_label(configuration.weather),
         weather_target: format!("{:?}", scene.weather.target_state),
         weather_wetness_current_bits: scene.weather.wetness.current.to_bits(),
@@ -745,6 +794,40 @@ fn observe_frozen_state(
             water_static: content_hash(&water_static, "static water observation")?,
             weather_static: content_hash(&weather_static, "static weather observation")?,
         },
+    })
+}
+
+fn observe_clock_tick(
+    virtual_time: &Time<Virtual>,
+    fixed_time: &Time<Fixed>,
+) -> Result<ClockTickEvidence, String> {
+    if !virtual_time.is_paused()
+        || !virtual_time.elapsed().is_zero()
+        || !virtual_time.delta().is_zero()
+        || !fixed_time.elapsed().is_zero()
+        || !fixed_time.delta().is_zero()
+        || !fixed_time.overstep().is_zero()
+    {
+        return Err(format!(
+            "Gate 1 RenderDoc clock is not frozen at tick {FROZEN_CAPTURE_TICK}: virtual_paused={}, virtual_elapsed={:?}, virtual_delta={:?}, fixed_elapsed={:?}, fixed_delta={:?}, fixed_overstep={:?}",
+            virtual_time.is_paused(),
+            virtual_time.elapsed(),
+            virtual_time.delta(),
+            fixed_time.elapsed(),
+            fixed_time.delta(),
+            fixed_time.overstep()
+        ));
+    }
+    let fixed_timestep_nanoseconds = u64::try_from(fixed_time.timestep().as_nanos())
+        .map_err(|error| format!("Gate 1 RenderDoc fixed timestep exceeds uint64: {error}"))?;
+    if fixed_timestep_nanoseconds == 0 {
+        return Err("Gate 1 RenderDoc fixed timestep cannot be zero".to_owned());
+    }
+    Ok(ClockTickEvidence {
+        virtual_elapsed_nanoseconds: 0,
+        fixed_elapsed_nanoseconds: 0,
+        fixed_timestep_nanoseconds,
+        fixed_tick: FROZEN_CAPTURE_TICK,
     })
 }
 
@@ -975,6 +1058,10 @@ fn validate_signal(signal: &CaptureSignal, runtime: &CaptureRuntime) -> Result<(
     }
     validate_sha256(&signal.renderdoc.qrenderdoc_sha256, "qrenderdoc_sha256")?;
     validate_sha256(&signal.renderdoc.renderdoccmd_sha256, "renderdoccmd_sha256")?;
+    validate_sha256(
+        &signal.renderdoc.renderdoc_dll_sha256,
+        "renderdoc_dll_sha256",
+    )?;
     Ok(())
 }
 
@@ -1168,6 +1255,7 @@ mod tests {
                 tool_version: REQUIRED_RENDERDOC_VERSION.to_owned(),
                 qrenderdoc_sha256: "1".repeat(64),
                 renderdoccmd_sha256: "2".repeat(64),
+                renderdoc_dll_sha256: "3".repeat(64),
             },
         }
     }
