@@ -1,8 +1,8 @@
 # R1-048 — Diagnostic gameplay continu avec PresentMon
 
 Date : **2026-09-03**
-Route : **`R1-048` OUVERTE — schema 12 ABORT avant ready puis deux fois avant signal ; readiness
-corrigée, aucun nouveau verdict performance**
+Route : **`R1-048` OUVERTE — quatre replays schema 12 ABORT avant signal au plus tard ; dernier
+ABORT sur frontière finale `row→sample`, aucun nouveau verdict performance**
 Gate : **Gate 1 OUVERTE ; Gate 2 INTERDITE**
 
 ## Décision
@@ -29,9 +29,9 @@ application de l'hôte, un CSV exact avec zéro perte, tandis qu'un probe du mê
 l'absence de ligne cible. L'hypothèse locale
 prioritaire est un écran physique déjà endormi : le garde d'exécution maintient un écran actif mais ne
 réveille pas un écran déjà éteint. Cette cause reste une **inférence**, pas un fait sérialisé par le
-reçu. Une nouvelle acquisition complète, après réveil manuel de l'affichage et dans des chemins frais,
-reste due ; aucune entrée synthétique ne sera utilisée. Le dernier verdict de performance demeure donc
-le FAIL strict schema 8 décrit ci-dessous.
+reçu. Une nouvelle acquisition complète après retour de l'affichage restait donc nécessaire ; le smoke
+et le quatrième replay décrits ci-dessous la réalisent sans entrée synthétique. Le dernier verdict de
+performance demeure toutefois le FAIL strict schema 8 décrit ci-dessous.
 
 Le troisième replay gouverné, au commit exact `2ced195bc2e396b599d1ed66680422e97cea7753`, arbre
 `8a46bd4573863aa9eff91fe902423299bfe72add`, confirme le même état après un rebuild propre de
@@ -39,14 +39,33 @@ Le troisième replay gouverné, au commit exact `2ced195bc2e396b599d1ed66680422e
 host-wide lancé avec ce même binaire encore en attente écrit six lignes d'une autre application avec
 ETW 0/0, mais aucune ligne Forge. L'audit Git confirme que le chemin runtime d'attente du signal et les
 arguments PresentMon sont byte-for-byte identiques au replay schema 11 qui avait produit 338 lignes
-Forge. L'état de l'affichage physique reste donc le diagnostic prioritaire ; il n'est pas converti en
-fait prouvé et aucun quatrième rebuild n'est lancé sans réveil manuel confirmé.
+Forge. L'état de l'affichage physique restait alors le diagnostic prioritaire, sans être converti en
+fait prouvé.
+
+Un smoke non qualifiant très court sur le binaire Release partagé `41b49f66` confirme ensuite que
+l'écran actif permet de nouveau l'acquisition : header exact, 22 lignes Forge et ETW 0/0 en 4,619 s.
+Le quatrième replay gouverné reconstruit donc le HEAD propre `83f02928` en 32 min 27 s dans un target
+externe neuf. Il reçoit 25 lignes Forge, mais s'arrête encore avant signal : la tentative 1 était
+marquée acceptée sur un gap de sampling fenêtre de 125,7557 ms avant que le contrôle final ne compare
+la dernière ligne PresentMon au dernier échantillon natif. Cette frontière finale vaut 743,6604 ms,
+au-delà des 250 ms imposées. Le reçu est
+`abort_infrastructure_before_signal_nonqualifying` / `no_qualified_performance_verdict` ; aucun seuil
+de cadence n'est évalué.
 
 Le commit `9b847e996c39e76a9620e18cc1d7c5b2440e6145` avait durci le harnais : frontière hôte schema 5,
 validation schema 12, restabilisation bornée à trois tentatives et 15 secondes uniquement avant le
 signal, refus immédiat d'un QPC non monotone, et reçu d'abandon
 `forge.gate1-gameplay-stutter-abort` v1. Un essai rejeté ne peut jamais publier le signal et aucune
 restabilisation n'est permise après le signal ou après le début des métriques.
+
+Le durcissement préparé depuis `83f02928` replace désormais cette frontière finale dans la tentative
+pré-signal elle-même. Un gap final strictement ordonné mais supérieur à 250 ms rejette la tentative,
+ne publie aucun signal et consomme la tentative suivante dans les limites existantes de trois essais
+et 15 secondes ; un QPC non monotone ou la dernière tentative échoue fermé. Les constantes restent
+2 000 ms de settle, 100 ms d'échantillonnage et 250 ms maximum. Les cas synthétiques 250 ms accepté,
+251 ms rejoué puis fail-closed, QPC non monotone et signal prématuré interdit passent, ainsi que le
+parseur PowerShell. Aucun rebuild ni replay corrigé n'est revendiqué dans ce lot : `R1-048` reste
+ouverte.
 
 Le protocole schema 8 a été construit et rejoué sur le commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -182,6 +201,84 @@ Un probe host-wide de huit secondes conserve séparément un CSV de 1 401 octets
 `hostwide-with-forge-logs-2ced195b-20260903T045331394Z`. Il contient six lignes
 `logioptionsplus_agent.exe`, aucune ligne `forge_runtime.exe` et des états ETW 0/0. Ce diagnostic
 prouve que la session ETW sait écrire sur l'hôte au même instant, pas que l'affichage Forge est actif.
+
+### Smoke écran actif `41b49f66` — diagnostic court non qualifiant
+
+Avant de risquer un nouveau rebuild, un smoke de 4,619 s réutilise explicitement le binaire Release
+existant `41b49f66d4573de505be44dfd38da75704d697f7`, 82 668 032 octets, SHA-256
+`0D2E7C32B18BA18DBDFAC503765CFED5A2DFD29366D5AE13D12B044866B42C48`. Le reçu prêt compte 69/69
+pipelines, zéro erreur, 77 frames de rendu observées et 32 frames stables. Après activation du premier
+plan, PresentMon publie son header exact et 22 lignes `forge_runtime.exe` avec ETW 0/0. Les artefacts
+externes sont conservés sous :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\current-display-smoke-41b49f6-20260903T134600221Z-2a563943
+E:\OpenRPG_Forge\.gate1-tools\presentmon\diagnostics\current-display-smoke-41b49f6-20260903T134600221Z-2a563943-logs
+```
+
+Le reçu prêt de 26 796 octets porte le SHA-256
+`7B787E748C1B4C789E6FF8A59C14016126AC052510F5EB8E9C042A6AE8F5C00C` ; le stdout brut de 9 012
+octets porte `57AE24983C8953036DBAAE80C6700E2A181E9D7A6AECDC6F1EDB333699B1BAF0`. Le runtime et PresentMon
+sont arrêtés, sans session ETW possédée restante. Ce smoke confirme uniquement que l'écran alors actif
+produit des lignes Forge ; son binaire réutilisé et sa fenêtre courte interdisent toute qualification
+de `R1-048`.
+
+### Replay 4 `83f02928` — lignes Forge présentes, frontière finale hors borne
+
+Identité exacte : commit `83f02928da72774a49d3d62ee68be85335b0bf01`, arbre
+`551fd73a2d6726b0a4ebbbe4a61f83cd78533e34`. Le build Release gouverné termine en 32 min 27 s dans
+un target Cargo externe neuf. Le binaire de 82 668 032 octets porte le SHA-256
+`8D2C8D410B68D56E777A68F33C5B853269A217C330580EF827F3929D5C610D64`. Les artefacts externes sont
+conservés sous :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\presentmon\evidence\gate1-stutter-83f0292-20260903T134649471Z
+```
+
+Le reçu prêt schema 4 confirme Vulkan sur RX 7800 XT, pilote `26.8.1 (LLPC)`, profil High
+1920 × 1080, route `AutoNoVsync`, 69/69 pipelines, zéro erreur, 314 frames de rendu observées,
+32 frames stables et neuf modèles chargés sans échec. Le flux brut conserve le header exact, 25 lignes
+Forge sur un swapchain, la signature `DXGI` / `SyncInterval=0` / `Composed: Flip`, 19
+`DisplayedTime` numériques et six `NA`, avec ETW 0/0.
+
+Le harnais ancien marque toutefois la tentative 1 acceptée avant le dernier contrôle. Le reçu conserve
+un gap de sampling natif de 125,7557 ms et un maximum de 149,2829 ms, puis l'échantillon natif final
+`7685719844327` est comparé après cette acceptation à la dernière ligne PresentMon complète
+`7685712407723` : la frontière `row→sample` vaut 743,6604 ms et dépasse la borne inchangée de 250 ms.
+Le replay s'arrête correctement avant publication du signal, mais trop tard pour consommer les essais
+2 et 3 du budget déjà prévu.
+
+| Artefact replay 4 | Octets | SHA-256 |
+|---|---:|---|
+| reçu d'abandon v1 | 2 029 | `7DB870E2D8050F5177D59D75A270F8FFDFECA744F7FF51980FBC1877205A292F` |
+| reçu prêt schema 4 | 26 804 | `29CFBBEE968C1877E0D4F4C6DB2ED9E9345860728A10B431BA225B777186379B` |
+| stdout brut PresentMon | 5 411 | `248A9D0FBDCE25F7DE8FF4B52DD47B883A56E571A331F7FED4EBC47F462324AB` |
+| stderr PresentMon | 303 | `FA8CC09EBA927931FA1670BE29DF1558C531367D416E48CD784ACABFA3C77FA6` |
+| stderr runtime | 8 056 | `0837197D9042BB90018C90F2DF0584734ED65F5BE188B0E64832A34E7D8F708E` |
+| stdout runtime vide | 0 | `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855` |
+| arrêt de secours PresentMon | 190 | `C1F3939F2269EF460BBF912D77E38C66779AC26EDEE7DB721201C142F7CB4F0D` |
+
+Le verdict exact est `abort_infrastructure_before_signal_nonqualifying` /
+`no_qualified_performance_verdict`, avec l'erreur
+`The final native-window sample is not strictly ordered within 250 ms of the complete post-settle
+PresentMon row.` Aucun signal, host boundary, ledger runtime ou validation schema 12 n'est publié.
+Les seuils moyenne ≥60 FPS, p95 ≤16,7 ms, 1 % low ≥45 FPS, zéro valeur >33,3 ms et maximum
+consécutif >16,7 ms ≤1 ne sont pas évalués. Le reçu confirme l'arrêt du runtime, de PresentMon et de
+la session ETW possédée.
+
+### Durcissement final préparé depuis `83f02928` — pas encore rejoué
+
+Le contrôle final `row→sample` est déplacé dans chacune des tentatives de stabilisation, avant
+l'enregistrement de son acceptation et avant toute écriture du signal. Un gap strictement ordonné
+supérieur à 250 ms enregistre un rejet avec `signal_published=false`, puis recommence le settle dans
+le budget existant ; la troisième tentative ou le timeout global de 15 secondes échoue fermé. Un QPC
+non monotone échoue immédiatement. Ni le settle fixe de 2 000 ms, ni l'échantillonnage de 100 ms, ni
+la borne de 250 ms, ni la fenêtre de mesure, ni les seuils de performance ne changent.
+
+Le parseur PowerShell, les self-tests positifs/négatifs du gap final et le contrôle statique de l'ordre
+`classification → rejet/rejeu ou acceptation → signal` passent dans le worktree de correction. Aucun
+build Release, aucune campagne GPU et aucun replay complet ne sont lancés après ce changement ; son
+effet réel reste donc à confirmer par un futur replay gouverné. Il ne ferme pas `R1-048`.
 
 ## Rejeu schema 11 `1912806` — abandon pré-signal
 
@@ -849,13 +946,19 @@ en fixe l'identité, les limites et les résultats sans modifier les preuves his
 - replay schema 12 `2ced195b` : rebuild propre 30 min 06 s, readiness **PASS** avec 69/69 pipelines et
   401 frames de rendu observées, puis même **ABORT avant signal** sur stdout PresentMon vide ; probe
   host-wide ETW 0/0 sans ligne Forge, aucun verdict performance ;
-- affichage déjà endormi : **hypothèse locale prioritaire, non prouvée par le reçu** ; réveil manuel
-  puis nouveau rebuild/replay exact encore dus, sans entrée synthétique ;
+- smoke écran actif `41b49f66` : header exact et 22 lignes Forge avec ETW 0/0 en 4,619 s ; preuve
+  **NONQUALIFYING** sur un binaire partagé, qui confirme l'état courant sans prouver la cause passée ;
+- replay schema 12 `83f02928` : rebuild propre 32 min 27 s, readiness **PASS**, header exact et 25
+  lignes Forge ETW 0/0, puis **ABORT avant signal** sur la frontière finale `row→sample` de
+  743,6604 ms >250 ms ; aucun seuil de cadence évalué, nettoyage processus/ETW confirmé ;
 - rejeu schema 11 `1912806` : **ABORT avant signal** pour trou d'échantillonnage de fenêtre
   `>250 ms` après le settle ; ready + flux PresentMon ETW 0/0 conservés, mais aucun signal, aucune
   frontière hôte, aucun ledger final, aucune validation et aucun verdict de performance ;
 - harnais `9b847e99` : frontière hôte schema 5 et validation schema 12, restabilisation pré-signal
-  bornée et reçu d'abandon v1 ; trois replay schema 12 tentés, aucun arrivé au signal ;
+  bornée et reçu d'abandon v1 ; quatre replays schema 12 tentés, aucun arrivé au signal ;
+- durcissement préparé depuis `83f02928` : un gap final `row→sample` >250 ms rejette désormais
+  l'essai avant acceptation et rejoue dans les trois tentatives/15 secondes existantes ; seuils,
+  fenêtre et contrat inchangés, self-tests et validations statiques **PASS**, replay corrigé encore dû ;
 - `R1-048` : **OUVERTE** — le rejeu gouverné schema 8 a été effectué à `49acfd5`, mais le replay 2
   échoue strictement sur une valeur `DisplayedTime=35,3837 ms` ; GPU cible et revue humaine restent
   dus ;

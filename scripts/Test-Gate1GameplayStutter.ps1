@@ -1444,6 +1444,25 @@ function Invoke-Gate1PresentMonFailureSelectionSelfTest {
     Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $false -StrictlyOrdered $true -Attempt 3 -MaximumAttempts 3) -eq "fail_closed") -Message "Pre-signal stabilization self-test did not fail closed at its attempt bound."
     Assert-Condition -Condition ((Get-Gate1PreSignalGapDisposition -GapPassed $false -StrictlyOrdered $false -Attempt 1 -MaximumAttempts 3) -eq "fail_closed") -Message "Pre-signal stabilization self-test did not fail closed on a non-monotonic QPC boundary."
 
+    $finalRowBoundaryAtLimit = Get-Gate1BoundedQpcGapAssessment -EarlierQpc 1000 -LaterQpc 1250 -FrequencyHz 1000
+    Assert-Condition -Condition (
+        $finalRowBoundaryAtLimit.Passed -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryAtLimit.Passed -StrictlyOrdered $finalRowBoundaryAtLimit.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "accept"
+    ) -Message "Final PresentMon-row boundary self-test rejected the exact 250 ms contract limit."
+    $finalRowBoundaryTooWide = Get-Gate1BoundedQpcGapAssessment -EarlierQpc 1000 -LaterQpc 1251 -FrequencyHz 1000
+    Assert-Condition -Condition (
+        -not $finalRowBoundaryTooWide.Passed -and
+        $finalRowBoundaryTooWide.GapMilliseconds -eq 251.0 -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryTooWide.Passed -StrictlyOrdered $finalRowBoundaryTooWide.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "restabilize_before_signal" -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryTooWide.Passed -StrictlyOrdered $finalRowBoundaryTooWide.StrictlyOrdered -Attempt 3 -MaximumAttempts 3) -eq "fail_closed"
+    ) -Message "Final PresentMon-row boundary self-test did not consume a bounded retry before failing closed."
+    $finalRowBoundaryNonMonotonic = Get-Gate1BoundedQpcGapAssessment -EarlierQpc 1000 -LaterQpc 1000 -FrequencyHz 1000
+    Assert-Condition -Condition (
+        -not $finalRowBoundaryNonMonotonic.Passed -and
+        -not $finalRowBoundaryNonMonotonic.StrictlyOrdered -and
+        (Get-Gate1PreSignalGapDisposition -GapPassed $finalRowBoundaryNonMonotonic.Passed -StrictlyOrdered $finalRowBoundaryNonMonotonic.StrictlyOrdered -Attempt 1 -MaximumAttempts 3) -eq "fail_closed"
+    ) -Message "Final PresentMon-row boundary self-test did not fail closed on a non-monotonic QPC boundary."
+
     $validSingle = @([pscustomobject]@{ attempt = 1; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $true })
     Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $validSingle -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Pre-signal stabilization trace self-test rejected a single accepted attempt."
     $validRetry = @(
@@ -1456,6 +1475,16 @@ function Invoke-Gate1PresentMonFailureSelectionSelfTest {
         [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $false }
     )
     Assert-Condition -Condition (-not (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $invalidRetry -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed) -Message "Pre-signal stabilization trace self-test accepted an invalid retry or an unpublished accepted signal."
+    $finalBoundaryRetryTrace = @(
+        [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 251.0; maximum_gap_ms = 251.0; disposition = "restabilize_before_signal"; signal_published = $false },
+        [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 250.0; maximum_gap_ms = 250.0; disposition = "accept"; signal_published = $true }
+    )
+    Assert-Condition -Condition (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $finalBoundaryRetryTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed -Message "Final PresentMon-row boundary trace self-test rejected a bounded retry followed by exact-limit acceptance."
+    $prematureFinalBoundarySignalTrace = @(
+        [pscustomobject]@{ attempt = 1; accepted = $false; strictly_ordered = $true; gap_ms = 251.0; maximum_gap_ms = 251.0; disposition = "restabilize_before_signal"; signal_published = $true },
+        [pscustomobject]@{ attempt = 2; accepted = $true; strictly_ordered = $true; gap_ms = 100.0; maximum_gap_ms = 100.0; disposition = "accept"; signal_published = $true }
+    )
+    Assert-Condition -Condition (-not (Get-Gate1PreSignalStabilizationTraceAssessment -Attempts $prematureFinalBoundarySignalTrace -MaximumAttempts 3 -MaximumGapMilliseconds 250.0).Passed) -Message "Final PresentMon-row boundary trace self-test accepted a rejected attempt that published the signal."
 }
 
 function Test-PresentMonConsoleLine {
@@ -3073,18 +3102,82 @@ try {
             continue
         }
         Assert-Condition -Condition ($lastPreSignalQpc -gt [uint64]$foregroundSettle.EndQpc -and $preSignalObservedRows -gt 0 -and $postSettleObservedRows -gt 0) -Message "PresentMon did not observe a complete target-PID row strictly after the fixed foreground-settle interval."
+        $finalPreSignalWindowSample = Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
+        Assert-Condition -Condition ([uint64]$finalPreSignalWindowSample.Qpc -gt [uint64]$postSettleWindowSamples[-1].Qpc) -Message "Host QPC was not strictly monotonic at the final native-window sample before signal publication."
+        [uint64]$finalPreSignalSamplingGapQpc = [uint64]$finalPreSignalWindowSample.Qpc - [uint64]$postSettleWindowSamples[-1].Qpc
+        $finalPreSignalSamplingGapMilliseconds = [double](([decimal]$finalPreSignalSamplingGapQpc * 1000) / [decimal]$qpcFrequencyHz)
+        Assert-Condition -Condition ($finalPreSignalSamplingGapMilliseconds -le $nativeWindowMaximumSamplingGapMilliseconds) -Message "The final native-window sample before signal publication exceeded the governed sampling gap."
+        Assert-Condition -Condition (Test-Gate1QualifyingNativeWindowState -State $finalPreSignalWindowSample) -Message "The qualified forge_runtime HWND changed or lost foreground at the final sample before signal publication."
+        $postSettleWindowSamples.Add($finalPreSignalWindowSample)
+        $nativeWindowSamples.Add($finalPreSignalWindowSample)
+        Assert-Condition -Condition ([uint64]$postSettleWindowSamples[0].Qpc -eq [uint64]$foregroundSettle.EndQpc) -Message "Post-settle native-window continuity is not anchored at the final foreground-settle sample."
+        $postSettleWindowContinuity = Get-Gate1NativeWindowContinuity `
+            -Samples @($postSettleWindowSamples) `
+            -StartQpc ([uint64]$foregroundSettle.EndQpc) `
+            -EndQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
+            -FrequencyHz $qpcFrequencyHz
+        Assert-Condition -Condition $postSettleWindowContinuity.StatePassed -Message "Native-window continuity from foreground-settle end through the final pre-publication sample failed."
+        $lastPreSignalToFinalWindowSampleBoundary = Get-Gate1BoundedQpcGapAssessment `
+            -EarlierQpc $lastPreSignalQpc `
+            -LaterQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
+            -FrequencyHz $qpcFrequencyHz
+        Assert-Gate1PresentMonFailurePriority `
+            -PresentMonCapture $presentMonCapture `
+            -PresentMonStderrPath $presentMonStderrPath `
+            -GapPassed $true `
+            -Phase "while classifying the final pre-signal PresentMon-row boundary" `
+            -GapFailureMessage "PresentMon failed while classifying the final pre-signal PresentMon-row boundary."
+        $finalBoundaryDisposition = Get-Gate1PreSignalGapDisposition `
+            -GapPassed $lastPreSignalToFinalWindowSampleBoundary.Passed `
+            -StrictlyOrdered $lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered `
+            -Attempt $stabilizationAttempt `
+            -MaximumAttempts $preSignalStabilizationMaximumAttempts
+        if ([uint64][Diagnostics.Stopwatch]::GetTimestamp() -ge $preSignalStabilizationDeadlineQpc) {
+            $finalBoundaryDisposition = "fail_closed"
+        }
+        $attemptMaximumGapMilliseconds = [Math]::Max(
+            [double]$postSettleWindowContinuity.MaximumSamplingGapMilliseconds,
+            [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+        )
+        if ($finalBoundaryDisposition -ne "accept") {
+            $preSignalStabilizationAttempts.Add([pscustomobject][ordered]@{
+                    attempt = $stabilizationAttempt
+                    accepted = $false
+                    reason = "final_presentmon_row_to_window_sample_gap_before_signal"
+                    settle_start_qpc = [uint64]$foregroundSettle.StartQpc
+                    settle_end_qpc = [uint64]$foregroundSettle.EndQpc
+                    gap_earlier_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
+                    gap_later_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.LaterQpc
+                    gap_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.GapQpc
+                    gap_ms = [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+                    maximum_gap_ms = [double]$attemptMaximumGapMilliseconds
+                    strictly_ordered = [bool]$lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
+                    disposition = [string]$finalBoundaryDisposition
+                    elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
+                    signal_published = $false
+                })
+            if ($finalBoundaryDisposition -eq "fail_closed") {
+                Assert-Gate1PresentMonFailurePriority `
+                    -PresentMonCapture $presentMonCapture `
+                    -PresentMonStderrPath $presentMonStderrPath `
+                    -GapPassed $false `
+                    -Phase "at the final pre-signal PresentMon-row boundary" `
+                    -GapFailureMessage "The final native-window sample was not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms of the complete post-settle PresentMon row inside the bounded pre-signal stabilization attempts and timeout."
+            }
+            continue
+        }
         $preSignalStabilizationAttempts.Add([pscustomobject][ordered]@{
                 attempt = $stabilizationAttempt
                 accepted = $true
                 reason = "continuous_pre_signal_window_observed"
                 settle_start_qpc = [uint64]$foregroundSettle.StartQpc
                 settle_end_qpc = [uint64]$foregroundSettle.EndQpc
-                gap_earlier_qpc = [uint64]$postSettleSamplingGap.EarlierQpc
-                gap_later_qpc = [uint64]$postSettleSamplingGap.LaterQpc
-                gap_qpc = [uint64]$postSettleSamplingGap.GapQpc
-                gap_ms = [double]$postSettleSamplingGap.GapMilliseconds
-                maximum_gap_ms = $null
-                strictly_ordered = [bool]$postSettleSamplingGap.StrictlyOrdered
+                gap_earlier_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.EarlierQpc
+                gap_later_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.LaterQpc
+                gap_qpc = [uint64]$lastPreSignalToFinalWindowSampleBoundary.GapQpc
+                gap_ms = [double]$lastPreSignalToFinalWindowSampleBoundary.GapMilliseconds
+                maximum_gap_ms = [double]$attemptMaximumGapMilliseconds
+                strictly_ordered = [bool]$lastPreSignalToFinalWindowSampleBoundary.StrictlyOrdered
                 disposition = "accept"
                 elapsed_ms = $preSignalStabilizationTimer.Elapsed.TotalMilliseconds
                 signal_published = $false
@@ -3096,28 +3189,6 @@ try {
         $preSignalStabilizationTimer.Stop()
     }
     Assert-Condition -Condition ($preSignalStabilizationAccepted -and [uint64][Diagnostics.Stopwatch]::GetTimestamp() -lt $preSignalStabilizationDeadlineQpc) -Message "Pre-signal stabilization did not produce a continuous accepted interval inside its bounded attempts and timeout."
-    $finalPreSignalWindowSample = Get-Gate1NativeWindowState -Process $runtimeCapture.Process -ExpectedHandle $nativeWindowObservation.RawHandle
-    Assert-Condition -Condition ([uint64]$finalPreSignalWindowSample.Qpc -gt [uint64]$postSettleWindowSamples[-1].Qpc) -Message "Host QPC was not strictly monotonic at the final native-window sample before signal publication."
-    [uint64]$finalPreSignalSamplingGapQpc = [uint64]$finalPreSignalWindowSample.Qpc - [uint64]$postSettleWindowSamples[-1].Qpc
-    $finalPreSignalSamplingGapMilliseconds = [double](([decimal]$finalPreSignalSamplingGapQpc * 1000) / [decimal]$qpcFrequencyHz)
-    Assert-Condition -Condition ($finalPreSignalSamplingGapMilliseconds -le $nativeWindowMaximumSamplingGapMilliseconds) -Message "The final native-window sample before signal publication exceeded the governed sampling gap."
-    Assert-Condition -Condition (Test-Gate1QualifyingNativeWindowState -State $finalPreSignalWindowSample) -Message "The qualified forge_runtime HWND changed or lost foreground at the final sample before signal publication."
-    $postSettleWindowSamples.Add($finalPreSignalWindowSample)
-    $nativeWindowSamples.Add($finalPreSignalWindowSample)
-    Assert-Condition -Condition ([uint64]$postSettleWindowSamples[0].Qpc -eq [uint64]$foregroundSettle.EndQpc) -Message "Post-settle native-window continuity is not anchored at the final foreground-settle sample."
-    $postSettleWindowContinuity = Get-Gate1NativeWindowContinuity `
-        -Samples @($postSettleWindowSamples) `
-        -StartQpc ([uint64]$foregroundSettle.EndQpc) `
-        -EndQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
-        -FrequencyHz $qpcFrequencyHz
-    Assert-Condition -Condition $postSettleWindowContinuity.StatePassed -Message "Native-window continuity from foreground-settle end through the final pre-publication sample failed."
-    $preSignalStabilizationAttempts[$preSignalStabilizationAttempts.Count - 1].maximum_gap_ms = [double]$postSettleWindowContinuity.MaximumSamplingGapMilliseconds
-    Assert-Condition -Condition ($lastPreSignalQpc -lt [uint64]$finalPreSignalWindowSample.Qpc) -Message "The final native-window sample does not follow the complete post-settle PresentMon row."
-    $lastPreSignalToFinalWindowSampleBoundary = Get-Gate1BoundedQpcGapAssessment `
-        -EarlierQpc $lastPreSignalQpc `
-        -LaterQpc ([uint64]$finalPreSignalWindowSample.Qpc) `
-        -FrequencyHz $qpcFrequencyHz
-    Assert-Condition -Condition $lastPreSignalToFinalWindowSampleBoundary.Passed -Message "The final native-window sample is not strictly ordered within $nativeWindowMaximumSamplingGapMilliseconds ms of the complete post-settle PresentMon row."
     $preSignalPhaseOrder = Get-Gate1PreSignalPhaseOrderAssessment `
         -PresentMonStartedQpc $presentMonStartedQpc `
         -ForegroundAcquiredQpc $foregroundAcquiredQpc `

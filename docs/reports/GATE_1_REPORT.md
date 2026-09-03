@@ -111,7 +111,7 @@ validation au schema 12. Il autorise au plus trois tentatives de restabilisation
 de 15 secondes, exclusivement avant le signal, et publie un reçu d'abandon v1 en cas d'échec. Ses
 self-tests, la syntaxe PowerShell et le diff-check passent.
 
-Trois tentatives schema 12 ont ensuite été acquises sans atteindre le signal. À `9d19cde5`, le runtime
+Quatre tentatives schema 12 ont ensuite été acquises sans atteindre le signal. À `9d19cde5`, le runtime
 observe 69/69 pipelines et un ledger qualité 34/34 exact en `5/16/13`, mais l'attente historique
 `5/14/15` bloque la readiness. Le correctif `4b283182` dérive les comptes attendus du contrat canonique
 et conserve une assertion explicite `5/16/13` ; 141/141 tests moteur Release, 67/67 runtime et 1/1
@@ -122,7 +122,25 @@ et la session ETW sont nettoyés. Un écran déjà endormi est l'hypothèse loca
 par le reçu. Le replay `2ced195b`, arbre `8a46bd45`, reconstruit ensuite en 30 min 06 s et reproduit
 l'ABORT avant signal : ready 69/69, 401 frames de rendu observées, puis stdout PresentMon vide. Un
 probe host-wide simultané écrit six lignes d'une autre application avec ETW 0/0, mais aucune ligne
-Forge. Aucun nouveau verdict n'existe ; un replay exact après réveil manuel confirmé reste dû.
+Forge.
+
+Un smoke court explicitement non qualifiant sur le binaire partagé `41b49f66` confirme ensuite que
+l'écran actif produit le header exact et 22 lignes Forge ETW 0/0. Le replay 4 reconstruit le commit
+exact `83f02928da72774a49d3d62ee68be85335b0bf01`, arbre
+`551fd73a2d6726b0a4ebbbe4a61f83cd78533e34`, en 32 min 27 s. Son binaire de 82 668 032 octets porte
+`8d2c8d410b68d56e777a68f33c5b853269a217c330580ef827f3929d5c610d64`. Le ready confirme 69/69
+pipelines, zéro erreur, 314 frames observées et 32 stables ; PresentMon conserve 25 lignes Forge,
+19 `DisplayedTime` numériques, six `NA` et ETW 0/0. Le replay s'arrête néanmoins avant signal : le
+dernier `CPUStartQPC` complet `7685712407723` précède l'échantillon fenêtre final
+`7685719844327` de 743,6604 ms, au-delà de 250 ms. Aucun seuil de performance n'est évalué.
+
+Le durcissement préparé depuis `83f02928` classe désormais cette frontière finale dans la tentative
+pré-signal, avant son acceptation. Un gap final strictement ordonné >250 ms enregistre un rejet sans
+signal et rejoue dans les limites existantes de trois tentatives et 15 secondes ; un QPC non monotone,
+la dernière tentative ou le timeout échoue fermé. Les seuils, le settle de 2 000 ms, l'échantillonnage
+de 100 ms et la fenêtre restent inchangés. Parseur PowerShell, self-tests positifs/négatifs et contrôle
+statique de l'ordre pré-signal passent. Aucun rebuild ni replay corrigé n'est revendiqué ; `R1-048`
+reste ouverte.
 
 La campagne eau exacte `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
 `6d4639c824ccfa81c3d5ed911903cec2bb3c5074`, produit 29 PNG aux hashes uniques et un MP4 de 24
@@ -156,6 +174,7 @@ Gate 2.
 | instrumentation native de passes de scène | `815ddf3dc715952700164059e876d7151ccc8133` | `c1e8951a266a407229eb41899dc39abc58eb2f16` | schema v3 et diagnostics retardés Bevy ; première acquisition refusée sur neuf assets absents, non versionnée comme PASS ; correction portée par `41b49f66` |
 | qualification stricte de la route runtime RenderDoc | `798b55ddbd903c1f5740d8fa23350268220430bf` | `f40c048befe2b5892f460e8ff4904da6fa192d0e` | Clippy strict runtime PASS ; 69/69 tests runtime + 4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 Python PASS ; aucune capture Vulkan qualifiante acquise |
 | qualification stricte eau et profils qualité | `e2d924b20fa9709b4455584aee513536b0f07f44` | `0cc0d1166dcd8d775771d2d52ffbc5b235ec89cf` | Clippy strict moteur PASS ; 141/141 tests bibliothèque moteur et 1/1 transition Low → Ultra → Low PASS ; aucune qualification GPU ou humaine ajoutée |
+| quatrième replay schema 12 et base exacte du durcissement final non committé | `83f02928da72774a49d3d62ee68be85335b0bf01` | `551fd73a2d6726b0a4ebbbe4a61f83cd78533e34` | rebuild propre 32 min 27 s ; ready 69/69, 25 lignes Forge et ETW 0/0 ; ABORT avant signal sur gap final `row→sample` 743,6604 ms >250 ms ; correction pré-signal validée statiquement, aucun replay corrigé |
 | troisième replay schema 12 sans flux PresentMon | `2ced195bc2e396b599d1ed66680422e97cea7753` | `8a46bd4573863aa9eff91fe902423299bfe72add` | rebuild propre 30 min 06 s ; ready 69/69 et 401 frames de rendu observées ; ABORT avant signal sur stdout PresentMon vide ; probe host-wide ETW 0/0 sans ligne Forge ; aucun verdict performance |
 | correctif readiness et replay schema 12 sans flux PresentMon | `4b2831820fe6864046602f25ca5d92e1d63cbae8` | `16371171fc0b62a0d9064aff47cf5769e33b4106` | 141/141 moteur Release, 67/67 runtime + 1/1 intégration ; rebuild propre ; ready 69/69 et qualité `5/16/13` ; ABORT avant signal sur stdout PresentMon vide, aucun verdict performance |
 | premier replay schema 12, validateur qualité périmé | `9d19cde5a442ecfa7694a864aad0967c4acd65c9` | `1d7649bcda5862623ced8adcafd6b2a71cc31b41` | 34/34 champs exacts et distribution `5/16/13`, mais attente `5/14/15` ; ABORT avant ready, PresentMon non lancé, aucun verdict performance |
@@ -163,7 +182,7 @@ Gate 2.
 | preuve eau native automatisée, non qualifiée | `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00` | `6d4639c824ccfa81c3d5ed911903cec2bb3c5074` | 14/14 tests eau, 29 PNG uniques, MP4, 75 pipelines prêts et logs propres ; pass optique GPU non instrumenté, aucune route R1-023 sérialisée, revue humaine due |
 | optique d'eau native bornée intégrée | `e7e7d41951a3579936a1c9f8b8601fa639898679` | `5e7e5ec10c5f654c84d52e4d8bbc4f951dcfe83d` | implémentation R1-023 : Environment IBL fallback et ScreenSpaceTransmission High |
 | harnais de restabilisation pré-signal | `9b847e996c39e76a9620e18cc1d7c5b2440e6145` | `9ee511f7d529098d003a78795e0d9cc94fcc3726` | host boundary schema 5, validation schema 12, trois tentatives/15 s maximum avant signal et reçu d'abandon v1 ; pas encore rejoué de façon qualifiante |
-| dernier replay gouverné avorté avant signal | `1912806fc6e90277cd779a21a2557e6c820d5d44` | `4bfb863255dd865432093c5e7291287b8e78dc43` | ready schema 4 et 338 lignes Forge PresentMon, ETW 0/0 ; gap de sampling fenêtre `>250 ms`, aucun signal/host boundary/ledger/validation et aucun verdict performance |
+| replay schema 11 gouverné avorté avant signal | `1912806fc6e90277cd779a21a2557e6c820d5d44` | `4bfb863255dd865432093c5e7291287b8e78dc43` | ready schema 4 et 338 lignes Forge PresentMon, ETW 0/0 ; gap de sampling fenêtre `>250 ms`, aucun signal/host boundary/ledger/validation et aucun verdict performance |
 | source et replays gouvernés schema 8 | `49acfd5695a7246062a86fb84f5d933130579187` | `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb` | deux rebuilds/replays propres distincts ; Replay1 FAIL avec focus perdu, Replay2 FAIL sur un unique `DisplayedTime` de 35,3837 ms ; aucun PASS de `R1-048` |
 | garde ETW et run gouverné schema 7 immuable | `9db35a8e125c6c60cde9de66a7f6aa7585215bfa` | `656feb155c4a30371210229bf6c5dea5bbf8fcd3` | harnais schema 7 avec mutex/préflights/postflight ; rebuild Release normal propre et capture 2.4.1 complète ; 17 lignes non affichées, cadence conforme, statut schema 7 encore FAIL |
 | noms Bevy du profil de présentation | `e1e818fc1ed8655b851e34007039f4b288941377` | `274e7c51006eaee0cf0de300a393f332afe504d1` | ajoute `bevy/debug` à la seule feature diagnostique et les tests de noms réels ; binaire instrumenté et target partagé NONQUALIFYING |
@@ -917,7 +936,10 @@ binaire partagé `21228a…`. Le rejeu suivant `1912806` est un ABORT avant sign
 fenêtre `>250 ms` ; il conserve ready + PresentMon ETW 0/0 mais n'ajoute aucune métrique qualifiante.
 Les tentatives schema 12 suivantes s'arrêtent avant ready sur le validateur qualité périmé à
 `9d19cde5`, puis avant signal sur un flux PresentMon vide à `4b283182` et de nouveau à `2ced195b`.
-Les deux derniers replays prouvent la readiness corrigée `5/16/13`, pas la cadence.
+Un smoke non qualifiant confirme ensuite l'écran actif, puis `83f02928` reçoit 25 lignes Forge ETW
+0/0 avant d'abandonner sans signal sur le gap final `row→sample` de 743,6604 ms. Les trois derniers
+replays prouvent la readiness corrigée `5/16/13`, pas la cadence ; le durcissement qui rejoue ce gap
+dans le budget pré-signal existant est validé statiquement, sans replay corrigé.
 « Acquis » ne signifie pas « qualifié » et
 `human_review_performed=false`.
 
@@ -935,7 +957,7 @@ huitième match de ledger.
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
 | p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
 | 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
-| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, REJEUX SUIVANTS ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; schema 11 s'arrête avant signal sur un gap fenêtre ; schema 12 bloque d'abord avant ready, puis franchit la readiness corrigée mais s'arrête avant signal sur stdout PresentMon vide ; replay schema 12 PASS encore dû |
+| absence de stutter récurrent | **OUVERTE — DERNIER VERDICT FAIL, REJEUX SUIVANTS ABORT** | Replay2 schema 8 passe focus/résidence/ETW mais viole le plafond sur 35,3837 ms ; schema 11 s'arrête avant signal sur un gap fenêtre ; schema 12 bloque d'abord avant ready, puis deux fois sur stdout PresentMon vide et enfin sur un gap final `row→sample` de 743,6604 ms ; correctif validé statiquement, replay schema 12 PASS encore dû |
 | profils qualité fonctionnels | **SATISFAITE** | quatre tiers fixes, clear/rain, adaptation High vers Ultra et benchmark High sur 10/10 ledgers natifs |
 | parité de données native/Studio | **SATISFAITE** | commit/arbre exacts communs, 46/46 contrôles et sept hashes communs MATCH |
 | code sans dépendance propriétaire obligatoire | **SATISFAITE** | audits provenance/indépendance locaux PASS |
@@ -1033,6 +1055,9 @@ Hashes des artefacts réellement utilisés pour la décision :
 | validation Replay2 schema 8 | 16 111 | `45b87d0d78570c0f6d0e541df040aa008ae49e2ca47b5d02002f223ea50894d1` | verdict cadence FAIL |
 | CSV PresentMon Replay2 | 780 640 | `5d810261815fe74d0e556f638bd704ac94119667fa4868aa57716320a124ec22` | données de cadence |
 | ledger runtime Replay2 | 53 240 | `88cd702163b3094d22a54fb352db6c75aa742c4cfde0919c86e331c76494605b` | identité et frontière runtime |
+| reçu prêt replay schema 12 `83f02928` | 26 804 | `29cfbbee968c1877e0d4f4c6db2ed9e9345860728a10b431ba225b777186379b` | readiness 69/69 avant ABORT |
+| stdout PresentMon replay schema 12 `83f02928` | 5 411 | `248a9d0fbdce25f7de8ff4b52dd47b883a56e571a331f7fed4ebc47f462324ab` | 25 lignes Forge, ETW 0/0, non qualifiant |
+| reçu d'abandon replay schema 12 `83f02928` | 2 029 | `7db870e2d8050f5177d59d75a270f8ffdfeca744f7ff51980fbc1877205a292f` | frontière finale 743,6604 ms >250 ms, aucun verdict cadence |
 | vidéo native eau | 807 168 | `29a5db4cd1f86911d3b43662c70147585eafcbee83ed96b4b8b10b60a2f1b226` | capture automatisée, non revue humainement |
 | manifeste Browser historique | 2 503 | `c566fe7d3b8f36ea27e4f428301236e659488d3ed909c9d50ccf2ff26b2b50c7` | acquisition réelle `d9e2670` |
 | capture Browser clear | 1 293 570 | `819bd9994fafc8f4694d2e65300528bbf2d2b05f6e8946ae515305b58beb33d4` | acquisition réelle `d9e2670` |
@@ -1076,7 +1101,12 @@ fenêtre `>250 ms` ; il ne remplace pas ce verdict. Le harnais `9b847e99` expose
 schema 5 / validation schema 12 avec restabilisation pré-signal bornée. `9d19cde5` révèle ensuite le
 décompte qualité périmé ; `4b283182` le corrige, passe ses tests et franchit la readiness réelle, mais
 son replay s'arrête avant signal faute de flux PresentMon. `2ced195b` reproduit exactement cet ABORT
-après rebuild propre. Aucun replay schema 12 qualifiant n'existe.
+après rebuild propre. Le smoke non qualifiant `41b49f66` confirme ensuite un écran actif capable de
+produire des lignes Forge. Le replay propre `83f02928` reçoit 25 lignes Forge ETW 0/0, mais abandonne
+avant signal sur la frontière finale `row→sample` de 743,6604 ms. Le durcissement préparé replace ce
+contrôle avant l'acceptation et rejoue un gap >250 ms dans le budget inchangé de trois tentatives et
+15 secondes ; ses tests légers passent, sans replay corrigé. Aucun replay schema 12 qualifiant
+n'existe.
 Les acquisitions Low/High `41b49f66` ajoutent des mesures retardées de passes de scène sans attribution
 à l'eau ni identité de frame exacte. `R1-023`, `R1-025`, `R1-026`, `R1-037`, `R1-041` et `R1-048`
 restent ouvertes,
@@ -1084,10 +1114,9 @@ restent ouvertes,
 
 Ordre minimal avant toute nouvelle décision de passage :
 
-1. réveiller manuellement l'affichage, puis exécuter un rebuild/replay gouverné complet avec le
-   harnais schema 12 sans couper
-   rétrospectivement la fenêtre ni affaiblir le contrat, puis obtenir tous les seuils PASS pour
-   `R1-048` ;
+1. revoir le durcissement `row→sample`, puis exécuter un rebuild/replay gouverné complet avec le
+   harnais schema 12 sans couper rétrospectivement la fenêtre ni affaiblir le contrat, et obtenir tous
+   les seuils PASS pour `R1-048` ;
 2. isoler et attribuer au matériau eau l'exécution GPU, prouver la consommation shader de la wetness,
    qualifier humainement les captures, puis compléter la matrice de profils/Browser ;
 3. après autorisation explicite de la mutation hôte, enregistrer/corriger la couche Vulkan RenderDoc

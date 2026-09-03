@@ -2,9 +2,9 @@
 
 Dernière mise à jour : **3 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, schema 12 abandonné avant
-ready puis deux fois avant signal, readiness `5/16/13` corrigée et nouveau replay après réveil manuel
-confirmé dû ; Gate 2 interdite ; produit non qualifié**
+Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, quatre replays schema 12
+abandonnés avant signal au plus tard, dernier ABORT sur frontière finale `row→sample`, durcissement
+pré-signal validé statiquement mais non rejoué ; Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -47,7 +47,24 @@ locale prioritaire, non prouvée par le reçu. Le replay suivant `2ced195b`, arb
 exactement l'ABORT après un rebuild propre de 30 min 06 s : ready 69/69, 401 frames de rendu observées,
 puis aucun octet PresentMon. Un probe host-wide simultané écrit six lignes d'une autre application et
 ETW 0/0, mais zéro ligne Forge. Le code runtime d'attente et les arguments PresentMon sont identiques
-au replay schema 11 réussi ; un nouveau replay exact après réveil manuel confirmé reste dû.
+au replay schema 11 réussi.
+
+Un smoke de 4,619 s, explicitement non qualifiant sur le binaire partagé `41b49f66`, confirme ensuite
+que l'écran actif produit le header exact et 22 lignes Forge ETW 0/0. Le replay gouverné suivant porte
+le commit exact `83f02928da72774a49d3d62ee68be85335b0bf01`, arbre
+`551fd73a2d6726b0a4ebbbe4a61f83cd78533e34` ; son build Release termine en 32 min 27 s et son binaire
+porte `8d2c8d410b68d56e777a68f33c5b853269a217c330580ef827f3929d5c610d64`. Le ready confirme 69/69
+pipelines, 314 frames observées et 32 stables ; PresentMon reçoit 25 lignes Forge, dont 19
+`DisplayedTime` numériques et six `NA`, avec ETW 0/0. Le harnais abandonne toutefois avant signal sur
+la frontière finale entre le dernier `CPUStartQPC` et l'échantillon fenêtre : 743,6604 ms >250 ms.
+Aucun seuil de cadence n'est évalué.
+
+Le durcissement préparé depuis `83f02928` exécute désormais ce contrôle dans chaque tentative, avant
+de l'accepter et avant toute publication du signal. Un gap final ordonné >250 ms rejette l'essai et
+rejoue dans les trois tentatives/15 secondes existantes ; un QPC non monotone, la dernière tentative
+ou le timeout échoue fermé. Les bornes 2 000/100/250 ms, la fenêtre et les seuils restent inchangés.
+Les self-tests positifs/négatifs et validations PowerShell statiques passent ; aucun build ou replay
+corrigé n'est encore revendiqué.
 
 La chaîne courante intègre aussi l'optique d'eau native bornée `e7e7d419` et le contrat puis la
 route runtime/orchestrateur RenderDoc `dbe5eb86`/`140acbdd`, durcis jusqu'à `e2d924b` et `798b55d`.
@@ -1480,7 +1497,11 @@ après le settle. L'hôte abandonne avant signal. Les tentatives schema 12 suiva
 ready à `9d19cde5` sur le décompte qualité périmé, puis avant signal à `4b283182` sur un stdout
 PresentMon vide. `2ced195b` reproduit le même ABORT après rebuild propre ; un probe host-wide
 simultané écrit ETW 0/0 mais aucune ligne Forge. Ces replays prouvent la readiness corrigée
-`5/16/13`, pas la cadence. Un replay qualifiant après réveil manuel de l'affichage reste dû.
+`5/16/13`, pas la cadence. Un smoke non qualifiant `41b49f66` confirme ensuite que l'écran actif
+produit 22 lignes Forge ETW 0/0. Le replay propre `83f02928` reçoit 25 lignes Forge ETW 0/0, puis
+abandonne avant signal sur le gap final `row→sample` de 743,6604 ms. Le durcissement préparé rejoue
+désormais ce gap dans le budget pré-signal existant sans élargir la borne de 250 ms ; ses validations
+légères passent, mais un replay corrigé et qualifiant reste dû.
 
 Le diagnostic officiel PresentMon 2.5.1 A4 historique retrouve 129,7334 FPS et 16 lignes `NA` sur le
 binaire schema 7 ; il reste non qualifiant et ne change pas le pin 2.4.1. Les diagnostics schema 8
@@ -2075,7 +2096,12 @@ schema 12 avec restabilisation pré-signal bornée. `9d19cde5` s'arrête avant r
 qualité historique `5/14/15`. `4b283182` corrige le contrat, passe 141/141 moteur Release, 67/67
 runtime et 1/1 intégration, puis franchit réellement la readiness en `5/16/13` avant un ABORT
 pré-signal sur stdout PresentMon vide. `2ced195b` reproduit cet ABORT après un rebuild propre de
-30 min 06 s. Aucun verdict de cadence schema 12 n'est encore acquis.
+30 min 06 s. Le smoke non qualifiant `41b49f66` confirme ensuite que l'écran actif produit 22 lignes
+Forge ETW 0/0. Le replay propre `83f02928` reçoit 25 lignes Forge ETW 0/0 après 32 min 27 s de build,
+mais abandonne avant signal sur le gap final `row→sample` de 743,6604 ms >250 ms. Le durcissement
+préparé déplace ce contrôle avant acceptation et rejoue l'essai dans le budget existant de trois
+tentatives/15 secondes, sans signal prématuré ni seuil élargi. Ses validations légères passent ; aucun
+replay corrigé et aucun verdict de cadence schema 12 ne sont encore acquis.
 La dernière campagne complète historique `15635b3f` conserve ses 140/140 tests moteur, 52/52 runtime
 et 1/1 intégration. Le lot schema 8 `49acfd56` ajoute historiquement 66/66 tests Release
 `forge_runtime --all-features`, le formatage, l'auto-test A/B schema 2 et le diff-check PASS. La chaîne

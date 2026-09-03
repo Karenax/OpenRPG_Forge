@@ -351,18 +351,25 @@ Le garde Gate C distingue désormais ces paquets documentaires des vraies config
 distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=428
 checkout_present=True`; les contrôles de chemins et de hashes des médias restent stricts.
 
-Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
-les deux suivantes avant signal. À `9d19cde5`,
+Quatre tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
+les trois suivantes avant signal. À `9d19cde5`,
 le runtime expose 69/69 pipelines et un contrat qualité 34/34 exact en `5/16/13`, mais le validateur
 attend encore l'historique `5/14/15` et bloque avant ready. Le correctif `4b283182` dérive l'attente du
 contrat canonique ; 141/141 tests moteur Release, 67/67 tests runtime et 1/1 intégration passent. Son
 rebuild gouverné franchit réellement la readiness avec la distribution corrigée, puis PresentMon reste
 vivant avec un stdout vide pendant 20 secondes. Aucun signal, host boundary, ledger final ou validation
-schema 12 n'est publié. Le nettoyage processus/ETW passe ; un nouveau replay exact après réveil manuel
-de l'affichage reste dû. Le replay propre `2ced195b` reproduit cet ABORT après 30 min 06 s avec 69/69
+schema 12 n'est publié. Le nettoyage processus/ETW passe ; un nouveau replay exact après retour de
+l'affichage restait dû. Le replay propre `2ced195b` reproduit cet ABORT après 30 min 06 s avec 69/69
 pipelines et 401 frames de rendu observées. Son probe host-wide simultané écrit pour une autre
 application avec ETW 0/0 mais aucune ligne Forge ; l'écran déjà endormi reste l'hypothèse locale
-prioritaire, pas un fait prouvé par le reçu.
+prioritaire, pas un fait prouvé par le reçu. Un smoke non qualifiant sur le binaire partagé `41b49f66`
+confirme ensuite que l'écran actif produit 22 lignes Forge ETW 0/0. Le replay propre `83f02928`
+reconstruit en 32 min 27 s et reçoit 25 lignes Forge ETW 0/0, mais s'arrête avant signal : la frontière
+finale entre la dernière ligne PresentMon et l'échantillon fenêtre vaut 743,6604 ms, au-dessus de la
+borne inchangée de 250 ms. Aucun seuil de cadence n'est évalué. Le durcissement préparé depuis ce HEAD
+déplace ce contrôle dans chaque tentative : un gap final >250 ms rejette l'essai sans signal et rejoue
+dans les trois tentatives/15 secondes existantes. Les self-tests positifs/négatifs et le parseur
+PowerShell passent ; aucun replay corrigé n'est encore revendiqué.
 
 État des rejeux schema v8 : ADR-0008 et son validateur sont appliqués au commit exact
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
@@ -710,13 +717,16 @@ qualité                   Low / Medium / High / Ultra
   valeur unique `DisplayedTime=35,3837 ms`. `R1-048` reste décochée : une répétition Auto atteint
   deux valeurs consécutives > 16,7 ms, les PASS A5/A6 sont non qualifiants, le GPU cible n'est pas
   mesuré et la revue humaine n'est pas réalisée. Le replay schema 11 `1912806` suivant est un
-  **ABORT avant signal** sur un gap de sampling fenêtre `>250 ms`. Les trois tentatives schema 12 sont
+  **ABORT avant signal** sur un gap de sampling fenêtre `>250 ms`. Les quatre tentatives schema 12 sont
   également non qualifiantes : `9d19cde5` bloque avant ready sur l'ancien décompte qualité,
   `4b283182` corrige et franchit la readiness mais s'arrête avant signal sur stdout PresentMon vide,
   puis `2ced195b` reproduit cet ABORT après un rebuild propre et un probe host-wide ETW 0/0 sans ligne
-  Forge.
-  Aucun host boundary, ledger final, validation schema 12 ou verdict performance n'existe ; nouveau
-  replay exact après réveil manuel de l'affichage dû.
+  Forge. Après un smoke écran actif non qualifiant, `83f02928` franchit encore la readiness et reçoit
+  25 lignes Forge ETW 0/0, puis abandonne avant signal sur le gap final `row→sample` de 743,6604 ms.
+  Aucun host boundary, ledger final, validation schema 12 ou verdict performance n'existe. Le
+  durcissement préparé rejette désormais ce gap dans la tentative pré-signal et consomme une des trois
+  tentatives sans élargir la borne de 250 ms ; ses validations légères passent, mais un replay corrigé
+  exact reste dû.
   `R1-037` reste un bloqueur distinct de Gate 1 ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux — six preuves Forge hashées dans le paquet v1, **PRÊT POUR REVUE
@@ -766,7 +776,9 @@ qualité                   Low / Medium / High / Ultra
   replay schema 11 `1912806` suivant est abandonné avant signal sur un gap fenêtre `>250 ms` et ne
   produit aucun verdict. Les tentatives schema 12 `9d19cde5`, `4b283182` et `2ced195b` s'arrêtent
   respectivement avant ready sur le validateur qualité périmé, puis deux fois avant signal sur un flux
-  PresentMon vide ; la readiness `5/16/13` corrigée est prouvée, pas la cadence. Un rejeu gouverné schema 12 strictement
+  PresentMon vide. `83f02928` reçoit 25 lignes Forge ETW 0/0 mais s'arrête avant signal sur le gap
+  final `row→sample` de 743,6604 ms. La readiness `5/16/13` corrigée est prouvée, pas la cadence. Le
+  correctif pré-signal est validé statiquement sans replay ; un rejeu gouverné schema 12 strictement
   PASS, la répétabilité et la revue humaine restent dus ;
 - [x] profils qualité fonctionnels — matrice native 10/10 et transition réelle High vers Ultra ;
 - [x] parité de données entre natif et Studio — natif et Browser exacts `d9e2670`, 46/46 contrôles
