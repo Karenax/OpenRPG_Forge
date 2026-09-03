@@ -61,6 +61,18 @@ foreach ($requiredToken in @(
     'Browser weather acquisition requires a completely clean Git worktree',
     'Browser weather evidence must be written outside the Git worktree',
     'blocked_input_events',
+    'blocked_input_events_by_type',
+    'first_blocked_input_event',
+    'last_blocked_input_event',
+    'is_trusted',
+    'Terminal Browser input contamination:',
+    'forge.gate1-browser-weather-tier-abort',
+    'abort-receipt.json',
+    'artifacts_present_before_abort_receipt',
+    'recorded_before_browser_cleanup',
+    'Bounded ABORT receipt fallback JSON:',
+    'BrowserWeatherAbortSnapshot',
+    'captured_at_terminal_detection',
     "headed_requested = `$true",
     "headed_observed = `$false",
     'pass_pending_human_and_precise_gpu_evidence',
@@ -76,6 +88,21 @@ foreach ($requiredToken in @(
 }
 Assert-Condition -Condition (-not $driver.Contains("headed = `$true", [StringComparison]::Ordinal)) -Message 'Driver must not claim that headed mode was observed.'
 Assert-Condition -Condition $driver.Contains('[double]$Snapshot.canvas.left -ge 0 -and [double]$Snapshot.canvas.top -ge 0', [StringComparison]::Ordinal) -Message 'The full-canvas assertion must reject negative left/top bounds.'
+Assert-Condition -Condition ([regex]::Matches($driver, 'blocked_input_events:\s*0').Count -eq 1) -Message 'The Browser input total must have exactly one initialization and no reset path.'
+Assert-Condition -Condition ([regex]::Matches($driver, 'first_blocked_input_event:\s*null').Count -eq 1 -and [regex]::Matches($driver, 'last_blocked_input_event:\s*null').Count -eq 1) -Message 'The bounded first/last Browser input diagnostics must each have exactly one initialization and no reset path.'
+Assert-Condition -Condition (
+    -not [regex]::IsMatch($driver, 'state\.blocked_input_events\s*=\s*0') -and
+    -not [regex]::IsMatch($driver, 'state\.(?:first|last)_blocked_input_event\s*=\s*null') -and
+    -not [regex]::IsMatch($driver, 'countsByType(?:\s*\[[^\]]+\]|\.[A-Za-z_][A-Za-z0-9_]*)\s*=\s*0')
+) -Message 'The Browser input guard must not expose any counter or diagnostic reset path.'
+$terminalInputBranch = $driver.IndexOf('if ($null -ne $blockedInputEvents -and [long]$blockedInputEvents -gt 0)', [StringComparison]::Ordinal)
+$terminalSnapshotAttachment = $driver.IndexOf("`$terminalInputException.Data['BrowserWeatherAbortSnapshot']", [StringComparison]::Ordinal)
+$terminalSnapshotRecovery = $driver.LastIndexOf("`$failureRecord.Exception.Data['BrowserWeatherAbortSnapshot']", [StringComparison]::Ordinal)
+$checkpointWaitSleep = $driver.IndexOf('Start-Sleep -Milliseconds ([int]$Config.readiness.stable_layout_poll_interval_ms)', [StringComparison]::Ordinal)
+Assert-Condition -Condition ($terminalInputBranch -ge 0 -and $terminalSnapshotAttachment -gt $terminalInputBranch -and $checkpointWaitSleep -gt $terminalSnapshotAttachment -and $terminalSnapshotRecovery -gt $terminalSnapshotAttachment) -Message 'A positive Browser input count must preserve its first observed snapshot and terminate before the checkpoint wait can sleep/retry.'
+$abortReceiptWrite = $driver.LastIndexOf('$abortReceipt = Write-BrowserTierAbortReceipt', [StringComparison]::Ordinal)
+$browserCleanup = $driver.LastIndexOf('Remove-ControlledProfile -ProfileDirectory $profileDirectory', [StringComparison]::Ordinal)
+Assert-Condition -Condition ($abortReceiptWrite -ge 0 -and $browserCleanup -gt $abortReceiptWrite) -Message 'The external Browser tier ABORT receipt must be written before profile/browser cleanup.'
 $routePreflight = $driver.LastIndexOf('[void](Get-ExactRoute -Root $BaseUrl -Config $config -QualityTier low)', [StringComparison]::Ordinal)
 $bundleAcquisition = $driver.LastIndexOf('$servedBundles = Get-ServedBundleEvidence -Root $BaseUrl -Config $config', [StringComparison]::Ordinal)
 Assert-Condition -Condition ($routePreflight -ge 0 -and $bundleAcquisition -gt $routePreflight) -Message 'Loopback route preflight must precede every served-bundle request.'
@@ -160,6 +187,11 @@ Assert-Condition -Condition ($roadmap -cmatch '(?m)^- \[ \] `R1-014`') -Message 
     powershell_scripts_parsed = 3
     config_mutations_rejected = 6
     boundary_cases_rejected = 3
+    input_guard_mutations_rejected = 6
+    terminal_input_contamination_cases = 1
+    abort_receipt_contract_cases = 1
+    abort_receipt_before_cleanup = $true
+    terminal_snapshot_preserved = $true
     controller_checkpoints_per_tier = 3
     controller_settled_frames = 8
     tiers = @('low', 'high')

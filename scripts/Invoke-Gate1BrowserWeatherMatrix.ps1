@@ -297,11 +297,92 @@ function Invoke-SelfTest {
         [void](Assert-ExternalOutputRoot -Candidate (Join-Path $repositoryRoot 'artifacts'))
     }
 
+    $zeroCounts = [ordered]@{}
+    foreach ($eventType in @($Config.fixed_context.blocked_event_types)) {
+        $zeroCounts[$eventType] = 0
+    }
+    $cleanInputGuard = Copy-JsonValue -Value ([ordered]@{
+        active = $true
+        blocked_event_types = @($Config.fixed_context.blocked_event_types)
+        blocked_input_events = 0
+        blocked_input_events_by_type = $zeroCounts
+        first_blocked_input_event = $null
+        last_blocked_input_event = $null
+    })
+    Assert-InputGuardSnapshot -InputGuard $cleanInputGuard -Config $Config
+
+    $blockedPointerMove = Copy-JsonValue -Value ([ordered]@{
+        type = 'pointermove'
+        is_trusted = $true
+        event_time_stamp_ms = 123.0
+        observed_at_performance_ms = 456.0
+        document_ready_state = 'complete'
+        document_has_focus = $true
+        visibility_state = 'visible'
+        pointer_type = 'mouse'
+        buttons = 0
+        client_x = 960.0
+        client_y = 540.0
+        movement_x = 1.0
+        movement_y = 0.0
+    })
+    $contaminatedInputGuard = Copy-JsonValue -Value $cleanInputGuard
+    $contaminatedInputGuard.blocked_input_events = 1
+    $contaminatedInputGuard.blocked_input_events_by_type.pointermove = 1
+    $contaminatedInputGuard.first_blocked_input_event = Copy-JsonValue -Value $blockedPointerMove
+    $contaminatedInputGuard.last_blocked_input_event = Copy-JsonValue -Value $blockedPointerMove
+    $terminalInputMessage = $null
+    try {
+        Assert-InputGuardSnapshot -InputGuard $contaminatedInputGuard -Config $Config
+    } catch {
+        $terminalInputMessage = $_.Exception.Message
+    }
+    Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$terminalInputMessage) -and $terminalInputMessage.StartsWith('Terminal Browser input contamination:', [StringComparison]::Ordinal)) -Message 'A positive Browser input count did not produce the terminal bounded diagnostic.'
+
+    $badInputCountSum = Copy-JsonValue -Value $cleanInputGuard
+    $badInputCountSum.blocked_input_events = 1
+    Assert-Throws -Description 'a divergent total/per-type Browser input count' -Operation { Assert-InputGuardSnapshot -InputGuard $badInputCountSum -Config $Config }
+
+    $badInputCountProperty = Copy-JsonValue -Value $cleanInputGuard
+    $badInputCountProperty.blocked_input_events_by_type | Add-Member -NotePropertyName 'drag' -NotePropertyValue 0
+    Assert-Throws -Description 'an unknown Browser input count property' -Operation { Assert-InputGuardSnapshot -InputGuard $badInputCountProperty -Config $Config }
+
+    $badMissingFirstDiagnostic = Copy-JsonValue -Value $contaminatedInputGuard
+    $badMissingFirstDiagnostic.first_blocked_input_event = $null
+    Assert-Throws -Description 'a contaminated guard without its first bounded diagnostic' -Operation { Assert-InputGuardSnapshot -InputGuard $badMissingFirstDiagnostic -Config $Config }
+
+    $badMissingLastDiagnostic = Copy-JsonValue -Value $contaminatedInputGuard
+    $badMissingLastDiagnostic.last_blocked_input_event = $null
+    Assert-Throws -Description 'a contaminated guard without its last bounded diagnostic' -Operation { Assert-InputGuardSnapshot -InputGuard $badMissingLastDiagnostic -Config $Config }
+
+    $badNegativeInputCount = Copy-JsonValue -Value $cleanInputGuard
+    $badNegativeInputCount.blocked_input_events_by_type.mousemove = -1
+    Assert-Throws -Description 'a negative per-type Browser input count' -Operation { Assert-InputGuardSnapshot -InputGuard $badNegativeInputCount -Config $Config }
+
+    $badResetInputGuard = Copy-JsonValue -Value $contaminatedInputGuard
+    $badResetInputGuard.blocked_input_events = 0
+    $badResetInputGuard.blocked_input_events_by_type.pointermove = 0
+    Assert-Throws -Description 'reset Browser input counters retaining bounded diagnostics' -Operation { Assert-InputGuardSnapshot -InputGuard $badResetInputGuard -Config $Config }
+
+    $abortReceipt = New-BrowserTierAbortReceipt -Config $Config -ExpectedCommit ('a' * 40) -QualityTier high -Route 'http://127.0.0.1:1420/?forge_quality=high' -FailureMessage $terminalInputMessage -FailureType 'System.Management.Automation.RuntimeException' -Snapshot ([pscustomobject]@{
+        input_guard = $contaminatedInputGuard
+        proof_ledger = (ConvertTo-CompactJson -Value ([ordered]@{
+            status = 'collecting'
+            checkpoints = @([ordered]@{ sequence = 1 })
+            runtime_instance_id = 'self-test-runtime'
+            failure_reason = $null
+        }))
+    }) -SnapshotCaptureStatus captured_at_terminal_detection -SnapshotCaptureError $null -BrowserProcessId 1234 -ArtifactsPresent @()
+    Assert-Condition -Condition ($abortReceipt.schema -ceq 'forge.gate1-browser-weather-tier-abort' -and $abortReceipt.failure.category -ceq 'input_contamination' -and $abortReceipt.automated_result.status -ceq 'abort' -and $abortReceipt.browser.snapshot_capture_status -ceq 'captured_at_terminal_detection' -and $abortReceipt.input_guard.blocked_input_events -eq 1 -and $abortReceipt.controller.checkpoint_count -eq 1 -and $abortReceipt.artifact_inventory_status -ceq 'complete' -and $abortReceipt.recorded_before_browser_cleanup -eq $true) -Message 'The bounded Browser tier ABORT receipt contract drifted.'
+
     [pscustomobject]@{
         status = 'pass'
         protocol = $Config.protocol_id
         rejected_mutations = 6
         rejected_boundary_cases = 3
+        input_guard_mutations_rejected = 6
+        terminal_input_contamination_cases = 1
+        abort_receipt_contract_cases = 1
         tiers = @($Config.route.quality_tiers)
         checkpoints_per_tier = @($Config.sequence).Count
         browser_run = 'not_performed_by_self_test'
@@ -702,6 +783,96 @@ function Get-BrowserSnapshot {
     return ConvertFrom-ExactJson -Json ([string]$raw)
 }
 
+function Assert-BlockedInputEventDiagnostic {
+    param(
+        [Parameter(Mandatory)][object]$Diagnostic,
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$Context
+    )
+
+    Assert-ExactPropertyNames -Value $Diagnostic -Expected @(
+        'type', 'is_trusted', 'event_time_stamp_ms', 'observed_at_performance_ms',
+        'document_ready_state', 'document_has_focus', 'visibility_state', 'pointer_type',
+        'buttons', 'client_x', 'client_y', 'movement_x', 'movement_y'
+    ) -Context $Context
+    Assert-Condition -Condition (@($Config.fixed_context.blocked_event_types) -ccontains [string]$Diagnostic.type) -Message "$Context has an unregistered event type."
+    Assert-Condition -Condition ($Diagnostic.is_trusted -is [bool]) -Message "$Context is_trusted must be boolean."
+    Assert-Condition -Condition ($Diagnostic.document_has_focus -is [bool]) -Message "$Context document_has_focus must be boolean."
+    Assert-Condition -Condition ([string]$Diagnostic.document_ready_state -cin @('loading', 'interactive', 'complete')) -Message "$Context document_ready_state is invalid."
+    Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$Diagnostic.visibility_state)) -Message "$Context visibility_state is empty."
+    foreach ($requiredNumber in @('event_time_stamp_ms', 'observed_at_performance_ms')) {
+        Assert-Condition -Condition ($null -ne $Diagnostic.$requiredNumber) -Message "$Context $requiredNumber must not be null."
+        $number = [double]$Diagnostic.$requiredNumber
+        Assert-Condition -Condition (-not [double]::IsNaN($number) -and -not [double]::IsInfinity($number) -and $number -ge 0) -Message "$Context $requiredNumber must be finite and non-negative."
+    }
+    foreach ($optionalNumber in @('client_x', 'client_y', 'movement_x', 'movement_y')) {
+        $value = $Diagnostic.$optionalNumber
+        if ($null -ne $value) {
+            $number = [double]$value
+            Assert-Condition -Condition (-not [double]::IsNaN($number) -and -not [double]::IsInfinity($number)) -Message "$Context $optionalNumber must be null or finite."
+        }
+    }
+    if ($null -ne $Diagnostic.buttons) {
+        $buttons = [double]$Diagnostic.buttons
+        Assert-Condition -Condition (-not [double]::IsNaN($buttons) -and -not [double]::IsInfinity($buttons) -and $buttons -ge 0 -and $buttons -eq [Math]::Truncate($buttons)) -Message "$Context buttons must be null or a non-negative integer."
+    }
+    Assert-Condition -Condition ($null -eq $Diagnostic.pointer_type -or $Diagnostic.pointer_type -is [string]) -Message "$Context pointer_type must be null or a string."
+}
+
+function Assert-InputGuardSnapshot {
+    param(
+        [Parameter(Mandatory)][object]$InputGuard,
+        [Parameter(Mandatory)][object]$Config
+    )
+
+    Assert-ExactPropertyNames -Value $InputGuard -Expected @(
+        'active', 'blocked_event_types', 'blocked_input_events',
+        'blocked_input_events_by_type', 'first_blocked_input_event',
+        'last_blocked_input_event'
+    ) -Context 'Browser weather input guard'
+    Assert-Condition -Condition ($InputGuard.active -eq $true) -Message 'The Browser weather input guard is not active.'
+    $blockedEventTypes = @($Config.fixed_context.blocked_event_types)
+    Assert-Condition -Condition ((ConvertTo-CompactJson -Value @($InputGuard.blocked_event_types)) -ceq (ConvertTo-CompactJson -Value $blockedEventTypes)) -Message 'The installed Browser input guard event set drifted.'
+    Assert-ExactPropertyNames -Value $InputGuard.blocked_input_events_by_type -Expected $blockedEventTypes -Context 'Browser weather input guard per-type counts'
+
+    Assert-Condition -Condition ($null -ne $InputGuard.blocked_input_events) -Message 'Browser weather input guard total must not be null.'
+    $blockedInputEventsNumber = [double]$InputGuard.blocked_input_events
+    Assert-Condition -Condition (-not [double]::IsNaN($blockedInputEventsNumber) -and -not [double]::IsInfinity($blockedInputEventsNumber) -and $blockedInputEventsNumber -ge 0 -and $blockedInputEventsNumber -eq [Math]::Truncate($blockedInputEventsNumber) -and $blockedInputEventsNumber -le [long]::MaxValue) -Message 'Browser weather input guard total must be a non-negative integer.'
+    $blockedInputEvents = [long]$InputGuard.blocked_input_events
+    $countedByType = [long]0
+    foreach ($eventType in $blockedEventTypes) {
+        $eventCountValue = $InputGuard.blocked_input_events_by_type.PSObject.Properties[$eventType].Value
+        Assert-Condition -Condition ($null -ne $eventCountValue) -Message "Browser weather input guard count for '$eventType' must not be null."
+        $eventCountNumber = [double]$eventCountValue
+        Assert-Condition -Condition (-not [double]::IsNaN($eventCountNumber) -and -not [double]::IsInfinity($eventCountNumber) -and $eventCountNumber -ge 0 -and $eventCountNumber -eq [Math]::Truncate($eventCountNumber) -and $eventCountNumber -le [long]::MaxValue) -Message "Browser weather input guard count for '$eventType' must be a non-negative integer."
+        $eventCount = [long]$eventCountValue
+        Assert-Condition -Condition ($countedByType -le [long]::MaxValue - $eventCount) -Message 'Browser weather input guard per-type count sum overflowed.'
+        $countedByType += $eventCount
+    }
+    Assert-Condition -Condition ($countedByType -eq $blockedInputEvents) -Message 'Browser weather input guard total and per-type counts diverged.'
+
+    if ($blockedInputEvents -eq 0) {
+        Assert-Condition -Condition ($null -eq $InputGuard.first_blocked_input_event -and $null -eq $InputGuard.last_blocked_input_event) -Message 'A clean Browser input guard must not expose first/last event diagnostics.'
+        return
+    }
+
+    Assert-Condition -Condition ($null -ne $InputGuard.first_blocked_input_event -and $null -ne $InputGuard.last_blocked_input_event) -Message 'A contaminated Browser input guard must expose bounded first/last diagnostics.'
+    Assert-BlockedInputEventDiagnostic -Diagnostic $InputGuard.first_blocked_input_event -Config $Config -Context 'First blocked Browser input event'
+    Assert-BlockedInputEventDiagnostic -Diagnostic $InputGuard.last_blocked_input_event -Config $Config -Context 'Last blocked Browser input event'
+    foreach ($diagnostic in @($InputGuard.first_blocked_input_event, $InputGuard.last_blocked_input_event)) {
+        $diagnosticType = [string]$diagnostic.type
+        $eventCount = [long]$InputGuard.blocked_input_events_by_type.PSObject.Properties[$diagnosticType].Value
+        Assert-Condition -Condition ($eventCount -gt 0) -Message 'A bounded Browser input diagnostic has no matching per-type count.'
+    }
+    $boundedDiagnostic = [ordered]@{
+        blocked_input_events = $blockedInputEvents
+        blocked_input_events_by_type = $InputGuard.blocked_input_events_by_type
+        first_blocked_input_event = $InputGuard.first_blocked_input_event
+        last_blocked_input_event = $InputGuard.last_blocked_input_event
+    }
+    throw "Terminal Browser input contamination: $(ConvertTo-CompactJson -Value $boundedDiagnostic)"
+}
+
 function Assert-BaseSnapshot {
     param(
         [Parameter(Mandatory)][object]$Snapshot,
@@ -712,9 +883,8 @@ function Assert-BaseSnapshot {
 
     Assert-Condition -Condition ($Snapshot.document_ready_state -ceq 'complete') -Message 'Document is not complete.'
     Assert-Condition -Condition ($Snapshot.navigator_gpu -eq $true) -Message 'navigator.gpu is not exposed.'
-    Assert-Condition -Condition ($null -ne $Snapshot.input_guard -and $Snapshot.input_guard.active -eq $true) -Message 'The Browser weather input guard is not active.'
-    Assert-Condition -Condition ((ConvertTo-CompactJson -Value @($Snapshot.input_guard.blocked_event_types)) -ceq (ConvertTo-CompactJson -Value @($Config.fixed_context.blocked_event_types))) -Message 'The installed Browser input guard event set drifted.'
-    Assert-Condition -Condition ([int]$Snapshot.input_guard.blocked_input_events -eq 0) -Message 'An input event reached the fixed Browser proof context.'
+    Assert-Condition -Condition ($null -ne $Snapshot.input_guard) -Message 'The Browser weather input guard is missing.'
+    Assert-InputGuardSnapshot -InputGuard $Snapshot.input_guard -Config $Config
     Assert-Condition -Condition ([int]$Snapshot.page.inner_width -eq [int]$Config.browser.viewport_width_px -and [int]$Snapshot.page.inner_height -eq [int]$Config.browser.viewport_height_px) -Message 'The Browser viewport drifted from 1920x1080.'
     Assert-Condition -Condition ([int]$Snapshot.page.client_width -eq [int]$Snapshot.page.inner_width -and [int]$Snapshot.page.client_height -eq [int]$Snapshot.page.inner_height) -Message 'The Browser page exposes a global scrollbar.'
     Assert-Condition -Condition ([int]$Snapshot.page.scroll_width -le [int]$Snapshot.page.client_width -and [int]$Snapshot.page.scroll_height -le [int]$Snapshot.page.client_height) -Message 'The Browser document exceeds the registered viewport.'
@@ -885,6 +1055,16 @@ function Wait-ProofCheckpoint {
             $lastState = $_.Exception.Message
             $stableLayoutObservations = 0
             $lastCanvasSignature = $null
+            $inputGuard = Get-OptionalPropertyValue -Object $snapshot -Name 'input_guard'
+            $blockedInputEvents = Get-OptionalPropertyValue -Object $inputGuard -Name 'blocked_input_events'
+            if ($null -ne $blockedInputEvents -and [long]$blockedInputEvents -gt 0) {
+                $terminalInputException = [InvalidOperationException]::new($lastState)
+                $terminalInputException.Data['BrowserWeatherAbortSnapshot'] = [pscustomobject]@{
+                    input_guard = $inputGuard
+                    proof_ledger = Get-OptionalPropertyValue -Object $snapshot -Name 'proof_ledger'
+                }
+                throw $terminalInputException
+            }
             if (-not [string]::IsNullOrWhiteSpace([string]$snapshot.proof_ledger)) {
                 try {
                     $proof = ConvertFrom-ExactJson -Json ([string]$snapshot.proof_ledger
@@ -1004,6 +1184,174 @@ function New-ArtifactDescriptor {
     }
 }
 
+function ConvertTo-BoundedBlockedInputEventEvidence {
+    param([AllowNull()][object]$Diagnostic)
+
+    if ($null -eq $Diagnostic) {
+        return $null
+    }
+    $evidence = [ordered]@{}
+    foreach ($name in @(
+        'type', 'is_trusted', 'event_time_stamp_ms', 'observed_at_performance_ms',
+        'document_ready_state', 'document_has_focus', 'visibility_state', 'pointer_type',
+        'buttons', 'client_x', 'client_y', 'movement_x', 'movement_y'
+    )) {
+        $evidence[$name] = Get-OptionalPropertyValue -Object $Diagnostic -Name $name
+    }
+    return $evidence
+}
+
+function ConvertTo-BoundedInputGuardEvidence {
+    param(
+        [AllowNull()][object]$Snapshot,
+        [Parameter(Mandatory)][object]$Config
+    )
+
+    $inputGuard = Get-OptionalPropertyValue -Object $Snapshot -Name 'input_guard'
+    if ($null -eq $inputGuard) {
+        return $null
+    }
+    $rawCounts = Get-OptionalPropertyValue -Object $inputGuard -Name 'blocked_input_events_by_type'
+    $counts = [ordered]@{}
+    foreach ($eventType in @($Config.fixed_context.blocked_event_types)) {
+        $counts[$eventType] = Get-OptionalPropertyValue -Object $rawCounts -Name $eventType
+    }
+    return [ordered]@{
+        active = Get-OptionalPropertyValue -Object $inputGuard -Name 'active'
+        blocked_input_events = Get-OptionalPropertyValue -Object $inputGuard -Name 'blocked_input_events'
+        blocked_input_events_by_type = $counts
+        first_blocked_input_event = ConvertTo-BoundedBlockedInputEventEvidence -Diagnostic (Get-OptionalPropertyValue -Object $inputGuard -Name 'first_blocked_input_event')
+        last_blocked_input_event = ConvertTo-BoundedBlockedInputEventEvidence -Diagnostic (Get-OptionalPropertyValue -Object $inputGuard -Name 'last_blocked_input_event')
+    }
+}
+
+function New-BrowserTierAbortReceipt {
+    param(
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$ExpectedCommit,
+        [Parameter(Mandatory)][ValidateSet('low', 'high')][string]$QualityTier,
+        [Parameter(Mandatory)][string]$Route,
+        [Parameter(Mandatory)][string]$FailureMessage,
+        [Parameter(Mandatory)][string]$FailureType,
+        [AllowNull()][object]$Snapshot,
+        [Parameter(Mandatory)][ValidateSet('captured', 'captured_at_terminal_detection', 'failed', 'not_connected')][string]$SnapshotCaptureStatus,
+        [AllowNull()][object]$SnapshotCaptureError,
+        [AllowNull()][object]$BrowserProcessId,
+        [ValidateSet('complete', 'unavailable')][string]$ArtifactInventoryStatus = 'complete',
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$ArtifactsPresent
+    )
+
+    $inputGuardEvidence = ConvertTo-BoundedInputGuardEvidence -Snapshot $Snapshot -Config $Config
+    $inputContaminationObserved = $FailureMessage.StartsWith('Terminal Browser input contamination:', [StringComparison]::Ordinal)
+    if ($null -ne $inputGuardEvidence -and $null -ne $inputGuardEvidence.blocked_input_events) {
+        try {
+            $inputContaminationObserved = $inputContaminationObserved -or ([long]$inputGuardEvidence.blocked_input_events -gt 0)
+        } catch {
+            # The receipt remains fail-closed while retaining the unparsed bounded value.
+        }
+    }
+
+    $controller = [ordered]@{
+        proof_status = $null
+        checkpoint_count = $null
+        runtime_instance_id = $null
+        failure_reason = $null
+        proof_parse_error = $null
+    }
+    $proofLedger = Get-OptionalPropertyValue -Object $Snapshot -Name 'proof_ledger'
+    if (-not [string]::IsNullOrWhiteSpace([string]$proofLedger)) {
+        try {
+            $proof = ConvertFrom-ExactJson -Json ([string]$proofLedger)
+            $controller.proof_status = Get-OptionalPropertyValue -Object $proof -Name 'status'
+            $checkpoints = Get-OptionalPropertyValue -Object $proof -Name 'checkpoints'
+            $controller.checkpoint_count = @($checkpoints).Count
+            $controller.runtime_instance_id = Get-OptionalPropertyValue -Object $proof -Name 'runtime_instance_id'
+            $controller.failure_reason = Get-OptionalPropertyValue -Object $proof -Name 'failure_reason'
+        } catch {
+            $controller.proof_parse_error = $_.Exception.Message
+        }
+    }
+
+    return [ordered]@{
+        schema = 'forge.gate1-browser-weather-tier-abort'
+        schema_version = 1
+        recorded_at_utc = [DateTimeOffset]::UtcNow.ToString('o')
+        recorded_before_browser_cleanup = $true
+        protocol_id = [string]$Config.protocol_id
+        expected_commit = $ExpectedCommit
+        quality_tier = $QualityTier
+        route = $Route
+        failure = [ordered]@{
+            category = if ($inputContaminationObserved) { 'input_contamination' } else { 'browser_tier_failure' }
+            exception_type = $FailureType
+            message = $FailureMessage
+        }
+        browser = [ordered]@{
+            process_id = $BrowserProcessId
+            snapshot_capture_status = $SnapshotCaptureStatus
+            snapshot_capture_error = $SnapshotCaptureError
+        }
+        input_guard = $inputGuardEvidence
+        controller = $controller
+        artifact_inventory_status = $ArtifactInventoryStatus
+        artifacts_present_before_abort_receipt = @($ArtifactsPresent)
+        automated_result = [ordered]@{
+            status = 'abort'
+            input_contamination_observed = $inputContaminationObserved
+            tier_qualified = $false
+            gate1_routes_qualified = $false
+        }
+    }
+}
+
+function Write-BrowserTierAbortReceipt {
+    param(
+        [Parameter(Mandatory)][string]$TierDirectory,
+        [Parameter(Mandatory)][string]$RunDirectory,
+        [Parameter(Mandatory)][object]$Config,
+        [Parameter(Mandatory)][string]$ExpectedCommit,
+        [Parameter(Mandatory)][ValidateSet('low', 'high')][string]$QualityTier,
+        [Parameter(Mandatory)][string]$Route,
+        [Parameter(Mandatory)][string]$FailureMessage,
+        [Parameter(Mandatory)][string]$FailureType,
+        [AllowNull()][object]$Snapshot,
+        [Parameter(Mandatory)][ValidateSet('captured', 'captured_at_terminal_detection', 'failed', 'not_connected')][string]$SnapshotCaptureStatus,
+        [AllowNull()][object]$SnapshotCaptureError,
+        [AllowNull()][object]$BrowserProcessId
+    )
+
+    $resolvedRunDirectory = [IO.Path]::GetFullPath($RunDirectory)
+    $resolvedTierDirectory = [IO.Path]::GetFullPath($TierDirectory)
+    $expectedTierDirectory = [IO.Path]::GetFullPath((Join-Path $resolvedRunDirectory $QualityTier))
+    Assert-Condition -Condition ($resolvedTierDirectory.Equals($expectedTierDirectory, [StringComparison]::OrdinalIgnoreCase)) -Message 'Browser tier ABORT receipt escaped its exact run/tier directory.'
+    Assert-Condition -Condition (Test-Path -LiteralPath $resolvedTierDirectory -PathType Container) -Message 'Browser tier ABORT receipt directory is missing.'
+
+    $receiptPath = Join-Path $resolvedTierDirectory 'abort-receipt.json'
+    Assert-Condition -Condition (-not (Test-Path -LiteralPath $receiptPath)) -Message 'Browser tier ABORT receipt already exists; refusing to overwrite it.'
+    $artifactsPresent = @(
+        Get-ChildItem -LiteralPath $resolvedTierDirectory -File -Recurse |
+            Sort-Object FullName |
+            ForEach-Object { New-ArtifactDescriptor -LiteralPath $_.FullName -Root $resolvedRunDirectory }
+    )
+    Assert-Condition -Condition ($artifactsPresent.Count -le 13) -Message 'Browser tier produced an unexpected unbounded artifact set before ABORT.'
+    $receipt = New-BrowserTierAbortReceipt -Config $Config -ExpectedCommit $ExpectedCommit -QualityTier $QualityTier -Route $Route -FailureMessage $FailureMessage -FailureType $FailureType -Snapshot $Snapshot -SnapshotCaptureStatus $SnapshotCaptureStatus -SnapshotCaptureError $SnapshotCaptureError -BrowserProcessId $BrowserProcessId -ArtifactsPresent $artifactsPresent
+    $receiptJson = "$(ConvertTo-Json -InputObject $receipt -Depth 64)`n"
+    $temporaryReceiptPath = "$receiptPath.tmp-$([guid]::NewGuid().ToString('N'))"
+    try {
+        [IO.File]::WriteAllText($temporaryReceiptPath, $receiptJson, [Text.UTF8Encoding]::new($false))
+        [IO.File]::Move($temporaryReceiptPath, $receiptPath)
+        return New-ArtifactDescriptor -LiteralPath $receiptPath -Root $resolvedRunDirectory
+    } catch {
+        $receiptWriteException = [IO.IOException]::new("Unable to persist the atomic Browser tier ABORT receipt: $($_.Exception.Message)", $_.Exception)
+        $receiptWriteException.Data['AbortReceiptJson'] = $receiptJson
+        throw $receiptWriteException
+    } finally {
+        if (Test-Path -LiteralPath $temporaryReceiptPath -PathType Leaf) {
+            [IO.File]::Delete($temporaryReceiptPath)
+        }
+    }
+}
+
 function Get-ServedBundleEvidence {
     param(
         [Parameter(Mandatory)][uri]$Root,
@@ -1094,14 +1442,37 @@ function Invoke-BrowserTier {
         $inputGuard = @"
 (() => {
   const blocked = $blocked;
+  const countsByType = Object.seal(Object.fromEntries(blocked.map(type => [type, 0])));
+  const finiteOrNull = value => Number.isFinite(value) ? value : null;
   const state = {
     active: true,
     blocked_event_types: Object.freeze([...blocked]),
-    blocked_input_events: 0
+    blocked_input_events: 0,
+    blocked_input_events_by_type: countsByType,
+    first_blocked_input_event: null,
+    last_blocked_input_event: null
   };
   Object.seal(state);
   const stop = event => {
+    const diagnostic = Object.freeze({
+      type: String(event.type),
+      is_trusted: event.isTrusted === true,
+      event_time_stamp_ms: finiteOrNull(Number(event.timeStamp)),
+      observed_at_performance_ms: finiteOrNull(performance.now()),
+      document_ready_state: document.readyState,
+      document_has_focus: document.hasFocus(),
+      visibility_state: document.visibilityState,
+      pointer_type: typeof event.pointerType === "string" && event.pointerType.length > 0 ? event.pointerType : null,
+      buttons: typeof event.buttons === "number" && Number.isInteger(event.buttons) ? event.buttons : null,
+      client_x: finiteOrNull(Number(event.clientX)),
+      client_y: finiteOrNull(Number(event.clientY)),
+      movement_x: finiteOrNull(Number(event.movementX)),
+      movement_y: finiteOrNull(Number(event.movementY))
+    });
     state.blocked_input_events += 1;
+    countsByType[event.type] += 1;
+    if (state.first_blocked_input_event === null) state.first_blocked_input_event = diagnostic;
+    state.last_blocked_input_event = diagnostic;
     event.preventDefault();
     event.stopImmediatePropagation();
   };
@@ -1220,6 +1591,45 @@ function Invoke-BrowserTier {
             controller_ledger = $latest.Ledgers.Proof
             artifacts = @($artifacts)
         }
+    } catch {
+        $failureRecord = $_
+        $failureMessage = [string]$failureRecord.Exception.Message
+        $failureType = [string]$failureRecord.Exception.GetType().FullName
+        $abortSnapshot = $null
+        $snapshotCaptureStatus = 'not_connected'
+        $snapshotCaptureError = $null
+        if ($failureRecord.Exception.Data.Contains('BrowserWeatherAbortSnapshot')) {
+            $abortSnapshot = $failureRecord.Exception.Data['BrowserWeatherAbortSnapshot']
+            $snapshotCaptureStatus = 'captured_at_terminal_detection'
+        } elseif ($null -ne $socket -and $socket.State -eq [Net.WebSockets.WebSocketState]::Open) {
+            try {
+                $abortSnapshot = Get-BrowserSnapshot -Socket $socket -Config $Config
+                $snapshotCaptureStatus = 'captured'
+            } catch {
+                $snapshotCaptureStatus = 'failed'
+                $snapshotCaptureError = $_.Exception.Message
+            }
+        }
+        $browserProcessId = if ($null -ne $browserProcess) { [int]$browserProcess.Id } else { $null }
+        $abortReceipt = $null
+        $abortReceiptFailure = $null
+        $abortReceiptFallbackJson = $null
+        try {
+            $abortReceipt = Write-BrowserTierAbortReceipt -TierDirectory $tierDirectory -RunDirectory $RunDirectory -Config $Config -ExpectedCommit $ExpectedCommit -QualityTier $QualityTier -Route $route -FailureMessage $failureMessage -FailureType $failureType -Snapshot $abortSnapshot -SnapshotCaptureStatus $snapshotCaptureStatus -SnapshotCaptureError $snapshotCaptureError -BrowserProcessId $browserProcessId
+        } catch {
+            $abortReceiptFailure = $_.Exception.Message
+            if ($_.Exception.Data.Contains('AbortReceiptJson')) {
+                $abortReceiptFallbackJson = [string]$_.Exception.Data['AbortReceiptJson']
+            }
+        }
+        if ($null -ne $abortReceipt) {
+            throw "$failureMessage`nABORT receipt written before Browser cleanup: $($abortReceipt.relative_path) ($($abortReceipt.sha256))"
+        }
+        if ([string]::IsNullOrWhiteSpace($abortReceiptFallbackJson)) {
+            $fallbackReceipt = New-BrowserTierAbortReceipt -Config $Config -ExpectedCommit $ExpectedCommit -QualityTier $QualityTier -Route $route -FailureMessage $failureMessage -FailureType $failureType -Snapshot $abortSnapshot -SnapshotCaptureStatus $snapshotCaptureStatus -SnapshotCaptureError $snapshotCaptureError -BrowserProcessId $browserProcessId -ArtifactInventoryStatus unavailable -ArtifactsPresent @()
+            $abortReceiptFallbackJson = ConvertTo-CompactJson -Value $fallbackReceipt
+        }
+        throw "$failureMessage`nABORT receipt file write failed before Browser cleanup: $abortReceiptFailure`nBounded ABORT receipt fallback JSON: $abortReceiptFallbackJson"
     } finally {
         if ($null -ne $socket) {
             if ($socket.State -eq [Net.WebSockets.WebSocketState]::Open) {
