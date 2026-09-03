@@ -1,0 +1,215 @@
+{
+  "schema": "forge.gate1-native-scene-gpu-matrix",
+  "schema_version": 1,
+  "status": "automated_low_high_native_scene_pass_matrix_acquired_pending_water_material_isolation_browser_human_and_target_gpu",
+  "repository_commit": "41b49f66d4573de505be44dfd38da75704d697f7",
+  "repository_tree": "8da220873059e91daed6accc2c3ab0cfabe54e11",
+  "runtime": {
+    "profile": "release",
+    "bytes": 82668032,
+    "sha256": "0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48",
+    "gpu": "AMD Radeon RX 7800 XT",
+    "backend": "Vulkan",
+    "driver": "AMD proprietary driver",
+    "driver_info": "26.8.1 (LLPC)",
+    "physical_resolution_px": [
+      1920,
+      1080
+    ],
+    "requested_present_mode": "auto_no_vsync",
+    "bevy_asset_root": "exact_commit_repository",
+    "governed_forge_assets_referenced_in_place": true,
+    "assets_copied_to_release_directory": false,
+    "cadle_assets_used": false
+  },
+  "runs": [
+    {
+      "quality_tier": "low",
+      "source_run_id": "gate1-native-scene-gpu-41b49f6-low-20260903T131943548Z",
+      "tracked_directory": "scene-gpu-low",
+      "captures_validated": 29,
+      "tracked_water_captures": 3,
+      "native_scene_gpu_measurements": 6,
+      "ledger_sha256": "8ae2815ced427c7575831adc9ea40c95e79ef97e8eb8dc84f54e8562faa68737",
+      "validation_sha256": "51efdeecd7c2361156c78f2db8111e0c38161f556bf2b2d96e57cd5a04e554a1",
+      "runtime_stdout_bytes": 0,
+      "runtime_stderr_bytes": 0,
+      "checkpoints": [
+        {
+          "capture_id": "water-clear",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "sampled_at_frame": 194,
+          "main_opaque_pass_3d_ms": 0.93636,
+          "main_transmissive_pass_3d_ms": null,
+          "bloom_ms": null,
+          "tonemapping_ms": 0.09452
+        },
+        {
+          "capture_id": "water-rain",
+          "weather_state": "rain",
+          "wetness": 0.78,
+          "sampled_at_frame": 974,
+          "main_opaque_pass_3d_ms": 1.02644,
+          "main_transmissive_pass_3d_ms": null,
+          "bloom_ms": null,
+          "tonemapping_ms": 0.05908
+        },
+        {
+          "capture_id": "water-restored",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "sampled_at_frame": 2949,
+          "main_opaque_pass_3d_ms": 0.8188,
+          "main_transmissive_pass_3d_ms": null,
+          "bloom_ms": null,
+          "tonemapping_ms": 0.05144
+        }
+      ]
+    },
+    {
+      "quality_tier": "high",
+      "source_run_id": "gate1-native-scene-gpu-41b49f6-high-20260903T132017109Z",
+      "tracked_directory": "scene-gpu-high",
+      "captures_validated": 29,
+      "tracked_water_captures": 3,
+      "native_scene_gpu_measurements": 12,
+      "ledger_sha256": "2285929a42e9339312845f92a8bbb02afbd38b53674add342307fcb1100a238d",
+      "validation_sha256": "6186dd8bf799a01d172c73ff38daedf3a0bff8ead150dc800b2547001d3b0750",
+      "runtime_stdout_bytes": 0,
+      "runtime_stderr_bytes": 0,
+      "checkpoints": [
+        {
+          "capture_id": "water-clear",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "sampled_at_frame": 405,
+          "main_opaque_pass_3d_ms": 0.99776,
+          "main_transmissive_pass_3d_ms": 0.05624,
+          "bloom_ms": 0.16568,
+          "tonemapping_ms": 0.05176
+        },
+        {
+          "capture_id": "water-rain",
+          "weather_state": "rain",
+          "wetness": 0.78,
+          "sampled_at_frame": 936,
+          "main_opaque_pass_3d_ms": 0.88936,
+          "main_transmissive_pass_3d_ms": 0.05172,
+          "bloom_ms": 0.1566,
+          "tonemapping_ms": 0.04848
+        },
+        {
+          "capture_id": "water-restored",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "sampled_at_frame": 2300,
+          "main_opaque_pass_3d_ms": 0.89192,
+          "main_transmissive_pass_3d_ms": 0.05356,
+          "bloom_ms": 0.15532,
+          "tonemapping_ms": 0.04856
+        }
+      ]
+    }
+  ],
+  "tracked_artifacts": [
+    {
+      "relative_path": "scene-gpu-high/captures/water-clear.png",
+      "bytes": 2136066,
+      "sha256": "6437d8ed505b1033d3cb68cf7670c906e116620b01fc4d5bcdca6332fa131dff"
+    },
+    {
+      "relative_path": "scene-gpu-high/captures/water-rain.png",
+      "bytes": 2174404,
+      "sha256": "29ff9ef06e655140ebd934ee54d800049351d25229e9759439b8632b7d110609"
+    },
+    {
+      "relative_path": "scene-gpu-high/captures/water-restored.png",
+      "bytes": 2136734,
+      "sha256": "9a77185eb36e428730fe5db974958815a3536f1ddb8a903ea9813624484dbb76"
+    },
+    {
+      "relative_path": "scene-gpu-high/gate1-visual-proof.json",
+      "bytes": 55163,
+      "sha256": "2285929a42e9339312845f92a8bbb02afbd38b53674add342307fcb1100a238d"
+    },
+    {
+      "relative_path": "scene-gpu-high/gate1-visual-proof.validation.json",
+      "bytes": 9530,
+      "sha256": "6186dd8bf799a01d172c73ff38daedf3a0bff8ead150dc800b2547001d3b0750"
+    },
+    {
+      "relative_path": "scene-gpu-high/runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "scene-gpu-high/runtime.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "scene-gpu-low/captures/water-clear.png",
+      "bytes": 2097009,
+      "sha256": "f7766e7ce45c0d74545fda15df1b624db113d6f441bb45d999324ec6a7aa33cd"
+    },
+    {
+      "relative_path": "scene-gpu-low/captures/water-rain.png",
+      "bytes": 2107696,
+      "sha256": "e2fa9005b84fe9a5cd10f6640632e4955435936666b7cc32f8e5e80a4e7f0bfa"
+    },
+    {
+      "relative_path": "scene-gpu-low/captures/water-restored.png",
+      "bytes": 2097773,
+      "sha256": "8ba99179e48b53d8c5b6b1c6a5a965ef42aaa85fa8b5159020a68e8358888bfb"
+    },
+    {
+      "relative_path": "scene-gpu-low/gate1-visual-proof.json",
+      "bytes": 55124,
+      "sha256": "8ae2815ced427c7575831adc9ea40c95e79ef97e8eb8dc84f54e8562faa68737"
+    },
+    {
+      "relative_path": "scene-gpu-low/gate1-visual-proof.validation.json",
+      "bytes": 9529,
+      "sha256": "51efdeecd7c2361156c78f2db8111e0c38161f556bf2b2d96e57cd5a04e554a1"
+    },
+    {
+      "relative_path": "scene-gpu-low/runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relative_path": "scene-gpu-low/runtime.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "automated_observations": {
+    "low_high_image_hashes_distinct": true,
+    "clear_rain_clear_endpoints_observed_in_each_process": true,
+    "required_scene_pass_measurements_synced_during_settle_windows": true,
+    "exact_render_frame_identity_observed": false,
+    "water_draw_or_material_isolated": false,
+    "wetness_shader_consumption_observed": false,
+    "browser_webgpu_observed": false,
+    "target_gpu_qualified": false,
+    "human_review_performed": false,
+    "gate1_routes_qualified": false
+  },
+  "agent_visual_inspection": {
+    "performed": true,
+    "human_review": false,
+    "water_captures_readable_and_nonempty": true,
+    "rain_visible": true,
+    "clear_restoration_coherent": true,
+    "low_high_visually_distinct": true,
+    "obvious_blue_black_regression_observed": false
+  },
+  "limitations": [
+    "Bevy DiagnosticMeasurement.time is a main-world synchronization time, not an exact GPU execution timestamp.",
+    "The opaque and transmissive diagnostics cover scene passes and do not identify a water draw or material.",
+    "The matrix does not prove terrain or vegetation wetness uniform consumption by a fragment shader.",
+    "The matrix does not provide Browser WebGPU, RTX 3060 or RX 6600, real-time stutter, or human-review evidence.",
+    "The matrix advances R1-023 and R1-026 but closes no Gate 1 route."
+  ]
+}

@@ -1,0 +1,2011 @@
+{
+  "schema": "forge.gate1-visual-proof",
+  "schema_version": 3,
+  "status": "automated_capture_complete_pending_stutter_and_qualification",
+  "process_id": 44492,
+  "build_source_commit": "41b49f66d4573de505be44dfd38da75704d697f7",
+  "protocol": {
+    "physical_resolution_px": [
+      1920,
+      1080
+    ],
+    "requested_present_mode": "auto_no_vsync",
+    "vsync_requested": false,
+    "gpu": {
+      "name": "AMD Radeon RX 7800 XT",
+      "vendor": 4098,
+      "device": 29822,
+      "device_type": "DiscreteGpu",
+      "driver": "AMD proprietary driver",
+      "driver_info": "26.8.1 (LLPC)",
+      "backend": "Vulkan",
+      "max_texture_dimension_2d": 16384,
+      "max_bind_groups": 8,
+      "max_uniform_buffer_binding_size": 2147483647,
+      "max_storage_buffer_binding_size": 2147483644
+    }
+  },
+  "routes": [
+    {
+      "route": "R1-023",
+      "automated_status": "scene_gpu_pass_diagnostics_sampled_at_water_views_for_selected_tier_pending_water_isolation_low_high_browser_and_human_review"
+    },
+    {
+      "route": "R1-025",
+      "automated_status": "clear_rain_clear_cpu_ecs_endpoints_observed"
+    },
+    {
+      "route": "R1-026",
+      "automated_status": "color_grade_endpoints_and_scene_postprocess_gpu_pass_diagnostics_sampled_for_selected_tier_pending_low_high_browser_and_human_review"
+    },
+    {
+      "route": "R1-046",
+      "automated_status": "human_height_png_acquired_pending_human_review"
+    },
+    {
+      "route": "R1-047",
+      "automated_status": "distant_png_acquired_pending_human_review"
+    },
+    {
+      "route": "R1-048",
+      "automated_status": "gameplay_controller_frames_acquired_pending_mp4_stutter_and_human_review"
+    }
+  ],
+  "sources": {
+    "terrain_hash": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+    "water_hash": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+    "weather_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+    "player_profile_hash": "941eceefb29835c0949a9801f83f421839bcb5b0cd79583899c22d6832a74f90",
+    "quality_profile_hash": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+    "cadle_assets_used": false
+  },
+  "pipeline_warmup": {
+    "status": "ready",
+    "total": 63,
+    "queued": 0,
+    "creating": 0,
+    "ready": 63,
+    "errors": 0,
+    "waiting": 0,
+    "stable_frames": 3654,
+    "required_stable_frames": 30,
+    "observed_render_frames": 3861,
+    "stabilized_at_render_frame": 237,
+    "scope": "pipelines_exercised_by_this_process_only_no_persistent_pipeline_cache"
+  },
+  "quality": {
+    "schema": "forge.visual-valley-quality-runtime",
+    "schema_version": 1,
+    "profile_hash": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+    "selection": {
+      "mode": "fixed",
+      "tier": "low"
+    },
+    "startup_tier": "low",
+    "current_tier": "low",
+    "dynamically_applied_tier": "low",
+    "adaptation_enabled": false,
+    "adaptation_policy": null,
+    "benchmark_fixed_high": false,
+    "observed_frames": 3861,
+    "cooldown_remaining_frames": 0,
+    "transition_count": 0,
+    "last_transition": null,
+    "requested_preset": {
+      "terrain": {
+        "lod0_distance_m": 48.0,
+        "lod1_distance_m": 144.0,
+        "lod2_distance_m": 288.0,
+        "cull_distance_m": 384.0,
+        "lod1_sample_stride": 8,
+        "lod2_sample_stride": 16
+      },
+      "vegetation": {
+        "density_multiplier": 0.5,
+        "near_lod_distance_m": 16.0,
+        "medium_lod_distance_m": 48.0,
+        "hlod_distance_m": 128.0,
+        "cull_distance_m": 256.0,
+        "grass_blades_per_patch": 12
+      },
+      "shadows": {
+        "enabled": true,
+        "cascade_count": 2,
+        "map_resolution": 1024,
+        "maximum_distance_m": 64.0,
+        "contact_shadows_enabled": false
+      },
+      "environment": {
+        "atmosphere_enabled": true,
+        "environment_map_resolution": 64,
+        "volumetric_fog_enabled": false,
+        "volumetric_fog_step_count": 0,
+        "volumetric_fog_max_distance_m": 0.0
+      },
+      "water": {
+        "reflection": "environment",
+        "reflection_steps": 0,
+        "reflection_max_distance_m": 0.0,
+        "refraction": "surface_tint",
+        "refraction_steps": 0,
+        "refraction_max_depth_m": 0.0
+      },
+      "rain": {
+        "enabled": true,
+        "drop_budget": 2048,
+        "wetness_enabled": true
+      },
+      "post_process": {
+        "bloom_enabled": false,
+        "color_grading_enabled": true,
+        "tonemapping_enabled": true
+      }
+    },
+    "field_projections": [
+      {
+        "field": "vegetation.near_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.medium_lod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.hlod_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.cull_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.cascade_count",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.map_resolution",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.maximum_distance_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "shadows.contact_shadows_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.reflection_steps",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "rain.enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.bloom_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.color_grading_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "post_process.tonemapping_enabled",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "vegetation.grass_blades_per_patch",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.atmosphere_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "environment.environment_map_resolution",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.drop_budget",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "rain.wetness_enabled",
+        "status": "applied_at_startup",
+        "evidence": "startup_projection_requires_resource_or_mesh_rebuild_for_later_tiers"
+      },
+      {
+        "field": "terrain.lod0_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.cull_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod1_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "terrain.lod2_sample_stride",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "vegetation.density_multiplier",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_enabled",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_step_count",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "environment.volumetric_fog_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.reflection_max_distance_m",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      },
+      {
+        "field": "water.refraction_steps",
+        "status": "not_applicable",
+        "evidence": "no_qualified_runtime_mapping_in_current_bevy_adapter"
+      },
+      {
+        "field": "water.refraction_max_depth_m",
+        "status": "applied_on_tier_transition",
+        "evidence": "main_world_component_projection_gpu_execution_not_observed"
+      }
+    ]
+  },
+  "timeline": {
+    "same_process": true,
+    "requested_states": [
+      "clear",
+      "rain",
+      "clear"
+    ],
+    "checkpoints": [
+      {
+        "capture_id": "distant-clear",
+        "state": "clear",
+        "requested_frame": 148,
+        "simulation_seconds": 1.1062076969537884,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": false,
+        "bloom_component_present": false,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "gpu_pass_diagnostics": null,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "human-clear",
+        "state": "clear",
+        "requested_frame": 180,
+        "simulation_seconds": 1.2824067955370992,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": false,
+        "bloom_component_present": false,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "gpu_pass_diagnostics": null,
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-clear",
+        "state": "clear",
+        "requested_frame": 194,
+        "simulation_seconds": 1.3729307951871306,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": false,
+        "bloom_component_present": false,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "gpu_pass_diagnostics": {
+          "settle_started_at_frame": 186,
+          "sampled_at_frame": 194,
+          "settled_frames_before_sample": 8,
+          "minimum_settled_frames_before_sample": 8,
+          "render_frame_identity": "not_available_from_bevy_diagnostics_store",
+          "quality_tier": "low",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "evidence_source": "bevy_render_diagnostics_latest_delayed_gpu_measurement",
+          "main_opaque_pass_3d": {
+            "diagnostic_path": "render/main_opaque_pass_3d/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 0.93636,
+            "measurement_sync_age_seconds": 0.0006804,
+            "measurement_synced_after_settle_started": true
+          },
+          "main_transmissive_pass_3d": {
+            "diagnostic_path": "render/main_transmissive_pass_3d/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "bloom": {
+            "diagnostic_path": "render/bloom/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "tonemapping": {
+            "diagnostic_path": "render/tonemapping/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 0.09452,
+            "measurement_sync_age_seconds": 0.0006804,
+            "measurement_synced_after_settle_started": true
+          }
+        },
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-rain",
+        "state": "rain",
+        "requested_frame": 974,
+        "simulation_seconds": 5.799890394555405,
+        "current_wetness": 0.78,
+        "target_wetness": 0.78,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": null,
+        "rain_visible": true,
+        "rain_rendered_opacity": 0.42,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": false,
+        "bloom_component_present": false,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": -0.35,
+        "mapped_temperature": -0.012,
+        "mapped_tint": 0.002,
+        "mapped_post_saturation": 0.86,
+        "mapped_contrast": 1.08,
+        "mapped_gamma": 1.0,
+        "gpu_pass_diagnostics": {
+          "settle_started_at_frame": 966,
+          "sampled_at_frame": 974,
+          "settled_frames_before_sample": 8,
+          "minimum_settled_frames_before_sample": 8,
+          "render_frame_identity": "not_available_from_bevy_diagnostics_store",
+          "quality_tier": "low",
+          "weather_state": "rain",
+          "wetness": 0.78,
+          "evidence_source": "bevy_render_diagnostics_latest_delayed_gpu_measurement",
+          "main_opaque_pass_3d": {
+            "diagnostic_path": "render/main_opaque_pass_3d/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 1.02644,
+            "measurement_sync_age_seconds": 0.0009811,
+            "measurement_synced_after_settle_started": true
+          },
+          "main_transmissive_pass_3d": {
+            "diagnostic_path": "render/main_transmissive_pass_3d/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "bloom": {
+            "diagnostic_path": "render/bloom/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "tonemapping": {
+            "diagnostic_path": "render/tonemapping/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 0.05908,
+            "measurement_sync_age_seconds": 0.0009811,
+            "measurement_synced_after_settle_started": true
+          }
+        },
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      },
+      {
+        "capture_id": "water-restored",
+        "state": "clear",
+        "requested_frame": 2949,
+        "simulation_seconds": 17.032406594837084,
+        "current_wetness": 0.0,
+        "target_wetness": 0.0,
+        "terrain_materials": 1,
+        "vegetation_materials": 1,
+        "terrain_uniforms_match": true,
+        "vegetation_uniforms_match": true,
+        "clear_target_restored_exactly": true,
+        "rain_visible": false,
+        "rain_rendered_opacity": 0.0,
+        "rain_shader_uniform_updated": true,
+        "rain_camera_followed": true,
+        "bloom_requested": false,
+        "bloom_component_present": false,
+        "color_grading_component_present": true,
+        "mapped_exposure_ev": 0.0,
+        "mapped_temperature": 0.008,
+        "mapped_tint": 0.001,
+        "mapped_post_saturation": 1.04,
+        "mapped_contrast": 1.06,
+        "mapped_gamma": 1.0,
+        "gpu_pass_diagnostics": {
+          "settle_started_at_frame": 2941,
+          "sampled_at_frame": 2949,
+          "settled_frames_before_sample": 8,
+          "minimum_settled_frames_before_sample": 8,
+          "render_frame_identity": "not_available_from_bevy_diagnostics_store",
+          "quality_tier": "low",
+          "weather_state": "clear",
+          "wetness": 0.0,
+          "evidence_source": "bevy_render_diagnostics_latest_delayed_gpu_measurement",
+          "main_opaque_pass_3d": {
+            "diagnostic_path": "render/main_opaque_pass_3d/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 0.8188,
+            "measurement_sync_age_seconds": 0.0033366,
+            "measurement_synced_after_settle_started": true
+          },
+          "main_transmissive_pass_3d": {
+            "diagnostic_path": "render/main_transmissive_pass_3d/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "bloom": {
+            "diagnostic_path": "render/bloom/elapsed_gpu",
+            "expected": false,
+            "elapsed_gpu_ms": null,
+            "measurement_sync_age_seconds": null,
+            "measurement_synced_after_settle_started": null
+          },
+          "tonemapping": {
+            "diagnostic_path": "render/tonemapping/elapsed_gpu",
+            "expected": true,
+            "elapsed_gpu_ms": 0.05144,
+            "measurement_sync_age_seconds": 0.0033366,
+            "measurement_synced_after_settle_started": true
+          }
+        },
+        "weather_gpu_execution_observed": false,
+        "evidence_source": "main_world_ecs_and_cpu_material_assets_not_gpu_execution"
+      }
+    ]
+  },
+  "captures": [
+    {
+      "id": "distant-clear",
+      "relative_path": "captures/distant-clear.png",
+      "requested_frame": 148,
+      "verified_frame": 154,
+      "bytes": 1990809,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          -210.0,
+          165.0455,
+          210.0
+        ],
+        "forward": [
+          0.623246,
+          -0.47236517,
+          -0.6232461
+        ],
+        "vertical_fov_degrees": 52.0,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": null
+    },
+    {
+      "id": "human-clear",
+      "relative_path": "captures/human-clear.png",
+      "requested_frame": 180,
+      "verified_frame": 186,
+      "bytes": 2043664,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          -23.599913,
+          8.0
+        ],
+        "forward": [
+          -0.0,
+          0.09086368,
+          -0.99586326
+        ],
+        "vertical_fov_degrees": 75.0,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": null
+    },
+    {
+      "id": "water-clear",
+      "relative_path": "captures/water-clear.png",
+      "requested_frame": 194,
+      "verified_frame": 200,
+      "bytes": 2097009,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          14.261456,
+          170.0
+        ],
+        "forward": [
+          -0.0,
+          -0.6123965,
+          -0.7905507
+        ],
+        "vertical_fov_degrees": 75.0,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": null
+    },
+    {
+      "id": "water-rain",
+      "relative_path": "captures/water-rain.png",
+      "requested_frame": 974,
+      "verified_frame": 980,
+      "bytes": 2107696,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          14.261456,
+          170.0
+        ],
+        "forward": [
+          -0.0,
+          -0.6123965,
+          -0.7905507
+        ],
+        "vertical_fov_degrees": 75.0,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": null
+    },
+    {
+      "id": "water-restored",
+      "relative_path": "captures/water-restored.png",
+      "requested_frame": 2949,
+      "verified_frame": 2955,
+      "bytes": 2097773,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          16.0,
+          14.261456,
+          170.0
+        ],
+        "forward": [
+          -0.0,
+          -0.6123965,
+          -0.7905507
+        ],
+        "vertical_fov_degrees": 75.0,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": null
+    },
+    {
+      "id": "movement-000",
+      "relative_path": "movement/frame-000.png",
+      "requested_frame": 2965,
+      "verified_frame": 2971,
+      "bytes": 2067432,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.994352,
+          -22.767843,
+          12.4290085
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1025
+    },
+    {
+      "id": "movement-001",
+      "relative_path": "movement/frame-001.png",
+      "requested_frame": 3003,
+      "verified_frame": 3009,
+      "bytes": 2063924,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.98765,
+          -22.709703,
+          12.220217
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1033
+    },
+    {
+      "id": "movement-002",
+      "relative_path": "movement/frame-002.png",
+      "requested_frame": 3038,
+      "verified_frame": 3044,
+      "bytes": 2057898,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.977901,
+          -22.576012,
+          11.7407
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1040
+    },
+    {
+      "id": "movement-003",
+      "relative_path": "movement/frame-003.png",
+      "requested_frame": 3077,
+      "verified_frame": 3083,
+      "bytes": 2044780,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.965598,
+          -22.407469,
+          11.136083
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1048
+    },
+    {
+      "id": "movement-004",
+      "relative_path": "movement/frame-004.png",
+      "requested_frame": 3113,
+      "verified_frame": 3119,
+      "bytes": 2049672,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.956171,
+          -22.259912,
+          10.60701
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1055
+    },
+    {
+      "id": "movement-005",
+      "relative_path": "movement/frame-005.png",
+      "requested_frame": 3152,
+      "verified_frame": 3158,
+      "bytes": 2052529,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.943712,
+          -22.118624,
+          9.986201
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1063
+    },
+    {
+      "id": "movement-006",
+      "relative_path": "movement/frame-006.png",
+      "requested_frame": 3187,
+      "verified_frame": 3193,
+      "bytes": 2058091,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.932115,
+          -22.000027,
+          9.43895
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1070
+    },
+    {
+      "id": "movement-007",
+      "relative_path": "movement/frame-007.png",
+      "requested_frame": 3226,
+      "verified_frame": 3232,
+      "bytes": 2055569,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.918869,
+          -21.864597,
+          8.813419
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1078
+    },
+    {
+      "id": "movement-008",
+      "relative_path": "movement/frame-008.png",
+      "requested_frame": 3260,
+      "verified_frame": 3266,
+      "bytes": 2053969,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.907996,
+          -21.76651,
+          8.25832
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1085
+    },
+    {
+      "id": "movement-009",
+      "relative_path": "movement/frame-009.png",
+      "requested_frame": 3299,
+      "verified_frame": 3305,
+      "bytes": 2062329,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.897378,
+          -21.694126,
+          7.605731
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1093
+    },
+    {
+      "id": "movement-010",
+      "relative_path": "movement/frame-010.png",
+      "requested_frame": 3335,
+      "verified_frame": 3341,
+      "bytes": 2058371,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.8880825,
+          -21.630697,
+          7.034711
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1100
+    },
+    {
+      "id": "movement-011",
+      "relative_path": "movement/frame-011.png",
+      "requested_frame": 3373,
+      "verified_frame": 3379,
+      "bytes": 2057889,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.877465,
+          -21.559153,
+          6.3819857
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1108
+    },
+    {
+      "id": "movement-012",
+      "relative_path": "movement/frame-012.png",
+      "requested_frame": 3409,
+      "verified_frame": 3415,
+      "bytes": 2052512,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.872474,
+          -21.551088,
+          5.7997923
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1115
+    },
+    {
+      "id": "movement-013",
+      "relative_path": "movement/frame-013.png",
+      "requested_frame": 3448,
+      "verified_frame": 3454,
+      "bytes": 2054012,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.866415,
+          -21.537884,
+          5.134515
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1123
+    },
+    {
+      "id": "movement-014",
+      "relative_path": "movement/frame-014.png",
+      "requested_frame": 3485,
+      "verified_frame": 3491,
+      "bytes": 2062178,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.861107,
+          -21.526257,
+          4.5523877
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1130
+    },
+    {
+      "id": "movement-015",
+      "relative_path": "movement/frame-015.png",
+      "requested_frame": 3523,
+      "verified_frame": 3529,
+      "bytes": 2070435,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.856033,
+          -21.525055,
+          3.8859715
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1138
+    },
+    {
+      "id": "movement-016",
+      "relative_path": "movement/frame-016.png",
+      "requested_frame": 3559,
+      "verified_frame": 3565,
+      "bytes": 2080277,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.851827,
+          -21.526815,
+          3.3025372
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1145
+    },
+    {
+      "id": "movement-017",
+      "relative_path": "movement/frame-017.png",
+      "requested_frame": 3598,
+      "verified_frame": 3604,
+      "bytes": 2078475,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.847015,
+          -21.528702,
+          2.635753
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1153
+    },
+    {
+      "id": "movement-018",
+      "relative_path": "movement/frame-018.png",
+      "requested_frame": 3634,
+      "verified_frame": 3640,
+      "bytes": 2080037,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.843038,
+          -21.532637,
+          2.0521915
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1160
+    },
+    {
+      "id": "movement-019",
+      "relative_path": "movement/frame-019.png",
+      "requested_frame": 3673,
+      "verified_frame": 3679,
+      "bytes": 2075750,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.838659,
+          -21.539001,
+          1.3850982
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1168
+    },
+    {
+      "id": "movement-020",
+      "relative_path": "movement/frame-020.png",
+      "requested_frame": 3708,
+      "verified_frame": 3714,
+      "bytes": 2078505,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.835439,
+          -21.544514,
+          0.8013978
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1175
+    },
+    {
+      "id": "movement-021",
+      "relative_path": "movement/frame-021.png",
+      "requested_frame": 3747,
+      "verified_frame": 3753,
+      "bytes": 2076499,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.831077,
+          -21.549871,
+          0.13438416
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1183
+    },
+    {
+      "id": "movement-022",
+      "relative_path": "movement/frame-022.png",
+      "requested_frame": 3783,
+      "verified_frame": 3789,
+      "bytes": 2073795,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.827268,
+          -21.554224,
+          -0.44924068
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1190
+    },
+    {
+      "id": "movement-023",
+      "relative_path": "movement/frame-023.png",
+      "requested_frame": 3823,
+      "verified_frame": 3829,
+      "bytes": 2081193,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "camera": {
+        "translation_m": [
+          15.822911,
+          -21.559074,
+          -1.1162405
+        ],
+        "forward": [
+          -0.0,
+          -0.2079117,
+          -0.9781475
+        ],
+        "vertical_fov_degrees": 60.000004,
+        "forge_player_camera": true
+      },
+      "movement_fixed_tick": 1198
+    }
+  ],
+  "movement": {
+    "kind": "deterministic_fixed_tick_gameplay_controller",
+    "gameplay_controller_exercised": true,
+    "interactive_input_enabled": false,
+    "fixed_hz": 59.99999880000003,
+    "fixed_timestep_seconds": 0.016666667,
+    "frame_count": 24,
+    "intended_video_fps": 8,
+    "start_xz_m": [
+      15.994352,
+      8.027344
+    ],
+    "end_xz_m": [
+      15.822911,
+      -5.5179048
+    ],
+    "stopped_xz_m": [
+      15.817867,
+      -5.8681746
+    ],
+    "planar_distance_m": 13.546332,
+    "forward_distance_m": 13.545248,
+    "lateral_drift_m": 0.17144108,
+    "command_sequence": 1,
+    "stop_sequence": 2,
+    "command_applied_exactly": true,
+    "stopped_command_applied_exactly": true,
+    "stop_wait_ticks": 11,
+    "observed_fixed_ticks": 173,
+    "grounded_ticks": 173,
+    "maximum_ungrounded_run": 0,
+    "collision_ticks": 173,
+    "camera_entity": "4750v0",
+    "player_entity": "4749v0",
+    "rapier_collider_handle": [
+      0,
+      0
+    ],
+    "rapier_context_entity": "441v0",
+    "backend_identity_stable": true,
+    "camera_marker_verified": true,
+    "checkpoints": [
+      {
+        "index": 0,
+        "target_tick_offset": 0,
+        "observed_tick_offset": 0,
+        "fixed_tick": 1025,
+        "player_position_m": [
+          15.994352,
+          -24.303446,
+          8.027344
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.994352,
+            -22.767843,
+            12.4290085
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 1,
+        "target_tick_offset": 8,
+        "observed_tick_offset": 8,
+        "fixed_tick": 1033,
+        "player_position_m": [
+          15.98765,
+          -24.245306,
+          7.818552
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.98765,
+            -22.709703,
+            12.220217
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 2,
+        "target_tick_offset": 15,
+        "observed_tick_offset": 15,
+        "fixed_tick": 1040,
+        "player_position_m": [
+          15.977901,
+          -24.111614,
+          7.339036
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.977901,
+            -22.576012,
+            11.7407
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 3,
+        "target_tick_offset": 23,
+        "observed_tick_offset": 23,
+        "fixed_tick": 1048,
+        "player_position_m": [
+          15.965598,
+          -23.943071,
+          6.7344184
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.965598,
+            -22.407469,
+            11.136083
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 4,
+        "target_tick_offset": 30,
+        "observed_tick_offset": 30,
+        "fixed_tick": 1055,
+        "player_position_m": [
+          15.956171,
+          -23.795515,
+          6.205346
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.956171,
+            -22.259912,
+            10.60701
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 5,
+        "target_tick_offset": 38,
+        "observed_tick_offset": 38,
+        "fixed_tick": 1063,
+        "player_position_m": [
+          15.943712,
+          -23.654226,
+          5.584537
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.943712,
+            -22.118624,
+            9.986201
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 6,
+        "target_tick_offset": 45,
+        "observed_tick_offset": 45,
+        "fixed_tick": 1070,
+        "player_position_m": [
+          15.932115,
+          -23.53563,
+          5.0372853
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.932115,
+            -22.000027,
+            9.43895
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 7,
+        "target_tick_offset": 53,
+        "observed_tick_offset": 53,
+        "fixed_tick": 1078,
+        "player_position_m": [
+          15.918869,
+          -23.4002,
+          4.411755
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.918869,
+            -21.864597,
+            8.813419
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 8,
+        "target_tick_offset": 60,
+        "observed_tick_offset": 60,
+        "fixed_tick": 1085,
+        "player_position_m": [
+          15.907996,
+          -23.302113,
+          3.8566554
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.907996,
+            -21.76651,
+            8.25832
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 9,
+        "target_tick_offset": 68,
+        "observed_tick_offset": 68,
+        "fixed_tick": 1093,
+        "player_position_m": [
+          15.897378,
+          -23.229729,
+          3.204067
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.897378,
+            -21.694126,
+            7.605731
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 10,
+        "target_tick_offset": 75,
+        "observed_tick_offset": 75,
+        "fixed_tick": 1100,
+        "player_position_m": [
+          15.8880825,
+          -23.1663,
+          2.6330464
+        ],
+        "grounded": true,
+        "collisions": 2,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.8880825,
+            -21.630697,
+            7.034711
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 11,
+        "target_tick_offset": 83,
+        "observed_tick_offset": 83,
+        "fixed_tick": 1108,
+        "player_position_m": [
+          15.877465,
+          -23.094755,
+          1.9803213
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.877465,
+            -21.559153,
+            6.3819857
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 12,
+        "target_tick_offset": 90,
+        "observed_tick_offset": 90,
+        "fixed_tick": 1115,
+        "player_position_m": [
+          15.872474,
+          -23.08669,
+          1.3981278
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.872474,
+            -21.551088,
+            5.7997923
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 13,
+        "target_tick_offset": 98,
+        "observed_tick_offset": 98,
+        "fixed_tick": 1123,
+        "player_position_m": [
+          15.866415,
+          -23.073486,
+          0.7328503
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.866415,
+            -21.537884,
+            5.134515
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 14,
+        "target_tick_offset": 105,
+        "observed_tick_offset": 105,
+        "fixed_tick": 1130,
+        "player_position_m": [
+          15.861107,
+          -23.06186,
+          0.15072326
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.861107,
+            -21.526257,
+            4.5523877
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 15,
+        "target_tick_offset": 113,
+        "observed_tick_offset": 113,
+        "fixed_tick": 1138,
+        "player_position_m": [
+          15.856033,
+          -23.060658,
+          -0.5156926
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.856033,
+            -21.525055,
+            3.8859715
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 16,
+        "target_tick_offset": 120,
+        "observed_tick_offset": 120,
+        "fixed_tick": 1145,
+        "player_position_m": [
+          15.851827,
+          -23.062418,
+          -1.099127
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.851827,
+            -21.526815,
+            3.3025372
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 17,
+        "target_tick_offset": 128,
+        "observed_tick_offset": 128,
+        "fixed_tick": 1153,
+        "player_position_m": [
+          15.847015,
+          -23.064304,
+          -1.7659113
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.847015,
+            -21.528702,
+            2.635753
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 18,
+        "target_tick_offset": 135,
+        "observed_tick_offset": 135,
+        "fixed_tick": 1160,
+        "player_position_m": [
+          15.843038,
+          -23.06824,
+          -2.3494728
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.843038,
+            -21.532637,
+            2.0521915
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 19,
+        "target_tick_offset": 143,
+        "observed_tick_offset": 143,
+        "fixed_tick": 1168,
+        "player_position_m": [
+          15.838659,
+          -23.074604,
+          -3.016566
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.838659,
+            -21.539001,
+            1.3850982
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 20,
+        "target_tick_offset": 150,
+        "observed_tick_offset": 150,
+        "fixed_tick": 1175,
+        "player_position_m": [
+          15.835439,
+          -23.080116,
+          -3.6002665
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.835439,
+            -21.544514,
+            0.8013978
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 21,
+        "target_tick_offset": 158,
+        "observed_tick_offset": 158,
+        "fixed_tick": 1183,
+        "player_position_m": [
+          15.831077,
+          -23.085474,
+          -4.26728
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.831077,
+            -21.549871,
+            0.13438416
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 22,
+        "target_tick_offset": 165,
+        "observed_tick_offset": 165,
+        "fixed_tick": 1190,
+        "player_position_m": [
+          15.827268,
+          -23.089827,
+          -4.850905
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.827268,
+            -21.554224,
+            -0.44924068
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      },
+      {
+        "index": 23,
+        "target_tick_offset": 173,
+        "observed_tick_offset": 173,
+        "fixed_tick": 1198,
+        "player_position_m": [
+          15.822911,
+          -23.094677,
+          -5.5179048
+        ],
+        "grounded": true,
+        "collisions": 1,
+        "camera_entity": "4750v0",
+        "camera": {
+          "translation_m": [
+            15.822911,
+            -21.559074,
+            -1.1162405
+          ],
+          "forward": [
+            -0.0,
+            -0.2079117,
+            -0.9781475
+          ],
+          "vertical_fov_degrees": 60.000004,
+          "forge_player_camera": true
+        }
+      }
+    ],
+    "frame_pattern": "movement/frame-%03d.png"
+  },
+  "qualification": {
+    "rendered_png_artifacts_acquired": true,
+    "weather_cpu_ecs_projection_observed": true,
+    "weather_gpu_execution_observed": false,
+    "real_time_stutter_qualified": false,
+    "human_review_performed": false,
+    "visual_quality_accepted": false,
+    "gate1_routes_qualified": false,
+    "limitation": "machine acquisition only: Bevy's latest delayed render-pass GPU measurements do not identify their exact render frame or prove weather wetness shader consumption, real-time stutter, comparative visual quality, or human acceptance"
+  }
+}

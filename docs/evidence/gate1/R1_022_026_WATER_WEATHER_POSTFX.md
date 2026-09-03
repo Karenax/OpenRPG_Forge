@@ -3,38 +3,38 @@
 ## Verdict borné
 
 **NON QUALIFIÉ AU GLOBAL.** La paire `d9e2670…` conserve sa campagne native/Browser exacte,
-24/24 contrôles par météo et 46/46 contrôles croisés. La campagne native la plus récente est liée au
-commit exact `125ba0b8bb1fe04b2b34cae5abc41c26d1919b00`, arbre
-`6d4639c824ccfa81c3d5ed911903cec2bb3c5074`. Son validateur schema 2 passe avec 29 PNG aux hashes
-uniques, un MP4 de 24 frames/3 secondes, 75 pipelines prêts, zéro erreur de pipeline et zéro entrée
-warning/erreur/panic dans les journaux runtime. Les vues `water-clear`, `water-rain` et
-`water-restored` sont non vides, distinctes et cohérentes à l'inspection d'agent ; la pluie et le
-retour clair y sont lisibles.
+24/24 contrôles par météo et 46/46 contrôles croisés. La campagne native historique `125ba0b` conserve
+29 PNG, un MP4 de 24 frames/3 secondes, 75 pipelines prêts et des journaux propres. La matrice native
+la plus récente est acquise au commit exact `41b49f66d4573de505be44dfd38da75704d697f7`, arbre
+`8da220873059e91daed6accc2c3ab0cfabe54e11` : Low et High produisent chacun 29 captures validées et
+trois vues eau versionnées ; 6 mesures de passes GPU de scène sont synchronisées en Low et 12 en High,
+sur AMD Radeon RX 7800 XT / Vulkan / pilote `26.8.1 (LLPC)`.
 
-Cette acquisition ne transforme pas le fallback en réflexion/réfraction GPU qualifiée. Le ledger
-conserve `weather_gpu_execution_observed=false`, le validateur conserve
-`human_review_performed=false` et son statut exact reste
-`automated_artifacts_valid_pending_stutter_human_and_gpu_qualification`.
+Cette matrice ne transforme pas le fallback en réflexion/réfraction eau qualifiée. Les diagnostics
+portent sur des passes de scène et ne désignent ni un draw ni un matériau eau ; leur temps est celui de
+la synchronisation main-world, pas l'identité d'une frame GPU exacte. Les ledgers conservent
+`weather_gpu_execution_observed=false`, `human_review_performed=false` et
+`gate1_routes_qualified=false`.
 
 État des cinq critères :
 
 | Critère | État de cette preuve |
 |---|---|
 | `R1-022` eau de rivière | **acquis fonctionnellement** en natif et Browser : document/hash et composants observés ; trois vues natives dédiées `125ba0b` inspectables, vue Browser d9 encore masquée, `gpu_pass_observed=false` et `gpu_presentation=not_observed` |
-| `R1-023` réflexion/réfraction selon profil | SSR indisponible résolu vers Environment IBL ; réfraction résolue vers Bevy `ScreenSpaceTransmission` High ; trois PNG eau exacts `125ba0b` inspectables, mais aucune observation instrumentée de l'exécution GPU ni acceptation humaine formelle |
+| `R1-023` réflexion/réfraction selon profil | SSR indisponible résolu vers Environment IBL ; matrice native `41b49f6` : opaque/tonemapping en Low, opaque/transmission/bloom/tonemapping en High sur 3/3 vues eau ; preuve de passes scène seulement, sans draw/matériau eau, frame exacte, Browser ou acceptation humaine |
 | `R1-024` pluie | **acquise fonctionnellement** en natif et Browser High : cible rain, lot visible et stries dans les PNG ; animation et présentation GPU non prouvées |
-| `R1-025` wetness réversible | séquence réelle même processus `clear → rain → clear`, endpoints CPU/ECS 0 → 0,78 → 0 et trois PNG exacts acquis ; exécution GPU instrumentée, qualification Browser et retour visuel humain accepté dus |
-| `R1-026` bloom et color grading bornés | endpoints numériques clear/rain, présence du composant Bloom et trois PNG ciblés acquis ; exécution GPU instrumentée, matrice de profils et qualification visuelle humaine dues |
+| `R1-025` wetness réversible | séquence réelle même processus `clear → rain → clear`, endpoints CPU/ECS 0 → 0,78 → 0 et pixels Low/High acquis ; aucune preuve de consommation de la wetness par le shader, qualification Browser et retour visuel humain dus |
+| `R1-026` bloom et color grading bornés | endpoints numériques clear/rain ; Bloom absent en Low et présent en High, tonemapping mesuré dans les deux tiers ; avancée native seulement, Browser, humain et GPU cible dus |
 
-Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. La validation automatisée et
-les pixels natifs ciblés de `R1-023`/`R1-025`/`R1-026` sont maintenant acquis, mais ces trois routes
-restent ouvertes en raison de la présentation GPU non instrumentée, de la qualification Browser et
-de l'acceptation visuelle humaine encore dues. Les sections historiques plus bas conservent les
-campagnes précédentes. La correction d9 est détaillée dans
+Les sous-preuves fonctionnelles de `R1-022` et `R1-024` sont acquises. La validation automatisée, les
+pixels natifs ciblés et la matrice de passes de scène Low/High de `R1-023`/`R1-025`/`R1-026` sont
+maintenant acquis, mais ces trois routes restent ouvertes aux frontières décrites ci-dessus. Les
+sections historiques plus bas conservent les campagnes précédentes. La matrice actuelle est détaillée
+dans [`R1_023_026_NATIVE_SCENE_GPU_MATRIX.md`](R1_023_026_NATIVE_SCENE_GPU_MATRIX.md), la correction d9 dans
 [`R1_GRAPHICS_FORWARD_IBL_CORRECTION.md`](R1_GRAPHICS_FORWARD_IBL_CORRECTION.md), la campagne
 historique `a7c9b1e1` dans
 [`R1_025_026_046_048_NATIVE_VISUAL_PROOF.md`](R1_025_026_046_048_NATIVE_VISUAL_PROOF.md) et
-l'identité `125ba0b` dans le présent document ; ses artefacts bruts restent externes.
+l'identité historique `125ba0b` dans le présent document.
 
 ## Validation automatisée de l'état intégré courant
 
@@ -51,6 +51,7 @@ l'identité `125ba0b` dans le présent document ; ses artefacts bruts restent ex
 | tests eau ciblés `forge_engine` | **PASS — 14/14** |
 | tests `forge_runtime` après intégration RenderDoc v2 | **PASS — 67/67 unitaires + 1/1 intégration** |
 | preuve visuelle native exacte `125ba0b` | **PASS automatisé** — 29 PNG uniques, MP4 24 frames/3 s, 75 pipelines prêts, logs runtime vides |
+| matrice native exacte `41b49f6` | **PASS automatisé borné** — 29 captures validées par tier, 6 mesures Low et 12 High, 14 artefacts versionnés, logs vides ; aucune route fermée |
 
 Ces résultats valident la compilation et les contrats automatisés intégrés. Les exécutions natives
 ci-dessous ajoutent une observation Vulkan et des pixels capturés. Le Browser charge 9/9 modèles et
@@ -247,7 +248,11 @@ par inférence depuis la seule existence d'un PNG.
 - les trois vues eau exactes `125ba0b` sont acquises et cohérentes à l'inspection d'agent. Le ledger
   conserve toutefois explicitement l'exécution GPU à faux et aucune revue humaine formelle n'est
   enregistrée ; elles ne ferment donc pas la qualification ;
-- capturer et comparer Low/Medium/High/Ultra en natif et WebGPU, vérifier visuellement la réflexion,
+- la matrice native `41b49f6` acquiert Low et High à pose eau fixe : les passes opaque et tonemapping
+  sont mesurées dans les deux tiers, tandis que transmission et Bloom sont absents en Low et présents
+  en High. Ces diagnostics restent à l'échelle de la scène, sans isolation du draw ou matériau eau et
+  sans identité de frame GPU exacte ;
+- compléter Medium/Ultra et WebGPU, vérifier visuellement la réflexion,
   le fallback de réfraction, les artefacts de bord et le coût ; décider explicitement si le critère
   accepte le fallback authored ou exige un vrai chemin de réfraction avant qualification.
 
@@ -319,6 +324,9 @@ par inférence depuis la seule existence d'un PNG.
 - les trois PNG ont des hashes distincts. Cela prouve leur acquisition, pas une identité visuelle
   parfaite après restauration ; `weather_gpu_execution_observed=false` empêche d'étendre la preuve
   CPU/ECS au GPU ou au Browser ;
+- les pixels Low/High et les passes de scène de `41b49f6` n'isolent pas la lecture de l'uniform de
+  wetness par les shaders terrain/végétation. `R1-025` reste donc une preuve CPU/ECS, même si la pluie
+  et le retour clair sont cohérents à l'inspection d'agent ;
 - vérifier par inspection humaine que terrain et végétation s'assombrissent et deviennent moins
   rugueux sans dérive permanente, puis rejouer la séquence sous WebGPU.
 
@@ -354,8 +362,10 @@ par inférence depuis la seule existence d'un PNG.
 - les captures exactes `125ba0b` acquièrent les endpoints High clear
   `(0 ; 0,008 ; 0,001 ; 1,04 ; 1,06 ; 1)` et rain
   `(-0,35 ; -0,012 ; 0,002 ; 0,86 ; 1,08 ; 1)` pour exposition, température, tint, saturation,
-  contraste et gamma. Produire encore Low et une inspection humaine ciblée du clipping, pompage et
-  halo ;
+  contraste et gamma ;
+- la matrice `41b49f6` ajoute Low/High natif : Bloom est absent comme attendu en Low, présent en High,
+  et tonemapping est mesuré dans les deux tiers. Elle n'attribue toutefois pas le color grading aux
+  pixels, et ne remplace ni Browser ni l'inspection humaine ciblée du clipping, pompage et halo ;
 - consigner backend, résolution, profil, seed, commit, warm-up, métriques et inspection humaine avant
   de cocher `R1-026`.
 
@@ -363,10 +373,10 @@ par inférence depuis la seule existence d'un PNG.
 
 | Cible | Variantes obligatoires | Preuves minimales |
 |---|---|---|
-| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **AUTOMATISATION ACQUISE à `125ba0b`** : 29 PNG uniques, vidéo, identité GPU/driver, 75 pipelines prêts et logs propres ; exécution GPU optique instrumentée et revue humaine non acquises |
+| Runtime natif | `clear` et `rain`, High, 1920 × 1080, VSync off, même seed/caméra | **AUTOMATISATION ACQUISE** : historique `125ba0b` pour PNG/vidéo ; `41b49f6` pour la matrice de passes de scène Low/High ; isolation eau et revue humaine non acquises |
 | Studio Browser | `forge_scene=visual-valley` avec `forge_weather=clear`, puis `rain`, High | **PARTIEL ACQUIS à `d9e2670…`** : 24/24 contrôles chacun, 9/9 modèles, 26 assets HTTP 200, hashes alignés, console/réseau propres et captures inspectées ; `gpu_presentation=not_observed` |
-| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `125ba0b`** : wetness CPU/ECS terminale exacte et trois PNG liés ; exécution GPU instrumentée, retour visuel humain accepté et Browser dus |
-| Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | chemin SSR/fallback observé, paramètres appliqués, coût et artefacts comparés |
+| Réversibilité | `clear → rain → clear` sur une exécution instrumentée par cible | **PARTIEL NATIF `41b49f6`** : wetness CPU/ECS terminale exacte et pixels Low/High ; consommation shader, retour visuel humain accepté et Browser dus |
+| Profils optiques/post-FX | Low/Medium/High/Ultra, au minimum captures Low/High | **LOW/HIGH NATIF ACQUIS à `41b49f6`** pour les passes de scène ; Medium/Ultra, Browser, attribution eau et qualification humaine dus |
 
 Le commit/arbre, le smoke natif High clear/rain et le smoke Browser clear/rain restent consignés sur
 la paire d9 exacte. Les temps Browser mesurent la boucle WASM, pas le GPU : clear
@@ -381,5 +391,12 @@ Les trois PNG eau portent respectivement les SHA-256
 `ED03BFEE3EAAECAF1AF27CBE03E9AF4CB4AD116157D99BFE37B8B6FC5F2B0CBC` (clear),
 `5A97F46289469C0F33A7C011B73EB59E209C4400B7068B323279667D2B284506` (rain) et
 `8F519DD1D335F5E382B2DFA58149DF82D7BAA8A2F4583517D85CBCE0C20EDF5C` (restored).
-`R1-023`, `R1-025` et `R1-026` restent explicitement ouverts ; `R1-022` et `R1-024` sont acquis
-fonctionnellement mais restent bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE**.
+La matrice `41b49f6` ajoute le binaire
+`0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48`, les ledgers Low/High
+`8ae2815ced427c7575831adc9ea40c95e79ef97e8eb8dc84f54e8562faa68737` /
+`2285929a42e9339312845f92a8bbb02afbd38b53674add342307fcb1100a238d` et les validations
+`51efdeecd7c2361156c78f2db8111e0c38161f556bf2b2d96e57cd5a04e554a1` /
+`6186dd8bf799a01d172c73ff38daedf3a0bff8ead150dc800b2547001d3b0750`. Les 9/9 assets Forge sont
+lus en place, aucun asset Cadle n'est copié, et les logs sont vides. `R1-023`, `R1-025` et `R1-026`
+restent explicitement ouvertes ; `R1-022` et `R1-024` sont acquis fonctionnellement mais restent
+bornés visuellement/GPU. Gate 1 demeure **NON QUALIFIÉE** et Gate 2 reste interdite.

@@ -317,6 +317,27 @@ restent ouvertes : qualification humaine/GPU de l'eau, quatre captures RenderDoc
 benchmark cible et revues humaines ne sont pas acquis. Gate 1 reste **OUVERTE** et Gate 2 reste
 **INTERDITE**.
 
+Le lot `815ddf3dc715952700164059e876d7151ccc8133`, arbre
+`c1e8951a266a407229eb41899dc39abc58eb2f16`, ajoute au harnais schema v3 l'échantillonnage borné des
+diagnostics retardés de passes de scène Bevy aux trois vues eau. Sa première acquisition exacte a été
+refusée à juste titre parce que les neuf assets gouvernés n'étaient pas résolus depuis le répertoire du
+binaire Release ; elle n'est ni versionnée ni comptée comme PASS. Le correctif
+`41b49f66d4573de505be44dfd38da75704d697f7`, arbre
+`8da220873059e91daed6accc2c3ab0cfabe54e11`, fixe pour le processus enfant le worktree propre comme
+répertoire de travail et `BEVY_ASSET_ROOT`, tout en demandant Vulkan. Les acquisitions exactes Low et
+High du même binaire Release, SHA-256
+`0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48`, passent alors leur validation
+automatisée **frames-only** : 29 PNG par tier, journaux sans warning/erreur/panic, six mesures Low et
+douze mesures High synchronisées dans les fenêtres de settle. Les neuf modèles CC0 sont lus en place,
+aucun asset n'est copié près du binaire et aucun asset Cadle n'est utilisé. L'inspection technique
+bornée par agent des six vues eau retenues réussit, mais ne vaut pas revue humaine.
+
+Ces mesures retardées portent sur les passes de la scène entière : elles ne fournissent ni identité de
+frame de rendu exacte, ni attribution au draw/matériau eau, ni preuve de consommation de la wetness par
+le shader. Elles ne ferment donc pas `R1-023`, `R1-025` ou `R1-026`; la matrice Browser, la revue
+humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **INTERDITE**, et la CI
+distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4, sans être déclarée PASS.
+
 Le paquet de revue humaine v1 est maintenant versionné avec 22 références contrôlées et le SHA-256
 `80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`. Son validateur passe le
 contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les cinq
@@ -327,7 +348,7 @@ aucun asset Cadle, ne modifie aucun ledger automatisé, conserve `gate1_transiti
 ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050` et `R1-052` sont les seules routes
 prêtes à une revue humaine ; les cinq autres routes humaines gardent leurs prérequis explicites.
 Le garde Gate C distingue désormais ces paquets documentaires des vraies configurations de
-distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=412
+distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=428
 checkout_present=True`; les contrôles de chemins et de hashes des médias restent stricts.
 
 Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
@@ -618,16 +639,20 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-023` réflexion/réfraction selon profil — implémentation native bornée `e7e7d419`, puis
   qualification stricte moteur `e2d924b` avec 141/141 tests bibliothèque et 1/1 transition de profil
   Low → Ultra → Low PASS ; la campagne native exacte `125ba0b` passe son contrôle d'artefacts. Les trois PNG
-  eau clair/pluie/retour clair sont non vides et cohérents à l'inspection d'agent, mais la campagne ne
-  sérialise ni route `R1-023`, ni observation du pass optique GPU ; `human_review_performed=false`.
-  Aucun PASS GPU ou humain n'est revendiqué.
+  eau clair/pluie/retour clair sont non vides et cohérents à l'inspection d'agent. Le lot schema v3
+  `41b49f66` ajoute deux acquisitions exactes Low/High **frames-only** avec respectivement six et douze
+  mesures retardées de passes de scène synchronisées aux fenêtres de settle. Elles n'isolent toutefois
+  ni le draw ni le matériau eau et n'identifient aucune frame de rendu exacte ;
+  `human_review_performed=false`. Aucun PASS GPU spécifique à l'eau ou humain n'est revendiqué.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
-  trois PNG liés acquis au commit exact `125ba0b` ; exécution GPU instrumentée, qualification Browser
+  trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
+  diagnostics de scène ne prouvent pas que les shaders terrain/végétation consomment la wetness. Qualification Browser
   et acceptation visuelle humaine non acquises.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
-  campagne native exacte `125ba0b` acquis ; exécution GPU instrumentée, matrice Low/High et rendu
-  humain accepté non acquis.
+  campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
+  post-process attendues, sans identité de frame de rendu exacte. Matrice Browser et rendu humain
+  accepté non acquis.
 
 ## R1-D — Personnage et caméra
 

@@ -60,6 +60,25 @@ l'absence d'une couche Vulkan enregistrée, sans mutation hôte ni capture. Le p
 candidat `4e476b31`, arbre `cc6efae0`, passe 354/354 tests workspace, les checks WASM, Trunk Release,
 `cargo deny` et la politique RustSec. Ces preuves ne constituent pas une qualification GPU ou humaine.
 
+Le lot natif `815ddf3dc715952700164059e876d7151ccc8133`, arbre
+`c1e8951a266a407229eb41899dc39abc58eb2f16`, ajoute au harnais visuel schema v3 les diagnostics
+retardés de passes de scène aux vues eau. Sa première acquisition exacte a été refusée correctement
+parce que les neuf assets gouvernés étaient absents du répertoire de lancement Release ; elle n'est
+pas versionnée comme PASS. Le correctif d'asset-root `41b49f66d4573de505be44dfd38da75704d697f7`,
+arbre `8da220873059e91daed6accc2c3ab0cfabe54e11`, exécute ensuite Low et High avec le worktree propre
+comme `BEVY_ASSET_ROOT`. Le binaire Release commun, SHA-256
+`0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48`, produit deux validations
+automatisées **frames-only** PASS sur RX 7800 XT/Vulkan 26.8.1 : 29 PNG par tier, six mesures retardées
+Low, douze High et zéro entrée de log warning/erreur/panic. Les neuf modèles CC0 sont lus en place,
+aucun asset n'est copié et aucun asset Cadle n'est utilisé. L'inspection bornée d'agent des six vues
+eau retenues réussit, mais n'est pas une revue humaine.
+
+Ces diagnostics rendent compte des passes de la scène entière, sans identité de frame de rendu exacte,
+sans attribution au draw/matériau eau et sans preuve que le shader consomme la wetness. `R1-023`,
+`R1-025` et `R1-026` restent donc ouvertes ; Browser, revue humaine et GPU cible restent dus. Gate 1
+reste **OUVERTE**, Gate 2 reste **INTERDITE**. La CI distante reste `NOT RUN` sous ADR-0006 jusqu'à
+Gate 4 et n'est pas déclarée PASS.
+
 La source exacte des acquisitions schema 8 de Gate 1 est
 `49acfd5695a7246062a86fb84f5d933130579187`, arbre
 `c6e7f6c5976c6a1b16f32de7f80d4d044bd64ceb`. Elle conserve la garde d'acquisition
@@ -1462,6 +1481,16 @@ supply-chain PASS. Le validateur statique `Test-Gate1BrowserTemporal.ps1` est re
 `4e476b31` et conserve `browser_run=not_performed_by_static_test` et
 `human_temporal_inspection=pending`. L'acquisition Browser réelle est désormais épinglée au même
 commit/arbre `4e476b31`/`cc6efae0`.
+
+Le harnais schema v3 `815ddf3` et son correctif d'asset-root `41b49f66` acquièrent désormais deux runs
+Release exacts **frames-only**, Low et High, sur RX 7800 XT/Vulkan 26.8.1. Le binaire commun
+`0d2e7c32…b42c48` produit 29 PNG par tier, six mesures retardées de passes de scène en Low et douze en
+High, avec logs propres. Les neuf modèles CC0 sont lus en place, sans copie et sans asset Cadle. La
+première tentative `815ddf3`, qui ne trouvait pas ces neuf assets depuis le répertoire Release, a été
+refusée et n'est pas versionnée comme PASS. L'inspection technique d'agent des six vues eau retenues
+réussit, mais `human_review_performed=false` demeure. Les mesures ne portent ni identité de frame
+exacte ni attribution au matériau eau et ne prouvent pas la consommation shader de la wetness.
+
 L'overlay CPU/GPU `afb270c3`
 reste acquis sur deux captures exactes et
 lisibles. La matrice native `5eadec7f`
@@ -1477,10 +1506,12 @@ représentation joueur reste une capsule procédurale sans asset.
 Gate 1 reste **OUVERTE** : `R1-048` n'a aucun replay qualifiant PASS et la cible RTX 3060/RX 6600
 reste due. `R1-023` et `R1-037` disposent maintenant de code intégré et de validations strictes
 (`e7e7d419`, `e2d924b`, puis `dbe5eb86`/`140acbdd` jusqu'à `798b55d`). `4e476b31` préserve les octets
-glTF et qualifie le workspace complet. Restent non acquis : observation GPU et
-revue humaine de l'eau, matrice Browser/profils, autorisation de couche Vulkan puis quatre captures
-RenderDoc. La CI distante reste
-`NOT RUN — infrastructure billing` sous ADR-0006. Aucun asset Cadle n'a été introduit. Voir
+glTF et qualifie le workspace complet. `41b49f66` ajoute des diagnostics retardés de passes de scène
+Low/High, mais `R1-023`, `R1-025` et `R1-026` restent ouvertes faute d'attribution au matériau eau,
+de preuve de consommation shader de la wetness, d'identité de frame exacte et de revue humaine.
+Restent également dus : matrice Browser/profils, autorisation de couche Vulkan puis quatre captures
+RenderDoc. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 et n'est pas un PASS.
+Aucun asset Cadle n'a été introduit. Voir
 `docs/reports/GATE_1_REPORT.md`.
 
 La gate passe si :
@@ -2048,6 +2079,11 @@ L'optique d'eau `e7e7d419`, durcie par `e2d924b`, est validée automatiquement e
 recoupe le bundle complet puis s'arrête sans mutation sur la couche Vulkan non enregistrée. Quatre
 captures Vulkan restent `NOT RUN`. Restent également dus : replay schema 12 PASS de `R1-048`, GPU
 cible `R1-041`, preuves Browser finales et revue humaine.
+Le lot `815ddf3` ajoute les diagnostics retardés de passes de scène ; sa première acquisition est
+refusée pour neuf assets absents et n'est pas un PASS versionné. Le correctif `41b49f66` lie le runtime
+au worktree propre et acquiert Low/High **frames-only** avec 29 PNG par tier, 6/12 mesures, logs vides,
+neuf modèles CC0 lus en place et zéro copie. Ces diagnostics sans identité de frame ni attribution au
+matériau eau ne prouvent pas la wetness shader ; `R1-023`, `R1-025` et `R1-026` restent ouvertes.
 Aucun asset Cadle n'a été ajouté à Forge.
 Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
 explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners

@@ -14,6 +14,13 @@ contrôleur gameplay, sa caméra `ForgePlayerCamera` et les collisions Rapier à
 24 checkpoints exacts et un MP4 H.264 de trois secondes. La revue humaine comparative, l'exécution
 GPU météo, le stutter en temps réel et le GPU cible restent dus ; les routes et Gate 1 restent ouvertes.
 
+Mise à jour **2026-09-03** : la matrice native exacte `41b49f6` acquiert Low et High depuis le même
+binaire Release, avec 29 captures validées par tier, 6 mesures GPU de passes de scène en Low et 12 en
+High. Cette avancée est détaillée dans
+[`R1_023_026_NATIVE_SCENE_GPU_MATRIX.md`](R1_023_026_NATIVE_SCENE_GPU_MATRIX.md). Elle n'isole ni un
+draw/matériau eau ni la consommation shader de la wetness, et ne fournit pas de frame GPU exacte. Les
+routes, Gate 1 et l'interdiction de Gate 2 restent inchangées.
+
 La campagne initiale ajoute un harness natif reproductible pour produire, dans un même processus, une
 séquence clair → pluie → clair, deux cadrages de composition, une vue eau et un parcours vidéo. Elle
 ne transforme pas la présence de fichiers en acceptation artistique : les captures révèlent encore
@@ -137,13 +144,18 @@ Des herbes fines/striées, des LOD lointains grossiers, une eau étroite et le p
 minimal restent visibles. Ces observations IA ne constituent ni une acceptation artistique ni une
 mesure du stutter réel.
 
+Sur la matrice `41b49f6`, les six captures eau Low/High sont lisibles et non vides ; la pluie est
+visible, le retour clair est cohérent et les deux tiers sont visuellement distincts. Aucun défaut
+bleu-noir évident n'a été observé. Il s'agit encore d'une inspection technique d'agent, pas de la
+revue humaine comparative requise.
+
 ## Cartographie conservatrice des routes
 
 | Route | Sous-preuve acquise | Ce qui manque | État |
 |---|---|---|---|
-| `R1-023` réflexion/réfraction | trois PNG eau clear/rain/restored | eau isolable et effets optiques inspectables selon profil | **OUVERTE** |
-| `R1-025` wetness réversible | endpoints CPU/ECS exacts dans un même processus | exécution GPU et acceptation visuelle dry → wet → dry | **OUVERTE** |
-| `R1-026` bloom/grade bornés | endpoints de grade et présence du composant Bloom | paramètres numériques, exécution GPU et rendu accepté | **OUVERTE** |
+| `R1-023` réflexion/réfraction | trois PNG eau par tier et passes scène Low/High échantillonnées à `41b49f6` | draw/matériau eau isolé, frame exacte, Browser et revue humaine | **OUVERTE** |
+| `R1-025` wetness réversible | endpoints CPU/ECS exacts `0 → 0,78 → 0` et pixels Low/High dans un même processus | consommation de l'uniform par le shader, Browser et acceptation humaine dry → wet → dry | **OUVERTE** |
+| `R1-026` bloom/grade bornés | endpoints de grade ; Bloom absent Low/présent High et tonemapping mesuré dans les deux tiers | attribution du grade aux pixels, Browser, GPU cible et rendu humain accepté | **OUVERTE** |
 | `R1-046` hauteur humaine | PNG 1920 × 1080 acquis | qualité visuelle et revue humaine acceptées | **OUVERTE** |
 | `R1-047` vue lointaine | PNG 1920 × 1080 acquis | qualité de silhouettes/LOD acceptée | **OUVERTE** |
 | `R1-048` vidéo courte | contrôleur gameplay/Rapier réel, 24 checkpoints 60 Hz et MP4 3 s acquis à `873618af` | parcours temps réel représentatif, stutter et revue humaine | **OUVERTE** |
@@ -166,6 +178,15 @@ les logs runtime et les sorties bornées ffmpeg/ffprobe : **18 fichiers**, **17 
 le ledger de validation. Le lot courant est sous
 [`native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof`](native/873618af59eb2e2b6426b91d4fff0ec615fc70d8/visual-proof).
 
+La matrice `41b49f6` conserve, dans ses deux sous-dossiers Low/High, trois PNG eau, un ledger, une
+validation et deux logs par tier : **14 fichiers, 12 879 028 octets**. Les hashes de ledger sont
+`8ae2815ced427c7575831adc9ea40c95e79ef97e8eb8dc84f54e8562faa68737` et
+`2285929a42e9339312845f92a8bbb02afbd38b53674add342307fcb1100a238d` ; ceux des validations sont
+`51efdeecd7c2361156c78f2db8111e0c38161f556bf2b2d96e57cd5a04e554a1` et
+`6186dd8bf799a01d172c73ff38daedf3a0bff8ead150dc800b2547001d3b0750`. Les logs sont vides, les 9/9
+assets Forge sont lus en place et aucun asset Cadle n'est copié. Le lot est sous
+[`native/41b49f66d4573de505be44dfd38da75704d697f7`](native/41b49f66d4573de505be44dfd38da75704d697f7).
+
 ## Conclusion
 
 Le harness rend l'acquisition reproductible et empêche une preuve de provenance ambiguë. La campagne
@@ -173,4 +194,6 @@ historique établit le refus initial ; la campagne corrective `6a24cabe` établi
 mesurée du principal défaut bleu-noir sans se substituer à la revue humaine. La campagne `873618af`
 prouve ensuite un parcours par le contrôleur gameplay réel, sa caméra et Rapier, sans transformer le
 MP4 de checkpoints pausés en preuve de stutter temps réel. `R1-023`, `R1-025`, `R1-026` et `R1-046` à
-`R1-048` restent donc volontairement décochées. Gate 1 reste **OUVERTE** et Gate 2 reste interdite.
+`R1-048` restent donc volontairement décochées. La matrice native `41b49f6` ajoute une preuve de
+passes de scène Low/High pour `R1-023` et `R1-026`, sans étendre `R1-025` au-delà de CPU/ECS et sans
+fermer aucune route. Gate 1 reste **OUVERTE** et Gate 2 reste interdite.

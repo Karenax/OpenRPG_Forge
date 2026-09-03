@@ -34,6 +34,17 @@ l'absence d'une couche Vulkan enregistrée. Ces résultats ne ferment encore auc
 route : les qualifications GPU/humaine de l'eau et les quatre captures Vulkan indépendantes restent
 dues. Aucun résultat GPU ou humain n'est déduit de la seule présence du code ou de composants ECS.
 
+Le lot natif schema v3 `815ddf3` ajoute ensuite des diagnostics retardés de passes de scène aux vues
+eau. Sa première acquisition exacte est refusée, sans PASS versionné, car les neuf assets gouvernés ne
+sont pas trouvés depuis le répertoire du binaire Release. Le correctif d'asset-root `41b49f66`, arbre
+`8da220873059e91daed6accc2c3ab0cfabe54e11`, relance le même binaire exact en Low puis High sur RX
+7800 XT/Vulkan 26.8.1. Les deux validations automatisées **frames-only** passent avec 29 PNG chacune,
+des logs sans warning/erreur/panic et respectivement six et douze mesures de passes synchronisées dans
+les fenêtres de settle. Les neuf modèles CC0 sont lus en place et aucun asset, notamment Cadle, n'est
+copié près du binaire. Cette preuve porte sur la scène entière, sans identité de frame de rendu ni
+attribution au matériau eau ou au shader de wetness ; l'inspection bornée d'agent n'est pas une revue
+humaine. `R1-023`, `R1-025` et `R1-026` restent ouvertes.
+
 Le paquet de revue humaine fail-closed
 [`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
 `80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`, référence désormais 22
@@ -141,6 +152,8 @@ Gate 2.
 | Portée | Commit | Tree | Usage dans ce rapport |
 |---|---|---|---|
 | préservation exacte des octets glTF sous Windows et qualification workspace | `4e476b31ee33533b6f4023804d8ecd1be02f9c55` | `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90` | ajoute une règle `.gitattributes` binaire bornée aux neuf descripteurs glTF gouvernés ; checkout Windows 9/9 en octets canoniques ; `Test-Rust.ps1` PASS avec 354 tests natifs, WASM, Trunk Release, `cargo deny` et politique RustSec ; marqueur final `FORGE_RUST_VALIDATION_PASS wasm=True supply_chain=True` |
+| acquisitions Low/High des diagnostics de passes de scène | `41b49f66d4573de505be44dfd38da75704d697f7` | `8da220873059e91daed6accc2c3ab0cfabe54e11` | correctif d'asset-root et acquisitions exactes **frames-only** du binaire Release SHA-256 `0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48` ; 29 PNG par tier, 6 mesures Low, 12 mesures High, logs propres, assets CC0 lus en place ; aucune fermeture de route |
+| instrumentation native de passes de scène | `815ddf3dc715952700164059e876d7151ccc8133` | `c1e8951a266a407229eb41899dc39abc58eb2f16` | schema v3 et diagnostics retardés Bevy ; première acquisition refusée sur neuf assets absents, non versionnée comme PASS ; correction portée par `41b49f66` |
 | qualification stricte de la route runtime RenderDoc | `798b55ddbd903c1f5740d8fa23350268220430bf` | `f40c048befe2b5892f460e8ff4904da6fa192d0e` | Clippy strict runtime PASS ; 69/69 tests runtime + 4/4 tests du binaire de garde, 4/4 tests Rust RenderDoc ciblés et 22/22 Python PASS ; aucune capture Vulkan qualifiante acquise |
 | qualification stricte eau et profils qualité | `e2d924b20fa9709b4455584aee513536b0f07f44` | `0cc0d1166dcd8d775771d2d52ffbc5b235ec89cf` | Clippy strict moteur PASS ; 141/141 tests bibliothèque moteur et 1/1 transition Low → Ultra → Low PASS ; aucune qualification GPU ou humaine ajoutée |
 | troisième replay schema 12 sans flux PresentMon | `2ced195bc2e396b599d1ed66680422e97cea7753` | `8a46bd4573863aa9eff91fe902423299bfe72add` | rebuild propre 30 min 06 s ; ready 69/69 et 401 frames de rendu observées ; ABORT avant signal sur stdout PresentMon vide ; probe host-wide ETW 0/0 sans ligne Forge ; aucun verdict performance |
@@ -314,7 +327,7 @@ sur la branche `Rust`, avec `HEAD == origin/Rust` et une divergence `0/0` :
 | `trunk build --release --config Trunk.toml` | **PASS** ; compilation Release 26 min 37 s puis optimisation/assemblage WASM |
 | `cargo deny check licenses bans sources advisories` | **PASS** — `advisories ok, bans ok, licenses ok, sources ok` |
 | `scripts/Test-RustSec.ps1` | **PASS politique** — `vulnerabilities=0 warnings=20 distribution_blockers=1` ; blocker conservé `RUSTSEC-2024-0429`, `glib 0.18.5` |
-| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS courant** — `CADLE_GATE_C_BOUNDARY_PASS tracked=412 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43`; les paquets documentaires ne sont pas classés comme configurations de distribution |
+| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS courant** — `CADLE_GATE_C_BOUNDARY_PASS tracked=428 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43`; les paquets documentaires ne sont pas classés comme configurations de distribution |
 | `scripts/Test-Gate1Provenance.ps1` SelfTest + Audit strict | **PASS** — 7 cas ; 1 manifeste, 27 fichiers, 9 modèles ; 507 fichiers Cadle comparés, 0 correspondance |
 | `scripts/Test-Gate1BrowserTemporal.ps1` | **PASS du test statique du harnais** ; ce test ne lance pas Browser (`browser_run=not_performed_by_static_test`), mais l'acquisition réelle a été réacquise séparément sur `4e476b31` ; inspection temporelle humaine toujours `pending` |
 | `scripts/Test-Gate1PresentationAB.ps1 -SelfTest` | **PASS** |
@@ -421,6 +434,38 @@ sont consignés dans
 [`R1_039_040_NATIVE_QUALITY_MATRIX.md`](../evidence/gate1/R1_039_040_NATIVE_QUALITY_MATRIX.md).
 Cette preuve ferme `R1-039`, `R1-040` et la condition « profils qualité fonctionnels ». Elle ne ferme
 ni le GPU cible, ni le parcours représentatif, ni l'acceptation artistique.
+
+## Acquisitions Low/High des diagnostics de passes de scène `41b49f66`
+
+L'implémentation `815ddf3dc715952700164059e876d7151ccc8133`, arbre
+`c1e8951a266a407229eb41899dc39abc58eb2f16`, fait passer le ledger visuel au schema v3 et échantillonne
+les diagnostics `elapsed_gpu` retardés de Bevy aux checkpoints `water-clear`, `water-rain` et
+`water-restored`. La première acquisition exacte est arrêtée par le validateur parce que les neuf
+assets gouvernés sont absents du répertoire de lancement Release. Ce refus est le comportement attendu
+et aucun artefact de cette tentative n'est versionné ou présenté comme PASS.
+
+Le correctif `41b49f66d4573de505be44dfd38da75704d697f7`, arbre
+`8da220873059e91daed6accc2c3ab0cfabe54e11`, impose au processus enfant le worktree propre comme
+répertoire courant et `BEVY_ASSET_ROOT`, et demande le backend Vulkan. Le binaire Release commun porte
+le SHA-256 `0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48`. Sur AMD Radeon RX 7800 XT,
+pilote 26.8.1 (LLPC), les acquisitions Low et High passent chacune leur validation automatisée
+**frames-only** avec 29 PNG 1920 x 1080 non uniformes, une séquence clair → pluie → clair et zéro entrée
+warning/erreur/panic dans les logs. Low fournit six mesures attendues ; High en fournit douze. Les
+mesures sont finies, non négatives et synchronisées dans les fenêtres de settle de huit frames.
+
+Les neuf modèles CC0 du manifeste Forge sont résolus 9/9 directement depuis le worktree ; aucun asset
+n'est copié dans le répertoire Release et aucun asset Cadle n'est utilisé. La sélection versionnée
+conserve les ledgers, validations, logs et trois vues eau par tier. L'inspection technique bornée de ces
+six PNG par un agent confirme qu'ils sont exploitables et distincts, mais elle ne vaut pas acceptation
+humaine et `human_review_performed=false` reste inchangé.
+
+La portée demeure stricte : `DiagnosticMeasurement.time` décrit la synchronisation retardée dans le
+monde principal, pas la frame GPU exacte. Les passes mesurées rendent la scène entière et n'isolent ni
+un draw ni le matériau eau ; elles ne prouvent pas non plus que le shader consomme la valeur de
+wetness. Les preuves Browser, la revue humaine et la mesure sur GPU cible restent dues. Ce lot ne ferme
+donc ni `R1-023`, ni `R1-025`, ni `R1-026`, et n'autorise ni le passage de Gate 1 ni le démarrage de
+Gate 2. La CI distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4 ; ce statut n'est pas
+un PASS.
 
 ## Acquisition visuelle native initiale `a7c9b1e1`
 
@@ -822,7 +867,9 @@ Le validateur confirme `artifacts=22`, `evidence_sets=5`, `exact_baseline_visual
 et ses quinze refus attendus passent, soit seize cas au total.
 
 - prêtes à la revue humaine : `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`, `R1-052` ;
-- observation GPU requise : `R1-023`, `R1-025`, `R1-026` ;
+- attribution GPU spécifique au matériau eau, consommation shader de la wetness et compléments
+  Browser/humains requis : `R1-023`, `R1-025`, `R1-026` ; les diagnostics retardés de passes de scène
+  Low/High `41b49f66` sont acquis mais ne satisfont pas ces critères ;
 - replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
 - référence WebGPU reproductible absente — URL, version/commit, capture, hash et protocole dus :
   `R1-051`. L'audit des 154 commits atteignables jusqu'à `6fb33ca`, des URLs, reflogs disponibles et
@@ -837,9 +884,10 @@ le reçu séparé. Même accepté humainement, ce reçu ne peut ni muter les led
 transition Gate 1.
 
 `R1-023` et `R1-037` ont désormais du code intégré et des validations ciblées dans la chaîne courante,
-sans changer leur état : la preuve GPU/humaine de l'eau et les quatre captures RenderDoc finales ne
-sont pas acquises. Une route ouverte avec une implémentation validée seulement sous une portée plus
-étroite reste une route ouverte.
+sans changer leur état : les diagnostics de scène Low/High ne sont pas une attribution GPU au matériau
+eau, la consommation shader de la wetness n'est pas prouvée, la revue humaine de l'eau reste due et
+les quatre captures RenderDoc finales ne sont pas acquises. Une route ouverte avec une implémentation
+validée seulement sous une portée plus étroite reste une route ouverte.
 
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `125ba0b`. Le principal défaut
 depth-only reste corrigé, les vues eau ciblées sont inspectables et la vidéo exerce le contrôleur
@@ -895,6 +943,11 @@ trois vues eau clair/pluie/retour clair inspectables, et un MP4. La pluie, le ch
 la surface d'eau sont visibles, mais les pixels seuls ne prouvent pas l'exécution GPU du fallback
 Environment IBL ou de `ScreenSpaceTransmission` ; le retour CPU/ECS exact au profil clair n'est pas
 une preuve d'identité GPU.
+
+Les acquisitions Low/High `41b49f66` ajoutent bien des mesures des passes de scène attendues aux trois
+checkpoints eau, mais leur lecture retardée ne possède pas d'identité de frame de rendu et leur portée
+englobe toute la scène. Elles ne peuvent donc pas être réinterprétées comme preuve du draw/matériau eau
+ou de la consommation de wetness par le shader.
 
 Aucune affirmation de supériorité sur Godot ou de parité visuelle Cadle n'est acquise. Les vues
 hauteur humaine/lointaine et le MP4 corrigés sont acquis mais non qualifiés. Les runs PresentMon
@@ -1016,7 +1069,9 @@ schema 5 / validation schema 12 avec restabilisation pré-signal bornée. `9d19c
 décompte qualité périmé ; `4b283182` le corrige, passe ses tests et franchit la readiness réelle, mais
 son replay s'arrête avant signal faute de flux PresentMon. `2ced195b` reproduit exactement cet ABORT
 après rebuild propre. Aucun replay schema 12 qualifiant n'existe.
-`R1-023`, `R1-037`, `R1-041` et `R1-048` restent ouvertes,
+Les acquisitions Low/High `41b49f66` ajoutent des mesures retardées de passes de scène sans attribution
+à l'eau ni identité de frame exacte. `R1-023`, `R1-025`, `R1-026`, `R1-037`, `R1-041` et `R1-048`
+restent ouvertes,
 `human_review_performed=false`, et le travail ci-dessous reste futur.
 
 Ordre minimal avant toute nouvelle décision de passage :
@@ -1025,8 +1080,8 @@ Ordre minimal avant toute nouvelle décision de passage :
    harnais schema 12 sans couper
    rétrospectivement la fenêtre ni affaiblir le contrat, puis obtenir tous les seuils PASS pour
    `R1-048` ;
-2. qualifier humainement et par observation GPU instrumentée les captures eau de `R1-023`, puis
-   compléter la matrice de profils/Browser ;
+2. isoler et attribuer au matériau eau l'exécution GPU, prouver la consommation shader de la wetness,
+   qualifier humainement les captures, puis compléter la matrice de profils/Browser ;
 3. après autorisation explicite de la mutation hôte, enregistrer/corriger la couche Vulkan RenderDoc
    puis acquérir les quatre captures indépendantes exigées par ADR-0009 ;
 4. mesurer RTX 3060 ou RX 6600 en 1080p High ;
