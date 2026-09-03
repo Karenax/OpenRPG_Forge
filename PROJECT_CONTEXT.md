@@ -113,6 +113,14 @@ disponibles et les Git notes : aucune identité reproductible de la « démonstr
 ayant motivé le reboot n'y existe. Cadle est une référence distincte Three.js/WebGL2 liée à `R1-052` ;
 `R1-051` reste donc bloquée, sans substitution inventée.
 
+Le protocole A/B `R1-052` versionné à `1bd5292` relie désormais, sans embarquer de média Cadle, trois
+vues Forge et trois références Cadle consultées in situ. Il fixe la même machine, 1920 × 1080 High,
+trois cadrages sémantiques, six axes de revue et des frontières de coût qui interdisent un duel de FPS
+bruts entre les deux moteurs. Le paquet humain fail-closed porte le SHA-256
+`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a` et passe ses contrôles statique,
+synthétique et externe avec 22 artefacts, 5 ensembles et 6 routes prêtes. `R1-052` reste ouverte : la
+revue humaine n'est pas effectuée et le protocole conserve `gate1_transition_authorized=false`.
+
 Le runtime Release exact `5eadec7f` a été exécuté en Low/Medium/High/Ultra clear/rain, adaptatif
 clear et benchmark clear, 1920 x 1080, sur RX 7800 XT/Vulkan. Les dix ledgers contiennent 120
 samples, des pipelines prêts avant et pendant toute la mesure, et un tier eau égal au tier appliqué.

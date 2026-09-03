@@ -17,7 +17,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$script:ExpectedPackageSha256 = "fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27"
+$script:ExpectedPackageSha256 = "80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a"
 
 function Assert-Condition {
     param(
@@ -308,7 +308,7 @@ function Assert-Package {
         "cadle_baseline_metadata", "native_human_clear", "native_distant_clear", "native_water_clear",
         "native_water_rain", "native_water_restored", "native_movement_video", "native_visual_ledger",
         "native_visual_validation", "native_video_probe", "cadle_vale_ground", "cadle_forest_ground",
-        "cadle_water_golden_shore"
+        "cadle_water_golden_shore", "cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide"
     )
     $artifactMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     $rootCounts = @{
@@ -363,11 +363,11 @@ function Assert-Package {
             }
         }
     }
-    Assert-Condition -Condition ($artifactMap.Count -eq 20) -Message "The package must contain exactly 20 artifact references."
+    Assert-Condition -Condition ($artifactMap.Count -eq 22) -Message "The package must contain exactly 22 artifact references."
     foreach ($id in $requiredArtifactIds) {
         Assert-Condition -Condition $artifactMap.ContainsKey($id) -Message "Required artifact is missing: $id"
     }
-    Assert-Condition -Condition ($rootCounts.repository -eq 8) -Message "The package must contain exactly eight tracked Forge artifacts."
+    Assert-Condition -Condition ($rootCounts.repository -eq 10) -Message "The package must contain exactly ten tracked Forge artifacts."
     Assert-Condition -Condition ($rootCounts.forge_external_water_125ba0b -eq 9) -Message "The package must contain exactly nine local Forge artifacts."
     Assert-Condition -Condition ($rootCounts.cadle_gate_c_overlay -eq 3) -Message "The package must contain exactly three in-place Cadle references."
 
@@ -400,6 +400,12 @@ function Assert-Package {
         Tree = "f0d52e434454fe302052d22eafde203bc361cc1f"
         ArtifactIds = @("cadle_baseline_metadata", "cadle_vale_ground", "cadle_forest_ground", "cadle_water_golden_shore")
     })
+    $expectedEvidenceSets.Add("cadle_forge_ab_protocol_1bd5292", [pscustomobject]@{
+        System = "forge"
+        Commit = "1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af"
+        Tree = "d0135ec9a4d19a15378c07adcc3763c9b223b432"
+        ArtifactIds = @("cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide")
+    })
     $evidenceSetMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     $artifactEvidenceSetMap = [Collections.Generic.Dictionary[string, string]]::new([StringComparer]::Ordinal)
     foreach ($evidenceSet in @($Package.evidence_sets)) {
@@ -429,8 +435,8 @@ function Assert-Package {
             Assert-Condition -Condition ($evidenceTree -ceq $evidenceSet.tree) -Message "Repository tree mismatch for evidence set $($evidenceSet.id)."
         }
     }
-    Assert-Condition -Condition ($evidenceSetMap.Count -eq 4) -Message "The package must declare exactly four evidence sets."
-    Assert-Condition -Condition ($artifactEvidenceSetMap.Count -eq 20) -Message "Every artifact must belong to exactly one evidence set."
+    Assert-Condition -Condition ($evidenceSetMap.Count -eq 5) -Message "The package must declare exactly five evidence sets."
+    Assert-Condition -Condition ($artifactEvidenceSetMap.Count -eq 22) -Message "Every artifact must belong to exactly one evidence set."
 
     $exactBaselineVisualArtifactCount = 0
     foreach ($evidenceSet in @($Package.evidence_sets)) {
@@ -464,6 +470,67 @@ function Assert-Package {
     $cadleEvidenceSet = $evidenceSetMap["cadle_snapshot_ea0da625"]
     Assert-Condition -Condition ($cadleLock.repository.commit -ceq $cadleEvidenceSet.commit) -Message "Cadle evidence commit differs from upstream/cadle.lock.json."
     Assert-Condition -Condition ($cadleLock.repository.tree -ceq $cadleEvidenceSet.tree) -Message "Cadle evidence tree differs from upstream/cadle.lock.json."
+
+    $abProtocolArtifact = $artifactMap["cadle_forge_ab_protocol_json"]
+    $abProtocolPath = Resolve-SafeChildPath -Root $Repository -RelativePath $abProtocolArtifact.path -Label "R1-052 A/B protocol"
+    $abProtocol = ConvertFrom-StrictJson -Text (Get-Content -Raw -LiteralPath $abProtocolPath) -Label "R1-052 A/B protocol"
+    Assert-ExactProperties -Value $abProtocol -Expected @(
+        "schema", "schema_version", "status", "scope", "qualified_software_baseline", "evidence",
+        "common_environment", "comparison_pairs", "review_axes", "cost_context", "review_contract",
+        "cadle_media_policy", "qualification"
+    ) -Label "R1-052 A/B protocol"
+    Assert-Condition -Condition ($abProtocol.schema -ceq "forge.gate1-cadle-forge-ab-protocol") -Message "Unexpected R1-052 A/B protocol schema."
+    Assert-Condition -Condition ([int]$abProtocol.schema_version -eq 1) -Message "Unexpected R1-052 A/B protocol schema version."
+    Assert-Condition -Condition ($abProtocol.status -ceq "ready_for_human_review") -Message "R1-052 A/B protocol is not ready for human review."
+    Assert-Condition -Condition ($abProtocol.scope -ceq "r1-052_visual_impact_and_cost_context") -Message "Unexpected R1-052 A/B protocol scope."
+    Assert-Condition -Condition ($abProtocol.qualified_software_baseline.commit -ceq $Package.qualified_software_baseline.commit) -Message "R1-052 protocol baseline commit mismatch."
+    Assert-Condition -Condition ($abProtocol.qualified_software_baseline.tree -ceq $Package.qualified_software_baseline.tree) -Message "R1-052 protocol baseline tree mismatch."
+
+    $nativeEvidenceSet = $evidenceSetMap["native_water_125ba0b"]
+    Assert-Condition -Condition ($abProtocol.evidence.forge.evidence_set_id -ceq $nativeEvidenceSet.id) -Message "R1-052 Forge evidence-set id mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.forge.commit -ceq $nativeEvidenceSet.commit) -Message "R1-052 Forge evidence commit mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.forge.tree -ceq $nativeEvidenceSet.tree) -Message "R1-052 Forge evidence tree mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.cadle.evidence_set_id -ceq $cadleEvidenceSet.id) -Message "R1-052 Cadle evidence-set id mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.cadle.commit -ceq $cadleEvidenceSet.commit) -Message "R1-052 Cadle evidence commit mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.cadle.tree -ceq $cadleEvidenceSet.tree) -Message "R1-052 Cadle evidence tree mismatch."
+    Assert-Condition -Condition ((@($abProtocol.evidence.forge.capture_resolution_px) -join "x") -ceq "1920x1080") -Message "R1-052 Forge capture resolution mismatch."
+    Assert-Condition -Condition ((@($abProtocol.evidence.cadle.capture_resolution_px) -join "x") -ceq "1920x1080") -Message "R1-052 Cadle capture resolution mismatch."
+    Assert-Condition -Condition ($abProtocol.evidence.forge.quality -ceq "high" -and $abProtocol.evidence.cadle.quality -ceq "high") -Message "R1-052 evidence must use the High profile."
+    Assert-Condition -Condition ($abProtocol.common_environment.same_physical_machine -is [bool] -and $abProtocol.common_environment.same_physical_machine) -Message "R1-052 protocol must bind one physical machine."
+    Assert-Condition -Condition ((@($abProtocol.common_environment.resolution_px) -join "x") -ceq "1920x1080") -Message "R1-052 common resolution mismatch."
+    Assert-Condition -Condition ($abProtocol.common_environment.quality -ceq "high") -Message "R1-052 common quality mismatch."
+    Assert-ExactStringArray -Actual $abProtocol.review_axes -Expected @("terrain", "vegetation", "water", "atmosphere", "readability", "game_feel") -Label "R1-052 review_axes"
+
+    $expectedPairs = @{
+        "terrain_and_macro_composition" = @("native_distant_clear", "cadle_vale_ground")
+        "vegetation_at_human_height" = @("native_human_clear", "cadle_forest_ground")
+        "water_from_shore_context" = @("native_water_clear", "cadle_water_golden_shore")
+    }
+    $seenPairs = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    foreach ($pair in @($abProtocol.comparison_pairs)) {
+        Assert-Condition -Condition ($expectedPairs.Keys -ccontains [string]$pair.id) -Message "Unknown R1-052 comparison pair: $($pair.id)"
+        Assert-Condition -Condition $seenPairs.Add([string]$pair.id) -Message "Duplicate R1-052 comparison pair: $($pair.id)"
+        Assert-Condition -Condition ($pair.forge_artifact_id -ceq $expectedPairs[$pair.id][0]) -Message "R1-052 Forge artifact mismatch for $($pair.id)."
+        Assert-Condition -Condition ($pair.cadle_artifact_id -ceq $expectedPairs[$pair.id][1]) -Message "R1-052 Cadle artifact mismatch for $($pair.id)."
+        Assert-Condition -Condition ($artifactMap.ContainsKey([string]$pair.forge_artifact_id) -and $artifactMap.ContainsKey([string]$pair.cadle_artifact_id)) -Message "R1-052 comparison pair references an unknown artifact."
+        Assert-Condition -Condition ($pair.camera_equivalence -ceq "semantic_only_not_geometric") -Message "R1-052 comparison must remain semantic, not geometric."
+        Assert-Condition -Condition ($pair.direct_pixel_comparison_allowed -is [bool] -and -not $pair.direct_pixel_comparison_allowed) -Message "R1-052 direct pixel comparison must remain forbidden."
+    }
+    Assert-Condition -Condition ($seenPairs.Count -eq 3) -Message "R1-052 protocol must declare exactly three comparison pairs."
+
+    $reviewedRuntimePaths = @($abProtocol.evidence.forge.visual_delta_review.reviewed_runtime_paths)
+    $patchIdOutput = @(
+        & git -C $Repository diff "$($abProtocol.evidence.forge.visual_delta_review.range)" -- @reviewedRuntimePaths |
+            & git -C $Repository patch-id --stable
+    )
+    Assert-Condition -Condition ($LASTEXITCODE -eq 0 -and $patchIdOutput.Count -eq 1) -Message "R1-052 stable patch-id recomputation failed."
+    $actualPatchId = ([string]$patchIdOutput[0] -split "\s+")[0]
+    Assert-Condition -Condition ($actualPatchId -ceq $abProtocol.evidence.forge.visual_delta_review.stable_patch_id) -Message "R1-052 stable patch-id mismatch."
+    Assert-Condition -Condition ($abProtocol.cost_context.comparison_rule -ceq "context_only_no_raw_fps_duel") -Message "R1-052 raw FPS comparison must remain forbidden."
+    Assert-Condition -Condition ($abProtocol.review_contract.human_review_required -is [bool] -and $abProtocol.review_contract.human_review_required) -Message "R1-052 must require human review."
+    Assert-Condition -Condition ($abProtocol.review_contract.machine_protocol_closes_route -is [bool] -and -not $abProtocol.review_contract.machine_protocol_closes_route) -Message "R1-052 machine protocol cannot close the route."
+    Assert-Condition -Condition ($abProtocol.cadle_media_policy.review_in_place_only -and -not $abProtocol.cadle_media_policy.copied_into_forge -and -not $abProtocol.cadle_media_policy.tracked_in_forge -and -not $abProtocol.cadle_media_policy.published) -Message "R1-052 Cadle media policy mismatch."
+    Assert-Condition -Condition (-not $abProtocol.qualification.human_review_performed -and -not $abProtocol.qualification.r1_052_qualified -and -not $abProtocol.qualification.gate1_transition_authorized) -Message "R1-052 protocol must not claim human review, qualification or Gate 1 transition."
 
     $browserLedgerArtifact = $artifactMap["browser_temporal_ledger"]
     $browserLedgerPath = Resolve-SafeChildPath -Root $Repository -RelativePath $browserLedgerArtifact.path -Label "browser temporal ledger"
@@ -569,7 +636,7 @@ function Assert-Package {
         "R1-049" = "ready_for_human_review"
         "R1-050" = "ready_for_human_review"
         "R1-051" = "blocked_missing_reference"
-        "R1-052" = "requires_aligned_ab_protocol"
+        "R1-052" = "ready_for_human_review"
     }
     $expectedRouteEvidenceSets = @{
         "R1-014" = @("browser_temporal_4e476b31")
@@ -582,7 +649,7 @@ function Assert-Package {
         "R1-049" = @("native_water_125ba0b", "quality_matrix_5eadec7f")
         "R1-050" = @("native_water_125ba0b", "quality_matrix_5eadec7f")
         "R1-051" = @()
-        "R1-052" = @("native_water_125ba0b", "cadle_snapshot_ea0da625")
+        "R1-052" = @("native_water_125ba0b", "cadle_snapshot_ea0da625", "cadle_forge_ab_protocol_1bd5292")
     }
     $expectedRouteArtifacts = @{
         "R1-014" = @("browser_temporal_frame_a", "browser_temporal_frame_b", "browser_temporal_ledger")
@@ -595,7 +662,7 @@ function Assert-Package {
         "R1-049" = @("native_human_clear", "native_distant_clear", "native_water_clear", "native_water_rain", "quality_low_clear", "quality_high_clear")
         "R1-050" = @("native_human_clear", "native_distant_clear", "native_water_clear", "quality_high_clear")
         "R1-051" = @()
-        "R1-052" = @("native_human_clear", "native_distant_clear", "native_water_clear", "cadle_vale_ground", "cadle_forest_ground", "cadle_water_golden_shore", "cadle_baseline_metadata")
+        "R1-052" = @("native_human_clear", "native_distant_clear", "native_water_clear", "cadle_vale_ground", "cadle_forest_ground", "cadle_water_golden_shore", "cadle_baseline_metadata", "cadle_forge_ab_protocol_json", "cadle_forge_ab_review_guide")
     }
     $routeMap = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
     foreach ($route in @($Package.routes)) {
@@ -658,12 +725,12 @@ function Assert-Package {
     Assert-Condition -Condition ($Package.review_receipt_contract.gate1_transition_authorized -is [bool] -and -not $Package.review_receipt_contract.gate1_transition_authorized) -Message "Review receipts cannot authorize Gate 1 transition."
 
     Assert-ExactProperties -Value $Package.summary -Expected @("artifact_count", "evidence_sets", "exact_baseline_visual_artifacts", "human_routes", "fully_review_ready_routes", "cadle_assets_embedded", "gate1_routes_closed") -Label "package.summary"
-    Assert-Condition -Condition ([int]$Package.summary.artifact_count -eq 20) -Message "Package artifact summary mismatch."
-    Assert-Condition -Condition ([int]$Package.summary.evidence_sets -eq 4) -Message "Package evidence-set summary mismatch."
+    Assert-Condition -Condition ([int]$Package.summary.artifact_count -eq 22) -Message "Package artifact summary mismatch."
+    Assert-Condition -Condition ([int]$Package.summary.evidence_sets -eq 5) -Message "Package evidence-set summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.exact_baseline_visual_artifacts -eq $exactBaselineVisualArtifactCount) -Message "Package exact-baseline visual artifact summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.human_routes -eq 11) -Message "Package route summary mismatch."
     $readyRouteCount = @($routeMap.Values | Where-Object { $_.review_readiness -ceq "ready_for_human_review" }).Count
-    Assert-Condition -Condition ($readyRouteCount -eq 5) -Message "Exactly five routes must be ready for human review."
+    Assert-Condition -Condition ($readyRouteCount -eq 6) -Message "Exactly six routes must be ready for human review."
     Assert-Condition -Condition ([int]$Package.summary.fully_review_ready_routes -eq $readyRouteCount) -Message "Package ready-route summary mismatch."
     Assert-Condition -Condition ([int]$Package.summary.cadle_assets_embedded -eq 0) -Message "Package must embed zero Cadle assets."
     Assert-Condition -Condition ([int]$Package.summary.gate1_routes_closed -eq 0) -Message "Preparing the package must close zero Gate 1 routes."
@@ -934,7 +1001,7 @@ if (-not [string]::IsNullOrWhiteSpace($ReviewPath)) {
 $packageState = Assert-Package -Package $package -Repository $repositoryFull -CheckExternal $VerifyExternal.IsPresent -ForgeRoot $ForgeExternalRoot -CadleRoot $CadleReferenceRoot
 
 Write-Output (
-    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=20 evidence_sets=4 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=5 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
+    "FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified={0} cadle_assets_embedded=0 routes_closed=0 sha256={1}" -f $VerifyExternal.IsPresent.ToString().ToLowerInvariant(), $packageHash
 )
 
 if ($SelfTest) {

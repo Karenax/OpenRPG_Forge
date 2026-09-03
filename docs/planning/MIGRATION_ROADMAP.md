@@ -317,17 +317,17 @@ restent ouvertes : qualification humaine/GPU de l'eau, quatre captures RenderDoc
 benchmark cible et revues humaines ne sont pas acquis. Gate 1 reste **OUVERTE** et Gate 2 reste
 **INTERDITE**.
 
-Le paquet de revue humaine v1 est maintenant versionné avec 20 références contrôlées et le SHA-256
-`fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27`. Son validateur passe le
-contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les quatre
+Le paquet de revue humaine v1 est maintenant versionné avec 22 références contrôlées et le SHA-256
+`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`. Son validateur passe le
+contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les cinq
 ensembles de preuves portent leur commit/arbre exact ; les deux PNG temporels revendiquent et vérifient
 l'identité de la baseline logicielle `4e476b31`, tandis que les autres preuves gardent leur identité
 historique ou locale. Il ne contient
 aucun asset Cadle, ne modifie aucun ledger automatisé, conserve `gate1_transition_authorized=false` et
-ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049` et `R1-050` sont les seules routes prêtes à
-une revue humaine ; les six autres routes humaines gardent leurs prérequis explicites.
+ferme zéro route. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050` et `R1-052` sont les seules routes
+prêtes à une revue humaine ; les cinq autres routes humaines gardent leurs prérequis explicites.
 Le garde Gate C distingue désormais ces paquets documentaires des vraies configurations de
-distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=410
+distribution et repasse sur l'arbre courant avec `CADLE_GATE_C_BOUNDARY_PASS tracked=412
 checkout_present=True`; les contrôles de chemins et de hashes des médias restent stricts.
 
 Trois tentatives schema 12 ont été arrêtées sans verdict de performance : la première avant ready et
@@ -704,9 +704,11 @@ qualité                   Low / Medium / High / Ultra
   est une référence distincte Three.js/WebGL2 rattachée à `R1-052`, pas l'identité manquante.
 - [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ;
   les trois captures Cadle sont référencées par chemin relatif et SHA-256, consultées uniquement in
-  situ et jamais copiées dans Forge. Un rapport A/B à cadrages/versions alignés et un verdict humain
-  restent dus ; séparer impact visuel et coûts par système, car Cadle couvre 2 km² contre 512 × 512 m
-  pour Visual Valley.
+  situ et jamais copiées dans Forge. Le protocole A/B versionné `1bd5292` fixe trois cadrages
+  sémantiques, six axes de revue, les versions et les frontières de coût sur la même machine en
+  1920 × 1080 High ; son validateur recalcule aussi le patch-id de la dérive runtime. La route est
+  **PRÊTE POUR REVUE HUMAINE**, mais le verdict reste dû. Les FPS bruts ne sont pas comparés : Cadle
+  couvre 2 km² contre 512 × 512 m pour Visual Valley.
 - [x] `R1-053` vérification de provenance : aucun asset, nom, lore ou texte Cadle dans Visual Valley.
 - [x] `R1-054` vérification d’indépendance : Visual Valley fonctionne sans clone Cadle produit.
 - [x] `R1-055` rapport Gate 1 — verdict : poursuivre Gate 1 ; Gate 1 reste ouverte.

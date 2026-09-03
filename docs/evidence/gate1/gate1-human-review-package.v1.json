@@ -5,7 +5,7 @@
   "scope": "human_visual_review_only",
   "prepared_from": {
     "branch": "Rust",
-    "commit": "aaed16c03965a1ec08a4f044194622f60137353b"
+    "commit": "1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af"
   },
   "qualified_software_baseline": {
     "commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
@@ -66,6 +66,17 @@
         "cadle_vale_ground",
         "cadle_forest_ground",
         "cadle_water_golden_shore"
+      ]
+    },
+    {
+      "id": "cadle_forge_ab_protocol_1bd5292",
+      "system": "forge",
+      "commit": "1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af",
+      "tree": "d0135ec9a4d19a15378c07adcc3763c9b223b432",
+      "exact_to_qualified_software_baseline": false,
+      "artifact_ids": [
+        "cadle_forge_ab_protocol_json",
+        "cadle_forge_ab_review_guide"
       ]
     }
   ],
@@ -179,6 +190,26 @@
       "media_type": "text/markdown",
       "redistribution": "tracked_metadata_only",
       "notes": "Metadonnees, mesures et hashes distribuables; aucune capture Cadle."
+    },
+    {
+      "id": "cadle_forge_ab_protocol_json",
+      "root": "repository",
+      "path": "docs/evidence/gate1/r1-052-cadle-forge-ab-protocol.v1.json",
+      "bytes": 6235,
+      "sha256": "1ddd29fb8b8769ff99162b468bad0ab6bc46ebdc735ae35a231ca3470d68aad3",
+      "media_type": "application/json",
+      "redistribution": "tracked_metadata_only",
+      "notes": "Contrat machine R1-052; versions, paires semantiques, axes, couts et frontieres sans media Cadle."
+    },
+    {
+      "id": "cadle_forge_ab_review_guide",
+      "root": "repository",
+      "path": "docs/evidence/gate1/R1_052_CADLE_FORGE_AB_PROTOCOL.md",
+      "bytes": 5322,
+      "sha256": "53c19ef6310612b8e46d477bd0ecc96399b72300ec96b6bad1496ce5636af0c1",
+      "media_type": "text/markdown",
+      "redistribution": "tracked_metadata_only",
+      "notes": "Guide humain R1-052; consultation in situ, six axes et interdiction de copier les images Cadle."
     },
     {
       "id": "native_human_clear",
@@ -509,10 +540,11 @@
     },
     {
       "route": "R1-052",
-      "review_readiness": "requires_aligned_ab_protocol",
+      "review_readiness": "ready_for_human_review",
       "evidence_set_ids": [
         "native_water_125ba0b",
-        "cadle_snapshot_ea0da625"
+        "cadle_snapshot_ea0da625",
+        "cadle_forge_ab_protocol_1bd5292"
       ],
       "artifact_ids": [
         "native_human_clear",
@@ -521,7 +553,9 @@
         "cadle_vale_ground",
         "cadle_forest_ground",
         "cadle_water_golden_shore",
-        "cadle_baseline_metadata"
+        "cadle_baseline_metadata",
+        "cadle_forge_ab_protocol_json",
+        "cadle_forge_ab_review_guide"
       ],
       "acceptance_criteria": [
         "Cadle et Forge sont compares cote a cote sur la meme machine, en 1920 x 1080 et profil High.",
@@ -529,10 +563,7 @@
         "Les couts sont commentes par systeme sans comparer directement les FPS bruts de 2 km2 Cadle a 512 x 512 m Forge.",
         "Les images Cadle restent consultees in situ et ne sont ni copiees, ni archivees, ni publiees."
       ],
-      "remaining_blockers": [
-        "Les cadrages et versions Forge/Cadle ne sont pas encore alignes dans un rapport A/B exact.",
-        "Les couts par systeme ne sont pas encore rapproches dans un verdict humain versionne."
-      ]
+      "remaining_blockers": []
     }
   ],
   "excluded_technical_routes": [
@@ -558,11 +589,11 @@
     "gate1_transition_authorized": false
   },
   "summary": {
-    "artifact_count": 20,
-    "evidence_sets": 4,
+    "artifact_count": 22,
+    "evidence_sets": 5,
     "exact_baseline_visual_artifacts": 2,
     "human_routes": 11,
-    "fully_review_ready_routes": 5,
+    "fully_review_ready_routes": 6,
     "cadle_assets_embedded": 0,
     "gate1_routes_closed": 0
   }

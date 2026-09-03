@@ -7,7 +7,7 @@ Le paquet [`gate1-human-review-package.v1.json`](gate1-human-review-package.v1.j
 leurs champs `human_review_performed=false`, leurs verdicts techniques et leurs limites restent
 intacts.
 
-Le paquet est volontairement fail-closed : il lie une base technique exacte, vingt références
+Le paquet est volontairement fail-closed : il lie une base technique exacte, vingt-deux références
 d'artefacts par taille et SHA-256, onze routes humaines et un contrat de reçu strict. Un fichier
 absent, altéré, déplacé hors de sa racine, un commit non ancêtre, une propriété JSON inconnue ou
 dupliquée, un verdict inconnu, un artefact non enregistré, un relecteur anonyme ou une tentative
@@ -24,14 +24,15 @@ gate1_routes_closed = 0
 
 La baseline logicielle qualifiée référencée est
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
-`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Le snapshot de préparation qui introduit les preuves
-exactes est `aaed16c03965a1ec08a4f044194622f60137353b`. Les quatre ensembles conservent séparément leurs
-commits et arbres exacts `4e476b31`, `5eadec7f`, `125ba0b` et Cadle `ea0da625`. Les deux PNG Browser
-du premier ensemble correspondent exactement à la baseline logicielle qualifiée ; les autres preuves
-restent historiques ou locales. Le paquet courant porte le SHA-256 `fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27` ; toujours le recalculer avant une revue, car
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`. Le snapshot de préparation courant est
+`1bd52926405c5a0a2ae8e4c1f257507b8cb1b4af`. Les cinq ensembles conservent séparément leurs commits
+et arbres exacts `4e476b31`, `5eadec7f`, `125ba0b`, Cadle `ea0da625` et le protocole A/B
+`1bd5292`. Les deux PNG Browser du premier ensemble correspondent exactement à la baseline logicielle
+qualifiée ; les autres preuves restent historiques ou locales. Le paquet courant porte le SHA-256
+`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a` ; toujours le recalculer avant une revue, car
 tout changement d'octets invalide un reçu antérieur.
 
-## Les cinq routes prêtes à la revue
+## Les six routes prêtes à la revue
 
 Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Prête » ne vaut pas
 « acceptée » et aucune case de la roadmap n'est fermée par la seule préparation du paquet.
@@ -43,13 +44,14 @@ Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Pr
 | `R1-047` | `native_distant_clear` | LOD et silhouettes lointaines lisibles ; vallée, cheminement et rivière convaincants ; crénelage, bruit et popping acceptables |
 | `R1-049` | vues humaine, lointaine, eau clair/pluie et profils Low/High | palette cohérente entre terrain, végétation, roches, berges et eau ; matériaux ni plats, ni plastiques, ni surexposés ; cohérence météo et profils |
 | `R1-050` | vues humaine, lointaine, eau claire et High | hiérarchie visuelle et foyer lisibles ; cheminement, profondeur et rivière compréhensibles ; overlay sans masquage des zones jugées |
+| `R1-052` | trois vues Forge, trois références Cadle consultées in situ et protocole A/B versionné | impact comparé sur terrain, végétation, eau, atmosphère, lisibilité et game feel ; coûts commentés séparément sans duel de FPS bruts |
 
 Le relecteur doit ouvrir les fichiers enregistrés dans le paquet, vérifier leurs hashes avec le
 validateur, les examiner sans réencodage ni remplacement, puis consigner des observations concrètes.
 
 ## Routes encore soumises à des prérequis
 
-Les six autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
+Les cinq autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
 prématurément un verdict favorable :
 
 - `R1-023` : observation instrumentée du pass optique GPU et matrice native/Browser par profil ;
@@ -58,9 +60,7 @@ prématurément un verdict favorable :
 - `R1-048` : replay PresentMon schema 12 qualifiant, acquisition réellement temps réel et revue de
   jouabilité humaine ; le MP4 actuel assemble des checkpoints pausés et ne qualifie pas le stutter ;
 - `R1-051` : référence WebGPU reproductible manquante — URL, version ou commit, capture locale, hash
-  et protocole ;
-- `R1-052` : protocole A/B Forge/Cadle aligné sur la même machine, en 1920 × 1080 High, avec cadrages
-  et versions identifiés, coûts séparés par système et verdict humain versionné.
+  et protocole.
 
 Deux routes purement techniques restent hors du reçu humain :
 
@@ -69,7 +69,7 @@ Deux routes purement techniques restent hors du reçu humain :
 - `R1-041` attend un benchmark sur le matériel cible RTX 3060 ou RX 6600 ; la RX 7800 XT du poste de
   développement ne remplace pas cette preuve.
 
-Même si les cinq routes prêtes reçoivent un verdict humain `accepted`, ces prérequis et les autres
+Même si les six routes prêtes reçoivent un verdict humain `accepted`, ces prérequis et les autres
 conditions de passage de Gate 1 restent dus.
 
 ## Frontière Cadle : consultation locale uniquement
@@ -97,7 +97,7 @@ pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1
 Le contrôle statique doit terminer avec un marqueur de la forme :
 
 ```text
-FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=20 evidence_sets=4 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=5 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27
+FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a
 ```
 
 Rejouer aussi les seize cas synthétiques, dont quinze refus attendus. Ils testent le contrat du reçu et ne constituent
@@ -113,7 +113,7 @@ Le second marqueur attendu est :
 FORGE_GATE1_HUMAN_REVIEW_SELF_TEST_PASS cases=16 synthetic_only=true human_review_recorded=false
 ```
 
-Sur le poste où les preuves locales actuelles sont disponibles, vérifier les vingt artefacts, y
+Sur le poste où les preuves locales actuelles sont disponibles, vérifier les vingt-deux artefacts, y
 compris les trois références Cadle in situ :
 
 ```powershell
@@ -143,14 +143,14 @@ Le reçu est un nouveau fichier JSON séparé du paquet, des captures et des led
 relecteur humain nommé ne le remplit qu'après avoir réellement examiné les artefacts. Le gabarit
 ci-dessous est **délibérément non validable** tant que `TODO` et la date ne sont pas remplacés ; le
 validateur refuse ces placeholders. Il montre une route seulement, et une entrée analogue peut être
-ajoutée pour chacune des cinq routes prêtes.
+ajoutée pour chacune des six routes prêtes.
 
 ```json
 {
   "schema": "forge.gate1-human-review-receipt",
   "schema_version": 1,
   "scope": "human_visual_review_only",
-  "package_sha256": "fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27",
+  "package_sha256": "80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a",
   "qualified_software_baseline_commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
   "reviewer": {
     "kind": "human_owner",
@@ -181,7 +181,7 @@ ajoutée pour chacune des cinq routes prêtes.
 ```
 
 Les verdicts autorisés sont `accepted`, `rejected` et `inconclusive`. Toute revue reprend exactement
-les `evidence_set_ids` de la route. Un verdict `accepted` n'est autorisé que pour l'une des cinq
+les `evidence_set_ids` de la route. Un verdict `accepted` n'est autorisé que pour l'une des six
 routes prêtes, cite **tous** ses `artifact_ids` enregistrés et conserve `blocking_issues` vide. Tout
 autre verdict décisif cite au moins un artefact. Toute revue contient une observation concrète ;
 `rejected` et `inconclusive` contiennent au moins un problème bloquant. Le validateur refuse tout reçu

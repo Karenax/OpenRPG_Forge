@@ -36,10 +36,10 @@ dues. Aucun résultat GPU ou humain n'est déduit de la seule présence du code 
 
 Le paquet de revue humaine fail-closed
 [`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
-`fa23ae11bf8e28ddcfb87f0e9955fbe38e7f4fd57c1613ce397105ef14289e27`, référence désormais 20
+`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`, référence désormais 22
 artefacts contrôlés sans en incorporer aucun depuis Cadle. Son validateur passe en contrôle statique,
-self-test synthétique et contrôle externe complet. `R1-014`, `R1-046`, `R1-047`, `R1-049` et `R1-050`
-sont prêtes à recevoir un verdict humain ; le paquet ferme zéro route et conserve
+self-test synthétique et contrôle externe complet. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`
+et `R1-052` sont prêtes à recevoir un verdict humain ; le paquet ferme zéro route et conserve
 `gate1_transition_authorized=false`.
 
 Les diagnostics historiques `15635b3f`, `2fe48485` et la matrice de pacing `6f0e519a` sont conservés.
@@ -314,7 +314,7 @@ sur la branche `Rust`, avec `HEAD == origin/Rust` et une divergence `0/0` :
 | `trunk build --release --config Trunk.toml` | **PASS** ; compilation Release 26 min 37 s puis optimisation/assemblage WASM |
 | `cargo deny check licenses bans sources advisories` | **PASS** — `advisories ok, bans ok, licenses ok, sources ok` |
 | `scripts/Test-RustSec.ps1` | **PASS politique** — `vulnerabilities=0 warnings=20 distribution_blockers=1` ; blocker conservé `RUSTSEC-2024-0429`, `glib 0.18.5` |
-| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS courant** — `CADLE_GATE_C_BOUNDARY_PASS tracked=410 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43`; les paquets documentaires ne sont pas classés comme configurations de distribution |
+| `scripts/Test-CadleGateC.ps1 -RequireCheckout` | **PASS courant** — `CADLE_GATE_C_BOUNDARY_PASS tracked=412 checkout_present=True` sur Cadle `ea0da625`, arbre `f0d52e43`; les paquets documentaires ne sont pas classés comme configurations de distribution |
 | `scripts/Test-Gate1Provenance.ps1` SelfTest + Audit strict | **PASS** — 7 cas ; 1 manifeste, 27 fichiers, 9 modèles ; 507 fichiers Cadle comparés, 0 correspondance |
 | `scripts/Test-Gate1BrowserTemporal.ps1` | **PASS du test statique du harnais** ; ce test ne lance pas Browser (`browser_run=not_performed_by_static_test`), mais l'acquisition réelle a été réacquise séparément sur `4e476b31` ; inspection temporelle humaine toujours `pending` |
 | `scripts/Test-Gate1PresentationAB.ps1 -SelfTest` | **PASS** |
@@ -814,20 +814,21 @@ Restent explicitement ouvertes, soit **13 routes** :
 Le manifeste v1 sépare la revue humaine des ledgers automatisés, qui restent intacts avec
 `human_review_performed=false`. Il est rattaché à la base technique qualifiée
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55`, arbre
-`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, et recense 20 références : huit preuves Forge
+`cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`, et recense 22 références : dix preuves Forge
 versionnées, neuf preuves Forge externes hashées et trois captures Cadle consultées uniquement in situ.
-Le validateur confirme `artifacts=20`, `evidence_sets=4`, `exact_baseline_visual_artifacts=2`,
-`human_routes=11`, `review_ready=5`,
+Le validateur confirme `artifacts=22`, `evidence_sets=5`, `exact_baseline_visual_artifacts=2`,
+`human_routes=11`, `review_ready=6`,
 `external_verified=true`, `cadle_assets_embedded=0` et `routes_closed=0`; son cas positif synthétique
 et ses quinze refus attendus passent, soit seize cas au total.
 
-- prêtes à la revue humaine : `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050` ;
+- prêtes à la revue humaine : `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`, `R1-052` ;
 - observation GPU requise : `R1-023`, `R1-025`, `R1-026` ;
 - replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
 - référence WebGPU reproductible absente — URL, version/commit, capture, hash et protocole dus :
   `R1-051`. L'audit des 154 commits atteignables jusqu'à `6fb33ca`, des URLs, reflogs disponibles et
   Git notes ne retrouve aucune identité ; Cadle est la référence WebGL2 distincte de `R1-052` ;
-- protocole A/B Forge/Cadle aligné et verdict humain versionné requis : `R1-052`.
+- protocole A/B Forge/Cadle aligné acquis et validé ; verdict humain versionné encore requis :
+  `R1-052`.
 
 `R1-037` et `R1-041` restent volontairement hors du reçu humain : la première attend la couche Vulkan
 RenderDoc et quatre captures indépendantes ; la seconde attend le GPU cible. Le guide
@@ -874,7 +875,7 @@ huitième match de ledger.
 | Condition | État | Motif |
 |---|---|---|
 | qualité visuelle clairement supérieure à la base Godot | **OUVERTE** | défaut depth-only corrigé et conservé, mais aucune revue humaine comparative acceptée |
-| impact au moins comparable à Cadle | **OUVERTE** | pas de comparaison A/B humaine sur protocole équivalent |
+| impact au moins comparable à Cadle | **OUVERTE — PROTOCOLE PRÊT** | protocole A/B aligné acquis et fail-closed ; verdict humain encore dû |
 | 60 FPS moyens en 1080p High sur GPU milieu de gamme | **OUVERTE** | Replay2 schema 8 à 129,9968 FPS sur RX 7800 XT ; GPU cible RTX 3060/RX 6600 encore dû |
 | p95 `<=16,7 ms` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 13,8805 ms, mais le run global reste FAIL et le GPU cible n'est pas acquis |
 | 1 % low `>=45 FPS` | **OUVERTE — CANDIDATE LOCALE** | Replay2 schema 8 à 61,2708 FPS, mais le run global reste FAIL et le GPU cible n'est pas acquis |
