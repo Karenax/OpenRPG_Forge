@@ -161,6 +161,11 @@ pwsh -File scripts/Test-Gate1VisualProof.ps1 \
   -Quality high -NoVsync
 ```
 
+For the child runtime only, the validator fixes the working directory and `BEVY_ASSET_ROOT` to the
+clean exact-commit repository and requests Vulkan through `WGPU_BACKEND=vulkan`. Governed Forge
+assets are therefore read in place; none are copied beside the Release executable, and no Cadle asset
+is introduced. The validation receipt records that process environment and the resolved asset path.
+
 The validator requires a clean worktree before and after acquisition, binds the embedded commit to
 that worktree, records the requested no-VSync mode, GPU/backend/driver and runtime logs, then rejects
 warning, error or panic entries. It validates the controller command sequences, stable player,

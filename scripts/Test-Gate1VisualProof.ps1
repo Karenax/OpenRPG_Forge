@@ -122,7 +122,9 @@ function Invoke-BoundedProcess {
         [Parameter(Mandatory = $true)][ValidateRange(1, 3600)][int]$TimeoutSeconds,
         [Parameter(Mandatory = $true)][string]$Label,
         [Parameter(Mandatory = $true)][string]$StdoutPath,
-        [Parameter(Mandatory = $true)][string]$StderrPath
+        [Parameter(Mandatory = $true)][string]$StderrPath,
+        [string]$WorkingDirectory,
+        [hashtable]$EnvironmentVariables = @{}
     )
 
     $process = $null
@@ -141,6 +143,13 @@ function Invoke-BoundedProcess {
         $startInfo.CreateNoWindow = $true
         $startInfo.RedirectStandardOutput = $true
         $startInfo.RedirectStandardError = $true
+        if (-not [string]::IsNullOrWhiteSpace($WorkingDirectory)) {
+            $startInfo.WorkingDirectory = $WorkingDirectory
+        }
+        foreach ($name in $EnvironmentVariables.Keys) {
+            Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$name)) -Message "Process environment variable names must not be empty."
+            $startInfo.Environment[[string]$name] = [string]$EnvironmentVariables[$name]
+        }
         foreach ($argument in $ArgumentList) {
             [void]$startInfo.ArgumentList.Add($argument)
         }
@@ -273,7 +282,10 @@ function Get-DisallowedLogLines {
 
 $evidencePath = Get-FullPathWithoutResolving -Path $EvidenceRoot
 $repositoryPath = (Resolve-Path -LiteralPath $RepositoryRoot).Path
+$assetDirectory = (Resolve-Path -LiteralPath (Join-Path $repositoryPath "assets")).Path
+Assert-Condition -Condition ([IO.Directory]::Exists($assetDirectory)) -Message "The governed repository asset directory is absent."
 $runtimeFullPath = $null
+$runtimeLaunch = $null
 $gitCommit = (& git -C $repositoryPath rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) {
     throw "Cannot resolve the repository commit."
@@ -305,6 +317,18 @@ if (-not [string]::IsNullOrWhiteSpace($RuntimePath)) {
         "--gate1-visual-proof", $evidencePath,
         "--no-vsync"
     )
+    $runtimeEnvironment = @{
+        BEVY_ASSET_ROOT = $repositoryPath
+        WGPU_BACKEND = "vulkan"
+    }
+    $runtimeLaunch = [ordered]@{
+        working_directory = $repositoryPath
+        bevy_asset_root = $repositoryPath
+        asset_directory = $assetDirectory
+        assets_referenced_in_place = $true
+        assets_copied_to_release_directory = $false
+        requested_wgpu_backend = "vulkan"
+    }
     $temporaryStdout = [IO.Path]::GetTempFileName()
     $temporaryStderr = [IO.Path]::GetTempFileName()
     try {
@@ -314,7 +338,9 @@ if (-not [string]::IsNullOrWhiteSpace($RuntimePath)) {
             -TimeoutSeconds $RuntimeTimeoutSeconds `
             -Label "forge_runtime Gate 1 visual proof" `
             -StdoutPath $temporaryStdout `
-            -StderrPath $temporaryStderr
+            -StderrPath $temporaryStderr `
+            -WorkingDirectory $repositoryPath `
+            -EnvironmentVariables $runtimeEnvironment
         if ($runtimeResult.ExitCode -ne 0) {
             throw "forge_runtime Gate 1 visual proof failed with exit code $($runtimeResult.ExitCode)."
         }
@@ -342,6 +368,7 @@ Assert-Condition -Condition ($ledger.protocol.requested_present_mode -eq "auto_n
 Assert-Condition -Condition ($ledger.protocol.vsync_requested -eq $false) -Message "The proof ledger reports VSync enabled."
 Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$ledger.protocol.gpu.name)) -Message "GPU adapter name is absent."
 Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$ledger.protocol.gpu.backend)) -Message "GPU backend is absent."
+Assert-Condition -Condition ($ledger.protocol.gpu.backend -eq "Vulkan") -Message "Gate 1 visual proof requires the requested Vulkan backend."
 Assert-Condition -Condition (-not [string]::IsNullOrWhiteSpace([string]$ledger.protocol.gpu.driver)) -Message "GPU driver is absent."
 Assert-Condition -Condition ($ledger.timeline.same_process -eq $true) -Message "The clear-rain-clear timeline is not declared single-process."
 Assert-Condition -Condition (($ledger.timeline.requested_states -join ",") -eq "clear,rain,clear") -Message "Unexpected weather transition sequence."
@@ -751,6 +778,7 @@ $validation = [ordered]@{
     repository_commit = $gitCommit
     repository_tree = $gitTree
     runtime_sha256 = $runtimeSha256
+    runtime = $runtimeLaunch
     runtime_logs = [ordered]@{
         stdout = [ordered]@{
             relative_path = "runtime.stdout.log"
@@ -774,6 +802,9 @@ $validation = [ordered]@{
         fixed_quality = $true
         exact_commit_embedded = $true
         clean_worktree_before_and_after = $true
+        bevy_asset_root_is_clean_repository = ($null -ne $runtimeLaunch)
+        governed_assets_referenced_in_place = ($null -ne $runtimeLaunch)
+        governed_assets_copied_to_release_directory = if ($null -ne $runtimeLaunch) { $false } else { $null }
         no_vsync_requested = $true
         gpu_identity_recorded = $true
         native_scene_gpu_pass_diagnostics_sampled = $true
