@@ -339,7 +339,7 @@ humaine et le GPU cible restent dus. Gate 1 reste **OUVERTE**, Gate 2 reste **IN
 distante reste `NOT RUN` sous la dérogation ADR-0006 jusqu'à Gate 4, sans être déclarée PASS.
 
 Le paquet de revue humaine v1 est maintenant versionné avec 22 références contrôlées et le SHA-256
-`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`. Son validateur passe le
+`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92`. Son validateur passe le
 contrôle statique, seize cas synthétiques fail-closed et la vérification externe complète. Les cinq
 ensembles de preuves portent leur commit/arbre exact ; les deux PNG temporels revendiquent et vérifient
 l'identité de la baseline logicielle `4e476b31`, tandis que les autres preuves gardent leur identité
@@ -723,10 +723,20 @@ qualité                   Low / Medium / High / Ultra
   HUMAINE**, verdict encore dû.
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
-- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **BLOQUÉE** : l'audit des
-  154 commits atteignables jusqu'à `6fb33ca`, de leurs URLs, des reflogs disponibles et des Git notes
-  ne retrouve aucun nom, URL, version/commit, capture locale, hash ou protocole reproductible. Cadle
-  est une référence distincte Three.js/WebGL2 rattachée à `R1-052`, pas l'identité manquante.
+- [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, IDENTITÉ
+  FORTEMENT ÉTABLIE MAIS NON FIGÉE** : la conversation historique retrouve le message utilisateur du
+  29 août 2026 et son URL exacte vers le post X `2093382978105966827` de Bilal Khan (`@Bk23544`). Les
+  sources publiques contemporaines le relient à **Three.js Grassworks**, à
+  `https://grassworks.techredux.co/demo` et au walkthrough YouTube `Nhim18rc-XE`. Le post constitue la
+  provenance utilisateur ; aucune confirmation redondante n'est requise. La démo live est cependant
+  mutable, son code est privé, et aucun commit/version public, capture locale historique, hash du
+  média déclencheur, protocole comparatif versionné ou verdict humain n'est acquis. Deux captures
+  Sunny/Rain de l'état live courant et un rendu actuel du post X historique avec frame vidéo sont
+  figés et hashés hors dépôt ; ils ne sont ni une capture contemporaine du 29 août, ni les octets du
+  média source. Une acquisition source autorisée si requise, puis la revue humaine restent dues. Cadle
+  et le prototype Babylon.js
+  « La Forêt des Brumes », créé ensuite, sont distincts ;
+  [preuve](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md).
 - [ ] `R1-052` comparaison A/B avec Cadle épinglé sur même machine, résolution et profil équivalent ;
   les trois captures Cadle sont référencées par chemin relatif et SHA-256, consultées uniquement in
   situ et jamais copiées dans Forge. Le protocole A/B versionné `1bd5292` fixe trois cadrages

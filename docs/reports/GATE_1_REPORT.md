@@ -47,7 +47,7 @@ humaine. `R1-023`, `R1-025` et `R1-026` restent ouvertes.
 
 Le paquet de revue humaine fail-closed
 [`gate1-human-review-package.v1.json`](../evidence/gate1/gate1-human-review-package.v1.json), SHA-256
-`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a`, référence désormais 22
+`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92`, référence désormais 22
 artefacts contrôlés sans en incorporer aucun depuis Cadle. Son validateur passe en contrôle statique,
 self-test synthétique et contrôle externe complet. `R1-014`, `R1-046`, `R1-047`, `R1-049`, `R1-050`
 et `R1-052` sont prêtes à recevoir un verdict humain ; le paquet ferme zéro route et conserve
@@ -871,9 +871,17 @@ et ses quinze refus attendus passent, soit seize cas au total.
   Browser/humains requis : `R1-023`, `R1-025`, `R1-026` ; les diagnostics retardés de passes de scène
   Low/High `41b49f66` sont acquis mais ne satisfont pas ces critères ;
 - replay PresentMon schema 12 PASS et revue temps réel requis : `R1-048` ;
-- référence WebGPU reproductible absente — URL, version/commit, capture, hash et protocole dus :
-  `R1-051`. L'audit des 154 commits atteignables jusqu'à `6fb33ca`, des URLs, reflogs disponibles et
-  Git notes ne retrouve aucune identité ; Cadle est la référence WebGL2 distincte de `R1-052` ;
+- identité de la référence WebGPU `R1-051` fortement établie mais preuve non figée : le message
+  utilisateur historique du 29 août 2026 cite le post X `2093382978105966827` de Bilal Khan
+  (`@Bk23544`), relié publiquement à **Three.js Grassworks**, à
+  `https://grassworks.techredux.co/demo` et au walkthrough YouTube `Nhim18rc-XE`. L'audit Git initial
+  n'avait pas accès à cette provenance conversationnelle. `R1-051` reste **OUVERTE** : live mutable,
+  code privé, aucun commit/version public, capture locale historique, hash du média déclencheur,
+  protocole comparatif versionné ou verdict humain. Deux captures live courantes Sunny/Rain et un
+  rendu actuel du post X historique avec frame vidéo sont figés et hashés hors dépôt, sans constituer
+  une capture contemporaine du 29 août ni le média source. Aucun média ou asset externe n'est
+  embarqué ; acquisition source autorisée si requise et revue encore dues ;
+  [preuve](../evidence/gate1/R1_051_WEBGPU_REFERENCE_RECOVERY.md) ;
 - protocole A/B Forge/Cadle aligné acquis et validé ; verdict humain versionné encore requis :
   `R1-052`.
 

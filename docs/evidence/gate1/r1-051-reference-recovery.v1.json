@@ -1,0 +1,126 @@
+{
+  "schema": "forge.gate1-r1-051-reference-recovery",
+  "schema_version": 1,
+  "status": "identity_strongly_established_current_live_state_sampled_historical_reference_not_frozen",
+  "historical_provenance": {
+    "conversation_title": "Comparaison rendu Godot",
+    "conversation_id": "6a933ea2-af00-83eb-b408-a696ea67fa8b",
+    "user_turn_id": "1c87d172-b1c7-4dba-a36a-eae7a5a51073",
+    "user_turn_started_at_utc": "2026-08-29T20:18:42Z",
+    "user_supplied_url": "https://x.com/Bk23544/status/2093382978105966827/video/1"
+  },
+  "reference": {
+    "name": "Three.js Grassworks",
+    "author": "Bilal Khan",
+    "author_profile": "https://x.com/Bk23544",
+    "canonical_post_url": "https://x.com/Bk23544/status/2093382978105966827",
+    "post_date": "2026-08-28",
+    "interactive_demo_url": "https://grassworks.techredux.co/demo",
+    "walkthrough_url": "https://www.youtube.com/watch?v=Nhim18rc-XE",
+    "author_publication_url": "https://www.patreon.com/MuhammadBilalKhan/posts/200-hours-later-167946382"
+  },
+  "metadata_observations": [
+    {
+      "observed_at_utc": "2026-09-03T13:57:24.9880508Z",
+      "kind": "x_oembed_json",
+      "requested_url": "https://publish.twitter.com/oembed?url=https%3A%2F%2Fx.com%2FBk23544%2Fstatus%2F2093382978105966827&omit_script=true",
+      "final_url": "https://publish.x.com/oembed?url=https%3A%2F%2Fx.com%2FBk23544%2Fstatus%2F2093382978105966827&omit_script=true",
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "bytes": 1276,
+      "sha256": "385024e9d884e68b5918c733d8c296f3d3ffe8afe5d6a15a0c9e0fd66964a9d6",
+      "content_retained": false
+    },
+    {
+      "observed_at_utc": "2026-09-03T13:57:25.0955959Z",
+      "kind": "live_demo_root_html",
+      "requested_url": "https://grassworks.techredux.co/demo",
+      "final_url": "https://grassworks.techredux.co/demo",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "last_modified": "Wed, 02 Sep 2026 05:16:36 GMT",
+      "etag_observed": "W/\"2b0645c77c3780b3d7a7c2d934f7358c\"",
+      "etag_stable_across_review": false,
+      "bytes": 15914,
+      "sha256": "795473364397cb131c943332fcd0851355faa51f31b26aba79e117b298c2a0d2",
+      "content_retained": false
+    }
+  ],
+  "current_live_capture_observations": [
+    {
+      "observed_at_utc": "2026-09-03T14:24:15Z",
+      "kind": "agent_browser_screenshot",
+      "source_url": "https://grassworks.techredux.co/demo",
+      "preset": "Sunny",
+      "quality": "High",
+      "viewport_width": 1920,
+      "viewport_height": 1080,
+      "format": "jpeg",
+      "external_path": "E:/OpenRPG_Forge/.gate1-tools/evidence/r1-051-grassworks-current-20260903T142341Z/grassworks-high-sunny-1920x1080.jpg",
+      "bytes": 456471,
+      "sha256": "96e5e96777ed63f778db989f0e77cb641618c0fe4bf7f401c9f9d1f1a73848d5",
+      "historical_state_proof": false,
+      "human_review_performed": false,
+      "copied_into_forge": false
+    },
+    {
+      "observed_at_utc": "2026-09-03T14:26:31Z",
+      "kind": "agent_browser_screenshot",
+      "source_url": "https://grassworks.techredux.co/demo",
+      "preset": "Rain",
+      "quality": "High",
+      "viewport_width": 1920,
+      "viewport_height": 1080,
+      "format": "jpeg",
+      "external_path": "E:/OpenRPG_Forge/.gate1-tools/evidence/r1-051-grassworks-current-20260903T142341Z/grassworks-high-rain-1920x1080.jpg",
+      "bytes": 379020,
+      "sha256": "17703bcc42db55ea49b1caea5d804de9aee7f39c7470363fe8a470cc5a97f0d0",
+      "historical_state_proof": false,
+      "human_review_performed": false,
+      "copied_into_forge": false
+    }
+  ],
+  "historical_post_render_observations": [
+    {
+      "observed_at_utc": "2026-09-03T14:30:07Z",
+      "kind": "agent_browser_full_view_screenshot",
+      "canonical_post_url": "https://x.com/Bk23544/status/2093382978105966827",
+      "post_id": "2093382978105966827",
+      "displayed_post_timestamp": "18:59 - 28 aout 2026",
+      "embedded_video_frame_visible": true,
+      "embedded_video_frame_label": "RAIN",
+      "render_width": 1905,
+      "render_height": 1072,
+      "format": "jpeg",
+      "external_path": "E:/OpenRPG_Forge/.gate1-tools/evidence/r1-051-grassworks-current-20260903T142341Z/x-post-2093382978105966827-with-video-frame-1905x1072.jpg",
+      "bytes": 128035,
+      "sha256": "43be0cebbaf0bd7d58dbbe08de02c7b60932383133580146f95b1d75db7d5a3c",
+      "source_media_bytes_retained": false,
+      "source_media_sha256_available": false,
+      "contemporaneous_2026_08_29_capture": false,
+      "human_review_performed": false,
+      "copied_into_forge": false
+    }
+  ],
+  "boundaries": {
+    "public_commit_or_version_identified": false,
+    "historical_capture_available": false,
+    "historical_media_sha256_available": false,
+    "historical_post_current_render_capture_available": true,
+    "historical_post_current_render_sha256_available": true,
+    "historical_source_media_sha256_available": false,
+    "current_live_capture_available": true,
+    "current_live_capture_sha256_available": true,
+    "current_live_capture_repo_external": true,
+    "comparison_protocol_versioned": false,
+    "grassworks_media_bundles_source_or_assets_retained": false,
+    "grassworks_assets_copied_into_forge": false,
+    "human_review_performed": false
+  },
+  "qualification": {
+    "identity_recovered": true,
+    "reference_snapshot_reproducible": false,
+    "r1_051_closed": false,
+    "gate1_transition_authorized": false
+  }
+}

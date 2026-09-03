@@ -29,7 +29,7 @@ La baseline logicielle qualifiée référencée est
 et arbres exacts `4e476b31`, `5eadec7f`, `125ba0b`, Cadle `ea0da625` et le protocole A/B
 `1bd5292`. Les deux PNG Browser du premier ensemble correspondent exactement à la baseline logicielle
 qualifiée ; les autres preuves restent historiques ou locales. Le paquet courant porte le SHA-256
-`80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a` ; toujours le recalculer avant une revue, car
+`3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92` ; toujours le recalculer avant une revue, car
 tout changement d'octets invalide un reçu antérieur.
 
 ## Les six routes prêtes à la revue
@@ -59,8 +59,9 @@ prématurément un verdict favorable :
 - `R1-026` : exécution GPU du bloom/color grading et matrice Browser Low/High ;
 - `R1-048` : replay PresentMon schema 12 qualifiant, acquisition réellement temps réel et revue de
   jouabilité humaine ; le MP4 actuel assemble des checkpoints pausés et ne qualifie pas le stutter ;
-- `R1-051` : référence WebGPU reproductible manquante — URL, version ou commit, capture locale, hash
-  et protocole.
+- `R1-051` : identité et URL Grassworks reprises, deux captures live actuelles et un rendu actuel du
+  post historique hashés hors dépôt ; protocole comparatif, verdict humain, capture contemporaine du
+  29 août et hash du média vidéo source encore absents.
 
 Deux routes purement techniques restent hors du reçu humain :
 
@@ -97,7 +98,7 @@ pwsh -NoProfile -File .\scripts\Test-Gate1HumanReview.ps1
 Le contrôle statique doit terminer avec un marqueur de la forme :
 
 ```text
-FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a
+FORGE_GATE1_HUMAN_REVIEW_PACKAGE_PASS artifacts=22 evidence_sets=5 exact_baseline_visual_artifacts=2 human_routes=11 review_ready=6 external_verified=false cadle_assets_embedded=0 routes_closed=0 sha256=3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92
 ```
 
 Rejouer aussi les seize cas synthétiques, dont quinze refus attendus. Ils testent le contrat du reçu et ne constituent
@@ -150,7 +151,7 @@ ajoutée pour chacune des six routes prêtes.
   "schema": "forge.gate1-human-review-receipt",
   "schema_version": 1,
   "scope": "human_visual_review_only",
-  "package_sha256": "80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a",
+  "package_sha256": "3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92",
   "qualified_software_baseline_commit": "4e476b31ee33533b6f4023804d8ecd1be02f9c55",
   "reviewer": {
     "kind": "human_owner",

@@ -527,7 +527,7 @@
     },
     {
       "route": "R1-051",
-      "review_readiness": "blocked_missing_reference",
+      "review_readiness": "blocked_reference_not_frozen",
       "evidence_set_ids": [],
       "artifact_ids": [],
       "acceptance_criteria": [
@@ -535,7 +535,7 @@
         "La comparaison utilise un protocole et des criteres de densite, naturel, profondeur, lumiere et finition versionnes."
       ],
       "remaining_blockers": [
-        "Aucune URL, version, capture, hash ou protocole reproductible de la demonstration de foret WebGPU n'existe dans Rust."
+        "L'identite et l'URL Grassworks sont reprises et trois captures actuelles sont hashees hors depot, mais aucun protocole comparatif versionne, verdict humain, capture contemporaine du 29 aout ou hash du media video source n'est acquis."
       ]
     },
     {

@@ -17,7 +17,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-$script:ExpectedPackageSha256 = "80d47f8f10ba8e9f0048392d3f7368480a918e893001788beb09e66568e0738a"
+$script:ExpectedPackageSha256 = "3808c7ade68883cee6694c2fcfc3930cd73824b2b8da3441bfe2f7319502ff92"
 
 function Assert-Condition {
     param(
@@ -635,7 +635,7 @@ function Assert-Package {
         "R1-048" = "requires_presentmon_pass_and_realtime_review"
         "R1-049" = "ready_for_human_review"
         "R1-050" = "ready_for_human_review"
-        "R1-051" = "blocked_missing_reference"
+        "R1-051" = "blocked_reference_not_frozen"
         "R1-052" = "ready_for_human_review"
     }
     $expectedRouteEvidenceSets = @{
