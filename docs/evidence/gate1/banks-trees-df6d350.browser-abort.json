@@ -1,0 +1,61 @@
+{
+  "schema": "forge.gate1-browser-weather-tier-abort",
+  "schema_version": 1,
+  "recorded_at_utc": "2026-09-04T09:06:03.8003357+00:00",
+  "recorded_before_browser_cleanup": true,
+  "protocol_id": "r1-023-025-026-browser-weather-matrix-v1",
+  "expected_commit": "df6d350b0bca572d34c790eb14ec99963fd7f8d3",
+  "quality_tier": "low",
+  "route": "http://127.0.0.1:1420/?forge_scene=visual-valley&forge_weather=clear&forge_quality=low&forge_gate1_weather_proof=v1",
+  "failure": {
+    "category": "browser_tier_failure",
+    "exception_type": "System.Management.Automation.RuntimeException",
+    "message": "Timed out waiting for Browser weather checkpoint 1/low. Last state: The property 'warmup_samples' cannot be found on this object. Verify that the property exists."
+  },
+  "browser": {
+    "process_id": 29136,
+    "snapshot_capture_status": "captured",
+    "snapshot_capture_error": null
+  },
+  "input_guard": {
+    "active": true,
+    "blocked_input_events": 0,
+    "blocked_input_events_by_type": {
+      "keydown": 0,
+      "keyup": 0,
+      "keypress": 0,
+      "mousedown": 0,
+      "mouseup": 0,
+      "mousemove": 0,
+      "wheel": 0,
+      "click": 0,
+      "dblclick": 0,
+      "contextmenu": 0,
+      "touchstart": 0,
+      "touchmove": 0,
+      "touchend": 0,
+      "touchcancel": 0,
+      "pointerdown": 0,
+      "pointerup": 0,
+      "pointermove": 0,
+      "pointercancel": 0
+    },
+    "first_blocked_input_event": null,
+    "last_blocked_input_event": null
+  },
+  "controller": {
+    "proof_status": "awaiting_advance_from_initial_clear",
+    "checkpoint_count": 1,
+    "runtime_instance_id": "forge-weather-proof-1788512644742-1129.800",
+    "failure_reason": null,
+    "proof_parse_error": null
+  },
+  "artifact_inventory_status": "complete",
+  "artifacts_present_before_abort_receipt": [],
+  "automated_result": {
+    "status": "abort",
+    "input_contamination_observed": false,
+    "tier_qualified": false,
+    "gate1_routes_qualified": false
+  }
+}

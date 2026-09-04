@@ -64,6 +64,16 @@ Le premier Browser en sandbox reste ABORT et conservé ; le rejeu autorisé hors
 Amélioration locale visible, mais premier plan encore anguleux et composition rudimentaire.
 Aucune revue humaine inventée : Gate 1 reste à 43/55, Gate 2 non commencée, audits de cadence suspendus.
 
+Tranche suivante, moteur/natif `df6d350` et correctif Studio `d1895ec` : berges subdivisées avec
+matériau terrain/météo partagé ; 161 arbres CC0 sélectionnés dans le disque existant, relais
+procédural/HLOD rétabli et transitions qualité synchronisées. Sources, collisions et assets inchangés.
+**380/380 tests**, puis 35/35 Studio sur le correctif ; natif High 29 PNG et Browser Low/High 12 PNG
+PASS automatisés. Premier Browser ABORT conservé : ancien fingerprint Studio corrigé, sans assouplir
+le driver. Les commits d'acquisition diffèrent uniquement dans Studio, pas dans le moteur natif.
+[Preuve, échec et limites](docs/evidence/gate1/BANKS_AND_TREE_HANDOFFS.md). Berges mieux intégrées et
+arbres plus variés à l'inspection d'agent ; rendu encore provisoire, pas de qualification humaine.
+Gate 1 reste **43/55**, Gate 2 non commencée ; aucune reprise des audits de cadence.
+
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
 migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de

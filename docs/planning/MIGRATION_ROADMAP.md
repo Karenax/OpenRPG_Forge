@@ -777,6 +777,10 @@ qualité                   Low / Medium / High / Ultra
   mais encore rudimentaire, sans nouveau verdict humain.
   Nouvelle vue `68af815` : touffes mieux remplies et courbées, sol moins uniforme ; premier plan
   encore anguleux. Inspection d'agent seulement, revue humaine toujours due.
+  Lot `df6d350` : arbres détaillés étendus au disque existant et relais procédural/HLOD restauré ;
+  natif High et Browser Low/High (correctif Studio `d1895ec`) capturés. 380/380 tests puis 35/35 Studio,
+  première tentative Browser ABORT conservée et cause corrigée. Inspection d'agent favorable au
+  progrès local, sans verdict humain : [preuves](../evidence/gate1/BANKS_AND_TREE_HANDOFFS.md).
 - [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
   paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict LOD/composition encore dû.
 - [ ] `R1-048` vidéo de déplacement courte — **CADENCE DIFFÉRÉE sous ADR-0010 / REVUE HUMAINE DUE**.
@@ -808,6 +812,9 @@ qualité                   Low / Medium / High / Ultra
   HUMAINE**, verdict encore dû.
   Détail terrain `68af815` lancé et capturé natif High/Browser Low-High ; nouvelles preuves dans
   `GRASS_AND_GROUND_DETAIL.md`, sans modifier les anciens reçus ni fermer cette route.
+  Berges `df6d350` : matériau terrain/météo partagé et mélange borné à l'épaule 5 m, captures natives
+  et Browser vérifiées ; carving, jonction animée et revue humaine non qualifiés. Voir
+  `BANKS_AND_TREE_HANDOFFS.md`. Aucun nouveau PASS ; Gate 1 reste 43/55, Gate 2 non commencée.
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, PAQUET PRÊT

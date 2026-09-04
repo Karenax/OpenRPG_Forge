@@ -1,0 +1,147 @@
+{
+  "schema": "forge.gate1-browser-weather-matrix-artifact-manifest",
+  "schema_version": 1,
+  "git_commit": "d1895ecb707097d0ab146576d24c4ba0476b4f26",
+  "artifacts": [
+    {
+      "relative_path": "served-bundles.json",
+      "bytes": 1112,
+      "sha256": "7a4bb28011ec4e9856ce1ca884734532caac7dc4ec4aa44fa0d2ca6f919ae59b"
+    },
+    {
+      "relative_path": "low/1-initial_clear-page.png",
+      "bytes": 1339105,
+      "sha256": "dff795aa8c294a21f7f1c977f3249d5f7bf747fab1da54388ca118f3d3f633c8"
+    },
+    {
+      "relative_path": "low/1-initial_clear-canvas.png",
+      "bytes": 1192759,
+      "sha256": "a44395c17c2f98014609441041b6dda48af325ca6e3b95306a0b68b5ea0475c9"
+    },
+    {
+      "relative_path": "low/1-initial_clear-proof-ledger.json",
+      "bytes": 3525,
+      "sha256": "f09ea0104e073f4ad8a639193a526a46a699676dd01f5a19f8133eb4a3aa455a"
+    },
+    {
+      "relative_path": "low/2-rain-page.png",
+      "bytes": 1330815,
+      "sha256": "2dbc350173df25972c65e83cd593df94b2b8dbeef65a62dacce2557f8efcad27"
+    },
+    {
+      "relative_path": "low/2-rain-canvas.png",
+      "bytes": 1194354,
+      "sha256": "66236e278c0a71c8e3fb1a54eb1b57a7a73f5eb155730622231b333b182ba410"
+    },
+    {
+      "relative_path": "low/2-rain-proof-ledger.json",
+      "bytes": 5796,
+      "sha256": "2cf2fe2d4cf9db4fe1c7f7fd91ef0e335db0ae7dad1b72bcd291285a5eeb64da"
+    },
+    {
+      "relative_path": "low/3-restored_clear-page.png",
+      "bytes": 1339943,
+      "sha256": "d98dca08508bd3768dc38e609220fb4e2f94cc0de07d8eb15ab1ac38c1616ebf"
+    },
+    {
+      "relative_path": "low/3-restored_clear-canvas.png",
+      "bytes": 1192322,
+      "sha256": "c0f1d4a33d95ffb1aceddcfeffeb9627e556a48fa02d053cf9a6b9fa4d38dbee"
+    },
+    {
+      "relative_path": "low/3-restored_clear-proof-ledger.json",
+      "bytes": 8094,
+      "sha256": "3187ada7f037ed4ec766a1409f4ef6f7e2e43227da7bd95181802aa6e6b7a59a"
+    },
+    {
+      "relative_path": "low/console.json",
+      "bytes": 6350,
+      "sha256": "9b639117bb855e10ec324ad1f60f15568fff7f9cc5a275fd19a961d3581e5c87"
+    },
+    {
+      "relative_path": "low/network.json",
+      "bytes": 8953,
+      "sha256": "e17ed8d777ecbc7adef0bee8be677011c04793644e65da1bf98829c69932cb24"
+    },
+    {
+      "relative_path": "low/final-gate-ledger.json",
+      "bytes": 1452,
+      "sha256": "8e012b33411cb946a50847df820fed2632d4e38b73f373856dbc7282457ef5e4"
+    },
+    {
+      "relative_path": "low/final-scene-ledger.json",
+      "bytes": 3444,
+      "sha256": "308288309c6d238dff8fa4f7ae80f2a84a10d3524bb5cbb78d1740b4e283e102"
+    },
+    {
+      "relative_path": "high/1-initial_clear-page.png",
+      "bytes": 1382885,
+      "sha256": "19ee80989087d6c67dc9bce7c17e34379f0aeac39fad6f94a3cc4e1386a54ae2"
+    },
+    {
+      "relative_path": "high/1-initial_clear-canvas.png",
+      "bytes": 1243007,
+      "sha256": "2af3e57e7533f0abd8cc69aea0cd81bf0fbba3d21d531ae21d5e9f574c39f1cc"
+    },
+    {
+      "relative_path": "high/1-initial_clear-proof-ledger.json",
+      "bytes": 3624,
+      "sha256": "18b0611534e81c374c65afaa9363405d041b169c367ef79c78157f3a0f566072"
+    },
+    {
+      "relative_path": "high/2-rain-page.png",
+      "bytes": 1394774,
+      "sha256": "8e9e49ea5e9ac4a3204af7298ed87ed313919e901b289d198e9a2ffcfbbe9f44"
+    },
+    {
+      "relative_path": "high/2-rain-canvas.png",
+      "bytes": 1258587,
+      "sha256": "8def7cf18b227dc46f9c1256a37a422f142a33d4405ab79ad0526bcfb2e5cdf6"
+    },
+    {
+      "relative_path": "high/2-rain-proof-ledger.json",
+      "bytes": 5991,
+      "sha256": "94cce3804535afd561fe4838fe645cfed93dc61fabf3ce2b9dc42472357a836e"
+    },
+    {
+      "relative_path": "high/3-restored_clear-page.png",
+      "bytes": 1381919,
+      "sha256": "a3b30b03164967e353c370373cc23fa82710c652a5db96fd0bc4effbef8538d8"
+    },
+    {
+      "relative_path": "high/3-restored_clear-canvas.png",
+      "bytes": 1236129,
+      "sha256": "3134abc61a6554e54c9c12ea3c626b7064a925ac3a6833c0e9aca5939f3776e4"
+    },
+    {
+      "relative_path": "high/3-restored_clear-proof-ledger.json",
+      "bytes": 8387,
+      "sha256": "a3705093f17a893d4567437fcb4c5548c3ab68b9ffc618d428fce9fed1504f6b"
+    },
+    {
+      "relative_path": "high/console.json",
+      "bytes": 6353,
+      "sha256": "d9ec4c593d882256eab8b2abe67629d54011353347359152b8b1ffc8fdfcdb50"
+    },
+    {
+      "relative_path": "high/network.json",
+      "bytes": 8954,
+      "sha256": "e0896c21d9db3f1f30cb8446b540bdf8bcdbaec48c9be21c111720b831831546"
+    },
+    {
+      "relative_path": "high/final-gate-ledger.json",
+      "bytes": 1425,
+      "sha256": "8a6a495d2c9c8fc9835a7ada17eb445f72a9d3a4a29626e4818ef8e7401f6bb7"
+    },
+    {
+      "relative_path": "high/final-scene-ledger.json",
+      "bytes": 3465,
+      "sha256": "16338c1195d70327de82651a870848c171a505b832fe7ed8c7dd8c37db9654a2"
+    },
+    {
+      "relative_path": "r1-023-025-026-browser-weather-matrix-ledger.json",
+      "bytes": 42451,
+      "sha256": "5029f2fb045b47526d99b1db482112d464834ae0345871044c14db75eb2c9f33"
+    }
+  ]
+}
