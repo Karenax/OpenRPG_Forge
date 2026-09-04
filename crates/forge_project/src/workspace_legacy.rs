@@ -80,7 +80,7 @@ pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
     match serde_json::from_str::<Version>(json)?.schema_version {
         1 => migrate_v1(serde_json::from_str(json)?),
         2 => migrate_v2(serde_json::from_str(json)?),
-        WORKSPACE_SCHEMA_VERSION => migrate_terrains(serde_json::from_str(json)?),
+        WORKSPACE_SCHEMA_VERSION => migrate_embedded_documents(serde_json::from_str(json)?),
         version => Err(WorkspaceError::UnsupportedVersion(version)),
     }
 }
@@ -159,10 +159,13 @@ fn migrate_area(project_id: ProjectId, old: AreaV1V2) -> Result<WorkspaceArea, W
     Ok(area)
 }
 
-fn migrate_terrains(mut workspace: WorkspaceDocument) -> Result<WorkspaceDocument, WorkspaceError> {
+fn migrate_embedded_documents(
+    mut workspace: WorkspaceDocument,
+) -> Result<WorkspaceDocument, WorkspaceError> {
     for module in &mut workspace.project.modules {
         for area in &mut module.areas {
             area.terrain = area.terrain.migrate_to_latest()?;
+            area.vegetation = area.vegetation.migrate_to_latest()?;
         }
     }
     Ok(workspace)

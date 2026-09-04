@@ -129,6 +129,34 @@ fn area_request(
     }
 }
 
+fn first_vegetation_promotion_target(
+    state: &WorkspaceState,
+) -> forge_world::VegetationPromotionTarget {
+    let source = document(state);
+    let area = &source.project.modules[0].areas[0];
+    let generated = forge_world::VegetationGenerationPlan::from_documents_with_density(
+        &area.terrain,
+        &area.vegetation,
+        &area.vegetation_density,
+    )
+    .unwrap()
+    .generate()
+    .unwrap();
+    let instance = generated
+        .chunks
+        .iter()
+        .flat_map(|chunk| &chunk.instances)
+        .next()
+        .expect("default workspace generates vegetation");
+    forge_world::VegetationPromotionTarget {
+        schema_version: forge_world::VEGETATION_PROMOTION_SCHEMA_VERSION,
+        center_x_m: instance.position_m.x,
+        center_z_m: instance.position_m.z,
+        maximum_distance_m: 0.25,
+        layer_id: instance.layer_id.clone(),
+    }
+}
+
 fn save(session: &mut WorkspaceSession, directory: &TestDirectory) -> WorkspaceState {
     let base_revision = current(session).revision;
     session
@@ -1900,6 +1928,100 @@ fn vegetation_catalog_crud_reuses_free_ids_and_survives_history_and_reopen() {
 }
 
 #[test]
+fn vegetation_catalog_reserves_the_layer_id_of_an_orphan_promotion() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let added = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: area_request(&created, 0, 0),
+            preset: VegetationSpeciesPreset::Tree,
+            display_name: "Arbre à conserver".into(),
+        })
+        .unwrap();
+    let reserved_layer_id = VegetationLayerId::new("species_01");
+    let painted = session
+        .execute(WorkspaceCommand::PaintVegetationDensity {
+            request: area_request(&added, 0, 0),
+            brush: forge_world::VegetationDensityBrush {
+                schema_version: 1,
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: 64.0,
+                strength: 1.0,
+                target_density: u8::MAX,
+                layer_id: reserved_layer_id.clone(),
+            },
+            additional_centers: vec![],
+            dry_run: false,
+        })
+        .unwrap();
+    let target = {
+        let source = document(&painted);
+        let area = &source.project.modules[0].areas[0];
+        let generated = forge_world::VegetationGenerationPlan::from_documents_with_density(
+            &area.terrain,
+            &area.vegetation,
+            &area.vegetation_density,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        let instance = generated
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .find(|instance| instance.layer_id == reserved_layer_id)
+            .expect("the painted species must produce a promotable instance");
+        forge_world::VegetationPromotionTarget {
+            schema_version: forge_world::VEGETATION_PROMOTION_SCHEMA_VERSION,
+            center_x_m: instance.position_m.x,
+            center_z_m: instance.position_m.z,
+            maximum_distance_m: 0.25,
+            layer_id: reserved_layer_id.clone(),
+        }
+    };
+    let promoted = session
+        .execute(WorkspaceCommand::PromoteVegetationInstance {
+            request: area_request(&painted, 0, 0),
+            target,
+        })
+        .unwrap();
+    let removed = session
+        .execute(WorkspaceCommand::RemoveVegetationSpecies {
+            request: area_request(&promoted, 0, 0),
+            layer_id: reserved_layer_id.clone(),
+        })
+        .unwrap();
+    let removed_document = document(&removed);
+    let removed_vegetation = &removed_document.project.modules[0].areas[0].vegetation;
+    assert!(
+        removed_vegetation
+            .layers
+            .iter()
+            .all(|layer| layer.id != reserved_layer_id)
+    );
+    assert_eq!(
+        removed_vegetation.promoted_instances[0].source.layer_id,
+        reserved_layer_id
+    );
+
+    let added_again = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: area_request(&removed, 0, 0),
+            preset: VegetationSpeciesPreset::Shrub,
+            display_name: "Arbuste indépendant".into(),
+        })
+        .unwrap();
+    let added_again_document = document(&added_again);
+    let vegetation = &added_again_document.project.modules[0].areas[0].vegetation;
+    assert_eq!(vegetation.layers.last().unwrap().id.as_str(), "species_02");
+    assert_eq!(
+        vegetation.promoted_instances[0].source.layer_id,
+        reserved_layer_id
+    );
+}
+
+#[test]
 fn vegetation_exclusion_circle_and_corridor_are_crud_and_reuse_free_ids() {
     let directory = TestDirectory::new();
     let mut session = WorkspaceSession::default();
@@ -2111,6 +2233,171 @@ fn invalid_stale_or_wrong_area_vegetation_edits_are_atomic_and_target_one_area()
         untouched_area
     );
     assert_eq!(directory.files(), files_before);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the promotion flow proves one-entry history, immutable provenance and exact persistence together"
+)]
+fn vegetation_promotion_and_retouch_are_one_revision_each_and_survive_history_and_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let painted = session
+        .execute(vegetation_density_brush_command(&created, false))
+        .unwrap();
+    let target = first_vegetation_promotion_target(&painted);
+    let history_before_promotion = session.undo.len();
+
+    let promoted = session
+        .execute(WorkspaceCommand::PromoteVegetationInstance {
+            request: area_request(&painted, 0, 0),
+            target,
+        })
+        .unwrap();
+    assert_eq!(promoted.revision, painted.revision + 1);
+    assert_eq!(session.undo.len(), history_before_promotion + 1);
+    let promoted_document = document(&promoted);
+    let promoted_instance = promoted_document.project.modules[0].areas[0]
+        .vegetation
+        .promoted_instances[0]
+        .clone();
+    assert_eq!(
+        promoted_instance.authored_transform,
+        promoted_instance.source.transform
+    );
+    assert_eq!(
+        promoted_instance.source.workspace_revision.get(),
+        painted.revision
+    );
+    assert_eq!(
+        receipt(&promoted)["edit"]["receipt"]["command"]["change"]["operation"],
+        "set_vegetation_promoted_instances"
+    );
+
+    let mut authored_transform = promoted_instance.authored_transform;
+    authored_transform.position_m.y += 1.25;
+    let history_before_retouch = session.undo.len();
+    let retouched = session
+        .execute(WorkspaceCommand::RetouchPromotedVegetationInstance {
+            request: area_request(&promoted, 0, 0),
+            instance_id: promoted_instance.id,
+            authored_transform,
+        })
+        .unwrap();
+    assert_eq!(retouched.revision, promoted.revision + 1);
+    assert_eq!(session.undo.len(), history_before_retouch + 1);
+    let retouched_instance = document(&retouched).project.modules[0].areas[0]
+        .vegetation
+        .promoted_instances[0]
+        .clone();
+    assert_eq!(retouched_instance.id, promoted_instance.id);
+    assert_eq!(retouched_instance.source, promoted_instance.source);
+    assert_eq!(retouched_instance.authored_transform, authored_transform);
+    assert_eq!(
+        receipt(&retouched)["edit"]["receipt"]["command"]["change"]["operation"],
+        "set_vegetation_promoted_instances"
+    );
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: retouched.revision,
+        })
+        .unwrap();
+    let undone_instance = document(&undone).project.modules[0].areas[0]
+        .vegetation
+        .promoted_instances[0]
+        .clone();
+    assert_eq!(undone_instance.source, promoted_instance.source);
+    assert_eq!(
+        undone_instance.authored_transform,
+        promoted_instance.authored_transform
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    let redone_instance = document(&redone).project.modules[0].areas[0]
+        .vegetation
+        .promoted_instances[0]
+        .clone();
+    assert_eq!(redone_instance.source, promoted_instance.source);
+    assert_eq!(redone_instance.authored_transform, authored_transform);
+
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+    assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+fn vegetation_promotion_and_retouch_rejections_are_atomic() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let painted = session
+        .execute(vegetation_density_brush_command(&created, false))
+        .unwrap();
+    let target = first_vegetation_promotion_target(&painted);
+    let promoted = session
+        .execute(WorkspaceCommand::PromoteVegetationInstance {
+            request: area_request(&painted, 0, 0),
+            target: target.clone(),
+        })
+        .unwrap();
+    let promoted_instance = document(&promoted).project.modules[0].areas[0]
+        .vegetation
+        .promoted_instances[0]
+        .clone();
+    let saved = save(&mut session, &directory);
+    let files_before = directory.files();
+    let valid_request = area_request(&saved, 0, 0);
+    let mut stale_request = valid_request;
+    stale_request.base_revision -= 1;
+    let mut wrong_area_request = valid_request;
+    wrong_area_request.key.area_id = forge_core::AreaId::deterministic("missing-area");
+
+    for command in [
+        WorkspaceCommand::PromoteVegetationInstance {
+            request: stale_request,
+            target: target.clone(),
+        },
+        WorkspaceCommand::PromoteVegetationInstance {
+            request: wrong_area_request,
+            target: target.clone(),
+        },
+        WorkspaceCommand::PromoteVegetationInstance {
+            request: valid_request,
+            target: target.clone(),
+        },
+        WorkspaceCommand::RetouchPromotedVegetationInstance {
+            request: stale_request,
+            instance_id: promoted_instance.id,
+            authored_transform: promoted_instance.authored_transform,
+        },
+        WorkspaceCommand::RetouchPromotedVegetationInstance {
+            request: wrong_area_request,
+            instance_id: promoted_instance.id,
+            authored_transform: promoted_instance.authored_transform,
+        },
+        WorkspaceCommand::RetouchPromotedVegetationInstance {
+            request: valid_request,
+            instance_id: forge_core::EntityId::deterministic("missing-promoted-instance"),
+            authored_transform: promoted_instance.authored_transform,
+        },
+        WorkspaceCommand::RetouchPromotedVegetationInstance {
+            request: valid_request,
+            instance_id: promoted_instance.id,
+            authored_transform: promoted_instance.authored_transform,
+        },
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), files_before);
+    }
 }
 
 #[test]

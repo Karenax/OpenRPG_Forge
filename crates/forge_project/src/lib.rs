@@ -59,15 +59,17 @@ pub use terrain::{
     TerrainMaterialWeightOverride,
 };
 pub use vegetation::{
-    MAX_GRASS_BLADES_PER_PATCH, MAX_VEGETATION_ATTEMPTS_PER_CELL,
-    MAX_VEGETATION_CELLS_PER_CHUNK_AXIS, MAX_VEGETATION_DOCUMENT_JSON_BYTES,
-    MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_EXPANDED_GRASS_BLADES, MAX_VEGETATION_LAYERS,
-    MAX_VEGETATION_PLACEMENT_ATTEMPTS, MIN_VEGETATION_CELLS_PER_CHUNK_AXIS,
-    VEGETATION_CHUNK_SIZE_M, VEGETATION_DOCUMENT_SCHEMA, VEGETATION_DOCUMENT_SCHEMA_VERSION,
-    VEGETATION_EXTENT_M, VegetationCollisionProfile, VegetationCollisionShape, VegetationDocument,
-    VegetationDocumentError, VegetationExclusion, VegetationExclusionId, VegetationExtent,
-    VegetationKind, VegetationLayer, VegetationLayerId, VegetationMaterialFilter,
-    VegetationPresentationProfile,
+    MAX_GRASS_BLADES_PER_PATCH, MAX_PROMOTED_VEGETATION_INSTANCES,
+    MAX_VEGETATION_ATTEMPTS_PER_CELL, MAX_VEGETATION_CELLS_PER_CHUNK_AXIS,
+    MAX_VEGETATION_DOCUMENT_JSON_BYTES, MAX_VEGETATION_EXCLUSIONS,
+    MAX_VEGETATION_EXPANDED_GRASS_BLADES, MAX_VEGETATION_LAYERS, MAX_VEGETATION_PLACEMENT_ATTEMPTS,
+    MIN_VEGETATION_CELLS_PER_CHUNK_AXIS, PromotedVegetationInstance, VEGETATION_CHUNK_SIZE_M,
+    VEGETATION_DOCUMENT_SCHEMA, VEGETATION_DOCUMENT_SCHEMA_VERSION,
+    VEGETATION_DOCUMENT_SCHEMA_VERSION_V1, VEGETATION_EXTENT_M, VegetationCollisionProfile,
+    VegetationCollisionShape, VegetationDocument, VegetationDocumentError, VegetationExclusion,
+    VegetationExclusionId, VegetationExtent, VegetationGenerationAlgorithm,
+    VegetationInstanceTransform, VegetationKind, VegetationLayer, VegetationLayerId,
+    VegetationMaterialFilter, VegetationPresentationProfile, VegetationPromotionSource,
 };
 pub use vegetation_catalog::VegetationSpeciesPreset;
 pub use vegetation_density::{

@@ -10,6 +10,7 @@ mod terrain_generation;
 mod vegetation;
 mod vegetation_cache;
 mod vegetation_density_brush;
+mod vegetation_promotion;
 mod water;
 mod weather;
 
@@ -60,6 +61,13 @@ pub use vegetation_density_brush::{
     VegetationDensityBrush, VegetationDensityBrushCommand, VegetationDensityBrushError,
     VegetationDensityBrushResult, preview_vegetation_density_brush,
     preview_vegetation_density_stroke,
+};
+pub use vegetation_promotion::{
+    MAX_VEGETATION_PROMOTION_RADIUS_M, ResolvedVegetationInstance,
+    VEGETATION_PROMOTION_SCHEMA_VERSION, VegetationPromotionCommand, VegetationPromotionError,
+    VegetationPromotionResult, VegetationPromotionTarget, VegetationRetouchCommand,
+    VegetationRetouchResult, preview_promote_generated_vegetation_instance,
+    preview_retouch_promoted_vegetation_instance, resolve_nearest_generated_vegetation_instance,
 };
 pub use water::{
     RiverCenterlineSample, VISUAL_VALLEY_WATER_JSON, VISUAL_VALLEY_WATER_SEED,

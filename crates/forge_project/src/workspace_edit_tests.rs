@@ -1,11 +1,13 @@
 use super::*;
 use crate::{
-    MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand,
-    TerrainMaterialLayerId, TerrainMaterialRole, TerrainMaterialWeightOverride,
-    VegetationDensityError, VegetationDensityOverride, VegetationDocumentError,
-    VegetationExclusion, VegetationExclusionId, VegetationSpeciesPreset,
+    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS,
+    MAX_WORKSPACE_MODULES, NewProjectCommand, PromotedVegetationInstance, TerrainMaterialLayerId,
+    TerrainMaterialRole, TerrainMaterialWeightOverride, VegetationDensityError,
+    VegetationDensityOverride, VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
+    VegetationGenerationAlgorithm, VegetationInstanceTransform, VegetationPromotionSource,
+    VegetationSpeciesPreset,
 };
-use forge_core::{ContentHash, ProjectId, Vec3};
+use forge_core::{ContentHash, EntityId, ProjectId, Vec3};
 use serde_json::json;
 
 fn source() -> WorkspaceDocument {
@@ -49,6 +51,44 @@ fn catalogue_change(document: &WorkspaceDocument, layers: Vec<VegetationLayer>) 
         expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
         expected_density_hash: area.vegetation_density.content_hash().unwrap(),
         layers,
+    }
+}
+
+fn promoted_instance(document: &WorkspaceDocument, key: &str) -> PromotedVegetationInstance {
+    let area = &document.project.modules[0].areas[0];
+    let layer = &area.vegetation.layers[0];
+    let transform = VegetationInstanceTransform::new(Vec3::new(12.0, 3.0, -24.0), 0.75, 1.2);
+    PromotedVegetationInstance {
+        id: EntityId::deterministic(format!("workspace-promotion/{key}")),
+        source: VegetationPromotionSource {
+            workspace_revision: document.revision,
+            generation_algorithm: VegetationGenerationAlgorithm::ForgeScatterV1,
+            terrain_document_hash: area.terrain.content_hash().unwrap(),
+            vegetation_document_hash: area.vegetation.content_hash().unwrap(),
+            vegetation_density_document_hash: area.vegetation_density.content_hash().unwrap(),
+            layer_id: layer.id.clone(),
+            kind: layer.kind,
+            transform,
+            wind_phase_radians: 1.5,
+            wind_response: layer.wind_response,
+            slope_gradient_squared: 0.25,
+            material_weight: Some(0.75),
+        },
+        authored_transform: transform,
+    }
+}
+
+fn promotion_change(
+    document: &WorkspaceDocument,
+    promoted_instances: Vec<PromotedVegetationInstance>,
+) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    WorkspaceChange::SetVegetationPromotedInstances {
+        module_id: module.id,
+        area_id: area.id,
+        expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+        promoted_instances,
     }
 }
 fn legacy_json(document: &WorkspaceDocument) -> String {
@@ -918,6 +958,191 @@ fn set_vegetation_exclusions_enforces_geometry_identity_and_collection_bound() {
         Err(WorkspaceError::Vegetation(
             VegetationDocumentError::TooManyExclusions(count)
         )) if count == MAX_VEGETATION_EXCLUSIONS + 1
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+}
+
+#[test]
+fn set_promoted_vegetation_is_pure_revisioned_reopenable_and_replayable() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let original_area = source.area(module_id, area_id).unwrap();
+    let terrain = original_area.terrain.clone();
+    let density = original_area.vegetation_density.clone();
+    let promoted = promoted_instance(&source, "persistent");
+    let command = edit(&source, promotion_change(&source, vec![promoted.clone()]));
+
+    let result = source.preview_edit(command.clone()).unwrap();
+    let edited = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .vegetation
+            .promoted_instances
+            .is_empty()
+    );
+    assert_eq!(edited.vegetation.promoted_instances, vec![promoted]);
+    assert_eq!(edited.vegetation.revision, result.document.revision);
+    assert_eq!(edited.terrain, terrain);
+    assert_eq!(edited.vegetation_density, density);
+    assert_eq!(*result.receipt.inverse_snapshot, source);
+    assert_eq!(result.receipt.before_hash, source_hash);
+    assert_eq!(
+        result.receipt.after_hash,
+        result.document.content_hash().unwrap()
+    );
+
+    let reopened =
+        WorkspaceDocument::from_json(&result.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, result.document);
+    let replay = result
+        .receipt
+        .inverse_snapshot
+        .preview_edit(command)
+        .unwrap();
+    assert_eq!(replay.document, result.document);
+    assert_eq!(replay.receipt.after_hash, result.receipt.after_hash);
+}
+
+#[test]
+fn promoted_vegetation_retouch_changes_only_transform_and_survives_layer_removal() {
+    let source = source();
+    let initial = promoted_instance(&source, "retouch");
+    let promoted = source
+        .preview_edit(edit(
+            &source,
+            promotion_change(&source, vec![initial.clone()]),
+        ))
+        .unwrap()
+        .document;
+    let module_id = promoted.project.modules[0].id;
+    let area_id = promoted.project.modules[0].areas[0].id;
+    let before_area = promoted.area(module_id, area_id).unwrap();
+    let terrain = before_area.terrain.clone();
+    let density = before_area.vegetation_density.clone();
+    let provenance = initial.source.clone();
+    let mut retouched = initial;
+    retouched.authored_transform =
+        VegetationInstanceTransform::new(Vec3::new(24.0, 4.0, -12.0), 1.25, 1.75);
+
+    let result = promoted
+        .preview_edit(edit(
+            &promoted,
+            promotion_change(&promoted, vec![retouched.clone()]),
+        ))
+        .unwrap();
+    let edited = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(edited.vegetation.promoted_instances[0].source, provenance);
+    assert_eq!(edited.vegetation.promoted_instances[0], retouched);
+    assert_eq!(edited.terrain, terrain);
+    assert_eq!(edited.vegetation_density, density);
+
+    let mut layers = edited.vegetation.layers.clone();
+    layers.retain(|layer| layer.id != provenance.layer_id);
+    let without_layer = result
+        .document
+        .preview_edit(edit(
+            &result.document,
+            catalogue_change(&result.document, layers),
+        ))
+        .unwrap()
+        .document;
+    assert_eq!(
+        without_layer
+            .area(module_id, area_id)
+            .unwrap()
+            .vegetation
+            .promoted_instances,
+        vec![retouched]
+    );
+}
+
+#[test]
+fn promoted_vegetation_rejects_noop_stale_forged_or_invalid_sources_atomically() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let promotion = promoted_instance(&source, "failures");
+    assert!(matches!(
+        source.preview_edit(edit(&source, promotion_change(&source, vec![]))),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let mut stale = promotion_change(&source, vec![promotion.clone()]);
+    if let WorkspaceChange::SetVegetationPromotedInstances {
+        expected_vegetation_hash,
+        ..
+    } = &mut stale
+    {
+        *expected_vegetation_hash = ContentHash::from_bytes([0xA5; 32]);
+    }
+    assert!(matches!(
+        source.preview_edit(edit(&source, stale)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let mut mismatched = promotion.clone();
+    mismatched.source.workspace_revision = Revision::new(source.revision.get() + 1);
+    assert!(matches!(
+        source.preview_edit(edit(&source, promotion_change(&source, vec![mismatched]))),
+        Err(WorkspaceError::VegetationPromotionSourceMismatch(_))
+    ));
+
+    let promoted = source
+        .preview_edit(edit(
+            &source,
+            promotion_change(&source, vec![promotion.clone()]),
+        ))
+        .unwrap()
+        .document;
+    assert!(matches!(
+        promoted.preview_edit(edit(&promoted, promotion_change(&promoted, vec![]))),
+        Err(WorkspaceError::VegetationPromotionRemovalRequiresExplicitCommand(_))
+    ));
+    let mut forged = promotion.clone();
+    forged.source.wind_response = 0.25;
+    assert!(matches!(
+        promoted.preview_edit(edit(&promoted, promotion_change(&promoted, vec![forged]))),
+        Err(WorkspaceError::VegetationPromotionProvenanceChanged(_))
+    ));
+
+    let mut invalid = promotion;
+    invalid.source.transform.position_m.x = 256.0;
+    invalid.authored_transform = invalid.source.transform;
+    assert!(matches!(
+        source.preview_edit(edit(&source, promotion_change(&source, vec![invalid]))),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::InvalidPromotedInstanceValue { .. }
+        ))
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+}
+
+#[test]
+fn promoted_vegetation_collection_limit_is_enforced_through_the_atomic_edit() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let template = promoted_instance(&source, "limit");
+    let mut instances = (0..=MAX_PROMOTED_VEGETATION_INSTANCES)
+        .map(|index| {
+            let mut promoted = template.clone();
+            promoted.id = EntityId::deterministic(format!("workspace-promotion/{index:04}"));
+            promoted
+        })
+        .collect::<Vec<_>>();
+    instances.sort_by_key(|promoted| promoted.id);
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            promotion_change(&source, instances)
+        )),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::TooManyPromotedInstances(count)
+        )) if count == MAX_PROMOTED_VEGETATION_INSTANCES + 1
     ));
     assert_eq!(source.content_hash().unwrap(), source_hash);
 }

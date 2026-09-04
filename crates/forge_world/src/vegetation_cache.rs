@@ -355,11 +355,17 @@ impl From<VegetationGenerationError> for VegetationRuntimeCacheError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        VEGETATION_PROMOTION_SCHEMA_VERSION, VegetationPromotionCommand, VegetationPromotionTarget,
+        VegetationRetouchCommand, preview_promote_generated_vegetation_instance,
+        preview_retouch_promoted_vegetation_instance,
+    };
     use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Vec3};
     use forge_project::{
         NewProjectCommand, TerrainMaterialLayerId, TerrainMaterialRole,
-        TerrainMaterialWeightOverride, VegetationDensityLayer, VegetationDensityOverride,
-        VegetationExclusion, VegetationExclusionId, VegetationLayer, VegetationMaterialFilter,
+        TerrainMaterialWeightOverride, VEGETATION_CHUNK_SIZE_M, VegetationDensityLayer,
+        VegetationDensityOverride, VegetationExclusion, VegetationExclusionId,
+        VegetationInstanceTransform, VegetationLayer, VegetationMaterialFilter,
         VegetationSpeciesPreset, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
     };
 
@@ -695,6 +701,108 @@ mod tests {
                 "only chunk (1, 0) may receive a new CPU cache handle"
             );
         }
+    }
+
+    #[test]
+    fn promotion_and_retouch_reuse_only_the_exact_derived_chunk_handles() {
+        let empty = test_workspace();
+        let source = paint_density(&empty, "vegetation-cache/promotion-source", &[(0, 0)]);
+        let source_generation = generated_reference(area(&source));
+        let instance = source_generation.chunks[0].instances[0].clone();
+        let module_id = source.project.modules[0].id;
+        let area_id = source.project.modules[0].areas[0].id;
+        let promoted = preview_promote_generated_vegetation_instance(
+            &source,
+            VegetationPromotionCommand {
+                command_id: CommandId::deterministic("vegetation-cache/promote"),
+                base_revision: source.revision,
+                project_id: source.project.id,
+                module_id,
+                area_id,
+                target: VegetationPromotionTarget {
+                    schema_version: VEGETATION_PROMOTION_SCHEMA_VERSION,
+                    center_x_m: instance.position_m.x,
+                    center_z_m: instance.position_m.z,
+                    maximum_distance_m: 0.25,
+                    layer_id: instance.layer_id.clone(),
+                },
+            },
+        )
+        .unwrap()
+        .edit
+        .document;
+
+        let mut cache = VegetationRuntimeCache::from_area(area(&source)).unwrap();
+        let source_handles = cache.chunks().to_vec();
+        let promotion_update = cache.refresh_from_area(area(&promoted)).unwrap();
+        assert!(promotion_update.regenerated());
+        assert!(promotion_update.changed_chunks().is_empty());
+        assert_eq!(promotion_update.retained_chunks(), 64);
+        assert!(
+            source_handles
+                .iter()
+                .zip(cache.chunks())
+                .all(|(before, after)| Arc::ptr_eq(before, after))
+        );
+        assert_eq!(cache.snapshot().chunks, source_generation.chunks);
+
+        let mut same_chunk_transform = VegetationInstanceTransform::new(
+            instance.position_m,
+            instance.yaw_radians,
+            instance.scale,
+        );
+        same_chunk_transform.yaw_radians =
+            (same_chunk_transform.yaw_radians + 0.25) % std::f32::consts::TAU;
+        let same_chunk = preview_retouch_promoted_vegetation_instance(
+            &promoted,
+            VegetationRetouchCommand {
+                command_id: CommandId::deterministic("vegetation-cache/retouch-same-chunk"),
+                base_revision: promoted.revision,
+                project_id: promoted.project.id,
+                module_id,
+                area_id,
+                instance_id: instance.id.as_entity_id(),
+                authored_transform: same_chunk_transform,
+            },
+        )
+        .unwrap()
+        .edit
+        .document;
+        let same_chunk_update = cache.refresh_from_area(area(&same_chunk)).unwrap();
+        assert_eq!(
+            same_chunk_update.changed_chunks(),
+            &[TerrainChunkCoordinate { x: 0, z: 0 }]
+        );
+        assert_eq!(same_chunk_update.retained_chunks(), 63);
+        assert_eq!(cache.snapshot(), *generated_reference(area(&same_chunk)));
+
+        let mut next_chunk_transform = same_chunk_transform;
+        next_chunk_transform.position_m.x += VEGETATION_CHUNK_SIZE_M;
+        let next_chunk = preview_retouch_promoted_vegetation_instance(
+            &same_chunk,
+            VegetationRetouchCommand {
+                command_id: CommandId::deterministic("vegetation-cache/retouch-next-chunk"),
+                base_revision: same_chunk.revision,
+                project_id: same_chunk.project.id,
+                module_id,
+                area_id,
+                instance_id: instance.id.as_entity_id(),
+                authored_transform: next_chunk_transform,
+            },
+        )
+        .unwrap()
+        .edit
+        .document;
+        let next_chunk_update = cache.refresh_from_area(area(&next_chunk)).unwrap();
+        assert_eq!(
+            next_chunk_update.changed_chunks(),
+            &[
+                TerrainChunkCoordinate { x: 0, z: 0 },
+                TerrainChunkCoordinate { x: 1, z: 0 },
+            ]
+        );
+        assert_eq!(next_chunk_update.retained_chunks(), 62);
+        assert_eq!(cache.snapshot(), *generated_reference(area(&next_chunk)));
     }
 
     #[test]

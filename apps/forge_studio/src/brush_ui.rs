@@ -13,6 +13,7 @@ use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer};
 use forge_project::{TerrainMaterialRole, VegetationLayerId};
 use forge_world::{
     TerrainBrush, TerrainBrushOperation, TerrainMaterialBrush, VegetationDensityBrush,
+    VegetationPromotionTarget,
 };
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
@@ -58,6 +59,7 @@ enum ActiveBrush {
     Material(TerrainMaterialBrush),
     VegetationDensity(VegetationDensityBrush),
     VegetationExclusion(ExclusionBrush),
+    VegetationPromotion(VegetationPromotionTarget),
 }
 
 #[derive(Clone, Copy)]
@@ -82,6 +84,7 @@ impl ActiveBrush {
             Self::Material(brush) => brush.radius_m,
             Self::VegetationDensity(brush) => brush.radius_m,
             Self::VegetationExclusion(brush) => brush.radius_m(),
+            Self::VegetationPromotion(target) => target.maximum_distance_m,
         }
     }
 
@@ -90,7 +93,7 @@ impl ActiveBrush {
             Self::Height(brush) => brush.strength,
             Self::Material(brush) => brush.strength,
             Self::VegetationDensity(brush) => brush.strength,
-            Self::VegetationExclusion(_) => 1.0,
+            Self::VegetationExclusion(_) | Self::VegetationPromotion(_) => 1.0,
         }
     }
 
@@ -108,6 +111,14 @@ impl ActiveBrush {
                 brush.center_x_m = center[0];
                 brush.center_z_m = center[1];
             }
+            Self::VegetationPromotion(target) => {
+                // The persistent vegetation extent is half-open on its positive edge. Terrain
+                // picking may report exactly +256 m, so keep the spatial query on the last
+                // representable in-bounds coordinate instead of sending a guaranteed rejection.
+                const MAX_PROMOTION_COORDINATE_M: f32 = 255.999_98;
+                target.center_x_m = center[0].clamp(-256.0, MAX_PROMOTION_COORDINATE_M);
+                target.center_z_m = center[1].clamp(-256.0, MAX_PROMOTION_COORDINATE_M);
+            }
             Self::VegetationExclusion(_) => {}
         }
     }
@@ -115,11 +126,22 @@ impl ActiveBrush {
     const fn is_exclusion(&self) -> bool {
         matches!(self, Self::VegetationExclusion(_))
     }
+
+    const fn is_point_target(&self) -> bool {
+        matches!(self, Self::VegetationPromotion(_))
+    }
 }
 
 impl StrokeDraft {
     fn record_point(&mut self, point: [f32; 2]) -> Result<(), String> {
-        if self.brush.is_exclusion() {
+        if self.brush.is_point_target() {
+            if let Some(first) = self.path.points.first_mut() {
+                *first = point;
+            } else {
+                self.path.points.push(point);
+            }
+            Ok(())
+        } else if self.brush.is_exclusion() {
             match self.path.points.len() {
                 0 | 1 => self.path.points.push(point),
                 _ => {
@@ -252,6 +274,22 @@ impl BrushActions {
         Ok(ActiveBrush::VegetationDensity(brush))
     }
 
+    fn promotion_target(self) -> Result<ActiveBrush, String> {
+        let layer_id = self.vegetation_layer.get_untracked();
+        if layer_id.is_empty() {
+            return Err("Sélectionnez une couche de végétation de la zone.".into());
+        }
+        let target = VegetationPromotionTarget {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            maximum_distance_m: Self::number(self.radius)?,
+            layer_id: VegetationLayerId::new(layer_id),
+        };
+        target.validate().map_err(|error| error.to_string())?;
+        Ok(ActiveBrush::VegetationPromotion(target))
+    }
+
     fn material_brush(self, material: TerrainMaterialRole) -> Result<ActiveBrush, String> {
         let brush = TerrainMaterialBrush {
             schema_version: 1,
@@ -317,6 +355,9 @@ impl BrushActions {
         }
         if mode == "paint_vegetation_density" {
             return self.density_brush().map(Some);
+        }
+        if mode == "promote_vegetation" {
+            return self.promotion_target().map(Some);
         }
         if let Some(material) = match mode.as_str() {
             "paint_grass" => Some(TerrainMaterialRole::Grass),
@@ -843,6 +884,16 @@ impl BrushActions {
                     }
                 }
             }
+            ActiveBrush::VegetationPromotion(target) => {
+                if let Err(error) = target.validate() {
+                    self.error.set(Some(error.to_string()));
+                    return;
+                }
+                WorkspaceCommand::PromoteVegetationInstance {
+                    request: stroke.request,
+                    target,
+                }
+            }
         };
         workspace.send(command);
     }
@@ -1121,23 +1172,25 @@ pub(super) fn BrushPanel(
                 <option value="smooth">"Lisser"</option><option value="flatten">"Aplatir"</option><option value="noise">"Bruit"</option><option value="slope">"Pente"</option>
                 <option value="paint_grass">"Peindre · Herbe"</option><option value="paint_earth">"Peindre · Terre"</option><option value="paint_rock">"Peindre · Roche"</option>
                 <option value="paint_vegetation_density">"Peindre · Densité végétale"</option>
+                <option value="promote_vegetation">"Végétation · Promouvoir une instance"</option>
                 <option value="exclude_vegetation_circle">"Exclusion végétale · Cercle"</option>
                 <option value="exclude_vegetation_corridor">"Exclusion végétale · Passage"</option>
             </select></label>
             <Show when=move || brush.mode.get() != "navigate">
                 <Show when=move || brush.mode.get() == "exclude_vegetation_corridor" fallback=move || view! {
-                    <BrushNumber label="Rayon (m)" value=brush.radius min="2" max="64" step="1"/>
+                    <BrushNumber label=if brush.mode.get() == "promote_vegetation" { "Distance max (m)" } else { "Rayon (m)" }
+                        value=brush.radius min="2" max="64" step="1"/>
                 }>
                     <BrushNumber label="Demi-largeur (m)" value=brush.radius min="2" max="64" step="1"/>
                 </Show>
-                <Show when=move || !matches!(brush.mode.get().as_str(), "exclude_vegetation_circle" | "exclude_vegetation_corridor")>
+                <Show when=move || !matches!(brush.mode.get().as_str(), "exclude_vegetation_circle" | "exclude_vegetation_corridor" | "promote_vegetation")>
                     <BrushNumber label="Intensité (%)" value=brush.strength min="1" max="100" step="1"/>
                 </Show>
                 <Show when=move || matches!(brush.mode.get().as_str(), "raise" | "lower" | "noise")><BrushNumber label="Amplitude (m)" value=brush.amount min="0.1" max="32"/></Show>
                 <Show when=move || matches!(brush.mode.get().as_str(), "flatten" | "slope")><BrushNumber label="Altitude cible (m)" value=brush.height min="-1024" max="1024"/></Show>
                 <Show when=move || brush.mode.get() == "noise"><BrushNumber label="Seed du bruit" value=brush.seed min="0" max="4294967295" step="1"/></Show>
                 <Show when=move || brush.mode.get() == "slope"><BrushNumber label="Pente X (m/m)" value=brush.slope_x min="-4" max="4"/><BrushNumber label="Pente Z (m/m)" value=brush.slope_z min="-4" max="4"/></Show>
-                <Show when=move || brush.mode.get() == "paint_vegetation_density">
+                <Show when=move || matches!(brush.mode.get().as_str(), "paint_vegetation_density" | "promote_vegetation")>
                     <label>"Couche végétale"<select aria-label="Couche végétale" prop:value=move || brush.vegetation_layer.get()
                         on:change=move |event| brush.vegetation_layer.set(event_target_value(&event))>
                         <option value="">"Aucune couche disponible"</option>
@@ -1145,13 +1198,16 @@ pub(super) fn BrushPanel(
                             view! { <option value=id>{name}</option> }
                         }).collect_view()}
                     </select></label>
-                    <BrushNumber label="Densité cible (%)" value=brush.density min="0" max="100" step="1"/>
+                    <Show when=move || brush.mode.get() == "paint_vegetation_density">
+                        <BrushNumber label="Densité cible (%)" value=brush.density min="0" max="100" step="1"/>
+                    </Show>
                 </Show>
             </Show>
         </fieldset>
         <p class="hint">{move || match brush.mode.get().as_str() {
             "exclude_vegetation_circle" => "Cliquer : poser un cercle au premier point · relâcher : appliquer.",
             "exclude_vegetation_corridor" => "Glisser : passage droit du premier au dernier point · relâcher : appliquer.",
+            "promote_vegetation" => "Cliquez près d’une instance de la couche choisie : elle devient persistante et retouchable.",
             _ => "Glisser : tracer · relâcher : appliquer · Alt + glisser : orbite. Un trait = une annulation.",
         }}</p>
         <p class="brush-position">{move || brush.point.get().map_or_else(|| "Visez le terrain".into(), |p| format!("X {:.1} · Y {:.1} · Z {:.1}", p[0], p[1], p[2]))}</p>

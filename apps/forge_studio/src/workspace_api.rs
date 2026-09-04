@@ -1,7 +1,9 @@
 //! Small shared IPC boundary for the first project authoring workflow.
 
-use forge_core::{AreaId, ModuleId};
-use forge_project::{VegetationExclusionId, VegetationLayerId, VegetationSpeciesPreset};
+use forge_core::{AreaId, EntityId, ModuleId};
+use forge_project::{
+    VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId, VegetationSpeciesPreset,
+};
 use serde::{Deserialize, Serialize};
 
 /// Largest revision representable exactly by the JavaScript number used by the IPC bridge.
@@ -103,6 +105,15 @@ pub enum WorkspaceCommand {
         request: crate::area_preview::AreaPreviewRequest,
         exclusion_id: VegetationExclusionId,
     },
+    PromoteVegetationInstance {
+        request: crate::area_preview::AreaPreviewRequest,
+        target: forge_world::VegetationPromotionTarget,
+    },
+    RetouchPromotedVegetationInstance {
+        request: crate::area_preview::AreaPreviewRequest,
+        instance_id: EntityId,
+        authored_transform: VegetationInstanceTransform,
+    },
     Current,
     Create {
         project_name: String,
@@ -180,6 +191,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the IPC matrix keeps every command and nested unknown-field rejection together"
+    )]
     fn commands_round_trip_and_reject_unknown_fields() {
         let request = crate::area_preview::AreaPreviewRequest {
             key: crate::area_tabs::AreaKey {
@@ -227,6 +242,25 @@ mod tests {
                 request,
                 exclusion_id: VegetationExclusionId::new("exclusion_01"),
             },
+            WorkspaceCommand::PromoteVegetationInstance {
+                request,
+                target: forge_world::VegetationPromotionTarget {
+                    schema_version: forge_world::VEGETATION_PROMOTION_SCHEMA_VERSION,
+                    center_x_m: 4.0,
+                    center_z_m: -6.0,
+                    maximum_distance_m: 12.0,
+                    layer_id: VegetationLayerId::new("forge_trees"),
+                },
+            },
+            WorkspaceCommand::RetouchPromotedVegetationInstance {
+                request,
+                instance_id: forge_core::EntityId::deterministic("promoted-instance"),
+                authored_transform: VegetationInstanceTransform::new(
+                    forge_core::Vec3::new(4.0, 2.0, -6.0),
+                    1.25,
+                    1.1,
+                ),
+            },
             WorkspaceCommand::Undo { base_revision: 1 },
             WorkspaceCommand::Redo { base_revision: 2 },
             WorkspaceCommand::Close,
@@ -262,6 +296,34 @@ mod tests {
             )
             .is_err()
         );
+
+        let mut promotion = serde_json::to_value(WorkspaceCommand::PromoteVegetationInstance {
+            request,
+            target: forge_world::VegetationPromotionTarget {
+                schema_version: forge_world::VEGETATION_PROMOTION_SCHEMA_VERSION,
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                maximum_distance_m: 4.0,
+                layer_id: VegetationLayerId::new("forge_trees"),
+            },
+        })
+        .unwrap();
+        promotion["target"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(promotion).is_err());
+
+        let mut retouch =
+            serde_json::to_value(WorkspaceCommand::RetouchPromotedVegetationInstance {
+                request,
+                instance_id: forge_core::EntityId::deterministic("promoted-instance"),
+                authored_transform: VegetationInstanceTransform::new(
+                    forge_core::Vec3::new(0.0, 1.0, 0.0),
+                    0.0,
+                    1.0,
+                ),
+            })
+            .unwrap();
+        retouch["authored_transform"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(retouch).is_err());
     }
 
     #[test]

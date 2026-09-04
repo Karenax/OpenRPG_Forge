@@ -149,6 +149,10 @@ impl WorkspaceSession {
                     dry_run,
                 );
             }
+            command @ (WorkspaceCommand::PromoteVegetationInstance { .. }
+            | WorkspaceCommand::RetouchPromotedVegetationInstance { .. }) => {
+                return self.execute_vegetation_instance_edit(command);
+            }
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -327,6 +331,80 @@ impl WorkspaceSession {
         self.commit_edit(candidate.edit, receipt);
         self.state(format!(
             "Densité végétale peinte : {cells} cellules modifiées. Annulation disponible."
+        ))
+    }
+
+    fn execute_vegetation_promotion(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        target: forge_world::VegetationPromotionTarget,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_promote_generated_vegetation_instance(
+            document,
+            forge_world::VegetationPromotionCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                target,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let promoted_id = candidate.promoted_instance.id;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Instance végétale {promoted_id} promue. Annulation disponible."
+        ))
+    }
+
+    fn execute_vegetation_instance_edit(
+        &mut self,
+        command: WorkspaceCommand,
+    ) -> Result<WorkspaceState, String> {
+        match command {
+            WorkspaceCommand::PromoteVegetationInstance { request, target } => {
+                self.execute_vegetation_promotion(request, target)
+            }
+            WorkspaceCommand::RetouchPromotedVegetationInstance {
+                request,
+                instance_id,
+                authored_transform,
+            } => self.execute_promoted_vegetation_retouch(request, instance_id, authored_transform),
+            _ => Err("Commande de promotion végétale attendue.".into()),
+        }
+    }
+
+    fn execute_promoted_vegetation_retouch(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        instance_id: forge_core::EntityId,
+        authored_transform: forge_project::VegetationInstanceTransform,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_retouch_promoted_vegetation_instance(
+            document,
+            forge_world::VegetationRetouchCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                instance_id,
+                authored_transform,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Instance végétale {instance_id} retouchée. Annulation disponible."
         ))
     }
 
@@ -519,7 +597,7 @@ impl WorkspaceSession {
         if area.vegetation.layers.len() >= MAX_VEGETATION_LAYERS {
             return Err("Le catalogue végétal a atteint sa limite de 16 espèces.".into());
         }
-        let layer_id = first_free_species_id(&area.vegetation.layers)?;
+        let layer_id = first_free_species_id(area)?;
         let grass_material_layer_id = area.terrain.material_layers
             [TerrainMaterialRole::Grass.index()]
         .id
@@ -871,11 +949,23 @@ fn no_op_density_preview_source(
     })
 }
 
-fn first_free_species_id(layers: &[VegetationLayer]) -> Result<VegetationLayerId, String> {
+fn first_free_species_id(area: &WorkspaceArea) -> Result<VegetationLayerId, String> {
     (1..=MAX_VEGETATION_LAYERS)
         .map(|suffix| VegetationLayerId::new(format!("species_{suffix:02}")))
-        .find(|candidate| layers.iter().all(|layer| &layer.id != candidate))
-        .ok_or_else(|| "Aucun identifiant d’espèce libre entre species_01 et species_16.".into())
+        .find(|candidate| {
+            area.vegetation
+                .layers
+                .iter()
+                .all(|layer| &layer.id != candidate)
+                && area
+                    .vegetation
+                    .promoted_instances
+                    .iter()
+                    .all(|promoted| &promoted.source.layer_id != candidate)
+        })
+        .ok_or_else(|| {
+            "Aucun identifiant d’espèce libre ou non réservé entre species_01 et species_16.".into()
+        })
 }
 
 fn first_free_exclusion_id(

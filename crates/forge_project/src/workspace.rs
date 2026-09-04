@@ -6,13 +6,13 @@
 use crate::{
     HeightSamplingAlgorithm, HeightSamplingParameters, TERRAIN_DOCUMENT_SCHEMA_VERSION,
     TerrainDocument, TerrainDocumentError, TerrainExtent, TerrainMaterialLayer,
-    TerrainMaterialLayerId, VegetationDensityDocument, VegetationDensityError,
-    VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
-    VegetationPresentationProfile, VegetationSpeciesPreset,
+    TerrainMaterialLayerId, VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument,
+    VegetationDensityError, VegetationDensityLayer, VegetationDocument, VegetationDocumentError,
+    VegetationExtent, VegetationPresentationProfile, VegetationSpeciesPreset,
 };
 use forge_core::{
-    AreaId, CanonicalJsonError, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3,
-    canonical_json_sha256,
+    AreaId, CanonicalJsonError, CommandId, ContentHash, EntityId, ModuleId, ProjectId, Revision,
+    Vec3, canonical_json_sha256,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -233,10 +233,20 @@ impl WorkspaceDocument {
                 if vegetation.revision.get() == 0 || vegetation.revision > self.revision {
                     return Err(WorkspaceError::InvalidRevision("vegetation"));
                 }
-                if vegetation.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
+                if vegetation.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION
+                    || vegetation.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
                     || vegetation.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
                 {
                     return Err(WorkspaceError::UnsupportedVegetationShape);
+                }
+                if vegetation
+                    .promoted_instances
+                    .iter()
+                    .any(|promoted| promoted.source.workspace_revision > self.revision)
+                {
+                    return Err(WorkspaceError::InvalidRevision(
+                        "vegetation promotion source",
+                    ));
                 }
                 let density = &area.vegetation_density;
                 density.validate()?;
@@ -471,6 +481,14 @@ pub enum WorkspaceError {
     RevisionExhausted,
     #[error("workspace edit does not change the document")]
     NoChange,
+    #[error("promoted vegetation instance {0} cannot change its immutable provenance")]
+    VegetationPromotionProvenanceChanged(EntityId),
+    #[error(
+        "promoted vegetation instance {0} cannot be removed without an explicit demotion command"
+    )]
+    VegetationPromotionRemovalRequiresExplicitCommand(EntityId),
+    #[error("promoted vegetation instance {0} does not match the current canonical source")]
+    VegetationPromotionSourceMismatch(EntityId),
     #[error("invalid workspace terrain: {0}")]
     Terrain(#[from] TerrainDocumentError),
     #[error("invalid workspace vegetation: {0}")]
@@ -546,8 +564,13 @@ mod tests {
         assert_eq!(area.vegetation.project_id, input.project_id);
         assert_eq!(area.vegetation.area_id, input.area_id);
         assert_eq!(area.vegetation.revision, Revision::INITIAL);
+        assert_eq!(
+            area.vegetation.schema_version,
+            VEGETATION_DOCUMENT_SCHEMA_VERSION
+        );
         assert_eq!(area.vegetation.seed, input.seed);
         assert_eq!(area.vegetation.layers.len(), 4);
+        assert!(area.vegetation.promoted_instances.is_empty());
         assert_eq!(
             area.vegetation_density.cells_per_chunk_axis,
             area.vegetation.cells_per_chunk_axis
@@ -666,6 +689,34 @@ mod tests {
             vec![crate::TerrainHeightDelta::new(128, 128, 3.5)]
         );
         assert!(terrain.material_weight_overrides.is_empty());
+    }
+
+    #[test]
+    fn current_workspace_migrates_embedded_v1_vegetation_without_losing_recipe_fields() {
+        let mut legacy = document();
+        let vegetation = &mut legacy.project.modules[0].areas[0].vegetation;
+        vegetation.schema_version = crate::VEGETATION_DOCUMENT_SCHEMA_VERSION_V1;
+        let legacy_recipe = vegetation.clone();
+        let legacy_json = vegetation.to_pretty_json().unwrap();
+        let legacy_hash = vegetation.content_hash().unwrap();
+        let workspace_json = serde_json::to_string_pretty(&legacy).unwrap();
+        let untouched_snapshot = workspace_json.clone();
+
+        let migrated = WorkspaceDocument::from_json(&workspace_json).unwrap();
+        assert_eq!(workspace_json, untouched_snapshot);
+        let vegetation = &migrated.project.modules[0].areas[0].vegetation;
+        assert_eq!(
+            vegetation.schema_version,
+            VEGETATION_DOCUMENT_SCHEMA_VERSION
+        );
+        assert!(vegetation.promoted_instances.is_empty());
+        let mut expected = legacy_recipe;
+        expected.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION;
+        assert_eq!(vegetation, &expected);
+
+        let restored_legacy = VegetationDocument::from_json(&legacy_json).unwrap();
+        assert_eq!(restored_legacy.to_pretty_json().unwrap(), legacy_json);
+        assert_eq!(restored_legacy.content_hash().unwrap(), legacy_hash);
     }
 
     #[test]

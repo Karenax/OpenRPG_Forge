@@ -7,14 +7,15 @@ use forge_core::{
     canonical_json_sha256,
 };
 use forge_project::{
-    TerrainDocument, TerrainMaterialLayerId, TerrainMaterialRole, VEGETATION_CHUNK_SIZE_M,
+    MAX_VEGETATION_EXPANDED_GRASS_BLADES, PromotedVegetationInstance, TerrainDocument,
+    TerrainMaterialLayerId, TerrainMaterialRole, VEGETATION_CHUNK_SIZE_M,
     VegetationCollisionProfile, VegetationCollisionShape, VegetationDensityDocument,
     VegetationDensityError, VegetationDocument, VegetationDocumentError, VegetationExclusion,
     VegetationExclusionId, VegetationExtent, VegetationKind, VegetationLayer, VegetationLayerId,
     VegetationMaterialFilter, VegetationPresentationProfile,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::sync::{Arc, OnceLock};
 use thiserror::Error;
@@ -54,7 +55,7 @@ impl VisualValleyVegetationRecipe {
     )]
     pub fn build(self) -> Result<VegetationDocument, VegetationDocumentError> {
         let meadow_grass = || TerrainMaterialLayerId::new("meadow_grass");
-        let document = VegetationDocument::new(
+        let document = VegetationDocument::new_v1(
             ProjectId::deterministic("visual-valley-project"),
             AreaId::deterministic("visual-valley-area"),
             Revision::INITIAL,
@@ -213,6 +214,11 @@ impl fmt::Display for VegetationChunkId {
 pub struct VegetationInstanceId(EntityId);
 
 impl VegetationInstanceId {
+    #[must_use]
+    pub const fn from_entity_id(id: EntityId) -> Self {
+        Self(id)
+    }
+
     #[must_use]
     pub const fn as_entity_id(self) -> EntityId {
         self.0
@@ -489,6 +495,13 @@ impl VegetationGenerationPlan {
             .iter()
             .map(|layer| SpacingIndex::new(layer.minimum_spacing_m))
             .collect::<Vec<_>>();
+        let promoted_by_id = self
+            .vegetation
+            .promoted_instances
+            .iter()
+            .map(|promoted| (promoted.id, promoted))
+            .collect::<BTreeMap<_, _>>();
+        let mut materialized_promotions = BTreeSet::new();
         for cell_z in 0..self.cells_per_axis {
             for cell_x in 0..self.cells_per_axis {
                 for (layer_index, layer) in self.vegetation.layers.iter().enumerate() {
@@ -498,7 +511,20 @@ impl VegetationGenerationPlan {
                         {
                             let xz = [instance.position_m.x, instance.position_m.z];
                             if spacing_indexes[layer_index].accept(xz) {
-                                let coordinate = self.owner_chunk(cell_x, cell_z);
+                                let (instance, coordinate) = if let Some(promoted) =
+                                    promoted_by_id.get(&instance.id.as_entity_id())
+                                {
+                                    materialized_promotions.insert(promoted.id);
+                                    let instance = vegetation_instance_from_promotion(promoted);
+                                    let coordinate = owner_chunk_for_position(
+                                        promoted.id,
+                                        instance.position_m.x,
+                                        instance.position_m.z,
+                                    )?;
+                                    (instance, coordinate)
+                                } else {
+                                    (instance, self.owner_chunk(cell_x, cell_z))
+                                };
                                 let index = usize::from(
                                     coordinate.z * TERRAIN_CHUNKS_PER_AXIS + coordinate.x,
                                 );
@@ -511,9 +537,37 @@ impl VegetationGenerationPlan {
             }
         }
 
+        // A promotion is authored source once accepted. If its procedural attempt later disappears
+        // because density, exclusions, terrain or catalogue changed, materialize the immutable
+        // snapshot exactly once instead of silently deleting user work.
+        for promoted in &self.vegetation.promoted_instances {
+            if materialized_promotions.contains(&promoted.id) {
+                continue;
+            }
+            let instance = vegetation_instance_from_promotion(promoted);
+            let coordinate = owner_chunk_for_position(
+                promoted.id,
+                instance.position_m.x,
+                instance.position_m.z,
+            )?;
+            let index = usize::from(coordinate.z * TERRAIN_CHUNKS_PER_AXIS + coordinate.x);
+            chunks[index].kind_counts.increment(instance.kind);
+            chunks[index].instances.push(instance);
+        }
+
         let mut kind_counts = VegetationKindCounts::default();
         for chunk in &chunks {
             kind_counts.add(chunk.kind_counts);
+        }
+        let expanded_grass_blades = u64::from(kind_counts.grass_patches)
+            * u64::from(self.vegetation.presentation.grass_blades_per_patch);
+        if expanded_grass_blades > MAX_VEGETATION_EXPANDED_GRASS_BLADES {
+            return Err(
+                VegetationGenerationError::ExpandedGrassBladeBudgetExceeded {
+                    blades: expanded_grass_blades,
+                    maximum: MAX_VEGETATION_EXPANDED_GRASS_BLADES,
+                },
+            );
         }
         Ok(GeneratedVegetation {
             terrain_document_hash: self.terrain.document_hash(),
@@ -646,6 +700,41 @@ impl VegetationGenerationPlan {
             coordinate.x,
             coordinate.z
         )))
+    }
+}
+
+fn vegetation_instance_from_promotion(promoted: &PromotedVegetationInstance) -> VegetationInstance {
+    VegetationInstance {
+        id: VegetationInstanceId::from_entity_id(promoted.id),
+        layer_id: promoted.source.layer_id.clone(),
+        kind: promoted.source.kind,
+        position_m: promoted.authored_transform.position_m,
+        yaw_radians: promoted.authored_transform.yaw_radians,
+        scale: promoted.authored_transform.uniform_scale,
+        wind_phase_radians: promoted.source.wind_phase_radians,
+        wind_response: promoted.source.wind_response,
+        slope_gradient_squared: promoted.source.slope_gradient_squared,
+        material_weight: promoted.source.material_weight,
+    }
+}
+
+fn owner_chunk_for_position(
+    instance_id: EntityId,
+    x_m: f32,
+    z_m: f32,
+) -> Result<TerrainChunkCoordinate, VegetationGenerationError> {
+    let axis = |value_m: f32| {
+        (0..TERRAIN_CHUNKS_PER_AXIS).find(|chunk| {
+            value_m < -TERRAIN_HALF_EXTENT_M + f32::from(*chunk + 1) * VEGETATION_CHUNK_SIZE_M
+        })
+    };
+    let x = axis(x_m);
+    let z = axis(z_m);
+    match (x, z) {
+        (Some(x), Some(z)) => Ok(TerrainChunkCoordinate { x, z }),
+        _ => Err(VegetationGenerationError::PromotedInstanceOutsideExtent(
+            instance_id,
+        )),
     }
 }
 
@@ -843,13 +932,22 @@ pub enum VegetationGenerationError {
     ChunkCoordinateOutOfBounds { x: u16, z: u16 },
     #[error("vegetation generation produced a non-finite f32 value")]
     NonFiniteGeneratedValue,
+    #[error("promoted vegetation instance {0} is outside the supported vegetation extent")]
+    PromotedInstanceOutsideExtent(EntityId),
+    #[error(
+        "generated vegetation expands to {blades} grass blades after persistent promotions, exceeding the limit of {maximum}"
+    )]
+    ExpandedGrassBladeBudgetExceeded { blades: u64, maximum: u64 },
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::VisualValleyTerrainRecipe;
-    use forge_project::{TerrainHeightDelta, VegetationDensityLayer, VegetationDensityOverride};
+    use forge_project::{
+        TerrainHeightDelta, VEGETATION_DOCUMENT_SCHEMA_VERSION_V1, VegetationDensityLayer,
+        VegetationDensityOverride,
+    };
     use std::collections::{BTreeSet, HashSet};
 
     fn documents() -> (TerrainDocument, VegetationDocument) {
@@ -937,6 +1035,11 @@ mod tests {
             "664df33ffe5ea42ae8e6dc9b30e496abe62f054583f483f8019f9abb6f8d00f7"
         );
         assert_eq!(fixture.extent_m, VegetationExtent::new(512.0, 512.0));
+        assert_eq!(
+            fixture.schema_version,
+            VEGETATION_DOCUMENT_SCHEMA_VERSION_V1
+        );
+        assert!(fixture.promoted_instances.is_empty());
         assert_eq!(fixture.revision, Revision::INITIAL);
         assert_eq!(fixture.layers.len(), 4);
         assert_eq!(fixture.layers[0].kind, VegetationKind::Tree);

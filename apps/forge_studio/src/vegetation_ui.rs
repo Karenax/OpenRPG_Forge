@@ -5,8 +5,10 @@ use crate::{
     area_preview::AreaPreviewRequest, workspace_api::WorkspaceCommand,
     workspace_ui::WorkspaceActions,
 };
+use forge_core::Vec3;
 use forge_project::{
-    MAX_VEGETATION_LAYERS, VegetationDocument, VegetationExclusion, VegetationKind,
+    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_VEGETATION_LAYERS, PromotedVegetationInstance,
+    VegetationDocument, VegetationExclusion, VegetationInstanceTransform, VegetationKind,
     VegetationSpeciesPreset,
 };
 use leptos::prelude::*;
@@ -157,6 +159,7 @@ fn SpeciesCollection(
                             let rename_key = key.clone();
                             let rename_id = layer.id.clone();
                             let paint_id = layer.id.clone();
+                            let promote_id = layer.id.clone();
                             let remove_id = layer.id.clone();
                             view! {
                                 <li class="vegetation-row">
@@ -182,6 +185,11 @@ fn SpeciesCollection(
                                             brush.mode.set("paint_vegetation_density".to_owned());
                                             brush.error.set(None);
                                         }>"Peindre"</button>
+                                        <button type="button" on:click=move |_| {
+                                            brush.vegetation_layer.set(promote_id.to_string());
+                                            brush.mode.set("promote_vegetation".to_owned());
+                                            brush.error.set(None);
+                                        }>"Promouvoir"</button>
                                         <button type="button" disabled=!can_remove on:click=move |_| {
                                             let Some(request) = active_request_untracked(world) else { return };
                                             workspace.send(WorkspaceCommand::RemoveVegetationSpecies {
@@ -239,6 +247,135 @@ fn ExclusionCollection(
     }
 }
 
+fn parse_transform_field(field: RwSignal<String>, label: &str) -> Result<f32, String> {
+    field
+        .get_untracked()
+        .trim()
+        .parse::<f32>()
+        .map_err(|_| format!("{label} doit être un nombre fini."))
+}
+
+#[component]
+fn PromotedInstanceRow(
+    brush: BrushActions,
+    world: WorldActions,
+    workspace: WorkspaceActions,
+    promoted: PromotedVegetationInstance,
+) -> impl IntoView {
+    let transform = promoted.authored_transform;
+    // Rust's shortest decimal representation round-trips every f32 exactly. Keeping radians here
+    // also avoids changing an untouched canonical yaw through a degrees conversion.
+    let x = RwSignal::new(transform.position_m.x.to_string());
+    let y = RwSignal::new(transform.position_m.y.to_string());
+    let z = RwSignal::new(transform.position_m.z.to_string());
+    let yaw_radians = RwSignal::new(transform.yaw_radians.to_string());
+    let scale = RwSignal::new(transform.uniform_scale.to_string());
+    let instance_id = promoted.id;
+    let title = format!(
+        "{} · {} · {}",
+        kind_label(promoted.source.kind),
+        promoted.source.layer_id,
+        instance_id
+    );
+
+    view! {
+        <li class="vegetation-row">
+            <form class="vegetation-add-form" on:submit=move |event| {
+                event.prevent_default();
+                let Some(request) = active_request_untracked(world) else { return };
+                let parsed = (|| {
+                    let x = parse_transform_field(x, "X")?;
+                    let y = parse_transform_field(y, "Y")?;
+                    let z = parse_transform_field(z, "Z")?;
+                    let yaw_radians = parse_transform_field(yaw_radians, "Rotation Y")?;
+                    // HTML number inputs accept `-0`; persist the canonical +0 form
+                    // required by the vegetation document contract.
+                    let yaw_radians = if yaw_radians == 0.0 {
+                        0.0
+                    } else {
+                        yaw_radians
+                    };
+                    let scale = parse_transform_field(scale, "Échelle")?;
+                    if !(-256.0..256.0).contains(&x)
+                        || !(-10_000.0..=10_000.0).contains(&y)
+                        || !(-256.0..256.0).contains(&z)
+                        || !(0.0..std::f32::consts::TAU).contains(&yaw_radians)
+                        || !scale.is_finite()
+                        || scale <= 0.0
+                        || scale > 8.0
+                    {
+                        return Err("Transform invalide : X/Z dans [-256, 256[, Y dans [-10000, 10000], rotation dans [0, 2π[ et échelle dans ]0, 8].".to_owned());
+                    }
+                    Ok(VegetationInstanceTransform::new(
+                        Vec3::new(x, y, z),
+                        yaw_radians,
+                        scale,
+                    ))
+                })();
+                match parsed {
+                    Ok(authored_transform) => {
+                        if authored_transform == transform {
+                            brush.error.set(Some("Aucune valeur de retouche n’a changé.".into()));
+                            return;
+                        }
+                        brush.error.set(None);
+                        workspace.send(WorkspaceCommand::RetouchPromotedVegetationInstance {
+                            request,
+                            instance_id,
+                            authored_transform,
+                        });
+                    }
+                    Err(error) => brush.error.set(Some(error)),
+                }
+            }>
+                <fieldset disabled=move || workspace.unavailable() || brush.stroke.get().is_some()>
+                    <legend>{title.clone()}</legend>
+                    <label>"X (m)"<input type="number" min="-256" max="255.99998" step="any"
+                        prop:value=move || x.get() on:input=move |event| x.set(event_target_value(&event))/></label>
+                    <label>"Y (m)"<input type="number" min="-10000" max="10000" step="any"
+                        prop:value=move || y.get() on:input=move |event| y.set(event_target_value(&event))/></label>
+                    <label>"Z (m)"<input type="number" min="-256" max="255.99998" step="any"
+                        prop:value=move || z.get() on:input=move |event| z.set(event_target_value(&event))/></label>
+                    <label>"Rotation Y (rad)"<input type="number" min="0" max="6.283185" step="any"
+                        prop:value=move || yaw_radians.get()
+                        on:input=move |event| yaw_radians.set(event_target_value(&event))/></label>
+                    <label>"Échelle"<input type="number" min="0" max="8" step="any"
+                        prop:value=move || scale.get() on:input=move |event| scale.set(event_target_value(&event))/></label>
+                    <button type="submit">"Appliquer la retouche"</button>
+                </fieldset>
+            </form>
+        </li>
+    }
+}
+
+#[component]
+fn PromotionCollection(
+    brush: BrushActions,
+    world: WorldActions,
+    workspace: WorkspaceActions,
+) -> impl IntoView {
+    view! {
+        <section class="vegetation-collection" aria-labelledby="vegetation-promotions-heading">
+            <h3 id="vegetation-promotions-heading">{move || format!(
+                "Instances promues · {}/{}",
+                active_vegetation(world).map_or(0, |(_, vegetation)| vegetation.promoted_instances.len()),
+                MAX_PROMOTED_VEGETATION_INSTANCES,
+            )}</h3>
+            <p class="hint">"Une promotion conserve l’identité et l’apparence générées ; Appliquer crée une seule retouche annulable."</p>
+            <ul class="vegetation-list">
+                {move || active_vegetation(world).map(|(_, vegetation)| {
+                    if vegetation.promoted_instances.is_empty() {
+                        return view! { <li class="vegetation-empty">"Aucune instance promue"</li> }.into_any();
+                    }
+                    vegetation.promoted_instances.into_iter().map(|promoted| view! {
+                        <PromotedInstanceRow brush=brush world=world workspace=workspace promoted=promoted/>
+                    }).collect_view().into_any()
+                })}
+            </ul>
+        </section>
+    }
+}
+
 #[component]
 pub(crate) fn VegetationPanel(
     brush: BrushActions,
@@ -287,6 +424,7 @@ pub(crate) fn VegetationPanel(
             <SpeciesCollection brush=brush world=world workspace=workspace rename_drafts=rename_drafts
                 species_count=species_count/>
             <ExclusionCollection brush=brush world=world workspace=workspace/>
+            <PromotionCollection brush=brush world=world workspace=workspace/>
         </section>
     }
 }

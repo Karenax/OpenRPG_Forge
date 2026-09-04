@@ -1,6 +1,6 @@
 use crate::{TerrainMaterialLayerId, TerrainMaterialRole};
 use forge_core::{
-    AreaId, CanonicalJsonError, ContentHash, CoordinateSystem, ProjectId, Revision,
+    AreaId, CanonicalJsonError, ContentHash, CoordinateSystem, EntityId, ProjectId, Revision, Vec3,
     canonical_json_sha256,
 };
 use serde::{Deserialize, Serialize};
@@ -9,13 +9,15 @@ use std::fmt;
 use thiserror::Error;
 
 pub const VEGETATION_DOCUMENT_SCHEMA: &str = "forge.vegetation";
-pub const VEGETATION_DOCUMENT_SCHEMA_VERSION: u32 = 1;
+pub const VEGETATION_DOCUMENT_SCHEMA_VERSION_V1: u32 = 1;
+pub const VEGETATION_DOCUMENT_SCHEMA_VERSION: u32 = 2;
 pub const VEGETATION_EXTENT_M: f32 = 512.0;
 pub const VEGETATION_CHUNK_SIZE_M: f32 = 64.0;
 pub const MIN_VEGETATION_CELLS_PER_CHUNK_AXIS: u16 = 1;
 pub const MAX_VEGETATION_CELLS_PER_CHUNK_AXIS: u16 = 16;
 pub const MAX_VEGETATION_LAYERS: usize = 16;
 pub const MAX_VEGETATION_EXCLUSIONS: usize = 32;
+pub const MAX_PROMOTED_VEGETATION_INSTANCES: usize = 1_024;
 pub const MAX_VEGETATION_ATTEMPTS_PER_CELL: u8 = 8;
 pub const MAX_GRASS_BLADES_PER_PATCH: u16 = 512;
 pub const MAX_VEGETATION_DOCUMENT_JSON_BYTES: usize = 1_048_576;
@@ -41,6 +43,8 @@ pub struct VegetationDocument {
     pub layers: Vec<VegetationLayer>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub exclusions: Vec<VegetationExclusion>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub promoted_instances: Vec<PromotedVegetationInstance>,
     pub presentation: VegetationPresentationProfile,
 }
 
@@ -72,18 +76,68 @@ impl VegetationDocument {
             cells_per_chunk_axis,
             layers,
             exclusions,
+            promoted_instances: Vec::new(),
             presentation,
         }
+    }
+
+    /// Builds the immutable version-1 shape used by existing fixtures and snapshots.
+    ///
+    /// Version 1 cannot contain promoted instances. Keeping this constructor explicit preserves
+    /// the canonical JSON and content hashes of the original procedural vegetation sources.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn new_v1(
+        project_id: ProjectId,
+        area_id: AreaId,
+        revision: Revision,
+        name: impl Into<String>,
+        seed: u64,
+        extent_m: VegetationExtent,
+        cells_per_chunk_axis: u16,
+        layers: Vec<VegetationLayer>,
+        exclusions: Vec<VegetationExclusion>,
+        presentation: VegetationPresentationProfile,
+    ) -> Self {
+        let mut document = Self::new(
+            project_id,
+            area_id,
+            revision,
+            name,
+            seed,
+            extent_m,
+            cells_per_chunk_axis,
+            layers,
+            exclusions,
+            presentation,
+        );
+        document.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION_V1;
+        document
+    }
+
+    /// Returns the current version without otherwise changing the source document.
+    pub fn migrate_to_latest(&self) -> Result<Self, VegetationDocumentError> {
+        self.validate()?;
+        let mut migrated = self.clone();
+        migrated.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION;
+        Ok(migrated)
     }
 
     pub fn validate(&self) -> Result<(), VegetationDocumentError> {
         if self.schema != VEGETATION_DOCUMENT_SCHEMA {
             return Err(VegetationDocumentError::InvalidSchema(self.schema.clone()));
         }
-        if self.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION {
+        if self.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION_V1
+            && self.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION
+        {
             return Err(VegetationDocumentError::UnsupportedVersion(
                 self.schema_version,
             ));
+        }
+        if self.schema_version == VEGETATION_DOCUMENT_SCHEMA_VERSION_V1
+            && !self.promoted_instances.is_empty()
+        {
+            return Err(VegetationDocumentError::LegacyVersionContainsPromotedInstances);
         }
         if self.coordinate_system != CoordinateSystem::METRES_Y_UP_RIGHT_HANDED {
             return Err(VegetationDocumentError::UnsupportedCoordinateSystem);
@@ -127,6 +181,19 @@ impl VegetationDocument {
                     exclusion.id().to_string(),
                 ));
             }
+        }
+        if self.promoted_instances.len() > MAX_PROMOTED_VEGETATION_INSTANCES {
+            return Err(VegetationDocumentError::TooManyPromotedInstances(
+                self.promoted_instances.len(),
+            ));
+        }
+        let mut previous_promoted_id = None;
+        for promoted in &self.promoted_instances {
+            promoted.validate(self.extent_m)?;
+            if previous_promoted_id.is_some_and(|previous| previous >= promoted.id) {
+                return Err(VegetationDocumentError::PromotedInstancesNotCanonical);
+            }
+            previous_promoted_id = Some(promoted.id);
         }
         self.presentation.validate()?;
         self.validate_work_budget()?;
@@ -242,6 +309,149 @@ pub enum VegetationKind {
     Fern,
     /// A renderer-independent patch expanded into blades only by a presentation adapter.
     Grass,
+}
+
+/// Versioned deterministic generator which produced a promoted source instance.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum VegetationGenerationAlgorithm {
+    ForgeScatterV1,
+}
+
+/// Renderer-independent transform authored for one promoted vegetation instance.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationInstanceTransform {
+    pub position_m: Vec3,
+    pub yaw_radians: f32,
+    pub uniform_scale: f32,
+}
+
+impl VegetationInstanceTransform {
+    #[must_use]
+    pub const fn new(position_m: Vec3, yaw_radians: f32, uniform_scale: f32) -> Self {
+        Self {
+            position_m,
+            yaw_radians,
+            uniform_scale,
+        }
+    }
+
+    fn validate(
+        self,
+        id: EntityId,
+        extent: VegetationExtent,
+        field: &'static str,
+    ) -> Result<(), VegetationDocumentError> {
+        let half_x = extent.size_x_m * 0.5;
+        let half_z = extent.size_z_m * 0.5;
+        let position_is_valid = [self.position_m.x, self.position_m.y, self.position_m.z]
+            .into_iter()
+            .all(f32::is_finite)
+            && (-half_x..half_x).contains(&self.position_m.x)
+            && (-10_000.0..=10_000.0).contains(&self.position_m.y)
+            && (-half_z..half_z).contains(&self.position_m.z);
+        let yaw_is_canonical = self.yaw_radians.is_finite()
+            && (0.0..std::f32::consts::TAU).contains(&self.yaw_radians)
+            && self.yaw_radians.to_bits() != (-0.0_f32).to_bits();
+        if !position_is_valid
+            || !yaw_is_canonical
+            || !positive_finite(self.uniform_scale)
+            || self.uniform_scale > 8.0
+        {
+            return Err(VegetationDocumentError::InvalidPromotedInstanceValue { id, field });
+        }
+        Ok(())
+    }
+}
+
+/// Immutable provenance and generated presentation data captured at promotion time.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationPromotionSource {
+    pub workspace_revision: Revision,
+    pub generation_algorithm: VegetationGenerationAlgorithm,
+    pub terrain_document_hash: ContentHash,
+    pub vegetation_document_hash: ContentHash,
+    pub vegetation_density_document_hash: ContentHash,
+    pub layer_id: VegetationLayerId,
+    pub kind: VegetationKind,
+    pub transform: VegetationInstanceTransform,
+    pub wind_phase_radians: f32,
+    pub wind_response: f32,
+    pub slope_gradient_squared: f64,
+    pub material_weight: Option<f32>,
+}
+
+impl VegetationPromotionSource {
+    fn validate(
+        &self,
+        id: EntityId,
+        extent: VegetationExtent,
+    ) -> Result<(), VegetationDocumentError> {
+        if self.workspace_revision.get() == 0 {
+            return Err(VegetationDocumentError::InvalidPromotedInstanceValue {
+                id,
+                field: "source.workspace_revision",
+            });
+        }
+        if !valid_logical_id(self.layer_id.as_str()) {
+            return Err(VegetationDocumentError::InvalidPromotedInstanceValue {
+                id,
+                field: "source.layer_id",
+            });
+        }
+        if [
+            self.terrain_document_hash,
+            self.vegetation_document_hash,
+            self.vegetation_density_document_hash,
+        ]
+        .iter()
+        .any(|hash| hash.as_bytes().iter().all(|byte| *byte == 0))
+        {
+            return Err(VegetationDocumentError::InvalidPromotedInstanceValue {
+                id,
+                field: "source.document_hashes",
+            });
+        }
+        self.transform.validate(id, extent, "source.transform")?;
+        if !self.wind_phase_radians.is_finite()
+            || !(0.0..std::f32::consts::TAU).contains(&self.wind_phase_radians)
+            || self.wind_phase_radians.to_bits() == (-0.0_f32).to_bits()
+            || !unit_interval(self.wind_response)
+            || !self.slope_gradient_squared.is_finite()
+            || !(0.0..=256.0).contains(&self.slope_gradient_squared)
+            || self
+                .material_weight
+                .is_some_and(|weight| !unit_interval(weight))
+        {
+            return Err(VegetationDocumentError::InvalidPromotedInstanceValue {
+                id,
+                field: "source.generated_values",
+            });
+        }
+        Ok(())
+    }
+}
+
+/// One procedural instance promoted into an independently retouchable authored source.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PromotedVegetationInstance {
+    pub id: EntityId,
+    pub source: VegetationPromotionSource,
+    pub authored_transform: VegetationInstanceTransform,
+}
+
+impl PromotedVegetationInstance {
+    fn validate(&self, extent: VegetationExtent) -> Result<(), VegetationDocumentError> {
+        if self.id.as_uuid().is_nil() {
+            return Err(VegetationDocumentError::NilPromotedInstanceId);
+        }
+        self.source.validate(self.id, extent)?;
+        self.authored_transform
+            .validate(self.id, extent, "authored_transform")
+    }
 }
 
 /// Stable logical layer identity, independent from a renderer resource handle.
@@ -735,6 +945,18 @@ pub enum VegetationDocumentError {
     DuplicateExclusionId(String),
     #[error("vegetation exclusion `{0}` is degenerate or outside the 512 metre extent")]
     InvalidExclusionGeometry(String),
+    #[error("vegetation version 1 cannot contain promoted instances")]
+    LegacyVersionContainsPromotedInstances,
+    #[error(
+        "vegetation supports at most {MAX_PROMOTED_VEGETATION_INSTANCES} promoted instances, found {0}"
+    )]
+    TooManyPromotedInstances(usize),
+    #[error("promoted vegetation instances must be strictly ordered by unique persistent ID")]
+    PromotedInstancesNotCanonical,
+    #[error("promoted vegetation instance ID cannot be nil")]
+    NilPromotedInstanceId,
+    #[error("promoted vegetation instance {id} has invalid {field}")]
+    InvalidPromotedInstanceValue { id: EntityId, field: &'static str },
     #[error("vegetation presentation LOD, shadow, and cull distances are invalid")]
     InvalidPresentationDistances,
     #[error("vegetation presentation wind parameters are invalid")]
@@ -840,6 +1062,28 @@ mod tests {
         )
     }
 
+    fn promoted(key: &str) -> PromotedVegetationInstance {
+        let transform = VegetationInstanceTransform::new(Vec3::new(12.0, 3.0, -24.0), 0.75, 1.2);
+        PromotedVegetationInstance {
+            id: EntityId::deterministic(format!("vegetation-promotion/{key}")),
+            source: VegetationPromotionSource {
+                workspace_revision: Revision::INITIAL,
+                generation_algorithm: VegetationGenerationAlgorithm::ForgeScatterV1,
+                terrain_document_hash: ContentHash::from_bytes([0x11; 32]),
+                vegetation_document_hash: ContentHash::from_bytes([0x22; 32]),
+                vegetation_density_document_hash: ContentHash::from_bytes([0x33; 32]),
+                layer_id: VegetationLayerId::new("trees"),
+                kind: VegetationKind::Tree,
+                transform,
+                wind_phase_radians: 1.5,
+                wind_response: 0.5,
+                slope_gradient_squared: 0.25,
+                material_weight: Some(0.75),
+            },
+            authored_transform: transform,
+        }
+    }
+
     #[test]
     fn json_round_trip_and_hash_are_canonical() {
         let document = valid_document(42);
@@ -871,10 +1115,11 @@ mod tests {
             Err(VegetationDocumentError::Json(_))
         ));
         let mut document = valid_document(42);
-        document.schema_version = 2;
+        document.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION + 1;
         assert!(matches!(
             document.validate(),
-            Err(VegetationDocumentError::UnsupportedVersion(2))
+            Err(VegetationDocumentError::UnsupportedVersion(version))
+                if version == VEGETATION_DOCUMENT_SCHEMA_VERSION + 1
         ));
         document = valid_document(42);
         document.layers[0].acceptance_probability = f32::NAN;
@@ -1062,5 +1307,134 @@ mod tests {
                 ..
             })
         ));
+    }
+
+    #[test]
+    fn version_one_round_trips_bit_exactly_and_migrates_to_empty_version_two() {
+        let mut legacy = valid_document(42);
+        legacy.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION_V1;
+        let legacy_json = legacy.to_pretty_json().unwrap();
+        let legacy_hash = legacy.content_hash().unwrap();
+        assert!(!legacy_json.contains("promoted_instances"));
+
+        let restored = VegetationDocument::from_json(&legacy_json).unwrap();
+        assert_eq!(restored, legacy);
+        assert_eq!(restored.to_pretty_json().unwrap(), legacy_json);
+        assert_eq!(restored.content_hash().unwrap(), legacy_hash);
+
+        let migrated = restored.migrate_to_latest().unwrap();
+        assert_eq!(migrated.schema_version, VEGETATION_DOCUMENT_SCHEMA_VERSION);
+        assert!(migrated.promoted_instances.is_empty());
+        let mut expected = legacy;
+        expected.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION;
+        assert_eq!(migrated, expected);
+    }
+
+    #[test]
+    fn promoted_instance_version_two_round_trip_and_hash_are_canonical() {
+        let mut document = valid_document(42);
+        document.promoted_instances = vec![promoted("round-trip")];
+        let json = document.to_pretty_json().unwrap();
+        let restored = VegetationDocument::from_json(&json).unwrap();
+
+        assert_eq!(restored, document);
+        assert_eq!(restored.to_pretty_json().unwrap(), json);
+        assert_eq!(
+            restored.content_hash().unwrap(),
+            document.content_hash().unwrap()
+        );
+        assert!(json.contains("\"generation_algorithm\": \"forge_scatter_v1\""));
+
+        document.schema_version = VEGETATION_DOCUMENT_SCHEMA_VERSION_V1;
+        assert!(matches!(
+            document.validate(),
+            Err(VegetationDocumentError::LegacyVersionContainsPromotedInstances)
+        ));
+    }
+
+    #[test]
+    fn promoted_instances_are_bounded_unique_ordered_and_non_nil() {
+        let mut document = valid_document(42);
+        let first = promoted("first");
+        document.promoted_instances = vec![first.clone(), first];
+        assert!(matches!(
+            document.validate(),
+            Err(VegetationDocumentError::PromotedInstancesNotCanonical)
+        ));
+
+        let mut entries = [promoted("left"), promoted("right")];
+        entries.sort_by_key(|entry| entry.id);
+        document.promoted_instances = entries.into_iter().rev().collect();
+        assert!(matches!(
+            document.validate(),
+            Err(VegetationDocumentError::PromotedInstancesNotCanonical)
+        ));
+
+        let mut nil = promoted("nil");
+        nil.id = "00000000-0000-0000-0000-000000000000".parse().unwrap();
+        document.promoted_instances = vec![nil];
+        assert!(matches!(
+            document.validate(),
+            Err(VegetationDocumentError::NilPromotedInstanceId)
+        ));
+
+        document.promoted_instances = (0..=MAX_PROMOTED_VEGETATION_INSTANCES)
+            .map(|index| promoted(&format!("bounded-{index:04}")))
+            .collect();
+        document
+            .promoted_instances
+            .sort_by_key(|promoted| promoted.id);
+        assert!(matches!(
+            document.validate(),
+            Err(VegetationDocumentError::TooManyPromotedInstances(count))
+                if count == MAX_PROMOTED_VEGETATION_INSTANCES + 1
+        ));
+    }
+
+    #[test]
+    fn promoted_instance_transforms_and_provenance_values_are_finite_and_bounded() {
+        let assert_invalid = |mut instance: PromotedVegetationInstance| {
+            let mut document = valid_document(42);
+            instance.id = EntityId::deterministic("vegetation-promotion/invalid");
+            document.promoted_instances = vec![instance];
+            assert!(matches!(
+                document.validate(),
+                Err(VegetationDocumentError::InvalidPromotedInstanceValue { .. })
+            ));
+        };
+
+        let mut invalid = promoted("x-bound");
+        invalid.authored_transform.position_m.x = 256.0;
+        assert_invalid(invalid);
+        let mut invalid = promoted("height");
+        invalid.authored_transform.position_m.y = 10_001.0;
+        assert_invalid(invalid);
+        let mut invalid = promoted("yaw");
+        invalid.authored_transform.yaw_radians = std::f32::consts::TAU;
+        assert_invalid(invalid);
+        let mut invalid = promoted("scale");
+        invalid.authored_transform.uniform_scale = 0.0;
+        assert_invalid(invalid);
+        let mut invalid = promoted("wind");
+        invalid.source.wind_phase_radians = f32::NAN;
+        assert_invalid(invalid);
+        let mut invalid = promoted("slope");
+        invalid.source.slope_gradient_squared = 256.1;
+        assert_invalid(invalid);
+        let mut invalid = promoted("material");
+        invalid.source.material_weight = Some(1.1);
+        assert_invalid(invalid);
+        let mut invalid = promoted("hash");
+        invalid.source.terrain_document_hash = ContentHash::from_bytes([0; 32]);
+        assert_invalid(invalid);
+
+        let mut boundary = promoted("boundary");
+        boundary.source.transform =
+            VegetationInstanceTransform::new(Vec3::new(-256.0, -10_000.0, -256.0), 0.0, 8.0);
+        boundary.authored_transform =
+            VegetationInstanceTransform::new(Vec3::new(255.999, 10_000.0, 255.999), 0.0, 8.0);
+        let mut document = valid_document(42);
+        document.promoted_instances = vec![boundary];
+        document.validate().unwrap();
     }
 }
