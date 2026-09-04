@@ -1249,6 +1249,8 @@ mod telemetry;
 pub enum StudioCommand {
     AreaPreview {
         request: area_preview::AreaPreviewRequest,
+        #[serde(default)]
+        base_source_hash: Option<forge_core::ContentHash>,
     },
     SelectEntity {
         entity_id: EntityId,

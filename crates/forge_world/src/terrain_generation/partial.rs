@@ -200,17 +200,38 @@ impl TerrainGenerationPlan {
                 actual: request.target_document.revision,
             });
         }
-        if request.target_document.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION {
+        self.prepare_cache_transition(source_cache, request.target_document, false)
+    }
+
+    /// Refreshes a derived projection between two already accepted source snapshots.
+    ///
+    /// Unlike an authoring command, a renderer may skip revisions, reopen an older snapshot,
+    /// or observe only metadata changes. Exact cache hashes, layout and structural compatibility
+    /// are still checked; this never changes a canonical document or invents a revision.
+    pub fn refresh_cached_projection(
+        &self,
+        source_cache: &GeneratedTerrain,
+        target_document: TerrainDocument,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        validate_source_cache(self, source_cache)?;
+        self.prepare_cache_transition(source_cache, target_document, true)
+    }
+
+    fn prepare_cache_transition(
+        &self,
+        source_cache: &GeneratedTerrain,
+        target_document: TerrainDocument,
+        allow_unchanged_heights: bool,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        if target_document.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION {
             return Err(TerrainPartialUpdateError::TargetMustUseCurrentSchema);
         }
-        validate_partial_compatibility(&self.document, &request.target_document)?;
-        let target_plan = TerrainGenerationPlan::from_document(&request.target_document)
+        validate_partial_compatibility(&self.document, &target_document)?;
+        let target_plan = TerrainGenerationPlan::from_document(&target_document)
             .map_err(TerrainPartialUpdateError::InvalidTargetDocument)?;
-        let changed_samples = changed_height_samples(
-            &self.document.height_deltas,
-            &request.target_document.height_deltas,
-        );
-        if changed_samples.is_empty() {
+        let changed_samples =
+            changed_height_samples(&self.document.height_deltas, &target_document.height_deltas);
+        if changed_samples.is_empty() && !allow_unchanged_heights {
             return Err(TerrainPartialUpdateError::NoHeightDeltaChanges);
         }
 
@@ -230,7 +251,7 @@ impl TerrainGenerationPlan {
             .collect::<Vec<_>>();
         for sample in &dependency_samples {
             patch_sample(
-                &request.target_document,
+                &target_document,
                 &mut replacement_chunks,
                 *sample,
                 changed_keys.contains(&(sample.sample_z, sample.sample_x)),
@@ -240,7 +261,7 @@ impl TerrainGenerationPlan {
         Ok(TerrainPartialUpdate {
             source_document_hash: self.document_hash,
             target_document_hash: target_plan.document_hash,
-            target_document: request.target_document,
+            target_document,
             replacement_chunks,
             changed_samples,
             mesh_chunks,

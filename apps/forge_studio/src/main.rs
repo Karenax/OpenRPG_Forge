@@ -22,6 +22,10 @@ const UNAVAILABLE_CLOSE_MESSAGE: &str =
 async fn execute_studio_command(
     command: StudioCommand,
     session: tauri::State<'_, Arc<Mutex<WorkspaceSession>>>,
+    preview_cache: tauri::State<
+        '_,
+        Arc<Mutex<forge_studio_frontend::area_preview::AreaPreviewCache>>,
+    >,
 ) -> Result<StudioResponse, String> {
     if matches!(
         &command,
@@ -34,7 +38,11 @@ async fn execute_studio_command(
             .await
             .map_err(|error| format!("Brosse interrompue : {error}"));
     }
-    if let StudioCommand::AreaPreview { request } = command {
+    if let StudioCommand::AreaPreview {
+        request,
+        base_source_hash,
+    } = command
+    {
         let source = match session.lock() {
             Ok(session) => session.area_preview_source(request),
             Err(_) => Err("Session projet indisponible.".into()),
@@ -44,10 +52,14 @@ async fn execute_studio_command(
             Err(reason) => return Ok(StudioResponse::Rejected { reason }),
         };
         let permit = PreviewPermit::acquire()?;
+        let preview_cache = Arc::clone(preview_cache.inner());
         return Ok(
             match tauri::async_runtime::spawn_blocking(move || {
                 let _permit = permit;
-                forge_studio_frontend::area_preview::prepare_area_preview(request, &document, spawn)
+                preview_cache
+                    .lock()
+                    .map_err(|_| "Cache d’aperçu indisponible.".to_owned())?
+                    .prepare(request, &document, spawn, base_source_hash)
             })
             .await
             {
@@ -140,6 +152,9 @@ fn native_close_block_reason(session: &Mutex<WorkspaceSession>) -> Option<&'stat
 fn main() {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(WorkspaceSession::default())))
+        .manage(Arc::new(Mutex::new(
+            forge_studio_frontend::area_preview::AreaPreviewCache::default(),
+        )))
         .invoke_handler(tauri::generate_handler![execute_studio_command])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

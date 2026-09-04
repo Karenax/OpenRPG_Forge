@@ -1,8 +1,8 @@
 //! Read-only, bounded native-to-viewport projection. Never persisted in a workspace.
 use crate::area_tabs::AreaKey;
-use forge_core::Vec3;
+use forge_core::{ContentHash, Vec3};
 use forge_project::TerrainDocument;
-use forge_world::{GeneratedTerrain, TerrainGenerationPlan};
+use forge_world::{GeneratedTerrain, TerrainGenerationPlan, TerrainPartialUpdateError};
 use serde::{Deserialize, Serialize};
 
 pub const MAX_PREVIEW_JSON_BYTES: usize = 24 * 1024 * 1024;
@@ -20,6 +20,14 @@ pub struct AreaPreview {
     pub request: AreaPreviewRequest,
     pub terrain: GeneratedTerrain,
     pub spawn: Vec3,
+    /// Some means that terrain.chunks contains only replacements against this exact cache.
+    pub base_source_hash: Option<ContentHash>,
+}
+
+/// A single disposable native cache. Never persisted or used as an authoring source.
+#[derive(Default)]
+pub struct AreaPreviewCache {
+    cached: Option<(TerrainDocument, GeneratedTerrain)>,
 }
 
 /// Run on the native blocking pool after copying the accepted source under the session lock.
@@ -28,25 +36,72 @@ pub fn prepare_area_preview(
     document: &TerrainDocument,
     spawn: Vec3,
 ) -> Result<String, String> {
-    if request.key.project_id != document.project_id
-        || request.key.area_id != document.area_id
-        || document.revision.get() > request.base_revision
-        || ![spawn.x, spawn.y, spawn.z]
-            .iter()
-            .all(|value| value.is_finite())
-    {
-        return Err("Source d’aperçu incohérente avec la demande.".into());
+    AreaPreviewCache::default().prepare(request, document, spawn, None)
+}
+
+impl AreaPreviewCache {
+    /// Called on the blocking pool, outside the workspace lock. Serialize before cache mutation.
+    pub fn prepare(
+        &mut self,
+        request: AreaPreviewRequest,
+        document: &TerrainDocument,
+        spawn: Vec3,
+        base_source_hash: Option<ContentHash>,
+    ) -> Result<String, String> {
+        if request.key.project_id != document.project_id
+            || request.key.area_id != document.area_id
+            || document.revision.get() > request.base_revision
+            || ![spawn.x, spawn.y, spawn.z]
+                .iter()
+                .all(|value| value.is_finite())
+        {
+            return Err("Source d’aperçu incohérente avec la demande.".into());
+        }
+        if let Some((source, cache)) = self.cached.as_mut()
+            && base_source_hash == Some(cache.source_document_hash)
+        {
+            let plan = TerrainGenerationPlan::from_document(source).map_err(|e| e.to_string())?;
+            match plan.refresh_cached_projection(cache, document.clone()) {
+                Ok(update) => {
+                    let preview = AreaPreview {
+                        request,
+                        spawn,
+                        base_source_hash,
+                        terrain: GeneratedTerrain {
+                            source_document_hash: update.target_document_hash(),
+                            chunks: update.replacement_chunks().to_vec(),
+                            origin_xz_m: cache.origin_xz_m,
+                            material_layer_ids: cache.material_layer_ids.clone(),
+                        },
+                    };
+                    let json = serialize_preview(&preview)?;
+                    update.apply_to_cache(cache).map_err(|e| e.to_string())?;
+                    *source = document.clone();
+                    return Ok(json);
+                }
+                // A structural change explicitly requires a full rebuild; corruption does not.
+                Err(TerrainPartialUpdateError::FullRebuildRequired) => {}
+                Err(error) => return Err(error.to_string()),
+            }
+        }
+        let terrain = TerrainGenerationPlan::from_document(document)
+            .map_err(|error| error.to_string())?
+            .generate()
+            .map_err(|error| error.to_string())?;
+        let preview = AreaPreview {
+            request,
+            terrain,
+            spawn,
+            base_source_hash: None,
+        };
+        let json = serialize_preview(&preview)?;
+        self.cached = Some((document.clone(), preview.terrain));
+        Ok(json)
     }
-    let terrain = TerrainGenerationPlan::from_document(document)
-        .map_err(|error| error.to_string())?
-        .generate()
-        .map_err(|error| error.to_string())?;
-    let preview = AreaPreview {
-        request,
-        terrain,
-        spawn,
-    };
-    let json = serde_json::to_string(&preview).map_err(|error| error.to_string())?;
+}
+
+fn serialize_preview(preview: &AreaPreview) -> Result<String, String> {
+    let json = serde_json::to_string(preview).map_err(|error| error.to_string())?;
     if json.len() > MAX_PREVIEW_JSON_BYTES {
         return Err("L’aperçu dépasse le budget de transfert de 24 Mio.".into());
     }
@@ -59,6 +114,10 @@ pub fn read_area_preview(json: &str) -> Result<AreaPreview, String> {
     }
     serde_json::from_str(json).map_err(|error| error.to_string())
 }
+
+#[cfg(test)]
+#[path = "area_preview_cache_tests.rs"]
+mod cache_tests;
 
 #[cfg(test)]
 mod tests {

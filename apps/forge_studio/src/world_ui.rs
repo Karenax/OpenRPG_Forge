@@ -40,6 +40,20 @@ pub(crate) struct WorldActions {
 }
 
 impl WorldActions {
+    fn invalidate_projection(self, target: Option<AreaKey>) {
+        self.generation.update(|generation| *generation += 1);
+        self.error.set(None);
+        if let Ok(mut bridge) = self.viewport.get_value().0.lock() {
+            bridge.desired_generation = self.generation.get_untracked();
+            bridge.clear = target.is_none_or(|key| {
+                bridge.status.project_id != Some(key.project_id)
+                    || bridge.status.area_id != Some(key.area_id)
+                    || bridge.status.chunks != 64
+            });
+            bridge.pending = None;
+        }
+    }
+
     pub(crate) fn open(self, key: AreaKey) {
         if let Some(document) = self.document.get_untracked() {
             self.tabs.update(|tabs| tabs.open(key, &document));
@@ -60,8 +74,8 @@ impl WorldActions {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
         format!(
-            "Terrain du projet · r{} · 64 chunks · boucle {:.1} ms",
-            status.revision, status.frame_ms
+            "Terrain du projet · r{} · 64 chunks · {} recalculés / {} conservés · boucle {:.1} ms",
+            status.revision, status.rebuilt_chunks, status.retained_chunks, status.frame_ms
         )
     }
 }
@@ -111,14 +125,7 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         ))
     });
     Effect::new(move |_| {
-        let _ = wanted.get();
-        actions.generation.update(|generation| *generation += 1);
-        actions.error.set(None);
-        if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
-            bridge.desired_generation = actions.generation.get_untracked();
-            bridge.clear = true;
-            bridge.pending = None;
-        }
+        actions.invalidate_projection(wanted.get().map(|(request, _)| request.key));
     });
     let completed = RwSignal::new(0_u64);
     Effect::new(move |_| {
@@ -131,8 +138,21 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
             return;
         };
         actions.busy.set(true);
+        let base_source_hash = actions
+            .viewport
+            .get_value()
+            .0
+            .lock()
+            .ok()
+            .and_then(|bridge| {
+                if !bridge.clear && bridge.status.chunks == 64 {
+                    bridge.status.source_hash.parse().ok()
+                } else {
+                    None
+                }
+            });
         wasm_bindgen_futures::spawn_local(async move {
-            let result = fetch_preview(request, &hash).await;
+            let result = fetch_preview(request, &hash, base_source_hash).await;
             if actions.generation.get_untracked() == generation {
                 match result {
                     Ok(preview) => {
@@ -144,6 +164,7 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
                                 revision: request.base_revision,
                                 terrain: preview.terrain,
                                 spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
+                                base_source_hash: preview.base_source_hash,
                             });
                         }
                         start_once(actions);
@@ -182,12 +203,20 @@ fn install_status_poll(actions: WorldActions) {
 async fn fetch_preview(
     request: AreaPreviewRequest,
     hash: &str,
+    base_source_hash: Option<forge_core::ContentHash>,
 ) -> Result<crate::area_preview::AreaPreview, String> {
-    match invoke_studio(StudioCommand::AreaPreview { request }).await? {
+    match invoke_studio(StudioCommand::AreaPreview {
+        request,
+        base_source_hash,
+    })
+    .await?
+    {
         StudioResponse::AreaPreview { preview_json } => {
             let preview = read_area_preview(&preview_json)?;
             if preview.request != request
                 || preview.terrain.source_document_hash.to_string() != hash
+                || (preview.base_source_hash.is_some()
+                    && preview.base_source_hash != base_source_hash)
             {
                 return Err("Aperçu périmé ou incohérent : aucune projection acceptée.".into());
             }

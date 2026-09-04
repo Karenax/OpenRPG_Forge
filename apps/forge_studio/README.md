@@ -67,12 +67,18 @@ per-area orbit cameras; tabs/cameras are presentation state, not saved project c
 `StudioCommand::AreaPreview` reads the accepted native source at an explicit revision. It refuses
 foreign IDs and stale revisions, copies the source under the session lock, then generates the exact
 existing 64-chunk terrain on Tauri's blocking pool. One native generation is permitted at a time;
-the UI coalesces rapid selection changes and discards obsolete responses. The derived JSON transfer
-is capped at 24 MiB and never saved. This initial transfer includes the existing generated terrain
+the UI coalesces rapid selection changes and discards obsolete responses. A single disposable native
+cache can return only replaced chunks when the caller acknowledges its exact presented source hash.
+Cache misses and structural changes explicitly return a full payload; invalid caches return errors.
+The derived JSON transfer is capped at 24 MiB and never saved. This transfer includes the existing generated terrain
 contract, including unused collider data; no new dependency or second terrain algorithm is added.
 
-The Bevy adapter clears old geometry on invalidation, uploads two derived meshes per update, and
-reveals the new area only when all 64 chunks are materialized. Removed mesh assets are released.
+The Bevy adapter clears old geometry for a different area/project, uploads two derived meshes per
+update, and reveals the new area only when all 64 chunks are materialized. For an exact-base partial
+refresh, it keeps the previous area visible, stages only replacements while hidden, then swaps them
+together. Unaffected entities and mesh handles stay identical. Cancelled/invalid partial refreshes
+release only staging assets. Empty geometry changes restamp the projection without mesh uploads.
+Removed mesh assets are released. Diagnostics distinguish rebuilt/retained chunks and mesh uploads.
 It reuses Forge's terrain PBR shader/material and starts only one app/canvas per desktop page.
 Pointer input is attached to that canvas only: drag to orbit, Shift-drag to pan, wheel to zoom;
 overview and spawn-focus buttons are also provided. The gold cube is authored spawn metadata,
@@ -96,8 +102,9 @@ cannot mutate the source. Brush picking uses inherited visibility after transfor
 propagation, excludes metadata markers, and does not require a transient per-view visibility flag.
 
 Native mode/history/save/restart evidence is in `docs/evidence/gate2/BRUSH_VIEWPORT.md`.
-This qualifies R2-007..011 and R2-013, not the whole gate. Each accepted stroke still regenerates
-all 64 chunks; partial CPU caches are not connected to this renderer (R2-014 remains open).
+That report qualifies R2-007..011 and R2-013, not the whole gate. The newer partial-refresh code uses
+the exact source diff across history/revision jumps; R2-014 still requires its own native acquisition
+before the roadmap can mark it passed.
 High-amplitude noise produces sharp spikes; natural terrain composition is not claimed.
 Material painting, live dry-run geometry, vegetation brushes and playtest are not implemented here.
 

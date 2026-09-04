@@ -6,12 +6,18 @@
 the existing terrain mesh adapter and PBR material, but does not install the embedded Visual Valley
 recipe, physics, player, weather, vegetation or runtime proof harness. One camera and one renderer
 serve all open areas. Its bounded bridge coalesces requests; a stale generation cannot replace the
-current selection. Old mesh assets are explicitly released, two chunks are adapted per update,
-and all new geometry is revealed together after 64 chunks. Up to 256 per-area camera poses survive
+current selection. Full loads adapt two chunks per update and reveal all 64 together. Exact-base
+partial loads preserve the current scene while staging replacement meshes, swap only those chunks,
+and retain the other entities/handles. Empty changes update source/revision/spawn without uploading
+terrain. Cancelled staging and replaced assets are explicitly released. Status reports rebuilt,
+retained and uploaded mesh counts, not GPU timings. This presentation-only path shares the pure
+world cache algorithm; it does not install the separate runtime Rapier transaction/physics adapter.
+Up to 256 per-area camera poses survive
 tab switches in the same project/page. They are presentation-only state.
 
 Headless tests exercise request replacement/cancellation, asset release, camera restoration and
-invalid topology. These are ECS/CPU proofs, not evidence of GPU presentation. Studio Diagnostics
+invalid topology, exact full-build attribute/index parity, retained allocation identity and failed/
+cancelled partial staging. These are ECS/CPU proofs, not evidence of GPU presentation. Studio Diagnostics
 retains that distinction; capture and inspect the native viewport before qualifying a visual route.
 
 Adapts engine-neutral Forge documents to Bevy entities. `ProofScenePlugin` keeps the Gate 0 scene

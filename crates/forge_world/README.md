@@ -45,10 +45,13 @@ sans doublons ni valeurs nulles. Une hauteur produite hors ±1024 m, une entrée
 
 Les tests comparent chaque mode à une génération complète après remplacement partiel, sur une
 empreinte traversant quatre chunks ; le chunk témoin non affecté reste identique. Le contrat partiel
-actuel exige encore une révision terrain suivante exacte : l'intégration au viewport doit traiter
-explicitement les sauts de révision workspace et l'undo/redo, sans falsifier les hashes.
-L'IPC natif et la persistance sont testés, mais les outils visibles, le picking, les traits continus et
-le recalcul partiel du renderer restent à raccorder. Aucun PASS R2-007..014 n'en découle.
+`apply_partial_update` conserve sa révision suivante exacte pour les commandes. Le chemin distinct
+`refresh_cached_projection` relie deux snapshots déjà acceptés pour une projection dérivée : sauts de
+révision, undo/redo, réouverture ancienne et changement sans deltas sont permis, sans changer les
+sources ni fabriquer de révision/hash. Les mêmes contrôles de cache, topologie et structure s'appliquent.
+La structure incompatible exige un rebuild complet ; une corruption de cache reste une erreur.
+Les outils Studio sont qualifiés séparément dans `docs/evidence/gate2/BRUSH_VIEWPORT.md` ; les tests
+de cette crate ne qualifient pas à eux seuls le renderer ni R2-014.
 
 La fixture de végétation est produite par `VisualValleyVegetationRecipe`. Ses quatre probabilités
 de placement (arbres 0,20 ; arbustes 0,36 ; fougères 0,42 ; herbe 0,80) renforcent la couverture sans
