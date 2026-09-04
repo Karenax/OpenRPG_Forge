@@ -1,6 +1,6 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-09-03
+Dernière mise à jour : 2026-09-04
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
 automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gate 2 interdite sans
@@ -733,8 +733,10 @@ qualité                   Low / Medium / High / Ultra
   runtime/orchestrateur `140acbdd`, durcissements jusqu'à `347d782` et qualification stricte
   `798b55d` intégrés ; 22/22 tests Python, 69/69 tests runtime, 4/4 tests du binaire de garde, 4/4
   tests Rust RenderDoc ciblés et inventaire préflight des 72 fichiers PASS. Le préflight
-  réel refuse l'absence d'une couche Vulkan enregistrée sans modifier l'hôte ; quatre captures indépendantes
-  clear A/B + rain A/B restent `NOT RUN`, donc aucun compteur qualifiant n'est acquis.
+  historique refusait l'absence de couche Vulkan. Enregistrement système explicitement autorisé et
+  vérifié le 4 septembre ; build Release `d6ec361` réussi, premier lancement arrêté avant injection
+  sur la réécriture normale du profil QRenderDoc. Garde corrigé/testé et reprise du binaire épinglé
+  sans rebuild ajoutée ; quatre captures indépendantes clear A/B + rain A/B restent à acquérir.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,
   clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.

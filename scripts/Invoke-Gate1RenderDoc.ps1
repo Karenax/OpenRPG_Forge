@@ -16,7 +16,11 @@ param(
     [string]$Backend = "Vulkan",
 
     [ValidateRange(2, 4)]
-    [int]$Repetitions = 2
+    [int]$Repetitions = 2,
+
+    [string]$ReuseRuntimeSourceCommit = "",
+
+    [string]$ReuseRuntimeSha256 = ""
 )
 
 Set-StrictMode -Version Latest
@@ -583,6 +587,17 @@ $gitCommitResult = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-
 Assert-CommandSucceeded -Result $gitCommitResult -Label "Git commit lookup"
 $gitCommit = $gitCommitResult.Stdout.Trim()
 Assert-Condition -Condition ($gitCommit -cmatch '^[0-9a-f]{40}$') -Message "Cannot bind the acquisition to an exact Git commit."
+$runtimeSourceCommit = $gitCommit
+$reuseRuntime = $ReuseRuntimeSourceCommit.Length -gt 0 -or $ReuseRuntimeSha256.Length -gt 0
+if ($reuseRuntime) {
+    Assert-Condition -Condition ($ReuseRuntimeSourceCommit -cmatch '^[0-9a-f]{40}$' -and $ReuseRuntimeSha256 -cmatch '^[0-9a-f]{64}$') -Message "Runtime reuse requires an exact source commit and lowercase SHA-256."
+    $ancestorResult = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-C", $repositoryPath, "merge-base", "--is-ancestor", $ReuseRuntimeSourceCommit, $gitCommit) -WorkingDirectory $repositoryPath
+    Assert-CommandSucceeded -Result $ancestorResult -Label "Reused runtime source ancestry"
+    # Only capture tooling and documentation may differ from the compiled commit.
+    $runtimeDiff = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-C", $repositoryPath, "diff", "--exit-code", $ReuseRuntimeSourceCommit, $gitCommit, "--", ".", ":(exclude)docs/**", ":(exclude)PROJECT_CONTEXT.md", ":(exclude)scripts/renderdoc/**", ":(exclude)scripts/Invoke-Gate1RenderDoc.ps1") -WorkingDirectory $repositoryPath
+    Assert-CommandSucceeded -Result $runtimeDiff -Label "Reused runtime compiled inputs unchanged"
+    $runtimeSourceCommit = $ReuseRuntimeSourceCommit
+}
 $gitStatusResult = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-C", $repositoryPath, "status", "--porcelain=v1", "--untracked-files=all") -WorkingDirectory $repositoryPath
 Assert-CommandSucceeded -Result $gitStatusResult -Label "Git cleanliness check"
 Assert-Condition -Condition ([string]::IsNullOrWhiteSpace($gitStatusResult.Stdout)) -Message "Gate 1 RenderDoc acquisition requires a clean exact-commit worktree."
@@ -604,7 +619,16 @@ Assert-DisjointRoots -First $outputPath -Second $cargoTargetPath -Label "OutputR
 Assert-DisjointRoots -First $renderDocPath -Second $outputPath -Label "RenderDocRoot and OutputRoot"
 Assert-DisjointRoots -First $renderDocPath -Second $cargoTargetPath -Label "RenderDocRoot and CargoTargetDirectory"
 Initialize-EmptyDirectory -Path $outputPath -Label "OutputRoot"
-Initialize-EmptyDirectory -Path $cargoTargetPath -Label "CargoTargetDirectory"
+if ($reuseRuntime) {
+    Assert-NoReparsePointInExistingAncestors -Path $cargoTargetPath
+    $reusedRuntimePath = Join-Path $cargoTargetPath "release\forge_runtime.exe"
+    Assert-NoReparsePointInExistingAncestors -Path $reusedRuntimePath
+    Assert-Condition -Condition ([IO.File]::Exists($reusedRuntimePath)) -Message "The pinned reusable runtime is absent."
+    Assert-Condition -Condition ((Get-LowerSha256 -Path $reusedRuntimePath) -ceq $ReuseRuntimeSha256) -Message "Reused runtime SHA-256 mismatch."
+}
+else {
+    Initialize-EmptyDirectory -Path $cargoTargetPath -Label "CargoTargetDirectory"
+}
 Assert-NoReparsePointInExistingAncestors -Path $renderDocPath
 
 $environmentBefore = [Collections.Generic.Dictionary[string, object]]::new([StringComparer]::Ordinal)
@@ -743,16 +767,29 @@ try {
     Assert-Condition -Condition ($cargoVersion -cmatch '^cargo 1\.98\.0(?: |$)') -Message "Gate 1 RenderDoc acquisition requires Cargo 1.98.0."
 
     Set-ProcessEnvironment -Saved $environmentBefore -Name "CARGO_TARGET_DIR" -Value $cargoTargetPath
-    Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_SOURCE_COMMIT" -Value $gitCommit
+    Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_SOURCE_COMMIT" -Value $runtimeSourceCommit
     Set-ProcessEnvironment -Saved $environmentBefore -Name "WGPU_BACKEND" -Value "vulkan"
     Set-ProcessEnvironment -Saved $environmentBefore -Name "BEVY_ASSET_ROOT" -Value $repositoryPath
     Set-ProcessEnvironment -Saved $environmentBefore -Name "RUST_LOG" -Value "info,forge=info,wgpu_hal=warn,wgpu_core=warn,naga=warn"
 
-    $buildResult = Invoke-CapturedCommand -FilePath $cargoCommand.Source -ArgumentList @("build", "--release", "-p", "forge_runtime", "--locked", "-j", "1") -WorkingDirectory $repositoryPath -TimeoutSeconds $governedBuildTimeoutSeconds
-    Assert-CommandSucceeded -Result $buildResult -Label "Governed forge_runtime release build"
+    if (-not $reuseRuntime) {
+        $buildResult = Invoke-CapturedCommand -FilePath $cargoCommand.Source -ArgumentList @("build", "--release", "-p", "forge_runtime", "--locked", "-j", "1") -WorkingDirectory $repositoryPath -TimeoutSeconds $governedBuildTimeoutSeconds
+        Write-TextAtomically -Path (Join-Path $outputPath "build.log") -Text ($buildResult.Stdout + [Environment]::NewLine + $buildResult.Stderr)
+        Assert-CommandSucceeded -Result $buildResult -Label "Governed forge_runtime release build"
+    }
     $runtimePath = Join-Path $cargoTargetPath "release\forge_runtime.exe"
     Assert-Condition -Condition ([IO.File]::Exists($runtimePath)) -Message "Governed build did not produce forge_runtime.exe."
     $runtimeSha256 = Get-LowerSha256 -Path $runtimePath
+    if ($reuseRuntime) {
+        Assert-Condition -Condition ($runtimeSha256 -ceq $ReuseRuntimeSha256) -Message "Reused runtime changed before capture."
+    }
+    Write-JsonAtomically -Path (Join-Path $outputPath "gate1-renderdoc.build.json") -Value ([ordered]@{
+            source_commit = $runtimeSourceCommit
+            capture_tooling_commit = $gitCommit
+            runtime_sha256 = $runtimeSha256
+            mode = if ($reuseRuntime) { "reused_exact_binary_no_build" } else { "fresh_release_build" }
+            compiled_inputs_unchanged = $true
+        })
     $cadleBuildPaths = @(
         [IO.Directory]::EnumerateFileSystemEntries($cargoTargetPath, "*cadle*", [IO.SearchOption]::AllDirectories)
     )
@@ -826,13 +863,12 @@ try {
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_OUTPUT_DIR" -Value $runPath
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_NONCE" -Value $nonce
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_WEATHER" -Value $weather
-            Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_SOURCE_COMMIT" -Value $gitCommit
+            Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_SOURCE_COMMIT" -Value $runtimeSourceCommit
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_QRENDERDOC_SHA256" -Value $qrenderdocSha256
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_RENDERDOCCMD_SHA256" -Value $renderdoccmdSha256
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256" -Value $renderdocDllSha256
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_CAPTURE_ID" -Value $captureId
             Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_PROFILE_CONFIG" -Value $profileConfigPath
-            Set-ProcessEnvironment -Saved $environmentBefore -Name "FORGE_GATE1_RENDERDOC_PROFILE_SEED_SHA256" -Value $profileSeedSha256
 
             try {
                 $captureResult = Invoke-CapturedCommand -FilePath $isolatedQrenderdocPath -ArgumentList @("--python", $adapterPath) -WorkingDirectory $repositoryPath -TimeoutSeconds 240
@@ -879,7 +915,7 @@ try {
             Assert-ExactProperties -Value $ready -Expected @($manifest.workload.ready_receipt_required_fields) -Path "$runName.ready"
             Assert-Condition -Condition ($ready.schema -ceq "forge.gate1-renderdoc-ready" -and $ready.schema_version -eq 1) -Message "$runName ready schema mismatch."
             Assert-Condition -Condition ($ready.status -ceq "ready_frozen_pending_external_capture_signal") -Message "$runName ready status mismatch."
-            Assert-Condition -Condition ($ready.nonce -ceq $nonce -and $ready.source_commit -ceq $gitCommit) -Message "$runName ready binding mismatch."
+            Assert-Condition -Condition ($ready.nonce -ceq $nonce -and $ready.source_commit -ceq $runtimeSourceCommit) -Message "$runName ready binding mismatch."
             Assert-Condition -Condition ($ready.required_backend -ceq "Vulkan" -and $ready.required_renderdoc_version -ceq $requiredRenderDocVersion) -Message "$runName ready tool/backend mismatch."
             Assert-Condition -Condition ($ready.virtual_time_paused -eq $true -and $ready.freeze_settle_frames -eq 30) -Message "$runName ready freeze contract mismatch."
             Assert-ExactProperties -Value $ready.frozen_state -Expected @($manifest.workload.ready_receipt_frozen_state_fields) -Path "$runName.ready.frozen_state"
@@ -912,7 +948,7 @@ try {
 
             Assert-ExactProperties -Value $signal -Expected @($manifest.capture.signal_fields) -Path "$runName.signal"
             Assert-Condition -Condition ($signal.schema -ceq $manifest.capture.signal_schema.name -and $signal.schema_version -eq $manifest.capture.signal_schema.version) -Message "$runName signal schema mismatch."
-            Assert-Condition -Condition ($signal.nonce -ceq $nonce -and $signal.process_id -eq $ready.process_id -and $signal.source_commit -ceq $gitCommit -and $signal.capture_id -ceq $captureId) -Message "$runName signal binding mismatch."
+            Assert-Condition -Condition ($signal.nonce -ceq $nonce -and $signal.process_id -eq $ready.process_id -and $signal.source_commit -ceq $runtimeSourceCommit -and $signal.capture_id -ceq $captureId) -Message "$runName signal binding mismatch."
             Assert-Condition -Condition ($signal.ready_sha256 -ceq (Get-LowerSha256 -Path $readyPath)) -Message "$runName signal ready SHA-256 mismatch."
             Assert-ExactProperties -Value $signal.renderdoc -Expected @($manifest.capture.signal_renderdoc_fields) -Path "$runName.signal.renderdoc"
             Assert-Condition -Condition ($signal.renderdoc.capture_triggered -eq $true -and $signal.renderdoc.target_control_ident -gt 0 -and $signal.renderdoc.target_api -ceq "Vulkan" -and $signal.renderdoc.tool_version -ceq $requiredRenderDocVersion) -Message "$runName signal RenderDoc identity mismatch."
@@ -921,7 +957,7 @@ try {
             Assert-ExactProperties -Value $ledger -Expected @($manifest.capture.runtime_ledger_fields) -Path "$runName.runtime"
             Assert-Condition -Condition ($ledger.schema -ceq "forge.gate1-renderdoc-runtime" -and $ledger.schema_version -eq 1) -Message "$runName runtime ledger schema mismatch."
             Assert-Condition -Condition ($ledger.status -ceq "stable_capture_window_completed_pending_external_capture_analysis") -Message "$runName runtime ledger status mismatch."
-            Assert-Condition -Condition ($ledger.nonce -ceq $nonce -and $ledger.process_id -eq $ready.process_id -and $ledger.source_commit -ceq $gitCommit -and $ledger.capture_id -ceq $captureId) -Message "$runName runtime ledger binding mismatch."
+            Assert-Condition -Condition ($ledger.nonce -ceq $nonce -and $ledger.process_id -eq $ready.process_id -and $ledger.source_commit -ceq $runtimeSourceCommit -and $ledger.capture_id -ceq $captureId) -Message "$runName runtime ledger binding mismatch."
             Assert-Condition -Condition ($ledger.capture_window_frames -eq 120 -and $ledger.frozen_state_stable -eq $true) -Message "$runName runtime capture window is not stable and complete."
             Assert-Condition -Condition ($ledger.frozen_state_sha256 -ceq $ready.frozen_state_sha256) -Message "$runName frozen-state hash changed."
             Assert-Condition -Condition ($ledger.ready_sha256 -ceq $signal.ready_sha256 -and $ledger.renderdoc.target_control_ident -eq $signal.renderdoc.target_control_ident) -Message "$runName runtime ledger signal binding changed."
@@ -942,7 +978,7 @@ try {
 
             Assert-ExactProperties -Value $receipt -Expected @($manifest.capture.adapter_receipt_fields) -Path "$runName.adapter"
             Assert-Condition -Condition ($receipt.schema -ceq $manifest.capture.adapter_receipt_schema -and $receipt.status -ceq "PASS") -Message "$runName adapter receipt did not PASS."
-            Assert-Condition -Condition ($receipt.source_commit -ceq $gitCommit -and $receipt.nonce -ceq $nonce -and $receipt.weather -ceq $weather -and $receipt.capture_id -ceq $captureId) -Message "$runName adapter receipt binding mismatch."
+            Assert-Condition -Condition ($receipt.source_commit -ceq $runtimeSourceCommit -and $receipt.nonce -ceq $nonce -and $receipt.weather -ceq $weather -and $receipt.capture_id -ceq $captureId) -Message "$runName adapter receipt binding mismatch."
             Assert-ExactProperties -Value $receipt.target -Expected @($manifest.capture.adapter_target_fields) -Path "$runName.adapter.target"
             Assert-Condition -Condition ($receipt.target.process_id -eq $ready.process_id -and $receipt.target.target_control_ident -eq $signal.renderdoc.target_control_ident -and $receipt.target.api -ceq "Vulkan") -Message "$runName adapter target binding mismatch."
             Assert-ExactProperties -Value $receipt.capture -Expected @($manifest.capture.adapter_capture_fields) -Path "$runName.adapter.capture"
@@ -1028,11 +1064,15 @@ try {
     $gitStatusAfter = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-C", $repositoryPath, "status", "--porcelain=v1", "--untracked-files=all") -WorkingDirectory $repositoryPath
     Assert-CommandSucceeded -Result $gitStatusAfter -Label "Final Git cleanliness check"
     Assert-Condition -Condition ([string]::IsNullOrWhiteSpace($gitStatusAfter.Stdout)) -Message "Capture mutated the exact-commit worktree."
+    $gitCommitAfter = Invoke-CapturedCommand -FilePath "git.exe" -ArgumentList @("-C", $repositoryPath, "rev-parse", "HEAD") -WorkingDirectory $repositoryPath
+    Assert-CommandSucceeded -Result $gitCommitAfter -Label "Final Git commit check"
+    Assert-Condition -Condition ($gitCommitAfter.Stdout.Trim() -ceq $gitCommit) -Message "Capture tooling commit changed during acquisition."
 
     $validation = [ordered]@{
         schema = "forge-gate1-renderdoc-validation/v1"
         status = "PASS"
-        source_commit = $gitCommit
+        source_commit = $runtimeSourceCommit
+        capture_tooling_commit = $gitCommit
         backend = "Vulkan"
         weather_matrix = @("clear", "rain")
         repetitions_per_weather = $Repetitions
@@ -1064,6 +1104,9 @@ try {
             host_profile_write_scope = "disposable_nonce_profile_only"
         }
         build = [ordered]@{
+            mode = if ($reuseRuntime) { "reused_exact_binary_no_build" } else { "fresh_release_build" }
+            source_commit = $runtimeSourceCommit
+            compiled_inputs_unchanged = $true
             profile = "release"
             locked = $true
             jobs = 1

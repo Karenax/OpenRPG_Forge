@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **3 septembre 2026**
+Dernière mise à jour : **4 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, critères stricts de
 performance différés par accord explicite ADR-0010 ; dernier replay schema 13 FAIL, audits suspendus ;
@@ -23,6 +23,15 @@ optimisation produit promue. Les expérimentations sont retirées et la campagne
 suspendue jusqu'à nouvelle demande explicite. Cette décision prévaut sur les demandes historiques
 de replay ci-dessous. Les preuves GPU, les revues visuelles et les autres exigences non couvertes
 restent dues : Gate 1 n'est pas passée et Gate 2 ne commence pas.
+
+Actualisation R1-037 du 4 septembre : l'utilisateur a autorisé séparément l'enregistrement système
+de la couche Vulkan RenderDoc ; l'opération signée épinglée passe (sortie 0, vérification positive).
+Le build Release exact `d6ec36107565bf26412141c84bdd20fe8d82654e` a réussi. Son premier lancement
+QRenderDoc échoue avant injection parce que la configuration est complétée au démarrage ; le garde
+est corrigé et testé, avec reprise du binaire hashé sans rebuild lorsque seuls les documents/outils
+ont changé. Aucune capture GPU qualifiante n'est encore acquise ; voir
+[preuve R1-037](docs/evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md). Les mentions plus anciennes
+« couche non enregistrée » décrivent désormais l'historique, pas un blocage courant.
 
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une

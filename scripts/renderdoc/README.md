@@ -56,13 +56,22 @@ flag `Indirect`, `indirect=true` et `indirect_resolved=true` concordent.
 
 Avant ce script, le host lance une copie nonce d'un miroir complet du bundle QRenderDoc 1.46. Son
 profil RoamingAppData jetable contient le seed analytics opt-out ; l'adaptateur confirme par
-`qrenderdoc.ConfigFilePath("UI.config")` le chemin et le SHA-256 exacts avant `ExecuteAndInject`.
+`qrenderdoc.ConfigFilePath("UI.config")` le chemin exact et l'opt-out booléen avant `ExecuteAndInject`.
+QRenderDoc 1.46 complète et sauvegarde les valeurs par défaut avant Python : la configuration chargée
+ne doit donc pas être comparée octet par octet au seed. Le host conserve les hashes seed/final distincts.
 Qt Core est épinglé à 5.15.2. Le profil nonce est supprimé par le host après conservation de la
 configuration finale ; le profil réel `qrenderdoc` doit garder la même empreinte.
 Le host recoupe aussi les 72 fichiers et 210 237 254 octets du bundle avec le manifeste d'extraction
 dont le SHA-256 est épinglé dans Forge. Il refuse tout fichier absent, altéré ou ajouté, tout
 chevauchement entre worktree, bundle, sortie et target Cargo, et ne supprime que les répertoires
 jetables dont il a acquis la propriété après une création réussie.
+
+Après un échec de l'outil externe, `Invoke-Gate1RenderDoc.ps1` peut reprendre le binaire existant avec
+`-ReuseRuntimeSourceCommit <40 hex>` et `-ReuseRuntimeSha256 <64 hex minuscules>` ensemble. Aucun
+build n'est lancé dans ce mode. Le commit doit être ancêtre du checkout propre et seuls les documents
+et scripts de capture peuvent différer ; tous les fichiers compilés, assets et manifests de build
+doivent être identiques. Le hash du binaire est vérifié avant et après les captures. Le reçu distingue
+le commit runtime compilé du commit de l'outillage de capture ; les quatre captures restent neuves.
 
 Le champ `instanced` concorde obligatoirement avec le flag `Instanced`. Pour une action réellement
 non instanciée, `instanced=false` et `num_instances=0` forment le sentinel normalisé et contribuent

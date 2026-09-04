@@ -7,8 +7,35 @@
 - Arbre de base : `4bfb863255dd865432093c5e7291287b8e78dc43`
 - Intégration durcie : `347d78264e52363c769e2f2807303d84c65ea946`
 - Arbre intégré : `4d6121f3dbc85fb090c1663c8257bee47c64300a`
-- Statut R1-037 : **OUVERTE — VALIDATIONS HORS GPU PASS, PRÉFLIGHT ARRÊTÉ SUR COUCHE VULKAN, CAPTURES NOT RUN**
+- Statut R1-037 : **OUVERTE — COUCHE VULKAN ENREGISTRÉE, BUILD PASS, PREMIER LANCEMENT ARRÊTÉ AVANT INJECTION**
 - Gate 1 : **OUVERTE**
+
+## Actualisation du 4 septembre 2026
+
+L'utilisateur a répondu « vas y » à la demande distincte d'enregistrement système de RenderDoc.
+Le binaire signé épinglé `renderdoccmd.exe vulkanlayer --register --system`, lancé sous UAC,
+retourne 0 ; `vulkanlayer --explain` confirme l'enregistrement. Deux valeurs DWORD 0 ont été ajoutées
+dans les clés Vulkan ImplicitLayers HKLM x64 et WOW6432Node, pointant vers `renderdoc.json` et
+`x86/renderdoc.json` du bundle externe. Les six valeurs OBS/Steam préexistantes sont conservées.
+Preuve externe :
+`E:\OpenRPG_Forge\.gate1-tools\evidence\r1-037-renderdoc-d6ec361-20260904T060000Z\host-registration.md`.
+
+Le run exact source `d6ec36107565bf26412141c84bdd20fe8d82654e` termine son unique build Release
+neuf, puis échoue avant injection dans `clear-01` :
+`QRenderDoc disposable UI.config seed changed before injection`. La configuration finale archivée
+montre les valeurs par défaut ajoutées par QRenderDoc 1.46 et `Analytics_TotalOptOut=true` conservé.
+Cet échec n'est ni un défaut du renderer ni une capture GPU ; aucune métrique n'est publiée.
+
+Le binaire externe `release/forge_runtime.exe` compte 82 668 032 octets ; son SHA-256 est
+`e7968d1efb6281be30bdcc5ac36b97f4d378783b488f3a637db4cf1baa79eda5`.
+Le garde contrôle désormais le chemin du profil chargé, sa version entière et l'opt-out booléen,
+sans confondre seed et configuration étendue. Les **22/22 tests Python PASS** couvrent cette
+réécriture, les mauvais types, l'opt-out absent/faux et le mauvais chemin. Le script PowerShell
+parse sans erreur. ADR-0009 documente la reprise explicite de ce binaire sans nouveau build :
+commit source et hash épinglés, diff des entrées compilées vide, provenance de l'outillage séparée.
+Les quatre captures restent dues. Aucun code moteur, audit PresentMon ou asset Cadle n'est modifié.
+
+Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné
 

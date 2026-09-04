@@ -306,28 +306,22 @@ def validate_automation_profile():
     import qrenderdoc
 
     config_environment = "FORGE_GATE1_RENDERDOC_PROFILE_CONFIG"
-    seed_environment = "FORGE_GATE1_RENDERDOC_PROFILE_SEED_SHA256"
     expected_path = Path(required_environment(config_environment)).resolve(strict=True)
-    expected_sha256 = required_environment(seed_environment)
-    validate_sha256(expected_sha256, "QRenderDoc profile seed SHA-256")
     actual_path = Path(str(qrenderdoc.ConfigFilePath("UI.config"))).resolve(strict=True)
     if os.path.normcase(str(actual_path)) != os.path.normcase(str(expected_path)):
         raise AdapterError("QRenderDoc did not load the governed disposable UI.config")
-    if sha256_file(actual_path) != expected_sha256:
-        raise AdapterError("QRenderDoc disposable UI.config seed changed before injection")
-    config = expect_exact_fields(
-        read_json(actual_path),
-        {"rdocConfigData", "Analytics_TotalOptOut"},
-        "QRenderDoc disposable UI.config seed",
-    )
+    # QRenderDoc expands and saves its configuration before executing Python.
+    # The host records the seed hash; here validate the loaded path and policy,
+    # not byte equality with the pre-launch seed.
+    config = read_json(actual_path)
     if (
-        isinstance(config["rdocConfigData"], bool)
-        or config["rdocConfigData"] != 1
-        or config["Analytics_TotalOptOut"] is not True
+        not isinstance(config, dict)
+        or type(config.get("rdocConfigData")) is not int
+        or config.get("rdocConfigData") != 1
+        or config.get("Analytics_TotalOptOut") is not True
     ):
         raise AdapterError("QRenderDoc disposable UI.config does not enforce analytics opt-out")
     os.environ.pop(config_environment, None)
-    os.environ.pop(seed_environment, None)
 
 
 def result_succeeded(result):

@@ -2,6 +2,8 @@
 
 Date : 2026-09-03
 Statut : **accepté pour le protocole ; acquisition GPU encore incomplète**
+Amendement du 4 septembre 2026 : couche Vulkan autorisée et enregistrée ; reprise sans rebuild et
+contrôle du profil QRenderDoc chargé corrigés après le premier lancement réel.
 Portée : branche `Rust`, Gate 1, route `R1-037`, Windows x64/Vulkan
 Complète : `ADR-0004-gate0-draw-call-telemetry-exception.md`
 
@@ -87,10 +89,19 @@ d'extraction externe dont l'empreinte est épinglée dans le manifeste Forge. Le
 sortie et target Cargo doivent être disjointes dans les deux sens. Le build Release neuf dispose d'une
 borne de 45 minutes, supérieure au temps de référence déjà observé à un job.
 
+Après un échec de capture externe, la reprise peut réutiliser le binaire déjà construit en épinglant
+explicitement son commit source et son SHA-256. Le commit source doit être ancêtre du checkout propre ;
+le diff Git exclut seulement les documents et scripts RenderDoc, et doit être vide pour tous les autres
+fichiers, notamment sources compilées, assets, Cargo.lock et manifestes. Aucun build n'est exécuté dans
+ce mode. Les reçus distinguent le commit du runtime et celui de l'outillage ; le binaire est recoupé
+avant/après, les quatre captures indépendantes restent requises et les échecs antérieurs sont conservés.
+
 QRenderDoc 1.46 charge `UI.config` avant ses scripts Python et embarque Qt Core 5.15.2. Comme
 `AppDataLocation` passe par le Known Folder Windows, le contrôleur miroir le bundle complet, lance
 une copie de l'exécutable nommée avec le nonce et précrée son profil jetable avec
-`Analytics_TotalOptOut=true`. L'adaptateur confirme le `ConfigFilePath` exact avant toute injection ;
+`Analytics_TotalOptOut=true`. L'adaptateur confirme le `ConfigFilePath` exact et l'opt-out booléen avant
+toute injection. QRenderDoc 1.46 complète et sauvegarde ce fichier avant Python : les hashes seed et
+final sont conservés séparément, sans imposer leur égalité ;
 le host conserve la configuration finale comme preuve, supprime le profil nonce en `finally` sous
 mutex global et exige que l'empreinte du vrai profil `qrenderdoc` soit inchangée. Cette route écrit
 transitoirement sous RoamingAppData, sans réutiliser ni modifier durablement le profil utilisateur.
@@ -105,8 +116,12 @@ le `Present` capturé. Le contrôleur écrit son signal et ses résultats atomiq
 propre au lancement.
 
 Le script d'acquisition Forge ne doit jamais enregistrer, réparer ni supprimer lui-même la couche
-Vulkan RenderDoc. Il vérifie seulement son état. L'enregistrement actuel étant absent, les captures
-restent bloquées jusqu'à une autorisation séparée et explicite.
+Vulkan RenderDoc. Il vérifie seulement son état. L'enregistrement absent au préflight du 3 septembre
+a été autorisé séparément par l'utilisateur (« vas y »), puis effectué le 4 septembre avec le binaire
+signé épinglé et `renderdoccmd vulkanlayer --register --system` : sortie 0 et `--explain` confirme
+l'enregistrement. Seules les deux valeurs RenderDoc x64/x86 ont été ajoutées ; les entrées OBS et
+Steam sont conservées. La capture elle-même ne modifie pas ce registre. Cette autorisation ne vaut
+pas validation humaine.
 
 ### Replay et enveloppe normalisée
 

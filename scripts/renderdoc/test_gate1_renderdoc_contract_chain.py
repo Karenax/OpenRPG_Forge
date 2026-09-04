@@ -516,9 +516,6 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
             config_path.write_bytes(encoded)
             environment = {
                 "FORGE_GATE1_RENDERDOC_PROFILE_CONFIG": str(config_path),
-                "FORGE_GATE1_RENDERDOC_PROFILE_SEED_SHA256": hashlib.sha256(
-                    encoded
-                ).hexdigest(),
             }
             module = types.SimpleNamespace(ConfigFilePath=lambda _name: str(config_path))
             with mock.patch.dict(sys.modules, {"qrenderdoc": module}), mock.patch.dict(
@@ -526,17 +523,45 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
             ):
                 validate()
                 self.assertNotIn("FORGE_GATE1_RENDERDOC_PROFILE_CONFIG", os.environ)
-                self.assertNotIn("FORGE_GATE1_RENDERDOC_PROFILE_SEED_SHA256", os.environ)
 
-            config_path.write_text(
-                '{"rdocConfigData":1,"Analytics_TotalOptOut":false}\n',
-                encoding="utf-8",
-            )
+            # Real QRenderDoc 1.46 saves expanded defaults before running Python.
+            expanded = {
+                "rdocConfigData": 1,
+                "Analytics_TotalOptOut": True,
+                "CheckUpdate_CurrentVersion": "1.46",
+                "ShaderProcessors": [],
+            }
+            config_path.write_text(json.dumps(expanded), encoding="utf-8")
             with mock.patch.dict(sys.modules, {"qrenderdoc": module}), mock.patch.dict(
                 os.environ, environment, clear=False
             ):
-                with self.assertRaises(adapter_error):
-                    validate()
+                validate()
+
+            for bad in (
+                {**expanded, "Analytics_TotalOptOut": False},
+                {**expanded, "Analytics_TotalOptOut": "true"},
+                {**expanded, "rdocConfigData": True},
+                {**expanded, "rdocConfigData": 1.0},
+                {"rdocConfigData": 1},
+                [],
+            ):
+                config_path.write_text(json.dumps(bad), encoding="utf-8")
+                with self.subTest(config=bad), mock.patch.dict(
+                    sys.modules, {"qrenderdoc": module}
+                ), mock.patch.dict(os.environ, environment, clear=False):
+                    with self.assertRaises(adapter_error):
+                        validate()
+
+            config_path.write_bytes(encoded)
+            other_path = Path(directory) / "other.config"
+            other_path.write_bytes(encoded)
+            wrong_module = types.SimpleNamespace(
+                ConfigFilePath=lambda _name: str(other_path)
+            )
+            with mock.patch.dict(sys.modules, {"qrenderdoc": wrong_module}), mock.patch.dict(
+                os.environ, environment, clear=False
+            ), self.assertRaises(adapter_error):
+                validate()
 
     def test_ready_validator_rejects_shape_tick_seed_and_binding_drift(self) -> None:
         namespace = _adapter_validation_namespace()
