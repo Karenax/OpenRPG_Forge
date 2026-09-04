@@ -152,11 +152,10 @@ fn ForgeDesktop() -> impl IntoView {
         message: RwSignal::new("Vos outils, dans un même atelier.".into()),
         workspace: create_workspace_actions(),
     };
-    install_resize_listener(controls);
+    install_desktop_listeners(controls);
     view! {
         <main class="forge-desktop" data-forge-mode="desktop" on:pointermove=move |event| controls.drag_to(&event)
-            on:pointerup=move |_| controls.drag.set(None) on:pointercancel=move |_| controls.drag.set(None)
-            on:keydown=move |event| desktop_key(controls, &event)>
+            on:pointerup=move |_| controls.drag.set(None) on:pointercancel=move |_| controls.drag.set(None)>
             <header class="desktop-menubar" aria-label="Menus Forge">
                 <span class="desktop-mark" aria-hidden="true">"◇"</span>
                 <DesktopMenu controls menu=Menu::Forge label="Forge"/>
@@ -403,7 +402,7 @@ fn desktop_size() -> (f64, f64) {
     )
 }
 
-fn install_resize_listener(controls: DesktopControls) {
+fn install_desktop_listeners(controls: DesktopControls) {
     let listener = Closure::<dyn FnMut()>::new(move || {
         let (width, height) = desktop_size();
         controls.drag.set(None);
@@ -418,6 +417,18 @@ fn install_resize_listener(controls: DesktopControls) {
     {
         // The single desktop owns the full page lifetime, like the existing Studio listeners.
         listener.forget();
+    }
+    // A completed command may disable its submit button and leave focus on the document body.
+    // Listen on the window, not just the desktop element, so shortcuts still work in that state.
+    let keyboard = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
+        desktop_key(controls, &event);
+    });
+    if let Some(window) = web_sys::window()
+        && window
+            .add_event_listener_with_callback("keydown", keyboard.as_ref().unchecked_ref())
+            .is_ok()
+    {
+        keyboard.forget();
     }
 }
 

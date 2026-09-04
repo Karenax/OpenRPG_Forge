@@ -1613,7 +1613,7 @@ mod web {
                     </aside>
                     <section class="viewport-panel" aria-label="Viewport 3D">
                         <div class="viewport-toolbar">
-                            <span>"Perspective"</span><span>"1920 × 1080"</span>
+                            <span>"Perspective"</span><span>{if embedded { "Dimensions adaptatives" } else { "1920 × 1080" }}</span>
                         </div>
                         <canvas id="forge-canvas" data-testid="forge-webgpu-canvas"></canvas>
                         {move || match webgpu_status.get() {
