@@ -16,6 +16,9 @@ import traceback
 
 import renderdoc as rd
 
+# QRenderDoc's embedded interpreter is not started with Python's -B option.
+sys.dont_write_bytecode = True
+
 
 READY_FILE = "gate1-renderdoc.ready.json"
 SIGNAL_FILE = "gate1-renderdoc.capture.signal.json"

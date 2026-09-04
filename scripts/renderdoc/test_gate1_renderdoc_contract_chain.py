@@ -638,6 +638,7 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
 
     def test_adapter_preserves_empty_runtime_output_before_injection(self) -> None:
         source = _ADAPTER_PATH.read_text(encoding="utf-8")
+        self.assertIn("sys.dont_write_bytecode = True", source[:source.index("def main():")])
         main_source = source[source.index("def main():"):]
         before_injection = main_source[:main_source.index("rd.ExecuteAndInject(")]
         self.assertNotIn("write_json_atomic(", before_injection)

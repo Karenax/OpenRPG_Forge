@@ -103,6 +103,16 @@ L'orchestrateur borne désormais `VK_IMPLICIT_LAYER_PATH` au miroir vérifié et
 uniquement dans les processus enfants. Aucune nouvelle mutation registre : OBS/Steam restent
 installés, mais leurs couches ne participent pas à cette capture isolée. ADR-0009 documente ce choix.
 
+La matrice `rd-single-8a1d9b6-20260904T071200Z` acquiert enfin quatre `.rdc` et quatre analyses
+**PASS**, Vulkan non dégradé, un Present chacune. Clair A/B : 195 draws, 195 instances soumises,
+280 981 triangles ; pluie A/B : 196 draws, 196 instances, 313 747 triangles. Les états figés et les
+compteurs concordent entre répétitions. Le verdict global reste toutefois **FAIL** : Python 3.8
+embarqué a créé `scripts/renderdoc/__pycache__/gate1_renderdoc_model.cpython-38.pyc` pendant l'import.
+Aucun fichier suivi n'a changé. Ce cache est déplacé dans la preuve externe, SHA-256
+`8b49ae7432421f1aae61d49d7d07d2263100e87affe8082db946f9a22ac6b421`, donc conservé et récupérable.
+L'adaptateur désactive explicitement l'écriture bytecode avant l'import du modèle. Une nouvelle
+matrice complète est requise pour obtenir aussi la garde Git finale PASS ; aucun rebuild Rust.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné
