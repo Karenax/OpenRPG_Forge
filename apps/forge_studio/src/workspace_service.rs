@@ -29,7 +29,7 @@ impl WorkspaceSession {
     pub fn area_preview_source(
         &self,
         request: crate::area_preview::AreaPreviewRequest,
-    ) -> Result<(forge_project::TerrainDocument, Vec3), String> {
+    ) -> Result<forge_project::WorkspaceArea, String> {
         self.require_revision(request.base_revision)?;
         let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
         if !request.key.exists(document) {
@@ -38,7 +38,7 @@ impl WorkspaceSession {
         let area = document
             .area(request.key.module_id, request.key.area_id)
             .ok_or("Zone introuvable.")?;
-        Ok((area.terrain.clone(), area.spawn))
+        Ok(area.clone())
     }
 
     pub fn execute(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
@@ -60,6 +60,19 @@ impl WorkspaceSession {
                 dry_run,
             } => {
                 return self.execute_material_brush(request, brush, &additional_centers, dry_run);
+            }
+            WorkspaceCommand::PaintVegetationDensity {
+                request,
+                brush,
+                additional_centers,
+                dry_run,
+            } => {
+                return self.execute_vegetation_density_brush(
+                    request,
+                    brush,
+                    &additional_centers,
+                    dry_run,
+                );
             }
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
@@ -194,6 +207,44 @@ impl WorkspaceSession {
         self.commit_edit(candidate.edit, receipt);
         self.state(format!(
             "Matériau peint : {samples} poids modifiés. Annulation disponible."
+        ))
+    }
+
+    fn execute_vegetation_density_brush(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::VegetationDensityBrush,
+        additional_centers: &[[f32; 2]],
+        dry_run: bool,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_vegetation_density_stroke(
+            document,
+            forge_world::VegetationDensityBrushCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                brush,
+            },
+            additional_centers,
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        let cells = candidate.changed_cells;
+        if dry_run {
+            let mut state = self.state(format!(
+                "Aperçu : {cells} cellules de densité végétale modifiées. Rien n’a été appliqué."
+            ))?;
+            state.last_receipt_json = Some(receipt);
+            return Ok(state);
+        }
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Densité végétale peinte : {cells} cellules modifiées. Annulation disponible."
         ))
     }
 
@@ -478,6 +529,8 @@ fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
     for module in &mut document.project.modules {
         for area in &mut module.areas {
             area.terrain.revision = document.revision;
+            area.vegetation.revision = document.revision;
+            area.vegetation_density.revision = document.revision;
         }
     }
 }

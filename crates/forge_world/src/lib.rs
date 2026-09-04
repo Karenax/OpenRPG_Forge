@@ -8,6 +8,8 @@ mod terrain;
 mod terrain_brush;
 mod terrain_generation;
 mod vegetation;
+mod vegetation_cache;
+mod vegetation_density_brush;
 mod water;
 mod weather;
 
@@ -49,6 +51,15 @@ pub use vegetation::{
     VegetationChunkId, VegetationGenerationError, VegetationGenerationPlan, VegetationInstance,
     VegetationInstanceId, VegetationKindCounts, VisualValleyVegetationRecipe,
     embedded_visual_valley_vegetation_document,
+};
+pub use vegetation_cache::{
+    VegetationRuntimeCache, VegetationRuntimeCacheError, VegetationRuntimeCacheKey,
+    VegetationRuntimeCacheUpdate,
+};
+pub use vegetation_density_brush::{
+    VegetationDensityBrush, VegetationDensityBrushCommand, VegetationDensityBrushError,
+    VegetationDensityBrushResult, preview_vegetation_density_brush,
+    preview_vegetation_density_stroke,
 };
 pub use water::{
     RiverCenterlineSample, VISUAL_VALLEY_WATER_JSON, VISUAL_VALLEY_WATER_SEED,

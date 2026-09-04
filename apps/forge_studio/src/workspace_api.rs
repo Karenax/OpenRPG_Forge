@@ -26,6 +26,14 @@ pub enum WorkspaceCommand {
         /// Preview computes the same candidate but leaves the session and its history intact.
         dry_run: bool,
     },
+    PaintVegetationDensity {
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::VegetationDensityBrush,
+        #[serde(default)]
+        additional_centers: Vec<[f32; 2]>,
+        /// Preview computes the same candidate but leaves the session and its history intact.
+        dry_run: bool,
+    },
     Current,
     Create {
         project_name: String,

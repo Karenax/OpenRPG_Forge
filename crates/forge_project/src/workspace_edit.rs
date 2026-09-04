@@ -3,8 +3,8 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    TerrainHeightDelta, TerrainMaterialWeightOverride, WorkspaceDocument, WorkspaceError,
-    WorkspaceModule,
+    TerrainHeightDelta, TerrainMaterialWeightOverride, VegetationDensityOverride,
+    VegetationLayerId, WorkspaceDocument, WorkspaceError, WorkspaceModule,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
@@ -33,6 +33,14 @@ pub enum WorkspaceChange {
         area_id: AreaId,
         expected_terrain_hash: ContentHash,
         material_weight_overrides: Vec<TerrainMaterialWeightOverride>,
+    },
+    /// Resolved sparse density patch for one vegetation recipe layer.
+    SetVegetationDensityOverrides {
+        module_id: ModuleId,
+        area_id: AreaId,
+        layer_id: VegetationLayerId,
+        expected_density_hash: ContentHash,
+        density_overrides: Vec<VegetationDensityOverride>,
     },
     AddModule {
         module_id: ModuleId,
@@ -147,6 +155,21 @@ impl WorkspaceDocument {
                 material_weight_overrides,
                 next,
             )?,
+            WorkspaceChange::SetVegetationDensityOverrides {
+                module_id,
+                area_id,
+                layer_id,
+                expected_density_hash,
+                density_overrides,
+            } => set_vegetation_density_overrides(
+                document,
+                *module_id,
+                *area_id,
+                layer_id,
+                *expected_density_hash,
+                density_overrides,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -194,28 +217,79 @@ impl WorkspaceDocument {
                 area_id,
                 name,
                 spawn,
-            } => {
-                let area = document
-                    .project
-                    .modules
-                    .iter_mut()
-                    .find(|m| m.id == *module_id)
-                    .ok_or(WorkspaceError::MissingTarget("module"))?
-                    .areas
-                    .iter_mut()
-                    .find(|a| a.id == *area_id)
-                    .ok_or(WorkspaceError::MissingTarget("area"))?;
-                if area.name == *name && area.spawn == *spawn {
-                    return Err(WorkspaceError::NoChange);
-                }
-                area.name.clone_from(name);
-                area.spawn = *spawn;
-                area.terrain.name.clone_from(name);
-                area.terrain.revision = next;
-            }
+            } => update_area_metadata(document, *module_id, *area_id, name, *spawn, next)?,
         }
         Ok(())
     }
+}
+
+fn update_area_metadata(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    name: &str,
+    spawn: Vec3,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.name == name && area.spawn == spawn {
+        return Err(WorkspaceError::NoChange);
+    }
+    name.clone_into(&mut area.name);
+    area.spawn = spawn;
+    name.clone_into(&mut area.terrain.name);
+    area.terrain.revision = revision;
+    name.clone_into(&mut area.vegetation.name);
+    area.vegetation.revision = revision;
+    name.clone_into(&mut area.vegetation_density.name);
+    area.vegetation_density.revision = revision;
+    Ok(())
+}
+
+fn set_vegetation_density_overrides(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    layer_id: &VegetationLayerId,
+    expected_hash: ContentHash,
+    overrides: &[VegetationDensityOverride],
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.vegetation_density.content_hash()? != expected_hash {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    let layer = area
+        .vegetation_density
+        .layers
+        .iter_mut()
+        .find(|layer| layer.layer_id == *layer_id)
+        .ok_or(WorkspaceError::MissingTarget("vegetation layer"))?;
+    if layer.overrides == overrides {
+        return Err(WorkspaceError::NoChange);
+    }
+    layer.overrides = overrides.to_vec();
+    area.vegetation_density.revision = revision;
+    area.vegetation_density.validate()?;
+    Ok(())
 }
 
 fn set_terrain_material_weights(

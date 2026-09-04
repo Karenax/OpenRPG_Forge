@@ -6,6 +6,10 @@
 use crate::{
     HeightSamplingAlgorithm, HeightSamplingParameters, TERRAIN_DOCUMENT_SCHEMA_VERSION,
     TerrainDocument, TerrainDocumentError, TerrainExtent, TerrainMaterialLayer,
+    TerrainMaterialLayerId, TerrainMaterialRole, VegetationCollisionProfile,
+    VegetationCollisionShape, VegetationDensityDocument, VegetationDensityError,
+    VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
+    VegetationKind, VegetationLayer, VegetationMaterialFilter, VegetationPresentationProfile,
 };
 use forge_core::{
     AreaId, CanonicalJsonError, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3,
@@ -15,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub const WORKSPACE_SCHEMA: &str = "forge.workspace";
-pub const WORKSPACE_SCHEMA_VERSION: u32 = 2;
+pub const WORKSPACE_SCHEMA_VERSION: u32 = 3;
 pub const MAX_WORKSPACE_MODULES: usize = 64;
 pub const MAX_WORKSPACE_AREAS: usize = 256;
 pub const MAX_WORKSPACE_JSON_BYTES: usize = 1_048_576;
@@ -39,7 +43,7 @@ pub struct NewProjectCommand {
     pub spawn: Vec3,
 }
 
-/// Canonical v2 model. Use `from_json` for explicit v1 import.
+/// Canonical v3 model. Use `from_json` for explicit v1/v2 import.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceDocument {
@@ -74,6 +78,8 @@ pub struct WorkspaceArea {
     /// Authored metadata only; creation neither snaps Y nor starts a gameplay controller.
     pub spawn: Vec3,
     pub terrain: TerrainDocument,
+    pub vegetation: VegetationDocument,
+    pub vegetation_density: VegetationDensityDocument,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -141,8 +147,9 @@ impl WorkspaceDocument {
             new_revision: document.revision,
             before_hash: None,
             after_hash,
-            summary: "Création : 1 projet, 1 module, 1 zone extérieure et son terrain source."
-                .to_owned(),
+            summary:
+                "Création : 1 projet, 1 module, 1 zone extérieure, terrain et végétation source."
+                    .to_owned(),
             inverse: WorkspaceCreationInverse::DiscardDraft {
                 expected_after_hash: after_hash,
             },
@@ -219,6 +226,37 @@ impl WorkspaceDocument {
                 {
                     return Err(WorkspaceError::UnsupportedTerrainShape);
                 }
+                let vegetation = &area.vegetation;
+                vegetation.validate()?;
+                if vegetation.project_id != self.project.id || vegetation.area_id != area.id {
+                    return Err(WorkspaceError::VegetationOwnershipMismatch);
+                }
+                if vegetation.revision.get() == 0 || vegetation.revision > self.revision {
+                    return Err(WorkspaceError::InvalidRevision("vegetation"));
+                }
+                if vegetation.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
+                    || vegetation.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
+                {
+                    return Err(WorkspaceError::UnsupportedVegetationShape);
+                }
+                let density = &area.vegetation_density;
+                density.validate()?;
+                if density.project_id != self.project.id || density.area_id != area.id {
+                    return Err(WorkspaceError::VegetationDensityOwnershipMismatch);
+                }
+                if density.revision.get() == 0 || density.revision > self.revision {
+                    return Err(WorkspaceError::InvalidRevision("vegetation_density"));
+                }
+                if density.cells_per_chunk_axis != vegetation.cells_per_chunk_axis
+                    || density.layers.len() != vegetation.layers.len()
+                    || !density
+                        .layers
+                        .iter()
+                        .zip(&vegetation.layers)
+                        .all(|(density, recipe)| density.layer_id == recipe.id)
+                {
+                    return Err(WorkspaceError::VegetationDensityRecipeMismatch);
+                }
             }
         }
         ensure_json_budget(serde_json::to_string_pretty(self)?.len())
@@ -275,13 +313,151 @@ pub(crate) fn new_exterior_area(
             TerrainMaterialLayer::new("ridge_rock", "Roche"),
         ],
     );
+    let vegetation = new_default_vegetation(project_id, area_id, revision, name.clone(), seed);
+    let vegetation_density = VegetationDensityDocument::new(
+        project_id,
+        area_id,
+        revision,
+        name.clone(),
+        vegetation.cells_per_chunk_axis,
+        vegetation
+            .layers
+            .iter()
+            .map(|layer| VegetationDensityLayer::new(layer.id.clone(), 0, vec![]))
+            .collect(),
+    );
     WorkspaceArea {
         id: area_id,
         name,
         kind: WorkspaceAreaKind::Exterior,
         spawn,
         terrain,
+        vegetation,
+        vegetation_density,
     }
+}
+
+#[allow(
+    clippy::too_many_lines,
+    reason = "the fixed, Forge-owned default keeps the complete declarative recipe together"
+)]
+fn new_default_vegetation(
+    project_id: ProjectId,
+    area_id: AreaId,
+    revision: Revision,
+    name: String,
+    seed: u64,
+) -> VegetationDocument {
+    let meadow_grass = || TerrainMaterialLayerId::new("meadow_grass");
+    VegetationDocument::new(
+        project_id,
+        area_id,
+        revision,
+        name,
+        seed,
+        VegetationExtent::new(AREA_SIZE_M, AREA_SIZE_M),
+        8,
+        vec![
+            VegetationLayer::new(
+                "forge_trees",
+                "Arbres Forge",
+                VegetationKind::Tree,
+                0.20,
+                2,
+                6.0,
+                0.8,
+                1.3,
+                0.625,
+                -40.0,
+                64.0,
+                Some(VegetationMaterialFilter::new(
+                    TerrainMaterialRole::Grass,
+                    meadow_grass(),
+                    0.25,
+                )),
+                Some(VegetationCollisionProfile {
+                    shape: VegetationCollisionShape::Capsule,
+                    radius_m: 0.45,
+                    height_m: 5.0,
+                    activation_distance_m: 96.0,
+                }),
+                0.35,
+            ),
+            VegetationLayer::new(
+                "forge_shrubs",
+                "Arbustes Forge",
+                VegetationKind::Shrub,
+                0.36,
+                2,
+                3.5,
+                0.65,
+                1.15,
+                0.901,
+                -40.0,
+                64.0,
+                Some(VegetationMaterialFilter::new(
+                    TerrainMaterialRole::Grass,
+                    meadow_grass(),
+                    0.18,
+                )),
+                None,
+                0.55,
+            ),
+            VegetationLayer::new(
+                "forge_ferns",
+                "Fougères Forge",
+                VegetationKind::Fern,
+                0.42,
+                2,
+                2.5,
+                0.75,
+                1.2,
+                0.532,
+                -40.0,
+                56.0,
+                Some(VegetationMaterialFilter::new(
+                    TerrainMaterialRole::Grass,
+                    meadow_grass(),
+                    0.45,
+                )),
+                None,
+                0.7,
+            ),
+            VegetationLayer::new(
+                "forge_grass",
+                "Nappes d'herbe Forge",
+                VegetationKind::Grass,
+                0.80,
+                4,
+                0.0,
+                0.7,
+                1.25,
+                0.782,
+                -40.0,
+                60.0,
+                Some(VegetationMaterialFilter::new(
+                    TerrainMaterialRole::Grass,
+                    meadow_grass(),
+                    0.35,
+                )),
+                None,
+                0.9,
+            ),
+        ],
+        vec![],
+        VegetationPresentationProfile {
+            near_lod_distance_m: 24.0,
+            medium_lod_distance_m: 72.0,
+            hlod_distance_m: 180.0,
+            cull_distance_m: 384.0,
+            shadow_distance_m: 128.0,
+            wind_strength: 0.6,
+            wind_speed_hz: 0.18,
+            interaction_radius_m: 2.5,
+            interaction_strength: 0.75,
+            grass_blades_per_patch: 64,
+        },
+    )
 }
 
 fn validate_name(field: &'static str, name: &str) -> Result<(), WorkspaceError> {
@@ -339,10 +515,18 @@ pub enum WorkspaceError {
     InvalidRevision(&'static str),
     #[error("terrain project/area identities do not match their workspace owners")]
     TerrainOwnershipMismatch,
+    #[error("vegetation project/area identities do not match their workspace owners")]
+    VegetationOwnershipMismatch,
+    #[error("vegetation density project/area identities do not match their workspace owners")]
+    VegetationDensityOwnershipMismatch,
     #[error(
         "workspace requires a current terrain schema, 512 m square, 2 m samples and three material layers"
     )]
     UnsupportedTerrainShape,
+    #[error("workspace requires a 512 metre square vegetation recipe")]
+    UnsupportedVegetationShape,
+    #[error("vegetation density grid/layers do not match the area's vegetation recipe")]
+    VegetationDensityRecipeMismatch,
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
     #[error("workspace collection limit exceeded or no module: {0}")]
@@ -359,6 +543,10 @@ pub enum WorkspaceError {
     NoChange,
     #[error("invalid workspace terrain: {0}")]
     Terrain(#[from] TerrainDocumentError),
+    #[error("invalid workspace vegetation: {0}")]
+    Vegetation(#[from] VegetationDocumentError),
+    #[error("invalid workspace vegetation density: {0}")]
+    VegetationDensity(#[from] VegetationDensityError),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -393,7 +581,8 @@ mod tests {
         let input = command();
         let created = WorkspaceDocument::create(input.clone()).unwrap();
         let document = &created.document;
-        let terrain = &document.project.modules[0].areas[0].terrain;
+        let area = &document.project.modules[0].areas[0];
+        let terrain = &area.terrain;
         assert_eq!(document.project.id, input.project_id);
         assert_eq!(document.project.modules[0].id, input.module_id);
         assert_eq!(document.project.modules[0].areas[0].id, input.area_id);
@@ -424,6 +613,28 @@ mod tests {
         assert!(terrain.height_deltas.is_empty());
         assert!(terrain.material_weight_overrides.is_empty());
         terrain.validate().unwrap();
+        assert_eq!(area.vegetation.project_id, input.project_id);
+        assert_eq!(area.vegetation.area_id, input.area_id);
+        assert_eq!(area.vegetation.revision, Revision::INITIAL);
+        assert_eq!(area.vegetation.seed, input.seed);
+        assert_eq!(area.vegetation.layers.len(), 4);
+        assert_eq!(
+            area.vegetation_density.cells_per_chunk_axis,
+            area.vegetation.cells_per_chunk_axis
+        );
+        assert_eq!(
+            area.vegetation_density.layers.len(),
+            area.vegetation.layers.len()
+        );
+        assert!(
+            area.vegetation_density
+                .layers
+                .iter()
+                .zip(&area.vegetation.layers)
+                .all(|(density, recipe)| density.layer_id == recipe.id
+                    && density.default_density == 0
+                    && density.overrides.is_empty())
+        );
         assert_ne!(
             terrain.project_id,
             ProjectId::deterministic("visual-valley-project")
@@ -666,6 +877,59 @@ mod tests {
     }
 
     #[test]
+    fn vegetation_recipe_and_density_must_share_workspace_ownership_revision_and_grid() {
+        let mut changed = document();
+        changed.project.modules[0].areas[0].vegetation.project_id =
+            ProjectId::deterministic("other-project");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::VegetationOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0]
+            .vegetation_density
+            .area_id = AreaId::deterministic("other-area");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::VegetationDensityOwnershipMismatch)
+        ));
+
+        for source in ["vegetation", "vegetation_density"] {
+            let mut changed = document();
+            if source == "vegetation" {
+                changed.project.modules[0].areas[0].vegetation.revision = Revision::new(2);
+            } else {
+                changed.project.modules[0].areas[0]
+                    .vegetation_density
+                    .revision = Revision::new(2);
+            }
+            assert!(matches!(
+                changed.validate(),
+                Err(WorkspaceError::InvalidRevision(actual)) if actual == source
+            ));
+        }
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0]
+            .vegetation_density
+            .layers
+            .swap(0, 1);
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::VegetationDensityRecipeMismatch)
+        ));
+        let mut changed = document();
+        changed.project.modules[0].areas[0]
+            .vegetation_density
+            .cells_per_chunk_axis = 4;
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::VegetationDensityRecipeMismatch)
+        ));
+    }
+
+    #[test]
     fn schemas_unknown_fields_and_future_area_kinds_fail_closed() {
         let mut value = serde_json::to_value(document()).unwrap();
         value["schema"] = json!("other.workspace");
@@ -674,10 +938,10 @@ mod tests {
             Err(WorkspaceError::InvalidSchema(_))
         ));
         value["schema"] = json!(WORKSPACE_SCHEMA);
-        value["schema_version"] = json!(3);
+        value["schema_version"] = json!(WORKSPACE_SCHEMA_VERSION + 1);
         assert!(matches!(
             WorkspaceDocument::from_json(&value.to_string()),
-            Err(WorkspaceError::UnsupportedVersion(3))
+            Err(WorkspaceError::UnsupportedVersion(version)) if version == WORKSPACE_SCHEMA_VERSION + 1
         ));
         for pointer in [
             "",
@@ -685,6 +949,8 @@ mod tests {
             "/project/modules/0",
             "/project/modules/0/areas/0",
             "/project/modules/0/areas/0/terrain",
+            "/project/modules/0/areas/0/vegetation",
+            "/project/modules/0/areas/0/vegetation_density",
         ] {
             let mut value = serde_json::to_value(document()).unwrap();
             value.pointer_mut(pointer).unwrap()["unknown_field"] = json!(true);
@@ -743,6 +1009,38 @@ mod tests {
         ));
         assert!(matches!(
             document.content_hash(),
+            Err(WorkspaceError::JsonBudgetExceeded { .. })
+        ));
+    }
+
+    #[test]
+    fn sparse_density_paint_stays_bounded_by_the_one_mib_workspace_budget() {
+        let mut document = document();
+        let area = &mut document.project.modules[0].areas[0];
+        area.vegetation_density.layers[3].overrides = (0_u16..64)
+            .flat_map(|cell_z| {
+                (0_u16..64).map(move |cell_x| {
+                    crate::VegetationDensityOverride::new(cell_x, cell_z, u8::MAX)
+                })
+            })
+            .collect();
+        let single_area_json = document.to_pretty_json().unwrap();
+        assert!(single_area_json.len() <= MAX_WORKSPACE_JSON_BYTES);
+
+        let template = document.project.modules[0].areas[0].clone();
+        document.project.modules[0].areas = (0..8)
+            .map(|index| {
+                let mut area = template.clone();
+                area.id = AreaId::deterministic(format!("density-budget-area-{index}"));
+                area.terrain.area_id = area.id;
+                area.vegetation.area_id = area.id;
+                area.vegetation_density.area_id = area.id;
+                area
+            })
+            .collect();
+        assert!(serde_json::to_string_pretty(&document).unwrap().len() > MAX_WORKSPACE_JSON_BYTES);
+        assert!(matches!(
+            document.validate(),
             Err(WorkspaceError::JsonBudgetExceeded { .. })
         ));
     }

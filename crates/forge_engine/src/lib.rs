@@ -70,7 +70,7 @@ pub use vegetation::{
     VegetationVisibilityAuditTicket, VegetationVisibilityBucket,
     VegetationVisibilityObservationStatus, VegetationVisibilityStats,
     VisualValleyVegetationExtension, VisualValleyVegetationMaterial, VisualValleyVegetationPlugin,
-    inspect_vegetation_projection,
+    inspect_area_vegetation_projection, inspect_vegetation_projection,
 };
 pub use visual_valley::{
     VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,

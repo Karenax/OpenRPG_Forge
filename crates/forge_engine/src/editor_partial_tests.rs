@@ -27,6 +27,7 @@ fn fixture() -> (World, EditorViewport, TerrainDocument, GeneratedTerrain) {
             area_id: document.area_id,
             revision: 1,
             terrain: terrain.clone(),
+            vegetation: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: None,
         });
@@ -61,6 +62,7 @@ fn partial(
             area_id: document.area_id,
             revision: 9,
             terrain: payload,
+            vegetation: None,
             spawn: [1.0, 3.0, 0.0],
             base_source_hash: Some(terrain.source_document_hash),
         },

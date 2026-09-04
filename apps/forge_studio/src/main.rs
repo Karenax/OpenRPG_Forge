@@ -32,6 +32,7 @@ async fn execute_studio_command(
         StudioCommand::Workspace {
             request: WorkspaceCommand::SculptTerrain { .. }
                 | WorkspaceCommand::PaintTerrainMaterial { .. }
+                | WorkspaceCommand::PaintVegetationDensity { .. }
         }
     ) {
         let session = Arc::clone(session.inner());
@@ -48,7 +49,7 @@ async fn execute_studio_command(
             Ok(session) => session.area_preview_source(request),
             Err(_) => Err("Session projet indisponible.".into()),
         };
-        let (document, spawn) = match source {
+        let area = match source {
             Ok(source) => source,
             Err(reason) => return Ok(StudioResponse::Rejected { reason }),
         };
@@ -60,7 +61,7 @@ async fn execute_studio_command(
                 preview_cache
                     .lock()
                     .map_err(|_| "Cache d’aperçu indisponible.".to_owned())?
-                    .prepare(request, &document, spawn, base_source_hash)
+                    .prepare(request, &area, base_source_hash)
             })
             .await
             {

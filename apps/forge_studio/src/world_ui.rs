@@ -15,7 +15,8 @@ use bevy::{
     window::{PresentMode, WindowResolution},
 };
 use forge_engine::editor_viewport::{
-    EditorTerrainRequest, EditorViewport, EditorViewportPlugin, EditorViewportStatus,
+    EditorTerrainRequest, EditorVegetationRequest, EditorViewport, EditorViewportPlugin,
+    EditorViewportStatus,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -67,15 +68,22 @@ impl WorldActions {
             return "Ouvrez une zone du projet pour afficher son terrain.".into();
         }
         if self.busy.get() {
-            return "Préparation native du terrain… Les sources restent éditables.".into();
+            return "Préparation native du terrain et de la végétation… Les sources restent éditables."
+                .into();
         }
         let status = self.status.get();
         if status.generation != self.generation.get() || status.chunks < 64 {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
         format!(
-            "Terrain du projet · r{} · 64 chunks · {} recalculés / {} conservés · boucle {:.1} ms",
-            status.revision, status.rebuilt_chunks, status.retained_chunks, status.frame_ms
+            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · boucle {:.1} ms",
+            status.revision,
+            status.rebuilt_chunks,
+            status.retained_chunks,
+            status.vegetation_instances,
+            status.vegetation_rebuilt_chunks,
+            status.vegetation_retained_chunks,
+            status.frame_ms
         )
     }
 }
@@ -100,6 +108,14 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         error: RwSignal::new(None),
         generation: RwSignal::new(0),
     };
+    install_tab_reconciliation(actions);
+    let wanted = area_preview_target(actions);
+    install_preview_updates(actions, wanted);
+    install_status_poll(actions);
+    actions
+}
+
+fn install_tab_reconciliation(actions: WorldActions) {
     Effect::new(move |_| {
         let document = actions.document.get();
         let before = actions.tabs.get_untracked();
@@ -109,23 +125,39 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
             actions.tabs.set(after);
         }
     });
-    let wanted = Memo::new(move |_| {
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+struct AreaPreviewTarget {
+    request: AreaPreviewRequest,
+    terrain_hash: forge_core::ContentHash,
+    vegetation_hash: forge_core::ContentHash,
+    vegetation_density_hash: forge_core::ContentHash,
+}
+
+fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>> {
+    Memo::new(move |_| {
         let key = actions.tabs.get().active?;
         let document = actions.document.get()?;
         if !key.exists(&document) {
             return None;
         }
         let area = document.area(key.module_id, key.area_id)?;
-        Some((
-            AreaPreviewRequest {
+        Some(AreaPreviewTarget {
+            request: AreaPreviewRequest {
                 key,
                 base_revision: document.revision.get(),
             },
-            area.terrain.content_hash().ok()?.to_string(),
-        ))
-    });
+            terrain_hash: area.terrain.content_hash().ok()?,
+            vegetation_hash: area.vegetation.content_hash().ok()?,
+            vegetation_density_hash: area.vegetation_density.content_hash().ok()?,
+        })
+    })
+}
+
+fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPreviewTarget>>) {
     Effect::new(move |_| {
-        actions.invalidate_projection(wanted.get().map(|(request, _)| request.key));
+        actions.invalidate_projection(wanted.get().map(|target| target.request.key));
     });
     let completed = RwSignal::new(0_u64);
     Effect::new(move |_| {
@@ -134,7 +166,7 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         if actions.busy.get() || completed.get() == generation {
             return;
         }
-        let Some((request, hash)) = target else {
+        let Some(target) = target else {
             return;
         };
         actions.busy.set(true);
@@ -152,17 +184,28 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
                 }
             });
         wasm_bindgen_futures::spawn_local(async move {
-            let result = fetch_preview(request, &hash, base_source_hash).await;
+            let result = fetch_preview(
+                target.request,
+                target.terrain_hash,
+                target.vegetation_hash,
+                target.vegetation_density_hash,
+                base_source_hash,
+            )
+            .await;
             if actions.generation.get_untracked() == generation {
                 match result {
                     Ok(preview) => {
                         if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
                             bridge.pending = Some(EditorTerrainRequest {
                                 generation,
-                                project_id: request.key.project_id,
-                                area_id: request.key.area_id,
-                                revision: request.base_revision,
+                                project_id: target.request.key.project_id,
+                                area_id: target.request.key.area_id,
+                                revision: target.request.base_revision,
                                 terrain: preview.terrain,
+                                vegetation: Some(EditorVegetationRequest {
+                                    generated: preview.vegetation,
+                                    density_source_hash: preview.vegetation_density_source_hash,
+                                }),
                                 spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
                                 base_source_hash: preview.base_source_hash,
                             });
@@ -176,8 +219,6 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
             actions.busy.set(false);
         });
     });
-    install_status_poll(actions);
-    actions
 }
 
 fn install_status_poll(actions: WorldActions) {
@@ -202,7 +243,9 @@ fn install_status_poll(actions: WorldActions) {
 
 async fn fetch_preview(
     request: AreaPreviewRequest,
-    hash: &str,
+    terrain_hash: forge_core::ContentHash,
+    vegetation_hash: forge_core::ContentHash,
+    vegetation_density_hash: forge_core::ContentHash,
     base_source_hash: Option<forge_core::ContentHash>,
 ) -> Result<crate::area_preview::AreaPreview, String> {
     match invoke_studio(StudioCommand::AreaPreview {
@@ -214,7 +257,11 @@ async fn fetch_preview(
         StudioResponse::AreaPreview { preview_json } => {
             let preview = read_area_preview(&preview_json)?;
             if preview.request != request
-                || preview.terrain.source_document_hash.to_string() != hash
+                || preview.terrain.source_document_hash != terrain_hash
+                || preview.vegetation.terrain_document_hash != terrain_hash
+                || preview.vegetation.vegetation_document_hash != vegetation_hash
+                || preview.vegetation_density_source_hash != vegetation_density_hash
+                || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)
             {

@@ -1,6 +1,8 @@
 use super::*;
 use crate::{
-    MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand, TerrainMaterialWeightOverride,
+    MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand, TerrainMaterialLayerId,
+    TerrainMaterialRole, TerrainMaterialWeightOverride, VegetationDensityError,
+    VegetationDensityOverride,
 };
 use forge_core::{ContentHash, ProjectId, Vec3};
 use serde_json::json;
@@ -31,11 +33,25 @@ fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut value = serde_json::to_value(document).unwrap();
     value["schema_version"] = json!(1);
     let mut module = value["project"]["modules"][0].clone();
-    let area = module["areas"][0].clone();
+    let mut area = module["areas"][0].clone();
+    area.as_object_mut().unwrap().remove("vegetation");
+    area.as_object_mut().unwrap().remove("vegetation_density");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     value["project"].as_object_mut().unwrap().remove("modules");
     value["project"]["module"] = module;
+    value.to_string()
+}
+
+fn legacy_v2_json(document: &WorkspaceDocument) -> String {
+    let mut value = serde_json::to_value(document).unwrap();
+    value["schema_version"] = json!(2);
+    for module in value["project"]["modules"].as_array_mut().unwrap() {
+        for area in module["areas"].as_array_mut().unwrap() {
+            area.as_object_mut().unwrap().remove("vegetation");
+            area.as_object_mut().unwrap().remove("vegetation_density");
+        }
+    }
     value.to_string()
 }
 #[test]
@@ -78,6 +94,78 @@ fn legacy_workspace_migrates_embedded_v1_and_v2_terrains_to_the_current_schema()
         assert!(terrain.material_weight_overrides.is_empty());
         assert_eq!((terrain.project_id, terrain.area_id), ids);
         assert_eq!((migrated.revision, terrain.revision), revisions);
+    }
+}
+
+#[test]
+fn workspace_v2_migration_preserves_authored_terrain_and_synthesizes_an_empty_mask() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let terrain_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    let authored = source
+        .preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: terrain_hash,
+                material_weight_overrides: vec![TerrainMaterialWeightOverride::new(
+                    128,
+                    128,
+                    [0.0, 1.0, 0.0],
+                )],
+            },
+        ))
+        .unwrap()
+        .document;
+    let json = legacy_v2_json(&authored);
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    let replay = WorkspaceDocument::from_json(&json).unwrap();
+    let migrated_area = migrated.area(module_id, area_id).unwrap();
+    let authored_area = authored.area(module_id, area_id).unwrap();
+
+    assert_eq!(migrated.revision, authored.revision);
+    assert_eq!(migrated_area.terrain, authored_area.terrain);
+    assert_eq!(migrated, replay);
+    assert_eq!(migrated_area.vegetation.seed, authored_area.terrain.seed);
+    assert_eq!(
+        migrated_area.vegetation.revision,
+        authored_area.terrain.revision
+    );
+    assert!(
+        migrated_area
+            .vegetation_density
+            .layers
+            .iter()
+            .all(|layer| layer.default_density == 0 && layer.overrides.is_empty())
+    );
+}
+
+#[test]
+fn legacy_migration_binds_the_default_recipe_to_the_preserved_grass_material_id() {
+    for serialize_legacy in [
+        legacy_json as fn(&WorkspaceDocument) -> String,
+        legacy_v2_json as fn(&WorkspaceDocument) -> String,
+    ] {
+        let mut legacy = source();
+        legacy.project.modules[0].areas[0].terrain.material_layers[0].id =
+            TerrainMaterialLayerId::new("legacy_green");
+
+        let migrated = WorkspaceDocument::from_json(&serialize_legacy(&legacy)).unwrap();
+        let area = &migrated.project.modules[0].areas[0];
+        assert!(area.vegetation.layers.iter().all(|layer| {
+            layer.material_filter.as_ref().is_none_or(|filter| {
+                filter.material_role != TerrainMaterialRole::Grass
+                    || filter.material_layer_id.as_str() == "legacy_green"
+            })
+        }));
+        assert_eq!(area.terrain.material_layers[0].id.as_str(), "legacy_green");
     }
 }
 
@@ -154,6 +242,15 @@ fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     assert_eq!(area.terrain.revision, next.revision);
     assert_eq!(area.terrain.seed, 73);
     assert_eq!(area.terrain.project_id, original.project.id);
+    assert_eq!(area.vegetation.revision, next.revision);
+    assert_eq!(area.vegetation.seed, 73);
+    assert_eq!(area.vegetation_density.revision, next.revision);
+    assert!(
+        area.vegetation_density
+            .layers
+            .iter()
+            .all(|layer| layer.default_density == 0 && layer.overrides.is_empty())
+    );
     assert!(next.area(original.project.modules[0].id, area_id).is_none());
     assert_eq!(
         WorkspaceDocument::from_json(&next.to_pretty_json().unwrap()).unwrap(),
@@ -180,8 +277,19 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     let area = result.area(module_id, area_id).unwrap();
     let old = source.area(module_id, area_id).unwrap();
     assert_eq!(area.name, area.terrain.name);
+    assert_eq!(area.name, area.vegetation.name);
+    assert_eq!(area.name, area.vegetation_density.name);
+    assert_eq!(area.terrain.revision, result.revision);
+    assert_eq!(area.vegetation.revision, result.revision);
+    assert_eq!(area.vegetation_density.revision, result.revision);
     assert_eq!(area.terrain.height_sampling, old.terrain.height_sampling);
     assert_eq!(area.terrain.seed, old.terrain.seed);
+    assert_eq!(area.vegetation.seed, old.vegetation.seed);
+    assert_eq!(area.vegetation.layers, old.vegetation.layers);
+    assert_eq!(
+        area.vegetation_density.layers,
+        old.vegetation_density.layers
+    );
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
@@ -425,6 +533,206 @@ fn material_weight_noop_is_rejected_and_success_invalidates_the_previous_hash() 
 }
 
 #[test]
+fn set_vegetation_density_is_pure_revisioned_reopenable_and_replayable_after_undo() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let area = source.area(module_id, area_id).unwrap();
+    let original_density_hash = area.vegetation_density.content_hash().unwrap();
+    let original_terrain_hash = area.terrain.content_hash().unwrap();
+    let original_recipe_hash = area.vegetation.content_hash().unwrap();
+    let layer_id = area.vegetation_density.layers[3].layer_id.clone();
+    let overrides = vec![
+        VegetationDensityOverride::new(31, 30, 96),
+        VegetationDensityOverride::new(32, 30, 192),
+        VegetationDensityOverride::new(31, 31, u8::MAX),
+    ];
+    let command = edit(
+        &source,
+        WorkspaceChange::SetVegetationDensityOverrides {
+            module_id,
+            area_id,
+            layer_id: layer_id.clone(),
+            expected_density_hash: original_density_hash,
+            density_overrides: overrides.clone(),
+        },
+    );
+
+    let result = source.preview_edit(command.clone()).unwrap();
+    let painted = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .vegetation_density
+            .layers[3]
+            .overrides
+            .is_empty()
+    );
+    assert_eq!(painted.vegetation_density.layers[3].overrides, overrides);
+    assert_eq!(
+        painted.vegetation_density.density_u8(&layer_id, 32, 30),
+        Some(192)
+    );
+    assert_eq!(
+        painted.vegetation_density.revision,
+        result.document.revision
+    );
+    assert_eq!(
+        painted.terrain.content_hash().unwrap(),
+        original_terrain_hash
+    );
+    assert_eq!(
+        painted.vegetation.content_hash().unwrap(),
+        original_recipe_hash
+    );
+    assert_eq!(result.receipt.before_hash, source_hash);
+    assert_eq!(
+        result.receipt.after_hash,
+        result.document.content_hash().unwrap()
+    );
+
+    let reopened =
+        WorkspaceDocument::from_json(&result.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, result.document);
+    let undone = *result.receipt.inverse_snapshot.clone();
+    assert_eq!(undone, source);
+    let redone = undone.preview_edit(command).unwrap();
+    assert_eq!(redone.document, result.document);
+    assert_eq!(redone.receipt.after_hash, result.receipt.after_hash);
+}
+
+#[test]
+fn set_vegetation_density_rejects_stale_hash_without_mutating_source() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let layer_id = source.area(module_id, area_id).unwrap().vegetation.layers[0]
+        .id
+        .clone();
+    let stale_hash = ContentHash::from_bytes([0x5A; 32]);
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationDensityOverrides {
+                module_id,
+                area_id,
+                layer_id,
+                expected_density_hash: stale_hash,
+                density_overrides: vec![VegetationDensityOverride::new(0, 0, 255)],
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+}
+
+#[test]
+fn set_vegetation_density_rejects_noncanonical_or_out_of_bounds_data() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let density = &source.area(module_id, area_id).unwrap().vegetation_density;
+    let density_hash = density.content_hash().unwrap();
+    let layer_id = density.layers[0].layer_id.clone();
+    let invalid_payloads = [
+        vec![VegetationDensityOverride::new(64, 0, 255)],
+        vec![
+            VegetationDensityOverride::new(1, 1, 255),
+            VegetationDensityOverride::new(0, 0, 255),
+        ],
+        vec![
+            VegetationDensityOverride::new(0, 0, 255),
+            VegetationDensityOverride::new(0, 0, 128),
+        ],
+        vec![VegetationDensityOverride::new(0, 0, 0)],
+    ];
+
+    for density_overrides in invalid_payloads {
+        assert!(matches!(
+            source.preview_edit(edit(
+                &source,
+                WorkspaceChange::SetVegetationDensityOverrides {
+                    module_id,
+                    area_id,
+                    layer_id: layer_id.clone(),
+                    expected_density_hash: density_hash,
+                    density_overrides,
+                },
+            )),
+            Err(WorkspaceError::VegetationDensity(
+                VegetationDensityError::CellOutOfBounds { .. }
+                    | VegetationDensityError::OverridesNotCanonical(_)
+                    | VegetationDensityError::RedundantOverride { .. }
+            ))
+        ));
+        assert_eq!(source.content_hash().unwrap(), source_hash);
+    }
+}
+
+#[test]
+fn vegetation_density_noop_is_rejected_and_a_success_invalidates_the_old_hash() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let density = &source.area(module_id, area_id).unwrap().vegetation_density;
+    let original_hash = density.content_hash().unwrap();
+    let layer_id = density.layers[0].layer_id.clone();
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationDensityOverrides {
+                module_id,
+                area_id,
+                layer_id: layer_id.clone(),
+                expected_density_hash: original_hash,
+                density_overrides: vec![],
+            },
+        )),
+        Err(WorkspaceError::NoChange)
+    ));
+    let painted = source
+        .preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationDensityOverrides {
+                module_id,
+                area_id,
+                layer_id: layer_id.clone(),
+                expected_density_hash: original_hash,
+                density_overrides: vec![VegetationDensityOverride::new(0, 0, 255)],
+            },
+        ))
+        .unwrap()
+        .document;
+    let painted_hash = painted
+        .area(module_id, area_id)
+        .unwrap()
+        .vegetation_density
+        .content_hash()
+        .unwrap();
+    assert_ne!(painted_hash, original_hash);
+    assert!(matches!(
+        painted.preview_edit(edit(
+            &painted,
+            WorkspaceChange::SetVegetationDensityOverrides {
+                module_id,
+                area_id,
+                layer_id,
+                expected_density_hash: original_hash,
+                density_overrides: vec![],
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+}
+
+#[test]
 fn oversized_material_patch_is_rejected_before_the_source_or_receipt_can_change() {
     let source = source();
     let source_hash = source.content_hash().unwrap();
@@ -552,10 +860,15 @@ fn collection_budgets_and_global_area_identity_are_validated() {
             let mut area = template.areas[0].clone();
             area.id = AreaId::deterministic(format!("area-{i}"));
             area.terrain.area_id = area.id;
+            area.vegetation.area_id = area.id;
+            area.vegetation_density.area_id = area.id;
             area
         })
         .collect();
-    document.validate().unwrap();
+    assert!(matches!(
+        document.validate(),
+        Err(WorkspaceError::JsonBudgetExceeded { .. })
+    ));
     document.project.modules[0]
         .areas
         .push(template.areas[0].clone());

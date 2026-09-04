@@ -8,10 +8,10 @@ use forge_core::{
 };
 use forge_project::{
     TerrainDocument, TerrainMaterialLayerId, TerrainMaterialRole, VEGETATION_CHUNK_SIZE_M,
-    VegetationCollisionProfile, VegetationCollisionShape, VegetationDocument,
-    VegetationDocumentError, VegetationExclusion, VegetationExclusionId, VegetationExtent,
-    VegetationKind, VegetationLayer, VegetationLayerId, VegetationMaterialFilter,
-    VegetationPresentationProfile,
+    VegetationCollisionProfile, VegetationCollisionShape, VegetationDensityDocument,
+    VegetationDensityError, VegetationDocument, VegetationDocumentError, VegetationExclusion,
+    VegetationExclusionId, VegetationExtent, VegetationKind, VegetationLayer, VegetationLayerId,
+    VegetationMaterialFilter, VegetationPresentationProfile,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -321,6 +321,7 @@ impl GeneratedVegetation {
 pub struct VegetationGenerationPlan {
     terrain: TerrainGenerationPlan,
     vegetation: VegetationDocument,
+    vegetation_density: Option<VegetationDensityDocument>,
     vegetation_document_hash: ContentHash,
     material_filter_indices: Vec<Option<usize>>,
     cells_per_axis: u16,
@@ -332,7 +333,52 @@ impl VegetationGenerationPlan {
         terrain: &TerrainDocument,
         vegetation: &VegetationDocument,
     ) -> Result<Self, VegetationGenerationError> {
+        Self::from_documents_internal(terrain, vegetation, None)
+    }
+
+    /// Builds a plan whose deterministic attempts are thinned by the canonical spatial density.
+    ///
+    /// The existing [`Self::from_documents`] path remains equivalent to a full-density mask so
+    /// existing callers and generated caches retain their exact behaviour.
+    pub fn from_documents_with_density(
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+        vegetation_density: &VegetationDensityDocument,
+    ) -> Result<Self, VegetationGenerationError> {
+        Self::from_documents_internal(terrain, vegetation, Some(vegetation_density))
+    }
+
+    fn from_documents_internal(
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+        vegetation_density: Option<&VegetationDensityDocument>,
+    ) -> Result<Self, VegetationGenerationError> {
         vegetation.validate()?;
+        if let Some(density) = vegetation_density {
+            // The standalone density contract includes its canonical JSON budget. Generation must
+            // not accept a value that its owning document cannot hash or persist.
+            let _density_document_hash = density.content_hash()?;
+            if density.project_id != vegetation.project_id {
+                return Err(VegetationGenerationError::DensityProjectIdentityMismatch);
+            }
+            if density.area_id != vegetation.area_id {
+                return Err(VegetationGenerationError::DensityAreaIdentityMismatch);
+            }
+            if density.cells_per_chunk_axis != vegetation.cells_per_chunk_axis {
+                return Err(VegetationGenerationError::DensityGridMismatch {
+                    vegetation_cells_per_chunk_axis: vegetation.cells_per_chunk_axis,
+                    density_cells_per_chunk_axis: density.cells_per_chunk_axis,
+                });
+            }
+            if !density
+                .layers
+                .iter()
+                .map(|layer| &layer.layer_id)
+                .eq(vegetation.layers.iter().map(|layer| &layer.id))
+            {
+                return Err(VegetationGenerationError::DensityLayerMismatch);
+            }
+        }
         let terrain = TerrainGenerationPlan::from_document(terrain)?;
         if terrain.document().project_id != vegetation.project_id {
             return Err(VegetationGenerationError::ProjectIdentityMismatch);
@@ -370,6 +416,7 @@ impl VegetationGenerationPlan {
             terrain,
             vegetation_document_hash: vegetation.content_hash()?,
             vegetation: vegetation.clone(),
+            vegetation_density: vegetation_density.cloned(),
             material_filter_indices,
             cells_per_axis: vegetation.cells_per_chunk_axis * TERRAIN_CHUNKS_PER_AXIS,
             generated: OnceLock::new(),
@@ -494,7 +541,17 @@ impl VegetationGenerationPlan {
             cell_z,
             attempt,
         );
-        if unit_f64(entropy, 0) >= f64::from(layer.acceptance_probability) {
+        let density = self.vegetation_density.as_ref().map_or(u8::MAX, |density| {
+            density
+                .density_u8(&layer.id, cell_x, cell_z)
+                .unwrap_or_default()
+        });
+        let effective_acceptance_probability = if density == u8::MAX {
+            f64::from(layer.acceptance_probability)
+        } else {
+            f64::from(layer.acceptance_probability) * f64::from(density) / f64::from(u8::MAX)
+        };
+        if unit_f64(entropy, 0) >= effective_acceptance_probability {
             return Ok(None);
         }
 
@@ -750,12 +807,27 @@ fn exclusion_contains(exclusion: &VegetationExclusion, x_m: f32, z_m: f32) -> bo
 pub enum VegetationGenerationError {
     #[error("vegetation document is invalid: {0}")]
     InvalidVegetationDocument(#[from] VegetationDocumentError),
+    #[error("vegetation density document is invalid: {0}")]
+    InvalidVegetationDensityDocument(#[from] VegetationDensityError),
     #[error("terrain document is invalid or unsupported: {0}")]
     InvalidTerrain(#[from] TerrainGenerationError),
     #[error("terrain and vegetation project identities do not match")]
     ProjectIdentityMismatch,
     #[error("terrain and vegetation area identities do not match")]
     AreaIdentityMismatch,
+    #[error("vegetation recipe and density project identities do not match")]
+    DensityProjectIdentityMismatch,
+    #[error("vegetation recipe and density area identities do not match")]
+    DensityAreaIdentityMismatch,
+    #[error(
+        "vegetation recipe uses {vegetation_cells_per_chunk_axis} cells per chunk, but its density mask uses {density_cells_per_chunk_axis}"
+    )]
+    DensityGridMismatch {
+        vegetation_cells_per_chunk_axis: u16,
+        density_cells_per_chunk_axis: u16,
+    },
+    #[error("vegetation recipe and density layers do not match exactly or canonically")]
+    DensityLayerMismatch,
     #[error("terrain and vegetation extents do not match")]
     ExtentMismatch,
     #[error(
@@ -777,8 +849,8 @@ pub enum VegetationGenerationError {
 mod tests {
     use super::*;
     use crate::VisualValleyTerrainRecipe;
-    use forge_project::TerrainHeightDelta;
-    use std::collections::HashSet;
+    use forge_project::{TerrainHeightDelta, VegetationDensityLayer, VegetationDensityOverride};
+    use std::collections::{BTreeSet, HashSet};
 
     fn documents() -> (TerrainDocument, VegetationDocument) {
         (
@@ -790,6 +862,65 @@ mod tests {
     fn plan() -> VegetationGenerationPlan {
         let (terrain, vegetation) = documents();
         VegetationGenerationPlan::from_documents(&terrain, &vegetation).unwrap()
+    }
+
+    fn deterministic_grass_recipe(mut vegetation: VegetationDocument) -> VegetationDocument {
+        let mut grass = vegetation.layers.pop().unwrap();
+        grass.acceptance_probability = 1.0;
+        grass.attempts_per_cell = 1;
+        grass.minimum_spacing_m = 0.0;
+        grass.maximum_slope_gradient = 16.0;
+        grass.minimum_altitude_m = -10_000.0;
+        grass.maximum_altitude_m = 10_000.0;
+        grass.material_filter = None;
+        vegetation.layers = vec![grass];
+        vegetation.exclusions.clear();
+        vegetation
+    }
+
+    fn density_document(
+        vegetation: &VegetationDocument,
+        default_density: u8,
+        overrides: Vec<VegetationDensityOverride>,
+    ) -> VegetationDensityDocument {
+        VegetationDensityDocument::new(
+            vegetation.project_id,
+            vegetation.area_id,
+            vegetation.revision,
+            "Test vegetation density",
+            vegetation.cells_per_chunk_axis,
+            vec![VegetationDensityLayer::new(
+                vegetation.layers[0].id.clone(),
+                default_density,
+                overrides,
+            )],
+        )
+    }
+
+    fn cell_coordinate(value_m: f32, origin_m: f32, cell_size_m: f32, cells: u16) -> u16 {
+        (0..cells)
+            .find(|cell| {
+                let minimum = origin_m + f32::from(*cell) * cell_size_m;
+                (minimum..minimum + cell_size_m).contains(&value_m)
+            })
+            .unwrap()
+    }
+
+    fn instance_cell(generated: &GeneratedVegetation, instance: &VegetationInstance) -> (u16, u16) {
+        (
+            cell_coordinate(
+                instance.position_m.x,
+                generated.origin_xz_m[0],
+                generated.cell_size_m,
+                generated.cells_per_axis,
+            ),
+            cell_coordinate(
+                instance.position_m.z,
+                generated.origin_xz_m[1],
+                generated.cell_size_m,
+                generated.cells_per_axis,
+            ),
+        )
     }
 
     #[test]
@@ -904,6 +1035,187 @@ mod tests {
                 .unwrap()
                 .id
         );
+    }
+
+    #[test]
+    fn full_density_mask_preserves_the_existing_api_bit_exactly() {
+        let (terrain, vegetation) = documents();
+        let legacy = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let density = VegetationDensityDocument::new(
+            vegetation.project_id,
+            vegetation.area_id,
+            vegetation.revision,
+            "Full vegetation density",
+            vegetation.cells_per_chunk_axis,
+            vegetation
+                .layers
+                .iter()
+                .map(|layer| VegetationDensityLayer::new(layer.id.clone(), u8::MAX, vec![]))
+                .collect(),
+        );
+        let explicit =
+            VegetationGenerationPlan::from_documents_with_density(&terrain, &vegetation, &density)
+                .unwrap()
+                .generate()
+                .unwrap();
+
+        assert_eq!(explicit, legacy);
+        assert_eq!(
+            explicit.content_hash().unwrap(),
+            legacy.content_hash().unwrap()
+        );
+    }
+
+    #[test]
+    fn density_layers_must_match_the_recipe_exactly_and_in_order() {
+        let (terrain, vegetation) = documents();
+        let density = VegetationDensityDocument::new(
+            vegetation.project_id,
+            vegetation.area_id,
+            vegetation.revision,
+            "Test vegetation density",
+            vegetation.cells_per_chunk_axis,
+            vegetation
+                .layers
+                .iter()
+                .map(|layer| VegetationDensityLayer::new(layer.id.clone(), 0, vec![]))
+                .collect(),
+        );
+
+        let mut missing = density.clone();
+        missing.layers.pop();
+        assert!(matches!(
+            VegetationGenerationPlan::from_documents_with_density(&terrain, &vegetation, &missing),
+            Err(VegetationGenerationError::DensityLayerMismatch)
+        ));
+
+        let mut additional = density.clone();
+        additional.layers.push(VegetationDensityLayer::new(
+            VegetationLayerId::new("extra_layer"),
+            0,
+            vec![],
+        ));
+        assert!(matches!(
+            VegetationGenerationPlan::from_documents_with_density(
+                &terrain,
+                &vegetation,
+                &additional
+            ),
+            Err(VegetationGenerationError::DensityLayerMismatch)
+        ));
+
+        let mut reordered = density;
+        reordered.layers.reverse();
+        assert!(matches!(
+            VegetationGenerationPlan::from_documents_with_density(
+                &terrain,
+                &vegetation,
+                &reordered
+            ),
+            Err(VegetationGenerationError::DensityLayerMismatch)
+        ));
+    }
+
+    #[test]
+    fn density_mask_replay_is_identical_and_another_seed_diverges() {
+        let (terrain, vegetation) = documents();
+        let vegetation = deterministic_grass_recipe(vegetation);
+        let density = density_document(&vegetation, 128, vec![]);
+        let first =
+            VegetationGenerationPlan::from_documents_with_density(&terrain, &vegetation, &density)
+                .unwrap()
+                .generate()
+                .unwrap();
+        let replay =
+            VegetationGenerationPlan::from_documents_with_density(&terrain, &vegetation, &density)
+                .unwrap()
+                .generate()
+                .unwrap();
+        assert!(first.kind_counts.grass_patches > 0);
+        assert!(
+            first.kind_counts.grass_patches < u32::from(first.cells_per_axis).pow(2),
+            "an intermediate density must thin the full-density attempts"
+        );
+        assert_eq!(first, replay);
+        assert_eq!(
+            first.content_hash().unwrap(),
+            replay.content_hash().unwrap()
+        );
+
+        let changed = VegetationDocument {
+            seed: vegetation.seed + 1,
+            ..vegetation
+        };
+        let changed =
+            VegetationGenerationPlan::from_documents_with_density(&terrain, &changed, &density)
+                .unwrap()
+                .generate()
+                .unwrap();
+        assert_ne!(first, changed);
+        assert_ne!(
+            first.content_hash().unwrap(),
+            changed.content_hash().unwrap()
+        );
+    }
+
+    #[test]
+    fn local_density_selects_cells_and_preserves_survivor_order() {
+        let (terrain, vegetation) = documents();
+        let vegetation = deterministic_grass_recipe(vegetation);
+        let full_density = density_document(&vegetation, u8::MAX, vec![]);
+        let selected_cells = BTreeSet::from([(0, 0), (1, 0), (0, 1)]);
+        let local_density = density_document(
+            &vegetation,
+            0,
+            vec![
+                VegetationDensityOverride::new(0, 0, u8::MAX),
+                VegetationDensityOverride::new(1, 0, u8::MAX),
+                VegetationDensityOverride::new(0, 1, u8::MAX),
+            ],
+        );
+        let full = VegetationGenerationPlan::from_documents_with_density(
+            &terrain,
+            &vegetation,
+            &full_density,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        let local = VegetationGenerationPlan::from_documents_with_density(
+            &terrain,
+            &vegetation,
+            &local_density,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+
+        assert_eq!(local.kind_counts.grass_patches, 3);
+        let actual_cells = local
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .map(|instance| instance_cell(&local, instance))
+            .collect::<BTreeSet<_>>();
+        assert_eq!(actual_cells, selected_cells);
+
+        let expected_order = full
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .filter(|instance| selected_cells.contains(&instance_cell(&full, instance)))
+            .cloned()
+            .collect::<Vec<_>>();
+        let actual_order = local
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .cloned()
+            .collect::<Vec<_>>();
+        assert_eq!(actual_order, expected_order);
     }
 
     #[test]

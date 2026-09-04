@@ -1,10 +1,11 @@
-//! Read-only structural migration. Revisions and IDs are preserved; embedded terrain documents are
-//! upgraded only by adding the current empty authoring layers.
+//! Read-only structural migrations. Existing IDs, revisions, metadata and authored terrain are
+//! preserved. Workspace v1/v2 areas gain deterministic Forge-owned vegetation recipes and empty
+//! density masks, so reopening an old area does not add visible vegetation.
 use crate::{
-    WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceDocument, WorkspaceError, WorkspaceModule,
-    WorkspaceProject,
+    TerrainDocument, WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceAreaKind, WorkspaceDocument,
+    WorkspaceError, WorkspaceModule, WorkspaceProject,
 };
-use forge_core::{ModuleId, ProjectId, Revision};
+use forge_core::{AreaId, ModuleId, ProjectId, Revision, Vec3};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -20,6 +21,7 @@ struct V1 {
     revision: Revision,
     project: ProjectV1,
 }
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ProjectV1 {
@@ -27,39 +29,134 @@ struct ProjectV1 {
     name: String,
     module: ModuleV1,
 }
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ModuleV1 {
     id: ModuleId,
     name: String,
-    area: WorkspaceArea,
+    area: AreaV1V2,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct V2 {
+    schema: String,
+    schema_version: u32,
+    revision: Revision,
+    project: ProjectV2,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ProjectV2 {
+    id: ProjectId,
+    name: String,
+    modules: Vec<ModuleV2>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ModuleV2 {
+    id: ModuleId,
+    name: String,
+    areas: Vec<AreaV1V2>,
+}
+
+/// Exact pre-v3 area shape. Do not type legacy snapshots as the current `WorkspaceArea`.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AreaV1V2 {
+    id: AreaId,
+    name: String,
+    kind: WorkspaceAreaKind,
+    spawn: Vec3,
+    terrain: TerrainDocument,
 }
 
 pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
     // Inspect only the version, then deserialize the original bytes strictly. Parsing through
     // Value would discard duplicate keys before the actual schema had a chance to reject them.
     match serde_json::from_str::<Version>(json)?.schema_version {
-        1 => {
-            let old: V1 = serde_json::from_str(json)?;
-            debug_assert_eq!(old.schema_version, 1);
-            migrate_terrains(WorkspaceDocument {
-                schema: old.schema,
-                schema_version: WORKSPACE_SCHEMA_VERSION,
-                revision: old.revision,
-                project: WorkspaceProject {
-                    id: old.project.id,
-                    name: old.project.name,
-                    modules: vec![WorkspaceModule {
-                        id: old.project.module.id,
-                        name: old.project.module.name,
-                        areas: vec![old.project.module.area],
-                    }],
-                },
-            })
-        }
+        1 => migrate_v1(serde_json::from_str(json)?),
+        2 => migrate_v2(serde_json::from_str(json)?),
         WORKSPACE_SCHEMA_VERSION => migrate_terrains(serde_json::from_str(json)?),
         version => Err(WorkspaceError::UnsupportedVersion(version)),
     }
+}
+
+fn migrate_v1(old: V1) -> Result<WorkspaceDocument, WorkspaceError> {
+    debug_assert_eq!(old.schema_version, 1);
+    let project_id = old.project.id;
+    Ok(WorkspaceDocument {
+        schema: old.schema,
+        schema_version: WORKSPACE_SCHEMA_VERSION,
+        revision: old.revision,
+        project: WorkspaceProject {
+            id: project_id,
+            name: old.project.name,
+            modules: vec![WorkspaceModule {
+                id: old.project.module.id,
+                name: old.project.module.name,
+                areas: vec![migrate_area(project_id, old.project.module.area)?],
+            }],
+        },
+    })
+}
+
+fn migrate_v2(old: V2) -> Result<WorkspaceDocument, WorkspaceError> {
+    debug_assert_eq!(old.schema_version, 2);
+    let project_id = old.project.id;
+    let modules = old
+        .project
+        .modules
+        .into_iter()
+        .map(|module| {
+            Ok(WorkspaceModule {
+                id: module.id,
+                name: module.name,
+                areas: module
+                    .areas
+                    .into_iter()
+                    .map(|area| migrate_area(project_id, area))
+                    .collect::<Result<Vec<_>, WorkspaceError>>()?,
+            })
+        })
+        .collect::<Result<Vec<_>, WorkspaceError>>()?;
+    Ok(WorkspaceDocument {
+        schema: old.schema,
+        schema_version: WORKSPACE_SCHEMA_VERSION,
+        revision: old.revision,
+        project: WorkspaceProject {
+            id: project_id,
+            name: old.project.name,
+            modules,
+        },
+    })
+}
+
+fn migrate_area(project_id: ProjectId, old: AreaV1V2) -> Result<WorkspaceArea, WorkspaceError> {
+    let terrain = old.terrain.migrate_to_latest()?;
+    let mut area = super::workspace::new_exterior_area(
+        project_id,
+        old.id,
+        terrain.revision,
+        old.name,
+        terrain.seed,
+        old.spawn,
+    );
+    area.kind = old.kind;
+    area.terrain = terrain;
+    // Legacy terrain material IDs were author-defined. Keep the synthesized Forge recipe bound to
+    // the preserved semantic role instead of assuming the current default `meadow_grass` ID.
+    for layer in &mut area.vegetation.layers {
+        if let Some(filter) = &mut layer.material_filter {
+            filter.material_layer_id = area.terrain.material_layers[filter.material_role.index()]
+                .id
+                .clone();
+        }
+    }
+    Ok(area)
 }
 
 fn migrate_terrains(mut workspace: WorkspaceDocument) -> Result<WorkspaceDocument, WorkspaceError> {

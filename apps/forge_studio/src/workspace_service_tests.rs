@@ -176,6 +176,40 @@ fn material_brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCom
     }
 }
 
+fn vegetation_density_brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCommand {
+    let source = document(state);
+    let area = &source.project.modules[0].areas[0];
+    let layer_id = area
+        .vegetation
+        .layers
+        .iter()
+        .find(|layer| layer.kind == forge_project::VegetationKind::Grass)
+        .unwrap()
+        .id
+        .clone();
+    WorkspaceCommand::PaintVegetationDensity {
+        additional_centers: vec![[16.0, 0.0], [32.0, 0.0]],
+        request: crate::area_preview::AreaPreviewRequest {
+            key: crate::area_tabs::AreaKey {
+                project_id: source.project.id,
+                module_id: source.project.modules[0].id,
+                area_id: area.id,
+            },
+            base_revision: state.revision,
+        },
+        brush: forge_world::VegetationDensityBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: 20.0,
+            strength: 0.75,
+            target_density: u8::MAX,
+            layer_id,
+        },
+        dry_run,
+    }
+}
+
 #[test]
 fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
     let directory = TestDirectory::new();
@@ -333,6 +367,179 @@ fn material_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
 }
 
 #[test]
+fn vegetation_density_dry_run_matches_the_canonical_apply() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let source = document(&created);
+    let module_id = source.project.modules[0].id;
+    let before = session
+        .execute(WorkspaceCommand::AddArea {
+            base_revision: created.revision,
+            module_id,
+            name: "Zone témoin".into(),
+            seed: "9".into(),
+            spawn_x: "0".into(),
+            spawn_y: "0".into(),
+            spawn_z: "0".into(),
+        })
+        .unwrap();
+    let before_document = document(&before);
+    let other_area = before_document.project.modules[0].areas[1].clone();
+
+    let ipc_command = vegetation_density_brush_command(&before, true);
+    assert_eq!(
+        serde_json::from_str::<WorkspaceCommand>(&serde_json::to_string(&ipc_command).unwrap())
+            .unwrap(),
+        ipc_command
+    );
+    let preview = session
+        .execute(vegetation_density_brush_command(&before, true))
+        .unwrap();
+    let unchanged = current(&mut session);
+    assert_eq!(unchanged.document_json, before.document_json);
+    assert_eq!(unchanged.revision, before.revision);
+    assert_eq!(unchanged.last_receipt_json, before.last_receipt_json);
+    assert_eq!(
+        (unchanged.can_undo, unchanged.can_redo, unchanged.dirty),
+        (before.can_undo, before.can_redo, before.dirty)
+    );
+    let predicted: forge_world::VegetationDensityBrushResult =
+        serde_json::from_str(preview.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert!(predicted.changed_cells > 1);
+
+    let applied = session
+        .execute(vegetation_density_brush_command(&before, false))
+        .unwrap();
+    let accepted: forge_world::VegetationDensityBrushResult =
+        serde_json::from_str(applied.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert_eq!(applied.revision, before.revision + 1);
+    assert_eq!(accepted.edit.document, predicted.edit.document);
+    assert_eq!(
+        accepted.edit.receipt.after_hash,
+        predicted.edit.receipt.after_hash
+    );
+    assert_eq!(
+        accepted.edit.receipt.inverse_snapshot.as_ref(),
+        &before_document
+    );
+    let applied_document = document(&applied);
+    assert_eq!(applied_document.project.modules[0].areas[1], other_area);
+    let layer_id = accepted.command.brush.layer_id.clone();
+    let density_layer = applied_document.project.modules[0].areas[0]
+        .vegetation_density
+        .layers
+        .iter()
+        .find(|layer| layer.layer_id == layer_id)
+        .unwrap();
+    let modified = density_layer.overrides.clone();
+    assert!(!modified.is_empty());
+    assert!(
+        modified
+            .iter()
+            .all(|entry| entry.density() != density_layer.default_density)
+    );
+    assert!(modified.windows(2).all(|pair| {
+        (pair[0].cell_z(), pair[0].cell_x()) < (pair[1].cell_z(), pair[1].cell_x())
+    }));
+}
+
+#[test]
+fn vegetation_density_history_and_reopen_preserve_exact_sources() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let source = document(&created);
+    let module_id = source.project.modules[0].id;
+    session
+        .execute(WorkspaceCommand::AddArea {
+            base_revision: created.revision,
+            module_id,
+            name: "Zone témoin".into(),
+            seed: "9".into(),
+            spawn_x: "0".into(),
+            spawn_y: "0".into(),
+            spawn_z: "0".into(),
+        })
+        .unwrap();
+    let before = save(&mut session, &directory);
+    let before_document = document(&before);
+    let other_area = before_document.project.modules[0].areas[1].clone();
+    let old_files = directory.files();
+
+    let applied = session
+        .execute(vegetation_density_brush_command(&before, false))
+        .unwrap();
+    let accepted: forge_world::VegetationDensityBrushResult =
+        serde_json::from_str(applied.last_receipt_json.as_deref().unwrap()).unwrap();
+    let layer_id = accepted.command.brush.layer_id;
+    let modified = document(&applied).project.modules[0].areas[0]
+        .vegetation_density
+        .layers
+        .iter()
+        .find(|layer| layer.layer_id == layer_id)
+        .unwrap()
+        .overrides
+        .clone();
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: applied.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .vegetation_density
+            .layers
+            .iter()
+            .find(|layer| layer.layer_id == layer_id)
+            .unwrap()
+            .overrides
+            .is_empty()
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .vegetation_density
+            .layers
+            .iter()
+            .find(|layer| layer.layer_id == layer_id)
+            .unwrap()
+            .overrides,
+        modified
+    );
+    let redone_document = document(&redone);
+    let mut expected_other_area = other_area;
+    expected_other_area.terrain.revision = redone_document.revision;
+    expected_other_area.vegetation.revision = redone_document.revision;
+    expected_other_area.vegetation_density.revision = redone_document.revision;
+    assert_eq!(
+        redone_document.project.modules[0].areas[1],
+        expected_other_area
+    );
+    assert_eq!(directory.files(), old_files);
+
+    let saved = save(&mut session, &directory);
+    let mut reopened = WorkspaceSession::default();
+    let opened = reopened
+        .execute(open_command(Path::new(
+            saved.saved_path.as_deref().unwrap(),
+        )))
+        .unwrap();
+    assert_eq!(opened.document_json, saved.document_json);
+    assert_eq!(
+        document(&opened).content_hash().unwrap(),
+        document(&saved).content_hash().unwrap()
+    );
+    for (name, bytes) in old_files {
+        assert_eq!(directory.files()[&name], bytes);
+    }
+}
+
+#[test]
 fn terrain_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history() {
     let mut session = WorkspaceSession::default();
     let created = session.execute(create_command()).unwrap();
@@ -417,6 +624,67 @@ fn material_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history
         }
         assert_rejected_without_state_change(&mut session, command);
     }
+}
+
+#[test]
+fn vegetation_density_ipc_invalid_noop_and_stale_requests_do_not_touch_history() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let command = vegetation_density_brush_command(&created, false);
+    let json = serde_json::to_string(&command).unwrap();
+    assert_eq!(
+        serde_json::from_str::<WorkspaceCommand>(&json).unwrap(),
+        command
+    );
+    assert!(
+        serde_json::from_str::<WorkspaceCommand>(&json.replace(
+            "\"schema_version\":1",
+            "\"schema_version\":1,\"extra\":true"
+        ))
+        .is_err()
+    );
+    assert!(
+        serde_json::from_str::<WorkspaceCommand>(
+            &json.replace("\"target_density\":255", "\"target_density\":256")
+        )
+        .is_err()
+    );
+
+    let mut no_op = command.clone();
+    let WorkspaceCommand::PaintVegetationDensity { brush, .. } = &mut no_op else {
+        unreachable!();
+    };
+    brush.target_density = 0;
+    assert_rejected_without_state_change(&mut session, no_op);
+
+    for mutation in 0..7 {
+        let mut invalid = vegetation_density_brush_command(&current(&mut session), false);
+        let WorkspaceCommand::PaintVegetationDensity {
+            request,
+            brush,
+            additional_centers,
+            ..
+        } = &mut invalid
+        else {
+            unreachable!();
+        };
+        match mutation {
+            0 => {
+                request.key.project_id =
+                    forge_core::ProjectId::deterministic("foreign-density-project");
+            }
+            1 => brush.radius_m = 1_000.0,
+            2 => brush.center_x_m = f32::NAN,
+            3 => brush.strength = 0.0,
+            4 => *additional_centers = vec![[f32::NAN, 0.0]],
+            5 => brush.layer_id = forge_project::VegetationLayerId::new("unknown_layer"),
+            _ => request.base_revision = MAX_WORKSPACE_IPC_REVISION + 1,
+        }
+        assert_rejected_without_state_change(&mut session, invalid);
+    }
+
+    session.execute(command.clone()).unwrap();
+    assert_rejected_without_state_change(&mut session, command);
 }
 
 #[test]
@@ -654,8 +922,7 @@ fn undo_redo_advance_revisions_preserve_identities_and_never_delete_saved_files(
     assert_eq!(redone.revision, 3);
     let restored = document(&redone);
     let mut expected = original;
-    expected.revision = forge_core::Revision::new(3);
-    expected.project.modules[0].areas[0].terrain.revision = expected.revision;
+    super::stamp_revision(&mut expected, 3);
     assert_eq!(restored, expected);
     assert!(redone.dirty && redone.can_undo && !redone.can_redo);
     assert!(redone.saved_path.is_none());
@@ -810,7 +1077,7 @@ fn invalid_snapshot_extension_size_encoding_schema_and_json_are_refused() {
     let mut nested_unknown = serde_json::to_value(&source).unwrap();
     nested_unknown["project"]["modules"][0]["areas"][0]["unexpected"] = json!(true);
     let mut future = serde_json::to_value(&source).unwrap();
-    future["schema_version"] = json!(3);
+    future["schema_version"] = json!(source.schema_version + 1);
     let mut oversized = valid.as_bytes().to_vec();
     oversized.resize(MAX_WORKSPACE_JSON_BYTES + 1, b' ');
     let fixtures = [
@@ -960,8 +1227,7 @@ fn open_rejects_revisions_outside_ipc_integer_range_without_replacing_the_sessio
     save(&mut session, &directory);
     for revision in [MAX_WORKSPACE_IPC_REVISION + 1, u64::MAX] {
         let mut candidate = source.clone();
-        candidate.revision = forge_core::Revision::new(revision);
-        candidate.project.modules[0].areas[0].terrain.revision = candidate.revision;
+        super::stamp_revision(&mut candidate, revision);
         // These remain valid full-u64 domain documents; only the Studio transport is bounded.
         candidate.validate().unwrap();
         let path = directory.write(
@@ -974,8 +1240,7 @@ fn open_rejects_revisions_outside_ipc_integer_range_without_replacing_the_sessio
         assert_eq!(directory.files(), before);
     }
     let mut boundary = source;
-    boundary.revision = forge_core::Revision::new(MAX_WORKSPACE_IPC_REVISION);
-    boundary.project.modules[0].areas[0].terrain.revision = boundary.revision;
+    super::stamp_revision(&mut boundary, MAX_WORKSPACE_IPC_REVISION);
     let path = directory.write("boundary.forge.json", boundary.to_pretty_json().unwrap());
     let opened = session.execute(open_command(&path)).unwrap();
     assert_eq!(opened.revision, MAX_WORKSPACE_IPC_REVISION);
@@ -1117,10 +1382,9 @@ fn multiple_modules_areas_metadata_history_and_reopen_preserve_sources() {
         audit["after_hash"],
         json!(final_source.content_hash().unwrap())
     );
-    assert_eq!(
-        audit["inverse_snapshot"],
-        serde_json::to_value(document(&added)).unwrap()
-    );
+    let typed_audit: forge_project::WorkspaceEditReceipt =
+        serde_json::from_str(edited.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert_eq!(typed_audit.inverse_snapshot.as_ref(), &document(&added));
     for base_revision in 4..7 {
         session
             .execute(WorkspaceCommand::Undo { base_revision })
@@ -1291,7 +1555,9 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     let mut legacy = serde_json::to_value(&source).unwrap();
     legacy["schema_version"] = json!(1);
     let mut module = legacy["project"]["modules"][0].clone();
-    let area = module["areas"][0].clone();
+    let mut area = module["areas"][0].clone();
+    area.as_object_mut().unwrap().remove("vegetation");
+    area.as_object_mut().unwrap().remove("vegetation_density");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     legacy["project"].as_object_mut().unwrap().remove("modules");
@@ -1320,5 +1586,5 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
         .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
         .unwrap();
     assert_eq!(fresh.document_json, saved.document_json);
-    assert_eq!(document(&fresh).schema_version, 2);
+    assert_eq!(document(&fresh).schema_version, 3);
 }

@@ -24,8 +24,8 @@ use bevy::{
 };
 use forge_project::{
     MAX_VEGETATION_EXPANDED_GRASS_BLADES, MAX_VEGETATION_PLACEMENT_ATTEMPTS, TerrainDocument,
-    VEGETATION_CHUNK_SIZE_M, VegetationDocument, VegetationKind, VegetationPresentationProfile,
-    VisualQualityPreset,
+    VEGETATION_CHUNK_SIZE_M, VegetationDensityDocument, VegetationDensityError, VegetationDocument,
+    VegetationKind, VegetationPresentationProfile, VisualQualityPreset, WorkspaceArea,
 };
 use forge_world::{
     TERRAIN_HALF_EXTENT_M, TerrainGenerationPlan, VegetationGenerationError,
@@ -55,6 +55,8 @@ pub const VEGETATION_VISIBILITY_AUDIT_INTERVAL: Duration = Duration::from_millis
 pub const MAX_VEGETATION_CANDIDATE_ATTEMPTS: u64 = MAX_VEGETATION_PLACEMENT_ATTEMPTS;
 pub const MAX_VEGETATION_PROJECTION_ENTITIES: u64 = 100_000;
 pub const MAX_VEGETATION_GRASS_BLADES: u64 = MAX_VEGETATION_EXPANDED_GRASS_BLADES;
+pub(crate) const MAX_EDITOR_VEGETATION_VERTICES: usize = 1_000_000;
+pub(crate) const MAX_EDITOR_VEGETATION_VERTICES_PER_CHUNK: usize = 262_144;
 
 /// Logical LOD carried by a derived Bevy projection. It is not persisted in a Forge document.
 #[derive(Clone, Copy, Component, Debug, Eq, Hash, PartialEq, Serialize)]
@@ -466,6 +468,8 @@ pub struct VegetationTriangleStats {
 pub struct VegetationProjectionStats {
     pub terrain_document_hash: String,
     pub vegetation_document_hash: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vegetation_density_document_hash: Option<String>,
     pub placements: VegetationPlacementStats,
     pub projection: VegetationProjectionCounts,
     pub triangles: VegetationTriangleStats,
@@ -723,6 +727,7 @@ pub enum VegetationMeshError {
     VertexCountOverflow,
     GrassBladeCountIsZero,
     GrassBladeSurfaceProjectionFailed,
+    EditorPreviewVertexBudgetExceeded { actual: usize, maximum: usize },
 }
 
 impl fmt::Display for VegetationMeshError {
@@ -746,6 +751,10 @@ impl fmt::Display for VegetationMeshError {
             Self::GrassBladeSurfaceProjectionFailed => {
                 formatter.write_str("grass blade could not be projected onto the rendered terrain")
             }
+            Self::EditorPreviewVertexBudgetExceeded { actual, maximum } => write!(
+                formatter,
+                "editor vegetation preview requires {actual} vertices, maximum is {maximum}"
+            ),
         }
     }
 }
@@ -1101,6 +1110,142 @@ pub(crate) fn build_hlod_chunk_mesh(
     mesh.finish(deformation_margin_m)
 }
 
+/// Builds one compact editor-only batch from the canonical generated placements of a chunk.
+///
+/// The game renderer keeps its full wind/LOD pipeline above. The world editor instead needs an
+/// immediately replaceable preview with one entity per populated chunk, including one crossed
+/// tuft per logical grass patch (never one ECS entity per blade).
+pub(crate) fn build_editor_vegetation_chunk_mesh(
+    instances: &[VegetationInstance],
+) -> Result<Mesh, VegetationMeshError> {
+    let vertices = editor_vegetation_vertex_count(instances)?;
+    if vertices > MAX_EDITOR_VEGETATION_VERTICES_PER_CHUNK {
+        return Err(VegetationMeshError::EditorPreviewVertexBudgetExceeded {
+            actual: vertices,
+            maximum: MAX_EDITOR_VEGETATION_VERTICES_PER_CHUNK,
+        });
+    }
+    let mut mesh = MeshAccumulator::default();
+    for instance in instances {
+        // The canonical domain accepts every positive finite scale. Keep even subnormal authored
+        // values renderable without changing their source or deterministic generated placement.
+        let preview_scale = instance.scale.max(0.001);
+        let base = Vec3::new(
+            instance.position_m.x,
+            instance.position_m.y,
+            instance.position_m.z,
+        );
+        let variation = 0.86 + 0.14 * instance.wind_phase_radians.sin().abs();
+        match instance.kind {
+            VegetationKind::Tree => {
+                append_editor_crossed_card(
+                    &mut mesh,
+                    base,
+                    instance.yaw_radians,
+                    0.46 * preview_scale,
+                    2.9 * preview_scale,
+                    1.0,
+                    [0.18, 0.075, 0.025, 1.0],
+                    [0.25, 0.11, 0.035, 1.0],
+                )?;
+                append_editor_crossed_card(
+                    &mut mesh,
+                    base + Vec3::Y * (1.7 * preview_scale),
+                    instance.yaw_radians + 0.37,
+                    2.8 * preview_scale,
+                    4.2 * preview_scale,
+                    0.20,
+                    [0.055 * variation, 0.24 * variation, 0.045, 1.0],
+                    [0.13 * variation, 0.43 * variation, 0.075, 1.0],
+                )?;
+            }
+            VegetationKind::Shrub => append_editor_crossed_card(
+                &mut mesh,
+                base,
+                instance.yaw_radians,
+                1.55 * preview_scale,
+                1.35 * preview_scale,
+                0.30,
+                [0.055, 0.25 * variation, 0.05, 1.0],
+                [0.15, 0.46 * variation, 0.08, 1.0],
+            )?,
+            VegetationKind::Fern => append_editor_crossed_card(
+                &mut mesh,
+                base,
+                instance.yaw_radians,
+                1.25 * preview_scale,
+                0.82 * preview_scale,
+                0.08,
+                [0.045, 0.22 * variation, 0.04, 1.0],
+                [0.20, 0.52 * variation, 0.10, 1.0],
+            )?,
+            VegetationKind::Grass => {
+                for offset in [-0.42_f32, 0.0, 0.47] {
+                    append_editor_crossed_card(
+                        &mut mesh,
+                        base + Vec3::new(offset, 0.0, -offset * 0.55) * preview_scale,
+                        instance.yaw_radians + offset,
+                        1.65 * preview_scale,
+                        (0.46 + offset.abs() * 0.16) * preview_scale,
+                        0.05,
+                        [0.10, 0.30 * variation, 0.045, 1.0],
+                        [0.34, 0.62 * variation, 0.09, 1.0],
+                    )?;
+                }
+            }
+        }
+    }
+    Ok(mesh.finish(0.08)?.mesh)
+}
+
+pub(crate) fn editor_vegetation_vertex_count(
+    instances: &[VegetationInstance],
+) -> Result<usize, VegetationMeshError> {
+    instances.iter().try_fold(0_usize, |vertices, instance| {
+        let added = match instance.kind {
+            VegetationKind::Tree => 16,
+            VegetationKind::Shrub | VegetationKind::Fern => 8,
+            VegetationKind::Grass => 24,
+        };
+        vertices
+            .checked_add(added)
+            .ok_or(VegetationMeshError::VertexCountOverflow)
+    })
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the editor card keeps its bounded geometry and two-color palette explicit"
+)]
+fn append_editor_crossed_card(
+    mesh: &mut MeshAccumulator,
+    base: Vec3,
+    yaw: f32,
+    width: f32,
+    height: f32,
+    top_width_ratio: f32,
+    bottom_color: [f32; 4],
+    top_color: [f32; 4],
+) -> Result<(), VegetationMeshError> {
+    for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
+        let angle = yaw + quarter_turn;
+        let axis = Vec3::new(angle.cos(), 0.0, -angle.sin());
+        let bottom_right = axis * (width * 0.5);
+        let top_right = bottom_right * top_width_ratio;
+        let top = base + Vec3::Y * height;
+        mesh.push_quad(
+            [
+                base - bottom_right,
+                base + bottom_right,
+                top + top_right,
+                top - top_right,
+            ],
+            [bottom_color, bottom_color, top_color, top_color],
+        )?;
+    }
+    Ok(())
+}
+
 fn maximum_hlod_anchor_radius_m(placements: &[ProceduralVegetationPlacement]) -> f32 {
     placements
         .iter()
@@ -1310,6 +1455,7 @@ fn unit_noise(patch_index: usize, blade: u16, stream: u32) -> f32 {
 pub struct VisualValleyVegetationPlugin {
     terrain: TerrainDocument,
     vegetation: VegetationDocument,
+    vegetation_density: Option<VegetationDensityDocument>,
     interaction: VegetationInteractionField,
     quality: Option<VisualQualityPreset>,
 }
@@ -1320,6 +1466,19 @@ impl VisualValleyVegetationPlugin {
         Self {
             terrain,
             vegetation,
+            vegetation_density: None,
+            interaction: VegetationInteractionField::disabled(),
+            quality: None,
+        }
+    }
+
+    /// Builds the renderer adapter from one canonical workspace area, including its density mask.
+    #[must_use]
+    pub fn from_area(area: &WorkspaceArea) -> Self {
+        Self {
+            terrain: area.terrain.clone(),
+            vegetation: area.vegetation.clone(),
+            vegetation_density: Some(area.vegetation_density.clone()),
             interaction: VegetationInteractionField::disabled(),
             quality: None,
         }
@@ -1344,6 +1503,7 @@ impl Plugin for VisualValleyVegetationPlugin {
         let prepared = prepare_vegetation_projection_with_quality(
             &self.terrain,
             &self.vegetation,
+            self.vegetation_density.as_ref(),
             self.quality.as_ref(),
         )
         .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
@@ -1409,9 +1569,23 @@ pub fn inspect_vegetation_projection(
     Ok(prepare_vegetation_projection(terrain, vegetation)?.stats)
 }
 
+/// Runs the deterministic adapter for one workspace area and its canonical density mask.
+pub fn inspect_area_vegetation_projection(
+    area: &WorkspaceArea,
+) -> Result<VegetationProjectionStats, VegetationAdapterError> {
+    Ok(prepare_vegetation_projection_with_quality(
+        &area.terrain,
+        &area.vegetation,
+        Some(&area.vegetation_density),
+        None,
+    )?
+    .stats)
+}
+
 #[derive(Debug)]
 pub enum VegetationAdapterError {
     Generation(VegetationGenerationError),
+    Density(VegetationDensityError),
     Mesh {
         key: VegetationMeshKey,
         source: VegetationMeshError,
@@ -1429,6 +1603,9 @@ impl fmt::Display for VegetationAdapterError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Generation(error) => write!(formatter, "vegetation generation failed: {error}"),
+            Self::Density(error) => {
+                write!(formatter, "vegetation density source is invalid: {error}")
+            }
             Self::Mesh { key, source } => {
                 write!(formatter, "vegetation mesh {key:?} is invalid: {source}")
             }
@@ -1460,6 +1637,7 @@ impl Error for VegetationAdapterError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Generation(error) => Some(error),
+            Self::Density(error) => Some(error),
             Self::Mesh { source, .. } => Some(source),
             Self::CountOverflow(_) | Self::BudgetExceeded { .. } | Self::MissingMeshRecipe(_) => {
                 None
@@ -1471,6 +1649,12 @@ impl Error for VegetationAdapterError {
 impl From<VegetationGenerationError> for VegetationAdapterError {
     fn from(value: VegetationGenerationError) -> Self {
         Self::Generation(value)
+    }
+}
+
+impl From<VegetationDensityError> for VegetationAdapterError {
+    fn from(value: VegetationDensityError) -> Self {
+        Self::Density(value)
     }
 }
 
@@ -1520,7 +1704,7 @@ fn prepare_vegetation_projection(
     terrain: &TerrainDocument,
     vegetation: &VegetationDocument,
 ) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
-    prepare_vegetation_projection_with_quality(terrain, vegetation, None)
+    prepare_vegetation_projection_with_quality(terrain, vegetation, None, None)
 }
 
 #[allow(
@@ -1531,9 +1715,18 @@ fn prepare_vegetation_projection(
 fn prepare_vegetation_projection_with_quality(
     terrain: &TerrainDocument,
     vegetation: &VegetationDocument,
+    vegetation_density: Option<&VegetationDensityDocument>,
     quality: Option<&VisualQualityPreset>,
 ) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
-    let plan = VegetationGenerationPlan::from_documents(terrain, vegetation)?;
+    let vegetation_density_document_hash = vegetation_density
+        .map(VegetationDensityDocument::content_hash)
+        .transpose()?
+        .map(|hash| hash.to_string());
+    let plan = if let Some(density) = vegetation_density {
+        VegetationGenerationPlan::from_documents_with_density(terrain, vegetation, density)?
+    } else {
+        VegetationGenerationPlan::from_documents(terrain, vegetation)?
+    };
     let cells_per_axis = u64::from(plan.cells_per_axis());
     let attempts_per_cell = vegetation
         .layers
@@ -1808,6 +2001,7 @@ fn prepare_vegetation_projection_with_quality(
     let stats = VegetationProjectionStats {
         terrain_document_hash: generated.terrain_document_hash.to_string(),
         vegetation_document_hash: generated.vegetation_document_hash.to_string(),
+        vegetation_density_document_hash,
         placements: VegetationPlacementStats {
             candidate_attempts,
             accepted_placements: u64::from(kind_counts.total()),
@@ -2020,6 +2214,10 @@ fn spawn_vegetation_projection(
         event_kind = "visual_valley_vegetation_materialized",
         terrain_document_hash = %projection_stats.terrain_document_hash,
         vegetation_document_hash = %projection_stats.vegetation_document_hash,
+        vegetation_density_document_hash = %projection_stats
+            .vegetation_density_document_hash
+            .as_deref()
+            .unwrap_or("implicit_full_density"),
         accepted_placements = projection_stats.placements.accepted_placements,
         projection_entities = projection_stats.projection.total_entities,
         grass_batches = projection_stats.projection.grass_batches,
@@ -2296,6 +2494,7 @@ fn projection_policy_markers() -> (NoAutoAabb, NotShadowCaster) {
 mod tests {
     use super::*;
     use bevy::mesh::VertexAttributeValues;
+    use forge_project::{NewProjectCommand, VegetationDensityOverride, WorkspaceDocument};
     use forge_world::{
         embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     };
@@ -3020,6 +3219,60 @@ mod tests {
         let mesh_tag = mesh_tag_for(placement.wind_phase_radians, placement.wind_response);
         assert_eq!(mesh_tag.0 >> 24, 191);
         assert_ne!(mesh_tag.0 & TAG_PHASE_MASK, 0);
+    }
+
+    #[test]
+    fn workspace_adapter_reports_the_exact_density_source_hash() {
+        let mut document = WorkspaceDocument::create(NewProjectCommand {
+            command_id: forge_core::CommandId::deterministic("vegetation-adapter-create"),
+            project_id: forge_core::ProjectId::deterministic("vegetation-adapter-project"),
+            module_id: forge_core::ModuleId::deterministic("vegetation-adapter-module"),
+            area_id: forge_core::AreaId::deterministic("vegetation-adapter-area"),
+            project_name: "Projet".into(),
+            module_name: "Module".into(),
+            area_name: "Zone".into(),
+            seed: 81,
+            spawn: forge_core::Vec3::new(0.0, 2.0, 0.0),
+        })
+        .unwrap()
+        .document;
+        let area = &mut document.project.modules[0].areas[0];
+        let zero_hash = area.vegetation_density.content_hash().unwrap();
+        let zero = inspect_area_vegetation_projection(area).unwrap();
+        assert_eq!(
+            zero.vegetation_density_document_hash,
+            Some(zero_hash.to_string())
+        );
+        assert_eq!(zero.placements.accepted_placements, 0);
+
+        let grass_layer = area
+            .vegetation
+            .layers
+            .iter()
+            .find(|layer| layer.kind == VegetationKind::Grass)
+            .unwrap()
+            .id
+            .clone();
+        area.vegetation_density
+            .layers
+            .iter_mut()
+            .find(|layer| layer.layer_id == grass_layer)
+            .unwrap()
+            .overrides = vec![VegetationDensityOverride::new(32, 32, u8::MAX)];
+        let painted_hash = area.vegetation_density.content_hash().unwrap();
+        let painted = inspect_area_vegetation_projection(area).unwrap();
+        assert_ne!(painted_hash, zero_hash);
+        assert_eq!(
+            painted.vegetation_density_document_hash,
+            Some(painted_hash.to_string())
+        );
+        assert!(painted.placements.accepted_placements > 0);
+        assert_eq!(
+            inspect_vegetation_projection(&area.terrain, &area.vegetation)
+                .unwrap()
+                .vegetation_density_document_hash,
+            None
+        );
     }
 
     #[test]
