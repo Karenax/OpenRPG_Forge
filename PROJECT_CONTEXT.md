@@ -100,6 +100,19 @@ autres zones et seed `u64::MAX` restent identiques. [Preuves et limites](docs/ev
 R2-012, biomes/végétation, routes générales R2-F et performance interactive restent dus. Aucun nouvel
 audit PresentMon, aucune qualification GPU et aucun asset Cadle.
 
+### Peinture persistante des matériaux — huitième route qualifiée
+
+Le code `1b70be6` qualifie **R2-012** : le terrain v3 conserve des poids herbe/terre/roche clairsemés,
+normalisés et migrables ; la même commande pure alimente l'IPC, l'historique, la sauvegarde et le
+recalcul partiel. **481 tests PASS**, Clippy natif/WASM et builds Release PASS. Le parcours dans
+l'exécutable Tauri autonome peint 1 409 points de terre, ne recalcule que 8/64 chunks, annule puis
+rétablit le trait et crée des snapshots immuables r2/r4. Après fermeture, la réouverture exacte de r4
+restaure la bande peinte et la révision 4. [Preuves et limites](docs/evidence/gate2/TERRAIN_MATERIAL_PAINTING.md).
+**Gate 2 atteint 13/43 et reste ouverte.** Ce lot n'ajoute aucune texture ni aucun asset ; les temps
+affichés ne sont pas un benchmark. La tranche fonctionnelle suivante est R2-C : pinceau de densité et
+seed de végétation stable. CI distante `NOT RUN — infrastructure billing`, PresentMon suspendu et
+aucun asset Cadle.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;

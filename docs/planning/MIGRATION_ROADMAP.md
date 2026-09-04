@@ -973,12 +973,19 @@ r27 = r25 et r28 = r26 hors révisions, sans changement des autres zones/métado
 [Preuves, manifeste et limites](../evidence/gate2/PARTIAL_TERRAIN_REFRESH.md). Aucun verdict GPU ou de
 performance interactive n'est déduit des temps de boucle affichés.
 
+Le candidat `1b70be6` qualifie ensuite **R2-012** et porte Gate 2 à **13/43**. Terrain v3, migrations,
+commande pure, IPC, undo/redo, persistance et recalcul partiel matière sont couverts par 481 tests,
+Clippy natif/WASM et builds Release. Le parcours Tauri autonome peint une bande de terre (1 409
+points), recalcule 8/64 chunks, annule/rétablit, sauvegarde sans écraser puis restaure visuellement et
+fonctionnellement le snapshot r4 après fermeture. [Preuves et manifeste](../evidence/gate2/TERRAIN_MATERIAL_PAINTING.md).
+La CI distante reste `NOT RUN — infrastructure billing` et aucun verdict PresentMon/GPU n'est déduit.
+
 - [x] `R2-007` lever/abaisser.
 - [x] `R2-008` lisser.
 - [x] `R2-009` aplatir.
 - [x] `R2-010` bruit.
 - [x] `R2-011` pente.
-- [ ] `R2-012` peinture matériaux.
+- [x] `R2-012` peinture matériaux — données v3, brosse, cache partiel et parcours natif qualifiés.
 - [x] `R2-013` visualisation rayon/intensité.
 - [x] `R2-014` recalcul partiel — cache/IPC/renderer et parcours natif trait/undo/redo qualifiés.
 

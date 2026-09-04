@@ -1,0 +1,119 @@
+{
+  "schema": "forge.gate2.terrain-material-painting-evidence",
+  "schema_version": 1,
+  "source_commit": "1b70be6d2927b06a693e169cfc00d345be61bf70",
+  "source_tree": "c021d2a9411f814626505de6fd8b05fa1be3688d",
+  "base_commit": "cf30e12b54a860813e67c09440b2118996b446b2",
+  "route": "R2-012",
+  "status": "PASS",
+  "scope": "Persistent terrain material painting, source commands, partial projection and final standalone native qualification; no GPU or performance qualification",
+  "automated_validation": {
+    "status": "PASS",
+    "workspace_test_targets": 13,
+    "workspace_tests_passed": 481,
+    "workspace_tests_failed": 0,
+    "workspace_tests_ignored": 0
+  },
+  "native_qualification": {
+    "status": "PASS",
+    "performed": true,
+    "executable": {
+      "source_commit": "1b70be6d2927b06a693e169cfc00d345be61bf70",
+      "kind": "standalone Tauri Release",
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/bin/forge-studio-1b70be6.exe"
+    },
+    "project_id": "98271e45-19a8-562c-a19e-4100f270da33",
+    "fresh_project": {
+      "revision": 1,
+      "chunks_recomputed": 64,
+      "chunks_preserved": 0
+    },
+    "paint_earth": {
+      "tool": "Peindre - Terre",
+      "stroke_points": 1409,
+      "revision": 2,
+      "chunks_recomputed": 8,
+      "chunks_preserved": 56,
+      "earth_band_visible": true
+    },
+    "undo": {
+      "revision": 3,
+      "chunks_recomputed": 8,
+      "chunks_preserved": 56,
+      "earth_band_visible": false
+    },
+    "redo": {
+      "revision": 4,
+      "chunks_recomputed": 8,
+      "chunks_preserved": 56,
+      "earth_band_visible": true
+    },
+    "save_close_reopen": {
+      "closed_cleanly": true,
+      "reopened_revision": 4,
+      "status_message": "Projet rouvert depuis le snapshot vérifié",
+      "earth_band_visible": true,
+      "chunks_recomputed_on_load": 64,
+      "chunks_preserved_on_load": 0,
+      "exact_r4_snapshot": true
+    },
+    "snapshots": {
+      "r2": "artifacts/gate-2/terrain-materials-2026-09-04/snapshots/98271e45-19a8-562c-a19e-4100f270da33-r2.forge.json",
+      "r4": "artifacts/gate-2/terrain-materials-2026-09-04/snapshots/98271e45-19a8-562c-a19e-4100f270da33-r4.forge.json",
+      "non_overwritten": true
+    },
+    "visual_capture": {
+      "status": "OBSERVED_NOT_VERSIONED",
+      "method": "CUA"
+    }
+  },
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing"
+  },
+  "presentmon": {
+    "status": "NOT RUN",
+    "reason": "PresentMon and performance qualification are outside R2-012 and remain deferred by ADR-0010."
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/workspace-tests.log",
+      "bytes": 47550,
+      "sha256": "950aff09234b3bb5631bc27ee46100265ec5262156f16dc56bb71926e495a79d"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/clippy-native.log",
+      "bytes": 680,
+      "sha256": "5c8de678926e7acf8bceb524cf1fe3413b9d004ddfdd7c45cc7d98d1b8201314"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/clippy-wasm.log",
+      "bytes": 738,
+      "sha256": "7110de3c7d6d70504ef94d993799ad87b24dc1e5de82559510f7c927d09cb30c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/trunk-release.log",
+      "bytes": 681,
+      "sha256": "75eacbf723f90451a9abe1f5f479fd138404305d2d007080d06394432f4ab5af"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/tauri-release.log",
+      "bytes": 784,
+      "sha256": "8011f2986916cd9c03c4a70cd83b869f2a9285c9fbb9171fa0be4b8747b5757d"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/bin/forge_studio-1b70be6.wasm",
+      "bytes": 40253102,
+      "sha256": "615998535850a8cae5ae66f2df1812ffaedfcd92ed38839d3d62d831123aea0f"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/bin/forge-studio-1b70be6.exe",
+      "bytes": 34105856,
+      "sha256": "cf25f4f818b84f62445b647acd9d9d86b0e199e0f66669a0eb8745c294ff8113"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-materials-2026-09-04/snapshots/98271e45-19a8-562c-a19e-4100f270da33-r4.forge.json",
+      "bytes": 359477,
+      "sha256": "6f83e7efa0ab1432f3c40232b4d7122c2ec7a62ec1bff6730e92499b18cab7f3"
+    }
+  ]
+}
