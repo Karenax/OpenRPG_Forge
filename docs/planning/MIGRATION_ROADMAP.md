@@ -918,11 +918,15 @@ R2-002/003/004/006 sont partiels : module/zone initiaux, métadonnées et sélec
 sans ajout ultérieur, onglets, édition existante ni viewport 3D. Les acquis de commandes,
 undo/redo, snapshots immuables et réouverture ne ferment pas les routes générales R2-F.
 
-Demande UX du 4 septembre : prochain incrément de coque en **bureau Forge à sous-applications**,
+Demande UX du 4 septembre : incrément de coque livré en **bureau Forge à sous-applications**,
 menus supérieurs contextuels et dock, selon `PROJECT_CONTEXT.md` §7.5. Intégrer d'abord les outils
 Projets réellement acquis, conserver les brouillons et le canvas unique ; ne pas lancer les fonctions
-de gates ultérieures pour remplir le dock. Direction décidée, bureau non encore implémenté ; aucun
-PASS supplémentaire n'est attribué pour cette intention d'interface.
+de gates ultérieures pour remplir le dock. Code `0b3b9ef` : style doré/verre, menus, dock, fenêtres
+mobiles/redimensionnables/réductibles/agrandissables, Projets partagé et Diagnostics de preuve.
+422 tests PASS, builds natif/WASM et captures, conservation des formulaires/canvas, sauvegarde puis
+réouverture native après redémarrage vérifiées. [Preuve et limites](../evidence/gate2/DESKTOP_SHELL.md).
+Aucun PASS de route supplémentaire : Gate 2 reste **1/43**. Prochaine tranche métier : modules/zones
+éditables et liaison du document réel au viewport, sans présenter Diagnostics comme la zone créée.
 
 ## But
 

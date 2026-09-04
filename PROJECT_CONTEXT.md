@@ -33,6 +33,15 @@ pas d'ajout ultérieur de zone ni de bus général/audit durable/récupération 
 Suite : zones éditables et liaison au viewport, puis brosses, sol et végétation par zones selon la
 roadmap. Les réserves Gate 1 restent dues et aucun asset Cadle n'a été repris.
 
+### Coque bureau Forge — second incrément Gate 2
+
+Le bureau clair/doré est implémenté au code `0b3b9ef` : menus supérieurs, dock et fenêtres Projets /
+Diagnostics déplaçables, redimensionnables, réductibles et agrandissables. Les formulaires restent
+montés ; la scène de preuve Diagnostics conserve son canvas unique, distinct du projet. 422 tests,
+clippy natif/WASM, builds Release et parcours natif de sauvegarde puis réouverture après redémarrage
+vérifiés. Rapport : [bureau Forge](docs/evidence/gate2/DESKTOP_SHELL.md). Aucun PASS de route ajouté :
+Gate 2 reste **1/43**. L'édition et la projection 3D des zones restent le prochain travail métier.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -1001,10 +1010,11 @@ preuve.
 
 Le Studio est une application de création, pas le runtime emballé dans une fenêtre d’éditeur.
 
-**Direction UX demandée le 4 septembre 2026 — à implémenter :** un bureau Forge à
+**Direction UX demandée le 4 septembre 2026 — coque initiale implémentée :** un bureau Forge à
 sous-applications par fonction, inspiré de l'organisation de
 [cette référence interactive](https://macos-27-simulator.mweinbach.chatgpt.site/), inspectée dans le
-navigateur. Retenir barre supérieure de menus contextuels, lanceur/dock et fenêtres métier
+navigateur. Le propriétaire demande aussi de reprendre fidèlement son style graphique clair/doré,
+ses reflets et son verre translucide, pas seulement son organisation. Retenir barre supérieure de menus contextuels, lanceur/dock et fenêtres métier
 déplaçables, redimensionnables, réductibles et agrandissables ; panneaux arrondis et translucides,
 hiérarchie claire et identité visuelle propre à Forge. Ne pas importer les assets ou la marque Apple.
 
@@ -1016,10 +1026,14 @@ Le canvas Bevy doit rester monté quand sa fenêtre est déplacée ou masquée ;
 ne doit pas piloter la caméra. Les outils futurs restent explicitement indisponibles, sans faux
 succès ni scènes de preuve présentées comme le projet créé.
 
-Premier incrément prévu : coque commune, menus et dock, intégration de Projets et de ses panneaux
-existants. Aujourd'hui les routes Projets et scènes de preuve sont des montages distincts ;
-**le bureau multi-fenêtres n'est pas encore implémenté**. Sa validation exigera navigation, focus,
-conservation des brouillons, canvas unique, captures et sauvegarde/réouverture sans régression.
+Premier incrément livré au code `0b3b9ef` : coque commune par défaut, menus et dock, intégration
+de Projets et de ses panneaux existants. Diagnostics monte une fois la preuve Gate 0 ; les URL de
+preuves historiques et l'assistant autonome restent explicites. Fond CSS et icônes vectorielles
+originaux, sans téléchargement des médias de la référence. Navigation, géométrie, formulaires
+conservés, canvas unique, rendu natif et sauvegarde/réouverture après redémarrage sont vérifiés dans
+[le rapport de coque](docs/evidence/gate2/DESKTOP_SHELL.md). Les cinq autres applications sont
+indisponibles. Le layout et les champs non soumis ne survivent pas au rechargement/crash ; le garde
+natif protège le document accepté, pas ces champs. Diagnostics masqué continue sa boucle de rendu.
 
 La coque gère :
 
