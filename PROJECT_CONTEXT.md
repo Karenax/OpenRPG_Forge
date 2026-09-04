@@ -65,7 +65,7 @@ projet, snapshot intact. Boutons Monde harmonisés avec le bureau crème/doré. 
 playtest ni nouvelle qualification de cadence. Les erreurs sources sont testées en Rust ; édition/undo
 pendant une génération reste à qualifier en UI. [Contrat, preuves et limites](docs/evidence/gate2/AREA_VIEWPORT.md).
 
-### Commandes de brosses — fondation validée, UI à raccorder
+### Commandes de brosses — fondation historique
 
 Le code `5b503ff` ajoute les cinq modes de relief (lever/abaisser, lisser, aplatir, bruit, pente)
 via une commande pure partagée et l'IPC natif : aperçu sans mutation, patch v2 lié au hash/révision,
@@ -74,6 +74,19 @@ partiels CPU correspondent à une génération complète dans les cas testés. L
 le picking, les traits continus et le recalcul partiel du renderer restent à raccorder et à capturer.
 **Gate 2 reste 5/43**, sans nouveau PASS de route. [Contrat, preuves et suite](docs/evidence/gate2/BRUSH_COMMANDS.md).
 Le bureau doré et les assets restent inchangés ; aucun nouvel audit de cadence.
+
+### Brosses dans Monde — six routes supplémentaires qualifiées
+
+Le raccordement `c2d2825`, corrigé à `c7fc510`, qualifie **R2-007/008/009/010/011/013** :
+lever/abaisser, lisser, aplatir, bruit, pente et visualisation du rayon/intensité. Traits continus
+regroupés en une commande annulable ; picking sur les vrais meshes. **456 tests PASS**, Clippy
+natif/WASM et builds Release PASS. Parcours Studio réel : tous les modes, historique complet,
+comparaisons exactes des données, sauvegarde et réouverture après redémarrage. Les autres zones et
+le snapshot initial restent intacts. [Preuves et limites](docs/evidence/gate2/BRUSH_VIEWPORT.md).
+**Gate 2 est désormais à 11/43, toujours ouverte.** Le relief s'applique au relâchement et les
+64 chunks sont encore régénérés : recalcul partiel R2-014, matériaux R2-012 et performance interactive
+restent dus. Le bruit à forte amplitude est abrupt, pas une finition naturelle. Historique non durable,
+pas de playtest ni de passage Gate 3. La coque dorée et les réserves Gate 1 restent inchangées.
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 

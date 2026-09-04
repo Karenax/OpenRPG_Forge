@@ -32,7 +32,7 @@ labelled unavailable.
 
 Menu undo/redo uses the same `WorkspaceActions` as the form toolbar. File commands bring the real
 forms into focus; saving still requires an explicit destination. Ctrl+S focuses that destination;
-Ctrl+Z / Ctrl+Shift+Z operate the authoring history only outside editable fields in Projets.
+Ctrl+Z / Ctrl+Shift+Z operate the authoring history only outside editable fields in Projets or Monde.
 Arrow keys on the window title move it, and on the resize handle resize it. Escape dismisses menus.
 No dependencies, Tauri capabilities, remote assets, or JavaScript business logic were added.
 
@@ -80,8 +80,26 @@ not a character or a surface-snapped position; it may be below the terrain.
 
 Diagnostics distinguishes renderer startup, applied request/revision/source hash, chunk count,
 camera pose and CPU loop timing from GPU presentation/timestamps, which remain unobserved by the
-ledger. Actual rendered output requires native captures. No brushes, picking, general command bus,
-playtest, crash recovery, performance qualification or route PASS follows from compilation alone.
+ledger. Actual rendered output requires native captures. General command bus, entity picking,
+playtest, crash recovery and performance qualification remain outside this viewport slice.
+
+### Terrain brushes in Monde
+
+The native desktop exposes raise/lower, smooth, flatten, seeded noise and slope controls. The
+golden ring follows actual terrain mesh hits; its white vertical marker represents strength.
+Select Navigation for camera-only input, or hold Alt while dragging to orbit with a brush selected.
+A brush drag accumulates at most 64 stamps and commits on release as one typed command, revision
+and undo entry. There is no live height deformation while dragging: only the circle/stamp count.
+Escape, pointer cancellation and source-generation changes cancel a pending stroke. Start-point
+sampling is preserved independently from later pointer updates. Stale hits and invalid parameters
+cannot mutate the source. Brush picking uses inherited visibility after transform/visibility
+propagation, excludes metadata markers, and does not require a transient per-view visibility flag.
+
+Native mode/history/save/restart evidence is in `docs/evidence/gate2/BRUSH_VIEWPORT.md`.
+This qualifies R2-007..011 and R2-013, not the whole gate. Each accepted stroke still regenerates
+all 64 chunks; partial CPU caches are not connected to this renderer (R2-014 remains open).
+High-amplitude noise produces sharp spikes; natural terrain composition is not claimed.
+Material painting, live dry-run geometry, vegetation brushes and playtest are not implemented here.
 
 ### Native commands and draft state
 
@@ -92,8 +110,9 @@ recomputes against the still-current revision and commits through the same bound
 existing edits. Receipts include brush intent, resolved source patch, before/after hashes and inverse;
 serialization completes before mutation. This is an in-memory receipt, not a durable audit journal.
 Native service tests exercise preview/apply/undo/redo/immutable save/fresh-session reopen and IPC
-round-trip. There are no brush controls or pointer strokes in Monde yet, and the native command is
-not a claim of a visually qualified editor. See `docs/evidence/gate2/BRUSH_COMMANDS.md`.
+round-trip. Compound pointer strokes use the same service and bounded history; the backend-only
+foundation is recorded in `docs/evidence/gate2/BRUSH_COMMANDS.md`, with native UI qualification and
+remaining limits in `docs/evidence/gate2/BRUSH_VIEWPORT.md`.
 
 The native Rust `WorkspaceSession` is authoritative. Leptos holds form drafts and read projections,
 not a second editable canonical project. The shared IPC envelope is

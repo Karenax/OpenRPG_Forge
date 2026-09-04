@@ -1,0 +1,385 @@
+{
+  "schema": "forge.gate2.brush-viewport-evidence",
+  "schema_version": 1,
+  "source_commit": "c7fc510dd66a04fbe8d780ce641216957ef8f81f",
+  "source_tree": "d042fcf6f6f7191b47e81fa4e6f4ca825529c013",
+  "scope": "Native brush workflow, history and clean-session reopen; no full Gate 2 or GPU/performance qualification",
+  "workspace_tests_passed": 456,
+  "workspace_tests_failed": 0,
+  "workspace_tests_ignored": 0,
+  "snapshot_height_counts": {
+    "7": 0,
+    "8": 550,
+    "9": 0,
+    "10": 550,
+    "11": 1886,
+    "12": 2633,
+    "13": 2633,
+    "14": 4018,
+    "15": 5609,
+    "20": 550,
+    "25": 5609
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/modules-areas-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r7.forge.json",
+      "bytes": 5542,
+      "sha256": "297035827452c15186b9f17840784d575b98f660ddcfb8984102d10c8de61ae4"
+    },
+    {
+      "path": "target/release/forge-studio.exe",
+      "bytes": 33909760,
+      "sha256": "fe5c0872dbb13d94c72101880759197c0764dd636a053e714e1ad8e036bda4f0"
+    },
+    {
+      "path": "apps/forge_studio/dist/forge_studio_bg.wasm",
+      "bytes": 40218947,
+      "sha256": "12182cf07be634a165992c67b7b7b1d79b3c954ebea74caaeef36ddf1dcfc336"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-fix1-tests.log",
+      "bytes": 44420,
+      "sha256": "7c967f1b5263c6a0d426c78b3f78ec6558c649353cb0275989593e6b836fc2d9"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-fix1-clippy-native.log",
+      "bytes": 278,
+      "sha256": "e3786959bf101bbe6c59afbc1927acb3d331916758db46a725427a83e4398a34"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-fix1-clippy-wasm.log",
+      "bytes": 533,
+      "sha256": "45a268fb981496ae8eceb8f46806e27152e215be1df8d92e47960bd42546c648"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-fix1-trunk-confirmed.log",
+      "bytes": 320,
+      "sha256": "7d049e138ff884f10adeeaed63b9dbb2a36f06cd85ce6c9952d93da6d6d2e1e5"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-fix1-native-confirmed.log",
+      "bytes": 165,
+      "sha256": "ab61abc5e79408ceb7aebb3d8b9612cc5fd68b0adbd695ca7d1f158598d9544c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r8.forge.json",
+      "bytes": 85659,
+      "sha256": "98d5f82f0b58389f7a985c02ead80f50540d886fc0fc14d557a71d9822edbd5b"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r9.forge.json",
+      "bytes": 5542,
+      "sha256": "67cd54fcb745940feaa55a91c05ba324279dc549f104b33efab6ff3adfc11231"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r10.forge.json",
+      "bytes": 85663,
+      "sha256": "50713faa222d45bd4da580a71cea3b11b463578525858f353251d064ebdb318f"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r11.forge.json",
+      "bytes": 281981,
+      "sha256": "ecda432867d41904cfd41372e9c7af29ee5f021c745aa9ff1c452ea088511ab8"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r12.forge.json",
+      "bytes": 393638,
+      "sha256": "4e07380d9853b00c82be2c35f0e16df7dcc8832c2cbd7fa14a88af722f2fcb2c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r13.forge.json",
+      "bytes": 392081,
+      "sha256": "97fd8e102ade85300e103e29fe6c7e14cc8e318c7abc589ec66a3ae2b078b25d"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r14.forge.json",
+      "bytes": 593707,
+      "sha256": "8c3553eca3797a438e4261bac2ace1fee77bfdf3c9da11b120021ec05f79b7d8"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r15.forge.json",
+      "bytes": 826654,
+      "sha256": "6dda2bf657b89479af264307a3908ded0d0e2c6eda9fe4ae81805853d17442ff"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r20.forge.json",
+      "bytes": 85663,
+      "sha256": "09627c051bd4489302e4ec81f80b9c435acb2a3b7588b88d42fa04755c6d50ab"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r25.forge.json",
+      "bytes": 826654,
+      "sha256": "467470990459c12c33a96093b2cad80d6dccd5368185a10d9276c52e6af469b3"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-00-native-r7-before.png",
+      "bytes": 95453,
+      "sha256": "f85a52564901bc3939165a41ea3bb4a39ca12c7f2c4baea4347c9ab1742724ca"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-00-native-r7-before.ax.txt",
+      "bytes": 11478,
+      "sha256": "d29494c37f07d0a0e75241e97d8756d7b3f636b800609986515e2121057a286e"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-01-first-stroke-stalled.png",
+      "bytes": 96765,
+      "sha256": "e19fd48184e0db7dbfa4db9396edcb135e52792b45631a1549091249f0fb93fe"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-01-first-stroke-stalled.ax.txt",
+      "bytes": 11764,
+      "sha256": "43ece8d57b0b06dea4feec50024922f116ab3e2b095ba20dac1284d371acce23"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-02-c7-cursor-16m.png",
+      "bytes": 97595,
+      "sha256": "6cd7f098031f8efa7fdade0995f616e8f33e57dde86657243f17b5168b57a754"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-02-c7-cursor-16m.ax.txt",
+      "bytes": 11682,
+      "sha256": "b9663e3df30ab466400d05ffca16d645569d9ac663374f1c50811b4a78ed6b24"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-03-c7-raise-r8.png",
+      "bytes": 96888,
+      "sha256": "2c8fc8fa92561977120db772348d6a540afabe448cf9e4ab81f5c91671fb0d92"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-03-c7-raise-r8.ax.txt",
+      "bytes": 11819,
+      "sha256": "c92f137b981e88e472178d06ec47a92c977b74b15850ce44e1e51315e121257e"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-04-c7-undo-r9.png",
+      "bytes": 96877,
+      "sha256": "c25cbb0bc0cc5d9786047fb33fc3fd25530961ff0518ecdf9fe31b8342f87476"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-04-c7-undo-r9.ax.txt",
+      "bytes": 11833,
+      "sha256": "0f68490654f1e8f11e0a540f1e0b359c8507016317833330db39dda311c4999e"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-05-c7-redo-r10.png",
+      "bytes": 97154,
+      "sha256": "b9147d8421996a6ff1f10e45763968ae7deb9a7b6235f8a3b56f467df3d90e55"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-05-c7-redo-r10.ax.txt",
+      "bytes": 11834,
+      "sha256": "182df1277044c0e7d32189cc0add6639a7cee35102b691c59e7b1eb6911c0224"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-06-c7-cursor-32m-75pct.png",
+      "bytes": 97977,
+      "sha256": "07adcd62f9e00751b001a68195b5f06b56f68c1f7bc5bfc8fa76b32628732e15"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-06-c7-cursor-32m-75pct.ax.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-07-c7-lower-r11.png",
+      "bytes": 97700,
+      "sha256": "98fbac2d395776a9e2d34d4856449e4909679d9c137d181c22e80a098254ec3c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-07-c7-lower-r11.ax.txt",
+      "bytes": 11801,
+      "sha256": "3fb94be0c5efb11d4da6e80e14a3ed56201ce1d8372f413b35e8b38ffbe1990b"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-08-c7-smooth-r12.png",
+      "bytes": 97655,
+      "sha256": "527c51f429ae75f2636ed4ac4b1e48752a2d94d48767939b2154bafcf6ab1b30"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-08-c7-smooth-r12.ax.txt",
+      "bytes": 11726,
+      "sha256": "fd5fe7ead9be8c41cff38bb4e780899a80cbec776339c451dad644efe9e7672a"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-09-c7-flatten-r13.png",
+      "bytes": 97836,
+      "sha256": "d1bc4c1a1be0df05806e7dd0c59e6386b3b226a5a68b4fb3d4a3980cbdff2bde"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-09-c7-flatten-r13.ax.txt",
+      "bytes": 11811,
+      "sha256": "703aaaed618b190a8c35321d71d2bbfec827d46e11315494f2d0b081da6d647a"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-10-c7-noise-r14.png",
+      "bytes": 98705,
+      "sha256": "efc20b3453bbd21da67a75cc467bcf26d7269ea5528d596a7bdd277403be2b13"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-10-c7-noise-r14.ax.txt",
+      "bytes": 11876,
+      "sha256": "5a745a3bbb2ef702a88138ac9a9a4a9c8b4b5e9b2ed09f55c26f634188a8ba12"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-11-c7-slope-r15.png",
+      "bytes": 101021,
+      "sha256": "5e0078ff411e2cda069fa9f9af5ad52f105c9eed14797391e6695c1968d03a6c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-11-c7-slope-r15.ax.txt",
+      "bytes": 11961,
+      "sha256": "18887dd5a0ed00df4410b0f4703385713d06162df3fda021270bc347ccb7ad7c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-12-c7-undo-slope-r16.png",
+      "bytes": 101837,
+      "sha256": "f8b44bd92405f6d2b49ea3e5b9831ee980989e51c61a4e56168baa478f9440ed"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-12-c7-undo-slope-r16.ax.txt",
+      "bytes": 11973,
+      "sha256": "5d2c851396d2e0130e59cecea077696a362106728c540862ffe56827250a73b2"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-13-c7-undo-noise-r17.png",
+      "bytes": 99344,
+      "sha256": "f212fa8d1c3171d9f726a234c9c58aefa1242ff4c2cf900fc5893f35476d4327"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-13-c7-undo-noise-r17.ax.txt",
+      "bytes": 11974,
+      "sha256": "1af53ede8af76a6f7fc83ffe964eb222771c5f983474468b0b83951f695c286c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-14-c7-undo-flatten-r18.png",
+      "bytes": 99283,
+      "sha256": "a339da9842a566316b1ca1581aedfd00fed5e3c400e42fc80ee2e09aeeb3bdeb"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-14-c7-undo-flatten-r18.ax.txt",
+      "bytes": 11974,
+      "sha256": "1ad3423d33693a58b22085de327629f0878c4bbc59024834ec2dedb9c22fa3a0"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-15-c7-undo-smooth-r19.png",
+      "bytes": 99245,
+      "sha256": "b2b7e1ae562837d2683d0dc177a068b478d8415115fecfe277e0e1e98c8983c5"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-15-c7-undo-smooth-r19.ax.txt",
+      "bytes": 11974,
+      "sha256": "260502667f99e5aaa13bc87b750a318309e81b8b58ffe9118add1f6674cd0ace"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-16-c7-undo-five-r20.png",
+      "bytes": 98835,
+      "sha256": "ff56a155eda590061a4fd77b647a6ba5561b0148ce321d7a833bdf51a6ce0e63"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-16-c7-undo-five-r20.ax.txt",
+      "bytes": 11974,
+      "sha256": "f18fce5e4541730bfa1193d0a340e5e7bc76e820ed55479f818354692ecef3fe"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-17-c7-redo-lower-r21.png",
+      "bytes": 99307,
+      "sha256": "f59aeeb0cc0df0c6667cb3f780325bd82db5dd011d1ff951c113453012968c25"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-17-c7-redo-lower-r21.ax.txt",
+      "bytes": 11973,
+      "sha256": "b1918fb1efdd87245c44c4f16fa374fd6128fa27f3a88a91369d0bc63260be47"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-18-c7-redo-smooth-r22.png",
+      "bytes": 98617,
+      "sha256": "3e2fb987872235cdbfcc15f122262048286df7c8a56c9118dc778c6f5990b3f6"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-18-c7-redo-smooth-r22.ax.txt",
+      "bytes": 11974,
+      "sha256": "8020cab906d910acf25aa8292013c7b2bd1881b68502c81c48952f020ec952db"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-19-c7-redo-flatten-r23.png",
+      "bytes": 98614,
+      "sha256": "fe0e84103b933426651575959c2f6336fb90906975786a64c89c2551ddd67e14"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-19-c7-redo-flatten-r23.ax.txt",
+      "bytes": 11973,
+      "sha256": "9ee7a609e14dccc32c44c962d8005cbb423565ccc87183f11b9c5472f243b639"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-20-c7-redo-noise-r24.png",
+      "bytes": 101226,
+      "sha256": "fdee15dd5c2c2c65369eb50a0d11c1305234a9a2c2aa93a0137dfc2d29712c7f"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-20-c7-redo-noise-r24.ax.txt",
+      "bytes": 11974,
+      "sha256": "b017e6791b4dfec67a0e04cd6fde8ec6697f8130eff0d56f6392efb2a728619a"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-21-c7-redo-slope-r25.png",
+      "bytes": 101442,
+      "sha256": "48d8f620f9fb7b861d61b1b7a9244698ccddaa66b4e034234b4dd264880cda03"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-21-c7-redo-slope-r25.ax.txt",
+      "bytes": 11996,
+      "sha256": "9f85eac0ae295546dfb9c833a03fa4bb11682db2147b946cc38b3e2c3cb1f533"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-22-c7-saved-r25.png",
+      "bytes": 144105,
+      "sha256": "4d0b3a409cd1f2f458ede799d84953ad5de24cc76ab668659fb3135b6769fd43"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-22-c7-saved-r25.ax.txt",
+      "bytes": 11831,
+      "sha256": "62fe2d647079d96d34aa5179577d0581ce94f9ccd49b7e31247131dfd3af2fdd"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-23-c7-fresh-session.png",
+      "bytes": 118858,
+      "sha256": "9f63166de3ab42869ad3f4bdfa82f061bd1ad370410f730778439f21894d687c"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-23-c7-fresh-session.ax.txt",
+      "bytes": 7762,
+      "sha256": "d4963d41b764cb4fe7cc9150bc9ed827b619f71a0025100fff97343760e96c68"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-24-c7-reopened-source-r25.png",
+      "bytes": 126142,
+      "sha256": "b51af49d8a7ba1f596c00fdfa05eb72fcd2eb872d0e45a5c9e687f826b00de14"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-24-c7-reopened-source-r25.ax.txt",
+      "bytes": 9402,
+      "sha256": "45d8be76b4c2843c630f0954a551a25d7f816bacfbb4d0e9237315f77975f74e"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-25-c7-reopened-terrain-r25.png",
+      "bytes": 99494,
+      "sha256": "53fa0f83acbc30900767512fb1baf6725081346e6e60e518f51fb3beb1a35b3b"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-25-c7-reopened-terrain-r25.ax.txt",
+      "bytes": 11460,
+      "sha256": "c46b7691bb7a276e5769ed68ae9e745d461f8ed3f0594be557f52c1f2bc462e2"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-26-c7-reopened-diagnostics-r25.png",
+      "bytes": 134097,
+      "sha256": "ea21048f06597d0d1f8487daf42a7a3711254313c6d30844e0b640d5de34e102"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/viewport-26-c7-reopened-diagnostics-r25.ax.txt",
+      "bytes": 13137,
+      "sha256": "32a6c47415a74c1a93bc27bb9653c935b21cc864622fade7d3ac2fbef91e0bc5"
+    }
+  ]
+}

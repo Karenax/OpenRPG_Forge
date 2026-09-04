@@ -1,5 +1,8 @@
 # Gate 2 — commandes de brosses, qualification des sources
 
+Rapport historique de la fondation `5b503ff`. Le raccordement et la qualification UI ultérieurs
+sont décrits dans [BRUSH_VIEWPORT.md](BRUSH_VIEWPORT.md) ; les statuts ci-dessous restent ceux de ce lot.
+
 Date : 4 septembre 2026. Branche `Rust` uniquement.
 Code : `5b503ff39c08b2edc879352ca3584799ee911764` ; arbre
 `97b3cf8cb4905d6e516f81f3c3984c30c3adc277`.
