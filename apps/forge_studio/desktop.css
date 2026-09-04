@@ -536,10 +536,25 @@
 
 .forge-desktop .desktop-window[data-app="world"] .window-content { overflow: hidden; }
 .forge-desktop .world-workspace { display: grid; grid-template-columns: 190px minmax(0, 1fr); height: 100%; min-height: 0; }
+.forge-desktop .world-workspace button {
+  appearance: none;
+  padding: 7px 11px;
+  border: 1px solid #d7cebd;
+  border-radius: 7px;
+  color: #51432d;
+  background: linear-gradient(#fffefa, #faf6eb);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px #6450390a;
+}
+.forge-desktop .world-workspace button:hover:not(:disabled) { border-color: #b29868; background: #f5ecd9; }
+.forge-desktop .world-workspace button:focus-visible { outline: 2px solid #8a652d; outline-offset: -3px; }
+.forge-desktop .world-workspace button:disabled { opacity: .55; cursor: default; }
 .forge-desktop .world-area-browser { padding: 18px 12px; overflow: auto; border-right: 1px solid var(--line); background: #eee8da90; }
 .forge-desktop .world-area-browser h2 { margin: 0 0 18px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
 .forge-desktop .world-area-browser h3 { margin: 20px 4px 8px; font-size: 12px; }
-.forge-desktop .world-area-browser button { width: 100%; text-align: left; margin: 3px 0; padding: 9px 10px; white-space: normal; }
+.forge-desktop .world-area-browser button { width: 100%; text-align: left; margin: 3px 0; padding: 9px 10px; white-space: normal; border-color: transparent; background: transparent; box-shadow: none; }
 .forge-desktop .world-area-browser button.active { background: #ead8aa; border-color: #b99b63; }
 .forge-desktop .world-editor { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
 .forge-desktop .world-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 8px; min-height: 44px; border-bottom: 1px solid var(--line); }
