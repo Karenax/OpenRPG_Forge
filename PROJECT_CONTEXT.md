@@ -1001,6 +1001,26 @@ preuve.
 
 Le Studio est une application de création, pas le runtime emballé dans une fenêtre d’éditeur.
 
+**Direction UX demandée le 4 septembre 2026 — à implémenter :** un bureau Forge à
+sous-applications par fonction, inspiré de l'organisation de
+[cette référence interactive](https://macos-27-simulator.mweinbach.chatgpt.site/), inspectée dans le
+navigateur. Retenir barre supérieure de menus contextuels, lanceur/dock et fenêtres métier
+déplaçables, redimensionnables, réductibles et agrandissables ; panneaux arrondis et translucides,
+hiérarchie claire et identité visuelle propre à Forge. Ne pas importer les assets ou la marque Apple.
+
+Les espaces métier cibles sont Projets, Monde, Assets, Personnages, Narration, Playtest et Diagnostics,
+livrés progressivement selon les gates. Cela reste **une application Tauri/Leptos**, une session Rust
+partagée et les mêmes commandes typées. Fermer/réduire une fenêtre métier ne ferme pas le projet
+et ne perd pas les formulaires. Menus, raccourcis et boutons réutilisent les mêmes validations.
+Le canvas Bevy doit rester monté quand sa fenêtre est déplacée ou masquée ; le focus texte/menus
+ne doit pas piloter la caméra. Les outils futurs restent explicitement indisponibles, sans faux
+succès ni scènes de preuve présentées comme le projet créé.
+
+Premier incrément prévu : coque commune, menus et dock, intégration de Projets et de ses panneaux
+existants. Aujourd'hui les routes Projets et scènes de preuve sont des montages distincts ;
+**le bureau multi-fenêtres n'est pas encore implémenté**. Sa validation exigera navigation, focus,
+conservation des brouillons, canvas unique, captures et sauvegarde/réouverture sans régression.
+
 La coque gère :
 
 - navigateur de projet ;

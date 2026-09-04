@@ -918,6 +918,12 @@ R2-002/003/004/006 sont partiels : module/zone initiaux, métadonnées et sélec
 sans ajout ultérieur, onglets, édition existante ni viewport 3D. Les acquis de commandes,
 undo/redo, snapshots immuables et réouverture ne ferment pas les routes générales R2-F.
 
+Demande UX du 4 septembre : prochain incrément de coque en **bureau Forge à sous-applications**,
+menus supérieurs contextuels et dock, selon `PROJECT_CONTEXT.md` §7.5. Intégrer d'abord les outils
+Projets réellement acquis, conserver les brouillons et le canvas unique ; ne pas lancer les fonctions
+de gates ultérieures pour remplir le dock. Direction décidée, bureau non encore implémenté ; aucun
+PASS supplémentaire n'est attribué pour cette intention d'interface.
+
 ## But
 
 Créer une carte complète sans modifier de JSON à la main, avec une expérience proche d’un constructeur
