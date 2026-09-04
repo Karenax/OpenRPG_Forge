@@ -943,7 +943,7 @@ fn validate_quality(quality: &VisualValleyQualityStats) -> Result<(), String> {
     if quality.selection != VisualValleyQualitySelection::Fixed(VisualQualityTier::High)
         || quality.startup_tier != VisualQualityTier::High
         || quality.current_tier != VisualQualityTier::High
-        || quality.dynamically_applied_tier.is_some()
+        || quality.dynamically_applied_tier != Some(VisualQualityTier::High)
         || quality.adaptation_enabled
         || quality.transition_count != 0
     {
@@ -1292,6 +1292,37 @@ const fn weather_label(weather: WeatherState) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fixed_high_capture_requires_the_quality_tier_to_be_applied() {
+        let profile = VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        let mut app = App::new();
+        app.add_plugins(forge_engine::VisualValleyQualityPlugin::new(
+            profile,
+            VisualValleyQualitySelection::Fixed(VisualQualityTier::High),
+        ));
+        assert!(validate_quality(app.world().resource::<VisualValleyQualityStats>()).is_err());
+        app.update();
+        let applied = app.world().resource::<VisualValleyQualityStats>().clone();
+        assert_eq!(
+            applied.dynamically_applied_tier,
+            Some(VisualQualityTier::High)
+        );
+        assert!(validate_quality(&applied).is_ok());
+
+        let mut wrong_tier = applied.clone();
+        wrong_tier.dynamically_applied_tier = Some(VisualQualityTier::Low);
+        assert!(validate_quality(&wrong_tier).is_err());
+        let mut adaptive = applied.clone();
+        adaptive.adaptation_enabled = true;
+        assert!(validate_quality(&adaptive).is_err());
+        let mut transitioned = applied;
+        transitioned.transition_count = 1;
+        assert!(validate_quality(&transitioned).is_err());
+    }
 
     fn signal() -> CaptureSignal {
         CaptureSignal {

@@ -35,6 +35,19 @@ parse sans erreur. ADR-0009 documente la reprise explicite de ce binaire sans no
 commit source et hash épinglés, diff des entrées compilées vide, provenance de l'outillage séparée.
 Les quatre captures restent dues. Aucun code moteur, audit PresentMon ou asset Cadle n'est modifié.
 
+La reprise outillage `2902353c1400376c872dd0a3c49648a38e87b5eb` franchit le contrôle du profil et
+lance le runtime sans rebuild. Elle échoue ensuite avant readiness sur une contradiction du garde
+Rust : `dynamically_applied_tier=Some(High)` était rejeté alors que le validateur moteur exige
+précisément le tier courant appliqué. Ce champ décrit le dernier preset appliqué, pas une adaptation
+de qualité. Le garde de capture exige maintenant `Some(High)`, tout en conservant sélection High,
+adaptation désactivée et zéro transition. Un test exerce le vrai plugin qualité avant/après son premier
+update et les rejets tier incorrect/adaptation/transition : **5/5 tests Rust ciblés PASS**,
+formatage et `git diff --check` PASS. Les trois tests négatifs de reprise
+(hash erroné, paramètres incomplets, sources compilées différentes) passent. Cette correction du
+contrôle de capture exige un nouveau binaire, construit avec les dépendances déjà compilées.
+Les erreurs d'acquisition sont conservées dans leurs dossiers externes distincts, sans compteur GPU
+inventé ni modification de seuil. Le moteur de rendu lui-même reste inchangé.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné
