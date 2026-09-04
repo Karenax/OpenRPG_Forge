@@ -177,6 +177,8 @@ def _adapter_action_namespace() -> dict[str, object]:
     class ShaderStage(enum.Enum):
         Vertex = 1
         Pixel = 2
+        Compute = 3
+        Geometry = 4
 
     class RenderDocStub:
         pass
@@ -322,7 +324,10 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
 
             @staticmethod
             def GetShaderReflection(stage: object) -> object | None:
-                return object() if stage in tuple(namespace["rd"].ShaderStage) else None
+                return object() if stage in (
+                    namespace["rd"].ShaderStage.Vertex,
+                    namespace["rd"].ShaderStage.Pixel,
+                ) else None
 
         class Controller:
             def __init__(self) -> None:
@@ -354,6 +359,22 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
         count_present = namespace["count_present_actions"]
         self.assertEqual(count_present([first_present]), 1)
         self.assertEqual(count_present([first_present, second_present_same_event]), 2)
+
+    def test_draw_stages_ignore_separately_bound_compute_but_keep_geometry(self) -> None:
+        namespace = _adapter_action_namespace()
+        stage = namespace["rd"].ShaderStage
+        bound = {stage.Vertex, stage.Pixel, stage.Compute}
+        pipeline = types.SimpleNamespace(
+            GetShaderReflection=lambda item: object() if item in bound else None
+        )
+        self.assertEqual(
+            ["Vertex", "Fragment"], namespace["active_shader_stages"](pipeline)
+        )
+        bound.add(stage.Geometry)
+        self.assertEqual(
+            ["Vertex", "Geometry", "Fragment"],
+            namespace["active_shader_stages"](pipeline),
+        )
 
     def test_runtime_adapter_manifest_and_orchestrator_share_one_exact_contract(self) -> None:
         manifest = _load_manifest()

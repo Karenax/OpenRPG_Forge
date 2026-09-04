@@ -48,6 +48,16 @@ contrôle de capture exige un nouveau binaire, construit avec les dépendances d
 Les erreurs d'acquisition sont conservées dans leurs dossiers externes distincts, sans compteur GPU
 inventé ni modification de seuil. Le moteur de rendu lui-même reste inchangé.
 
+Qualification complète du binaire de tests : **75/75 tests runtime PASS**, Clippy runtime strict
+PASS. Pendant le build Release, une revue de l'API épinglée corrige aussi l'énumération des stages
+de draw : le pipeline compute Vulkan reste lié séparément, et sa réflexion ne prouve pas son exécution
+dans un draw. L'adaptateur interroge uniquement les stages graphiques ; les stages geometry,
+tessellation et mesh/task restent détectés et rejetés par le modèle. Le test de cette distinction
+passe avec la suite **23/23 Python**. Source primaire :
+[RenderDoc 1.46, PipeState::GetShaderReflection](https://github.com/baldurk/renderdoc/blob/v1.46/renderdoc/api/replay/pipestate.inl).
+Cette correction de l'analyseur ne modifie pas le binaire Release en cours de construction et ne
+constitue pas encore une observation GPU.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné

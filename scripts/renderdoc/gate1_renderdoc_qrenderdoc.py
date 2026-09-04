@@ -577,21 +577,16 @@ def topology_name(topology):
 
 def active_shader_stages(pipeline):
     stages = []
+    # This is called only for draw leaves. Vulkan retains a separately bound
+    # compute pipeline; its reflection does not describe stages of this draw.
     candidates = (
         ("Vertex", "Vertex"),
         ("Hull", "TessellationControl"),
         ("Domain", "TessellationEvaluation"),
         ("Geometry", "Geometry"),
         ("Pixel", "Fragment"),
-        ("Compute", "Compute"),
         ("Task", "Task"),
         ("Mesh", "Mesh"),
-        ("RayGen", "RayGeneration"),
-        ("Intersection", "Intersection"),
-        ("AnyHit", "AnyHit"),
-        ("ClosestHit", "ClosestHit"),
-        ("Miss", "Miss"),
-        ("Callable", "Callable"),
     )
     for renderdoc_name, normalized_name in candidates:
         stage = getattr(rd.ShaderStage, renderdoc_name, None)
