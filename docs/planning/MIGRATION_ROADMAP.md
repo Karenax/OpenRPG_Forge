@@ -957,6 +957,13 @@ de monde accessible.
 
 ## R2-B — Brosses de terrain
 
+Fondation source/native livrée au code `5b503ff` : cinq modes de relief, commande typée,
+dry-run intact, undo/redo et sauvegarde/réouverture testés. **450 tests PASS**, Clippy natif/WASM PASS.
+Les remplacements partiels de caches CPU sont égaux à la génération complète dans les cas testés.
+**Aucune route ci-dessous n'est encore validée** : UI/picking/traits continus, visualisation et
+raccordement partiel au renderer restent dus. Gate 2 reste **5/43**.
+[Preuves et limites](../evidence/gate2/BRUSH_COMMANDS.md).
+
 - [ ] `R2-007` lever/abaisser.
 - [ ] `R2-008` lisser.
 - [ ] `R2-009` aplatir.

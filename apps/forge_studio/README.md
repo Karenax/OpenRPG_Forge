@@ -85,6 +85,16 @@ playtest, crash recovery, performance qualification or route PASS follows from c
 
 ### Native commands and draft state
 
+`WorkspaceCommand::SculptTerrain` now exposes the shared height-brush command to the native service:
+an exact area/revision request, typed brush and explicit `dry_run` flag. Dry-run computes a candidate
+receipt in the returned projection without changing the session, dirty state or history. Apply
+recomputes against the still-current revision and commits through the same bounded history as the
+existing edits. Receipts include brush intent, resolved source patch, before/after hashes and inverse;
+serialization completes before mutation. This is an in-memory receipt, not a durable audit journal.
+Native service tests exercise preview/apply/undo/redo/immutable save/fresh-session reopen and IPC
+round-trip. There are no brush controls or pointer strokes in Monde yet, and the native command is
+not a claim of a visually qualified editor. See `docs/evidence/gate2/BRUSH_COMMANDS.md`.
+
 The native Rust `WorkspaceSession` is authoritative. Leptos holds form drafts and read projections,
 not a second editable canonical project. The shared IPC envelope is
 `StudioCommand::Workspace { request }` through `execute_studio_command`; responses carry

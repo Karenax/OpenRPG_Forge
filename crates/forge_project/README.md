@@ -83,3 +83,10 @@ une révision périmée/épuisée, un doublon d'identité, un dépassement de qu
 Modifier une zone ne change pas les autres. Son terrain conserve seed/relief et synchronise nom et
 révision. Appliquer l'inverse reste une responsabilité transactionnelle du consommateur et ne
 constitue jamais une demande d'écrasement ou suppression disque.
+
+`SetTerrainHeightDeltas` ajoute un patch source résolu, lié au hash exact du terrain cible en plus
+de la révision workspace. Il conserve la seed, les paramètres de génération, les autres zones et
+les métadonnées, puis valide intégralement le candidat (dont le budget JSON) avant de le retourner.
+Le calcul des brosses appartient à `forge_world::preview_terrain_brush` ; `forge_project` ne dépend
+pas du générateur ni du renderer. Le reçu de brosse conserve séparément l'intention typée et le
+patch résolu ; seuls les deltas de hauteur v2 existants sont persistés dans le projet.

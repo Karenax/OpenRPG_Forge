@@ -1,0 +1,24 @@
+{
+  "schema": "forge.gate2.brush-command-evidence",
+  "schema_version": 1,
+  "source_commit": "5b503ff39c08b2edc879352ca3584799ee911764",
+  "source_tree": "97b3cf8cb4905d6e516f81f3c3984c30c3adc277",
+  "scope": "native source/service tests and native/WASM Clippy; no new viewport qualification",
+  "workspace_tests_passed": 450,
+  "workspace_tests_failed": 0,
+  "workspace_tests_ignored": 0,
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/workspace-tests.log",
+      "sha256": "0020f9aa3fbafd9b6c6808d7fb29fb007834a4dcf9d573af33f63e240a70f3ce"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/clippy-native.log",
+      "sha256": "22fbc4bfbf62d3e7d300ebff0dfc687ea80533d281bc998c5bb9d791ece5ec31"
+    },
+    {
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/clippy-wasm.log",
+      "sha256": "e49c69281ca8dd5bf2c0f5cb57135afa399875becae4c2a5975c316b76494a14"
+    }
+  ]
+}

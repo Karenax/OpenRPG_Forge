@@ -65,6 +65,16 @@ projet, snapshot intact. Boutons Monde harmonisés avec le bureau crème/doré. 
 playtest ni nouvelle qualification de cadence. Les erreurs sources sont testées en Rust ; édition/undo
 pendant une génération reste à qualifier en UI. [Contrat, preuves et limites](docs/evidence/gate2/AREA_VIEWPORT.md).
 
+### Commandes de brosses — fondation validée, UI à raccorder
+
+Le code `5b503ff` ajoute les cinq modes de relief (lever/abaisser, lisser, aplatir, bruit, pente)
+via une commande pure partagée et l'IPC natif : aperçu sans mutation, patch v2 lié au hash/révision,
+historique commun et persistance immuable. **450 tests PASS**, Clippy natif/WASM PASS ; les caches
+partiels CPU correspondent à une génération complète dans les cas testés. Les contrôles visibles,
+le picking, les traits continus et le recalcul partiel du renderer restent à raccorder et à capturer.
+**Gate 2 reste 5/43**, sans nouveau PASS de route. [Contrat, preuves et suite](docs/evidence/gate2/BRUSH_COMMANDS.md).
+Le bureau doré et les assets restent inchangés ; aucun nouvel audit de cadence.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
