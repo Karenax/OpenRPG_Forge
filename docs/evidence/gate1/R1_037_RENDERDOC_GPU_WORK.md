@@ -73,6 +73,18 @@ ou verdict GPU PASS n'y a été produit.
 Validation de ce dernier correctif : **76/76 tests runtime PASS**, dont les deux régressions réelles
 High appliqué et âge d'audit ; Clippy runtime strict, formatage et suite Python **23/23 PASS**.
 
+Le build Release `5f6ed5798fd93613200e0e8fbb4f9251f77e0e43` passe en 9 min 11 s, SHA-256
+`9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815`.
+Le lancement produit enfin un reçu prêt valide : High, 1920 x 1080, Vulkan RX 7800 XT, 58/58
+pipelines, 30 frames de settle et horloges figées à zéro. L'adaptateur s'arrête avant signal car
+`GetAPI()` est encore vide ; RenderDoc le renseigne lors du traitement asynchrone de `RegisterAPI`
+par `ReceiveMessage`, et pas nécessairement avant le reçu runtime. La boucle readiness attend
+désormais ces deux preuves avec la même borne de 95 s, sans accepter une autre API ou une capture
+prématurée. Source primaire :
+[RenderDoc 1.46, target_control.cpp](https://github.com/baldurk/renderdoc/blob/v1.46/renderdoc/core/target_control.cpp).
+Le test couvre notification différée, mauvaise API et timeout ; aucun changement du binaire Rust
+n'est requis. La tentative reste conservée sous `r1-037-renderdoc-5f6ed57-20260904T065800Z`.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné

@@ -82,6 +82,7 @@ def _adapter_validation_namespace() -> dict[str, object]:
     tree = ast.parse(source, filename=str(_ADAPTER_PATH))
     assignments = {
         "READY_FILE",
+        "READY_TIMEOUT_SECONDS",
         "SIGNAL_FILE",
         "LEDGER_FILE",
         "RUNTIME_FAILURE_FILE",
@@ -119,6 +120,7 @@ def _adapter_validation_namespace() -> dict[str, object]:
         "read_json",
         "validate_automation_profile",
         "validate_ready",
+        "wait_for_ready",
         "validate_runtime_ledger",
     }
     selected: list[ast.stmt] = []
@@ -583,6 +585,48 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
                 os.environ, environment, clear=False
             ), self.assertRaises(adapter_error):
                 validate()
+
+    def test_readiness_waits_for_async_vulkan_registration_and_rejects_other_apis(self) -> None:
+        namespace = _adapter_validation_namespace()
+        namespace["rd"] = types.SimpleNamespace(
+            TargetControlMessageType=types.SimpleNamespace(NewCapture="capture")
+        )
+        ready = _valid_ready_document()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / namespace["READY_FILE"]).write_text(json.dumps(ready), encoding="utf-8")
+            for initial_api, delivered_api, should_pass in (
+                ("", "Vulkan", True),
+                ("D3D12", "D3D12", False),
+                ("", "", False),
+            ):
+                ticks = iter(range(200))
+                namespace["time"] = types.SimpleNamespace(
+                    monotonic=lambda: next(ticks), sleep=lambda _seconds: None
+                )
+                state = {"api": initial_api, "messages": 0}
+
+                def receive(_progress: object) -> object:
+                    state["messages"] += 1
+                    state["api"] = delivered_api
+                    return types.SimpleNamespace(type="register_api")
+
+                target = types.SimpleNamespace(
+                    GetPID=lambda: ready["process_id"],
+                    GetAPI=lambda: state["api"],
+                    Connected=lambda: True,
+                    ReceiveMessage=receive,
+                )
+                arguments = (root, target, ready["nonce"], ready["source_commit"], "clear")
+                with self.subTest(initial_api=initial_api, delivered_api=delivered_api):
+                    if should_pass:
+                        path, result = namespace["wait_for_ready"](*arguments)
+                        self.assertEqual(root / namespace["READY_FILE"], path)
+                        self.assertEqual(ready, result)
+                        self.assertEqual(1, state["messages"])
+                    else:
+                        with self.assertRaises(namespace["AdapterError"]):
+                            namespace["wait_for_ready"](*arguments)
 
     def test_ready_validator_rejects_shape_tick_seed_and_binding_drift(self) -> None:
         namespace = _adapter_validation_namespace()

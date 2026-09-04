@@ -522,14 +522,20 @@ def wait_for_ready(output_dir, target, nonce, source_commit, weather):
         if ready_path.is_file():
             document = read_json(ready_path)
             validate_ready(document, nonce, source_commit, int(target.GetPID()), weather)
-            return ready_path, document
+            # RegisterAPI is delivered asynchronously. GetAPI remains empty until
+            # ReceiveMessage processes the first presenting API notification.
+            target_api = str(target.GetAPI())
+            if target_api == "Vulkan":
+                return ready_path, document
+            if target_api:
+                raise AdapterError("RenderDoc target API is not Vulkan: {}".format(target_api))
         if not target.Connected():
             raise AdapterError("RenderDoc target disconnected before runtime readiness")
         message = target.ReceiveMessage(None)
         if message.type == rd.TargetControlMessageType.NewCapture:
             raise AdapterError("RenderDoc produced a capture before the governed signal")
         time.sleep(0.02)
-    raise AdapterError("runtime ready receipt timed out")
+    raise AdapterError("runtime ready receipt or presenting Vulkan API timed out")
 
 
 def action_flags(action):
