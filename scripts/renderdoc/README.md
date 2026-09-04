@@ -1,7 +1,29 @@
-# Modèle RenderDoc pur de R1-037
+# Outillage RenderDoc de Gate 1
 
-Ce dossier contient uniquement la politique de comptage testable de `R1-037`. Il ne contient pas
-RenderDoc, ne charge aucune DLL, ne lance aucun runtime et ne touche pas au registre.
+Les modèles purs vérifient les comptes `R1-037` et les états liés aux matériaux. Les adaptateurs
+`*_qrenderdoc.py` / `gate1_material_replay.py` s'exécutent séparément dans QRenderDoc épinglé.
+Le dossier n'embarque aucune DLL ni capture ; les modèles purs ne lancent aucun processus.
+
+## Replay ciblé des matériaux, sans build ni nouvelle capture
+
+`scripts/Invoke-Gate1MaterialReplay.ps1 -RepoRoot <Rust> -CaptureRoot <preuve R1-037>
+-OutputRoot <nouveau dossier externe> -RenderDocRoot <bundle épinglé>` rejoue séquentiellement
+les quatre RDC existants. Il exige les hashes du reçu R1-037 PASS, les 72 fichiers du bundle,
+un profil QRenderDoc nonce avec opt-out, et l'intégrité finale des entrées/profil/Git. Il ne lance
+pas Forge, ne compile pas et ne modifie pas le registre. Seuls ses répertoires temporaires sont
+supprimés. Une sortie Python absente ou un `failure.txt` échoue même si QRenderDoc retourne zéro.
+
+`python -S -B scripts/renderdoc/gate1_material_model.py <sortie> --output <nouveau reçu.json>`
+vérifie les octets des buffers, bindings, chaîne Bloom/resolve MSAA et textures liées. Le statut
+`PASS_BOUND_STATE_ONLY` ne qualifie **ni pixel exécuté, ni réversibilité dans une même instance,
+ni Browser/Low, ni revue humaine, ni route**. Les disassemblages restent externes ; leur attribution
+au WGSL est documentée dans `docs/evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md`.
+
+Les noms des shaders Release sont supprimés et les bindings WGSL peuvent être remappés : les
+identités proviennent de la réflexion de la capture, pas des noms source attendus. Le collecteur
+interdit les bytecodes Python **avant** l'import QRenderDoc ; les valeurs infinies non concernées
+sont représentées explicitement, avec leurs octets originaux conservés. Aucun seuil GPU n'est
+assoupli et aucun résultat de performance n'est déduit.
 
 ## Interface stable
 
