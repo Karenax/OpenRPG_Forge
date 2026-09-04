@@ -103,8 +103,9 @@ propagation, excludes metadata markers, and does not require a transient per-vie
 
 Native mode/history/save/restart evidence is in `docs/evidence/gate2/BRUSH_VIEWPORT.md`.
 That report qualifies R2-007..011 and R2-013, not the whole gate. The newer partial-refresh code uses
-the exact source diff across history/revision jumps; R2-014 still requires its own native acquisition
-before the roadmap can mark it passed.
+the exact source diff across history/revision jumps. Native r25 full load followed by sparse stroke,
+undo and redo acquisition qualifies R2-014 separately in
+`docs/evidence/gate2/PARTIAL_TERRAIN_REFRESH.md`: each edit rebuilt 3 chunks and retained 61.
 High-amplitude noise produces sharp spikes; natural terrain composition is not claimed.
 Material painting, live dry-run geometry, vegetation brushes and playtest are not implemented here.
 

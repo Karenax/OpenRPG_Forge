@@ -50,8 +50,9 @@ empreinte traversant quatre chunks ; le chunk témoin non affecté reste identiq
 révision, undo/redo, réouverture ancienne et changement sans deltas sont permis, sans changer les
 sources ni fabriquer de révision/hash. Les mêmes contrôles de cache, topologie et structure s'appliquent.
 La structure incompatible exige un rebuild complet ; une corruption de cache reste une erreur.
-Les outils Studio sont qualifiés séparément dans `docs/evidence/gate2/BRUSH_VIEWPORT.md` ; les tests
-de cette crate ne qualifient pas à eux seuls le renderer ni R2-014.
+Les outils Studio sont qualifiés séparément dans `docs/evidence/gate2/BRUSH_VIEWPORT.md`. Les tests
+de cette crate ne qualifiaient pas à eux seuls le renderer ; l'acquisition native séparée de
+`docs/evidence/gate2/PARTIAL_TERRAIN_REFRESH.md` ferme désormais R2-014.
 
 La fixture de végétation est produite par `VisualValleyVegetationRecipe`. Ses quatre probabilités
 de placement (arbres 0,20 ; arbustes 0,36 ; fougères 0,42 ; herbe 0,80) renforcent la couverture sans

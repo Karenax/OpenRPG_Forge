@@ -18,7 +18,8 @@ tab switches in the same project/page. They are presentation-only state.
 Headless tests exercise request replacement/cancellation, asset release, camera restoration and
 invalid topology, exact full-build attribute/index parity, retained allocation identity and failed/
 cancelled partial staging. These are ECS/CPU proofs, not evidence of GPU presentation. Studio Diagnostics
-retains that distinction; capture and inspect the native viewport before qualifying a visual route.
+retains that distinction. The native stroke/undo/redo capture that qualifies R2-014, while explicitly
+excluding GPU/performance claims, is recorded in `docs/evidence/gate2/PARTIAL_TERRAIN_REFRESH.md`.
 
 Adapts engine-neutral Forge documents to Bevy entities. `ProofScenePlugin` keeps the Gate 0 scene
 API intact. `VisualValleyPlugin` consumes a validated `TerrainDocument`, asks `forge_world` for the

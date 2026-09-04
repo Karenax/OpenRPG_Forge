@@ -80,7 +80,9 @@ if ($Record) {
     Require (-not (Test-Path -LiteralPath $manifestPath)) 'Refusing to overwrite existing manifest'
     $captures = @(Get-ChildItem -LiteralPath (Join-Path $repo $bundle) -Filter 'viewport-*.png' | Sort-Object Name)
     Require ($captures.Count -eq 27) 'Expected 27 acquired screenshots (including initial negative case)'
-    $paths = @($baseline, 'target/release/forge-studio.exe', 'apps/forge_studio/dist/forge_studio_bg.wasm')
+    $paths = @($baseline,
+        "$bundle/bin/forge-studio-c7fc510.exe",
+        "$bundle/bin/forge_studio-c7fc510.wasm")
     $paths += $logs | ForEach-Object { "$bundle/$_" }
     $paths += $counts.Keys | Where-Object { $_ -ne 7 } | ForEach-Object { SnapshotPath $_ }
     foreach ($capture in $captures) {

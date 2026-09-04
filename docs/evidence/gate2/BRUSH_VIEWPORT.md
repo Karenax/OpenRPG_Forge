@@ -4,7 +4,8 @@ Date : 4 septembre 2026. Branche `Rust` uniquement.
 
 **R2-007/008/009/010/011/013 PASS local : Gate 2 atteint 11/43, toujours ouverte.**
 Cette tranche qualifie les outils de relief et leur cercle de rayon/intensité, pas la finition d'une
-vallée ni le passage de Gate 2. R2-012 (matériaux), R2-014 (recalcul partiel) et R2-F restent ouverts.
+vallée ni le passage de Gate 2. R2-012 (matériaux) et R2-F restent ouverts ; R2-014, ouverte au moment
+de ce candidat, est qualifiée ultérieurement par son rapport séparé `PARTIAL_TERRAIN_REFRESH.md`.
 Gate 1 conserve ses réserves ADR-0011 ; CI distante `NOT RUN — infrastructure billing` sous ADR-0006.
 Aucun audit PresentMon, aucune modification de `main`, aucun asset Cadle ou autre asset externe.
 
@@ -111,13 +112,17 @@ appliquer les gestes/paramètres du tableau, sauvegarder dans un dossier de preu
 rétablir, puis fermer et rouvrir le fichier final. Aucun JSON n'a été édité manuellement pour produire
 les reliefs de cette acquisition.
 
+Les deux binaires du candidat `c7fc510` ont ensuite été archivés dans le bundle ignoré sous `bin/`.
+Le manifeste référence ces copies immuables : une reconstruction ultérieure du Studio ne peut donc
+plus invalider cette preuve historique tout en conservant les mêmes tailles et SHA-256.
+
 ## Limites et prochain travail
 
 - Le relief ne se déforme pas pendant le glisser : cercle/compteur d'empreintes seulement ; application
   au relâchement. Pas encore d'aperçu 3D du dry-run.
-- **R2-014 reste ouverte** : chaque edit/historique régénère puis remplace les 64 chunks ; un écran
-  momentanément vide pendant génération est observé. Les caches CPU partiels ne sont pas raccordés
-  à ce renderer. Traiter aussi les sauts de révision et undo/redo avant qualification.
+- **Limite au candidat `c7fc510`** : chaque edit/historique régénérait puis remplaçait les 64 chunks et
+  un écran momentanément vide était observé. Cette limite historique est fermée par le candidat
+  `b290e7f` et sa preuve R2-014 séparée ; elle reste vraie pour les captures de ce rapport.
 - Les captures prouvent un rendu, pas une performance interactive qualifiée. Le temps de boucle CPU
   affiché n'est ni une cadence présentée ni un timestamp GPU.
 - Peinture des matériaux, biomes/végétation par zones, splines, placements et playtest restent dus.

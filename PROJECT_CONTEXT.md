@@ -83,10 +83,22 @@ regroupés en une commande annulable ; picking sur les vrais meshes. **456 tests
 natif/WASM et builds Release PASS. Parcours Studio réel : tous les modes, historique complet,
 comparaisons exactes des données, sauvegarde et réouverture après redémarrage. Les autres zones et
 le snapshot initial restent intacts. [Preuves et limites](docs/evidence/gate2/BRUSH_VIEWPORT.md).
-**Gate 2 est désormais à 11/43, toujours ouverte.** Le relief s'applique au relâchement et les
-64 chunks sont encore régénérés : recalcul partiel R2-014, matériaux R2-012 et performance interactive
-restent dus. Le bruit à forte amplitude est abrupt, pas une finition naturelle. Historique non durable,
-pas de playtest ni de passage Gate 3. La coque dorée et les réserves Gate 1 restent inchangées.
+Cette acquisition historique porte Gate 2 à 11/43. Le bruit à forte amplitude est abrupt, pas une
+finition naturelle. Historique non durable, pas de playtest ni de passage Gate 3. La coque dorée et
+les réserves Gate 1 restent inchangées.
+
+### Recalcul partiel du terrain — septième route qualifiée
+
+Le candidat `b290e7f` qualifie **R2-014** : le cache monde, l'IPC Studio et le renderer conservent la
+projection visible et ne préparent/remplacent que les chunks touchés par le diff exact des hauteurs.
+Les changements structurels utilisent un rebuild complet explicite ; hash périmé et cache corrompu
+restent des erreurs. **462 tests PASS**, Clippy natif/WASM et builds Release PASS. Parcours Studio
+réel : r25 charge 64/64 chunks, puis un trait local, son annulation et son rétablissement recalculent
+chacun 3 chunks et en conservent 61. Les snapshots r27 = r25 et r28 = r26 hors révisions ; métadonnées,
+autres zones et seed `u64::MAX` restent identiques. [Preuves et limites](docs/evidence/gate2/PARTIAL_TERRAIN_REFRESH.md).
+**Gate 2 est désormais à 12/43, toujours ouverte.** Les temps de boucle ne sont pas un benchmark ;
+R2-012, biomes/végétation, routes générales R2-F et performance interactive restent dus. Aucun nouvel
+audit PresentMon, aucune qualification GPU et aucun asset Cadle.
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 

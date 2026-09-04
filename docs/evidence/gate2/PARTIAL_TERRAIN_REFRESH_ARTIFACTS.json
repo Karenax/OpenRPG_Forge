@@ -1,0 +1,40 @@
+{
+  "schema": "forge.gate2.partial-terrain-refresh-evidence",
+  "schema_version": 1,
+  "source_commit": "b290e7f2744a7872cfb6af6ed8ddb8d3d5deed1f",
+  "source_tree": "800848108b46ed9acc43cb184bad3f1862847bbe",
+  "route": "R2-014",
+  "scope": "Native partial terrain refresh, undo and redo; no GPU/performance or full Gate 2 qualification",
+  "workspace_tests_passed": 462,
+  "workspace_tests_failed": 0,
+  "workspace_tests_ignored": 0,
+  "native_observations": {
+    "initial": { "revision": 25, "rebuilt": 64, "retained": 0 },
+    "stroke": { "revision": 26, "rebuilt": 3, "retained": 61 },
+    "undo": { "revision": 27, "rebuilt": 3, "retained": 61 },
+    "redo": { "revision": 28, "rebuilt": 3, "retained": 61 }
+  },
+  "artifacts": [
+    { "path": "artifacts/gate-2/terrain-brushes-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r25.forge.json", "bytes": 826654, "sha256": "467470990459c12c33a96093b2cad80d6dccd5368185a10d9276c52e6af469b3" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/bin/forge_studio-b290e7f.wasm", "bytes": 40236076, "sha256": "6d54b0b783ac75ae0aa72a723181fc49840b6f48d3ccbfdb8a44b2c48dfa8a71" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/bin/forge-studio-b290e7f.exe", "bytes": 33982464, "sha256": "12cc24a3fe8beb4a48d0bb6de42b7ddd73df646963eabae929f10b9f5657d581" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/cache-parity.log", "bytes": 1039, "sha256": "9bb1a9476257018cd7bf0714090c13b4dd8637e93a7406ec2ac4179b5ed38bd7" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/clippy-native.log", "bytes": 575, "sha256": "4ab2646d5531271b4e26174b392ea66f9b60729e69a10f356a33481008d75bbd" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/clippy-wasm-final.log", "bytes": 429, "sha256": "6c971f06db9a80a4046c8bdebd11f6def06e69722c249ed52a4078bf096bae17" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/clippy-wasm.log", "bytes": 923, "sha256": "f0ba9c237a655feed70bc24bda8ed07e8a56063cf1865a634272148bbb5d1b37" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/native-release.log", "bytes": 266, "sha256": "7687456e3588bf32856f515863ad90e684587edc2e28470dc0fb0857465133d7" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/00-b290-r25-full-before.ax.txt", "bytes": 11976, "sha256": "4b69f20a7df35c6f6c8fe728312a378291c15e7e27519cf6a9fc1d3dcb3a0de5" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/00-b290-r25-full-before.png", "bytes": 117531, "sha256": "806e9aa54c354711d5152a35050bf1ec0d542f2cb1df079f4ce74526e0614bed" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/01-b290-r26-partial-3-of-64.ax.txt", "bytes": 12354, "sha256": "6078301877ab669ae5a61ed9523c2a23ef6aeaa38477e92d319a750f3b258d9d" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/01-b290-r26-partial-3-of-64.png", "bytes": 101988, "sha256": "f5a9b6e31854cf3af9dbf4f7f442b4a04e5762ea61f5df6f5b4fd2d16cb5ef24" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/02-b290-r27-undo-partial-3-of-64.ax.txt", "bytes": 5358, "sha256": "62f47ea4c87ba978aef35298e361d6bffcae2cde0d023138fc3cf6e73831bb34" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/02-b290-r27-undo-partial-3-of-64.png", "bytes": 102014, "sha256": "7f8ec309e4a1f17441dd90b088600063f6ffcca3b3e04429c0d9c1c7d065d6f3" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/03-b290-r28-redo-partial-3-of-64.ax.txt", "bytes": 5358, "sha256": "c7bcab9bebbaedc1fcb99bda6de0cfd94ec45d00e797aa2282337b7d8e3e2027" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/03-b290-r28-redo-partial-3-of-64.png", "bytes": 102248, "sha256": "5ca5fb9fa338b8e1793813d0e18e83616a4af8e73cc8eacf392512b8842431f3" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r26.forge.json", "bytes": 901351, "sha256": "86fcd8df81d5b18053c4e089210ad3f7dfd444cbf47deb0a0fac86407523a145" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r27.forge.json", "bytes": 826654, "sha256": "2bca57091a0a6d1863cd709d45d71ea2514ffc47d3fced66b05a9b2c64f72d1b" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/snapshots/9d72c00d-02a6-50c2-87b3-411787233851-r28.forge.json", "bytes": 901351, "sha256": "f872c2bd901a5cb293d5d3ec9e238e233d078a4e583deb055d9da4402f1191c3" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/trunk-release.log", "bytes": 626, "sha256": "7eaedba9b93e549fc7192ca28886bec4dc33f9cddfb836d037808605b6df2ee0" },
+    { "path": "artifacts/gate-2/partial-terrain-2026-09-04/workspace-tests.log", "bytes": 45425, "sha256": "492ced8f1b13c3f6be95632eabbe24f18fe06f744eb70837d31446e5e12a34dc" }
+  ]
+}

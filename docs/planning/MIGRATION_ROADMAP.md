@@ -961,10 +961,17 @@ Fondation source/native `5b503ff`, puis UI/traits `c2d2825` et picking corrigé 
 **456 tests PASS**, Clippy natif/WASM et builds Release PASS. Parcours natif acquis pour tous les
 modes, cercle rayon/intensité, annuler/rétablir chaque trait, sauvegardes et réouverture après arrêt
 complet. Comparaisons exactes des sources hors révisions ; autres zones et snapshot initial intacts.
-**Six routes sont validées : Gate 2 atteint 11/43, toujours ouverte.**
+**Ces six routes portent historiquement Gate 2 à 11/43.**
 [Fondation](../evidence/gate2/BRUSH_COMMANDS.md) et [preuves UI/limites](../evidence/gate2/BRUSH_VIEWPORT.md).
-Le bruit à forte amplitude reste abrupt. Le relief s'applique au relâchement ; les 64 chunks sont
-encore régénérés. Le recalcul partiel CPU ne qualifie donc pas R2-014 ni la performance interactive.
+Le bruit à forte amplitude reste abrupt. Le relief s'applique encore au relâchement.
+
+Le candidat `b290e7f` raccorde ensuite le recalcul partiel au cache natif, à l'IPC et au renderer.
+**R2-014 PASS : Gate 2 atteint 12/43, toujours ouverte.** 462 tests, Clippy natif/WASM et builds
+Release PASS. L'acquisition native r25 → r26 → r27 undo → r28 redo reconstruit d'abord 64/64 chunks,
+puis seulement 3/64 à chaque transition ; 61 entités/meshes restent identiques. Les sources prouvent
+r27 = r25 et r28 = r26 hors révisions, sans changement des autres zones/métadonnées.
+[Preuves, manifeste et limites](../evidence/gate2/PARTIAL_TERRAIN_REFRESH.md). Aucun verdict GPU ou de
+performance interactive n'est déduit des temps de boucle affichés.
 
 - [x] `R2-007` lever/abaisser.
 - [x] `R2-008` lisser.
@@ -973,7 +980,7 @@ encore régénérés. Le recalcul partiel CPU ne qualifie donc pas R2-014 ni la 
 - [x] `R2-011` pente.
 - [ ] `R2-012` peinture matériaux.
 - [x] `R2-013` visualisation rayon/intensité.
-- [ ] `R2-014` recalcul partiel.
+- [x] `R2-014` recalcul partiel — cache/IPC/renderer et parcours natif trait/undo/redo qualifiés.
 
 ## R2-C — Biomes et végétation
 

@@ -27,12 +27,12 @@
       "sha256": "297035827452c15186b9f17840784d575b98f660ddcfb8984102d10c8de61ae4"
     },
     {
-      "path": "target/release/forge-studio.exe",
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/bin/forge-studio-c7fc510.exe",
       "bytes": 33909760,
       "sha256": "fe5c0872dbb13d94c72101880759197c0764dd636a053e714e1ad8e036bda4f0"
     },
     {
-      "path": "apps/forge_studio/dist/forge_studio_bg.wasm",
+      "path": "artifacts/gate-2/terrain-brushes-2026-09-04/bin/forge_studio-c7fc510.wasm",
       "bytes": 40218947,
       "sha256": "12182cf07be634a165992c67b7b7b1d79b3c954ebea74caaeef36ddf1dcfc336"
     },
