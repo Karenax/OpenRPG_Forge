@@ -189,6 +189,30 @@ impl TerrainGenerationPlan {
         sampling::sample_surface(self, x_m, z_m)
     }
 
+    /// Resolves the effective authored/procedural weights at one validated source-grid sample.
+    pub(crate) fn material_weights_at_sample(
+        &self,
+        sample_x: u16,
+        sample_z: u16,
+    ) -> Result<TerrainMaterialWeights, TerrainGenerationError> {
+        if sample_x > TERRAIN_GLOBAL_INTERVALS_PER_AXIS
+            || sample_z > TERRAIN_GLOBAL_INTERVALS_PER_AXIS
+        {
+            return Err(TerrainGenerationError::SampleGridCoordinateOutOfBounds);
+        }
+        let x_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_x) * TERRAIN_SAMPLE_SPACING_M;
+        let z_m = -TERRAIN_HALF_EXTENT_M + f32::from(sample_z) * TERRAIN_SAMPLE_SPACING_M;
+        let height_m = sampling::sample_height_unchecked(&self.document, x_m, z_m);
+        let normal = sampling::sample_normal(&self.document, x_m, z_m);
+        Ok(sampling::material_weights_at(
+            &self.document,
+            sample_x,
+            sample_z,
+            height_m,
+            normal[1],
+        ))
+    }
+
     fn chunk_id(&self, coordinate: TerrainChunkCoordinate) -> TerrainChunkId {
         TerrainChunkId(EntityId::deterministic(format!(
             "terrain-generation-v1/{}/{}/{:016x}/{}/{}",
@@ -223,6 +247,8 @@ pub enum TerrainGenerationError {
     NonFiniteSampleCoordinate,
     #[error("terrain sample coordinate exceeds the 512 metre extent and one-sample normal padding")]
     SampleCoordinateOutOfBounds,
+    #[error("terrain source-grid sample exceeds the 0 through 256 bounds")]
+    SampleGridCoordinateOutOfBounds,
     #[error("terrain surface coordinate exceeds the closed 512 metre extent")]
     SurfaceCoordinateOutOfBounds,
     #[error("terrain surface interpolation cannot be represented as finite f32 output")]

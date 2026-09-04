@@ -1,4 +1,4 @@
-use super::sampling::{material_weights_for, sample_height_unchecked, sample_normal};
+use super::sampling::{material_weights_at, sample_height_unchecked, sample_normal};
 use super::{
     MATERIAL_ROLE_COUNT, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS,
     TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_GLOBAL_INTERVALS_PER_AXIS,
@@ -230,7 +230,13 @@ impl GlobalTerrainGrid {
                     f32::from(global_x) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
                     f32::from(global_z) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
                 ]);
-                material_weights.push(material_weights_for(&plan.document, height_m, normal[1]));
+                material_weights.push(material_weights_at(
+                    &plan.document,
+                    global_x,
+                    global_z,
+                    height_m,
+                    normal[1],
+                ));
             }
         }
 

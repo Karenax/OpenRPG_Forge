@@ -3,16 +3,17 @@
 Définit les documents JSON persistants et moteur-neutres de Forge :
 
 - `forge.scene-proof` version 1 pour la preuve native/WASM de Gate 0 ;
-- `forge.terrain` versions 1 et 2 pour les terrains ; la fixture Visual Valley garde sa v1 intacte,
-  tandis que la v2 accepte les deltas de hauteur authorés ;
+- `forge.terrain` versions 1 à 3 pour les terrains ; la fixture Visual Valley garde sa v1 intacte,
+  la v2 accepte les deltas de hauteur authorés et la v3 ajoute les poids de matériaux authorés ;
 - `forge.workspace` version 2 pour les projets multi-modules et multi-zones, avec lecture/migration
-  stricte de la version 1, métadonnées, point de départ et terrain source v2 ;
+  stricte de la version 1, métadonnées, point de départ et terrain source v3 ;
 - `forge.visual-valley-quality-profile` version 1 pour les presets Low/Medium/High/Ultra, le mode
   benchmark High fixe et la politique d'adaptation bornée.
 
 `TerrainDocument` conserve les identités projet/zone, la révision, les coordonnées en mètres Y-up,
-la seed, l'étendue, les paramètres logiques de height sampling et les identifiants des couches
-matériau. La désérialisation refuse les champs inconnus. La validation exige des étendues, un pas et
+la seed, l'étendue, les paramètres logiques de height sampling, les identifiants des couches
+matériau, les deltas de hauteur et les poids sparse herbe/terre/roche. La désérialisation refuse les
+champs inconnus. La validation exige des étendues, un pas et
 une fréquence finis et strictement positifs, une élévation finie, une amplitude finie positive ou
 nulle, 1 à 12 octaves, une lacunarité finie supérieure à 1 et une persistance dans `]0, 1]`. Un
 document contient entre 1 et 32 couches ; leurs identifiants uniques contiennent 1 à 64 caractères
@@ -44,7 +45,8 @@ Y à ±1 024 m et toutes les composantes doivent être finies. Il s'agit de mét
 preuve de placement effectif du joueur ou d'accessibilité du terrain.
 
 La source suit `WorkspaceDocument.project.modules[].areas[].terrain`, accessible par identifiants via
-`module(id)` et `area(module_id, area_id)`. La création produit la révision 1 et un terrain v2 de 512 × 512 m, pas de 2 m,
+`module(id)` et `area(module_id, area_id)`. La création produit la révision 1 et un terrain v3 de
+512 × 512 m, pas de 2 m,
 trois matériaux logiques herbe/terre/roche et un relief procédural d'amplitude 12 m. Les identités
 projet/zone du terrain doivent correspondre à leurs propriétaires ; sa révision est positive et ne
 dépasse pas celle du workspace. Il n'existe ni chemin libre ni asset dans ce contrat.
@@ -70,8 +72,10 @@ servent pas d'identités. La limite JSON formaté reste de 1 Mio pour le workspa
 
 `from_json` inspecte la version puis relit les octets d'origine avec le schéma strict correspondant :
 aucun champ inconnu, doublon de clé ou mélange de formes v1/v2 n'est supprimé silencieusement.
-La migration v1 remplace seulement les objets uniques par des collections de longueur 1 et fixe la
-version à 2. IDs, révisions, seed, terrain et spawn restent inchangés. Elle n'écrit aucun fichier.
+La migration v1 remplace les objets uniques par des collections de longueur 1, fixe le workspace à
+la version 2 et met chaque terrain ancien au schéma courant en ajoutant seulement les couches
+d'authoring absentes. IDs, révisions, seed, hauteurs, matériaux et spawn restent inchangés. Elle
+n'écrit aucun fichier.
 Les consommateurs doivent comparer les hashes canoniques après migration, pas prétendre que les
 octets ou le hash historique v1 sont ceux de la représentation v2.
 
@@ -84,9 +88,11 @@ Modifier une zone ne change pas les autres. Son terrain conserve seed/relief et 
 révision. Appliquer l'inverse reste une responsabilité transactionnelle du consommateur et ne
 constitue jamais une demande d'écrasement ou suppression disque.
 
-`SetTerrainHeightDeltas` ajoute un patch source résolu, lié au hash exact du terrain cible en plus
-de la révision workspace. Il conserve la seed, les paramètres de génération, les autres zones et
+`SetTerrainHeightDeltas` et `SetTerrainMaterialWeights` ajoutent des patches source résolus, liés au
+hash exact du terrain cible en plus de la révision workspace. Ils conservent la seed, les paramètres
+de génération, les autres zones et
 les métadonnées, puis valide intégralement le candidat (dont le budget JSON) avant de le retourner.
 Le calcul des brosses appartient à `forge_world::preview_terrain_brush` ; `forge_project` ne dépend
 pas du générateur ni du renderer. Le reçu de brosse conserve séparément l'intention typée et le
-patch résolu ; seuls les deltas de hauteur v2 existants sont persistés dans le projet.
+patch résolu ; seuls les deltas de hauteur et les poids matériaux sparse v3 sont persistés dans le
+projet.

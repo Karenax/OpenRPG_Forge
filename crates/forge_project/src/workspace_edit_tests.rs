@@ -1,6 +1,8 @@
 use super::*;
-use crate::{MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand};
-use forge_core::{ProjectId, Vec3};
+use crate::{
+    MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand, TerrainMaterialWeightOverride,
+};
+use forge_core::{ContentHash, ProjectId, Vec3};
 use serde_json::json;
 
 fn source() -> WorkspaceDocument {
@@ -49,6 +51,36 @@ fn legacy_migration_preserves_every_known_field_without_mutating_input() {
         document
     );
 }
+
+#[test]
+fn legacy_workspace_migrates_embedded_v1_and_v2_terrains_to_the_current_schema() {
+    for terrain_version in [
+        crate::TERRAIN_DOCUMENT_SCHEMA_VERSION_V1,
+        crate::TERRAIN_DOCUMENT_SCHEMA_VERSION_V2,
+    ] {
+        let mut legacy = source();
+        let terrain = &mut legacy.project.modules[0].areas[0].terrain;
+        terrain.schema_version = terrain_version;
+        if terrain_version == crate::TERRAIN_DOCUMENT_SCHEMA_VERSION_V2 {
+            terrain.height_deltas = vec![crate::TerrainHeightDelta::new(128, 128, 3.5)];
+        }
+        let expected_heights = terrain.height_deltas.clone();
+        let ids = (terrain.project_id, terrain.area_id);
+        let revisions = (legacy.revision, terrain.revision);
+
+        let migrated = WorkspaceDocument::from_json(&legacy_json(&legacy)).unwrap();
+        let terrain = &migrated.project.modules[0].areas[0].terrain;
+        assert_eq!(
+            terrain.schema_version,
+            crate::TERRAIN_DOCUMENT_SCHEMA_VERSION
+        );
+        assert_eq!(terrain.height_deltas, expected_heights);
+        assert!(terrain.material_weight_overrides.is_empty());
+        assert_eq!((terrain.project_id, terrain.area_id), ids);
+        assert_eq!((migrated.revision, terrain.revision), revisions);
+    }
+}
+
 #[test]
 fn migration_rejects_unknown_duplicate_and_mixed_shape_fields() {
     let legacy = legacy_json(&source());
@@ -153,6 +185,284 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
+
+#[test]
+fn set_terrain_material_weights_is_pure_revisioned_and_reversible() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let terrain_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    let weights = vec![
+        TerrainMaterialWeightOverride::new(128, 128, [0.1, 0.8, 0.1]),
+        TerrainMaterialWeightOverride::new(129, 128, [0.2, 0.3, 0.5]),
+    ];
+
+    let result = source
+        .preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: terrain_hash,
+                material_weight_overrides: weights.clone(),
+            },
+        ))
+        .unwrap();
+
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .terrain
+            .material_weight_overrides
+            .is_empty()
+    );
+    let terrain = &result.document.area(module_id, area_id).unwrap().terrain;
+    assert_eq!(terrain.material_weight_overrides, weights);
+    assert_eq!(result.document.revision, source.revision.next().unwrap());
+    assert_eq!(terrain.revision, result.document.revision);
+    assert_eq!(result.receipt.before_hash, source_hash);
+    assert_eq!(
+        result.receipt.after_hash,
+        result.document.content_hash().unwrap()
+    );
+    assert_eq!(*result.receipt.inverse_snapshot, source);
+    assert_eq!(
+        WorkspaceDocument::from_json(&result.document.to_pretty_json().unwrap()).unwrap(),
+        result.document
+    );
+}
+
+#[test]
+fn set_terrain_material_weights_rejects_stale_hash_without_mutating_source() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let stale_hash = ContentHash::from_bytes([0xA5; 32]);
+    assert_ne!(
+        stale_hash,
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .terrain
+            .content_hash()
+            .unwrap()
+    );
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: stale_hash,
+                material_weight_overrides: vec![TerrainMaterialWeightOverride::new(
+                    128,
+                    128,
+                    [0.0, 1.0, 0.0],
+                )],
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+}
+
+#[test]
+fn set_terrain_material_weights_rejects_invalid_payloads_without_mutating_source() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let terrain_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    let invalid_payloads = [
+        vec![TerrainMaterialWeightOverride::new(257, 0, [1.0, 0.0, 0.0])],
+        vec![TerrainMaterialWeightOverride::new(
+            128,
+            128,
+            [0.2, 0.2, 0.2],
+        )],
+        vec![
+            TerrainMaterialWeightOverride::new(1, 1, [1.0, 0.0, 0.0]),
+            TerrainMaterialWeightOverride::new(0, 0, [0.0, 1.0, 0.0]),
+        ],
+        vec![
+            TerrainMaterialWeightOverride::new(0, 0, [1.0, 0.0, 0.0]),
+            TerrainMaterialWeightOverride::new(0, 0, [0.0, 1.0, 0.0]),
+        ],
+        vec![TerrainMaterialWeightOverride::new(
+            128,
+            128,
+            [-0.0, 1.0, 0.0],
+        )],
+    ];
+
+    for material_weight_overrides in invalid_payloads {
+        assert!(matches!(
+            source.preview_edit(edit(
+                &source,
+                WorkspaceChange::SetTerrainMaterialWeights {
+                    module_id,
+                    area_id,
+                    expected_terrain_hash: terrain_hash,
+                    material_weight_overrides,
+                },
+            )),
+            Err(WorkspaceError::Terrain(_))
+        ));
+        assert_eq!(source.content_hash().unwrap(), source_hash);
+    }
+}
+
+#[test]
+fn material_weight_noop_is_rejected_and_success_invalidates_the_previous_hash() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let original_terrain_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    let weights = vec![TerrainMaterialWeightOverride::new(
+        128,
+        128,
+        [0.0, 1.0, 0.0],
+    )];
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: original_terrain_hash,
+                material_weight_overrides: vec![],
+            },
+        )),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let painted = source
+        .preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: original_terrain_hash,
+                material_weight_overrides: weights.clone(),
+            },
+        ))
+        .unwrap()
+        .document;
+    let painted_terrain_hash = painted
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    assert_ne!(painted_terrain_hash, original_terrain_hash);
+
+    assert!(matches!(
+        painted.preview_edit(edit(
+            &painted,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: painted_terrain_hash,
+                material_weight_overrides: weights,
+            },
+        )),
+        Err(WorkspaceError::NoChange)
+    ));
+    assert!(matches!(
+        painted.preview_edit(edit(
+            &painted,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: original_terrain_hash,
+                material_weight_overrides: vec![],
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let cleared = painted
+        .preview_edit(edit(
+            &painted,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: painted_terrain_hash,
+                material_weight_overrides: vec![],
+            },
+        ))
+        .unwrap()
+        .document;
+    assert!(
+        cleared
+            .area(module_id, area_id)
+            .unwrap()
+            .terrain
+            .material_weight_overrides
+            .is_empty()
+    );
+}
+
+#[test]
+fn oversized_material_patch_is_rejected_before_the_source_or_receipt_can_change() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let terrain_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .terrain
+        .content_hash()
+        .unwrap();
+    let weights = (0_u16..15_000)
+        .map(|index| TerrainMaterialWeightOverride::new(index % 257, index / 257, [0.0, 1.0, 0.0]))
+        .collect();
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash: terrain_hash,
+                material_weight_overrides: weights,
+            },
+        )),
+        Err(WorkspaceError::JsonBudgetExceeded { .. })
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .terrain
+            .material_weight_overrides
+            .is_empty()
+    );
+}
+
 #[test]
 fn invalid_edits_are_rejected_without_changing_source() {
     let source = source();

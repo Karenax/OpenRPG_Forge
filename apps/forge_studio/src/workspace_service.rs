@@ -53,6 +53,14 @@ impl WorkspaceSession {
             } => {
                 return self.execute_brush(request, brush, &additional_centers, dry_run);
             }
+            WorkspaceCommand::PaintTerrainMaterial {
+                request,
+                brush,
+                additional_centers,
+                dry_run,
+            } => {
+                return self.execute_material_brush(request, brush, &additional_centers, dry_run);
+            }
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -148,6 +156,44 @@ impl WorkspaceSession {
         self.commit_edit(candidate.edit, receipt);
         self.state(format!(
             "Brosse appliquée : {samples} hauteurs modifiées. Annulation disponible."
+        ))
+    }
+
+    fn execute_material_brush(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::TerrainMaterialBrush,
+        additional_centers: &[[f32; 2]],
+        dry_run: bool,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_terrain_material_stroke(
+            document,
+            forge_world::TerrainMaterialBrushCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                brush,
+            },
+            additional_centers,
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        let samples = candidate.changed_samples;
+        if dry_run {
+            let mut state = self.state(format!(
+                "Aperçu : {samples} poids de matériaux modifiés. Rien n’a été appliqué."
+            ))?;
+            state.last_receipt_json = Some(receipt);
+            return Ok(state);
+        }
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Matériau peint : {samples} poids modifiés. Annulation disponible."
         ))
     }
 

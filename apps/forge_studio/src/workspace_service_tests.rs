@@ -152,6 +152,30 @@ fn brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCommand {
     }
 }
 
+fn material_brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCommand {
+    let source = document(state);
+    WorkspaceCommand::PaintTerrainMaterial {
+        additional_centers: vec![[8.0, 0.0], [16.0, 0.0]],
+        request: crate::area_preview::AreaPreviewRequest {
+            key: crate::area_tabs::AreaKey {
+                project_id: source.project.id,
+                module_id: source.project.modules[0].id,
+                area_id: source.project.modules[0].areas[0].id,
+            },
+            base_revision: state.revision,
+        },
+        brush: forge_world::TerrainMaterialBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: 12.0,
+            strength: 0.75,
+            material: forge_project::TerrainMaterialRole::Earth,
+        },
+        dry_run,
+    }
+}
+
 #[test]
 fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
     let directory = TestDirectory::new();
@@ -227,6 +251,88 @@ fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
 }
 
 #[test]
+fn material_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    let before = save(&mut session, &directory);
+    let old_files = directory.files();
+
+    let ipc_command = material_brush_command(&before, true);
+    assert_eq!(
+        serde_json::from_str::<WorkspaceCommand>(&serde_json::to_string(&ipc_command).unwrap())
+            .unwrap(),
+        ipc_command
+    );
+
+    let preview = session
+        .execute(material_brush_command(&before, true))
+        .unwrap();
+    let unchanged = current(&mut session);
+    assert_eq!(unchanged.document_json, before.document_json);
+    assert_eq!(unchanged.revision, before.revision);
+    let predicted: forge_world::TerrainMaterialBrushResult =
+        serde_json::from_str(preview.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert!(predicted.changed_samples > 1);
+
+    let applied = session
+        .execute(material_brush_command(&before, false))
+        .unwrap();
+    let accepted: forge_world::TerrainMaterialBrushResult =
+        serde_json::from_str(applied.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert_eq!(accepted.edit.document, predicted.edit.document);
+    let modified = document(&applied).project.modules[0].areas[0]
+        .terrain
+        .material_weight_overrides
+        .clone();
+    assert!(!modified.is_empty());
+    assert!(modified.iter().all(|sample| {
+        sample.weights.iter().all(|weight| weight.is_finite())
+            && (sample.weights.iter().sum::<f32>() - 1.0).abs() <= 0.000_01
+    }));
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: applied.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .terrain
+            .material_weight_overrides
+            .is_empty()
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .terrain
+            .material_weight_overrides,
+        modified
+    );
+    assert_eq!(directory.files(), old_files);
+
+    let saved = save(&mut session, &directory);
+    let mut reopened = WorkspaceSession::default();
+    let opened = reopened
+        .execute(open_command(Path::new(
+            saved.saved_path.as_deref().unwrap(),
+        )))
+        .unwrap();
+    assert_eq!(opened.document_json, saved.document_json);
+    assert_eq!(
+        document(&opened).content_hash().unwrap(),
+        document(&saved).content_hash().unwrap()
+    );
+    for (name, bytes) in old_files {
+        assert_eq!(directory.files()[&name], bytes);
+    }
+}
+
+#[test]
 fn terrain_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history() {
     let mut session = WorkspaceSession::default();
     let created = session.execute(create_command()).unwrap();
@@ -256,6 +362,56 @@ fn terrain_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history(
                 1 => brush.radius_m = 1000.0,
                 2 => brush.center_x_m = f32::NAN,
                 3 => brush.strength = 0.0,
+                _ => request.base_revision = MAX_WORKSPACE_IPC_REVISION + 1,
+            }
+        }
+        assert_rejected_without_state_change(&mut session, command);
+    }
+}
+
+#[test]
+fn material_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let command = material_brush_command(&created, false);
+    let json = serde_json::to_string(&command).unwrap();
+    assert_eq!(
+        serde_json::from_str::<WorkspaceCommand>(&json).unwrap(),
+        command
+    );
+    assert!(
+        serde_json::from_str::<WorkspaceCommand>(&json.replace(
+            "\"schema_version\":1",
+            "\"schema_version\":1,\"extra\":true"
+        ))
+        .is_err()
+    );
+    assert!(
+        serde_json::from_str::<WorkspaceCommand>(
+            &json.replace("\"material\":\"earth\"", "\"material\":\"unknown\"")
+        )
+        .is_err()
+    );
+    session.execute(command.clone()).unwrap();
+    assert_rejected_without_state_change(&mut session, command);
+    for mutation in 0..6 {
+        let mut command = material_brush_command(&current(&mut session), false);
+        if let WorkspaceCommand::PaintTerrainMaterial {
+            request,
+            brush,
+            additional_centers,
+            ..
+        } = &mut command
+        {
+            match mutation {
+                0 => {
+                    request.key.project_id =
+                        forge_core::ProjectId::deterministic("foreign-project");
+                }
+                1 => brush.radius_m = 1000.0,
+                2 => brush.center_x_m = f32::NAN,
+                3 => brush.strength = 0.0,
+                4 => *additional_centers = vec![[f32::NAN, 0.0]],
                 _ => request.base_revision = MAX_WORKSPACE_IPC_REVISION + 1,
             }
         }

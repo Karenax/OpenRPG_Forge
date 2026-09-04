@@ -1,7 +1,8 @@
 use super::{AreaPreviewRequest, WorkspaceActions, WorldActions};
 use crate::{brush_state::BrushPath, workspace_api::WorkspaceCommand};
 use forge_engine::editor_viewport::EditorBrushPointer;
-use forge_world::{TerrainBrush, TerrainBrushOperation};
+use forge_project::TerrainMaterialRole;
+use forge_world::{TerrainBrush, TerrainBrushOperation, TerrainMaterialBrush};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
 
@@ -10,11 +11,46 @@ struct StrokeDraft {
     request: AreaPreviewRequest,
     generation: u64,
     pointer_id: i32,
-    brush: TerrainBrush,
+    brush: ActiveBrush,
     path: BrushPath,
     last_serial: u64,
     sampled_serial: u64,
     finishing: bool,
+}
+
+#[derive(Clone, Copy)]
+enum ActiveBrush {
+    Height(TerrainBrush),
+    Material(TerrainMaterialBrush),
+}
+
+impl ActiveBrush {
+    const fn radius_m(self) -> f32 {
+        match self {
+            Self::Height(brush) => brush.radius_m,
+            Self::Material(brush) => brush.radius_m,
+        }
+    }
+
+    const fn strength(self) -> f32 {
+        match self {
+            Self::Height(brush) => brush.strength,
+            Self::Material(brush) => brush.strength,
+        }
+    }
+
+    fn set_center(&mut self, center: [f32; 2]) {
+        match self {
+            Self::Height(brush) => {
+                brush.center_x_m = center[0];
+                brush.center_z_m = center[1];
+            }
+            Self::Material(brush) => {
+                brush.center_x_m = center[0];
+                brush.center_z_m = center[1];
+            }
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -34,7 +70,7 @@ pub(super) struct BrushActions {
 }
 
 impl BrushActions {
-    fn brush(self) -> Result<Option<TerrainBrush>, String> {
+    fn brush(self) -> Result<Option<ActiveBrush>, String> {
         let mode = self.mode.get_untracked();
         if mode == "navigate" {
             return Ok(None);
@@ -53,6 +89,23 @@ impl BrushActions {
                 Err("L’amplitude doit être comprise entre 0,1 et 32 mètres.".to_owned())
             }
         };
+        if let Some(material) = match mode.as_str() {
+            "paint_grass" => Some(TerrainMaterialRole::Grass),
+            "paint_earth" => Some(TerrainMaterialRole::Earth),
+            "paint_rock" => Some(TerrainMaterialRole::Rock),
+            _ => None,
+        } {
+            let brush = TerrainMaterialBrush {
+                schema_version: 1,
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: number(self.radius)?,
+                strength: number(self.strength)? / 100.0,
+                material,
+            };
+            brush.validate().map_err(|error| error.to_string())?;
+            return Ok(Some(ActiveBrush::Material(brush)));
+        }
         let operation = match mode.as_str() {
             "raise" => TerrainBrushOperation::RaiseLower {
                 delta_m: amplitude()?,
@@ -88,7 +141,7 @@ impl BrushActions {
             operation,
         };
         brush.validate().map_err(|e| e.to_string())?;
-        Ok(Some(brush))
+        Ok(Some(ActiveBrush::Height(brush)))
     }
 
     pub(super) fn move_pointer(
@@ -137,8 +190,8 @@ impl BrushActions {
                 generation: world.generation.get_untracked(),
                 serial,
                 uv,
-                radius_m: brush.radius_m,
-                strength: brush.strength,
+                radius_m: brush.radius_m(),
+                strength: brush.strength(),
             });
         }
         self.stroke.update(|stroke| {
@@ -282,7 +335,7 @@ impl BrushActions {
                     hit.point[0].clamp(-256.0, 256.0),
                     hit.point[2].clamp(-256.0, 256.0),
                 ],
-                stroke.brush.radius_m,
+                stroke.brush.radius_m(),
             ) {
                 self.error.set(Some(error));
                 self.stroke.set(None);
@@ -298,7 +351,7 @@ impl BrushActions {
                     hit.point[0].clamp(-256.0, 256.0),
                     hit.point[2].clamp(-256.0, 256.0),
                 ],
-                stroke.brush.radius_m,
+                stroke.brush.radius_m(),
             ) {
                 self.error.set(Some(error));
                 self.stroke.set(None);
@@ -313,14 +366,24 @@ impl BrushActions {
                     .set(Some("Visez le terrain pour appliquer une brosse.".into()));
                 return;
             };
-            stroke.brush.center_x_m = first[0];
-            stroke.brush.center_z_m = first[1];
-            workspace.send(WorkspaceCommand::SculptTerrain {
-                request: stroke.request,
-                brush: stroke.brush,
-                additional_centers: stroke.path.points[1..].to_vec(),
-                dry_run: false,
-            });
+            stroke.brush.set_center(*first);
+            let additional_centers = stroke.path.points[1..].to_vec();
+            match stroke.brush {
+                ActiveBrush::Height(brush) => workspace.send(WorkspaceCommand::SculptTerrain {
+                    request: stroke.request,
+                    brush,
+                    additional_centers,
+                    dry_run: false,
+                }),
+                ActiveBrush::Material(brush) => {
+                    workspace.send(WorkspaceCommand::PaintTerrainMaterial {
+                        request: stroke.request,
+                        brush,
+                        additional_centers,
+                        dry_run: false,
+                    });
+                }
+            }
         } else {
             self.stroke.set(Some(stroke));
         }
@@ -389,11 +452,12 @@ pub(super) fn BrushPanel(
     workspace: WorkspaceActions,
 ) -> impl IntoView {
     view! { <section class="terrain-brush-panel" aria-label="Brosses de terrain">
-        <h2>"Sculpter le terrain"</h2>
+        <h2>"Modifier le terrain"</h2>
         <fieldset disabled=move || workspace.unavailable() || brush.stroke.get().is_some()>
             <label>"Outil"<select aria-label="Outil de terrain" prop:value=move || brush.mode.get() on:change=move |event| brush.mode.set(event_target_value(&event))>
                 <option value="navigate">"Navigation"</option><option value="raise">"Lever"</option><option value="lower">"Abaisser"</option>
                 <option value="smooth">"Lisser"</option><option value="flatten">"Aplatir"</option><option value="noise">"Bruit"</option><option value="slope">"Pente"</option>
+                <option value="paint_grass">"Peindre · Herbe"</option><option value="paint_earth">"Peindre · Terre"</option><option value="paint_rock">"Peindre · Roche"</option>
             </select></label>
             <Show when=move || brush.mode.get() != "navigate">
                 <BrushNumber label="Rayon (m)" value=brush.radius min="2" max="64" step="1"/>
@@ -413,6 +477,6 @@ pub(super) fn BrushPanel(
             on:click=move |_| workspace.send(WorkspaceCommand::Redo { base_revision: workspace.state.get_untracked().revision })>"Rétablir"</button></div>
         <p class="brush-error" role="alert">{move || brush.error.get().or(workspace.error.get()).unwrap_or_default()}</p>
         <p class="brush-message" role="status">{move || if workspace.pending.get() { "Application native du trait…".into() } else { workspace.state.get().message }}</p>
-        <Show when=move || world.tabs.get().active.is_none()><p class="hint">"Ouvrez une zone avant de sculpter."</p></Show>
+        <Show when=move || world.tabs.get().active.is_none()><p class="hint">"Ouvrez une zone avant de modifier le terrain."</p></Show>
     </section> }
 }

@@ -1,4 +1,4 @@
-use super::sampling::{material_weights_for, sample_height_unchecked, sample_normal};
+use super::sampling::{material_weights_at, sample_height_unchecked, sample_normal};
 use super::{
     GeneratedTerrain, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNK_INTERVALS,
     TERRAIN_CHUNK_VERTICES_PER_AXIS, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_GLOBAL_INTERVALS_PER_AXIS,
@@ -6,7 +6,10 @@ use super::{
     TerrainDirtyChunk, TerrainGenerationError, TerrainGenerationPlan,
 };
 use forge_core::{ContentHash, Revision, RevisionError};
-use forge_project::{TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainHeightDelta};
+use forge_project::{
+    TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainHeightDelta,
+    TerrainMaterialWeightOverride,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use thiserror::Error;
@@ -23,7 +26,7 @@ pub struct TerrainPartialUpdateRequest {
     pub target_document: TerrainDocument,
 }
 
-/// One unique source-grid sample whose authored height delta changed.
+/// One unique source-grid sample whose authored height or material weights changed.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TerrainHeightSampleCoordinate {
@@ -169,7 +172,7 @@ impl TerrainPartialUpdateCommit {
 }
 
 impl TerrainGenerationPlan {
-    /// Applies only a sparse height-delta transition to a valid derived cache.
+    /// Applies a sparse height/material transition to a valid derived cache.
     ///
     /// The request cannot provide a dirty region: changed samples and their cardinal normal
     /// dependencies are derived from the exact source/target document diff. Inputs are borrowed and
@@ -221,7 +224,7 @@ impl TerrainGenerationPlan {
         &self,
         source_cache: &GeneratedTerrain,
         target_document: TerrainDocument,
-        allow_unchanged_heights: bool,
+        allow_no_source_changes: bool,
     ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
         if target_document.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION {
             return Err(TerrainPartialUpdateError::TargetMustUseCurrentSchema);
@@ -229,19 +232,29 @@ impl TerrainGenerationPlan {
         validate_partial_compatibility(&self.document, &target_document)?;
         let target_plan = TerrainGenerationPlan::from_document(&target_document)
             .map_err(TerrainPartialUpdateError::InvalidTargetDocument)?;
-        let changed_samples =
+        let changed_height_samples =
             changed_height_samples(&self.document.height_deltas, &target_document.height_deltas);
-        if changed_samples.is_empty() && !allow_unchanged_heights {
-            return Err(TerrainPartialUpdateError::NoHeightDeltaChanges);
+        let changed_material_samples = changed_material_samples(
+            &self.document.material_weight_overrides,
+            &target_document.material_weight_overrides,
+        );
+        let changed_samples = union_samples(&changed_height_samples, &changed_material_samples);
+        if changed_samples.is_empty() && !allow_no_source_changes {
+            return Err(TerrainPartialUpdateError::NoSourceChanges);
         }
 
-        let dependency_samples = normal_dependency_samples(&changed_samples);
-        let mesh_coordinates = affected_chunk_coordinates(&dependency_samples);
-        let collider_coordinates = affected_chunk_coordinates(&changed_samples);
+        let height_dependency_samples = normal_dependency_samples(&changed_height_samples);
+        let mesh_samples = union_samples(&height_dependency_samples, &changed_material_samples);
+        let mesh_coordinates = affected_chunk_coordinates(&mesh_samples);
+        let collider_coordinates = affected_chunk_coordinates(&changed_height_samples);
         let mesh_chunks = dirty_chunks(&target_plan, &mesh_coordinates);
         let collider_chunks = dirty_chunks(&target_plan, &collider_coordinates);
 
-        let changed_keys = changed_samples
+        let height_changed_keys = changed_height_samples
+            .iter()
+            .map(|sample| (sample.sample_z, sample.sample_x))
+            .collect::<BTreeSet<_>>();
+        let height_dependency_keys = height_dependency_samples
             .iter()
             .map(|sample| (sample.sample_z, sample.sample_x))
             .collect::<BTreeSet<_>>();
@@ -249,12 +262,13 @@ impl TerrainGenerationPlan {
             .iter()
             .map(|coordinate| source_cache.chunks[chunk_index(*coordinate)].clone())
             .collect::<Vec<_>>();
-        for sample in &dependency_samples {
+        for sample in &mesh_samples {
             patch_sample(
                 &target_document,
                 &mut replacement_chunks,
                 *sample,
-                changed_keys.contains(&(sample.sample_z, sample.sample_x)),
+                height_changed_keys.contains(&(sample.sample_z, sample.sample_x)),
+                height_dependency_keys.contains(&(sample.sample_z, sample.sample_x)),
             );
         }
 
@@ -496,9 +510,69 @@ fn changed_height_samples(
     changed
 }
 
+fn changed_material_samples(
+    source: &[TerrainMaterialWeightOverride],
+    target: &[TerrainMaterialWeightOverride],
+) -> Vec<TerrainHeightSampleCoordinate> {
+    let mut changed = Vec::new();
+    let mut source_index = 0;
+    let mut target_index = 0;
+    while source_index < source.len() || target_index < target.len() {
+        match (source.get(source_index), target.get(target_index)) {
+            (Some(left), Some(right)) => match left.sort_key().cmp(&right.sort_key()) {
+                std::cmp::Ordering::Less => {
+                    changed.push(material_sample_coordinate(*left));
+                    source_index += 1;
+                }
+                std::cmp::Ordering::Greater => {
+                    changed.push(material_sample_coordinate(*right));
+                    target_index += 1;
+                }
+                std::cmp::Ordering::Equal => {
+                    if left.weights.map(f32::to_bits) != right.weights.map(f32::to_bits) {
+                        changed.push(material_sample_coordinate(*right));
+                    }
+                    source_index += 1;
+                    target_index += 1;
+                }
+            },
+            (Some(left), None) => {
+                changed.push(material_sample_coordinate(*left));
+                source_index += 1;
+            }
+            (None, Some(right)) => {
+                changed.push(material_sample_coordinate(*right));
+                target_index += 1;
+            }
+            (None, None) => break,
+        }
+    }
+    changed
+}
+
+fn union_samples(
+    left: &[TerrainHeightSampleCoordinate],
+    right: &[TerrainHeightSampleCoordinate],
+) -> Vec<TerrainHeightSampleCoordinate> {
+    left.iter()
+        .chain(right)
+        .map(|sample| (sample.sample_z, sample.sample_x))
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .map(|(sample_z, sample_x)| TerrainHeightSampleCoordinate::new(sample_x, sample_z))
+        .collect()
+}
+
 #[must_use]
 const fn sample_coordinate(delta: TerrainHeightDelta) -> TerrainHeightSampleCoordinate {
     TerrainHeightSampleCoordinate::new(delta.sample_x, delta.sample_z)
+}
+
+#[must_use]
+const fn material_sample_coordinate(
+    authored: TerrainMaterialWeightOverride,
+) -> TerrainHeightSampleCoordinate {
+    TerrainHeightSampleCoordinate::new(authored.sample_x, authored.sample_z)
 }
 
 fn normal_dependency_samples(
@@ -571,12 +645,19 @@ fn patch_sample(
     replacement_chunks: &mut [TerrainChunkMesh],
     sample: TerrainHeightSampleCoordinate,
     height_changed: bool,
+    normal_changed: bool,
 ) {
     let x_m = world_coordinate(sample.sample_x);
     let z_m = world_coordinate(sample.sample_z);
     let height_m = sample_height_unchecked(document, x_m, z_m);
     let normal = sample_normal(document, x_m, z_m);
-    let weights = material_weights_for(document, height_m, normal[1]);
+    let weights = material_weights_at(
+        document,
+        sample.sample_x,
+        sample.sample_z,
+        height_m,
+        normal[1],
+    );
 
     for coordinate in affected_chunk_coordinates(&[sample]) {
         let local_x = sample.sample_x - coordinate.x * TERRAIN_CHUNK_INTERVALS;
@@ -591,7 +672,9 @@ fn patch_sample(
             chunk.positions_m[vertex_index][1] = height_m;
             chunk.collider.vertices_m[vertex_index][1] = height_m;
         }
-        chunk.normals[vertex_index] = normal;
+        if normal_changed {
+            chunk.normals[vertex_index] = normal;
+        }
         chunk.material_weights[vertex_index] = weights;
     }
 }
@@ -638,8 +721,8 @@ pub enum TerrainPartialUpdateError {
     FullRebuildRequired,
     #[error("partial terrain target is invalid: {0}")]
     InvalidTargetDocument(#[source] TerrainGenerationError),
-    #[error("partial terrain target contains no height-delta change")]
-    NoHeightDeltaChanges,
+    #[error("partial terrain target contains no height or material-weight change")]
+    NoSourceChanges,
     #[error("cannot advance terrain revision: {0}")]
     Revision(#[from] RevisionError),
 }

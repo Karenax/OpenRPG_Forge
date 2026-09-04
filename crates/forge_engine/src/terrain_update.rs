@@ -948,7 +948,7 @@ fn verify_pending_terrain_backend(
                         mesh_chunks = report.mesh_chunks().len(),
                         collider_chunks = report.collider_chunks().len(),
                         rapier_backends = report.rapier_backends_verified(),
-                        "terrain partial update is bit-exact in CPU assets, ECS and Rapier"
+                        "terrain partial update is bit-exact in CPU assets and ECS; Rapier coverage is reported separately"
                     );
                     outcome.record_applied(report);
                 }
@@ -1634,7 +1634,7 @@ mod tests {
         plugin::context::{DefaultRapierContext, RapierContextColliders},
         prelude::{NoUserData, RapierColliderHandle, RapierPhysicsPlugin, RigidBody, TimestepMode},
     };
-    use forge_project::TerrainHeightDelta;
+    use forge_project::{TerrainHeightDelta, TerrainMaterialWeightOverride};
     use forge_world::VisualValleyTerrainRecipe;
 
     fn build_test_app(with_rapier: bool) -> App {
@@ -1727,6 +1727,28 @@ mod tests {
         let mut target_document = state.document().migrate_to_latest().unwrap();
         target_document.revision = state.document().revision.next().unwrap();
         target_document.height_deltas = vec![TerrainHeightDelta::new(31, 31, 5.0)];
+        let request = TerrainPartialUpdateRequest {
+            base_revision: state.document().revision,
+            base_document_hash: source_plan.document_hash(),
+            target_document: target_document.clone(),
+        };
+        (target_document, request)
+    }
+
+    fn material_request_for_current_state(
+        app: &App,
+        sample_x: u16,
+        sample_z: u16,
+    ) -> (TerrainDocument, TerrainPartialUpdateRequest) {
+        let state = app.world().resource::<TerrainRuntimeState>();
+        let source_plan = TerrainGenerationPlan::from_document(state.document()).unwrap();
+        let mut target_document = state.document().migrate_to_latest().unwrap();
+        target_document.revision = state.document().revision.next().unwrap();
+        target_document.material_weight_overrides = vec![TerrainMaterialWeightOverride::new(
+            sample_x,
+            sample_z,
+            [0.0, 1.0, 0.0],
+        )];
         let request = TerrainPartialUpdateRequest {
             base_revision: state.document().revision,
             base_document_hash: source_plan.document_hash(),
@@ -2054,6 +2076,154 @@ mod tests {
             report.target_cache_hash(),
             full_rebuild.content_hash().unwrap()
         );
+    }
+
+    #[test]
+    fn material_only_patch_updates_one_mesh_and_preserves_every_collider() {
+        let mut app = build_test_app(true);
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let before_bindings = snapshots(&app);
+        let before_meshes = mesh_payload_bits(&app, &before_bindings);
+        let before_colliders = collider_height_bits(&app, &before_bindings);
+        let (target_document, request) = material_request_for_current_state(&app, 31, 31);
+        let full_rebuild = TerrainGenerationPlan::from_document(&target_document)
+            .unwrap()
+            .generate()
+            .unwrap();
+
+        app.world_mut()
+            .resource_mut::<PendingTerrainPartialUpdate>()
+            .submit(request)
+            .unwrap();
+        app.world_mut().run_schedule(FixedUpdate);
+
+        let after_bindings = snapshots(&app);
+        let after_meshes = mesh_payload_bits(&app, &after_bindings);
+        assert_eq!(after_bindings, before_bindings);
+        assert_eq!(
+            before_meshes
+                .iter()
+                .filter(|(id, payload)| after_meshes.get(id) != Some(*payload))
+                .count(),
+            1
+        );
+        assert_eq!(
+            collider_height_bits(&app, &before_bindings),
+            before_colliders
+        );
+
+        let state = app.world().resource::<TerrainRuntimeState>();
+        assert_eq!(state.document(), &target_document);
+        assert_eq!(state.cache(), &full_rebuild);
+        let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+        assert!(outcome.error().is_none());
+        let report = outcome.report().unwrap();
+        assert_eq!(report.mesh_chunks().len(), 1);
+        assert!(report.collider_chunks().is_empty());
+        assert_eq!(report.mesh_assets_verified(), 1);
+        assert_eq!(report.collider_components_verified(), 0);
+        assert_eq!(report.rapier_backends_verified(), 0);
+    }
+
+    #[test]
+    fn material_only_patch_on_chunk_seam_updates_four_meshes_without_touching_rapier() {
+        const LOCAL_SAMPLE_METRES: f32 = 30.0;
+
+        let mut app = build_test_app(true);
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let before_bindings = snapshots(&app);
+        let before_meshes = mesh_payload_bits(&app, &before_bindings);
+        let before_colliders = collider_height_bits(&app, &before_bindings);
+        let seam_coordinates = [
+            TerrainChunkCoordinate { x: 3, z: 3 },
+            TerrainChunkCoordinate { x: 4, z: 3 },
+            TerrainChunkCoordinate { x: 3, z: 4 },
+            TerrainChunkCoordinate { x: 4, z: 4 },
+        ];
+        let before_backend = before_bindings
+            .iter()
+            .filter(|binding| seam_coordinates.contains(&binding.coordinate))
+            .map(|binding| {
+                let handle = *app
+                    .world()
+                    .get::<RapierColliderHandle>(binding.collider_entity)
+                    .expect("Rapier must materialize every seam collider handle");
+                (binding.id, handle)
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(before_backend.len(), seam_coordinates.len());
+        let before_backend_heights = before_backend
+            .iter()
+            .map(|(id, handle)| {
+                (
+                    *id,
+                    backend_raycast_height(&mut app, *handle, LOCAL_SAMPLE_METRES),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+        let (target_document, request) = material_request_for_current_state(&app, 128, 128);
+        let full_rebuild = TerrainGenerationPlan::from_document(&target_document)
+            .unwrap()
+            .generate()
+            .unwrap();
+
+        app.world_mut()
+            .resource_mut::<PendingTerrainPartialUpdate>()
+            .submit(request)
+            .unwrap();
+        app.world_mut().run_schedule(FixedUpdate);
+
+        let after_bindings = snapshots(&app);
+        let after_meshes = mesh_payload_bits(&app, &after_bindings);
+        assert_eq!(after_bindings, before_bindings);
+        assert_eq!(
+            before_meshes
+                .iter()
+                .filter(|(id, payload)| after_meshes.get(id) != Some(*payload))
+                .count(),
+            seam_coordinates.len()
+        );
+        assert_eq!(
+            collider_height_bits(&app, &before_bindings),
+            before_colliders
+        );
+        for (id, before_handle) in before_backend {
+            let binding = after_bindings
+                .iter()
+                .find(|binding| binding.id == id)
+                .unwrap();
+            let after_handle = *app
+                .world()
+                .get::<RapierColliderHandle>(binding.collider_entity)
+                .unwrap();
+            assert_eq!(after_handle.0, before_handle.0);
+            let after_height = backend_raycast_height(&mut app, after_handle, LOCAL_SAMPLE_METRES);
+            assert_eq!(
+                after_height.to_bits(),
+                before_backend_heights[&id].to_bits()
+            );
+        }
+
+        let state = app.world().resource::<TerrainRuntimeState>();
+        assert_eq!(state.document(), &target_document);
+        assert_eq!(state.cache(), &full_rebuild);
+        let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+        assert!(outcome.error().is_none());
+        let report = outcome.report().unwrap();
+        assert_eq!(
+            report
+                .mesh_chunks()
+                .iter()
+                .map(|chunk| chunk.coordinate)
+                .collect::<Vec<_>>(),
+            seam_coordinates
+        );
+        assert!(report.collider_chunks().is_empty());
+        assert_eq!(report.mesh_assets_verified(), seam_coordinates.len());
+        assert_eq!(report.collider_components_verified(), 0);
+        assert_eq!(report.rapier_backends_verified(), 0);
     }
 
     #[test]

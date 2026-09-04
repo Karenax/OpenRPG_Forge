@@ -31,6 +31,7 @@ async fn execute_studio_command(
         &command,
         StudioCommand::Workspace {
             request: WorkspaceCommand::SculptTerrain { .. }
+                | WorkspaceCommand::PaintTerrainMaterial { .. }
         }
     ) {
         let session = Arc::clone(session.inner());

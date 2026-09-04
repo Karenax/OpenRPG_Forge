@@ -9,11 +9,13 @@ use thiserror::Error;
 
 pub const TERRAIN_DOCUMENT_SCHEMA: &str = "forge.terrain";
 pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V1: u32 = 1;
-pub const TERRAIN_DOCUMENT_SCHEMA_VERSION: u32 = 2;
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V2: u32 = 2;
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION: u32 = 3;
 pub const MIN_TERRAIN_MATERIAL_LAYERS: usize = 1;
 pub const MAX_TERRAIN_MATERIAL_LAYERS: usize = 32;
 pub const MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS: u16 = 8_192;
 pub const MAX_TERRAIN_HEIGHT_DELTAS: usize = 65_536;
+pub const MAX_TERRAIN_MATERIAL_WEIGHT_OVERRIDES: usize = 65_536;
 
 /// Stable semantic slots used by the first terrain generator's three material weights.
 ///
@@ -55,6 +57,8 @@ pub struct TerrainDocument {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub height_deltas: Vec<TerrainHeightDelta>,
     pub material_layers: Vec<TerrainMaterialLayer>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub material_weight_overrides: Vec<TerrainMaterialWeightOverride>,
 }
 
 impl TerrainDocument {
@@ -83,6 +87,7 @@ impl TerrainDocument {
             height_sampling,
             height_deltas: Vec::new(),
             material_layers,
+            material_weight_overrides: Vec::new(),
         }
     }
 
@@ -129,6 +134,7 @@ impl TerrainDocument {
             return Err(TerrainDocumentError::InvalidSchema(self.schema.clone()));
         }
         if self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V1
+            && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V2
             && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
         {
             return Err(TerrainDocumentError::UnsupportedVersion(
@@ -139,6 +145,11 @@ impl TerrainDocument {
             && !self.height_deltas.is_empty()
         {
             return Err(TerrainDocumentError::LegacyVersionContainsHeightDeltas);
+        }
+        if self.schema_version < TERRAIN_DOCUMENT_SCHEMA_VERSION
+            && !self.material_weight_overrides.is_empty()
+        {
+            return Err(TerrainDocumentError::LegacyVersionContainsMaterialWeights);
         }
         if self.coordinate_system != CoordinateSystem::METRES_Y_UP_RIGHT_HANDED {
             return Err(TerrainDocumentError::UnsupportedCoordinateSystem);
@@ -155,6 +166,7 @@ impl TerrainDocument {
         self.extent_m.validate()?;
         self.height_sampling.validate(self.extent_m)?;
         self.validate_height_deltas()?;
+        self.validate_material_weight_overrides()?;
 
         if self.material_layers.len() < MIN_TERRAIN_MATERIAL_LAYERS {
             return Err(TerrainDocumentError::TooFewMaterialLayers(
@@ -177,6 +189,66 @@ impl TerrainDocument {
             }
         }
 
+        Ok(())
+    }
+
+    fn validate_material_weight_overrides(&self) -> Result<(), TerrainDocumentError> {
+        if !self.material_weight_overrides.is_empty() && self.material_layers.len() != 3 {
+            return Err(TerrainDocumentError::MaterialWeightsRequireThreeLayers(
+                self.material_layers.len(),
+            ));
+        }
+        if self.material_weight_overrides.len() > MAX_TERRAIN_MATERIAL_WEIGHT_OVERRIDES {
+            return Err(TerrainDocumentError::TooManyMaterialWeightOverrides {
+                count: self.material_weight_overrides.len(),
+                maximum: MAX_TERRAIN_MATERIAL_WEIGHT_OVERRIDES,
+            });
+        }
+
+        let maximum_x = terrain_interval_count(
+            self.extent_m.size_x_m,
+            self.height_sampling.sample_spacing_m,
+        );
+        let maximum_z = terrain_interval_count(
+            self.extent_m.size_z_m,
+            self.height_sampling.sample_spacing_m,
+        );
+        let mut previous = None;
+        for authored in &self.material_weight_overrides {
+            if authored.sample_x > maximum_x || authored.sample_z > maximum_z {
+                return Err(TerrainDocumentError::MaterialWeightOutOfBounds {
+                    sample_x: authored.sample_x,
+                    sample_z: authored.sample_z,
+                    maximum_x,
+                    maximum_z,
+                });
+            }
+            if authored.weights.iter().any(|weight| {
+                !weight.is_finite()
+                    || !(0.0..=1.0).contains(weight)
+                    || weight.to_bits() == (-0.0_f32).to_bits()
+            }) || (authored.weights.iter().sum::<f32>() - 1.0).abs() > 0.000_01
+            {
+                return Err(TerrainDocumentError::InvalidMaterialWeights {
+                    sample_x: authored.sample_x,
+                    sample_z: authored.sample_z,
+                });
+            }
+
+            let key = authored.sort_key();
+            if let Some(previous_key) = previous {
+                if key == previous_key {
+                    return Err(TerrainDocumentError::DuplicateMaterialWeight {
+                        sample_x: authored.sample_x,
+                        sample_z: authored.sample_z,
+                    });
+                }
+                if key < previous_key {
+                    return Err(TerrainDocumentError::UnsortedMaterialWeights);
+                }
+            }
+            previous = Some(key);
+        }
         Ok(())
     }
 
@@ -271,6 +343,34 @@ impl TerrainHeightDelta {
             sample_x,
             sample_z,
             delta_m,
+        }
+    }
+
+    #[must_use]
+    pub const fn sort_key(self) -> (u16, u16) {
+        (self.sample_z, self.sample_x)
+    }
+}
+
+/// Authored normalized weights for one source-grid sample in grass, earth, rock order.
+///
+/// This sparse renderer-independent layer overrides procedural slope/elevation blending. Entries
+/// are canonical only when strictly sorted by `(sample_z, sample_x)`.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainMaterialWeightOverride {
+    pub sample_x: u16,
+    pub sample_z: u16,
+    pub weights: [f32; 3],
+}
+
+impl TerrainMaterialWeightOverride {
+    #[must_use]
+    pub const fn new(sample_x: u16, sample_z: u16, weights: [f32; 3]) -> Self {
+        Self {
+            sample_x,
+            sample_z,
+            weights,
         }
     }
 
@@ -481,6 +581,8 @@ pub enum TerrainDocumentError {
     UnsupportedVersion(u32),
     #[error("terrain schema version 1 cannot contain authored height deltas")]
     LegacyVersionContainsHeightDeltas,
+    #[error("terrain schema versions before 3 cannot contain authored material weights")]
+    LegacyVersionContainsMaterialWeights,
     #[error("terrain coordinate system must be metres, Y-up, right-handed")]
     UnsupportedCoordinateSystem,
     #[error("terrain name cannot be empty")]
@@ -514,6 +616,29 @@ pub enum TerrainDocumentError {
     DuplicateHeightDelta { sample_x: u16, sample_z: u16 },
     #[error("terrain height deltas must be strictly sorted by sample_z, then sample_x")]
     UnsortedHeightDeltas,
+    #[error(
+        "terrain contains {count} material-weight overrides, exceeding the sparse limit of {maximum}"
+    )]
+    TooManyMaterialWeightOverrides { count: usize, maximum: usize },
+    #[error("authored terrain material weights require exactly three layers, found {0}")]
+    MaterialWeightsRequireThreeLayers(usize),
+    #[error(
+        "terrain material weight ({sample_x}, {sample_z}) exceeds source-grid bounds (0..={maximum_x}, 0..={maximum_z})"
+    )]
+    MaterialWeightOutOfBounds {
+        sample_x: u16,
+        sample_z: u16,
+        maximum_x: u16,
+        maximum_z: u16,
+    },
+    #[error(
+        "terrain material weights at ({sample_x}, {sample_z}) must be finite, normalized and in [0,1]"
+    )]
+    InvalidMaterialWeights { sample_x: u16, sample_z: u16 },
+    #[error("terrain contains duplicate material weights at ({sample_x}, {sample_z})")]
+    DuplicateMaterialWeight { sample_x: u16, sample_z: u16 },
+    #[error("terrain material weights must be strictly sorted by sample_z, then sample_x")]
+    UnsortedMaterialWeights,
     #[error(
         "terrain needs at least {MIN_TERRAIN_MATERIAL_LAYERS} logical material layers, found {0}"
     )]
@@ -578,8 +703,9 @@ mod tests {
             document.content_hash().unwrap()
         );
         assert!(json.contains("\"schema\": \"forge.terrain\""));
-        assert!(json.contains("\"schema_version\": 2"));
+        assert!(json.contains("\"schema_version\": 3"));
         assert!(!json.contains("height_deltas"));
+        assert!(!json.contains("material_weight_overrides"));
     }
 
     #[test]
@@ -617,10 +743,10 @@ mod tests {
     #[test]
     fn unsupported_versions_and_invalid_sampling_are_rejected() {
         let mut document = valid_document(42);
-        document.schema_version = 3;
+        document.schema_version = 4;
         assert!(matches!(
             document.validate(),
-            Err(TerrainDocumentError::UnsupportedVersion(3))
+            Err(TerrainDocumentError::UnsupportedVersion(4))
         ));
 
         document.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION;
@@ -751,5 +877,91 @@ mod tests {
             invalid.validate(),
             Err(TerrainDocumentError::LegacyVersionContainsHeightDeltas)
         ));
+    }
+
+    #[test]
+    fn versioned_material_weights_are_sparse_canonical_normalized_and_bounded() {
+        let mut document = valid_document(42);
+        document.material_weight_overrides = vec![
+            TerrainMaterialWeightOverride::new(31, 31, [0.1, 0.8, 0.1]),
+            TerrainMaterialWeightOverride::new(32, 31, [0.0, 0.25, 0.75]),
+            TerrainMaterialWeightOverride::new(0, 32, [1.0, 0.0, 0.0]),
+        ];
+        assert!(document.validate().is_ok());
+        let round_trip = TerrainDocument::from_json(&document.to_pretty_json().unwrap()).unwrap();
+        assert_eq!(round_trip, document);
+
+        let mut invalid = document.clone();
+        invalid.material_weight_overrides.swap(0, 2);
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::UnsortedMaterialWeights)
+        ));
+
+        invalid = document.clone();
+        invalid
+            .material_weight_overrides
+            .insert(1, invalid.material_weight_overrides[0]);
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::DuplicateMaterialWeight {
+                sample_x: 31,
+                sample_z: 31
+            })
+        ));
+
+        invalid = document.clone();
+        invalid.material_weight_overrides =
+            vec![TerrainMaterialWeightOverride::new(257, 0, [1.0, 0.0, 0.0])];
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::MaterialWeightOutOfBounds { .. })
+        ));
+
+        for weights in [
+            [f32::NAN, 0.0, 1.0],
+            [-0.1, 0.1, 1.0],
+            [-0.0, 0.0, 1.0],
+            [0.2, 0.2, 0.2],
+        ] {
+            invalid = document.clone();
+            invalid.material_weight_overrides =
+                vec![TerrainMaterialWeightOverride::new(0, 0, weights)];
+            assert!(matches!(
+                invalid.validate(),
+                Err(TerrainDocumentError::InvalidMaterialWeights {
+                    sample_x: 0,
+                    sample_z: 0
+                })
+            ));
+        }
+
+        invalid = document.clone();
+        invalid.material_layers.pop();
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::MaterialWeightsRequireThreeLayers(2))
+        ));
+
+        invalid = document;
+        invalid.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V2;
+        assert!(matches!(
+            invalid.validate(),
+            Err(TerrainDocumentError::LegacyVersionContainsMaterialWeights)
+        ));
+    }
+
+    #[test]
+    fn version_two_migrates_to_an_empty_material_authoring_layer() {
+        let mut legacy = valid_document(42);
+        legacy.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V2;
+        legacy.height_deltas = vec![TerrainHeightDelta::new(32, 32, 1.0)];
+        let legacy_hash = legacy.content_hash().unwrap();
+
+        let migrated = legacy.migrate_to_latest().unwrap();
+        assert_eq!(migrated.schema_version, TERRAIN_DOCUMENT_SCHEMA_VERSION);
+        assert_eq!(migrated.height_deltas, legacy.height_deltas);
+        assert!(migrated.material_weight_overrides.is_empty());
+        assert_ne!(migrated.content_hash().unwrap(), legacy_hash);
     }
 }

@@ -1,4 +1,5 @@
-//! Read-only structural migration. Neither revisions, IDs nor terrain content are rewritten.
+//! Read-only structural migration. Revisions and IDs are preserved; embedded terrain documents are
+//! upgraded only by adding the current empty authoring layers.
 use crate::{
     WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceDocument, WorkspaceError, WorkspaceModule,
     WorkspaceProject,
@@ -41,7 +42,7 @@ pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
         1 => {
             let old: V1 = serde_json::from_str(json)?;
             debug_assert_eq!(old.schema_version, 1);
-            Ok(WorkspaceDocument {
+            migrate_terrains(WorkspaceDocument {
                 schema: old.schema,
                 schema_version: WORKSPACE_SCHEMA_VERSION,
                 revision: old.revision,
@@ -56,7 +57,16 @@ pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
                 },
             })
         }
-        WORKSPACE_SCHEMA_VERSION => Ok(serde_json::from_str(json)?),
+        WORKSPACE_SCHEMA_VERSION => migrate_terrains(serde_json::from_str(json)?),
         version => Err(WorkspaceError::UnsupportedVersion(version)),
     }
+}
+
+fn migrate_terrains(mut workspace: WorkspaceDocument) -> Result<WorkspaceDocument, WorkspaceError> {
+    for module in &mut workspace.project.modules {
+        for area in &mut module.areas {
+            area.terrain = area.terrain.migrate_to_latest()?;
+        }
+    }
+    Ok(workspace)
 }

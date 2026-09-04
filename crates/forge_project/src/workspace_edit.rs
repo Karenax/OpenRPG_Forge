@@ -2,7 +2,10 @@
 #[cfg(test)]
 #[path = "workspace_edit_tests.rs"]
 mod tests;
-use crate::{TerrainHeightDelta, WorkspaceDocument, WorkspaceError, WorkspaceModule};
+use crate::{
+    TerrainHeightDelta, TerrainMaterialWeightOverride, WorkspaceDocument, WorkspaceError,
+    WorkspaceModule,
+};
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
 
@@ -23,6 +26,13 @@ pub enum WorkspaceChange {
         area_id: AreaId,
         expected_terrain_hash: ContentHash,
         height_deltas: Vec<TerrainHeightDelta>,
+    },
+    /// Resolved sparse material blend patch in grass, earth, rock order.
+    SetTerrainMaterialWeights {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_terrain_hash: ContentHash,
+        material_weight_overrides: Vec<TerrainMaterialWeightOverride>,
     },
     AddModule {
         module_id: ModuleId,
@@ -124,6 +134,19 @@ impl WorkspaceDocument {
                 height_deltas,
                 next,
             )?,
+            WorkspaceChange::SetTerrainMaterialWeights {
+                module_id,
+                area_id,
+                expected_terrain_hash,
+                material_weight_overrides,
+            } => set_terrain_material_weights(
+                document,
+                *module_id,
+                *area_id,
+                *expected_terrain_hash,
+                material_weight_overrides,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -193,6 +216,35 @@ impl WorkspaceDocument {
         }
         Ok(())
     }
+}
+
+fn set_terrain_material_weights(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_hash: ContentHash,
+    weights: &[TerrainMaterialWeightOverride],
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.terrain.content_hash()? != expected_hash {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    if area.terrain.material_weight_overrides == weights {
+        return Err(WorkspaceError::NoChange);
+    }
+    area.terrain.material_weight_overrides = weights.to_vec();
+    area.terrain.revision = revision;
+    Ok(())
 }
 
 fn set_terrain_heights(

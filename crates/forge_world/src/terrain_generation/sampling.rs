@@ -149,7 +149,7 @@ fn surface_vertex(document: &TerrainDocument, sample_x: u16, sample_z: u16) -> S
     SurfaceVertex {
         position_m: [x_m, height_m, z_m],
         height_m,
-        material_weights: material_weights_for(document, height_m, normal[1]),
+        material_weights: material_weights_at(document, sample_x, sample_z, height_m, normal[1]),
     }
 }
 
@@ -327,7 +327,27 @@ pub(super) fn sample_normal(document: &TerrainDocument, x_m: f32, z_m: f32) -> [
 
 #[must_use]
 #[allow(clippy::cast_possible_truncation)]
-pub(super) fn material_weights_for(
+pub(super) fn material_weights_at(
+    document: &TerrainDocument,
+    sample_x: u16,
+    sample_z: u16,
+    height_m: f32,
+    normal_y: f32,
+) -> TerrainMaterialWeights {
+    let key = (sample_z, sample_x);
+    if let Ok(index) = document
+        .material_weight_overrides
+        .binary_search_by_key(&key, |authored| authored.sort_key())
+    {
+        let [grass, earth, rock] = document.material_weight_overrides[index].weights;
+        return TerrainMaterialWeights { grass, earth, rock };
+    }
+    procedural_material_weights_for(document, height_m, normal_y)
+}
+
+#[must_use]
+#[allow(clippy::cast_possible_truncation)]
+fn procedural_material_weights_for(
     document: &TerrainDocument,
     height_m: f32,
     normal_y: f32,

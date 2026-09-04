@@ -2,8 +2,8 @@
 use crate::{TerrainGenerationError, TerrainGenerationPlan};
 use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
 use forge_project::{
-    TerrainHeightDelta, WorkspaceChange, WorkspaceDocument, WorkspaceEdit, WorkspaceEditResult,
-    WorkspaceError,
+    TerrainHeightDelta, TerrainMaterialRole, TerrainMaterialWeightOverride, WorkspaceChange,
+    WorkspaceDocument, WorkspaceEdit, WorkspaceEditResult, WorkspaceError,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -99,6 +99,57 @@ pub struct TerrainBrushCommand {
 #[serde(deny_unknown_fields)]
 pub struct TerrainBrushResult {
     pub command: TerrainBrushCommand,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub additional_centers: Vec<[f32; 2]>,
+    pub changed_samples: usize,
+    pub edit: WorkspaceEditResult,
+}
+
+/// Version 1 material stamp. It blends one semantic layer into the sparse source grid.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainMaterialBrush {
+    pub schema_version: u32,
+    pub center_x_m: f32,
+    pub center_z_m: f32,
+    pub radius_m: f32,
+    /// Fraction in ]0, 1]. Repeated strokes progressively converge on the selected layer.
+    pub strength: f32,
+    pub material: TerrainMaterialRole,
+}
+
+impl TerrainMaterialBrush {
+    pub fn validate(self) -> Result<(), TerrainBrushError> {
+        if self.schema_version != 1 {
+            return Err(TerrainBrushError::UnsupportedVersion(self.schema_version));
+        }
+        if !bounded(self.center_x_m, -256.0, 256.0)
+            || !bounded(self.center_z_m, -256.0, 256.0)
+            || !bounded(self.radius_m, 2.0, 64.0)
+            || !bounded(self.strength, f32::MIN_POSITIVE, 1.0)
+        {
+            return Err(TerrainBrushError::InvalidParameters);
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainMaterialBrushCommand {
+    pub command_id: CommandId,
+    pub base_revision: Revision,
+    pub project_id: ProjectId,
+    pub module_id: ModuleId,
+    pub area_id: AreaId,
+    pub brush: TerrainMaterialBrush,
+}
+
+/// Exact material-paint candidate plus intent, inverse and hashes. Safe to discard.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TerrainMaterialBrushResult {
+    pub command: TerrainMaterialBrushCommand,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub additional_centers: Vec<[f32; 2]>,
     pub changed_samples: usize,
@@ -231,7 +282,20 @@ pub fn preview_terrain_stroke(
             return Err(WorkspaceError::StaleRevision.into());
         }
         match preview_terrain_brush(&candidate, stamp) {
-            Ok(result) => candidate = result.edit.document,
+            Ok(result) => {
+                candidate = result.edit.document;
+                reset_stroke_candidate_revision(
+                    &mut candidate,
+                    command.module_id,
+                    command.area_id,
+                    command.base_revision,
+                    workspace
+                        .area(command.module_id, command.area_id)
+                        .ok_or(WorkspaceError::MissingTarget("area"))?
+                        .terrain
+                        .revision,
+                )?;
+            }
             Err(TerrainBrushError::Workspace(WorkspaceError::NoChange)) => {}
             Err(error) => return Err(error),
         }
@@ -277,6 +341,213 @@ pub fn preview_terrain_stroke(
         changed_samples,
         edit,
     })
+}
+
+/// Previews one material stamp without mutating a workspace or renderer cache.
+pub fn preview_terrain_material_brush(
+    workspace: &WorkspaceDocument,
+    command: TerrainMaterialBrushCommand,
+) -> Result<TerrainMaterialBrushResult, TerrainBrushError> {
+    workspace.validate()?;
+    if workspace.project.id != command.project_id {
+        return Err(TerrainBrushError::WrongProject);
+    }
+    if workspace.revision != command.base_revision {
+        return Err(WorkspaceError::StaleRevision.into());
+    }
+    command.brush.validate()?;
+    let terrain = &workspace
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    let plan = TerrainGenerationPlan::from_document(terrain)?;
+    let mut weights: BTreeMap<_, _> = terrain
+        .material_weight_overrides
+        .iter()
+        .map(|sample| (sample.sort_key(), sample.weights))
+        .collect();
+    let mut changed_samples = 0;
+    let (min_x, max_x) = grid_bounds(command.brush.center_x_m, command.brush.radius_m);
+    let (min_z, max_z) = grid_bounds(command.brush.center_z_m, command.brush.radius_m);
+    let selected = command.brush.material.index();
+    for sample_z in min_z..=max_z {
+        for sample_x in min_x..=max_x {
+            let x = -256.0 + f32::from(sample_x) * 2.0;
+            let z = -256.0 + f32::from(sample_z) * 2.0;
+            let dx = f64::from(x) - f64::from(command.brush.center_x_m);
+            let dz = f64::from(z) - f64::from(command.brush.center_z_m);
+            let radial = 1.0 - (dx * dx + dz * dz).sqrt() / f64::from(command.brush.radius_m);
+            if radial <= 0.0 {
+                continue;
+            }
+            let blend = radial * radial * (3.0 - 2.0 * radial) * f64::from(command.brush.strength);
+            let before = plan
+                .material_weights_at_sample(sample_x, sample_z)?
+                .as_array();
+            let mut after = [0.0; 3];
+            for index in 0..3 {
+                let target = if index == selected { 1.0 } else { 0.0 };
+                #[allow(
+                    clippy::cast_possible_truncation,
+                    reason = "The convex blend remains finite and in the normalized unit interval"
+                )]
+                let blended = (f64::from(before[index]) * (1.0 - blend) + target * blend) as f32;
+                after[index] = blended;
+            }
+            let total = after.iter().sum::<f32>();
+            for weight in &mut after {
+                *weight /= total;
+            }
+            if after.map(f32::to_bits) == before.map(f32::to_bits) {
+                continue;
+            }
+            weights.insert((sample_z, sample_x), after);
+            changed_samples += 1;
+        }
+    }
+    let edit = workspace.preview_edit(WorkspaceEdit {
+        command_id: command.command_id,
+        base_revision: command.base_revision,
+        change: WorkspaceChange::SetTerrainMaterialWeights {
+            module_id: command.module_id,
+            area_id: command.area_id,
+            expected_terrain_hash: plan.document_hash(),
+            material_weight_overrides: weights
+                .into_iter()
+                .map(|((z, x), weights)| TerrainMaterialWeightOverride::new(x, z, weights))
+                .collect(),
+        },
+    })?;
+    let target = &edit
+        .document
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    TerrainGenerationPlan::from_document(target)?;
+    Ok(TerrainMaterialBrushResult {
+        command,
+        additional_centers: vec![],
+        changed_samples,
+        edit,
+    })
+}
+
+/// A material stroke is one source revision and one undo operation, like height sculpting.
+pub fn preview_terrain_material_stroke(
+    workspace: &WorkspaceDocument,
+    command: TerrainMaterialBrushCommand,
+    additional_centers: &[[f32; 2]],
+) -> Result<TerrainMaterialBrushResult, TerrainBrushError> {
+    if additional_centers.len() > 63 {
+        return Err(TerrainBrushError::StrokeBudgetExceeded);
+    }
+    for center in additional_centers {
+        TerrainMaterialBrush {
+            center_x_m: center[0],
+            center_z_m: center[1],
+            ..command.brush
+        }
+        .validate()?;
+    }
+    let mut candidate = workspace.clone();
+    for center in std::iter::once([command.brush.center_x_m, command.brush.center_z_m])
+        .chain(additional_centers.iter().copied())
+    {
+        let stamp = TerrainMaterialBrushCommand {
+            base_revision: candidate.revision,
+            brush: TerrainMaterialBrush {
+                center_x_m: center[0],
+                center_z_m: center[1],
+                ..command.brush
+            },
+            ..command
+        };
+        if workspace.revision != command.base_revision {
+            return Err(WorkspaceError::StaleRevision.into());
+        }
+        match preview_terrain_material_brush(&candidate, stamp) {
+            Ok(result) => {
+                candidate = result.edit.document;
+                reset_stroke_candidate_revision(
+                    &mut candidate,
+                    command.module_id,
+                    command.area_id,
+                    command.base_revision,
+                    workspace
+                        .area(command.module_id, command.area_id)
+                        .ok_or(WorkspaceError::MissingTarget("area"))?
+                        .terrain
+                        .revision,
+                )?;
+            }
+            Err(TerrainBrushError::Workspace(WorkspaceError::NoChange)) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let original = &workspace
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    let target = &candidate
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    let before: BTreeMap<_, _> = original
+        .material_weight_overrides
+        .iter()
+        .map(|sample| (sample.sort_key(), sample.weights.map(f32::to_bits)))
+        .collect();
+    let after: BTreeMap<_, _> = target
+        .material_weight_overrides
+        .iter()
+        .map(|sample| (sample.sort_key(), sample.weights.map(f32::to_bits)))
+        .collect();
+    let changed_samples = before
+        .keys()
+        .chain(after.keys())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .filter(|key| before.get(key) != after.get(key))
+        .count();
+    let edit = workspace.preview_edit(WorkspaceEdit {
+        command_id: command.command_id,
+        base_revision: command.base_revision,
+        change: WorkspaceChange::SetTerrainMaterialWeights {
+            module_id: command.module_id,
+            area_id: command.area_id,
+            expected_terrain_hash: original.content_hash().map_err(WorkspaceError::from)?,
+            material_weight_overrides: target.material_weight_overrides.clone(),
+        },
+    })?;
+    Ok(TerrainMaterialBrushResult {
+        command,
+        additional_centers: additional_centers.to_vec(),
+        changed_samples,
+        edit,
+    })
+}
+
+fn reset_stroke_candidate_revision(
+    candidate: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    workspace_revision: Revision,
+    terrain_revision: Revision,
+) -> Result<(), TerrainBrushError> {
+    candidate.revision = workspace_revision;
+    candidate
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain
+        .revision = terrain_revision;
+    Ok(())
 }
 
 fn target_difference(

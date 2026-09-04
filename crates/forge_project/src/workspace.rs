@@ -339,7 +339,9 @@ pub enum WorkspaceError {
     InvalidRevision(&'static str),
     #[error("terrain project/area identities do not match their workspace owners")]
     TerrainOwnershipMismatch,
-    #[error("workspace requires a v2 terrain, 512 m square, 2 m samples and three material layers")]
+    #[error(
+        "workspace requires a current terrain schema, 512 m square, 2 m samples and three material layers"
+    )]
     UnsupportedTerrainShape,
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
@@ -408,7 +410,7 @@ mod tests {
         assert_eq!(terrain.project_id, input.project_id);
         assert_eq!(terrain.area_id, input.area_id);
         assert_eq!(terrain.seed, input.seed);
-        assert_eq!(terrain.schema_version, 2);
+        assert_eq!(terrain.schema_version, TERRAIN_DOCUMENT_SCHEMA_VERSION);
         assert_eq!(terrain.extent_m, TerrainExtent::new(512.0, 512.0));
         assert_eq!(
             terrain.height_sampling.sample_spacing_m.to_bits(),
@@ -420,6 +422,7 @@ mod tests {
         );
         assert_eq!(terrain.material_layers.len(), 3);
         assert!(terrain.height_deltas.is_empty());
+        assert!(terrain.material_weight_overrides.is_empty());
         terrain.validate().unwrap();
         assert_ne!(
             terrain.project_id,
@@ -500,6 +503,28 @@ mod tests {
             document.project.modules[0].areas[0].spawn.y.to_bits(),
             17.5_f32.to_bits()
         );
+    }
+
+    #[test]
+    fn current_workspace_migrates_embedded_v2_terrain_without_losing_authored_heights() {
+        let mut legacy = document();
+        let terrain = &mut legacy.project.modules[0].areas[0].terrain;
+        terrain.schema_version = crate::TERRAIN_DOCUMENT_SCHEMA_VERSION_V2;
+        terrain.height_deltas = vec![crate::TerrainHeightDelta::new(128, 128, 3.5)];
+        let legacy_revision = terrain.revision;
+        let legacy_ids = (terrain.project_id, terrain.area_id);
+        let json = serde_json::to_string_pretty(&legacy).unwrap();
+
+        let migrated = WorkspaceDocument::from_json(&json).unwrap();
+        let terrain = &migrated.project.modules[0].areas[0].terrain;
+        assert_eq!(terrain.schema_version, TERRAIN_DOCUMENT_SCHEMA_VERSION);
+        assert_eq!(terrain.revision, legacy_revision);
+        assert_eq!((terrain.project_id, terrain.area_id), legacy_ids);
+        assert_eq!(
+            terrain.height_deltas,
+            vec![crate::TerrainHeightDelta::new(128, 128, 3.5)]
+        );
+        assert!(terrain.material_weight_overrides.is_empty());
     }
 
     #[test]

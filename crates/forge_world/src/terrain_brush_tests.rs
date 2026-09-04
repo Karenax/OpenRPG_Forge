@@ -71,6 +71,27 @@ fn command(source: &WorkspaceDocument, operation: TerrainBrushOperation) -> Terr
     }
 }
 
+fn material_command(
+    source: &WorkspaceDocument,
+    material: TerrainMaterialRole,
+) -> TerrainMaterialBrushCommand {
+    TerrainMaterialBrushCommand {
+        command_id: CommandId::deterministic("material-brush-command"),
+        base_revision: source.revision,
+        project_id: source.project.id,
+        module_id: source.project.modules[0].id,
+        area_id: source.project.modules[0].areas[0].id,
+        brush: TerrainMaterialBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: 8.0,
+            strength: 1.0,
+            material,
+        },
+    }
+}
+
 fn plan(source: &WorkspaceDocument) -> TerrainGenerationPlan {
     TerrainGenerationPlan::from_document(&source.project.modules[0].areas[0].terrain).unwrap()
 }
@@ -270,6 +291,257 @@ fn every_mode_matches_full_generation_after_partial_cache_replacement() {
                 .unwrap()
         );
     }
+}
+
+#[test]
+fn material_brush_persists_normalized_weights_with_falloff_and_inverse() {
+    let source = source();
+    let before = source.to_pretty_json().unwrap();
+    let result = preview_terrain_material_brush(
+        &source,
+        material_command(&source, TerrainMaterialRole::Earth),
+    )
+    .unwrap();
+    assert_eq!(result.changed_samples, 45);
+    assert_eq!(result.edit.receipt.inverse_snapshot.as_ref(), &source);
+    let terrain = &result.edit.document.project.modules[0].areas[0].terrain;
+    assert_eq!(
+        terrain
+            .material_weight_overrides
+            .iter()
+            .find(|sample| sample.sort_key() == (128, 128))
+            .unwrap()
+            .weights
+            .map(f32::to_bits),
+        [0.0_f32, 1.0, 0.0].map(f32::to_bits)
+    );
+    let halfway = terrain
+        .material_weight_overrides
+        .iter()
+        .find(|sample| sample.sort_key() == (128, 130))
+        .unwrap();
+    assert!((halfway.weights.iter().sum::<f32>() - 1.0).abs() <= 0.000_01);
+    assert!(halfway.weights[1] > 0.5 && halfway.weights[1] < 1.0);
+    assert_eq!(source.to_pretty_json().unwrap(), before);
+    let restored =
+        WorkspaceDocument::from_json(&result.edit.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(restored, result.edit.document);
+}
+
+#[test]
+fn material_stroke_is_one_revision_and_partial_refresh_never_rebuilds_colliders() {
+    let source = source();
+    let before = plan(&source);
+    let mut cache = before.generate().unwrap();
+    let collider_hashes = cache
+        .chunks
+        .iter()
+        .map(|chunk| chunk.collider.clone())
+        .collect::<Vec<_>>();
+    let result = preview_terrain_material_stroke(
+        &source,
+        material_command(&source, TerrainMaterialRole::Rock),
+        &[[8.0, 0.0], [16.0, 0.0]],
+    )
+    .unwrap();
+    assert_eq!(
+        result.edit.document.revision.get(),
+        source.revision.get() + 1
+    );
+    assert_eq!(result.additional_centers.len(), 2);
+    let target = result.edit.document.project.modules[0].areas[0]
+        .terrain
+        .clone();
+    let update = before
+        .apply_partial_update(
+            &cache,
+            TerrainPartialUpdateRequest {
+                base_revision: before.document().revision,
+                base_document_hash: before.document_hash(),
+                target_document: target.clone(),
+            },
+        )
+        .unwrap();
+    assert_eq!(
+        update.mesh_chunks().len(),
+        4,
+        "The material stroke crosses the four central chunk seams"
+    );
+    assert!(update.collider_chunks().is_empty());
+    update.apply_to_cache(&mut cache).unwrap();
+    assert_eq!(
+        cache,
+        TerrainGenerationPlan::from_document(&target)
+            .unwrap()
+            .generate()
+            .unwrap()
+    );
+    assert_eq!(
+        cache
+            .chunks
+            .iter()
+            .map(|chunk| chunk.collider.clone())
+            .collect::<Vec<_>>(),
+        collider_hashes
+    );
+}
+
+#[test]
+fn removing_material_overrides_restores_the_exact_procedural_projection() {
+    let original = source();
+    let painted = preview_terrain_material_brush(
+        &original,
+        material_command(&original, TerrainMaterialRole::Earth),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let painted_plan = plan(&painted);
+    let mut cache = painted_plan.generate().unwrap();
+    let collider_payloads = cache
+        .chunks
+        .iter()
+        .map(|chunk| chunk.collider.clone())
+        .collect::<Vec<_>>();
+    let original_terrain = original.project.modules[0].areas[0].terrain.clone();
+
+    let update = painted_plan
+        .refresh_cached_projection(&cache, original_terrain.clone())
+        .unwrap();
+    assert_eq!(
+        update.changed_samples().len(),
+        painted.project.modules[0].areas[0]
+            .terrain
+            .material_weight_overrides
+            .len()
+    );
+    assert_eq!(update.mesh_chunks().len(), 4);
+    assert!(update.collider_chunks().is_empty());
+    update.apply_to_cache(&mut cache).unwrap();
+    assert_eq!(
+        cache,
+        TerrainGenerationPlan::from_document(&original_terrain)
+            .unwrap()
+            .generate()
+            .unwrap()
+    );
+    assert_eq!(
+        cache
+            .chunks
+            .iter()
+            .map(|chunk| chunk.collider.clone())
+            .collect::<Vec<_>>(),
+        collider_payloads
+    );
+}
+
+#[test]
+fn skipped_revision_refresh_combines_height_and_material_changes_exactly() {
+    let source = source();
+    let before = plan(&source);
+    let mut cache = before.generate().unwrap();
+    let mut target = source.project.modules[0].areas[0].terrain.clone();
+    target.revision = Revision::new(9);
+    target.height_deltas = vec![TerrainHeightDelta::new(128, 128, 4.0)];
+    target.material_weight_overrides = vec![TerrainMaterialWeightOverride::new(
+        130,
+        128,
+        [0.0, 1.0, 0.0],
+    )];
+
+    let update = before
+        .refresh_cached_projection(&cache, target.clone())
+        .unwrap();
+    assert_eq!(
+        update
+            .changed_samples()
+            .iter()
+            .map(|sample| (sample.sample_z, sample.sample_x))
+            .collect::<Vec<_>>(),
+        vec![(128, 128), (128, 130)]
+    );
+    assert_eq!(update.mesh_chunks().len(), 4);
+    assert_eq!(update.collider_chunks().len(), 4);
+    update.apply_to_cache(&mut cache).unwrap();
+    assert_eq!(
+        cache,
+        TerrainGenerationPlan::from_document(&target)
+            .unwrap()
+            .generate()
+            .unwrap()
+    );
+}
+
+#[test]
+fn multi_stamp_strokes_consume_only_one_final_revision_at_the_boundary() {
+    let mut source = source();
+    source.revision = Revision::new(u64::MAX - 1);
+    let original = source.clone();
+
+    let sculpted = preview_terrain_stroke(
+        &source,
+        command(&source, TerrainBrushOperation::RaiseLower { delta_m: 2.0 }),
+        &[[8.0, 0.0], [16.0, 0.0]],
+    )
+    .unwrap();
+    assert_eq!(sculpted.edit.document.revision, Revision::new(u64::MAX));
+    assert_eq!(
+        sculpted.edit.document.project.modules[0].areas[0]
+            .terrain
+            .revision,
+        Revision::new(u64::MAX)
+    );
+    assert_eq!(source, original);
+
+    let painted = preview_terrain_material_stroke(
+        &source,
+        material_command(&source, TerrainMaterialRole::Rock),
+        &[[8.0, 0.0], [16.0, 0.0]],
+    )
+    .unwrap();
+    assert_eq!(painted.edit.document.revision, Revision::new(u64::MAX));
+    assert_eq!(
+        painted.edit.document.project.modules[0].areas[0]
+            .terrain
+            .revision,
+        Revision::new(u64::MAX)
+    );
+    assert_eq!(source, original);
+}
+
+#[test]
+fn material_brush_is_typed_bounded_and_repeated_paint_converges() {
+    let source = source();
+    for material in [
+        TerrainMaterialRole::Grass,
+        TerrainMaterialRole::Earth,
+        TerrainMaterialRole::Rock,
+    ] {
+        let result =
+            preview_terrain_material_brush(&source, material_command(&source, material)).unwrap();
+        let weights = result.edit.document.project.modules[0].areas[0]
+            .terrain
+            .material_weight_overrides
+            .iter()
+            .find(|sample| sample.sort_key() == (128, 128))
+            .unwrap()
+            .weights;
+        assert_eq!(weights[material.index()].to_bits(), 1.0_f32.to_bits());
+    }
+    let mut invalid = material_command(&source, TerrainMaterialRole::Grass);
+    invalid.brush.schema_version = 2;
+    assert!(preview_terrain_material_brush(&source, invalid).is_err());
+    invalid = material_command(&source, TerrainMaterialRole::Grass);
+    invalid.brush.strength = 0.0;
+    assert!(preview_terrain_material_brush(&source, invalid).is_err());
+    assert!(
+        preview_terrain_material_stroke(
+            &source,
+            material_command(&source, TerrainMaterialRole::Grass),
+            &[[0.0, 0.0]; 64]
+        )
+        .is_err()
+    );
 }
 
 #[test]

@@ -18,6 +18,14 @@ pub enum WorkspaceCommand {
         /// Preview computes the same candidate but leaves the session and its history intact.
         dry_run: bool,
     },
+    PaintTerrainMaterial {
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::TerrainMaterialBrush,
+        #[serde(default)]
+        additional_centers: Vec<[f32; 2]>,
+        /// Preview computes the same candidate but leaves the session and its history intact.
+        dry_run: bool,
+    },
     Current,
     Create {
         project_name: String,
