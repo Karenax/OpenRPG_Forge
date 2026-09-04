@@ -85,6 +85,11 @@ prématurée. Source primaire :
 Le test couvre notification différée, mauvaise API et timeout ; aucun changement du binaire Rust
 n'est requis. La tentative reste conservée sous `r1-037-renderdoc-5f6ed57-20260904T065800Z`.
 
+La tentative `a993ad1` reste sans API présentant jusqu'au watchdog runtime de 90 s, malgré un reçu
+prêt. Le problème ne se limite donc pas à l'ordre des notifications. L'adaptateur conserve désormais
+le journal diagnostic RenderDoc dans le dossier externe de chaque run pour identifier l'injection
+effective, sans nouveau build ni modification des critères.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné

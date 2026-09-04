@@ -836,6 +836,7 @@ def main():
     output_dir = Path(required_environment("FORGE_GATE1_RENDERDOC_OUTPUT_DIR")).resolve(
         strict=True
     )
+    rd.SetDebugLogFile(str(output_dir / "renderdoc-diagnostic.log"))
     nonce = required_environment("FORGE_GATE1_RENDERDOC_NONCE")
     weather = required_environment("FORGE_GATE1_RENDERDOC_WEATHER")
     source_commit = required_environment("FORGE_GATE1_RENDERDOC_SOURCE_COMMIT")
