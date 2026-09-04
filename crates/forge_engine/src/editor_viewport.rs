@@ -137,7 +137,9 @@ impl Plugin for EditorViewportPlugin {
             .add_systems(Update, update_editor)
             .add_systems(
                 PostUpdate,
-                brush::update_brush_cursor.after(bevy::transform::TransformSystems::Propagate),
+                brush::update_brush_cursor
+                    .after(bevy::transform::TransformSystems::Propagate)
+                    .after(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
             );
     }
 }

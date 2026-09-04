@@ -3,6 +3,14 @@ use crate::editor_viewport::{EditorCamera, EditorTerrainChunk, EditorViewport};
 use bevy::prelude::*;
 use serde::Serialize;
 
+fn terrain_ray_settings(filter: &impl Fn(Entity) -> bool) -> MeshRayCastSettings<'_> {
+    // The ring may extend beyond the camera frustum. Use the terrain's propagated
+    // visibility, not the per-view flag reset/recomputed during PostUpdate.
+    MeshRayCastSettings::default()
+        .with_filter(filter)
+        .with_visibility(RayCastVisibility::Visible)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct EditorBrushPointer {
     pub generation: u64,
@@ -70,7 +78,7 @@ pub(crate) fn update_brush_cursor(
         )
     {
         let filter = |entity| terrain.contains(entity);
-        let settings = MeshRayCastSettings::default().with_filter(&filter);
+        let settings = terrain_ray_settings(&filter);
         bridge.brush_start_hit = camera
             .viewport_to_world(
                 transform,
@@ -105,7 +113,7 @@ pub(crate) fn update_brush_cursor(
     };
     bridge.brush_sample_serial = Some(pointer.serial);
     let filter = |entity| terrain.contains(entity);
-    let settings = MeshRayCastSettings::default().with_filter(&filter);
+    let settings = terrain_ray_settings(&filter);
     let Some((_, hit)) = ray_cast.cast_ray(ray, &settings).first() else {
         return;
     };
@@ -173,6 +181,64 @@ fn valid_pointer(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn brush_raycast_uses_visible_terrain_without_requiring_a_view_flag() {
+        use bevy::{camera::primitives::MeshAabb, ecs::system::SystemState};
+
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins);
+        let world = app.world_mut();
+        let mesh = Mesh::from(Cuboid::new(16.0, 2.0, 16.0));
+        let bounds = mesh.compute_aabb().unwrap();
+        let mut meshes = Assets::<Mesh>::default();
+        let handle = meshes.add(mesh);
+        world.insert_resource(meshes);
+        let terrain_entity = world
+            .spawn((
+                EditorTerrainChunk,
+                Mesh3d(handle.clone()),
+                bounds,
+                GlobalTransform::IDENTITY,
+                InheritedVisibility::VISIBLE,
+                ViewVisibility::HIDDEN,
+            ))
+            .id();
+        // A closer non-terrain marker must never intercept the brush.
+        world.spawn((
+            Mesh3d(handle),
+            bounds,
+            GlobalTransform::from_translation(Vec3::Y * 5.0),
+            InheritedVisibility::VISIBLE,
+            ViewVisibility::HIDDEN,
+        ));
+        let ray = Ray3d::new(Vec3::Y * 20.0, Dir3::NEG_Y);
+        let mut state =
+            SystemState::<(MeshRayCast, Query<(), With<EditorTerrainChunk>>)>::new(world);
+        {
+            let (mut ray_cast, terrain) = state.get_mut(world).unwrap();
+            let filter = |entity| terrain.contains(entity);
+            assert!(
+                ray_cast
+                    .cast_ray(ray, &MeshRayCastSettings::default().with_filter(&filter))
+                    .is_empty()
+            );
+            let hits = ray_cast.cast_ray(ray, &terrain_ray_settings(&filter));
+            assert_eq!(hits.len(), 1);
+            assert_eq!(hits[0].0, terrain_entity);
+            assert!((hits[0].1.point.y - 1.0).abs() < 0.0001);
+        }
+        world
+            .entity_mut(terrain_entity)
+            .insert(InheritedVisibility::HIDDEN);
+        let (mut ray_cast, terrain) = state.get_mut(world).unwrap();
+        let filter = |entity| terrain.contains(entity);
+        assert!(
+            ray_cast
+                .cast_ray(ray, &terrain_ray_settings(&filter))
+                .is_empty()
+        );
+    }
     #[test]
     fn bevy_raycast_hits_the_same_authored_triangle_surface() {
         use bevy::picking::mesh_picking::ray_cast::{Backfaces, ray_mesh_intersection};

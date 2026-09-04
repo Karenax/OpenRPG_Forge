@@ -128,7 +128,7 @@ pub(crate) fn ProjectWorkspace(
             </header>
             <section class="project-notice" aria-label="Portée de cette version">
                 <strong>"Gestion des sources uniquement"</strong>
-                <span>{if embedded { "Sélectionnez une zone puis Ouvrir dans Monde pour afficher son terrain. Les brosses 3D viennent ensuite." } else { "Cet assistant gère les sources. L’aperçu du projet est disponible dans Monde, depuis le bureau Forge." }}</span>
+                <span>{if embedded { "Sélectionnez une zone puis Ouvrir dans Monde pour afficher et sculpter son terrain." } else { "Cet assistant gère les sources. L’aperçu du projet est disponible dans Monde, depuis le bureau Forge." }}</span>
             </section>
             <Show when=move || !backend_available>
                 <section class="project-notice project-warning" role="status" id="workspace-backend-unavailable">
