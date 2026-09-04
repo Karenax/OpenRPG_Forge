@@ -7,6 +7,14 @@
     )
 )]
 
+pub mod workspace_api;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod workspace_service;
+#[cfg(not(target_arch = "wasm32"))]
+mod workspace_store;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod workspace_ui;
+
 mod gate1_browser_weather_matrix;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod gate1_browser_weather_matrix_web;
@@ -1230,13 +1238,21 @@ mod telemetry;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
-    SelectEntity { entity_id: EntityId },
+    SelectEntity {
+        entity_id: EntityId,
+    },
     SceneSummary,
+    Workspace {
+        request: workspace_api::WorkspaceCommand,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    Workspace {
+        state: workspace_api::WorkspaceState,
+    },
     SelectionAccepted {
         entity_id: EntityId,
     },
@@ -1266,6 +1282,9 @@ fn validate_selection_response(
         }
         StudioResponse::SceneSummary { .. } => {
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
+        }
+        StudioResponse::Workspace { .. } => {
+            Err("Réponse Tauri inattendue : projet reçu pour une sélection".to_owned())
         }
     }
 }
@@ -1346,6 +1365,18 @@ mod web {
     #[wasm_bindgen(start)]
     pub fn start() {
         console_error_panic_hook::set_once();
+        let editor_requested = web_sys::window()
+            .and_then(|window| window.location().search().ok())
+            .is_some_and(|search| {
+                search
+                    .trim_start_matches('?')
+                    .split('&')
+                    .any(|entry| entry == "forge_editor=project")
+            });
+        if editor_requested {
+            super::workspace_ui::mount_project_workspace();
+            return;
+        }
         mount_to_body(|| view! { <Studio/> });
     }
 
@@ -1500,6 +1531,7 @@ mod web {
                         <span class="eyebrow">"OPENRPG FORGE · RUST"</span>
                         <h1>"Visual Workspace"</h1>
                     </div>
+                    <a href="?forge_editor=project">"Projets · Gate 2"</a>
                     <div class="status-stack">
                         <span
                             class:status-ok=move || matches!(webgpu_status.get(), WebGpuStatus::Ready)

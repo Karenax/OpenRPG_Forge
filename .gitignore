@@ -12,5 +12,6 @@ target/
 /artifacts/forge-runtime/
 /artifacts/forge-studio/
 /artifacts/gate-0/
+/artifacts/gate-2/
 *.pdb
 *.wasm.map

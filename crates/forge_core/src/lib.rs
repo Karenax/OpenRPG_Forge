@@ -79,7 +79,9 @@ macro_rules! domain_id {
 }
 
 domain_id!(ProjectId, "project id", "project");
+domain_id!(ModuleId, "module id", "module");
 domain_id!(AreaId, "area id", "area");
+domain_id!(CommandId, "command id", "command");
 domain_id!(EntityId, "entity id", "entity");
 domain_id!(AssetId, "asset id", "asset");
 
@@ -411,6 +413,32 @@ mod tests {
         assert_eq!(first, second);
         assert_ne!(first.as_uuid(), asset.as_uuid());
         assert_eq!(first.to_string().parse::<EntityId>().unwrap(), first);
+    }
+
+    #[test]
+    fn workspace_ids_are_stable_domain_separated_and_round_trip() {
+        let project = ProjectId::deterministic("authored-workspace");
+        let module = ModuleId::deterministic("authored-workspace");
+        let area = AreaId::deterministic("authored-workspace");
+        let command = CommandId::deterministic("authored-workspace");
+        let ids = [
+            project.as_uuid(),
+            module.as_uuid(),
+            area.as_uuid(),
+            command.as_uuid(),
+        ];
+        for (index, id) in ids.iter().enumerate() {
+            assert!(ids[..index].iter().all(|previous| previous != id));
+        }
+        assert_eq!(module, ModuleId::deterministic("authored-workspace"));
+        assert_eq!(command, CommandId::deterministic("authored-workspace"));
+        assert_eq!(module.to_string().parse::<ModuleId>().unwrap(), module);
+        assert_eq!(command.to_string().parse::<CommandId>().unwrap(), command);
+        let json = serde_json::to_string(&(project, module, area, command)).unwrap();
+        assert_eq!(
+            serde_json::from_str::<(ProjectId, ModuleId, AreaId, CommandId)>(&json).unwrap(),
+            (project, module, area, command)
+        );
     }
 
     #[test]

@@ -9,6 +9,13 @@ mod terrain;
 mod vegetation;
 mod water;
 mod weather;
+mod workspace;
+
+pub use workspace::{
+    CreatedWorkspace, MAX_WORKSPACE_JSON_BYTES, NewProjectCommand, WORKSPACE_SCHEMA,
+    WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceAreaKind, WorkspaceCreationInverse,
+    WorkspaceCreationReceipt, WorkspaceDocument, WorkspaceError, WorkspaceModule, WorkspaceProject,
+};
 
 pub use environment::{
     DistanceFogFalloff, DistanceFogProfile, ENVIRONMENT_PROFILE_SCHEMA,

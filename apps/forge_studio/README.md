@@ -7,6 +7,74 @@ Bevy world: the viewport is started once and owns a stable canvas.
 `trunk serve --config Trunk.toml` serves the browser proof. `cargo tauri dev --no-watch` launches the
 same frontend inside WebView2 after the documented Gate 0 bootstrap.
 
+## Gate 2 project sources (first authoring slice)
+
+The opt-in `?forge_editor=project` route opens the source-management assistant. Gate 2 is active
+under `docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md`; this does not qualify Gate 1 or
+complete Gate 2. The existing default Gate 0 and explicit Visual Valley routes remain separate.
+
+The first slice creates **one project, one module and one exterior area**, with a 512 × 512 m
+terrain source. Project/module/area names, the terrain seed and the X/Y/Z spawn coordinates are
+entered through labelled fields. Seed and coordinate strings are parsed and validated by Rust.
+Spawn is authored metadata only: creation does not snap it to the ground or place a character.
+The hierarchy selects the project, module or area and displays the accepted document's metadata.
+It does not yet add further modules/areas, provide area tabs or edit an existing document's fields.
+
+There is **no live 3D viewport on this route**. Its links open the unchanged proof scenes, not a
+rendering of the newly created project. Terrain brushes, picking, gizmos and playtest are not part
+of this source-management slice.
+
+### Native commands and draft state
+
+The native Rust `WorkspaceSession` is authoritative. Leptos holds form drafts and read projections,
+not a second editable canonical project. The shared IPC envelope is
+`StudioCommand::Workspace { request }` through `execute_studio_command`; responses carry
+`WorkspaceState` and the canonical `forge_project::WorkspaceDocument` JSON.
+
+- `Create` produces a validated in-memory draft, clearly marked **non enregistré**. It writes no
+  file and refuses to replace an already open document.
+- `Undo`, `Redo` and `Save` carry the observed `base_revision`; stale requests are rejected.
+  For a fresh creation the bounded cycle is revision **1 → 2 → 3**: creation at 1, no current
+  document after undo at session revision 2, then the restored document and terrain at revision 3.
+  Undo concerns the unchanged creation draft, not arbitrary form edits or a general command history.
+  Neither undo nor redo deletes previously saved files.
+- `Close` clears a clean session without deleting files. `Close` and `Open` reject an unsaved draft;
+  first save it or explicitly undo its creation. Reopening starts without an undo/redo history.
+- Pending operations disable mutation buttons. Errors are displayed explicitly; a failed request
+  is not presented as a successful creation or save.
+
+The native window-close guard also blocks an unsaved, busy or unverifiable session. Its feedback
+appears in the window title, including when a proof scene is open; no browser event permission is
+added for this guard. It is not protection against process termination or a crash.
+
+`#workspace-state-ledger` exposes the returned state, revision and latest receipt for bounded
+automation. It is not a GPU, crash-recovery or full transaction-bus qualification.
+
+### Explicit immutable snapshots
+
+For **Enregistrer**, enter an existing local directory by absolute path. The backend validates the
+path and creates `<project-id>-r<revision>.forge.json` in that directory; it does not create folders
+or accept an arbitrary output filename. Path checks reject parent traversal, symlinks and reparse
+points, and on Windows reject UNC/device prefixes. Each project/revision destination is immutable:
+saving identical canonical content again is idempotent; conflicting content fails without overwriting it.
+
+The implementation writes and synchronizes an exclusively created `.forge-pending-*` file in the
+chosen directory, publishes it with a non-replacing hard link, then removes only its own temporary
+file. A filesystem unable to perform that publication returns an error, not an overwrite fallback.
+For **Ouvrir**, enter the exact absolute path of an existing `.forge.json` file. Its size, UTF-8,
+schema and document invariants are checked before it becomes the current project.
+
+Pending files are **not a recovery journal**. They may remain after interruption; this slice does
+not discover, promote or restore them automatically. No crash/power-loss recovery, general undo
+stack, durable audit history or complete Gate 2 command bus is claimed.
+
+In a standalone Browser, the forms remain consultable but creation, undo/redo, save, open and close
+are disabled with an explicit explanation that the Tauri backend is absent. There is no mock
+workspace, browser-storage substitute or simulated success. A Browser UI check cannot qualify
+native filesystem persistence; that requires the actual Tauri workflow and saved-file evidence.
+
+## Embedded proof scenes
+
 The default URL remains the Gate 0 proof. Visual Valley is an explicit, reload-only viewport choice:
 
 ```powershell
