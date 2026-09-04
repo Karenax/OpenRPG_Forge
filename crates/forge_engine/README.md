@@ -79,6 +79,10 @@ canonical terrain document as `source_entities` and the 64 derived Bevy meshes a
 `source_mesh_instances`; neither field is a GPU draw-call count. Chunk/LOD boundaries use a dedicated
 opt-in gizmo group, never Bevy wireframe rendering.
 
+Grass batch meshes are recentered on their deformation-safe AABB before upload, with the opposite
+translation applied to their entity. This preserves world geometry and makes CPU/compute AABB range
+checks agree with the vertex shader's origin-based distance fade, including on elevated terrain.
+
 `VisualValleyWeatherPlugin` projects the versioned clear/rain contract without adding an asset or a
 second particle dependency. The selected quality tier becomes one procedural cross-quad mesh and one
 ECS batch entity; a WGSL vertex pass wraps every seeded streak inside a camera-relative volume. The

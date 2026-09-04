@@ -1038,6 +1038,16 @@ pub(crate) fn build_grass_chunk_mesh(
     mesh.finish(deformation_margin_m)
 }
 
+fn recenter_grass_batch(mesh: &mut DerivedVegetationMesh, chunk_center: Vec3) -> Transform {
+    // CPU/compute range checks use the AABB center, while vertex dithering uses the mesh origin.
+    // Make those anchors coincide without changing world geometry or the deformation-safe extents.
+    let local_center = Vec3::from(mesh.aabb.center);
+    // This mesh has just been built; its MAIN_WORLD positions have not been extracted to the GPU.
+    mesh.mesh.translate_by(-local_center);
+    mesh.aabb.center = Vec3::ZERO.into();
+    Transform::from_translation(chunk_center + local_center)
+}
+
 pub(crate) fn build_hlod_chunk_mesh(
     placements: &[ProceduralVegetationPlacement],
     deformation_margin_m: f32,
@@ -1654,7 +1664,7 @@ fn prepare_vegetation_projection_with_quality(
                 x: chunk_x,
                 z: chunk_z,
             };
-            let mesh = build_grass_chunk_mesh(
+            let mut mesh = build_grass_chunk_mesh(
                 plan.terrain(),
                 chunk_center,
                 &grass,
@@ -1662,6 +1672,7 @@ fn prepare_vegetation_projection_with_quality(
                 deformation_margin_m,
             )
             .map_err(|source| VegetationAdapterError::Mesh { key, source })?;
+            let transform = recenter_grass_batch(&mut mesh, chunk_center);
             let triangles = u64_count(mesh.triangles, "grass_triangles")?;
             grass_triangles = grass_triangles
                 .checked_add(triangles)
@@ -1680,7 +1691,7 @@ fn prepare_vegetation_projection_with_quality(
             entities.push(PreparedProjectionEntity {
                 name: format!("Vegetation grass batch ({chunk_x}, {chunk_z})"),
                 mesh_key: key,
-                transform: Transform::from_translation(chunk_center),
+                transform,
                 mesh_tag: chunk_mesh_tag(chunk_x, chunk_z, 0x0047_0000),
                 visibility_range: ranges.grass.clone(),
                 marker: PreparedProjectionMarker::Batch(VegetationChunkBatchMarker {
@@ -2506,6 +2517,113 @@ mod tests {
     }
 
     #[test]
+    fn grass_recentering_preserves_world_geometry_and_non_position_attributes() {
+        let terrain_document = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain_document).unwrap();
+        let chunk_center = Vec3::new(32.0, 0.0, -96.0);
+        let patches = [
+            placement(VegetationKind::Grass, -12.0, 7.0),
+            placement(VegetationKind::Grass, 3.0, 18.0),
+        ];
+        let mut mesh = build_grass_chunk_mesh(
+            &terrain,
+            chunk_center,
+            &patches,
+            12,
+            maximum_deformation_m(profile()),
+        )
+        .unwrap();
+        let original = mesh.mesh.clone();
+        let original_center = mesh.aabb.center;
+        let original_half_extents = mesh.aabb.half_extents;
+        let original_triangles = mesh.triangles;
+        let transform = recenter_grass_batch(&mut mesh, chunk_center);
+
+        let Some(VertexAttributeValues::Float32x3(before)) =
+            original.attribute(Mesh::ATTRIBUTE_POSITION)
+        else {
+            panic!("grass positions must be Float32x3");
+        };
+        let Some(VertexAttributeValues::Float32x3(after)) =
+            mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+        else {
+            panic!("grass positions must be Float32x3");
+        };
+        assert_eq!(before.len(), after.len());
+        for (before, after) in before.iter().zip(after) {
+            let original_world = chunk_center + Vec3::from_array(*before);
+            let recentered_world = transform.transform_point(Vec3::from_array(*after));
+            assert!(original_world.abs_diff_eq(recentered_world, 0.0001));
+        }
+        for attribute in [
+            Mesh::ATTRIBUTE_NORMAL,
+            Mesh::ATTRIBUTE_UV_0,
+            Mesh::ATTRIBUTE_UV_1,
+            Mesh::ATTRIBUTE_COLOR,
+        ] {
+            assert_eq!(
+                original.attribute(attribute),
+                mesh.mesh.attribute(attribute)
+            );
+        }
+        assert_eq!(original.indices(), mesh.mesh.indices());
+        assert_eq!(original_triangles, mesh.triangles);
+        assert_eq!(mesh.aabb.half_extents, original_half_extents);
+        assert_eq!(mesh.aabb.center, bevy::math::Vec3A::ZERO);
+        assert_eq!(
+            transform.translation,
+            chunk_center + Vec3::from(original_center)
+        );
+        assert_eq!(transform.rotation, Quat::IDENTITY);
+        assert_eq!(transform.scale, Vec3::ONE);
+    }
+
+    #[test]
+    fn grass_recentering_aligns_cpu_and_shader_range_centers_on_elevated_ground() {
+        let mut accumulator = MeshAccumulator::default();
+        accumulator
+            .push_quad(
+                [
+                    Vec3::new(12.0, 35.0, -8.0),
+                    Vec3::new(14.0, 35.0, -8.0),
+                    Vec3::new(14.0, 37.0, -8.0),
+                    Vec3::new(12.0, 37.0, -8.0),
+                ],
+                [grass_color(0, 0.0); 4],
+            )
+            .unwrap();
+        let mut mesh = accumulator.finish(0.5).unwrap();
+        let chunk_center = Vec3::new(192.0, 0.0, 128.0);
+        let original_cpu_center = chunk_center + Vec3::from(mesh.aabb.center);
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let range = VegetationLodRanges::from_profile(vegetation.presentation).grass;
+        assert!(range.use_aabb);
+        assert_eq!(range.end_margin, 45.0..51.0);
+        let transform = recenter_grass_batch(&mut mesh, chunk_center);
+        let cpu_center = Vec3::from(
+            GlobalTransform::from(transform)
+                .affine()
+                .transform_point3a(mesh.aabb.center),
+        );
+        let shader_center = transform.translation;
+        assert_eq!(cpu_center, original_cpu_center);
+        assert_eq!(cpu_center, shader_center);
+        for distance in [0.0, 44.0, 45.0, 48.0, 51.0, 52.0] {
+            let camera = original_cpu_center + Vec3::X * distance;
+            let cpu_distance = camera.distance(cpu_center);
+            let shader_distance = camera.distance(shader_center);
+            assert!((cpu_distance - shader_distance).abs() <= f32::EPSILON);
+            assert_eq!(
+                range.is_visible_at_all(cpu_distance),
+                range.is_visible_at_all(shader_distance)
+            );
+        }
+        let camera = original_cpu_center + Vec3::X * 48.0;
+        assert!(range.is_visible_at_all(camera.distance(cpu_center)));
+        assert!(camera.distance(chunk_center) > range.end_margin.end);
+    }
+
+    #[test]
     fn hlod_is_one_mesh_and_ignores_grass_placements() {
         let woody = [
             placement(VegetationKind::Tree, -2.0, 1.0),
@@ -2704,6 +2822,35 @@ mod tests {
         let mesh_tag = mesh_tag_for(placement.wind_phase_radians, placement.wind_response);
         assert_eq!(mesh_tag.0 >> 24, 191);
         assert_ne!(mesh_tag.0 & TAG_PHASE_MASK, 0);
+    }
+
+    #[test]
+    fn complete_grass_projection_uses_centered_meshes_and_preserves_batch_tags() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let prepared = prepare_vegetation_projection(&terrain, &vegetation).unwrap();
+        let mut grass_batches = 0;
+        for entity in &prepared.entities {
+            let PreparedProjectionMarker::Batch(marker) = &entity.marker else {
+                continue;
+            };
+            grass_batches += 1;
+            let mesh = prepared
+                .meshes
+                .iter()
+                .find(|mesh| mesh.key == entity.mesh_key)
+                .unwrap();
+            assert_eq!(mesh.value.aabb.center, bevy::math::Vec3A::ZERO);
+            assert_eq!(entity.transform.rotation, Quat::IDENTITY);
+            assert_eq!(entity.transform.scale, Vec3::ONE);
+            assert!(entity.visibility_range.use_aabb);
+            assert_eq!(
+                entity.mesh_tag.0,
+                chunk_mesh_tag(marker.chunk_x, marker.chunk_z, 0x0047_0000).0
+            );
+        }
+        assert_eq!(grass_batches, prepared.stats.projection.grass_batches);
+        assert!(grass_batches > 0);
     }
 
     #[test]
