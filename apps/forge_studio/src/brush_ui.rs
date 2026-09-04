@@ -1,12 +1,19 @@
 use super::{AreaPreviewRequest, WorkspaceActions, WorldActions};
-use crate::{brush_state::BrushPath, workspace_api::WorkspaceCommand};
-use forge_engine::editor_viewport::EditorBrushPointer;
+use crate::{
+    brush_state::BrushPath,
+    workspace_api::{VegetationExclusionDraft, WorkspaceCommand},
+};
+use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer};
 use forge_project::{TerrainMaterialRole, VegetationLayerId};
 use forge_world::{
     TerrainBrush, TerrainBrushOperation, TerrainMaterialBrush, VegetationDensityBrush,
 };
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
+
+#[path = "vegetation_ui.rs"]
+mod vegetation;
+pub(super) use vegetation::VegetationPanel;
 
 #[derive(Clone)]
 struct StrokeDraft {
@@ -25,6 +32,22 @@ enum ActiveBrush {
     Height(TerrainBrush),
     Material(TerrainMaterialBrush),
     VegetationDensity(VegetationDensityBrush),
+    VegetationExclusion(ExclusionBrush),
+}
+
+#[derive(Clone, Copy)]
+enum ExclusionBrush {
+    Circle { radius_m: f32 },
+    Corridor { half_width_m: f32 },
+}
+
+impl ExclusionBrush {
+    const fn radius_m(self) -> f32 {
+        match self {
+            Self::Circle { radius_m } => radius_m,
+            Self::Corridor { half_width_m } => half_width_m,
+        }
+    }
 }
 
 impl ActiveBrush {
@@ -33,6 +56,7 @@ impl ActiveBrush {
             Self::Height(brush) => brush.radius_m,
             Self::Material(brush) => brush.radius_m,
             Self::VegetationDensity(brush) => brush.radius_m,
+            Self::VegetationExclusion(brush) => brush.radius_m(),
         }
     }
 
@@ -41,6 +65,7 @@ impl ActiveBrush {
             Self::Height(brush) => brush.strength,
             Self::Material(brush) => brush.strength,
             Self::VegetationDensity(brush) => brush.strength,
+            Self::VegetationExclusion(_) => 1.0,
         }
     }
 
@@ -58,6 +83,29 @@ impl ActiveBrush {
                 brush.center_x_m = center[0];
                 brush.center_z_m = center[1];
             }
+            Self::VegetationExclusion(_) => {}
+        }
+    }
+
+    const fn is_exclusion(&self) -> bool {
+        matches!(self, Self::VegetationExclusion(_))
+    }
+}
+
+impl StrokeDraft {
+    fn record_point(&mut self, point: [f32; 2]) -> Result<(), String> {
+        if self.brush.is_exclusion() {
+            match self.path.points.len() {
+                0 | 1 => self.path.points.push(point),
+                _ => {
+                    if let Some(last) = self.path.points.last_mut() {
+                        *last = point;
+                    }
+                }
+            }
+            Ok(())
+        } else {
+            self.path.append(point, self.brush.radius_m())
         }
     }
 }
@@ -100,83 +148,95 @@ fn vegetation_layer_options(world: WorldActions) -> Vec<(String, String)> {
 }
 
 impl BrushActions {
-    fn brush(self) -> Result<Option<ActiveBrush>, String> {
-        let mode = self.mode.get_untracked();
-        if mode == "navigate" {
-            return Ok(None);
+    fn number(field: RwSignal<String>) -> Result<f32, String> {
+        field
+            .get_untracked()
+            .parse::<f32>()
+            .map_err(|_| "Renseignez les paramètres numériques de la brosse.".to_owned())
+    }
+
+    fn amplitude(self) -> Result<f32, String> {
+        let value = Self::number(self.amount)?;
+        if value.is_finite() && (0.1..=32.0).contains(&value) {
+            Ok(value)
+        } else {
+            Err("L’amplitude doit être comprise entre 0,1 et 32 mètres.".to_owned())
         }
-        let number = |field: RwSignal<String>| {
-            field
-                .get_untracked()
-                .parse::<f32>()
-                .map_err(|_| "Renseignez les paramètres numériques de la brosse.".to_owned())
-        };
-        let amplitude = || {
-            let value = number(self.amount)?;
-            if value.is_finite() && (0.1..=32.0).contains(&value) {
-                Ok(value)
-            } else {
-                Err("L’amplitude doit être comprise entre 0,1 et 32 mètres.".to_owned())
+    }
+
+    fn exclusion_brush(self, mode: &str) -> Result<ActiveBrush, String> {
+        let radius_m = Self::number(self.radius)?;
+        if !radius_m.is_finite() || !(2.0..=64.0).contains(&radius_m) {
+            return Err(
+                "Le rayon ou la demi-largeur doit être compris entre 2 et 64 mètres.".into(),
+            );
+        }
+        let brush = if mode == "exclude_vegetation_circle" {
+            ExclusionBrush::Circle { radius_m }
+        } else {
+            ExclusionBrush::Corridor {
+                half_width_m: radius_m,
             }
         };
-        if mode == "paint_vegetation_density" {
-            let percent = self
-                .density
-                .get_untracked()
-                .trim()
-                .parse::<u8>()
-                .map_err(|_| "La densité cible doit être un entier de 0 à 100 %.".to_owned())?;
-            if percent > 100 {
-                return Err("La densité cible doit être comprise entre 0 et 100 %.".into());
-            }
-            let layer_id = self.vegetation_layer.get_untracked();
-            if layer_id.is_empty() {
-                return Err("Sélectionnez une couche de végétation de la zone.".into());
-            }
-            let target_density = u8::try_from((u16::from(percent) * 255 + 50) / 100)
-                .map_err(|_| "Densité cible invalide.".to_owned())?;
-            let brush = VegetationDensityBrush {
-                schema_version: 1,
-                center_x_m: 0.0,
-                center_z_m: 0.0,
-                radius_m: number(self.radius)?,
-                strength: number(self.strength)? / 100.0,
-                target_density,
-                layer_id: VegetationLayerId::new(layer_id),
-            };
-            brush.validate().map_err(|error| error.to_string())?;
-            return Ok(Some(ActiveBrush::VegetationDensity(brush)));
+        Ok(ActiveBrush::VegetationExclusion(brush))
+    }
+
+    fn density_brush(self) -> Result<ActiveBrush, String> {
+        let percent = self
+            .density
+            .get_untracked()
+            .trim()
+            .parse::<u8>()
+            .map_err(|_| "La densité cible doit être un entier de 0 à 100 %.".to_owned())?;
+        if percent > 100 {
+            return Err("La densité cible doit être comprise entre 0 et 100 %.".into());
         }
-        if let Some(material) = match mode.as_str() {
-            "paint_grass" => Some(TerrainMaterialRole::Grass),
-            "paint_earth" => Some(TerrainMaterialRole::Earth),
-            "paint_rock" => Some(TerrainMaterialRole::Rock),
-            _ => None,
-        } {
-            let brush = TerrainMaterialBrush {
-                schema_version: 1,
-                center_x_m: 0.0,
-                center_z_m: 0.0,
-                radius_m: number(self.radius)?,
-                strength: number(self.strength)? / 100.0,
-                material,
-            };
-            brush.validate().map_err(|error| error.to_string())?;
-            return Ok(Some(ActiveBrush::Material(brush)));
+        let layer_id = self.vegetation_layer.get_untracked();
+        if layer_id.is_empty() {
+            return Err("Sélectionnez une couche de végétation de la zone.".into());
         }
-        let operation = match mode.as_str() {
+        let target_density = u8::try_from((u16::from(percent) * 255 + 50) / 100)
+            .map_err(|_| "Densité cible invalide.".to_owned())?;
+        let brush = VegetationDensityBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: Self::number(self.radius)?,
+            strength: Self::number(self.strength)? / 100.0,
+            target_density,
+            layer_id: VegetationLayerId::new(layer_id),
+        };
+        brush.validate().map_err(|error| error.to_string())?;
+        Ok(ActiveBrush::VegetationDensity(brush))
+    }
+
+    fn material_brush(self, material: TerrainMaterialRole) -> Result<ActiveBrush, String> {
+        let brush = TerrainMaterialBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: Self::number(self.radius)?,
+            strength: Self::number(self.strength)? / 100.0,
+            material,
+        };
+        brush.validate().map_err(|error| error.to_string())?;
+        Ok(ActiveBrush::Material(brush))
+    }
+
+    fn height_brush(self, mode: &str) -> Result<ActiveBrush, String> {
+        let operation = match mode {
             "raise" => TerrainBrushOperation::RaiseLower {
-                delta_m: amplitude()?,
+                delta_m: self.amplitude()?,
             },
             "lower" => TerrainBrushOperation::RaiseLower {
-                delta_m: -amplitude()?,
+                delta_m: -self.amplitude()?,
             },
             "smooth" => TerrainBrushOperation::Smooth,
             "flatten" => TerrainBrushOperation::Flatten {
-                height_m: number(self.height)?,
+                height_m: Self::number(self.height)?,
             },
             "noise" => TerrainBrushOperation::Noise {
-                amplitude_m: amplitude()?,
+                amplitude_m: self.amplitude()?,
                 seed: self
                     .seed
                     .get_untracked()
@@ -184,9 +244,9 @@ impl BrushActions {
                     .map_err(|_| "Seed invalide (entier u32).")?,
             },
             "slope" => TerrainBrushOperation::Slope {
-                height_m: number(self.height)?,
-                gradient_x: number(self.slope_x)?,
-                gradient_z: number(self.slope_z)?,
+                height_m: Self::number(self.height)?,
+                gradient_x: Self::number(self.slope_x)?,
+                gradient_z: Self::number(self.slope_z)?,
             },
             _ => return Err("Brosse inconnue.".into()),
         };
@@ -194,12 +254,37 @@ impl BrushActions {
             schema_version: 1,
             center_x_m: 0.0,
             center_z_m: 0.0,
-            radius_m: number(self.radius)?,
-            strength: number(self.strength)? / 100.0,
+            radius_m: Self::number(self.radius)?,
+            strength: Self::number(self.strength)? / 100.0,
             operation,
         };
-        brush.validate().map_err(|e| e.to_string())?;
-        Ok(Some(ActiveBrush::Height(brush)))
+        brush.validate().map_err(|error| error.to_string())?;
+        Ok(ActiveBrush::Height(brush))
+    }
+
+    fn brush(self) -> Result<Option<ActiveBrush>, String> {
+        let mode = self.mode.get_untracked();
+        if mode == "navigate" {
+            return Ok(None);
+        }
+        if matches!(
+            mode.as_str(),
+            "exclude_vegetation_circle" | "exclude_vegetation_corridor"
+        ) {
+            return self.exclusion_brush(&mode).map(Some);
+        }
+        if mode == "paint_vegetation_density" {
+            return self.density_brush().map(Some);
+        }
+        if let Some(material) = match mode.as_str() {
+            "paint_grass" => Some(TerrainMaterialRole::Grass),
+            "paint_earth" => Some(TerrainMaterialRole::Earth),
+            "paint_rock" => Some(TerrainMaterialRole::Rock),
+            _ => None,
+        } {
+            return self.material_brush(material).map(Some);
+        }
+        self.height_brush(&mode).map(Some)
     }
 
     pub(super) fn move_pointer(
@@ -357,6 +442,93 @@ impl BrushActions {
         }
     }
 
+    fn record_hit(self, stroke: &mut StrokeDraft, hit: EditorBrushHit) -> bool {
+        if let Err(error) = stroke.record_point([
+            hit.point[0].clamp(-256.0, 256.0),
+            hit.point[2].clamp(-256.0, 256.0),
+        ]) {
+            self.error.set(Some(error));
+            self.stroke.set(None);
+            return false;
+        }
+        stroke.sampled_serial = hit.serial;
+        true
+    }
+
+    fn exclusion_command(
+        request: AreaPreviewRequest,
+        brush: ExclusionBrush,
+        first: [f32; 2],
+        last: [f32; 2],
+    ) -> Result<WorkspaceCommand, String> {
+        let draft = match brush {
+            ExclusionBrush::Circle { radius_m } => VegetationExclusionDraft::Circle {
+                center_x_m: first[0],
+                center_z_m: first[1],
+                radius_m,
+            },
+            ExclusionBrush::Corridor { half_width_m } => {
+                let delta_x = f64::from(last[0]) - f64::from(first[0]);
+                let delta_z = f64::from(last[1]) - f64::from(first[1]);
+                if delta_x * delta_x + delta_z * delta_z == 0.0 {
+                    return Err(
+                        "Un passage exige un glissement entre deux points distincts. Rien n’a été appliqué."
+                            .into(),
+                    );
+                }
+                VegetationExclusionDraft::CorridorSegment {
+                    start_x_m: first[0],
+                    start_z_m: first[1],
+                    end_x_m: last[0],
+                    end_z_m: last[1],
+                    half_width_m,
+                }
+            }
+        };
+        Ok(WorkspaceCommand::AddVegetationExclusion { request, draft })
+    }
+
+    fn dispatch_stroke(self, workspace: WorkspaceActions, mut stroke: StrokeDraft) {
+        let Some(first) = stroke.path.points.first().copied() else {
+            self.error
+                .set(Some("Visez le terrain pour appliquer une brosse.".into()));
+            return;
+        };
+        stroke.brush.set_center(first);
+        let additional_centers = stroke.path.points[1..].to_vec();
+        let last = stroke.path.points.last().copied().unwrap_or(first);
+        let command = match stroke.brush {
+            ActiveBrush::Height(brush) => WorkspaceCommand::SculptTerrain {
+                request: stroke.request,
+                brush,
+                additional_centers,
+                dry_run: false,
+            },
+            ActiveBrush::Material(brush) => WorkspaceCommand::PaintTerrainMaterial {
+                request: stroke.request,
+                brush,
+                additional_centers,
+                dry_run: false,
+            },
+            ActiveBrush::VegetationDensity(brush) => WorkspaceCommand::PaintVegetationDensity {
+                request: stroke.request,
+                brush,
+                additional_centers,
+                dry_run: false,
+            },
+            ActiveBrush::VegetationExclusion(brush) => {
+                match Self::exclusion_command(stroke.request, brush, first, last) {
+                    Ok(command) => command,
+                    Err(error) => {
+                        self.error.set(Some(error));
+                        return;
+                    }
+                }
+            }
+        };
+        workspace.send(command);
+    }
+
     fn sample(self, world: WorldActions, workspace: WorkspaceActions) {
         let (hit, sampled, start_hit) = {
             let viewport = world.viewport.get_value();
@@ -387,69 +559,19 @@ impl BrushActions {
         }
         if stroke.sampled_serial == 0
             && let Some(hit) = start_hit.filter(|hit| hit.generation == stroke.generation)
+            && !self.record_hit(&mut stroke, hit)
         {
-            if let Err(error) = stroke.path.append(
-                [
-                    hit.point[0].clamp(-256.0, 256.0),
-                    hit.point[2].clamp(-256.0, 256.0),
-                ],
-                stroke.brush.radius_m(),
-            ) {
-                self.error.set(Some(error));
-                self.stroke.set(None);
-                return;
-            }
-            stroke.sampled_serial = hit.serial;
+            return;
         }
         if let Some(hit) = hit
             .filter(|hit| hit.generation == stroke.generation && hit.serial > stroke.sampled_serial)
+            && !self.record_hit(&mut stroke, hit)
         {
-            if let Err(error) = stroke.path.append(
-                [
-                    hit.point[0].clamp(-256.0, 256.0),
-                    hit.point[2].clamp(-256.0, 256.0),
-                ],
-                stroke.brush.radius_m(),
-            ) {
-                self.error.set(Some(error));
-                self.stroke.set(None);
-                return;
-            }
-            stroke.sampled_serial = hit.serial;
+            return;
         }
         if stroke.finishing && sampled == Some(stroke.last_serial) {
             self.stroke.set(None);
-            let Some(first) = stroke.path.points.first() else {
-                self.error
-                    .set(Some("Visez le terrain pour appliquer une brosse.".into()));
-                return;
-            };
-            stroke.brush.set_center(*first);
-            let additional_centers = stroke.path.points[1..].to_vec();
-            match stroke.brush {
-                ActiveBrush::Height(brush) => workspace.send(WorkspaceCommand::SculptTerrain {
-                    request: stroke.request,
-                    brush,
-                    additional_centers,
-                    dry_run: false,
-                }),
-                ActiveBrush::Material(brush) => {
-                    workspace.send(WorkspaceCommand::PaintTerrainMaterial {
-                        request: stroke.request,
-                        brush,
-                        additional_centers,
-                        dry_run: false,
-                    });
-                }
-                ActiveBrush::VegetationDensity(brush) => {
-                    workspace.send(WorkspaceCommand::PaintVegetationDensity {
-                        request: stroke.request,
-                        brush,
-                        additional_centers,
-                        dry_run: false,
-                    });
-                }
-            }
+            self.dispatch_stroke(workspace, stroke);
         } else {
             self.stroke.set(Some(stroke));
         }
@@ -537,10 +659,18 @@ pub(super) fn BrushPanel(
                 <option value="smooth">"Lisser"</option><option value="flatten">"Aplatir"</option><option value="noise">"Bruit"</option><option value="slope">"Pente"</option>
                 <option value="paint_grass">"Peindre · Herbe"</option><option value="paint_earth">"Peindre · Terre"</option><option value="paint_rock">"Peindre · Roche"</option>
                 <option value="paint_vegetation_density">"Peindre · Densité végétale"</option>
+                <option value="exclude_vegetation_circle">"Exclusion végétale · Cercle"</option>
+                <option value="exclude_vegetation_corridor">"Exclusion végétale · Passage"</option>
             </select></label>
             <Show when=move || brush.mode.get() != "navigate">
-                <BrushNumber label="Rayon (m)" value=brush.radius min="2" max="64" step="1"/>
-                <BrushNumber label="Intensité (%)" value=brush.strength min="1" max="100" step="1"/>
+                <Show when=move || brush.mode.get() == "exclude_vegetation_corridor" fallback=move || view! {
+                    <BrushNumber label="Rayon (m)" value=brush.radius min="2" max="64" step="1"/>
+                }>
+                    <BrushNumber label="Demi-largeur (m)" value=brush.radius min="2" max="64" step="1"/>
+                </Show>
+                <Show when=move || !matches!(brush.mode.get().as_str(), "exclude_vegetation_circle" | "exclude_vegetation_corridor")>
+                    <BrushNumber label="Intensité (%)" value=brush.strength min="1" max="100" step="1"/>
+                </Show>
                 <Show when=move || matches!(brush.mode.get().as_str(), "raise" | "lower" | "noise")><BrushNumber label="Amplitude (m)" value=brush.amount min="0.1" max="32"/></Show>
                 <Show when=move || matches!(brush.mode.get().as_str(), "flatten" | "slope")><BrushNumber label="Altitude cible (m)" value=brush.height min="-1024" max="1024"/></Show>
                 <Show when=move || brush.mode.get() == "noise"><BrushNumber label="Seed du bruit" value=brush.seed min="0" max="4294967295" step="1"/></Show>
@@ -557,7 +687,11 @@ pub(super) fn BrushPanel(
                 </Show>
             </Show>
         </fieldset>
-        <p class="hint">"Glisser : tracer · relâcher : appliquer · Alt + glisser : orbite. Un trait = une annulation."</p>
+        <p class="hint">{move || match brush.mode.get().as_str() {
+            "exclude_vegetation_circle" => "Cliquer : poser un cercle au premier point · relâcher : appliquer.",
+            "exclude_vegetation_corridor" => "Glisser : passage droit du premier au dernier point · relâcher : appliquer.",
+            _ => "Glisser : tracer · relâcher : appliquer · Alt + glisser : orbite. Un trait = une annulation.",
+        }}</p>
         <p class="brush-position">{move || brush.point.get().map_or_else(|| "Visez le terrain".into(), |p| format!("X {:.1} · Y {:.1} · Z {:.1}", p[0], p[1], p[2]))}</p>
         <p class="brush-position">{move || brush.stroke.get().map_or_else(String::new, |stroke| format!("Trait · {} empreintes · non appliqué", stroke.path.points.len()))}</p>
         <div class="brush-history"><button type="button" disabled=move || workspace.unavailable() || !workspace.state.get().can_undo

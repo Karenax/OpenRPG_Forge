@@ -25,7 +25,7 @@ use wasm_bindgen::{JsCast, closure::Closure};
 
 #[path = "brush_ui.rs"]
 mod brush;
-use brush::{BrushPanel, create_brush_actions};
+use brush::{BrushPanel, VegetationPanel, create_brush_actions};
 
 #[derive(Clone, Copy)]
 pub(crate) struct WorldActions {
@@ -350,6 +350,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                 })}
                 <p class="hint">"Les sources s’éditent dans Projets. Fermer un onglet ne supprime pas la zone."</p>
                 <BrushPanel brush=brush world=actions workspace=workspace/>
+                <VegetationPanel brush=brush world=actions workspace=workspace/>
             </aside>
             <div class="world-editor">
                 <div class="world-tabs" role="tablist" aria-label="Zones ouvertes">

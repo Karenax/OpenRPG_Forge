@@ -3,8 +3,9 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    TerrainHeightDelta, TerrainMaterialWeightOverride, VegetationDensityOverride,
-    VegetationLayerId, WorkspaceDocument, WorkspaceError, WorkspaceModule,
+    TerrainHeightDelta, TerrainMaterialWeightOverride, VegetationDensityLayer,
+    VegetationDensityOverride, VegetationExclusion, VegetationLayer, VegetationLayerId,
+    WorkspaceDocument, WorkspaceError, WorkspaceModule,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
@@ -41,6 +42,22 @@ pub enum WorkspaceChange {
         layer_id: VegetationLayerId,
         expected_density_hash: ContentHash,
         density_overrides: Vec<VegetationDensityOverride>,
+    },
+    /// Resolved replacement of the procedural species catalogue. Density sources are retained by
+    /// stable layer ID and synchronised atomically when catalogue membership or order changes.
+    SetVegetationCatalog {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_vegetation_hash: ContentHash,
+        expected_density_hash: ContentHash,
+        layers: Vec<VegetationLayer>,
+    },
+    /// Resolved replacement of the bounded, ordered vegetation keep-clear shapes.
+    SetVegetationExclusions {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_vegetation_hash: ContentHash,
+        exclusions: Vec<VegetationExclusion>,
     },
     AddModule {
         module_id: ModuleId,
@@ -122,6 +139,10 @@ impl WorkspaceDocument {
         })
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the exhaustive dispatcher keeps every typed workspace mutation visible"
+    )]
     fn apply_change(
         &mut self,
         change: &WorkspaceChange,
@@ -168,6 +189,34 @@ impl WorkspaceDocument {
                 layer_id,
                 *expected_density_hash,
                 density_overrides,
+                next,
+            )?,
+            WorkspaceChange::SetVegetationCatalog {
+                module_id,
+                area_id,
+                expected_vegetation_hash,
+                expected_density_hash,
+                layers,
+            } => set_vegetation_catalog(
+                document,
+                *module_id,
+                *area_id,
+                *expected_vegetation_hash,
+                *expected_density_hash,
+                layers,
+                next,
+            )?,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id,
+                area_id,
+                expected_vegetation_hash,
+                exclusions,
+            } => set_vegetation_exclusions(
+                document,
+                *module_id,
+                *area_id,
+                *expected_vegetation_hash,
+                exclusions,
                 next,
             )?,
             WorkspaceChange::AddModule { module_id, name } => {
@@ -288,6 +337,92 @@ fn set_vegetation_density_overrides(
     }
     layer.overrides = overrides.to_vec();
     area.vegetation_density.revision = revision;
+    area.vegetation_density.validate()?;
+    Ok(())
+}
+
+fn set_vegetation_exclusions(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_hash: ContentHash,
+    exclusions: &[VegetationExclusion],
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.vegetation.content_hash()? != expected_hash {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    if area.vegetation.exclusions == exclusions {
+        return Err(WorkspaceError::NoChange);
+    }
+    area.vegetation.exclusions = exclusions.to_vec();
+    area.vegetation.revision = revision;
+    area.vegetation.validate()?;
+    Ok(())
+}
+
+fn set_vegetation_catalog(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_vegetation_hash: ContentHash,
+    expected_density_hash: ContentHash,
+    layers: &[VegetationLayer],
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.vegetation.content_hash()? != expected_vegetation_hash
+        || area.vegetation_density.content_hash()? != expected_density_hash
+    {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    if area.vegetation.layers == layers {
+        return Err(WorkspaceError::NoChange);
+    }
+
+    let density_membership_changed = area.vegetation.layers.len() != layers.len()
+        || area
+            .vegetation
+            .layers
+            .iter()
+            .zip(layers)
+            .any(|(current, replacement)| current.id != replacement.id);
+    if density_membership_changed {
+        let previous_density = std::mem::take(&mut area.vegetation_density.layers);
+        area.vegetation_density.layers = layers
+            .iter()
+            .map(|layer| {
+                previous_density
+                    .iter()
+                    .find(|density| density.layer_id == layer.id)
+                    .cloned()
+                    .unwrap_or_else(|| VegetationDensityLayer::new(layer.id.clone(), 0, vec![]))
+            })
+            .collect();
+        area.vegetation_density.revision = revision;
+    }
+    area.vegetation.layers = layers.to_vec();
+    area.vegetation.revision = revision;
+    area.vegetation.validate()?;
     area.vegetation_density.validate()?;
     Ok(())
 }

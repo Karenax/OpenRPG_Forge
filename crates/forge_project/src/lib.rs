@@ -7,6 +7,7 @@ mod player;
 mod quality;
 mod terrain;
 mod vegetation;
+mod vegetation_catalog;
 mod vegetation_density;
 mod water;
 mod weather;
@@ -68,6 +69,7 @@ pub use vegetation::{
     VegetationKind, VegetationLayer, VegetationLayerId, VegetationMaterialFilter,
     VegetationPresentationProfile,
 };
+pub use vegetation_catalog::VegetationSpeciesPreset;
 pub use vegetation_density::{
     MAX_VEGETATION_DENSITY_JSON_BYTES, MAX_VEGETATION_DENSITY_OVERRIDES,
     VEGETATION_DENSITY_CHUNKS_PER_AXIS, VEGETATION_DENSITY_SCHEMA,

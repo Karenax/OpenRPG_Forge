@@ -1,8 +1,13 @@
 //! Real local-filesystem service tests, not crash/power-loss or concurrent-writer qualification.
 
 use super::WorkspaceSession;
-use crate::workspace_api::{MAX_WORKSPACE_IPC_REVISION, WorkspaceCommand, WorkspaceState};
-use forge_project::{MAX_WORKSPACE_JSON_BYTES, WorkspaceDocument};
+use crate::workspace_api::{
+    MAX_WORKSPACE_IPC_REVISION, VegetationExclusionDraft, WorkspaceCommand, WorkspaceState,
+};
+use forge_project::{
+    MAX_WORKSPACE_JSON_BYTES, VegetationExclusion, VegetationExclusionId, VegetationLayerId,
+    VegetationSpeciesPreset, WorkspaceDocument,
+};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -103,6 +108,24 @@ fn receipt(state: &WorkspaceState) -> Value {
 
 fn current(session: &mut WorkspaceSession) -> WorkspaceState {
     session.execute(WorkspaceCommand::Current).unwrap()
+}
+
+fn area_request(
+    state: &WorkspaceState,
+    module_index: usize,
+    area_index: usize,
+) -> crate::area_preview::AreaPreviewRequest {
+    let source = document(state);
+    let module = &source.project.modules[module_index];
+    let area = &module.areas[area_index];
+    crate::area_preview::AreaPreviewRequest {
+        key: crate::area_tabs::AreaKey {
+            project_id: source.project.id,
+            module_id: module.id,
+            area_id: area.id,
+        },
+        base_revision: state.revision,
+    }
 }
 
 fn save(session: &mut WorkspaceSession, directory: &TestDirectory) -> WorkspaceState {
@@ -1542,6 +1565,381 @@ fn history_is_bounded_and_new_creation_does_not_reuse_a_session_revision() {
             base_revision: state.revision,
         },
     );
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the end-to-end catalogue test keeps history, persistence and ID reuse in one scenario"
+)]
+fn vegetation_catalog_crud_reuses_free_ids_and_survives_history_and_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+
+    let first = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: area_request(&created, 0, 0),
+            preset: VegetationSpeciesPreset::Tree,
+            display_name: "Arbre clair".into(),
+        })
+        .unwrap();
+    let first_document = document(&first);
+    let first_area = &first_document.project.modules[0].areas[0];
+    assert_eq!(first.revision, 2);
+    assert_eq!(
+        first_area.vegetation.layers.last().unwrap().id.as_str(),
+        "species_01"
+    );
+    assert_eq!(
+        first_area
+            .vegetation_density
+            .layers
+            .last()
+            .unwrap()
+            .layer_id
+            .as_str(),
+        "species_01"
+    );
+    assert_eq!(
+        first_area
+            .vegetation_density
+            .layers
+            .last()
+            .unwrap()
+            .default_density,
+        0
+    );
+    assert!(
+        first_area
+            .vegetation_density
+            .layers
+            .last()
+            .unwrap()
+            .overrides
+            .is_empty()
+    );
+
+    let second = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: area_request(&first, 0, 0),
+            preset: VegetationSpeciesPreset::Fern,
+            display_name: "Fougère claire".into(),
+        })
+        .unwrap();
+    assert_eq!(
+        document(&second).project.modules[0].areas[0]
+            .vegetation
+            .layers
+            .last()
+            .unwrap()
+            .id
+            .as_str(),
+        "species_02"
+    );
+
+    let removed = session
+        .execute(WorkspaceCommand::RemoveVegetationSpecies {
+            request: area_request(&second, 0, 0),
+            layer_id: VegetationLayerId::new("species_01"),
+        })
+        .unwrap();
+    let reused = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: area_request(&removed, 0, 0),
+            preset: VegetationSpeciesPreset::Shrub,
+            display_name: "Arbuste haut".into(),
+        })
+        .unwrap();
+    let reused_document = document(&reused);
+    let reused_area = &reused_document.project.modules[0].areas[0];
+    assert_eq!(
+        reused_area.vegetation.layers.last().unwrap().id.as_str(),
+        "species_01"
+    );
+    assert!(
+        reused_area
+            .vegetation_density
+            .layers
+            .iter()
+            .any(|layer| layer.layer_id.as_str() == "species_01")
+    );
+
+    let renamed = session
+        .execute(WorkspaceCommand::RenameVegetationSpecies {
+            request: area_request(&reused, 0, 0),
+            layer_id: VegetationLayerId::new("species_02"),
+            display_name: "Fougère des ombres".into(),
+        })
+        .unwrap();
+    let renamed_document = document(&renamed);
+    let renamed_area = &renamed_document.project.modules[0].areas[0];
+    assert_eq!(
+        renamed_area
+            .vegetation
+            .layers
+            .iter()
+            .find(|layer| layer.id.as_str() == "species_02")
+            .unwrap()
+            .display_name,
+        "Fougère des ombres"
+    );
+    assert_eq!(
+        receipt(&renamed)["command"]["change"]["operation"],
+        "set_vegetation_catalog"
+    );
+
+    let final_state = session
+        .execute(WorkspaceCommand::RemoveVegetationSpecies {
+            request: area_request(&renamed, 0, 0),
+            layer_id: VegetationLayerId::new("species_01"),
+        })
+        .unwrap();
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: final_state.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .vegetation
+            .layers
+            .iter()
+            .any(|layer| layer.id.as_str() == "species_01")
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&redone).project.modules[0].areas[0]
+            .vegetation
+            .layers
+            .iter()
+            .all(|layer| layer.id.as_str() != "species_01")
+    );
+
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+    assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+fn vegetation_exclusion_circle_and_corridor_are_crud_and_reuse_free_ids() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let circle = session
+        .execute(WorkspaceCommand::AddVegetationExclusion {
+            request: area_request(&created, 0, 0),
+            draft: VegetationExclusionDraft::Circle {
+                center_x_m: 12.0,
+                center_z_m: -18.0,
+                radius_m: 9.0,
+            },
+        })
+        .unwrap();
+    assert!(matches!(
+        &document(&circle).project.modules[0].areas[0].vegetation.exclusions[0],
+        VegetationExclusion::Circle { id, center_x_m, center_z_m, radius_m }
+            if id.as_str() == "exclusion_01"
+                && center_x_m.to_bits() == 12.0_f32.to_bits()
+                && center_z_m.to_bits() == (-18.0_f32).to_bits()
+                && radius_m.to_bits() == 9.0_f32.to_bits()
+    ));
+
+    let corridor = session
+        .execute(WorkspaceCommand::AddVegetationExclusion {
+            request: area_request(&circle, 0, 0),
+            draft: VegetationExclusionDraft::CorridorSegment {
+                start_x_m: -40.0,
+                start_z_m: -5.0,
+                end_x_m: 44.0,
+                end_z_m: 6.0,
+                half_width_m: 3.0,
+            },
+        })
+        .unwrap();
+    assert!(matches!(
+        &document(&corridor).project.modules[0].areas[0].vegetation.exclusions[1],
+        VegetationExclusion::CorridorSegment { id, start_x_m, end_x_m, half_width_m, .. }
+            if id.as_str() == "exclusion_02"
+                && start_x_m.to_bits() == (-40.0_f32).to_bits()
+                && end_x_m.to_bits() == 44.0_f32.to_bits()
+                && half_width_m.to_bits() == 3.0_f32.to_bits()
+    ));
+
+    let removed = session
+        .execute(WorkspaceCommand::RemoveVegetationExclusion {
+            request: area_request(&corridor, 0, 0),
+            exclusion_id: VegetationExclusionId::new("exclusion_01"),
+        })
+        .unwrap();
+    let reused = session
+        .execute(WorkspaceCommand::AddVegetationExclusion {
+            request: area_request(&removed, 0, 0),
+            draft: VegetationExclusionDraft::Circle {
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: 4.0,
+            },
+        })
+        .unwrap();
+    let reused_document = document(&reused);
+    let exclusions = &reused_document.project.modules[0].areas[0]
+        .vegetation
+        .exclusions;
+    assert_eq!(exclusions.len(), 2);
+    assert_eq!(exclusions[0].id().as_str(), "exclusion_02");
+    assert_eq!(exclusions[1].id().as_str(), "exclusion_01");
+    assert_eq!(
+        receipt(&reused)["command"]["change"]["operation"],
+        "set_vegetation_exclusions"
+    );
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: reused.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&undone).project.modules[0].areas[0]
+            .vegetation
+            .exclusions
+            .len(),
+        1
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .vegetation
+            .exclusions
+            .len(),
+        2
+    );
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the atomic rejection matrix verifies every vegetation command against one unchanged session"
+)]
+fn invalid_stale_or_wrong_area_vegetation_edits_are_atomic_and_target_one_area() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let source = document(&created);
+    let module_id = source.project.modules[0].id;
+    let added_area = session
+        .execute(WorkspaceCommand::AddArea {
+            base_revision: created.revision,
+            module_id,
+            name: "Zone témoin".into(),
+            seed: "19".into(),
+            spawn_x: "0".into(),
+            spawn_y: "2".into(),
+            spawn_z: "0".into(),
+        })
+        .unwrap();
+    let untouched_area = document(&added_area).project.modules[0].areas[1].clone();
+    save(&mut session, &directory);
+    let files_before = directory.files();
+    let valid_request = area_request(&added_area, 0, 0);
+    let mut stale_request = valid_request;
+    stale_request.base_revision -= 1;
+    let mut wrong_project_request = valid_request;
+    wrong_project_request.key.project_id = forge_core::ProjectId::deterministic("wrong-project");
+
+    for command in [
+        WorkspaceCommand::AddVegetationSpecies {
+            request: stale_request,
+            preset: VegetationSpeciesPreset::Tree,
+            display_name: "Périmé".into(),
+        },
+        WorkspaceCommand::AddVegetationSpecies {
+            request: wrong_project_request,
+            preset: VegetationSpeciesPreset::Tree,
+            display_name: "Autre projet".into(),
+        },
+        WorkspaceCommand::AddVegetationSpecies {
+            request: valid_request,
+            preset: VegetationSpeciesPreset::Tree,
+            display_name: "\n".into(),
+        },
+        WorkspaceCommand::AddVegetationSpecies {
+            request: valid_request,
+            preset: VegetationSpeciesPreset::Grass,
+            display_name: "Herbe supplémentaire hors budget".into(),
+        },
+        WorkspaceCommand::AddVegetationExclusion {
+            request: valid_request,
+            draft: VegetationExclusionDraft::Circle {
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: 0.0,
+            },
+        },
+        WorkspaceCommand::AddVegetationExclusion {
+            request: valid_request,
+            draft: VegetationExclusionDraft::CorridorSegment {
+                start_x_m: 1.0,
+                start_z_m: 1.0,
+                end_x_m: 1.0,
+                end_z_m: 1.0,
+                half_width_m: 2.0,
+            },
+        },
+        WorkspaceCommand::RemoveVegetationSpecies {
+            request: valid_request,
+            layer_id: VegetationLayerId::new("missing_species"),
+        },
+        WorkspaceCommand::RemoveVegetationExclusion {
+            request: valid_request,
+            exclusion_id: VegetationExclusionId::new("missing_exclusion"),
+        },
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), files_before);
+    }
+
+    let added_species = session
+        .execute(WorkspaceCommand::AddVegetationSpecies {
+            request: valid_request,
+            preset: VegetationSpeciesPreset::Shrub,
+            display_name: "Arbuste de lisière".into(),
+        })
+        .unwrap();
+    assert_eq!(
+        document(&added_species).project.modules[0].areas[1],
+        untouched_area
+    );
+    let added_exclusion = session
+        .execute(WorkspaceCommand::AddVegetationExclusion {
+            request: area_request(&added_species, 0, 0),
+            draft: VegetationExclusionDraft::Circle {
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: 6.0,
+            },
+        })
+        .unwrap();
+    assert_eq!(
+        document(&added_exclusion).project.modules[0].areas[1],
+        untouched_area
+    );
+    assert_eq!(directory.files(), files_before);
 }
 
 #[test]

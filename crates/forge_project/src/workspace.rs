@@ -6,10 +6,9 @@
 use crate::{
     HeightSamplingAlgorithm, HeightSamplingParameters, TERRAIN_DOCUMENT_SCHEMA_VERSION,
     TerrainDocument, TerrainDocumentError, TerrainExtent, TerrainMaterialLayer,
-    TerrainMaterialLayerId, TerrainMaterialRole, VegetationCollisionProfile,
-    VegetationCollisionShape, VegetationDensityDocument, VegetationDensityError,
+    TerrainMaterialLayerId, VegetationDensityDocument, VegetationDensityError,
     VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
-    VegetationKind, VegetationLayer, VegetationMaterialFilter, VegetationPresentationProfile,
+    VegetationPresentationProfile, VegetationSpeciesPreset,
 };
 use forge_core::{
     AreaId, CanonicalJsonError, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3,
@@ -337,10 +336,6 @@ pub(crate) fn new_exterior_area(
     }
 }
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "the fixed, Forge-owned default keeps the complete declarative recipe together"
-)]
 fn new_default_vegetation(
     project_id: ProjectId,
     area_id: AreaId,
@@ -358,90 +353,25 @@ fn new_default_vegetation(
         VegetationExtent::new(AREA_SIZE_M, AREA_SIZE_M),
         8,
         vec![
-            VegetationLayer::new(
+            VegetationSpeciesPreset::Tree.build_layer(
                 "forge_trees",
                 "Arbres Forge",
-                VegetationKind::Tree,
-                0.20,
-                2,
-                6.0,
-                0.8,
-                1.3,
-                0.625,
-                -40.0,
-                64.0,
-                Some(VegetationMaterialFilter::new(
-                    TerrainMaterialRole::Grass,
-                    meadow_grass(),
-                    0.25,
-                )),
-                Some(VegetationCollisionProfile {
-                    shape: VegetationCollisionShape::Capsule,
-                    radius_m: 0.45,
-                    height_m: 5.0,
-                    activation_distance_m: 96.0,
-                }),
-                0.35,
+                meadow_grass(),
             ),
-            VegetationLayer::new(
+            VegetationSpeciesPreset::Shrub.build_layer(
                 "forge_shrubs",
                 "Arbustes Forge",
-                VegetationKind::Shrub,
-                0.36,
-                2,
-                3.5,
-                0.65,
-                1.15,
-                0.901,
-                -40.0,
-                64.0,
-                Some(VegetationMaterialFilter::new(
-                    TerrainMaterialRole::Grass,
-                    meadow_grass(),
-                    0.18,
-                )),
-                None,
-                0.55,
+                meadow_grass(),
             ),
-            VegetationLayer::new(
+            VegetationSpeciesPreset::Fern.build_layer(
                 "forge_ferns",
                 "Fougères Forge",
-                VegetationKind::Fern,
-                0.42,
-                2,
-                2.5,
-                0.75,
-                1.2,
-                0.532,
-                -40.0,
-                56.0,
-                Some(VegetationMaterialFilter::new(
-                    TerrainMaterialRole::Grass,
-                    meadow_grass(),
-                    0.45,
-                )),
-                None,
-                0.7,
+                meadow_grass(),
             ),
-            VegetationLayer::new(
+            VegetationSpeciesPreset::Grass.build_layer(
                 "forge_grass",
                 "Nappes d'herbe Forge",
-                VegetationKind::Grass,
-                0.80,
-                4,
-                0.0,
-                0.7,
-                1.25,
-                0.782,
-                -40.0,
-                60.0,
-                Some(VegetationMaterialFilter::new(
-                    TerrainMaterialRole::Grass,
-                    meadow_grass(),
-                    0.35,
-                )),
-                None,
-                0.9,
+                meadow_grass(),
             ),
         ],
         vec![],

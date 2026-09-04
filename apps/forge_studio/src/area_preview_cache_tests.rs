@@ -1,12 +1,13 @@
 use super::*;
 use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
 use forge_project::{
-    NewProjectCommand, TerrainHeightDelta, VegetationDensityOverride, VegetationKind,
-    WorkspaceArea, WorkspaceDocument,
+    NewProjectCommand, TerrainHeightDelta, TerrainMaterialLayerId, VegetationDensityOverride,
+    VegetationExclusion, VegetationExclusionId, VegetationKind, VegetationLayer,
+    VegetationSpeciesPreset, WorkspaceArea, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
 };
 use forge_world::VegetationGenerationPlan;
 
-fn area() -> WorkspaceArea {
+fn workspace() -> WorkspaceDocument {
     WorkspaceDocument::create(NewProjectCommand {
         command_id: CommandId::deterministic("area-preview/create"),
         project_id: ProjectId::deterministic("area-preview/project"),
@@ -20,11 +21,103 @@ fn area() -> WorkspaceArea {
     })
     .unwrap()
     .document
-    .project
-    .modules
-    .remove(0)
-    .areas
-    .remove(0)
+}
+
+fn area() -> WorkspaceArea {
+    workspace().project.modules.remove(0).areas.remove(0)
+}
+
+fn paint_grass_cells(
+    document: &WorkspaceDocument,
+    command_key: &str,
+    cells: &[(u16, u16)],
+) -> WorkspaceDocument {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    let layer_id = area
+        .vegetation
+        .layers
+        .iter()
+        .find(|layer| layer.id.as_str() == "forge_grass")
+        .unwrap()
+        .id
+        .clone();
+    document
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic(command_key),
+            base_revision: document.revision,
+            change: WorkspaceChange::SetVegetationDensityOverrides {
+                module_id: module.id,
+                area_id: area.id,
+                layer_id,
+                expected_density_hash: area.vegetation_density.content_hash().unwrap(),
+                density_overrides: cells
+                    .iter()
+                    .map(|&(x, z)| VegetationDensityOverride::new(x, z, u8::MAX))
+                    .collect(),
+            },
+        })
+        .unwrap()
+        .document
+}
+
+fn set_catalog(
+    document: &WorkspaceDocument,
+    command_key: &str,
+    layers: Vec<VegetationLayer>,
+) -> WorkspaceDocument {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    document
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic(command_key),
+            base_revision: document.revision,
+            change: WorkspaceChange::SetVegetationCatalog {
+                module_id: module.id,
+                area_id: area.id,
+                expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+                expected_density_hash: area.vegetation_density.content_hash().unwrap(),
+                layers,
+            },
+        })
+        .unwrap()
+        .document
+}
+
+fn set_exclusions(
+    document: &WorkspaceDocument,
+    command_key: &str,
+    exclusions: Vec<VegetationExclusion>,
+) -> WorkspaceDocument {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    document
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic(command_key),
+            base_revision: document.revision,
+            change: WorkspaceChange::SetVegetationExclusions {
+                module_id: module.id,
+                area_id: area.id,
+                expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+                exclusions,
+            },
+        })
+        .unwrap()
+        .document
+}
+
+fn cached_vegetation_pointers(
+    cache: &AreaPreviewCache,
+) -> Vec<*const forge_world::VegetationChunk> {
+    cache
+        .cached
+        .as_ref()
+        .unwrap()
+        .vegetation
+        .chunks()
+        .iter()
+        .map(std::sync::Arc::as_ptr)
+        .collect()
 }
 
 fn module_id() -> ModuleId {
@@ -169,6 +262,161 @@ fn initial_zero_density_preview_is_complete_reconstructible_and_bounded() {
     assert_full_vegetation_parity(&area, &preview);
     assert!(json.len() < MAX_PREVIEW_JSON_BYTES);
     assert_eq!(area, before);
+}
+
+#[test]
+fn catalogue_rename_and_zero_density_addition_retain_the_complete_preview_cache() {
+    let base = workspace();
+    let source = paint_grass_cells(
+        &base,
+        "area-preview/catalogue-source",
+        &[(16, 16), (17, 16), (16, 17)],
+    );
+    let source_area = &source.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(source_area), source_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let terrain_hash = initial.terrain.source_document_hash;
+    let initial_pointers = cached_vegetation_pointers(&cache);
+
+    let mut renamed_layers = source_area.vegetation.layers.clone();
+    renamed_layers[3].display_name = "Prairies renommées".into();
+    let renamed = set_catalog(&source, "area-preview/catalogue-renamed", renamed_layers);
+    let renamed_area = &renamed.project.modules[0].areas[0];
+    let renamed_preview = read_area_preview(
+        &cache
+            .prepare(request(renamed_area), renamed_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_ne!(
+        initial.vegetation.vegetation_document_hash,
+        renamed_preview.vegetation.vegetation_document_hash
+    );
+    assert!(renamed_preview.vegetation_regenerated);
+    assert_eq!(renamed_preview.vegetation_changed_chunks, 0);
+    assert_eq!(renamed_preview.vegetation_retained_chunks, 64);
+    assert_eq!(cached_vegetation_pointers(&cache), initial_pointers);
+    assert_full_vegetation_parity(renamed_area, &renamed_preview);
+
+    let mut expanded_layers = renamed_area.vegetation.layers.clone();
+    expanded_layers.push(VegetationSpeciesPreset::Shrub.build_layer(
+        "forge_second_shrub",
+        "Second arbuste Forge",
+        TerrainMaterialLayerId::new("meadow_grass"),
+    ));
+    let expanded = set_catalog(&renamed, "area-preview/catalogue-expanded", expanded_layers);
+    let expanded_area = &expanded.project.modules[0].areas[0];
+    let added_density = expanded_area
+        .vegetation_density
+        .layers
+        .iter()
+        .find(|layer| layer.layer_id.as_str() == "forge_second_shrub")
+        .unwrap();
+    assert_eq!(added_density.default_density, 0);
+    assert!(added_density.overrides.is_empty());
+    let expanded_preview = read_area_preview(
+        &cache
+            .prepare(request(expanded_area), expanded_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert!(expanded_preview.vegetation_regenerated);
+    assert_eq!(expanded_preview.vegetation_changed_chunks, 0);
+    assert_eq!(expanded_preview.vegetation_retained_chunks, 64);
+    assert_eq!(cached_vegetation_pointers(&cache), initial_pointers);
+    assert!(expanded_preview.vegetation.chunks.iter().all(|chunk| {
+        chunk
+            .instances
+            .iter()
+            .all(|instance| instance.layer_id.as_str() != "forge_second_shrub")
+    }));
+    assert_full_vegetation_parity(expanded_area, &expanded_preview);
+    assert_cached_vegetation_is_bit_exact(expanded_area, &cache);
+
+    let restored = WorkspaceDocument::from_json(&expanded.to_pretty_json().unwrap()).unwrap();
+    let restored_area = &restored.project.modules[0].areas[0];
+    let replay = read_area_preview(
+        &cache
+            .prepare(request(restored_area), restored_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+    assert!(!replay.vegetation_regenerated);
+    assert_eq!(replay.vegetation_changed_chunks, 0);
+    assert_eq!(replay.vegetation_retained_chunks, 64);
+    assert_full_vegetation_parity(restored_area, &replay);
+}
+
+#[test]
+fn local_circle_exclusion_updates_only_the_touched_preview_chunks() {
+    let base = workspace();
+    let cells = (24_u16..32)
+        .flat_map(|z| (24_u16..32).map(move |x| (x, z)))
+        .collect::<Vec<_>>();
+    let source = paint_grass_cells(&base, "area-preview/exclusion-source", &cells);
+    let source_area = &source.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(source_area), source_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let terrain_hash = initial.terrain.source_document_hash;
+    let before_pointers = cached_vegetation_pointers(&cache);
+    let anchor = initial.vegetation.chunks[3 * 8 + 3]
+        .instances
+        .first()
+        .unwrap();
+    let target = set_exclusions(
+        &source,
+        "area-preview/exclusion-target",
+        vec![VegetationExclusion::Circle {
+            id: VegetationExclusionId::new("local_circle"),
+            center_x_m: anchor.position_m.x,
+            center_z_m: anchor.position_m.z,
+            radius_m: 0.25,
+        }],
+    );
+    let target_area = &target.project.modules[0].areas[0];
+    let preview = read_area_preview(
+        &cache
+            .prepare(request(target_area), target_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+    let changed = initial
+        .vegetation
+        .chunks
+        .iter()
+        .zip(&preview.vegetation.chunks)
+        .filter_map(|(before, after)| (before != after).then_some(after.coordinate))
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        changed,
+        vec![forge_world::TerrainChunkCoordinate { x: 3, z: 3 }]
+    );
+    assert!(preview.vegetation_regenerated);
+    assert_eq!(preview.vegetation_changed_chunks, changed.len());
+    assert_eq!(preview.vegetation_retained_chunks, 64 - changed.len());
+    let after_pointers = cached_vegetation_pointers(&cache);
+    for (index, (before, after)) in before_pointers.iter().zip(after_pointers).enumerate() {
+        assert_eq!(
+            before == &after,
+            index != 3 * 8 + 3,
+            "only the touched preview chunk may receive a new cache handle"
+        );
+    }
+    assert_full_vegetation_parity(target_area, &preview);
+    assert_cached_vegetation_is_bit_exact(target_area, &cache);
 }
 
 #[test]

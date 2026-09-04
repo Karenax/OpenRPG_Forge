@@ -1,12 +1,16 @@
 //! Native application session for project creation and explicit snapshot persistence.
 
 use crate::{
-    workspace_api::{MAX_WORKSPACE_IPC_REVISION, WorkspaceCommand, WorkspaceState},
+    workspace_api::{
+        MAX_WORKSPACE_IPC_REVISION, VegetationExclusionDraft, WorkspaceCommand, WorkspaceState,
+    },
     workspace_store,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
 use forge_project::{
-    NewProjectCommand, WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit,
+    MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand, TerrainMaterialRole,
+    VegetationExclusion, VegetationExclusionId, VegetationLayer, VegetationLayerId, WorkspaceArea,
+    WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit,
 };
 use std::path::{Path, PathBuf};
 
@@ -79,6 +83,13 @@ impl WorkspaceSession {
             | WorkspaceCommand::RenameProject { .. }
             | WorkspaceCommand::RenameModule { .. }
             | WorkspaceCommand::UpdateAreaMetadata { .. }) => self.execute_edit(command)?,
+            command @ (WorkspaceCommand::AddVegetationSpecies { .. }
+            | WorkspaceCommand::RenameVegetationSpecies { .. }
+            | WorkspaceCommand::RemoveVegetationSpecies { .. }
+            | WorkspaceCommand::AddVegetationExclusion { .. }
+            | WorkspaceCommand::RemoveVegetationExclusion { .. }) => {
+                self.execute_vegetation_edit(command)?
+            }
             WorkspaceCommand::Undo { base_revision } => {
                 self.require_revision(base_revision)?;
                 self.restore_history(false)?
@@ -401,6 +412,225 @@ impl WorkspaceSession {
         Ok(message)
     }
 
+    fn execute_vegetation_edit(&mut self, command: WorkspaceCommand) -> Result<String, String> {
+        match command {
+            WorkspaceCommand::AddVegetationSpecies {
+                request,
+                preset,
+                display_name,
+            } => self.add_vegetation_species(request, preset, display_name),
+            WorkspaceCommand::RenameVegetationSpecies {
+                request,
+                layer_id,
+                display_name,
+            } => self.rename_vegetation_species(request, &layer_id, display_name),
+            WorkspaceCommand::RemoveVegetationSpecies { request, layer_id } => {
+                self.remove_vegetation_species(request, &layer_id)
+            }
+            WorkspaceCommand::AddVegetationExclusion { request, draft } => {
+                self.add_vegetation_exclusion(request, draft)
+            }
+            WorkspaceCommand::RemoveVegetationExclusion {
+                request,
+                exclusion_id,
+            } => self.remove_vegetation_exclusion(request, &exclusion_id),
+            _ => Err("Commande d’édition végétale attendue.".into()),
+        }
+    }
+
+    fn add_vegetation_species(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        preset: forge_project::VegetationSpeciesPreset,
+        display_name: String,
+    ) -> Result<String, String> {
+        let area = self.area_for_request(request)?;
+        if area.vegetation.layers.len() >= MAX_VEGETATION_LAYERS {
+            return Err("Le catalogue végétal a atteint sa limite de 16 espèces.".into());
+        }
+        let layer_id = first_free_species_id(&area.vegetation.layers)?;
+        let grass_material_layer_id = area.terrain.material_layers
+            [TerrainMaterialRole::Grass.index()]
+        .id
+        .clone();
+        let expected_vegetation_hash = area
+            .vegetation
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let expected_density_hash = area
+            .vegetation_density
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let mut layers = area.vegetation.layers.clone();
+        layers.push(preset.build_layer(
+            layer_id.to_string(),
+            display_name,
+            grass_material_layer_id,
+        ));
+        self.replace_vegetation_catalog(
+            request,
+            expected_vegetation_hash,
+            expected_density_hash,
+            layers,
+        )?;
+        Ok(format!(
+            "Espèce ajoutée au catalogue sous l’identifiant {layer_id}."
+        ))
+    }
+
+    fn rename_vegetation_species(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        layer_id: &VegetationLayerId,
+        display_name: String,
+    ) -> Result<String, String> {
+        let area = self.area_for_request(request)?;
+        let expected_vegetation_hash = area
+            .vegetation
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let expected_density_hash = area
+            .vegetation_density
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let mut layers = area.vegetation.layers.clone();
+        let layer = layers
+            .iter_mut()
+            .find(|layer| layer.id == *layer_id)
+            .ok_or("Espèce végétale introuvable dans la zone.")?;
+        layer.display_name = display_name;
+        self.replace_vegetation_catalog(
+            request,
+            expected_vegetation_hash,
+            expected_density_hash,
+            layers,
+        )?;
+        Ok("Espèce renommée dans le catalogue. Annulation disponible.".into())
+    }
+
+    fn remove_vegetation_species(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        layer_id: &VegetationLayerId,
+    ) -> Result<String, String> {
+        let area = self.area_for_request(request)?;
+        let expected_vegetation_hash = area
+            .vegetation
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let expected_density_hash = area
+            .vegetation_density
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let mut layers = area.vegetation.layers.clone();
+        let before = layers.len();
+        layers.retain(|layer| layer.id != *layer_id);
+        if layers.len() == before {
+            return Err("Espèce végétale introuvable dans la zone.".into());
+        }
+        self.replace_vegetation_catalog(
+            request,
+            expected_vegetation_hash,
+            expected_density_hash,
+            layers,
+        )?;
+        Ok(
+            "Espèce retirée du catalogue et de son masque de densité. Annulation disponible."
+                .into(),
+        )
+    }
+
+    fn replace_vegetation_catalog(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        expected_vegetation_hash: ContentHash,
+        expected_density_hash: ContentHash,
+        layers: Vec<VegetationLayer>,
+    ) -> Result<(), String> {
+        self.apply_change(
+            request.base_revision,
+            WorkspaceChange::SetVegetationCatalog {
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                expected_vegetation_hash,
+                expected_density_hash,
+                layers,
+            },
+        )
+    }
+
+    fn add_vegetation_exclusion(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        draft: VegetationExclusionDraft,
+    ) -> Result<String, String> {
+        let area = self.area_for_request(request)?;
+        if area.vegetation.exclusions.len() >= MAX_VEGETATION_EXCLUSIONS {
+            return Err("La zone a atteint sa limite de 32 exclusions végétales.".into());
+        }
+        let exclusion_id = first_free_exclusion_id(&area.vegetation.exclusions)?;
+        let expected_vegetation_hash = area
+            .vegetation
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let mut exclusions = area.vegetation.exclusions.clone();
+        exclusions.push(exclusion_from_draft(exclusion_id.clone(), draft));
+        self.apply_change(
+            request.base_revision,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                expected_vegetation_hash,
+                exclusions,
+            },
+        )?;
+        Ok(format!(
+            "Exclusion végétale {exclusion_id} ajoutée. Annulation disponible."
+        ))
+    }
+
+    fn remove_vegetation_exclusion(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        exclusion_id: &VegetationExclusionId,
+    ) -> Result<String, String> {
+        let area = self.area_for_request(request)?;
+        let expected_vegetation_hash = area
+            .vegetation
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let mut exclusions = area.vegetation.exclusions.clone();
+        let before = exclusions.len();
+        exclusions.retain(|exclusion| exclusion.id() != exclusion_id);
+        if exclusions.len() == before {
+            return Err("Exclusion végétale introuvable dans la zone.".into());
+        }
+        self.apply_change(
+            request.base_revision,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                expected_vegetation_hash,
+                exclusions,
+            },
+        )?;
+        Ok("Exclusion végétale supprimée. Annulation disponible.".into())
+    }
+
+    fn area_for_request(
+        &self,
+        request: crate::area_preview::AreaPreviewRequest,
+    ) -> Result<&WorkspaceArea, String> {
+        self.require_revision(request.base_revision)?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        if !request.key.exists(document) {
+            return Err("La zone demandée n’appartient pas au projet courant.".into());
+        }
+        document
+            .area(request.key.module_id, request.key.area_id)
+            .ok_or_else(|| "Zone introuvable.".into())
+    }
+
     fn require_revision(&self, base_revision: u64) -> Result<(), String> {
         ensure_ipc_revision(base_revision)?;
         if base_revision != self.last_revision {
@@ -521,6 +751,60 @@ impl WorkspaceSession {
             message,
             last_receipt_json: self.receipt.clone(),
         })
+    }
+}
+
+fn first_free_species_id(layers: &[VegetationLayer]) -> Result<VegetationLayerId, String> {
+    (1..=MAX_VEGETATION_LAYERS)
+        .map(|suffix| VegetationLayerId::new(format!("species_{suffix:02}")))
+        .find(|candidate| layers.iter().all(|layer| &layer.id != candidate))
+        .ok_or_else(|| "Aucun identifiant d’espèce libre entre species_01 et species_16.".into())
+}
+
+fn first_free_exclusion_id(
+    exclusions: &[VegetationExclusion],
+) -> Result<VegetationExclusionId, String> {
+    (1..=MAX_VEGETATION_EXCLUSIONS)
+        .map(|suffix| VegetationExclusionId::new(format!("exclusion_{suffix:02}")))
+        .find(|candidate| {
+            exclusions
+                .iter()
+                .all(|exclusion| exclusion.id() != candidate)
+        })
+        .ok_or_else(|| {
+            "Aucun identifiant d’exclusion libre entre exclusion_01 et exclusion_32.".into()
+        })
+}
+
+fn exclusion_from_draft(
+    id: VegetationExclusionId,
+    draft: VegetationExclusionDraft,
+) -> VegetationExclusion {
+    match draft {
+        VegetationExclusionDraft::Circle {
+            center_x_m,
+            center_z_m,
+            radius_m,
+        } => VegetationExclusion::Circle {
+            id,
+            center_x_m,
+            center_z_m,
+            radius_m,
+        },
+        VegetationExclusionDraft::CorridorSegment {
+            start_x_m,
+            start_z_m,
+            end_x_m,
+            end_z_m,
+            half_width_m,
+        } => VegetationExclusion::CorridorSegment {
+            id,
+            start_x_m,
+            start_z_m,
+            end_x_m,
+            end_z_m,
+            half_width_m,
+        },
     }
 }
 

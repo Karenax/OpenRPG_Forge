@@ -1,8 +1,9 @@
 use super::*;
 use crate::{
-    MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand, TerrainMaterialLayerId,
-    TerrainMaterialRole, TerrainMaterialWeightOverride, VegetationDensityError,
-    VegetationDensityOverride,
+    MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand,
+    TerrainMaterialLayerId, TerrainMaterialRole, TerrainMaterialWeightOverride,
+    VegetationDensityError, VegetationDensityOverride, VegetationDocumentError,
+    VegetationExclusion, VegetationExclusionId, VegetationSpeciesPreset,
 };
 use forge_core::{ContentHash, ProjectId, Vec3};
 use serde_json::json;
@@ -27,6 +28,27 @@ fn edit(document: &WorkspaceDocument, change: WorkspaceChange) -> WorkspaceEdit 
         command_id: CommandId::deterministic("edit"),
         base_revision: document.revision,
         change,
+    }
+}
+
+fn circle_exclusion(id: impl Into<String>, center_x_m: f32) -> VegetationExclusion {
+    VegetationExclusion::Circle {
+        id: VegetationExclusionId::new(id),
+        center_x_m,
+        center_z_m: 0.0,
+        radius_m: 2.0,
+    }
+}
+
+fn catalogue_change(document: &WorkspaceDocument, layers: Vec<VegetationLayer>) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    WorkspaceChange::SetVegetationCatalog {
+        module_id: module.id,
+        area_id: area.id,
+        expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+        expected_density_hash: area.vegetation_density.content_hash().unwrap(),
+        layers,
     }
 }
 fn legacy_json(document: &WorkspaceDocument) -> String {
@@ -530,6 +552,374 @@ fn material_weight_noop_is_rejected_and_success_invalidates_the_previous_hash() 
             .material_weight_overrides
             .is_empty()
     );
+}
+
+#[test]
+fn set_vegetation_catalogue_is_atomic_and_retains_density_by_stable_id() {
+    let mut source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    source.project.modules[0].areas[0].vegetation_density.layers[0].overrides =
+        vec![VegetationDensityOverride::new(12, 14, 192)];
+    source.validate().unwrap();
+    let source_area = source.area(module_id, area_id).unwrap();
+    let retained_id = source_area.vegetation.layers[0].id.clone();
+    let before_terrain = source_area.terrain.clone();
+    let before_revision = source.revision;
+    let mut layers = source_area.vegetation.layers.clone();
+    layers[0].display_name = "Chênes de la vallée".into();
+    let removed_id = layers.remove(1).id;
+    let grass_material = source_area.terrain.material_layers[0].id.clone();
+    layers.push(VegetationSpeciesPreset::Fern.build_layer(
+        "species_01",
+        "Fougère de sous-bois",
+        grass_material,
+    ));
+    let command = edit(&source, catalogue_change(&source, layers.clone()));
+
+    let result = source.preview_edit(command.clone()).unwrap();
+    let edited = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(result.document.revision, before_revision.next().unwrap());
+    assert_eq!(edited.vegetation.revision, result.document.revision);
+    assert_eq!(edited.vegetation_density.revision, result.document.revision);
+    assert_eq!(edited.vegetation.layers, layers);
+    assert_eq!(edited.terrain, before_terrain);
+    assert_eq!(edited.vegetation_density.layers.len(), layers.len());
+    assert!(edited.vegetation_density.layers.iter().all(|density| {
+        edited
+            .vegetation
+            .layers
+            .iter()
+            .any(|layer| layer.id == density.layer_id)
+    }));
+    assert_eq!(
+        edited
+            .vegetation_density
+            .layers
+            .iter()
+            .find(|density| density.layer_id == retained_id)
+            .unwrap()
+            .overrides,
+        vec![VegetationDensityOverride::new(12, 14, 192)]
+    );
+    assert!(
+        edited
+            .vegetation_density
+            .layers
+            .iter()
+            .all(|density| density.layer_id != removed_id)
+    );
+    let added_density = edited
+        .vegetation_density
+        .layers
+        .iter()
+        .find(|density| density.layer_id.as_str() == "species_01")
+        .unwrap();
+    assert_eq!(added_density.default_density, 0);
+    assert!(added_density.overrides.is_empty());
+
+    let reopened =
+        WorkspaceDocument::from_json(&result.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, result.document);
+    let inverse = *result.receipt.inverse_snapshot;
+    assert_eq!(inverse, source);
+    assert_eq!(
+        inverse.preview_edit(command).unwrap().document,
+        result.document
+    );
+}
+
+#[test]
+fn catalogue_parameter_edit_preserves_the_density_document_exactly() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let before = source.area(module_id, area_id).unwrap();
+    let density = before.vegetation_density.clone();
+    let mut layers = before.vegetation.layers.clone();
+    layers[0].display_name = "Chênes anciens".into();
+
+    let result = source
+        .preview_edit(edit(&source, catalogue_change(&source, layers)))
+        .unwrap();
+    let edited = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(edited.vegetation_density, density);
+    assert_eq!(edited.vegetation.revision, result.document.revision);
+}
+
+#[test]
+fn catalogue_rejects_stale_noop_and_invalid_replacements_without_mutation() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module = &source.project.modules[0];
+    let area = &module.areas[0];
+    let layers = area.vegetation.layers.clone();
+
+    assert!(matches!(
+        source.preview_edit(edit(&source, catalogue_change(&source, layers.clone()))),
+        Err(WorkspaceError::NoChange)
+    ));
+    let mut stale_vegetation = catalogue_change(&source, {
+        let mut changed = layers.clone();
+        changed[0].display_name = "Nom neuf".into();
+        changed
+    });
+    if let WorkspaceChange::SetVegetationCatalog {
+        expected_vegetation_hash,
+        ..
+    } = &mut stale_vegetation
+    {
+        *expected_vegetation_hash = ContentHash::from_bytes([0xA1; 32]);
+    }
+    assert!(matches!(
+        source.preview_edit(edit(&source, stale_vegetation)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+    let mut stale_density = catalogue_change(&source, {
+        let mut changed = layers.clone();
+        changed[0].display_name = "Autre nom".into();
+        changed
+    });
+    if let WorkspaceChange::SetVegetationCatalog {
+        expected_density_hash,
+        ..
+    } = &mut stale_density
+    {
+        *expected_density_hash = ContentHash::from_bytes([0xB2; 32]);
+    }
+    assert!(matches!(
+        source.preview_edit(edit(&source, stale_density)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+    let mut duplicate = layers;
+    duplicate[1].id = duplicate[0].id.clone();
+    assert!(matches!(
+        source.preview_edit(edit(&source, catalogue_change(&source, duplicate))),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::DuplicateLayerId(_)
+        ))
+    ));
+    assert!(matches!(
+        source.preview_edit(edit(&source, catalogue_change(&source, vec![]))),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::NoLayers
+        ))
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+}
+
+#[test]
+fn set_vegetation_exclusions_is_pure_revisioned_reopenable_and_replayable() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let area = source.area(module_id, area_id).unwrap();
+    let original_vegetation_hash = area.vegetation.content_hash().unwrap();
+    let original_terrain_hash = area.terrain.content_hash().unwrap();
+    let original_density_hash = area.vegetation_density.content_hash().unwrap();
+    let original_terrain_revision = area.terrain.revision;
+    let original_density_revision = area.vegetation_density.revision;
+    let exclusions = vec![
+        circle_exclusion("user_circle", 32.0),
+        VegetationExclusion::CorridorSegment {
+            id: VegetationExclusionId::new("user_corridor"),
+            start_x_m: -48.0,
+            start_z_m: -96.0,
+            end_x_m: 48.0,
+            end_z_m: -96.0,
+            half_width_m: 4.0,
+        },
+    ];
+    let command = edit(
+        &source,
+        WorkspaceChange::SetVegetationExclusions {
+            module_id,
+            area_id,
+            expected_vegetation_hash: original_vegetation_hash,
+            exclusions: exclusions.clone(),
+        },
+    );
+
+    let result = source.preview_edit(command.clone()).unwrap();
+    let edited = result.document.area(module_id, area_id).unwrap();
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .vegetation
+            .exclusions
+            .is_empty()
+    );
+    assert_eq!(edited.vegetation.exclusions, exclusions);
+    assert_eq!(edited.vegetation.revision, result.document.revision);
+    assert_eq!(edited.terrain.revision, original_terrain_revision);
+    assert_eq!(
+        edited.vegetation_density.revision,
+        original_density_revision
+    );
+    assert_eq!(
+        edited.terrain.content_hash().unwrap(),
+        original_terrain_hash
+    );
+    assert_eq!(
+        edited.vegetation_density.content_hash().unwrap(),
+        original_density_hash
+    );
+    assert_ne!(
+        edited.vegetation.content_hash().unwrap(),
+        original_vegetation_hash
+    );
+    assert_eq!(result.receipt.before_hash, source_hash);
+    assert_eq!(
+        result.receipt.after_hash,
+        result.document.content_hash().unwrap()
+    );
+
+    let reopened =
+        WorkspaceDocument::from_json(&result.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, result.document);
+    let inverse = *result.receipt.inverse_snapshot.clone();
+    assert_eq!(inverse, source);
+    let replay = inverse.preview_edit(command).unwrap();
+    assert_eq!(replay.document, result.document);
+    assert_eq!(replay.receipt.after_hash, result.receipt.after_hash);
+}
+
+#[test]
+fn set_vegetation_exclusions_rejects_stale_hash_and_noop_without_mutation() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let exact_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .vegetation
+        .content_hash()
+        .unwrap();
+    let exclusions = vec![circle_exclusion("user_circle", 0.0)];
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id,
+                area_id,
+                expected_vegetation_hash: ContentHash::from_bytes([0xA5; 32]),
+                exclusions: exclusions.clone(),
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id,
+                area_id,
+                expected_vegetation_hash: exact_hash,
+                exclusions: vec![],
+            },
+        )),
+        Err(WorkspaceError::NoChange)
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+
+    let edited = source
+        .preview_edit(edit(
+            &source,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id,
+                area_id,
+                expected_vegetation_hash: exact_hash,
+                exclusions,
+            },
+        ))
+        .unwrap()
+        .document;
+    assert!(matches!(
+        edited.preview_edit(edit(
+            &edited,
+            WorkspaceChange::SetVegetationExclusions {
+                module_id,
+                area_id,
+                expected_vegetation_hash: exact_hash,
+                exclusions: vec![],
+            },
+        )),
+        Err(WorkspaceError::StaleRevision)
+    ));
+}
+
+#[test]
+fn set_vegetation_exclusions_enforces_geometry_identity_and_collection_bound() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let vegetation_hash = source
+        .area(module_id, area_id)
+        .unwrap()
+        .vegetation
+        .content_hash()
+        .unwrap();
+    let change = |exclusions| WorkspaceChange::SetVegetationExclusions {
+        module_id,
+        area_id,
+        expected_vegetation_hash: vegetation_hash,
+        exclusions,
+    };
+
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            change(vec![
+                circle_exclusion("duplicate", -4.0),
+                circle_exclusion("duplicate", 4.0),
+            ]),
+        )),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::DuplicateExclusionId(_)
+        ))
+    ));
+    assert!(matches!(
+        source.preview_edit(edit(
+            &source,
+            change(vec![circle_exclusion("outside", 255.0)]),
+        )),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::InvalidExclusionGeometry(_)
+        ))
+    ));
+
+    let boundary = (0..MAX_VEGETATION_EXCLUSIONS)
+        .map(|index| circle_exclusion(format!("exclusion_{index}"), 0.0))
+        .collect::<Vec<_>>();
+    let accepted = source
+        .preview_edit(edit(&source, change(boundary.clone())))
+        .unwrap();
+    assert_eq!(
+        accepted
+            .document
+            .area(module_id, area_id)
+            .unwrap()
+            .vegetation
+            .exclusions,
+        boundary
+    );
+
+    let too_many = (0..=MAX_VEGETATION_EXCLUSIONS)
+        .map(|index| circle_exclusion(format!("exclusion_{index}"), 0.0))
+        .collect::<Vec<_>>();
+    assert!(matches!(
+        source.preview_edit(edit(&source, change(too_many))),
+        Err(WorkspaceError::Vegetation(
+            VegetationDocumentError::TooManyExclusions(count)
+        )) if count == MAX_VEGETATION_EXCLUSIONS + 1
+    ));
+    assert_eq!(source.content_hash().unwrap(), source_hash);
 }
 
 #[test]

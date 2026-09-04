@@ -581,3 +581,18 @@
 .forge-desktop .brush-history { display: flex; gap: 5px; }
 .forge-desktop .brush-history button { text-align: center; border: 1px solid #c9b998; padding: 7px 4px; }
 .forge-desktop .brush-error { color: #9b301f; font-size: 11px; line-height: 1.5; }
+.forge-desktop .vegetation-panel { margin-top: 20px; padding-top: 16px; border-top: 1px solid #c9b998; }
+.forge-desktop .vegetation-panel h2 { margin-bottom: 8px; }
+.forge-desktop .vegetation-panel h3 { margin: 14px 0 7px; }
+.forge-desktop .vegetation-panel fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.forge-desktop .vegetation-panel legend { margin-bottom: 7px; color: #655437; font-size: 11px; font-weight: 650; }
+.forge-desktop .vegetation-add-form fieldset { display: grid; gap: 8px; }
+.forge-desktop .vegetation-panel label { display: grid; gap: 4px; color: #655437; font-size: 11px; }
+.forge-desktop .vegetation-panel :is(input, select) { min-width: 0; width: 100%; box-sizing: border-box; padding: 7px 8px; border: 1px solid #cfc1a9; border-radius: 8px; background: #fffaf0; color: #463b28; font: inherit; }
+.forge-desktop .vegetation-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.forge-desktop .vegetation-row { min-width: 0; padding: 7px; border: 1px solid #d8cbb3; border-radius: 8px; background: #fffaf07a; }
+.forge-desktop .vegetation-row-title { display: block; margin-bottom: 4px; color: #735b2d; font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .05em; }
+.forge-desktop .vegetation-row-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; margin-top: 5px; }
+.forge-desktop .world-area-browser .vegetation-row-actions button { width: auto; padding: 5px 2px; text-align: center; font-size: 9px; }
+.forge-desktop .vegetation-exclusion-description, .forge-desktop .vegetation-empty { display: block; color: #655437; font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+.forge-desktop .world-area-browser .vegetation-row > button { margin-top: 5px; padding: 5px 7px; text-align: center; font-size: 10px; }

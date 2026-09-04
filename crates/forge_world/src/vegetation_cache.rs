@@ -359,7 +359,8 @@ mod tests {
     use forge_project::{
         NewProjectCommand, TerrainMaterialLayerId, TerrainMaterialRole,
         TerrainMaterialWeightOverride, VegetationDensityLayer, VegetationDensityOverride,
-        VegetationMaterialFilter, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
+        VegetationExclusion, VegetationExclusionId, VegetationLayer, VegetationMaterialFilter,
+        VegetationSpeciesPreset, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
     };
 
     fn test_workspace() -> WorkspaceDocument {
@@ -423,6 +424,51 @@ mod tests {
             .document
     }
 
+    fn set_catalog(
+        document: &WorkspaceDocument,
+        command_key: &str,
+        layers: Vec<VegetationLayer>,
+    ) -> WorkspaceDocument {
+        let module = &document.project.modules[0];
+        let area = &module.areas[0];
+        document
+            .preview_edit(WorkspaceEdit {
+                command_id: CommandId::deterministic(command_key),
+                base_revision: document.revision,
+                change: WorkspaceChange::SetVegetationCatalog {
+                    module_id: module.id,
+                    area_id: area.id,
+                    expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+                    expected_density_hash: area.vegetation_density.content_hash().unwrap(),
+                    layers,
+                },
+            })
+            .unwrap()
+            .document
+    }
+
+    fn set_exclusions(
+        document: &WorkspaceDocument,
+        command_key: &str,
+        exclusions: Vec<VegetationExclusion>,
+    ) -> WorkspaceDocument {
+        let module = &document.project.modules[0];
+        let area = &module.areas[0];
+        document
+            .preview_edit(WorkspaceEdit {
+                command_id: CommandId::deterministic(command_key),
+                base_revision: document.revision,
+                change: WorkspaceChange::SetVegetationExclusions {
+                    module_id: module.id,
+                    area_id: area.id,
+                    expected_vegetation_hash: area.vegetation.content_hash().unwrap(),
+                    exclusions,
+                },
+            })
+            .unwrap()
+            .document
+    }
+
     fn generated_reference(area: &WorkspaceArea) -> Arc<GeneratedVegetation> {
         VegetationGenerationPlan::from_documents_with_density(
             &area.terrain,
@@ -475,6 +521,154 @@ mod tests {
             cache.key().vegetation_density_document_hash(),
             area.vegetation_density.content_hash().unwrap()
         );
+    }
+
+    #[test]
+    fn catalogue_rename_changes_the_recipe_hash_but_retains_every_chunk_handle() {
+        let empty = test_workspace();
+        let source = paint_density(
+            &empty,
+            "vegetation-cache/catalogue-rename-source",
+            &[(0, 0), (8, 0)],
+        );
+        let mut renamed_layers = area(&source).vegetation.layers.clone();
+        renamed_layers[0].display_name = "Prairie renommée".into();
+        let target = set_catalog(
+            &source,
+            "vegetation-cache/catalogue-rename-target",
+            renamed_layers,
+        );
+        let source_reference = generated_reference(area(&source));
+        let target_reference = generated_reference(area(&target));
+        assert_ne!(
+            source_reference.vegetation_document_hash,
+            target_reference.vegetation_document_hash
+        );
+        assert_eq!(source_reference.chunks, target_reference.chunks);
+
+        let mut cache = VegetationRuntimeCache::from_area(area(&source)).unwrap();
+        let before = cache.chunks().to_vec();
+        let update = cache.refresh_from_area(area(&target)).unwrap();
+
+        assert!(update.regenerated());
+        assert!(update.changed_chunks().is_empty());
+        assert_eq!(update.retained_chunks(), 64);
+        assert_ne!(
+            update.source_key().vegetation_document_hash(),
+            update.target_key().vegetation_document_hash()
+        );
+        assert!(
+            before
+                .iter()
+                .zip(cache.chunks())
+                .all(|(old, current)| Arc::ptr_eq(old, current))
+        );
+        assert_eq!(cache.snapshot(), *target_reference);
+
+        let restored = WorkspaceDocument::from_json(&target.to_pretty_json().unwrap()).unwrap();
+        let replay = cache.refresh_from_area(area(&restored)).unwrap();
+        assert!(!replay.regenerated());
+        assert!(replay.changed_chunks().is_empty());
+        assert_eq!(cache.snapshot(), *generated_reference(area(&restored)));
+    }
+
+    #[test]
+    fn new_zero_density_species_synchronises_without_changing_rendered_chunks() {
+        let empty = test_workspace();
+        let source = paint_density(
+            &empty,
+            "vegetation-cache/zero-species-source",
+            &[(0, 0), (8, 0)],
+        );
+        let mut layers = area(&source).vegetation.layers.clone();
+        layers.push(VegetationSpeciesPreset::Shrub.build_layer(
+            "forge_second_shrub",
+            "Second arbuste Forge",
+            TerrainMaterialLayerId::new("meadow_grass"),
+        ));
+        let target = set_catalog(&source, "vegetation-cache/zero-species-target", layers);
+        let added_density = area(&target)
+            .vegetation_density
+            .layers
+            .iter()
+            .find(|layer| layer.layer_id.as_str() == "forge_second_shrub")
+            .unwrap();
+        assert_eq!(added_density.default_density, 0);
+        assert!(added_density.overrides.is_empty());
+
+        let source_reference = generated_reference(area(&source));
+        let target_reference = generated_reference(area(&target));
+        assert_eq!(source_reference.chunks, target_reference.chunks);
+        assert!(target_reference.chunks.iter().all(|chunk| {
+            chunk
+                .instances
+                .iter()
+                .all(|instance| instance.layer_id.as_str() != "forge_second_shrub")
+        }));
+
+        let mut cache = VegetationRuntimeCache::from_area(area(&source)).unwrap();
+        let before = cache.chunks().to_vec();
+        let update = cache.refresh_from_area(area(&target)).unwrap();
+
+        assert!(update.regenerated());
+        assert!(update.changed_chunks().is_empty());
+        assert_eq!(update.retained_chunks(), 64);
+        assert_ne!(update.source_key(), update.target_key());
+        assert!(
+            before
+                .iter()
+                .zip(cache.chunks())
+                .all(|(old, current)| Arc::ptr_eq(old, current))
+        );
+        assert_eq!(cache.snapshot(), *target_reference);
+    }
+
+    #[test]
+    fn local_circle_exclusion_replaces_only_affected_chunks_and_matches_full_generation() {
+        let empty = test_workspace();
+        let cells = (24_u16..32)
+            .flat_map(|z| (24_u16..32).map(move |x| (x, z)))
+            .collect::<Vec<_>>();
+        let source = paint_density(&empty, "vegetation-cache/exclusion-source", &cells);
+        let source_reference = generated_reference(area(&source));
+        let anchor_chunk = &source_reference.chunks[3 * 8 + 3];
+        let anchor = anchor_chunk.instances.first().unwrap();
+        let target = set_exclusions(
+            &source,
+            "vegetation-cache/exclusion-target",
+            vec![VegetationExclusion::Circle {
+                id: VegetationExclusionId::new("local_circle"),
+                center_x_m: anchor.position_m.x,
+                center_z_m: anchor.position_m.z,
+                radius_m: 0.25,
+            }],
+        );
+        let target_reference = generated_reference(area(&target));
+        let expected_changed = source_reference
+            .chunks
+            .iter()
+            .zip(&target_reference.chunks)
+            .filter_map(|(before, after)| (before != after).then_some(after.coordinate))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            expected_changed,
+            vec![TerrainChunkCoordinate { x: 3, z: 3 }]
+        );
+
+        let mut cache = VegetationRuntimeCache::from_area(area(&source)).unwrap();
+        let before = cache.chunks().to_vec();
+        let update = cache.refresh_from_area(area(&target)).unwrap();
+
+        assert_eq!(update.changed_chunks(), expected_changed);
+        assert_eq!(update.retained_chunks(), 63);
+        for (index, (old, current)) in before.iter().zip(cache.chunks()).enumerate() {
+            assert_eq!(
+                Arc::ptr_eq(old, current),
+                index != 3 * 8 + 3,
+                "only the chunk containing excluded placements may receive a new handle"
+            );
+        }
+        assert_eq!(cache.snapshot(), *target_reference);
     }
 
     #[test]

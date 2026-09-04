@@ -1219,6 +1219,80 @@ mod tests {
     }
 
     #[test]
+    fn authored_exclusion_shapes_remove_only_contained_instances_and_replay_exactly() {
+        let (terrain, vegetation) = documents();
+        let vegetation = deterministic_grass_recipe(vegetation);
+        let density = density_document(&vegetation, u8::MAX, vec![]);
+        let generate = |recipe: &VegetationDocument| {
+            VegetationGenerationPlan::from_documents_with_density(&terrain, recipe, &density)
+                .unwrap()
+                .generate()
+                .unwrap()
+        };
+        let baseline = generate(&vegetation);
+        let anchor = baseline
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .find(|instance| {
+                instance.position_m.x.abs() < 200.0 && instance.position_m.z.abs() < 200.0
+            })
+            .unwrap();
+        let shapes = [
+            VegetationExclusion::Circle {
+                id: VegetationExclusionId::new("authored_circle"),
+                center_x_m: anchor.position_m.x,
+                center_z_m: anchor.position_m.z,
+                radius_m: 4.0,
+            },
+            VegetationExclusion::CorridorSegment {
+                id: VegetationExclusionId::new("authored_corridor"),
+                start_x_m: anchor.position_m.x - 16.0,
+                start_z_m: anchor.position_m.z,
+                end_x_m: anchor.position_m.x + 16.0,
+                end_z_m: anchor.position_m.z,
+                half_width_m: 4.0,
+            },
+        ];
+
+        let baseline_instances = baseline
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .cloned()
+            .collect::<Vec<_>>();
+        for exclusion in shapes {
+            let mut excluded_recipe = vegetation.clone();
+            excluded_recipe.exclusions.push(exclusion.clone());
+            excluded_recipe.validate().unwrap();
+            let excluded = generate(&excluded_recipe);
+            let expected = baseline_instances
+                .iter()
+                .filter(|instance| {
+                    !exclusion_contains(&exclusion, instance.position_m.x, instance.position_m.z)
+                })
+                .cloned()
+                .collect::<Vec<_>>();
+            let actual = excluded
+                .chunks
+                .iter()
+                .flat_map(|chunk| &chunk.instances)
+                .cloned()
+                .collect::<Vec<_>>();
+
+            assert!(actual.len() < baseline_instances.len());
+            assert_eq!(
+                actual, expected,
+                "surviving placements must remain bit-identical"
+            );
+            assert_eq!(generate(&excluded_recipe), excluded, "replay must be exact");
+
+            excluded_recipe.exclusions.clear();
+            assert_eq!(generate(&excluded_recipe), baseline);
+        }
+    }
+
+    #[test]
     fn generated_values_are_finite_bounded_filtered_spaced_and_ids_are_unique() {
         let plan = plan();
         let generated = plan.generate().unwrap();
