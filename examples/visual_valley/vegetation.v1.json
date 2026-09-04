@@ -131,6 +131,6 @@
     "wind_speed_hz": 0.18,
     "interaction_radius_m": 2.5,
     "interaction_strength": 0.75,
-    "grass_blades_per_patch": 32
+    "grass_blades_per_patch": 64
   }
 }

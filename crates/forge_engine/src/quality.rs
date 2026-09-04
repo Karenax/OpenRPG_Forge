@@ -972,7 +972,7 @@ mod tests {
         assert_eq!(stats.dynamically_applied_tier, Some(VisualQualityTier::Low));
         assert_eq!(
             stats.profile_hash,
-            "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2"
+            "0c4573220cc8c314e58938f617fbd7a46bdac4037a599b9a73c3be61aeb699cb"
         );
         let ledger = serde_json::to_value(stats).unwrap();
         assert_eq!(ledger["current_tier"], "low");

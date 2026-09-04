@@ -27,7 +27,7 @@
         "medium_lod_distance_m": 48.0,
         "hlod_distance_m": 128.0,
         "cull_distance_m": 256.0,
-        "grass_blades_per_patch": 12
+        "grass_blades_per_patch": 24
       },
       "shadows": {
         "enabled": true,
@@ -77,7 +77,7 @@
         "medium_lod_distance_m": 60.0,
         "hlod_distance_m": 160.0,
         "cull_distance_m": 320.0,
-        "grass_blades_per_patch": 20
+        "grass_blades_per_patch": 40
       },
       "shadows": {
         "enabled": true,
@@ -127,7 +127,7 @@
         "medium_lod_distance_m": 72.0,
         "hlod_distance_m": 180.0,
         "cull_distance_m": 384.0,
-        "grass_blades_per_patch": 32
+        "grass_blades_per_patch": 64
       },
       "shadows": {
         "enabled": true,
@@ -177,7 +177,7 @@
         "medium_lod_distance_m": 96.0,
         "hlod_distance_m": 240.0,
         "cull_distance_m": 512.0,
-        "grass_blades_per_patch": 48
+        "grass_blades_per_patch": 64
       },
       "shadows": {
         "enabled": true,

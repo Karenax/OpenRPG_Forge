@@ -175,7 +175,7 @@ impl VisualValleyVegetationRecipe {
                 wind_speed_hz: 0.18,
                 interaction_radius_m: 2.5,
                 interaction_strength: 0.75,
-                grass_blades_per_patch: 32,
+                grass_blades_per_patch: 64,
             },
         );
         document.validate()?;
@@ -803,7 +803,7 @@ mod tests {
         );
         assert_eq!(
             fixture.content_hash().unwrap().to_string(),
-            "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8"
+            "3c87dc39beccd22b96dba19448b72ec7dd58881a371fe5863c8039585068ce6d"
         );
         assert_eq!(fixture.extent_m, VegetationExtent::new(512.0, 512.0));
         assert_eq!(fixture.layers.len(), 4);
@@ -995,7 +995,7 @@ mod tests {
         );
         assert_eq!(
             generated.content_hash().unwrap().to_string(),
-            "82995caa4f17c315cdc42542b255e50945dc70b2e3c959a97b818ebbd60ceb98"
+            "40869c0bb7cad029f966d757d6fb8046243e0e94b58477895ee8c5713d267ac6"
         );
         for kind in [
             VegetationKind::Tree,
@@ -1005,6 +1005,32 @@ mod tests {
         ] {
             assert!(generated.kind_counts.count(kind) > 0, "missing {kind:?}");
         }
+    }
+
+    #[test]
+    fn grass_presentation_density_preserves_every_generated_placement_and_chunk() {
+        let (terrain, vegetation) = documents();
+        let current = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let mut previous = vegetation;
+        previous.presentation.grass_blades_per_patch = 32;
+        let previous = VegetationGenerationPlan::from_documents(&terrain, &previous)
+            .unwrap()
+            .generate()
+            .unwrap();
+
+        assert_eq!(current.chunks, previous.chunks);
+        assert_eq!(current.kind_counts, previous.kind_counts);
+        assert_ne!(
+            current.vegetation_document_hash,
+            previous.vegetation_document_hash
+        );
+        assert_ne!(
+            current.content_hash().unwrap(),
+            previous.content_hash().unwrap()
+        );
     }
 
     #[test]

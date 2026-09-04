@@ -3370,7 +3370,7 @@ mod tests {
         );
         assert_eq!(
             manifest.source_hashes.vegetation.as_deref(),
-            Some("5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8")
+            Some("3c87dc39beccd22b96dba19448b72ec7dd58881a371fe5863c8039585068ce6d")
         );
         assert_eq!(
             manifest.source_hashes.environment.as_deref(),
@@ -3394,7 +3394,7 @@ mod tests {
         );
         assert_eq!(
             manifest.source_hashes.quality.as_deref(),
-            Some("8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2")
+            Some("0c4573220cc8c314e58938f617fbd7a46bdac4037a599b9a73c3be61aeb699cb")
         );
         assert_eq!(manifest.source_hashes.populated_count(), 8);
         assert_eq!(

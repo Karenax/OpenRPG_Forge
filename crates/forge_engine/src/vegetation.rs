@@ -38,7 +38,7 @@ const VEGETATION_SHADER_PATH: &str =
     "embedded://forge_engine/shaders/visual_valley_vegetation_deform.wgsl";
 const MAX_WIND_AMPLITUDE_M: f32 = 0.55;
 const MAX_INTERACTION_AMPLITUDE_M: f32 = 0.45;
-const GRASS_PATCH_RADIUS_M: f32 = 1.15;
+const GRASS_PATCH_RADIUS_M: f32 = 1.55;
 const GOLDEN_ANGLE_RADIANS: f32 = 2.399_963_1;
 const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
@@ -1018,20 +1018,31 @@ pub(crate) fn build_grass_chunk_mesh(
                 world_z - chunk_center.z,
             );
             let blade_yaw = angle + unit_noise(patch_index, blade, 1) * 1.2;
-            let width = (0.025 + unit_noise(patch_index, blade, 2) * 0.025) * patch.scale;
-            let height = (0.38 + unit_noise(patch_index, blade, 3) * 0.48) * patch.scale;
+            let width = (0.035 + unit_noise(patch_index, blade, 2) * 0.03) * patch.scale;
+            let height = (0.25 + unit_noise(patch_index, blade, 3) * 0.25) * patch.scale;
             let right = Vec3::new(blade_yaw.cos(), 0.0, -blade_yaw.sin()) * (width * 0.5);
-            let top = base + Vec3::Y * height;
+            let bend_yaw = blade_yaw + (unit_noise(patch_index, blade, 4) - 0.5) * 1.2;
+            let bend = Vec3::new(bend_yaw.sin(), 0.0, bend_yaw.cos())
+                * height
+                * (0.18 + unit_noise(patch_index, blade, 5) * 0.16);
+            let elbow = base + Vec3::Y * (height * 0.55) + bend * 0.22;
+            let top = base + Vec3::Y * height + bend;
             let bottom_color = grass_color(blade, 0.0);
+            let elbow_color = grass_color(blade, patch.wind_response * 0.55);
             let top_color = grass_color(blade, patch.wind_response);
+            // A tapered lower ribbon and bent pointed tip keep the root fixed without a tall needle.
             mesh.push_quad(
                 [
                     base - right,
                     base + right,
-                    top + right * 0.18,
-                    top - right * 0.18,
+                    elbow + right * 0.5,
+                    elbow - right * 0.5,
                 ],
-                [bottom_color, bottom_color, top_color, top_color],
+                [bottom_color, bottom_color, elbow_color, elbow_color],
+            )?;
+            mesh.push_triangle(
+                [elbow - right * 0.5, elbow + right * 0.5, top],
+                [elbow_color, elbow_color, top_color],
             )?;
         }
     }
@@ -2483,13 +2494,13 @@ mod tests {
         .unwrap();
 
         assert_complete_mesh(&mesh);
-        assert_eq!(mesh.mesh.count_vertices(), 2 * 12 * 4);
-        assert_eq!(mesh.triangles, 2 * 12 * 2);
+        assert_eq!(mesh.mesh.count_vertices(), 2 * 12 * 7);
+        assert_eq!(mesh.triangles, 2 * 12 * 3);
         let positions = match mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
             Some(VertexAttributeValues::Float32x3(values)) => values,
             other => panic!("unexpected grass positions: {other:?}"),
         };
-        for blade in positions.as_chunks::<4>().0 {
+        for blade in positions.as_chunks::<7>().0 {
             let base_x = f32::midpoint(blade[0][0], blade[1][0]);
             let base_y = f32::midpoint(blade[0][1], blade[1][1]);
             let base_z = f32::midpoint(blade[0][2], blade[1][2]);
@@ -2510,10 +2521,106 @@ mod tests {
             duplicate.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
         );
         assert_eq!(mesh.mesh.indices(), duplicate.mesh.indices());
+        for attribute in [Mesh::ATTRIBUTE_NORMAL, Mesh::ATTRIBUTE_COLOR] {
+            assert_eq!(
+                mesh.mesh.attribute(attribute),
+                duplicate.mesh.attribute(attribute)
+            );
+        }
         assert_eq!(
             build_grass_chunk_mesh(&terrain, Vec3::ZERO, &patches, 0, 0.0).unwrap_err(),
             VegetationMeshError::GrassBladeCountIsZero
         );
+    }
+
+    #[test]
+    fn grass_blades_are_short_tapered_bent_and_rooted_with_continuous_wind_weights() {
+        let terrain_document = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain_document).unwrap();
+        for scale in [0.65, 1.0, 1.4] {
+            let mut patch = placement(VegetationKind::Grass, 0.0, 0.0);
+            patch.scale = scale;
+            let mesh = build_grass_chunk_mesh(&terrain, Vec3::ZERO, &[patch], 24, 0.0).unwrap();
+            let Some(VertexAttributeValues::Float32x3(positions)) =
+                mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            else {
+                panic!("grass positions must be Float32x3");
+            };
+            let Some(VertexAttributeValues::Float32x4(colors)) =
+                mesh.mesh.attribute(Mesh::ATTRIBUTE_COLOR)
+            else {
+                panic!("grass colors must be Float32x4");
+            };
+            let mut maximum_root_radius = 0.0_f32;
+            for (blade, weights) in positions
+                .as_chunks::<7>()
+                .0
+                .iter()
+                .zip(colors.as_chunks::<7>().0)
+            {
+                let points = blade.map(Vec3::from);
+                let base = points[0].midpoint(points[1]);
+                let elbow = points[2].midpoint(points[3]);
+                let tip = points[6];
+                let height = tip.y - base.y;
+                let width = points[0].distance(points[1]);
+                assert!((0.25 * scale..=0.5 * scale).contains(&height));
+                assert!((0.035 * scale..=0.065 * scale).contains(&width));
+                assert!((elbow.y - base.y - height * 0.55).abs() < 1.0e-5);
+                assert!((points[2].distance(points[3]) - width * 0.5).abs() < 1.0e-5);
+                assert_eq!(points[3], points[4]);
+                assert_eq!(points[2], points[5]);
+                let tip_bend = (tip - base).with_y(0.0);
+                assert!((0.18 * height..=0.34 * height).contains(&tip_bend.length()));
+                assert!(
+                    (elbow - base)
+                        .with_y(0.0)
+                        .abs_diff_eq(tip_bend * 0.22, 1.0e-5)
+                );
+                assert!(base.with_y(0.0).length() <= GRASS_PATCH_RADIUS_M * scale);
+                maximum_root_radius = maximum_root_radius.max(base.with_y(0.0).length());
+                assert!(
+                    (base.y - terrain.surface_at(base.x, base.z).unwrap().height_m).abs() < 1.0e-4
+                );
+                assert_eq!(weights[0][3].to_bits(), 0.0_f32.to_bits());
+                assert_eq!(weights[1][3].to_bits(), 0.0_f32.to_bits());
+                for weight in &weights[2..6] {
+                    assert_eq!(weight[3].to_bits(), (patch.wind_response * 0.55).to_bits());
+                }
+                assert_eq!(weights[6][3].to_bits(), patch.wind_response.to_bits());
+            }
+            assert!((1.5 * scale..1.6 * scale).contains(&maximum_root_radius));
+        }
+    }
+
+    #[test]
+    fn bent_grass_aabb_contains_all_vertices_and_full_horizontal_deformation() {
+        let terrain_document = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain_document).unwrap();
+        let chunk_center = Vec3::new(32.0, 0.0, -96.0);
+        let patches = [
+            placement(VegetationKind::Grass, -12.0, 7.0),
+            placement(VegetationKind::Grass, 2.0, -3.0),
+        ];
+        let margin = maximum_deformation_m(profile());
+        let mut mesh =
+            build_grass_chunk_mesh(&terrain, chunk_center, &patches, 24, margin).unwrap();
+        let _transform = recenter_grass_batch(&mut mesh, chunk_center);
+        let Some(VertexAttributeValues::Float32x3(positions)) =
+            mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+        else {
+            panic!("grass positions must be Float32x3");
+        };
+        let min = Vec3::from(mesh.aabb.min()) - Vec3::splat(1.0e-5);
+        let max = Vec3::from(mesh.aabb.max()) + Vec3::splat(1.0e-5);
+        for position in positions {
+            for x in [-margin, margin] {
+                for z in [-margin, margin] {
+                    let deformed = Vec3::from(*position) + Vec3::new(x, 0.0, z);
+                    assert!(deformed.cmpge(min).all() && deformed.cmple(max).all());
+                }
+            }
+        }
     }
 
     #[test]
@@ -2844,6 +2951,10 @@ mod tests {
             assert_eq!(entity.transform.rotation, Quat::IDENTITY);
             assert_eq!(entity.transform.scale, Vec3::ONE);
             assert!(entity.visibility_range.use_aabb);
+            let blades = usize::try_from(marker.logical_placements).unwrap()
+                * usize::from(prepared.profile.grass_blades_per_patch);
+            assert_eq!(mesh.value.mesh.count_vertices(), blades * 7);
+            assert_eq!(mesh.value.triangles, blades * 3);
             assert_eq!(
                 entity.mesh_tag.0,
                 chunk_mesh_tag(marker.chunk_x, marker.chunk_z, 0x0047_0000).0

@@ -967,6 +967,67 @@ mod tests {
     }
 
     #[test]
+    fn terrain_detail_shader_contract_is_world_anchored_without_new_resources() {
+        // Source-contract guard only: this neither compiles WGSL nor validates GPU rendering.
+        let shader = include_str!("shaders/visual_valley_terrain.wgsl");
+        let detail_functions = shader
+            .split_once("fn terrain_cell_value")
+            .unwrap()
+            .1
+            .split_once("@fragment")
+            .unwrap()
+            .0;
+
+        assert!(shader.contains("terrain_surface_detail(in.world_position.xz)"));
+        assert!(detail_functions.contains("vec2<i32>(floor(position))"));
+        assert!(detail_functions.contains("value & 0x00ffffffu"));
+        assert!(detail_functions.contains("/ 16777215.0"));
+        assert!(detail_functions.contains("dpdx(world_xz)"));
+        assert!(detail_functions.contains("dpdy(world_xz)"));
+        assert_eq!(detail_functions.matches("smoothstep(").count(), 3);
+        assert!(!detail_functions.contains("visual_valley."));
+        assert!(!detail_functions.contains("time"));
+        assert_eq!(shader.matches("@binding(").count(), 1);
+        assert!(shader.contains("@binding(100)"));
+        assert!(!shader.contains("texture_"));
+        assert!(!shader.contains("sampler"));
+    }
+
+    #[test]
+    fn terrain_detail_shader_contract_keeps_bounded_dry_surface_before_wetness() {
+        let shader = include_str!("shaders/visual_valley_terrain.wgsl");
+
+        assert!(shader.contains("grain * 0.15 - 0.5, -0.5, 0.5)"));
+        assert!(shader.contains("base_color * (1.0 + detail * 0.32)"));
+        assert!(shader.contains("clamp(perceptual_roughness + detail * 0.09, 0.04, 1.0)"));
+        assert!(shader.contains("vec4(dry_base_color * wet_albedo_multiplier, 1.0)"));
+        assert!(shader.contains("dry_roughness * wet_roughness_multiplier"));
+        let detail = shader.find("let detail = terrain_surface_detail").unwrap();
+        let wetness = shader.find("let wetness = clamp(").unwrap();
+        let output_branch = shader.rfind("#ifdef PREPASS_PIPELINE").unwrap();
+        assert!(detail < wetness && wetness < output_branch);
+
+        // The bounded detail is weather-independent; zero wetness restores
+        // that dry surface, not the historical untextured palette output. This is algebra,
+        // not a CPU emulation of shader execution or a native/WebGPU visual qualification.
+        for detail in [-0.5_f32, 0.0, 0.5] {
+            let dry_albedo = 0.24 * (1.0 + detail * 0.32);
+            let dry_roughness = (0.86 + detail * 0.09).clamp(0.04, 1.0);
+            for wetness in [0.0_f32, 0.78, 0.0] {
+                let albedo_multiplier = 1.0 + (0.72 - 1.0) * wetness;
+                let roughness_multiplier = 1.0 + (0.32 - 1.0) * wetness;
+                let albedo = dry_albedo * albedo_multiplier;
+                let roughness = (dry_roughness * roughness_multiplier).clamp(0.04, 1.0);
+                assert!((0.04..=1.0).contains(&roughness));
+                if wetness.to_bits() == 0.0_f32.to_bits() {
+                    assert_eq!(albedo.to_bits(), dry_albedo.to_bits());
+                    assert_eq!(roughness.to_bits(), dry_roughness.to_bits());
+                }
+            }
+        }
+    }
+
+    #[test]
     fn chunk_gizmos_are_opt_in_for_unobstructed_visual_captures() {
         assert!(!VisualValleyDebug::default().chunk_lod_gizmos);
     }
