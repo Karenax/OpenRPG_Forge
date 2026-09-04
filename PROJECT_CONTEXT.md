@@ -19,9 +19,19 @@ Le propriétaire confirme explicitement le passage à Gate 2 avec les réserves 
 ses preuves à `28a2078`, est accepté comme prototype, pas comme finition. L'herbe en zones denses,
 le sol texturé, les revues visuelles/de mouvement et les comparaisons restent à terminer.
 Les 12 routes ouvertes de Gate 1 ne sont pas cochées par cette décision. Aucun reçu humain ni PASS
-technique n'est inventé. La gate principale active devient **Gate 2 — Éditeur de monde** ; ses
-critères restent entièrement dus, à commencer par le parcours nouveau projet/module/zone.
+technique n'est inventé. La gate principale active devient **Gate 2 — Éditeur de monde**.
 CI distante `NOT RUN — infrastructure billing` sous ADR-0006 ; PresentMon reste suspendu sous ADR-0010.
+
+### Premier lot Gate 2 — assistant de projet qualifié
+
+`R2-001` est passée le 4 septembre : code `c165a30`, 416 tests PASS, clippy natif/WASM PASS et
+parcours réel dans le Studio autonome. **Projets · Gate 2** crée un projet/module/zone source,
+avec annulation/rétablissement, sauvegarde immuable et fermeture/réouverture vérifiées.
+Rapport : [R2-001](docs/evidence/gate2/R2_001_PROJECT_SOURCES.md). Gate 2 reste ouverte à **1/43**.
+Ce lot ne montre aucun viewport du projet créé : spawn métadonnée, sélection source uniquement,
+pas d'ajout ultérieur de zone ni de bus général/audit durable/récupération après crash.
+Suite : zones éditables et liaison au viewport, puis brosses, sol et végétation par zones selon la
+roadmap. Les réserves Gate 1 restent dues et aucun asset Cadle n'a été repris.
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 

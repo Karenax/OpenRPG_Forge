@@ -910,6 +910,14 @@ pas techniquement satisfaites. Les cases restent décochées et toutes les autre
 Statut : **ACTIVE sous dérogation explicite ADR-0011 du 4 septembre 2026**. Gate 1 reste un prototype
 avec réserves ; cette autorisation ne valide aucune route Gate 2 et n'autorise pas encore Gate 3.
 
+Premier lot livré le 4 septembre : **R2-001 PASS, 1/43 routes**. Code `c165a30`, 416 tests PASS,
+clippy natif/WASM PASS et parcours Studio autonome capturé : créer → annuler → rétablir →
+enregistrer → fermer → rouvrir. Preuves et limites :
+[`R2_001_PROJECT_SOURCES.md`](../evidence/gate2/R2_001_PROJECT_SOURCES.md).
+R2-002/003/004/006 sont partiels : module/zone initiaux, métadonnées et sélection des sources,
+sans ajout ultérieur, onglets, édition existante ni viewport 3D. Les acquis de commandes,
+undo/redo, snapshots immuables et réouverture ne ferment pas les routes générales R2-F.
+
 ## But
 
 Créer une carte complète sans modifier de JSON à la main, avec une expérience proche d’un constructeur
@@ -917,7 +925,7 @@ de monde accessible.
 
 ## R2-A — Projet et zones
 
-- [ ] `R2-001` assistant nouveau projet.
+- [x] `R2-001` assistant nouveau projet — sources canoniques, parcours natif qualifié le 4 septembre.
 - [ ] `R2-002` nouveau module.
 - [ ] `R2-003` nouvelle zone extérieure.
 - [ ] `R2-004` métadonnées et point de départ.

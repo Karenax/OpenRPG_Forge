@@ -9,6 +9,12 @@ same frontend inside WebView2 after the documented Gate 0 bootstrap.
 
 ## Gate 2 project sources (first authoring slice)
 
+R2-001 is qualified by the native create/undo/redo/save/close/reopen workflow documented in
+`docs/evidence/gate2/R2_001_PROJECT_SOURCES.md`. For an embedded offline Release after building the
+Trunk frontend, run from the repository root:
+`cargo build --release -p forge_studio --features tauri/custom-protocol --locked --offline`.
+Without `tauri/custom-protocol`, direct Cargo builds retain the development-server URL.
+
 The opt-in `?forge_editor=project` route opens the source-management assistant. Gate 2 is active
 under `docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md`; this does not qualify Gate 1 or
 complete Gate 2. The existing default Gate 0 and explicit Visual Valley routes remain separate.
