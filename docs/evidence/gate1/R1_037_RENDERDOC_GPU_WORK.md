@@ -44,7 +44,7 @@ benchmark cible, verdict humain ou qualification Browser WebGPU/D3D12 n'est déd
 Les preuves précises des matériaux eau/wetness/post-traitement et les revues humaines restent dues.
 ADR-0010 reste en vigueur, sans relance PresentMon ni copie d'asset Cadle.
 
-Contrôle final indépendant : **28/28 tailles de liaison de fichiers par SHA-256 vérifiées** (captures,
+Contrôle final indépendant : **28/28 empreintes SHA-256 vérifiées** (captures,
 reçus prêts, ledgers runtime, actions, analyses, reçus adaptateur et profils finaux) ; **4/4 analyses
 recalculées à l'identique** avec le modèle Python hors GPU. Le reçu versionné est JSON-équivalent à
 l'original externe ; le décompte réel de roadmap est 43 cochées / 12 ouvertes. `git diff --check` PASS.
