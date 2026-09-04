@@ -7,10 +7,10 @@ use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 
 #[derive(Clone, Copy)]
-struct WorkspaceActions {
-    state: ReadSignal<WorkspaceState>,
+pub(crate) struct WorkspaceActions {
+    pub(crate) state: ReadSignal<WorkspaceState>,
     set_state: WriteSignal<WorkspaceState>,
-    pending: ReadSignal<bool>,
+    pub(crate) pending: ReadSignal<bool>,
     set_pending: WriteSignal<bool>,
     error: ReadSignal<Option<String>>,
     set_error: WriteSignal<Option<String>>,
@@ -18,11 +18,11 @@ struct WorkspaceActions {
 }
 
 impl WorkspaceActions {
-    fn unavailable(self) -> bool {
+    pub(crate) fn unavailable(self) -> bool {
         !self.backend_available || self.pending.get()
     }
 
-    fn send(self, command: WorkspaceCommand) {
+    pub(crate) fn send(self, command: WorkspaceCommand) {
         if !self.backend_available || self.pending.get_untracked() {
             return;
         }
@@ -49,8 +49,8 @@ pub(crate) fn mount_project_workspace() {
     mount_to_body(|| view! { <ProjectWorkspace/> });
 }
 
-#[component]
-fn ProjectWorkspace() -> impl IntoView {
+/// One presentation handle to the canonical native session, shared by menus and forms.
+pub(crate) fn create_workspace_actions() -> WorkspaceActions {
     let backend_available = tauri_core().is_ok();
     let (state, set_state) = signal(WorkspaceState {
         revision: 0,
@@ -77,14 +77,29 @@ fn ProjectWorkspace() -> impl IntoView {
         set_error,
         backend_available,
     };
-    let (selected, set_selected) = signal(WorkspaceNode::Area);
     if backend_available {
         actions.send(WorkspaceCommand::Current);
     }
+    actions
+}
+
+#[component]
+pub(crate) fn ProjectWorkspace(
+    #[prop(optional)] actions: Option<WorkspaceActions>,
+    #[prop(default = false)] embedded: bool,
+) -> impl IntoView {
+    let actions = actions.unwrap_or_else(create_workspace_actions);
+    let WorkspaceActions {
+        state,
+        pending,
+        backend_available,
+        ..
+    } = actions;
+    let (selected, set_selected) = signal(WorkspaceNode::Area);
 
     view! {
         <main class="project-workspace" data-forge-mode="project-sources" aria-busy=move || pending.get().to_string()>
-            <header class="topbar project-topbar">
+            <header class="topbar project-topbar" hidden=embedded>
                 <div>
                     <span class="eyebrow">"OPENRPG FORGE · STUDIO"</span>
                     <h1>"Projets et zones"</h1>

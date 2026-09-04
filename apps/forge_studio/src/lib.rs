@@ -7,6 +7,9 @@
     )
 )]
 
+pub mod desktop_state;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod desktop_ui;
 pub mod workspace_api;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod workspace_service;
@@ -1365,25 +1368,42 @@ mod web {
     #[wasm_bindgen(start)]
     pub fn start() {
         console_error_panic_hook::set_once();
-        let editor_requested = web_sys::window()
+        let query = web_sys::window()
             .and_then(|window| window.location().search().ok())
-            .is_some_and(|search| {
-                search
-                    .trim_start_matches('?')
-                    .split('&')
-                    .any(|entry| entry == "forge_editor=project")
-            });
-        if editor_requested {
+            .unwrap_or_default();
+        if query
+            .trim_start_matches('?')
+            .split('&')
+            .any(|entry| entry == "forge_editor=project")
+        {
             super::workspace_ui::mount_project_workspace();
             return;
         }
-        mount_to_body(|| view! { <Studio/> });
+        // An explicit proof query keeps the historical scene route and ledgers intact.
+        if query.is_empty()
+            || query
+                .trim_start_matches('?')
+                .split('&')
+                .any(|entry| entry == "forge_editor=desktop")
+        {
+            super::desktop_ui::mount_desktop();
+        } else {
+            mount_to_body(|| view! { <Studio/> });
+        }
     }
 
     #[component]
-    fn Studio() -> impl IntoView {
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Existing proof view and one-time renderer setup stay together; desktop embedding does not refactor the qualified scene"
+    )]
+    pub(crate) fn Studio(#[prop(default = false)] embedded: bool) -> impl IntoView {
         let probe_mode = current_probe_mode();
-        let scene_selection = current_scene_selection();
+        let scene_selection = if embedded {
+            super::parse_studio_scene_selection("")
+        } else {
+            current_scene_selection()
+        };
         let selected_scene = scene_selection.scene;
         let weather_selection = current_weather_selection(selected_scene);
         let weather_configuration_error = weather_selection.as_ref().err().map(ToString::to_string);
@@ -1505,6 +1525,7 @@ mod web {
                         selected_weather_state.unwrap_or(super::WeatherState::Clear),
                         selected_quality,
                         weather_proof_enabled,
+                        embedded,
                     );
                 }
                 Err(reason) => {
@@ -1531,7 +1552,7 @@ mod web {
                         <span class="eyebrow">"OPENRPG FORGE · RUST"</span>
                         <h1>"Visual Workspace"</h1>
                     </div>
-                    <a href="?forge_editor=project">"Projets · Gate 2"</a>
+                    <a href="?forge_editor=project" hidden=embedded>"Projets · Gate 2"</a>
                     <div class="status-stack">
                         <span
                             class:status-ok=move || matches!(webgpu_status.get(), WebGpuStatus::Ready)
@@ -2379,6 +2400,7 @@ mod web {
         weather_state: super::WeatherState,
         quality_selection: StudioQualitySelection,
         browser_weather_proof_enabled: bool,
+        embedded: bool,
     ) {
         if !VIEWPORT_LAUNCH_REQUESTED.swap(true, Ordering::SeqCst) {
             INITIAL_CANVAS.with(|initial| initial.replace(current_canvas()));
@@ -2387,6 +2409,7 @@ mod web {
                 weather_state,
                 quality_selection,
                 browser_weather_proof_enabled,
+                embedded,
             );
         }
     }
@@ -2396,6 +2419,7 @@ mod web {
         weather_state: super::WeatherState,
         quality_selection: StudioQualitySelection,
         browser_weather_proof_enabled: bool,
+        embedded: bool,
     ) {
         let loaded_scene = LoadedStudioScene::load(scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
@@ -2424,6 +2448,8 @@ mod web {
                             canvas: Some("#forge-canvas".to_owned()),
                             fit_canvas_to_parent: true,
                             prevent_default_event_handling: false,
+                            // The asynchronous renderer must not steal an active project field.
+                            focused: !embedded,
                             resolution: WindowResolution::new(1280, 720),
                             present_mode: PresentMode::AutoVsync,
                             ..default()

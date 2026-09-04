@@ -1,0 +1,559 @@
+/* Original CSS-only Forge desktop. Load after styles.css; no downloaded imagery or fonts.
+ * Rust owns window x/y/width/height/z-index, focus, inert, and minimized state.
+ * .is-hidden preserves layout/canvas dimensions; it must never become display:none.
+ */
+.forge-desktop {
+  --bg: #f7eedc;
+  --surface: #fbfaf7;
+  --surface-raised: #f1eee7;
+  --line: #dcd7cc;
+  --text: #342e26;
+  --muted: #706657;
+  --accent: #805314;
+  --good: #286446;
+  --error: #a03637;
+  --desktop-focus: #3678b7;
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  color-scheme: light;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 76% 8%, #fffdf1 0%, #fff8e700 49%),
+    radial-gradient(ellipse at 5% 85%, #d9ae56 0%, #e0b75a00 48%),
+    linear-gradient(125deg, #f9f1df 3%, #f1e0b7 53%, #e6c786 100%);
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Broad folded ribbons: static gradients and curves, not an imported wallpaper. */
+.forge-desktop::before,
+.forge-desktop::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.forge-desktop::before {
+  z-index: -2;
+  width: 145vmax;
+  height: 58vmax;
+  left: -26vmax;
+  top: 44%;
+  border-radius: 49% 52% 31% 46%;
+  transform: rotate(-24deg);
+  background: linear-gradient(177deg,
+    #fff9e5 0%, #f8e6b9 12%, #c89338 16%, #b27a26 18%,
+    #f1d493 23%, #fff8df 35%, #e6bb65 47%, #bd852d 51%,
+    #f7e1a9 57%, #fff8e4 73%, #d6a347 100%);
+  box-shadow: inset 0 5px 3px #fffdf29c, 0 -22px 64px #ae7d2820;
+}
+
+.forge-desktop::after {
+  z-index: -1;
+  width: 87vmax;
+  height: 69vmax;
+  right: -40vmax;
+  top: -33vmax;
+  border-radius: 30% 40% 50% 47%;
+  transform: rotate(-35deg);
+  background: linear-gradient(99deg,
+    #fff9e900 0%, #fff4d5 12%, #e1b65e 16%, #b47a25 19%,
+    #f5dca1 24%, #fff9e5 30%, #ecd08f 35%, #c59136 41%,
+    #e7c67c 49%, #fff5d4 69%, #c89b49 100%);
+  box-shadow: inset 9px 0 22px #fff9dd61, -14px 16px 55px #9f742b1c;
+}
+
+.forge-desktop :is(button, input, a):focus-visible {
+  outline: 2px solid var(--desktop-focus);
+  outline-offset: 3px;
+}
+
+.forge-desktop button { font: inherit; }
+.forge-desktop button:disabled { cursor: not-allowed; }
+.forge-desktop svg { flex-shrink: 0; }
+
+.forge-desktop .desktop-menubar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1000;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 18px;
+  border-bottom: 1px solid #ad8d5126;
+  background: #fffcf5ba;
+  box-shadow: 0 1px 9px #86602f09;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  user-select: none;
+}
+
+.forge-desktop .desktop-mark {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  margin-right: 7px;
+  color: #4d3822;
+}
+
+.forge-desktop .desktop-mark svg { width: 21px; height: 21px; }
+.forge-desktop .desktop-menubar strong { margin-right: 14px; font-size: 13px; font-weight: 650; }
+.forge-desktop .desktop-menu { position: relative; }
+
+.forge-desktop .desktop-menu-trigger {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #3d3429;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.forge-desktop .desktop-menu-trigger:hover,
+.forge-desktop .desktop-menu-trigger[aria-expanded="true"] { background: #92703e1c; }
+
+.forge-desktop .desktop-menu-panel {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 1100;
+  min-width: 222px;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 6px;
+  border: 1px solid #ffffffbd;
+  border-radius: 11px;
+  background: #fffdf7f2;
+  box-shadow: 0 12px 32px #5238102b, 0 1px 3px #5238101a;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.forge-desktop .desktop-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  min-height: 31px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 5px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.forge-desktop .desktop-menu-item:hover:not(:disabled),
+.forge-desktop .desktop-menu-item:focus-visible { color: #fff; background: #8b652e; }
+.forge-desktop .desktop-menu-item:disabled { color: #8a8073; opacity: .7; }
+.forge-desktop .desktop-menu-item :is(small, kbd) { font: inherit; font-size: 11px; opacity: .78; }
+.forge-desktop .desktop-menu-separator { height: 1px; margin: 5px 8px; border: 0; background: #d7cfc0; }
+
+.forge-desktop .desktop-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 0;
+  margin-left: auto;
+  color: #62543f;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.forge-desktop .desktop-status svg { width: 15px; height: 15px; }
+
+.forge-desktop .desktop-surface {
+  position: absolute;
+  inset: 44px 0 100px;
+  z-index: 1;
+}
+
+.forge-desktop .desktop-welcome {
+  position: absolute;
+  top: clamp(34px, 10vh, 116px);
+  left: clamp(38px, 6vw, 112px);
+  max-width: 500px;
+  padding: 10px 0;
+  color: #654a27;
+  text-shadow: 0 1px 2px #fff9e3b3;
+}
+
+.forge-desktop .desktop-welcome > :is(small, .eyebrow) {
+  color: #806235;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .2em;
+}
+
+.forge-desktop .desktop-welcome h1 {
+  max-width: 480px;
+  margin: 15px 0 14px;
+  color: #584122;
+  font-size: clamp(34px, 3.6vw, 56px);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -.045em;
+}
+
+.forge-desktop .desktop-welcome p { max-width: 390px; margin: 0; font-size: 14px; line-height: 1.65; }
+
+.forge-desktop .desktop-window {
+  position: absolute;
+  display: grid;
+  grid-template-rows: 46px minmax(0, 1fr);
+  width: 1000px;
+  height: 600px;
+  max-width: 100%;
+  max-height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid #ffffffd6;
+  border-radius: 15px;
+  color: var(--text);
+  background: #fcfaf4ed;
+  box-shadow: 0 16px 48px #65441c24, 0 3px 10px #65441c14, 0 0 0 1px #8d73451a;
+  backdrop-filter: blur(20px) saturate(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
+  container: forge-window / inline-size;
+}
+
+.forge-desktop .desktop-window.is-active {
+  border-color: #ffffff;
+  box-shadow: 0 24px 68px #55381936, 0 4px 15px #65441c1f, 0 0 0 1px #8d734522;
+}
+
+/* Keep canvas CSS size measurable while the Rust shell also applies inert. */
+.forge-desktop .desktop-window.is-hidden { visibility: hidden; pointer-events: none; }
+
+.forge-desktop .window-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 15px;
+  border-bottom: 1px solid #dbd3c48f;
+  background: linear-gradient(#ffffff9e, #f5f0e3ad);
+  user-select: none;
+  touch-action: none;
+}
+
+.forge-desktop .window-controls { display: flex; flex-shrink: 0; align-items: center; gap: 7px; }
+.forge-desktop .window-control {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  padding: 0;
+  border: 1px solid #00000012;
+  border-radius: 50%;
+  color: #44281f;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+}
+.forge-desktop .window-control.close { background: #ed766a; }
+.forge-desktop .window-control.minimize { background: #ebc15b; }
+.forge-desktop .window-control.maximize { background: #70bc85; }
+.forge-desktop .window-control:hover { filter: brightness(.93); }
+.forge-desktop .window-control svg { width: 9px; height: 9px; }
+
+.forge-desktop .window-title {
+  flex: 1;
+  align-self: stretch;
+  min-width: 0;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 5px;
+  color: #544936;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 650;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: grab;
+  touch-action: none;
+}
+.forge-desktop .window-title:active { cursor: grabbing; }
+.forge-desktop .window-title:focus-visible { outline-offset: -4px; }
+.forge-desktop .window-caption { max-width: 32%; color: #766b5a; font-size: 10px; line-height: 1.3; }
+
+.forge-desktop .window-content {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c6bba7 transparent;
+  background: #fbfaf7f2;
+}
+
+.forge-desktop .window-resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  width: 23px;
+  height: 23px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 0 14px;
+  background: transparent;
+  color: #7c705d;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.forge-desktop .window-resize-handle::after {
+  content: "";
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 10px;
+  height: 10px;
+  background: repeating-linear-gradient(135deg, transparent 0 3px, #7b6d5759 3px 4px);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+.forge-desktop .window-resize-handle:focus-visible { outline-offset: -4px; background: #fff5dc; }
+
+.forge-desktop .desktop-dock {
+  position: absolute;
+  z-index: 1000;
+  bottom: 18px;
+  left: 50%;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: calc(100% - 32px);
+  padding: 10px 12px 7px;
+  border: 1px solid #fffef5ba;
+  border-radius: 22px;
+  background: #fff9eaa1;
+  box-shadow: 0 9px 30px #74502329, inset 0 1px #ffffffb0;
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  transform: translateX(-50%);
+}
+
+.forge-desktop .dock-item {
+  position: relative;
+  display: grid;
+  place-items: start center;
+  flex-shrink: 0;
+  width: 59px;
+  height: 62px;
+  padding: 0 3px 10px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+.forge-desktop .app-icon {
+  display: grid;
+  place-items: center;
+  width: 51px;
+  height: 51px;
+  border: 1px solid #ffffff5e;
+  border-radius: 13px;
+  color: #fff;
+  box-shadow: inset 0 1px 1px #ffffff6b, 0 3px 5px #593b2021;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.forge-desktop .app-icon svg { width: 24px; height: 24px; }
+.forge-desktop .app-icon.projects { background: linear-gradient(145deg, #63b8eb, #2d85d0); }
+.forge-desktop .app-icon.diagnostics { background: linear-gradient(145deg, #829899, #435a64); }
+.forge-desktop .app-icon.world { background: linear-gradient(145deg, #83b775, #438361); }
+.forge-desktop .app-icon.assets { background: linear-gradient(145deg, #e8ae57, #be7333); }
+.forge-desktop .app-icon.characters { background: linear-gradient(145deg, #bc9bdb, #8160ac); }
+.forge-desktop .app-icon.narration { background: linear-gradient(145deg, #e59a9c, #bf647c); }
+.forge-desktop .app-icon.playtest { background: linear-gradient(145deg, #8d9feb, #5868bd); }
+.forge-desktop .dock-item:hover:not(:disabled) .app-icon,
+.forge-desktop .dock-item:focus-visible .app-icon { transform: translateY(-5px); box-shadow: inset 0 1px 1px #ffffff6b, 0 8px 12px #593b202b; }
+.forge-desktop .dock-item:disabled .app-icon { opacity: .55; }
+.forge-desktop .dock-item.is-active::after,
+.forge-desktop .dock-item.is-running::after,
+.forge-desktop .dock-item.is-open::after,
+.forge-desktop .dock-item[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #665338;
+}
+.forge-desktop .dock-tooltip {
+  position: absolute;
+  bottom: calc(100% + 13px);
+  left: 50%;
+  padding: 6px 10px;
+  border: 1px solid #ffffffad;
+  border-radius: 7px;
+  color: #493d2c;
+  background: #fffaf0f5;
+  box-shadow: 0 3px 12px #593b201c;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 3px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+.forge-desktop .dock-item:hover .dock-tooltip,
+.forge-desktop .dock-item:focus-visible .dock-tooltip { opacity: 1; transform: translate(-50%, 0); }
+
+/* Existing source-management UI: keep every action and proof notice, remove viewport-sized layout. */
+.forge-desktop .project-workspace { min-height: 0; color: var(--text); background: var(--surface); }
+.forge-desktop .project-workspace .project-topbar {
+  min-height: 0;
+  gap: 18px;
+  padding: 16px 20px;
+  background: #fffdf9;
+}
+.forge-desktop .eyebrow { color: #8b703f; font-size: 10px; letter-spacing: .13em; }
+.forge-desktop .project-topbar h1 { margin-top: 4px; font-size: 22px; font-weight: 600; letter-spacing: -.025em; }
+.forge-desktop .project-topbar p { margin-top: 5px; color: var(--muted); font-size: 12px; }
+.forge-desktop .project-proof-links { gap: 5px 13px; max-width: 280px; }
+.forge-desktop .project-proof-links a { color: #805314; font-size: 11px; }
+.forge-desktop .project-proof-links small { color: #766b59; font-size: 10px; }
+.forge-desktop .project-notice { gap: 5px 12px; padding: 9px 20px; background: #f1ecdf; font-size: 11px; line-height: 1.55; }
+.forge-desktop .project-notice strong { color: #705624; }
+.forge-desktop .project-notice span { color: #706553; }
+.forge-desktop .project-warning { background: #fff1d6; }
+.forge-desktop .project-warning strong { color: #7b5420; }
+.forge-desktop .project-warning span { color: #795f3b; }
+.forge-desktop .project-layout { grid-template-columns: 198px minmax(0, 1fr); align-items: stretch; }
+.forge-desktop .project-tree-panel { min-height: 0; padding: 20px 13px; background: #f1eee6; }
+.forge-desktop .project-tree-panel h2 { color: #847760; font-size: 10px; letter-spacing: .11em; }
+.forge-desktop .project-content { min-width: 0; padding: 16px 18px 24px; }
+.forge-desktop .project-toolbar { flex-wrap: wrap; gap: 8px 12px; margin-bottom: 9px; }
+.forge-desktop .project-save-state { color: #584a35; font-size: 12px; }
+.forge-desktop .project-button-row { gap: 6px; }
+.forge-desktop .project-workspace button {
+  padding: 7px 11px;
+  border-color: #d7cebd;
+  border-radius: 7px;
+  color: #51432d;
+  background: #fffdf8;
+  font-size: 12px;
+  box-shadow: 0 1px 2px #6450390a;
+}
+.forge-desktop .project-workspace button:hover:not(:disabled) { border-color: #b29868; background: #f5ecd9; }
+.forge-desktop .project-workspace button:disabled { opacity: .55; }
+.forge-desktop .project-workspace button.project-primary { border-color: #80591d; color: #fff; background: #8a652d; font-weight: 600; }
+.forge-desktop .project-workspace button.project-primary:hover:not(:disabled) { background: #755222; }
+.forge-desktop .project-status { min-height: 18px; margin-bottom: 10px; color: #756852; font-size: 11px; }
+.forge-desktop .project-error { margin-bottom: 12px; padding: 10px 12px; border-color: #dcaaa3; border-radius: 8px; background: #fff0ec; color: #993c32; font-size: 12px; }
+.forge-desktop .project-main-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
+.forge-desktop .project-card { padding: 16px; border-color: #e0dacf; border-radius: 10px; background: #fffefa; box-shadow: 0 2px 6px #83622b04; }
+.forge-desktop .project-card h2 { color: #514330; font-size: 15px; font-weight: 600; }
+.forge-desktop .project-card > .hint { margin-bottom: 13px; }
+.forge-desktop .hint { color: #766b5a; font-size: 11px; line-height: 1.55; }
+.forge-desktop .project-field { gap: 5px; margin-bottom: 11px; color: #63543d; font-size: 11px; }
+.forge-desktop .project-field input {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-color: #d8d0c1;
+  border-radius: 6px;
+  color: #342e26;
+  background: #fff;
+  font-size: 12px;
+  box-shadow: inset 0 1px 2px #64503905;
+}
+.forge-desktop .project-field input::placeholder { color: #958b7b; }
+.forge-desktop .project-field input:disabled { color: #766b5a; background: #f5f2ec; opacity: .8; }
+.forge-desktop .project-spawn-fields { gap: 8px; }
+.forge-desktop .project-storage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.forge-desktop .project-file-path { margin-top: 13px; padding-top: 11px; color: #786a53; font-size: 11px; }
+.forge-desktop .project-tree ul { margin-left: 7px; padding-left: 7px; border-color: #d7cebd; }
+.forge-desktop .project-tree button { gap: 3px; margin: 4px 0; padding: 9px 8px; border-color: transparent; background: transparent; box-shadow: none; }
+.forge-desktop .project-tree button small { color: #87775e; font-size: 9px; letter-spacing: .07em; }
+.forge-desktop .project-tree button.selected { border-color: #d2bf92; color: #624b24; background: #e8dcc0; }
+.forge-desktop .project-metadata { margin-top: 14px; }
+.forge-desktop .project-metadata dt { margin-top: 13px; color: #817158; font-size: 11px; }
+.forge-desktop .project-metadata dd { color: #51442e; font-size: 12px; }
+.forge-desktop .project-metadata .project-identifier { color: #7a6a53; font-size: 10px; }
+.forge-desktop .project-empty { margin: 12px 0; padding: 16px 0; color: #887861; font-size: 12px; }
+
+/* Diagnostics remain the real existing scene, with a bounded layout inside its own window. */
+.forge-desktop .desktop-window[data-app="diagnostics"] .window-content { overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.forge-desktop .desktop-window[data-app="diagnostics"] .studio-shell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: 65px minmax(0, 1fr);
+}
+.forge-desktop .desktop-window[data-app="diagnostics"] .topbar { gap: 14px; padding: 10px 16px; background: #fffdf8; }
+.forge-desktop .desktop-window[data-app="diagnostics"] h1 { font-size: 17px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .status-stack { max-width: 48%; gap: 3px; font-size: 10px; text-align: right; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 155px minmax(0, 1fr) 212px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .panel { padding: 14px 11px; background: #f5f2eb; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .panel h2 { margin-bottom: 10px; color: #7c6b51; font-size: 10px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .hierarchy button { padding: 8px; font-size: 11px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .hierarchy button.selected { color: #5e4926; background: #e6d8b9; box-shadow: inset 2px 0 #9b783f; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .viewport-panel { grid-template-rows: 34px minmax(0, 1fr); }
+.forge-desktop .desktop-window[data-app="diagnostics"] .viewport-toolbar { gap: 8px; padding: 0 10px; color: #736248; background: #ebe5d8; font-size: 10px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .inspector label { gap: 5px; margin-bottom: 12px; color: #796a52; font-size: 11px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .inspector output { padding: 7px; border-color: #d8d0c1; color: #504430; background: #fffdf8; font-size: 10px; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .webgpu-error { inset: 34px 0 0; padding: 20px; color: #983b31; background: #fff9eff5; }
+.forge-desktop .desktop-window[data-app="diagnostics"] .webgpu-error span { color: #766653; }
+
+/* Respond to the window's own width, even when the desktop viewport remains Full HD. */
+@container forge-window (max-width: 850px) {
+  .forge-desktop .project-layout { grid-template-columns: 165px minmax(0, 1fr); }
+  .forge-desktop .project-content { padding: 14px; }
+  .forge-desktop .project-main-grid,
+  .forge-desktop .project-storage-grid { grid-template-columns: minmax(0, 1fr); }
+  .forge-desktop .project-workspace .project-topbar { padding: 14px 17px; }
+  .forge-desktop .project-notice { flex-wrap: wrap; padding: 8px 17px; }
+  .forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 128px minmax(0, 1fr) 182px; }
+}
+
+@container forge-window (max-width: 620px) {
+  .forge-desktop .project-layout { grid-template-columns: minmax(0, 1fr); }
+  .forge-desktop .project-tree-panel { border-right: 0; border-bottom: 1px solid var(--line); }
+  .forge-desktop .project-topbar { flex-wrap: wrap; }
+  .forge-desktop .project-proof-links { justify-content: flex-start; max-width: none; }
+  .forge-desktop .project-proof-links small { text-align: left; }
+  .forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 120px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 150px; }
+  .forge-desktop .desktop-window[data-app="diagnostics"] .inspector { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; border-top: 1px solid var(--line); }
+  .forge-desktop .desktop-window[data-app="diagnostics"] .inspector h2 { grid-column: 1 / -1; }
+}
+
+@media (max-width: 1200px), (max-height: 760px) {
+  .forge-desktop .desktop-menubar { padding-right: 14px; padding-left: 14px; }
+  .forge-desktop .desktop-menu-trigger { padding-right: 8px; padding-left: 8px; }
+  .forge-desktop .desktop-status { gap: 8px; font-size: 10px; }
+  .forge-desktop .desktop-welcome { top: 35px; left: 44px; }
+  .forge-desktop .desktop-welcome h1 { font-size: 36px; }
+  .forge-desktop .desktop-dock { bottom: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forge-desktop .app-icon,
+  .forge-desktop .dock-tooltip { transition: none; }
+  .forge-desktop .dock-item:hover:not(:disabled) .app-icon,
+  .forge-desktop .dock-item:focus-visible .app-icon { transform: none; }
+}
+
+.forge-desktop [hidden] { display: none !important; }
+.forge-desktop .desktop-active-app { font-weight: 650; padding: 0 12px 0 6px; }
+.forge-desktop .desktop-menu-note { max-width: 280px; padding: 4px 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.forge-desktop .desktop-announcement { position: absolute; left: 24px; right: 24px; bottom: 108px; color: #674d29; text-align: center; font-size: 11px; pointer-events: none; }
+.forge-desktop .dock-divider { height: 44px; width: 1px; background: #89714542; margin: 3px 5px 12px; }
+.forge-desktop .dock-item.is-unavailable { cursor: not-allowed; }
+.forge-desktop .dock-item.is-unavailable .app-icon { opacity: .65; }
+.forge-desktop .desktop-proof-notice { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 9px 15px; background: #f1e9d7; color: #755422; font-size: 11px; }

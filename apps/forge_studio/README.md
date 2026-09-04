@@ -15,9 +15,30 @@ Trunk frontend, run from the repository root:
 `cargo build --release -p forge_studio --features tauri/custom-protocol --locked --offline`.
 Without `tauri/custom-protocol`, direct Cargo builds retain the development-server URL.
 
-The opt-in `?forge_editor=project` route opens the source-management assistant. Gate 2 is active
+The default URL and `?forge_editor=desktop` open the golden-glass desktop. The opt-in
+`?forge_editor=project` route retains the standalone source-management assistant. Gate 2 is active
 under `docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md`; this does not qualify Gate 1 or
-complete Gate 2. The existing default Gate 0 and explicit Visual Valley routes remain separate.
+complete Gate 2. Explicit Gate 0 and Visual Valley proof routes remain separate.
+
+### Shared desktop shell
+
+The desktop adds top menus, a dock, and movable/resizable/minimizable/maximizable windows.
+Projets is mounted once; hiding its window retains form fields and does not issue `Close`.
+Diagnostics lazily mounts the existing Gate 0 proof once. Subsequent hides use `visibility:hidden`
+and `inert`, retaining the same canvas and its positive layout dimensions. It is an independent
+technical proof, **not** the newly authored area. The renderer does not claim initial keyboard focus.
+The future Monde/Assets/Personnages/Narration/Playtest entries are labelled unavailable.
+
+Menu undo/redo uses the same `WorkspaceActions` as the form toolbar. File commands bring the real
+forms into focus; saving still requires an explicit destination. Ctrl+S focuses that destination;
+Ctrl+Z / Ctrl+Shift+Z operate the creation history only outside editable fields in Projets.
+Arrow keys on the window title move it, and on the resize handle resize it. Escape dismisses menus.
+No dependencies, Tauri capabilities, remote assets, or JavaScript business logic were added.
+
+Window geometry and unsubmitted form drafts live only for the current page lifetime. Native exit
+protects accepted dirty documents, not unsubmitted form text; process termination, reload and crash
+recovery remain outside this slice. Hidden Diagnostics keeps rendering; hiding is not a GPU pause.
+The CSS wallpaper and vector glyphs are original local code, inspired by the user-selected style.
 
 The first slice creates **one project, one module and one exterior area**, with a 512 × 512 m
 terrain source. Project/module/area names, the terrain seed and the X/Y/Z spawn coordinates are
@@ -81,7 +102,8 @@ native filesystem persistence; that requires the actual Tauri workflow and saved
 
 ## Embedded proof scenes
 
-The default URL remains the Gate 0 proof. Visual Valley is an explicit, reload-only viewport choice:
+`?forge_scene=gate0` retains the standalone Gate 0 proof. Visual Valley is an explicit,
+reload-only viewport choice (not an in-desktop navigation action):
 
 ```powershell
 pwsh -NoProfile -File scripts/Invoke-StudioTrunk.ps1 -Action serve
