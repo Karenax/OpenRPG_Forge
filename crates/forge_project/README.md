@@ -5,8 +5,9 @@ Définit les documents JSON persistants et moteur-neutres de Forge :
 - `forge.scene-proof` version 1 pour la preuve native/WASM de Gate 0 ;
 - `forge.terrain` versions 1 à 3 pour les terrains ; la fixture Visual Valley garde sa v1 intacte,
   la v2 accepte les deltas de hauteur authorés et la v3 ajoute les poids de matériaux authorés ;
-- `forge.workspace` version 2 pour les projets multi-modules et multi-zones, avec lecture/migration
-  stricte de la version 1, métadonnées, point de départ et terrain source v3 ;
+- `forge.path` version 1 pour les chemins génériques persistants, sans profil de route ni rivière ;
+- `forge.workspace` version 4 pour les projets multi-modules et multi-zones, avec lecture/migration
+  stricte des versions 1 à 3, métadonnées, point de départ et documents source par zone ;
 - `forge.visual-valley-quality-profile` version 1 pour les presets Low/Medium/High/Ultra, le mode
   benchmark High fixe et la politique d'adaptation bornée.
 
@@ -49,7 +50,8 @@ La source suit `WorkspaceDocument.project.modules[].areas[].terrain`, accessible
 512 × 512 m, pas de 2 m,
 trois matériaux logiques herbe/terre/roche et un relief procédural d'amplitude 12 m. Les identités
 projet/zone du terrain doivent correspondre à leurs propriétaires ; sa révision est positive et ne
-dépasse pas celle du workspace. Il n'existe ni chemin libre ni asset dans ce contrat.
+dépasse pas celle du workspace. Chaque nouvelle zone possède aussi un `PathDocument` v1 vide. Aucun
+asset ni chemin de fichier libre n'entre dans ce contrat.
 
 Le reçu expose la commande, l'absence d'état/révision antérieure, la nouvelle révision, le hash
 résultant et un résumé borné. L'inverse `DiscardDraft { expected_after_hash }` autorise uniquement
@@ -64,20 +66,20 @@ inconnus et versions non prises en charge sont refusés. Les tests de contrat co
 cohérence des identités, noms, seed, spawn, round-trip/hash, reçu et limites de format. Leur présence
 ne vaut pas preuve d'une sauvegarde native ou d'un parcours Studio fonctionnel.
 
-## Modules, zones et migration v2
+## Modules, zones et migration v4
 
 Le projet contient 1 à 64 modules ; un nouveau module peut être vide. Le total des zones est limité
 à 256, avec des IDs de modules uniques et des IDs de zones uniques dans tout le projet. Les noms ne
 servent pas d'identités. La limite JSON formaté reste de 1 Mio pour le workspace complet.
 
 `from_json` inspecte la version puis relit les octets d'origine avec le schéma strict correspondant :
-aucun champ inconnu, doublon de clé ou mélange de formes v1/v2 n'est supprimé silencieusement.
-La migration v1 remplace les objets uniques par des collections de longueur 1, fixe le workspace à
-la version 2 et met chaque terrain ancien au schéma courant en ajoutant seulement les couches
-d'authoring absentes. IDs, révisions, seed, hauteurs, matériaux et spawn restent inchangés. Elle
-n'écrit aucun fichier.
+aucun champ inconnu, doublon de clé ou mélange de formes v1/v2/v3/v4 n'est supprimé silencieusement.
+Les migrations v1/v2 reconstruisent leurs collections et documents absents ; la migration v3 ajoute
+uniquement un `PathDocument` vide à chaque zone. Les migrations embarquées du terrain et de la
+végétation restent appliquées. IDs, révisions, seed, hauteurs, matériaux, végétation et spawn restent
+inchangés. La lecture n'écrit aucun fichier.
 Les consommateurs doivent comparer les hashes canoniques après migration, pas prétendre que les
-octets ou le hash historique v1 sont ceux de la représentation v2.
+octets ou le hash historique sont ceux de la représentation v4.
 
 `preview_edit(WorkspaceEdit)` est pur et partagé : ajout de module, ajout de zone extérieure,
 renommage projet/module, édition du nom et du départ d'une zone. Chaque demande porte CommandId,
@@ -96,3 +98,21 @@ Le calcul des brosses appartient à `forge_world::preview_terrain_brush` ; `forg
 pas du générateur ni du renderer. Le reçu de brosse conserve séparément l'intention typée et le
 patch résolu ; seuls les deltas de hauteur et les poids matériaux sparse v3 sont persistés dans le
 projet.
+
+## Chemins persistants
+
+`PathDocument` conserve une collection canonique de `AuthoredPath` triés par `PathId`. Un chemin
+porte uniquement son nom, son caractère ouvert ou fermé, l'interpolation
+`centripetal_catmull_rom_v1` et ses points `Vec3` ordonnés en mètres Y-up. Largeur, profil,
+matériau, berges, carving, intersections, maillage et pas d'échantillonnage restent hors de R2-021.
+
+Le document accepte au plus 64 chemins, 64 points par chemin et 2 048 points au total. Un chemin
+ouvert exige deux points et un chemin fermé trois. X/Z appartiennent à `[-256, 256[`, Y à
+`[-10 000, 10 000]`, deux points consécutifs restent séparés horizontalement d'au moins 0,5 m et la
+fermeture suit la même règle. La longueur du polygone de contrôle est limitée à 8 192 m par chemin et
+32 768 m par document ; le JSON du document est limité à 512 Kio.
+
+`UpsertPath` lie la mutation à la révision du workspace et au hash exact du `PathDocument`. Un ID
+absent crée le chemin, un ID présent le remplace entièrement, puis la collection est retriée. Un
+succès avance une seule fois les révisions workspace/chemins et conserve le snapshot inverse commun.
+Cette commande ne peut pas supprimer implicitement un autre chemin.

@@ -6,8 +6,8 @@ use crate::workspace_api::{
     WorkspaceCommand, WorkspaceState,
 };
 use forge_project::{
-    MAX_WORKSPACE_JSON_BYTES, VegetationExclusion, VegetationExclusionId, VegetationLayerId,
-    VegetationSpeciesPreset, WorkspaceDocument,
+    MAX_WORKSPACE_JSON_BYTES, PathId, VegetationExclusion, VegetationExclusionId,
+    VegetationLayerId, VegetationSpeciesPreset, WORKSPACE_SCHEMA_VERSION, WorkspaceDocument,
 };
 use serde_json::{Value, json};
 use std::{
@@ -126,6 +126,26 @@ fn area_request(
             area_id: area.id,
         },
         base_revision: state.revision,
+    }
+}
+
+fn create_path_command(state: &WorkspaceState, trace_xz_m: Vec<[f32; 2]>) -> WorkspaceCommand {
+    WorkspaceCommand::CreatePath {
+        request: area_request(state, 0, 0),
+        name: String::new(),
+        trace_xz_m,
+    }
+}
+
+fn redraw_path_command(
+    state: &WorkspaceState,
+    path_id: PathId,
+    trace_xz_m: Vec<[f32; 2]>,
+) -> WorkspaceCommand {
+    WorkspaceCommand::RedrawPath {
+        request: area_request(state, 0, 0),
+        path_id,
+        trace_xz_m,
     }
 }
 
@@ -738,6 +758,7 @@ fn vegetation_density_history_and_reopen_preserve_exact_sources() {
     expected_other_area.terrain.revision = redone_document.revision;
     expected_other_area.vegetation.revision = redone_document.revision;
     expected_other_area.vegetation_density.revision = redone_document.revision;
+    expected_other_area.paths.revision = redone_document.revision;
     assert_eq!(
         redone_document.project.modules[0].areas[1],
         expected_other_area
@@ -2401,6 +2422,171 @@ fn vegetation_promotion_and_retouch_rejections_are_atomic() {
 }
 
 #[test]
+fn path_create_and_redraw_are_one_revision_each_and_survive_history_and_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let history_before_create = session.undo.len();
+    let first_trace = vec![[-24.0, -12.0], [0.0, 8.0], [24.0, 12.0]];
+
+    let with_path = session
+        .execute(create_path_command(&created, first_trace.clone()))
+        .unwrap();
+    assert_eq!(with_path.revision, created.revision + 1);
+    assert_eq!(session.undo.len(), history_before_create + 1);
+    let path = document(&with_path).project.modules[0].areas[0].paths.paths[0].clone();
+    assert!(!path.id.as_entity_id().as_uuid().is_nil());
+    assert_eq!(path.name, "Chemin 1");
+    assert_eq!(
+        path.control_points
+            .iter()
+            .map(|point| [point.position_m.x, point.position_m.z])
+            .collect::<Vec<_>>(),
+        first_trace
+    );
+    assert_eq!(
+        receipt(&with_path)["edit"]["receipt"]["command"]["change"]["operation"],
+        "upsert_path"
+    );
+
+    let redraw_trace = vec![[-32.0, 18.0], [-4.0, -2.0], [28.0, -18.0]];
+    let history_before_redraw = session.undo.len();
+    let redrawn = session
+        .execute(redraw_path_command(
+            &with_path,
+            path.id,
+            redraw_trace.clone(),
+        ))
+        .unwrap();
+    assert_eq!(redrawn.revision, with_path.revision + 1);
+    assert_eq!(session.undo.len(), history_before_redraw + 1);
+    let redrawn_path = document(&redrawn).project.modules[0].areas[0].paths.paths[0].clone();
+    assert_eq!(redrawn_path.id, path.id);
+    assert_eq!(redrawn_path.name, path.name);
+    assert_eq!(
+        redrawn_path
+            .control_points
+            .iter()
+            .map(|point| [point.position_m.x, point.position_m.z])
+            .collect::<Vec<_>>(),
+        redraw_trace
+    );
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: redrawn.revision,
+        })
+        .unwrap();
+    let undone_path = document(&undone).project.modules[0].areas[0].paths.paths[0].clone();
+    assert_eq!(undone_path.id, path.id);
+    assert_eq!(undone_path.control_points, path.control_points);
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    let redone_path = document(&redone).project.modules[0].areas[0].paths.paths[0].clone();
+    assert_eq!(redone_path.id, path.id);
+    assert_eq!(redone_path.control_points, redrawn_path.control_points);
+
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+    assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+fn path_create_and_redraw_rejections_are_atomic() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-16.0, 0.0], [16.0, 0.0]],
+        ))
+        .unwrap();
+    let path_id = document(&with_path).project.modules[0].areas[0].paths.paths[0].id;
+    let saved = save(&mut session, &directory);
+    let files_before = directory.files();
+    let valid_request = area_request(&saved, 0, 0);
+    let mut stale_request = valid_request;
+    stale_request.base_revision -= 1;
+    let mut wrong_area_request = valid_request;
+    wrong_area_request.key.area_id = forge_core::AreaId::deterministic("missing-path-area");
+    let mut wrong_project_request = valid_request;
+    wrong_project_request.key.project_id =
+        forge_core::ProjectId::deterministic("wrong-path-project");
+
+    for command in [
+        WorkspaceCommand::CreatePath {
+            request: stale_request,
+            name: String::new(),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        },
+        WorkspaceCommand::CreatePath {
+            request: wrong_project_request,
+            name: String::new(),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        },
+        WorkspaceCommand::CreatePath {
+            request: valid_request,
+            name: "\n".into(),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        },
+        WorkspaceCommand::CreatePath {
+            request: valid_request,
+            name: String::new(),
+            trace_xz_m: vec![[0.0, 0.0]],
+        },
+        WorkspaceCommand::RedrawPath {
+            request: wrong_area_request,
+            path_id,
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        },
+        WorkspaceCommand::RedrawPath {
+            request: valid_request,
+            path_id: PathId::deterministic("missing-path"),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        },
+        WorkspaceCommand::RedrawPath {
+            request: valid_request,
+            path_id,
+            trace_xz_m: vec![[-16.0, 0.0], [16.0, 0.0]],
+        },
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), files_before);
+    }
+}
+
+#[test]
+fn path_identity_and_default_name_are_deterministic_after_undo() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let first = session
+        .execute(create_path_command(
+            &created,
+            vec![[-12.0, -4.0], [12.0, 4.0]],
+        ))
+        .unwrap();
+    let first_path = document(&first).project.modules[0].areas[0].paths.paths[0].clone();
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: first.revision,
+        })
+        .unwrap();
+    let recreated = session
+        .execute(create_path_command(&undone, vec![[-8.0, -8.0], [8.0, 8.0]]))
+        .unwrap();
+    let recreated_path = document(&recreated).project.modules[0].areas[0].paths.paths[0].clone();
+    assert_eq!(recreated_path.id, first_path.id);
+    assert_eq!(recreated_path.name, first_path.name);
+}
+
+#[test]
 fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     let directory = TestDirectory::new();
     let source = document(
@@ -2414,6 +2600,7 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     let mut area = module["areas"][0].clone();
     area.as_object_mut().unwrap().remove("vegetation");
     area.as_object_mut().unwrap().remove("vegetation_density");
+    area.as_object_mut().unwrap().remove("paths");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     legacy["project"].as_object_mut().unwrap().remove("modules");
@@ -2442,5 +2629,40 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
         .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
         .unwrap();
     assert_eq!(fresh.document_json, saved.document_json);
-    assert_eq!(document(&fresh).schema_version, 3);
+    assert_eq!(document(&fresh).schema_version, WORKSPACE_SCHEMA_VERSION);
+}
+
+#[test]
+fn opening_v2_and_v3_adds_empty_paths_in_memory_without_rewriting_legacy_snapshots() {
+    let source = document(
+        &WorkspaceSession::default()
+            .execute(create_command())
+            .unwrap(),
+    );
+    for version in [2_u32, 3_u32] {
+        let directory = TestDirectory::new();
+        let mut legacy = serde_json::to_value(&source).unwrap();
+        legacy["schema_version"] = json!(version);
+        for area in legacy["project"]["modules"][0]["areas"]
+            .as_array_mut()
+            .unwrap()
+        {
+            area.as_object_mut().unwrap().remove("paths");
+            if version == 2 {
+                area.as_object_mut().unwrap().remove("vegetation");
+                area.as_object_mut().unwrap().remove("vegetation_density");
+            }
+        }
+        let path = directory.write(
+            &format!("{}-r1.forge.json", source.project.id),
+            legacy.to_string(),
+        );
+        let bytes = fs::read(&path).unwrap();
+        let mut session = WorkspaceSession::default();
+        let opened = session.execute(open_command(&path)).unwrap();
+        assert_eq!(document(&opened), source);
+        assert!(!opened.dirty);
+        save(&mut session, &directory);
+        assert_eq!(fs::read(&path).unwrap(), bytes);
+    }
 }

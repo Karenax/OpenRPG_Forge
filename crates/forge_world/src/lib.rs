@@ -3,6 +3,7 @@
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
 mod environment;
+mod path;
 mod player;
 mod terrain;
 mod terrain_brush;
@@ -24,6 +25,12 @@ pub use terrain_brush::{
 pub use environment::{
     VISUAL_VALLEY_ENVIRONMENT_JSON, VisualValleyEnvironmentRecipe,
     embedded_visual_valley_environment_profile,
+};
+pub use path::{
+    GeneratedPath, GeneratedPaths, MAX_PATH_TRACE_POINTS, MIN_PATH_TRACE_POINT_DISTANCE_M,
+    MIN_PATH_TRACE_POINTS, PATH_SAMPLE_SPACING_M, PathCommandError, PathCreateCommand,
+    PathCreateResult, PathGenerationError, PathGenerationPlan, PathRedrawCommand, PathRedrawResult,
+    PathSample, preview_create_path, preview_redraw_path,
 };
 
 pub use player::{

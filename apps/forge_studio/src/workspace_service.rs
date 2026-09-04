@@ -9,9 +9,10 @@ use crate::{
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
 use forge_project::{
-    MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand, TerrainMaterialRole,
-    VegetationExclusion, VegetationExclusionId, VegetationLayer, VegetationLayerId, WorkspaceArea,
-    WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit, WorkspaceError,
+    MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand,
+    PathId, TerrainMaterialRole, VegetationExclusion, VegetationExclusionId, VegetationLayer,
+    VegetationLayerId, WorkspaceArea, WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument,
+    WorkspaceEdit, WorkspaceError,
 };
 use std::path::{Path, PathBuf};
 
@@ -153,6 +154,8 @@ impl WorkspaceSession {
             | WorkspaceCommand::RetouchPromotedVegetationInstance { .. }) => {
                 return self.execute_vegetation_instance_edit(command);
             }
+            command @ (WorkspaceCommand::CreatePath { .. }
+            | WorkspaceCommand::RedrawPath { .. }) => return self.execute_path_edit(command),
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -165,13 +168,8 @@ impl WorkspaceSession {
             | WorkspaceCommand::RemoveVegetationExclusion { .. }) => {
                 self.execute_vegetation_edit(command)?
             }
-            WorkspaceCommand::Undo { base_revision } => {
-                self.require_revision(base_revision)?;
-                self.restore_history(false)?
-            }
-            WorkspaceCommand::Redo { base_revision } => {
-                self.require_revision(base_revision)?;
-                self.restore_history(true)?
+            command @ (WorkspaceCommand::Undo { .. } | WorkspaceCommand::Redo { .. }) => {
+                self.execute_history(&command)?
             }
             WorkspaceCommand::Close => {
                 if self.is_dirty()? {
@@ -256,6 +254,20 @@ impl WorkspaceSession {
         self.state(format!(
             "Brosse appliquée : {samples} hauteurs modifiées. Annulation disponible."
         ))
+    }
+
+    fn execute_history(&mut self, command: &WorkspaceCommand) -> Result<String, String> {
+        match command {
+            WorkspaceCommand::Undo { base_revision } => {
+                self.require_revision(*base_revision)?;
+                self.restore_history(false)
+            }
+            WorkspaceCommand::Redo { base_revision } => {
+                self.require_revision(*base_revision)?;
+                self.restore_history(true)
+            }
+            _ => Err("Commande d’historique attendue.".into()),
+        }
     }
 
     fn execute_material_brush(
@@ -405,6 +417,84 @@ impl WorkspaceSession {
         self.commit_edit(candidate.edit, receipt);
         self.state(format!(
             "Instance végétale {instance_id} retouchée. Annulation disponible."
+        ))
+    }
+
+    fn execute_path_create(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        requested_name: &str,
+        trace_xz_m: Vec<[f32; 2]>,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let (path_id, name) = {
+            let area = self.area_for_request(request)?;
+            first_free_path_identity_and_name(area, requested_name)?
+        };
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_create_path(
+            document,
+            forge_world::PathCreateCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                path_id,
+                name: name.clone(),
+                trace_xz_m,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!("Chemin « {name} » créé. Annulation disponible."))
+    }
+
+    fn execute_path_edit(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
+        match command {
+            WorkspaceCommand::CreatePath {
+                request,
+                name,
+                trace_xz_m,
+            } => self.execute_path_create(request, &name, trace_xz_m),
+            WorkspaceCommand::RedrawPath {
+                request,
+                path_id,
+                trace_xz_m,
+            } => self.execute_path_redraw(request, path_id, trace_xz_m),
+            _ => Err("Commande de chemin attendue.".into()),
+        }
+    }
+
+    fn execute_path_redraw(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        path_id: PathId,
+        trace_xz_m: Vec<[f32; 2]>,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_redraw_path(
+            document,
+            forge_world::PathRedrawCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                path_id,
+                trace_xz_m,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let name = candidate.path.name.clone();
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Chemin « {name} » redessiné. Annulation disponible."
         ))
     }
 
@@ -1015,6 +1105,34 @@ fn exclusion_from_draft(
     }
 }
 
+fn first_free_path_identity_and_name(
+    area: &WorkspaceArea,
+    requested_name: &str,
+) -> Result<(PathId, String), String> {
+    if area.paths.paths.len() >= MAX_PATHS_PER_DOCUMENT {
+        return Err(format!(
+            "La zone contient déjà la limite de {MAX_PATHS_PER_DOCUMENT} chemins."
+        ));
+    }
+    (1..=MAX_PATHS_PER_DOCUMENT)
+        .find_map(|index| {
+            let id = PathId::deterministic(format!(
+                "studio/{}/{}/path-{index:02}",
+                area.paths.project_id, area.id
+            ));
+            (!area.paths.paths.iter().any(|path| path.id == id)).then(|| {
+                let name = if requested_name.is_empty() {
+                    format!("Chemin {index}")
+                } else {
+                    requested_name.to_owned()
+                };
+                (id, name)
+            })
+        })
+        .filter(|(id, _)| !id.as_entity_id().as_uuid().is_nil())
+        .ok_or_else(|| "Aucun identifiant de chemin déterministe libre.".into())
+}
+
 fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
     document.revision = Revision::new(next);
     for module in &mut document.project.modules {
@@ -1022,6 +1140,7 @@ fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
             area.terrain.revision = document.revision;
             area.vegetation.revision = document.revision;
             area.vegetation_density.revision = document.revision;
+            area.paths.revision = document.revision;
         }
     }
 }

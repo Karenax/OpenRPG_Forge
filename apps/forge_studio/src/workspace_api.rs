@@ -2,7 +2,8 @@
 
 use forge_core::{AreaId, EntityId, ModuleId};
 use forge_project::{
-    VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId, VegetationSpeciesPreset,
+    PathId, VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId,
+    VegetationSpeciesPreset,
 };
 use serde::{Deserialize, Serialize};
 
@@ -113,6 +114,16 @@ pub enum WorkspaceCommand {
         request: crate::area_preview::AreaPreviewRequest,
         instance_id: EntityId,
         authored_transform: VegetationInstanceTransform,
+    },
+    CreatePath {
+        request: crate::area_preview::AreaPreviewRequest,
+        name: String,
+        trace_xz_m: Vec<[f32; 2]>,
+    },
+    RedrawPath {
+        request: crate::area_preview::AreaPreviewRequest,
+        path_id: PathId,
+        trace_xz_m: Vec<[f32; 2]>,
     },
     Current,
     Create {
@@ -261,6 +272,16 @@ mod tests {
                     1.1,
                 ),
             },
+            WorkspaceCommand::CreatePath {
+                request,
+                name: String::new(),
+                trace_xz_m: vec![[-8.0, -4.0], [8.0, 4.0]],
+            },
+            WorkspaceCommand::RedrawPath {
+                request,
+                path_id: PathId::deterministic("ipc-path"),
+                trace_xz_m: vec![[-4.0, -8.0], [4.0, 8.0]],
+            },
             WorkspaceCommand::Undo { base_revision: 1 },
             WorkspaceCommand::Redo { base_revision: 2 },
             WorkspaceCommand::Close,
@@ -324,6 +345,23 @@ mod tests {
             .unwrap();
         retouch["authored_transform"]["unexpected"] = serde_json::json!(true);
         assert!(serde_json::from_value::<WorkspaceCommand>(retouch).is_err());
+
+        let mut path = serde_json::to_value(WorkspaceCommand::CreatePath {
+            request,
+            name: String::new(),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        })
+        .unwrap();
+        path["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(path).is_err());
+        let mut nested_path = serde_json::to_value(WorkspaceCommand::RedrawPath {
+            request,
+            path_id: PathId::deterministic("strict-ipc-path"),
+            trace_xz_m: vec![[0.0, 0.0], [8.0, 0.0]],
+        })
+        .unwrap();
+        nested_path["request"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(nested_path).is_err());
     }
 
     #[test]

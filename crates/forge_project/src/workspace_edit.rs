@@ -3,7 +3,7 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    PromotedVegetationInstance, TerrainHeightDelta, TerrainMaterialWeightOverride,
+    AuthoredPath, PromotedVegetationInstance, TerrainHeightDelta, TerrainMaterialWeightOverride,
     VegetationDensityLayer, VegetationDensityOverride, VegetationExclusion, VegetationLayer,
     VegetationLayerId, WorkspaceDocument, WorkspaceError, WorkspaceModule,
 };
@@ -65,6 +65,13 @@ pub enum WorkspaceChange {
         area_id: AreaId,
         expected_vegetation_hash: ContentHash,
         promoted_instances: Vec<PromotedVegetationInstance>,
+    },
+    /// Creates or replaces one complete generic authored path without implicitly deleting others.
+    UpsertPath {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_path_document_hash: ContentHash,
+        path: AuthoredPath,
     },
     AddModule {
         module_id: ModuleId,
@@ -241,6 +248,19 @@ impl WorkspaceDocument {
                 base_revision,
                 next,
             )?,
+            WorkspaceChange::UpsertPath {
+                module_id,
+                area_id,
+                expected_path_document_hash,
+                path,
+            } => upsert_path(
+                document,
+                *module_id,
+                *area_id,
+                *expected_path_document_hash,
+                path,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -323,6 +343,49 @@ fn update_area_metadata(
     area.vegetation.revision = revision;
     name.clone_into(&mut area.vegetation_density.name);
     area.vegetation_density.revision = revision;
+    name.clone_into(&mut area.paths.name);
+    area.paths.revision = revision;
+    Ok(())
+}
+
+fn upsert_path(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_hash: ContentHash,
+    path: &AuthoredPath,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.paths.content_hash()? != expected_hash {
+        return Err(WorkspaceError::StaleRevision);
+    }
+
+    let mut replacement = area.paths.clone();
+    match replacement
+        .paths
+        .binary_search_by_key(&path.id, |candidate| candidate.id)
+    {
+        Ok(index) => {
+            if replacement.paths[index] == *path {
+                return Err(WorkspaceError::NoChange);
+            }
+            replacement.paths[index] = path.clone();
+        }
+        Err(index) => replacement.paths.insert(index, path.clone()),
+    }
+    replacement.revision = revision;
+    replacement.validate()?;
+    area.paths = replacement;
     Ok(())
 }
 

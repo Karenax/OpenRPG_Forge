@@ -15,8 +15,8 @@ use bevy::{
     window::{PresentMode, WindowResolution},
 };
 use forge_engine::editor_viewport::{
-    EditorTerrainRequest, EditorVegetationRequest, EditorViewport, EditorViewportPlugin,
-    EditorViewportStatus,
+    EditorPathRequest, EditorTerrainRequest, EditorVegetationRequest, EditorViewport,
+    EditorViewportPlugin, EditorViewportStatus,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -26,6 +26,9 @@ use wasm_bindgen::{JsCast, closure::Closure};
 #[path = "brush_ui.rs"]
 mod brush;
 use brush::{BrushPanel, VegetationPanel, create_brush_actions};
+#[path = "path_ui.rs"]
+mod path;
+use path::{PathPanel, create_path_actions};
 
 #[derive(Clone, Copy)]
 pub(crate) struct WorldActions {
@@ -54,6 +57,7 @@ impl WorldActions {
                     || bridge.status.chunks != 64
             });
             bridge.pending = None;
+            bridge.path_draft = None;
         }
     }
 
@@ -117,6 +121,9 @@ impl WorldActions {
                 generated: preview.vegetation,
                 density_source_hash: preview.vegetation_density_source_hash,
             }),
+            paths: Some(EditorPathRequest {
+                generated: preview.paths,
+            }),
             spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
             base_source_hash: preview.base_source_hash,
         });
@@ -159,13 +166,15 @@ impl WorldActions {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
         format!(
-            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · boucle {:.1} ms",
+            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · boucle {:.1} ms",
             status.revision,
             status.rebuilt_chunks,
             status.retained_chunks,
             status.vegetation_instances,
             status.vegetation_rebuilt_chunks,
             status.vegetation_retained_chunks,
+            status.path_count,
+            status.path_samples,
             status.frame_ms
         )
     }
@@ -218,6 +227,7 @@ struct AreaPreviewTarget {
     terrain_hash: forge_core::ContentHash,
     vegetation_hash: forge_core::ContentHash,
     vegetation_density_hash: forge_core::ContentHash,
+    path_hash: forge_core::ContentHash,
 }
 
 fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>> {
@@ -236,6 +246,7 @@ fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>>
             terrain_hash: area.terrain.content_hash().ok()?,
             vegetation_hash: area.vegetation.content_hash().ok()?,
             vegetation_density_hash: area.vegetation_density.content_hash().ok()?,
+            path_hash: area.paths.content_hash().ok()?,
         })
     })
 }
@@ -278,6 +289,7 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                 target.terrain_hash,
                 target.vegetation_hash,
                 target.vegetation_density_hash,
+                target.path_hash,
                 base_source_hash,
             )
             .await;
@@ -296,6 +308,9 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                                 vegetation: Some(EditorVegetationRequest {
                                     generated: preview.vegetation,
                                     density_source_hash: preview.vegetation_density_source_hash,
+                                }),
+                                paths: Some(EditorPathRequest {
+                                    generated: preview.paths,
                                 }),
                                 spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
                                 base_source_hash: preview.base_source_hash,
@@ -337,6 +352,7 @@ async fn fetch_preview(
     terrain_hash: forge_core::ContentHash,
     vegetation_hash: forge_core::ContentHash,
     vegetation_density_hash: forge_core::ContentHash,
+    path_hash: forge_core::ContentHash,
     base_source_hash: Option<forge_core::ContentHash>,
 ) -> Result<crate::area_preview::AreaPreview, String> {
     match invoke_studio(StudioCommand::AreaPreview {
@@ -352,6 +368,8 @@ async fn fetch_preview(
                 || preview.vegetation.terrain_document_hash != terrain_hash
                 || preview.vegetation.vegetation_document_hash != vegetation_hash
                 || preview.vegetation_density_source_hash != vegetation_density_hash
+                || preview.paths.terrain_document_hash != terrain_hash
+                || preview.paths.path_document_hash != path_hash
                 || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)
@@ -424,6 +442,7 @@ struct PointerDrag {
 pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions) -> impl IntoView {
     let drag = RwSignal::new(None::<PointerDrag>);
     let brush = create_brush_actions(actions, workspace);
+    let paths = create_path_actions(actions, workspace, brush);
     view! {
         <section class="world-workspace" aria-label="Éditeur de zones">
             <aside class="world-area-browser">
@@ -442,6 +461,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                 <p class="hint">"Les sources s’éditent dans Projets. Fermer un onglet ne supprime pas la zone."</p>
                 <BrushPanel brush=brush world=actions workspace=workspace/>
                 <VegetationPanel brush=brush world=actions workspace=workspace/>
+                <PathPanel paths=paths brush=brush world=actions workspace=workspace/>
             </aside>
             <div class="world-editor">
                 <div class="world-tabs" role="tablist" aria-label="Zones ouvertes">
@@ -466,9 +486,13 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                 </div>
                 <div class="world-canvas-host">
                     <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
-                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" { brush.cancel(actions, false); brush.clear_hover(actions); } }
-                        on:pointerleave=move |_| brush.clear_hover(actions)
+                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" {
+                            paths.cancel(actions, false); paths.clear_hover(actions);
+                            brush.cancel(actions, false); brush.clear_hover(actions);
+                        } }
+                        on:pointerleave=move |_| { paths.clear_hover(actions); brush.clear_hover(actions); }
                         on:pointerdown=move |event: web_sys::PointerEvent| {
+                            if paths.start(actions, workspace, brush, &event) { return; }
                             if brush.start(actions, workspace, &event) { return; }
                             if event.button() != 0 { return; }
                             if let Some(element) = event.current_target().and_then(|target| target.dyn_into::<web_sys::Element>().ok())
@@ -478,7 +502,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                             }
                         }
                         on:pointermove=move |event: web_sys::PointerEvent| {
-                            brush.move_pointer(actions, &event);
+                            if !paths.move_pointer(actions, &event) { brush.move_pointer(actions, &event); }
                             let Some(previous) = drag.get_untracked().filter(|previous| previous.id == event.pointer_id()) else { return };
                             let delta = [pixel_delta(event.client_x() - previous.x), pixel_delta(event.client_y() - previous.y)];
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
@@ -487,9 +511,12 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                             }
                             drag.set(Some(PointerDrag { x: event.client_x(), y: event.client_y(), ..previous }));
                         }
-                        on:pointerup=move |event: web_sys::PointerEvent| { brush.finish(actions, &event); drag.set(None); }
-                        on:pointercancel=move |_| { brush.cancel(actions, false); drag.set(None); }
-                        on:lostpointercapture=move |_| { brush.cancel(actions, true); drag.set(None); }
+                        on:pointerup=move |event: web_sys::PointerEvent| {
+                            if !paths.finish(actions, &event) { brush.finish(actions, &event); }
+                            drag.set(None);
+                        }
+                        on:pointercancel=move |_| { paths.cancel(actions, false); brush.cancel(actions, false); drag.set(None); }
+                        on:lostpointercapture=move |_| { paths.cancel(actions, true); brush.cancel(actions, true); drag.set(None); }
                         on:wheel=move |event: web_sys::WheelEvent| {
                             event.prevent_default();
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }

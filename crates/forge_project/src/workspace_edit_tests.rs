@@ -1,9 +1,11 @@
 use super::*;
 use crate::{
+    AuthoredPath, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
     MAX_PROMOTED_VEGETATION_INSTANCES, MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS,
-    MAX_WORKSPACE_MODULES, NewProjectCommand, PromotedVegetationInstance, TerrainMaterialLayerId,
-    TerrainMaterialRole, TerrainMaterialWeightOverride, VegetationDensityError,
-    VegetationDensityOverride, VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
+    MAX_WORKSPACE_MODULES, NewProjectCommand, PathControlPoint, PathDocumentError, PathId,
+    PathInterpolation, PromotedVegetationInstance, TerrainMaterialLayerId, TerrainMaterialRole,
+    TerrainMaterialWeightOverride, VegetationDensityError, VegetationDensityOverride,
+    VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
     VegetationGenerationAlgorithm, VegetationInstanceTransform, VegetationPromotionSource,
     VegetationSpeciesPreset,
 };
@@ -91,6 +93,32 @@ fn promotion_change(
         promoted_instances,
     }
 }
+
+fn authored_path(key: &str, offset_m: f32) -> AuthoredPath {
+    AuthoredPath {
+        id: PathId::deterministic(format!("workspace-path/{key}")),
+        name: format!("Chemin {key}"),
+        closed: false,
+        interpolation: PathInterpolation::CentripetalCatmullRomV1,
+        control_points: vec![
+            PathControlPoint::new(Vec3::new(-8.0 + offset_m, 1.0, -4.0)),
+            PathControlPoint::new(Vec3::new(offset_m, 2.0, 0.0)),
+            PathControlPoint::new(Vec3::new(8.0 + offset_m, 1.0, 4.0)),
+        ],
+    }
+}
+
+fn path_change(document: &WorkspaceDocument, path: AuthoredPath) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    WorkspaceChange::UpsertPath {
+        module_id: module.id,
+        area_id: area.id,
+        expected_path_document_hash: area.paths.content_hash().unwrap(),
+        path,
+    }
+}
+
 fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut value = serde_json::to_value(document).unwrap();
     value["schema_version"] = json!(1);
@@ -98,6 +126,7 @@ fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut area = module["areas"][0].clone();
     area.as_object_mut().unwrap().remove("vegetation");
     area.as_object_mut().unwrap().remove("vegetation_density");
+    area.as_object_mut().unwrap().remove("paths");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     value["project"].as_object_mut().unwrap().remove("modules");
@@ -112,6 +141,18 @@ fn legacy_v2_json(document: &WorkspaceDocument) -> String {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("vegetation");
             area.as_object_mut().unwrap().remove("vegetation_density");
+            area.as_object_mut().unwrap().remove("paths");
+        }
+    }
+    value.to_string()
+}
+
+fn legacy_v3_json(document: &WorkspaceDocument) -> String {
+    let mut value = serde_json::to_value(document).unwrap();
+    value["schema_version"] = json!(3);
+    for module in value["project"]["modules"].as_array_mut().unwrap() {
+        for area in module["areas"].as_array_mut().unwrap() {
+            area.as_object_mut().unwrap().remove("paths");
         }
     }
     value.to_string()
@@ -210,6 +251,96 @@ fn workspace_v2_migration_preserves_authored_terrain_and_synthesizes_an_empty_ma
 }
 
 #[test]
+fn workspace_v3_migration_adds_only_empty_paths_and_migrates_embedded_sources() {
+    let mut legacy = source();
+    let project_id = legacy.project.id;
+    let module_id = legacy.project.modules[0].id;
+    let area = &mut legacy.project.modules[0].areas[0];
+    area.terrain.schema_version = crate::TERRAIN_DOCUMENT_SCHEMA_VERSION_V2;
+    area.terrain.height_deltas = vec![crate::TerrainHeightDelta::new(128, 128, 3.5)];
+    area.vegetation.schema_version = crate::VEGETATION_DOCUMENT_SCHEMA_VERSION_V1;
+    let identities = (
+        project_id,
+        module_id,
+        area.id,
+        area.terrain.project_id,
+        area.vegetation.area_id,
+    );
+    let revisions = (
+        legacy.revision,
+        area.terrain.revision,
+        area.vegetation.revision,
+        area.vegetation_density.revision,
+    );
+    let density = area.vegetation_density.clone();
+    let json = legacy_v3_json(&legacy);
+    let untouched = json.clone();
+
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    assert_eq!(json, untouched);
+    assert_eq!(migrated.schema_version, crate::WORKSPACE_SCHEMA_VERSION);
+    let area = &migrated.project.modules[0].areas[0];
+    assert!(area.paths.paths.is_empty());
+    assert_eq!(area.paths.project_id, migrated.project.id);
+    assert_eq!(area.paths.area_id, area.id);
+    assert_eq!(area.paths.name, area.name);
+    assert_eq!(
+        area.paths.revision,
+        revisions.1.max(revisions.2).max(revisions.3)
+    );
+    assert_eq!(
+        area.terrain.height_deltas,
+        vec![crate::TerrainHeightDelta::new(128, 128, 3.5)]
+    );
+    assert_eq!(
+        area.terrain.schema_version,
+        crate::TERRAIN_DOCUMENT_SCHEMA_VERSION
+    );
+    assert_eq!(
+        area.vegetation.schema_version,
+        crate::VEGETATION_DOCUMENT_SCHEMA_VERSION
+    );
+    assert_eq!(area.vegetation_density, density);
+    assert_eq!(
+        (
+            migrated.project.id,
+            migrated.project.modules[0].id,
+            area.id,
+            area.terrain.project_id,
+            area.vegetation.area_id,
+        ),
+        identities
+    );
+    assert_eq!(migrated.revision, revisions.0);
+    assert_eq!(WorkspaceDocument::from_json(&json).unwrap(), migrated);
+}
+
+#[test]
+fn workspace_v3_migration_preserves_current_embedded_hashes_but_has_a_new_workspace_hash() {
+    let source = source();
+    let source_area = &source.project.modules[0].areas[0];
+    let embedded_hashes = (
+        source_area.terrain.content_hash().unwrap(),
+        source_area.vegetation.content_hash().unwrap(),
+        source_area.vegetation_density.content_hash().unwrap(),
+    );
+    let json = legacy_v3_json(&source);
+    let legacy_value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let legacy_workspace_hash = forge_core::canonical_json_sha256(&legacy_value).unwrap();
+
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    let area = &migrated.project.modules[0].areas[0];
+    assert_eq!(area.terrain.content_hash().unwrap(), embedded_hashes.0);
+    assert_eq!(area.vegetation.content_hash().unwrap(), embedded_hashes.1);
+    assert_eq!(
+        area.vegetation_density.content_hash().unwrap(),
+        embedded_hashes.2
+    );
+    assert!(area.paths.paths.is_empty());
+    assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
+}
+
+#[test]
 fn legacy_migration_binds_the_default_recipe_to_the_preserved_grass_material_id() {
     for serialize_legacy in [
         legacy_json as fn(&WorkspaceDocument) -> String,
@@ -264,7 +395,210 @@ fn migration_rejects_unknown_duplicate_and_mixed_shape_fields() {
     let mut mixed: serde_json::Value = serde_json::from_str(&legacy).unwrap();
     mixed["project"]["modules"] = json!([]);
     assert!(WorkspaceDocument::from_json(&mixed.to_string()).is_err());
+
+    let current = source();
+    let mut mixed_v3: serde_json::Value = serde_json::from_str(&legacy_v3_json(&current)).unwrap();
+    mixed_v3["project"]["modules"][0]["areas"][0]["paths"] =
+        serde_json::to_value(&current.project.modules[0].areas[0].paths).unwrap();
+    assert!(WorkspaceDocument::from_json(&mixed_v3.to_string()).is_err());
 }
+
+#[test]
+fn upsert_path_creates_edits_sorts_reopens_and_replays_from_its_inverse() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let source_area = source.area(module_id, area_id).unwrap().clone();
+    let source_hash = source.content_hash().unwrap();
+
+    let later_id_path = authored_path("later", 16.0);
+    let first = source
+        .preview_edit(edit(&source, path_change(&source, later_id_path.clone())))
+        .unwrap();
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert!(
+        source
+            .area(module_id, area_id)
+            .unwrap()
+            .paths
+            .paths
+            .is_empty()
+    );
+    assert_eq!(first.document.revision, source.revision.next().unwrap());
+    let first_area = first.document.area(module_id, area_id).unwrap();
+    assert_eq!(first_area.paths.revision, first.document.revision);
+    assert_eq!(first_area.paths.paths, vec![later_id_path]);
+    assert_eq!(first_area.terrain, source_area.terrain);
+    assert_eq!(first_area.vegetation, source_area.vegetation);
+    assert_eq!(
+        first_area.vegetation_density,
+        source_area.vegetation_density
+    );
+    assert_eq!(*first.receipt.inverse_snapshot, source);
+
+    let earlier_id_path = authored_path("earlier", -16.0);
+    let second_command = edit(
+        &first.document,
+        path_change(&first.document, earlier_id_path),
+    );
+    let second = first.document.preview_edit(second_command.clone()).unwrap();
+    assert!(
+        second
+            .document
+            .area(module_id, area_id)
+            .unwrap()
+            .paths
+            .paths
+            .windows(2)
+            .all(|pair| pair[0].id < pair[1].id)
+    );
+    let reopened =
+        WorkspaceDocument::from_json(&second.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, second.document);
+    let undone = *second.receipt.inverse_snapshot.clone();
+    assert_eq!(undone, first.document);
+    let replayed = undone.preview_edit(second_command).unwrap();
+    assert_eq!(replayed.document, second.document);
+    assert_eq!(replayed.receipt.after_hash, second.receipt.after_hash);
+
+    let mut edited = second
+        .document
+        .area(module_id, area_id)
+        .unwrap()
+        .paths
+        .paths[0]
+        .clone();
+    edited.name = "Chemin retouché".into();
+    edited.control_points[1].position_m.x += 1.0;
+    let third = second
+        .document
+        .preview_edit(edit(
+            &second.document,
+            path_change(&second.document, edited.clone()),
+        ))
+        .unwrap();
+    let paths = &third.document.area(module_id, area_id).unwrap().paths.paths;
+    assert_eq!(
+        paths.iter().find(|path| path.id == edited.id),
+        Some(&edited)
+    );
+    assert_eq!(paths.len(), 2);
+    assert_eq!(
+        third.document.revision,
+        second.document.revision.next().unwrap()
+    );
+}
+
+#[test]
+fn upsert_path_rejects_noop_stale_missing_and_invalid_inputs_atomically() {
+    let source = source();
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    let path = authored_path("atomic", 0.0);
+    let created = source
+        .preview_edit(edit(&source, path_change(&source, path.clone())))
+        .unwrap()
+        .document;
+    let created_hash = created.content_hash().unwrap();
+
+    assert!(matches!(
+        created.preview_edit(edit(&created, path_change(&created, path.clone()))),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let stale_change = WorkspaceChange::UpsertPath {
+        module_id,
+        area_id,
+        expected_path_document_hash: source
+            .area(module_id, area_id)
+            .unwrap()
+            .paths
+            .content_hash()
+            .unwrap(),
+        path: authored_path("stale", 8.0),
+    };
+    assert!(matches!(
+        created.preview_edit(edit(&created, stale_change)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let mut invalid = authored_path("invalid", 0.0);
+    invalid.control_points[1] = invalid.control_points[0];
+    assert!(matches!(
+        created.preview_edit(edit(&created, path_change(&created, invalid))),
+        Err(WorkspaceError::Path(
+            PathDocumentError::ControlPointsTooClose { .. }
+        ))
+    ));
+
+    for change in [
+        WorkspaceChange::UpsertPath {
+            module_id: ModuleId::deterministic("missing"),
+            area_id,
+            expected_path_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .paths
+                .content_hash()
+                .unwrap(),
+            path: authored_path("missing-module", 0.0),
+        },
+        WorkspaceChange::UpsertPath {
+            module_id,
+            area_id: AreaId::deterministic("missing"),
+            expected_path_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .paths
+                .content_hash()
+                .unwrap(),
+            path: authored_path("missing-area", 0.0),
+        },
+    ] {
+        assert!(matches!(
+            created.preview_edit(edit(&created, change)),
+            Err(WorkspaceError::MissingTarget(_))
+        ));
+    }
+    assert_eq!(created.content_hash().unwrap(), created_hash);
+    assert_eq!(
+        created.area(module_id, area_id).unwrap().paths.paths,
+        vec![path]
+    );
+}
+
+#[test]
+fn upsert_path_enforces_document_and_per_path_limits_before_commit() {
+    let mut full = source();
+    let mut paths = (0..MAX_PATHS_PER_DOCUMENT)
+        .map(|index| authored_path(&format!("limit-{index}"), 0.0))
+        .collect::<Vec<_>>();
+    paths.sort_by_key(|path| path.id);
+    full.project.modules[0].areas[0].paths.paths = paths;
+    full.validate().unwrap();
+    let hash = full.content_hash().unwrap();
+    assert!(matches!(
+        full.preview_edit(edit(
+            &full,
+            path_change(&full, authored_path("overflow", 0.0))
+        )),
+        Err(WorkspaceError::Path(PathDocumentError::TooManyPaths(_)))
+    ));
+    assert_eq!(full.content_hash().unwrap(), hash);
+
+    let mut too_many_points = authored_path("too-many-points", 0.0);
+    too_many_points.control_points = (0_u16..=u16::try_from(MAX_PATH_CONTROL_POINTS).unwrap())
+        .map(|index| PathControlPoint::new(Vec3::new(f32::from(index) - 32.0, 0.0, 0.0)))
+        .collect();
+    let clean = source();
+    assert!(matches!(
+        clean.preview_edit(edit(&clean, path_change(&clean, too_many_points))),
+        Err(WorkspaceError::Path(
+            PathDocumentError::TooManyControlPoints { .. }
+        ))
+    ));
+}
+
 #[test]
 fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     let original = source();
@@ -307,6 +641,8 @@ fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     assert_eq!(area.vegetation.revision, next.revision);
     assert_eq!(area.vegetation.seed, 73);
     assert_eq!(area.vegetation_density.revision, next.revision);
+    assert_eq!(area.paths.revision, next.revision);
+    assert!(area.paths.paths.is_empty());
     assert!(
         area.vegetation_density
             .layers
@@ -341,9 +677,11 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.name, area.terrain.name);
     assert_eq!(area.name, area.vegetation.name);
     assert_eq!(area.name, area.vegetation_density.name);
+    assert_eq!(area.name, area.paths.name);
     assert_eq!(area.terrain.revision, result.revision);
     assert_eq!(area.vegetation.revision, result.revision);
     assert_eq!(area.vegetation_density.revision, result.revision);
+    assert_eq!(area.paths.revision, result.revision);
     assert_eq!(area.terrain.height_sampling, old.terrain.height_sampling);
     assert_eq!(area.terrain.seed, old.terrain.seed);
     assert_eq!(area.vegetation.seed, old.vegetation.seed);
@@ -352,6 +690,7 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
         area.vegetation_density.layers,
         old.vegetation_density.layers
     );
+    assert_eq!(area.paths.paths, old.paths.paths);
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
@@ -1477,6 +1816,7 @@ fn collection_budgets_and_global_area_identity_are_validated() {
             area.terrain.area_id = area.id;
             area.vegetation.area_id = area.id;
             area.vegetation_density.area_id = area.id;
+            area.paths.area_id = area.id;
             area
         })
         .collect();

@@ -212,6 +212,20 @@ fn vegetation_layer_options(world: WorldActions) -> Vec<(String, String)> {
 }
 
 impl BrushActions {
+    pub(super) fn select_navigation(self, world: WorldActions) {
+        self.cancel(world, false);
+        self.mode.set("navigate".into());
+        self.error.set(None);
+    }
+
+    pub(super) fn interaction_active(self) -> bool {
+        self.stroke.get().is_some() || self.final_density_commit.get().is_some()
+    }
+
+    pub(super) fn selected_mode(self) -> String {
+        self.mode.get()
+    }
+
     fn number(field: RwSignal<String>) -> Result<f32, String> {
         field
             .get_untracked()
@@ -1054,12 +1068,18 @@ fn validate_density_preview(
         .vegetation
         .content_hash()
         .map_err(|error| error.to_string())?;
+    let path_hash = area
+        .paths
+        .content_hash()
+        .map_err(|error| error.to_string())?;
     let projection = crate::area_preview::read_area_preview(&response.preview_json)?;
     if projection.request != ticket.request
         || projection.terrain.source_document_hash != terrain_hash
         || projection.vegetation.terrain_document_hash != terrain_hash
         || projection.vegetation.vegetation_document_hash != vegetation_hash
         || projection.vegetation_density_source_hash != response.candidate_density_source_hash
+        || projection.paths.terrain_document_hash != terrain_hash
+        || projection.paths.path_document_hash != path_hash
         || projection
             .vegetation_changed_chunks
             .checked_add(projection.vegetation_retained_chunks)

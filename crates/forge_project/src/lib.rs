@@ -3,6 +3,7 @@
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
 mod environment;
+mod path;
 mod player;
 mod quality;
 mod terrain;
@@ -32,6 +33,13 @@ pub use environment::{
     EnvironmentProfileError, EnvironmentQualityTier, MAX_ENVIRONMENT_PROFILE_JSON_BYTES,
     SkyProfile, SrgbColor, SunProfile, VolumetricFogCapability, VolumetricFogFallback,
     VolumetricFogProfile,
+};
+
+pub use path::{
+    AuthoredPath, MAX_PATH_CONTROL_POINTS, MAX_PATH_DOCUMENT_JSON_BYTES, MAX_PATH_LENGTH_M,
+    MAX_PATHS_PER_DOCUMENT, MAX_TOTAL_PATH_CONTROL_POINTS, MAX_TOTAL_PATH_LENGTH_M,
+    PATH_DOCUMENT_SCHEMA, PATH_DOCUMENT_SCHEMA_VERSION, PathControlPoint, PathDocument,
+    PathDocumentError, PathId, PathInterpolation,
 };
 
 pub use player::{

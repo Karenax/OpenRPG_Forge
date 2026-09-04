@@ -123,6 +123,18 @@ fn prepare_vegetation_density_preview(
     let projection = forge_studio_frontend::area_preview::read_area_preview(&projection_json)?;
     if projection.request != preview.request
         || projection.vegetation_density_source_hash != source.candidate_density_source_hash
+        || projection.paths.terrain_document_hash
+            != source
+                .area
+                .terrain
+                .content_hash()
+                .map_err(|error| error.to_string())?
+        || projection.paths.path_document_hash
+            != source
+                .area
+                .paths
+                .content_hash()
+                .map_err(|error| error.to_string())?
     {
         return Err("Projection de densité incohérente avec son candidat.".into());
     }

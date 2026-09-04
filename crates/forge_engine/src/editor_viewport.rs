@@ -10,9 +10,9 @@ use bevy::{asset::embedded_asset, prelude::*};
 use forge_core::{AreaId, ContentHash, ProjectId};
 use forge_project::VegetationKind;
 use forge_world::{
-    GeneratedTerrain, GeneratedVegetation, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNKS_PER_AXIS,
-    TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M, TerrainChunkCoordinate, TerrainChunkMesh,
-    VegetationChunk, VegetationInstance, VegetationKindCounts,
+    GeneratedPaths, GeneratedTerrain, GeneratedVegetation, TERRAIN_CHUNK_COUNT,
+    TERRAIN_CHUNKS_PER_AXIS, TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M, TerrainChunkCoordinate,
+    TerrainChunkMesh, VegetationChunk, VegetationInstance, VegetationKindCounts,
 };
 use serde::Serialize;
 use std::{
@@ -24,6 +24,10 @@ use std::{
 mod brush;
 pub use brush::{EditorBrushHit, EditorBrushPointer};
 
+#[path = "editor_path.rs"]
+mod path;
+pub use path::EditorPathDraft;
+
 pub struct EditorTerrainRequest {
     pub generation: u64,
     pub project_id: ProjectId,
@@ -33,6 +37,8 @@ pub struct EditorTerrainRequest {
     /// Complete, reconstructible vegetation output for the same accepted area sources.
     /// Historical terrain-only callers may omit it; the Studio always supplies it.
     pub vegetation: Option<EditorVegetationRequest>,
+    /// Complete generated authoring paths for the accepted terrain source.
+    pub paths: Option<EditorPathRequest>,
     pub spawn: [f32; 3],
     /// A partial payload is valid only against the currently presented source hash.
     pub base_source_hash: Option<ContentHash>,
@@ -41,6 +47,10 @@ pub struct EditorTerrainRequest {
 pub struct EditorVegetationRequest {
     pub generated: GeneratedVegetation,
     pub density_source_hash: ContentHash,
+}
+
+pub struct EditorPathRequest {
+    pub generated: GeneratedPaths,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
@@ -136,6 +146,9 @@ pub struct EditorViewportStatus {
     pub vegetation_rebuilt_chunks: usize,
     pub vegetation_retained_chunks: usize,
     pub vegetation_mesh_uploads: u64,
+    pub path_source_hash: String,
+    pub path_count: usize,
+    pub path_samples: usize,
     pub update_kind: String,
 }
 
@@ -146,6 +159,7 @@ pub struct EditorViewportBridge {
     pub brush_sample_serial: Option<u64>,
     pub brush_start_pointer: Option<EditorBrushPointer>,
     pub brush_start_hit: Option<EditorBrushHit>,
+    pub path_draft: Option<EditorPathDraft>,
     pub renderer_starts: u32,
     pub desired_generation: u64,
     pub clear: bool,
@@ -163,6 +177,7 @@ impl Plugin for EditorViewportPlugin {
         embedded_asset!(app, "shaders/visual_valley_terrain.wgsl");
         app.insert_resource(self.0.clone())
             .init_resource::<EditorProjection>()
+            .init_resource::<path::EditorPathOverlay>()
             .add_plugins(MaterialPlugin::<VisualValleyTerrainMaterial>::default())
             .add_systems(Startup, setup_editor)
             .add_systems(Update, update_editor)
@@ -172,6 +187,7 @@ impl Plugin for EditorViewportPlugin {
                     .after(bevy::transform::TransformSystems::Propagate)
                     .after(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
             );
+        app.add_systems(PostUpdate, path::draw_editor_paths);
     }
 }
 
@@ -213,6 +229,8 @@ struct PendingProjection {
     vegetation_chunks: std::vec::IntoIter<VegetationChunk>,
     staged_vegetation: BTreeMap<TerrainChunkCoordinate, PresentedVegetationChunk>,
     clear_vegetation: bool,
+    paths: Option<GeneratedPaths>,
+    replace_paths: bool,
     spawn: [f32; 3],
 }
 
@@ -287,6 +305,9 @@ fn clear_objects(world: &mut World, projection: &mut EditorProjection) {
     if let Some((entity, mesh)) = projection.marker.take() {
         world.despawn(entity);
         world.resource_mut::<Assets<Mesh>>().remove(mesh.id());
+    }
+    if let Some(mut overlay) = world.get_resource_mut::<path::EditorPathOverlay>() {
+        overlay.canonical = None;
     }
 }
 
@@ -469,6 +490,7 @@ fn reset_projection_if_requested(
     bridge.brush_start_pointer = None;
     bridge.brush_start_hit = None;
     bridge.brush_pointer = None;
+    bridge.path_draft = None;
     clear_objects(world, projection);
     if let Some(area) = projection.active.take() {
         let pose = projection.pose;
@@ -605,6 +627,13 @@ fn update_editor(world: &mut World) {
         return;
     };
     world.resource_scope(|world, mut projection: Mut<EditorProjection>| {
+        if bridge
+            .path_draft
+            .as_ref()
+            .is_some_and(|draft| draft.generation != bridge.desired_generation)
+        {
+            bridge.path_draft = None;
+        }
         if projection
             .pending
             .as_ref()
@@ -612,6 +641,7 @@ fn update_editor(world: &mut World) {
         {
             clear_pending(world, &mut projection);
             bridge.status.pending_chunks = 0;
+            bridge.path_draft = None;
         }
         reset_projection_if_requested(world, &mut projection, &mut bridge);
         if let Some(request) = bridge
@@ -621,6 +651,7 @@ fn update_editor(world: &mut World) {
             && let Err(error) = install_request(world, &mut projection, &mut bridge, request)
         {
             bridge.status.error = Some(error);
+            bridge.path_draft = None;
             return;
         }
         // Two derived meshes per update; the UI and render loop remain schedulable while a full
@@ -633,6 +664,7 @@ fn update_editor(world: &mut World) {
                     clear_pending(world, &mut projection);
                     bridge.status.pending_chunks = 0;
                     bridge.status.error = Some(error);
+                    bridge.path_draft = None;
                     return;
                 }
             }
@@ -733,6 +765,59 @@ fn prepare_vegetation_changes(
     })
 }
 
+struct PreparedPathChanges {
+    source_hash: String,
+    count: usize,
+    samples: usize,
+    generated: Option<GeneratedPaths>,
+    replace: bool,
+}
+
+fn prepare_path_changes(
+    world: &World,
+    status: &EditorViewportStatus,
+    request: Option<EditorPathRequest>,
+    partial: bool,
+) -> Result<PreparedPathChanges, String> {
+    if let Some(request) = request {
+        let source_hash = request.generated.path_document_hash.to_string();
+        let count = request.generated.paths.len();
+        let samples = request
+            .generated
+            .paths
+            .iter()
+            .try_fold(0_usize, |total, path| total.checked_add(path.samples.len()))
+            .ok_or_else(|| "Trop d’échantillons de chemins.".to_owned())?;
+        return Ok(PreparedPathChanges {
+            source_hash,
+            count,
+            samples,
+            generated: Some(request.generated),
+            replace: true,
+        });
+    }
+
+    let has_presented_paths = world
+        .get_resource::<path::EditorPathOverlay>()
+        .is_some_and(|overlay| overlay.canonical.is_some());
+    if partial && has_presented_paths {
+        return Err(
+            "Une projection terrain partielle doit transporter les chemins courants.".into(),
+        );
+    }
+    Ok(PreparedPathChanges {
+        source_hash: if partial {
+            status.path_source_hash.clone()
+        } else {
+            String::new()
+        },
+        count: if partial { status.path_count } else { 0 },
+        samples: if partial { status.path_samples } else { 0 },
+        generated: None,
+        replace: !partial,
+    })
+}
+
 fn select_request_target(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -776,6 +861,9 @@ fn install_request(
     if let Some(vegetation) = &request.vegetation {
         validate_vegetation(&request.terrain, &vegetation.generated)?;
     }
+    if let Some(paths) = &request.paths {
+        path::validate_generated_paths(&request.terrain, &paths.generated)?;
+    }
     if !request.spawn.iter().all(|value| value.is_finite()) {
         return Err("Départ de projection non fini.".into());
     }
@@ -783,6 +871,7 @@ fn install_request(
     let rebuilt_chunks = request.terrain.chunks.len();
     let vegetation =
         prepare_vegetation_changes(projection, &bridge.status, request.vegetation, partial)?;
+    let paths = prepare_path_changes(world, &bridge.status, request.paths, partial)?;
     let status = EditorViewportStatus {
         generation: request.generation,
         project_id: Some(request.project_id),
@@ -801,6 +890,9 @@ fn install_request(
         vegetation_instances: vegetation.instances,
         vegetation_rebuilt_chunks: vegetation.rebuilt_chunks,
         vegetation_retained_chunks: vegetation.retained_chunks,
+        path_source_hash: paths.source_hash,
+        path_count: paths.count,
+        path_samples: paths.samples,
         update_kind: if partial { "partial" } else { "full" }.into(),
         frames: bridge.status.frames,
         ..default()
@@ -820,6 +912,8 @@ fn install_request(
         vegetation_chunks: vegetation.chunks.into_iter(),
         staged_vegetation: vegetation.staged,
         clear_vegetation: vegetation.clear_existing,
+        paths: paths.generated,
+        replace_paths: paths.replace,
         spawn: request.spawn,
     });
     Ok(())
@@ -856,6 +950,16 @@ fn finish_projection(
             world.resource_mut::<Assets<Mesh>>().remove(old_mesh.id());
         }
     }
+    if pending.replace_paths {
+        if let Some(mut overlay) = world.get_resource_mut::<path::EditorPathOverlay>() {
+            overlay.canonical = pending.paths;
+        } else if let Some(paths) = pending.paths {
+            world.insert_resource(path::EditorPathOverlay {
+                canonical: Some(paths),
+            });
+        }
+        bridge.path_draft = None;
+    }
     let transform = Transform::from_translation(Vec3::from_array(pending.spawn));
     if let Some((entity, _)) = &projection.marker {
         world.entity_mut(*entity).insert(transform);
@@ -886,7 +990,8 @@ mod tests {
     use super::*;
     use bevy::mesh::VertexAttributeValues;
     use forge_project::{
-        NewProjectCommand, VegetationDensityOverride, VegetationKind, WorkspaceDocument,
+        AuthoredPath, NewProjectCommand, PathControlPoint, PathDocument, PathId, PathInterpolation,
+        VegetationDensityOverride, VegetationKind, WorkspaceDocument,
     };
 
     fn request(generation: u64, name: &str) -> EditorTerrainRequest {
@@ -900,6 +1005,7 @@ mod tests {
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: None,
             vegetation: None,
+            paths: None,
             terrain: forge_world::TerrainGenerationPlan::from_document(&document)
                 .unwrap()
                 .generate()
@@ -973,6 +1079,146 @@ mod tests {
         assert!(validate_terrain(&terrain, false).is_err());
     }
 
+    fn request_with_path(generation: u64, second_x: f32) -> EditorTerrainRequest {
+        let document = forge_world::embedded_visual_valley_terrain_document().unwrap();
+        let paths = PathDocument::new(
+            document.project_id,
+            document.area_id,
+            forge_core::Revision::new(generation),
+            "Chemins de la zone",
+            vec![AuthoredPath {
+                id: PathId::deterministic("editor-path"),
+                name: "Chemin 1".into(),
+                closed: false,
+                interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                control_points: vec![
+                    PathControlPoint::new(forge_core::Vec3::new(-16.0, 0.0, -8.0)),
+                    PathControlPoint::new(forge_core::Vec3::new(second_x, 0.0, 8.0)),
+                ],
+            }],
+        );
+        let generated_paths = forge_world::PathGenerationPlan::from_documents(&document, &paths)
+            .unwrap()
+            .generate()
+            .unwrap();
+        EditorTerrainRequest {
+            generation,
+            project_id: document.project_id,
+            area_id: document.area_id,
+            revision: generation,
+            terrain: forge_world::TerrainGenerationPlan::from_document(&document)
+                .unwrap()
+                .generate()
+                .unwrap(),
+            vegetation: None,
+            paths: Some(EditorPathRequest {
+                generated: generated_paths,
+            }),
+            spawn: [0.0, 2.0, 0.0],
+            base_source_hash: None,
+        }
+    }
+
+    #[test]
+    fn path_only_projection_atomically_replaces_overlay_without_mesh_upload() {
+        let viewport = EditorViewport::default();
+        let mut world = World::new();
+        world.insert_resource(viewport.clone());
+        world.insert_resource(EditorProjection::default());
+        world.insert_resource(path::EditorPathOverlay::default());
+        world.insert_resource(Assets::<Mesh>::default());
+        world.insert_resource(Time::<Real>::default());
+
+        let first = request_with_path(1, 16.0);
+        let terrain_hash = first.terrain.source_document_hash;
+        {
+            let mut bridge = viewport.0.lock().unwrap();
+            bridge.desired_generation = 1;
+            bridge.pending = Some(first);
+        }
+        for _ in 0..34 {
+            update_editor(&mut world);
+        }
+        let uploads = world.resource::<EditorProjection>().mesh_uploads;
+        let first_hash = viewport.0.lock().unwrap().status.path_source_hash.clone();
+        assert_eq!(viewport.0.lock().unwrap().status.path_count, 1);
+
+        let mut second = request_with_path(2, 32.0);
+        second.terrain.chunks.clear();
+        second.base_source_hash = Some(terrain_hash);
+        {
+            let mut bridge = viewport.0.lock().unwrap();
+            bridge.desired_generation = 2;
+            bridge.pending = Some(second);
+        }
+        update_editor(&mut world);
+
+        let overlay = world.resource::<path::EditorPathOverlay>();
+        let generated = overlay.canonical.as_ref().unwrap();
+        assert_eq!(
+            generated.paths[0].control_points[1].x.to_bits(),
+            32.0_f32.to_bits()
+        );
+        assert_eq!(world.resource::<EditorProjection>().mesh_uploads, uploads);
+        let status = &viewport.0.lock().unwrap().status;
+        assert_eq!((status.path_count, status.rebuilt_chunks), (1, 0));
+        assert_ne!(status.path_source_hash, first_hash);
+    }
+
+    #[test]
+    fn invalid_path_projection_leaves_presented_overlay_intact() {
+        let viewport = EditorViewport::default();
+        let mut world = World::new();
+        world.insert_resource(viewport.clone());
+        world.insert_resource(EditorProjection::default());
+        world.insert_resource(path::EditorPathOverlay::default());
+        world.insert_resource(Assets::<Mesh>::default());
+        world.insert_resource(Time::<Real>::default());
+        let first = request_with_path(1, 16.0);
+        {
+            let mut bridge = viewport.0.lock().unwrap();
+            bridge.desired_generation = 1;
+            bridge.pending = Some(first);
+        }
+        for _ in 0..34 {
+            update_editor(&mut world);
+        }
+        let before = world
+            .resource::<path::EditorPathOverlay>()
+            .canonical
+            .clone()
+            .unwrap();
+
+        let mut invalid = request_with_path(2, 32.0);
+        invalid
+            .paths
+            .as_mut()
+            .unwrap()
+            .generated
+            .terrain_document_hash = ContentHash::from_bytes([0x55; 32]);
+        {
+            let mut bridge = viewport.0.lock().unwrap();
+            bridge.path_draft = Some(EditorPathDraft {
+                generation: 1,
+                points_m: vec![[0.0, 1.0, 0.0], [8.0, 1.0, 8.0]],
+            });
+            bridge.desired_generation = 2;
+            bridge.pending = Some(invalid);
+        }
+        update_editor(&mut world);
+        let bridge = viewport.0.lock().unwrap();
+        assert!(bridge.status.error.is_some());
+        assert!(bridge.path_draft.is_none());
+        drop(bridge);
+        assert_eq!(
+            world
+                .resource::<path::EditorPathOverlay>()
+                .canonical
+                .as_ref(),
+            Some(&before)
+        );
+    }
+
     struct EditorVegetationFixture {
         world: World,
         viewport: EditorViewport,
@@ -999,6 +1245,7 @@ mod tests {
                     generated: self.generated.as_ref().clone(),
                     density_source_hash: self.density_source_hash,
                 }),
+                paths: None,
                 spawn: [0.0, 2.0, 0.0],
                 base_source_hash: (!full).then_some(self.terrain.source_document_hash),
             };
@@ -1217,6 +1464,7 @@ mod tests {
             revision: 2,
             terrain,
             vegetation: None,
+            paths: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: Some(fixture.terrain.source_document_hash),
         };

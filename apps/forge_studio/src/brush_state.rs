@@ -269,6 +269,59 @@ impl BrushPath {
     }
 }
 
+pub(crate) const PATH_TRACE_MIN_POINTS: usize = 2;
+pub(crate) const PATH_TRACE_MAX_POINTS: usize = 64;
+pub(crate) const PATH_TRACE_MIN_SPACING_M: f32 = 4.0;
+
+/// One disposable path gesture. Three-dimensional hits feed the local overlay, while only X/Z
+/// coordinates cross the command boundary for canonical terrain resolution.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub(crate) struct PathTrace {
+    pub points_m: Vec<[f32; 3]>,
+}
+
+impl PathTrace {
+    pub fn append(&mut self, point_m: [f32; 3]) -> Result<bool, String> {
+        if !point_m.iter().all(|coordinate| coordinate.is_finite())
+            || !(-256.0..256.0).contains(&point_m[0])
+            || !(-10_000.0..=10_000.0).contains(&point_m[1])
+            || !(-256.0..256.0).contains(&point_m[2])
+        {
+            return Err("Point de chemin hors de la zone éditable.".into());
+        }
+        let Some(previous) = self.points_m.last() else {
+            self.points_m.push(point_m);
+            return Ok(true);
+        };
+        let horizontal_distance = (point_m[0] - previous[0]).hypot(point_m[2] - previous[2]);
+        if horizontal_distance < PATH_TRACE_MIN_SPACING_M {
+            return Ok(false);
+        }
+        if self.points_m.len() == PATH_TRACE_MAX_POINTS {
+            return Err(
+                "Tracé trop long (64 points maximum). Rien n’a été appliqué ; recommencez avec un geste plus simple."
+                    .into(),
+            );
+        }
+        self.points_m.push(point_m);
+        Ok(true)
+    }
+
+    pub fn command_points(&self) -> Result<Vec<[f32; 2]>, String> {
+        if self.points_m.len() < PATH_TRACE_MIN_POINTS {
+            return Err(
+                "Un chemin exige au moins deux points espacés de 4 m. Rien n’a été appliqué."
+                    .into(),
+            );
+        }
+        Ok(self
+            .points_m
+            .iter()
+            .map(|point| [point[0], point[2]])
+            .collect())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -301,6 +354,45 @@ mod tests {
         assert_eq!(path, before);
         assert!(path.append([f32::NAN, 0.0], 8.0).is_err());
         assert!(path.append([0.0, 0.0], 0.0).is_err());
+    }
+
+    #[test]
+    fn authored_path_trace_keeps_3d_draft_and_emits_bounded_xz_only() {
+        let mut trace = PathTrace::default();
+        assert!(trace.append([-255.0, 4.0, -255.0]).unwrap());
+        assert!(!trace.append([-252.0, 40.0, -255.0]).unwrap());
+        assert!(trace.append([-251.0, 5.0, -255.0]).unwrap());
+        assert_eq!(
+            trace.points_m,
+            vec![[-255.0, 4.0, -255.0], [-251.0, 5.0, -255.0]]
+        );
+        assert_eq!(
+            trace.command_points().unwrap(),
+            vec![[-255.0, -255.0], [-251.0, -255.0]]
+        );
+        let before = trace.clone();
+        assert!(trace.append([256.0, 5.0, 0.0]).is_err());
+        assert!(trace.append([0.0, f32::NAN, 0.0]).is_err());
+        assert_eq!(trace, before);
+    }
+
+    #[test]
+    fn authored_path_trace_requires_two_points_and_refuses_the_sixty_fifth_atomically() {
+        let mut trace = PathTrace::default();
+        trace.append([-252.0, 0.0, 0.0]).unwrap();
+        assert!(trace.command_points().is_err());
+        for index in 1..PATH_TRACE_MAX_POINTS {
+            #[allow(
+                clippy::cast_precision_loss,
+                reason = "the bounded test index is exactly representable as f32"
+            )]
+            let x = -252.0 + index as f32 * PATH_TRACE_MIN_SPACING_M;
+            trace.append([x, 0.0, 0.0]).unwrap();
+        }
+        assert_eq!(trace.points_m.len(), PATH_TRACE_MAX_POINTS);
+        let before = trace.clone();
+        assert!(trace.append([4.0, 0.0, 4.0]).is_err());
+        assert_eq!(trace, before);
     }
 
     #[test]

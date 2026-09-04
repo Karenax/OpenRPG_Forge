@@ -4,11 +4,12 @@
 //! persistence and any actual player placement belong to explicit consumers.
 
 use crate::{
-    HeightSamplingAlgorithm, HeightSamplingParameters, TERRAIN_DOCUMENT_SCHEMA_VERSION,
-    TerrainDocument, TerrainDocumentError, TerrainExtent, TerrainMaterialLayer,
-    TerrainMaterialLayerId, VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument,
-    VegetationDensityError, VegetationDensityLayer, VegetationDocument, VegetationDocumentError,
-    VegetationExtent, VegetationPresentationProfile, VegetationSpeciesPreset,
+    HeightSamplingAlgorithm, HeightSamplingParameters, PATH_DOCUMENT_SCHEMA_VERSION, PathDocument,
+    PathDocumentError, TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainDocumentError,
+    TerrainExtent, TerrainMaterialLayer, TerrainMaterialLayerId,
+    VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument, VegetationDensityError,
+    VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
+    VegetationPresentationProfile, VegetationSpeciesPreset,
 };
 use forge_core::{
     AreaId, CanonicalJsonError, CommandId, ContentHash, EntityId, ModuleId, ProjectId, Revision,
@@ -18,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub const WORKSPACE_SCHEMA: &str = "forge.workspace";
-pub const WORKSPACE_SCHEMA_VERSION: u32 = 3;
+pub const WORKSPACE_SCHEMA_VERSION: u32 = 4;
 pub const MAX_WORKSPACE_MODULES: usize = 64;
 pub const MAX_WORKSPACE_AREAS: usize = 256;
 pub const MAX_WORKSPACE_JSON_BYTES: usize = 1_048_576;
@@ -42,7 +43,7 @@ pub struct NewProjectCommand {
     pub spawn: Vec3,
 }
 
-/// Canonical v3 model. Use `from_json` for explicit v1/v2 import.
+/// Canonical v4 model. Use `from_json` for explicit v1/v2/v3 import.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceDocument {
@@ -79,6 +80,7 @@ pub struct WorkspaceArea {
     pub terrain: TerrainDocument,
     pub vegetation: VegetationDocument,
     pub vegetation_density: VegetationDensityDocument,
+    pub paths: PathDocument,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -146,9 +148,8 @@ impl WorkspaceDocument {
             new_revision: document.revision,
             before_hash: None,
             after_hash,
-            summary:
-                "Création : 1 projet, 1 module, 1 zone extérieure, terrain et végétation source."
-                    .to_owned(),
+            summary: "Création : 1 projet, 1 module, 1 zone extérieure, terrain, végétation et chemins source."
+                .to_owned(),
             inverse: WorkspaceCreationInverse::DiscardDraft {
                 expected_after_hash: after_hash,
             },
@@ -266,6 +267,7 @@ impl WorkspaceDocument {
                 {
                     return Err(WorkspaceError::VegetationDensityRecipeMismatch);
                 }
+                validate_paths(self.project.id, self.revision, area)?;
             }
         }
         ensure_json_budget(serde_json::to_string_pretty(self)?.len())
@@ -289,6 +291,25 @@ impl WorkspaceDocument {
         self.validate()?;
         Ok(canonical_json_sha256(self)?)
     }
+}
+
+fn validate_paths(
+    project_id: ProjectId,
+    workspace_revision: Revision,
+    area: &WorkspaceArea,
+) -> Result<(), WorkspaceError> {
+    let paths = &area.paths;
+    paths.validate()?;
+    if paths.project_id != project_id || paths.area_id != area.id {
+        return Err(WorkspaceError::PathOwnershipMismatch);
+    }
+    if paths.revision.get() == 0 || paths.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("paths"));
+    }
+    if paths.schema_version != PATH_DOCUMENT_SCHEMA_VERSION {
+        return Err(WorkspaceError::UnsupportedPathShape);
+    }
+    Ok(())
 }
 
 pub(crate) fn new_exterior_area(
@@ -335,6 +356,7 @@ pub(crate) fn new_exterior_area(
             .map(|layer| VegetationDensityLayer::new(layer.id.clone(), 0, vec![]))
             .collect(),
     );
+    let paths = PathDocument::new(project_id, area_id, revision, name.clone(), vec![]);
     WorkspaceArea {
         id: area_id,
         name,
@@ -343,6 +365,7 @@ pub(crate) fn new_exterior_area(
         terrain,
         vegetation,
         vegetation_density,
+        paths,
     }
 }
 
@@ -459,6 +482,8 @@ pub enum WorkspaceError {
     VegetationOwnershipMismatch,
     #[error("vegetation density project/area identities do not match their workspace owners")]
     VegetationDensityOwnershipMismatch,
+    #[error("path project/area identities do not match their workspace owners")]
+    PathOwnershipMismatch,
     #[error(
         "workspace requires a current terrain schema, 512 m square, 2 m samples and three material layers"
     )]
@@ -467,6 +492,8 @@ pub enum WorkspaceError {
     UnsupportedVegetationShape,
     #[error("vegetation density grid/layers do not match the area's vegetation recipe")]
     VegetationDensityRecipeMismatch,
+    #[error("workspace requires the current authored path document shape")]
+    UnsupportedPathShape,
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
     #[error("workspace collection limit exceeded or no module: {0}")]
@@ -495,6 +522,8 @@ pub enum WorkspaceError {
     Vegetation(#[from] VegetationDocumentError),
     #[error("invalid workspace vegetation density: {0}")]
     VegetationDensity(#[from] VegetationDensityError),
+    #[error("invalid workspace paths: {0}")]
+    Path(#[from] PathDocumentError),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -588,6 +617,12 @@ mod tests {
                     && density.default_density == 0
                     && density.overrides.is_empty())
         );
+        assert_eq!(area.paths.project_id, input.project_id);
+        assert_eq!(area.paths.area_id, input.area_id);
+        assert_eq!(area.paths.revision, Revision::INITIAL);
+        assert_eq!(area.paths.schema_version, PATH_DOCUMENT_SCHEMA_VERSION);
+        assert_eq!(area.paths.name, input.area_name);
+        assert!(area.paths.paths.is_empty());
         assert_ne!(
             terrain.project_id,
             ProjectId::deterministic("visual-valley-project")
@@ -618,7 +653,7 @@ mod tests {
             created
         );
         assert!(json.contains("discard_draft"));
-        assert!(!json.contains("path"));
+        assert!(json.contains("\"paths\":[]"));
     }
 
     #[test]
@@ -911,6 +946,31 @@ mod tests {
     }
 
     #[test]
+    fn paths_must_share_workspace_ownership_and_revision() {
+        let mut changed = document();
+        changed.project.modules[0].areas[0].paths.project_id =
+            ProjectId::deterministic("other-project");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::PathOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].paths.area_id = AreaId::deterministic("other-area");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::PathOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].paths.revision = Revision::new(2);
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::InvalidRevision("paths"))
+        ));
+    }
+
+    #[test]
     fn schemas_unknown_fields_and_future_area_kinds_fail_closed() {
         let mut value = serde_json::to_value(document()).unwrap();
         value["schema"] = json!("other.workspace");
@@ -932,6 +992,7 @@ mod tests {
             "/project/modules/0/areas/0/terrain",
             "/project/modules/0/areas/0/vegetation",
             "/project/modules/0/areas/0/vegetation_density",
+            "/project/modules/0/areas/0/paths",
         ] {
             let mut value = serde_json::to_value(document()).unwrap();
             value.pointer_mut(pointer).unwrap()["unknown_field"] = json!(true);
@@ -1016,6 +1077,7 @@ mod tests {
                 area.terrain.area_id = area.id;
                 area.vegetation.area_id = area.id;
                 area.vegetation_density.area_id = area.id;
+                area.paths.area_id = area.id;
                 area
             })
             .collect();
