@@ -1,0 +1,110 @@
+{
+  "schema": "forge.gate2.vegetation-catalog-exclusions-evidence",
+  "schema_version": 1,
+  "source_commit": "394de87f13f1561781b19159369e01d95a246255",
+  "source_tree": "a818ff6aa553631a431a06d34cb4ba702f5a6004",
+  "base_commit": "92cf726022d7d9e692a3398f6c7077966b903fcc",
+  "routes": [
+    {
+      "id": "R2-016",
+      "status": "PASS",
+      "basis": "automated functional qualification of the procedural species catalog; native UI interaction not run by owner request"
+    },
+    {
+      "id": "R2-017",
+      "status": "PASS",
+      "basis": "automated functional qualification of persistent circle and corridor exclusions; native UI interaction not run by owner request"
+    }
+  ],
+  "scope": "Procedural species catalog CRUD and persistent vegetation exclusion CRUD through canonical Forge sources, history, save/reopen, deterministic generation and retained chunk caches; no asset binding, prerelease preview, instance promotion, native UI, GPU or performance qualification",
+  "automated_validation": {
+    "targeted_tests_status": "PASS",
+    "targeted_tests_passed": 265,
+    "targeted_tests_failed": 0,
+    "targeted_suite_counts": {
+      "forge_project": 94,
+      "forge_studio_lib": 86,
+      "forge_world": 85
+    },
+    "expanded_workspace_status": "PASS",
+    "expanded_workspace_excluded_unchanged_package": "forge_runtime",
+    "expanded_workspace_test_targets": 10,
+    "expanded_workspace_tests_passed": 461,
+    "expanded_workspace_tests_failed": 0,
+    "expanded_workspace_tests_ignored": 0,
+    "complete_workspace_status": "NOT COMPLETED",
+    "complete_workspace_attempts": 2,
+    "complete_workspace_reason": "forge_runtime PDB linkage stopped with LNK1318 LIMIT then LNK1318 FILE_SYSTEM on the saturated E: volume",
+    "native_relevant_clippy_strict": "PASS",
+    "wasm_studio_clippy_strict": "PASS",
+    "wasm_advisory": "transitive future-incompatibility advisory for proc-macro-error2 2.0.1"
+  },
+  "functional_contract": {
+    "workspace_schema_version": 3,
+    "vegetation_schema_version": 1,
+    "schema_bump": false,
+    "procedural_presets": ["tree", "shrub", "fern", "grass"],
+    "maximum_catalog_entries": 16,
+    "maximum_exclusions": 32,
+    "catalog_id_range": "species_01..species_16, first free ID",
+    "exclusion_id_range": "exclusion_01..exclusion_32, first free ID",
+    "new_species_density": 0,
+    "density_synchronization": "atomic retention by stable layer ID; rename alone leaves density document bit-identical",
+    "grass_limit": "a second Grass preset is disabled while Grass exists because the default layer already reaches the strict 1048576 expanded-blade budget",
+    "exclusion_shapes": ["circle", "corridor_segment"],
+    "exclusion_semantics": "placement-center containment; surviving instances remain bit-identical and ordered",
+    "cache_chunk_count": 64,
+    "rename_or_zero_density_addition_retained_chunks": 64,
+    "local_circle_exclusion_rebuilt_chunks": 1,
+    "local_circle_exclusion_retained_chunks": 63,
+    "prerelease_preview": false,
+    "persistent_instance_promotion": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and fewer repeated interface checks.",
+    "follow_up": "One grouped native catalog and exclusions workflow can be reviewed later."
+  },
+  "open_routes": ["R2-019", "R2-020"],
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_files": 15,
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "dependencies_changed": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/vegetation-catalog-exclusions-2026-09-04/cargo-test-workspace-excluding-unchanged-runtime.log",
+      "bytes": 45422,
+      "sha256": "64d79ccf0b0f68e036187385a82d3388c725513041b8c347a0f836d6df3412a8"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-catalog-exclusions-2026-09-04/cargo-test-workspace-attempt-1-linker-failure.log",
+      "bytes": 12345,
+      "sha256": "8fda041d245382f93648de1e8fb6ee530962c143f61171b82d7a3372369419d7"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-catalog-exclusions-2026-09-04/cargo-test-workspace-attempt-2-linker-failure.log",
+      "bytes": 11844,
+      "sha256": "3f2a1baf1a5bfb150206114d36e49f2d4a47c8c18cc743b0c1a67a08f1d31711"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-catalog-exclusions-2026-09-04/cargo-clippy-relevant-native.log",
+      "bytes": 71,
+      "sha256": "dcfa92a1e04503290203f1cbdb450dca08510adbb568561ad14c638130d53354"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-catalog-exclusions-2026-09-04/cargo-clippy-studio-wasm.log",
+      "bytes": 328,
+      "sha256": "534269ec71ee7360fbe51463af6d9d030959f8b5e88d68019d55a831efef1836"
+    }
+  ]
+}

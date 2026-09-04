@@ -1000,9 +1000,21 @@ reportée, conformément à la demande de ne plus multiplier les inspections d'i
 ferme donc pas la condition de capture globale de Gate 2. [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_DENSITY_AND_STABLE_SEED.md).
 CI distante `NOT RUN — infrastructure billing`, PresentMon `NOT RUN`, aucun asset Cadle.
 
+Le candidat `394de87` qualifie ensuite **R2-016** et **R2-017** sur preuves fonctionnelles
+automatisées et porte Gate 2 à **17/43**. Le catalogue procédural permet ajout, renommage, sélection
+et suppression de presets Forge avec IDs stables et synchronisation atomique de la densité ; les
+exclusions cercle/passage sont persistantes, annulables et réutilisent leurs IDs. Les caches prouvent
+64/64 handles conservés pour un renommage ou un ajout à densité nulle, et 63/64 pour une exclusion
+locale. **265 tests ciblés PASS**, puis **461 PASS** hors `forge_runtime`, inchangé par le candidat.
+La passe workspace complète n'est pas déclarée verte : deux tentatives ont été arrêtées au linkage
+PDB du runtime par `LNK1318` (`LIMIT`, puis `FILE_SYSTEM`) sur le volume E: saturé. Clippy natif
+pertinent et Studio WASM strict PASS ; l'avis tiers `proc-macro-error2 2.0.1` est conservé. UI native
+`NOT RUN` à la demande du propriétaire, CI distante et PresentMon inchangés. Aucun asset, dépendance,
+contenu Cadle ou changement de schéma. [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_CATALOG_AND_EXCLUSIONS.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
-- [ ] `R2-016` catalogues d’espèces.
-- [ ] `R2-017` exclusions.
+- [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
+- [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
 - [x] `R2-018` seed stable — replay bit-identique, IDs/survivants stables et divergence d'une autre seed qualifiés.
 - [ ] `R2-019` aperçu temps réel.
 - [ ] `R2-020` promotion et retouche.

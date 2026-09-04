@@ -131,6 +131,28 @@ inventé. **Gate 2 atteint 15/43 et reste ouverte.** R2-016, R2-017, R2-019 et R
 notamment, l'aperçu avant relâchement n'est pas qualifié. CI distante
 `NOT RUN — infrastructure billing`, PresentMon `NOT RUN`, aucun asset ou contenu Cadle.
 
+### Catalogue procédural et exclusions — dixième incrément qualifié
+
+Le code `394de87` qualifie **R2-016 et R2-017** sur preuves fonctionnelles automatisées. Une couche
+est désormais une entrée du catalogue procédural : ajout parmi quatre presets Forge, renommage,
+sélection pour la densité et suppression, avec IDs stables et première place libre. La densité est
+synchronisée atomiquement par ID ; une nouvelle espèce part à zéro et un renommage la laisse
+bit-identique. La seconde herbe reste interdite tant que l'herbe par défaut occupe déjà le plafond
+strict de 1 048 576 brins développés ; aucun budget n'est relevé.
+
+Les exclusions cercle et passage sont ajoutées au relâchement, persistées, annulables, rejouables et
+bornées à 32. Elles filtrent le centre des placements ; survivants et ordre restent bit-identiques.
+Renommage et ajout à densité nulle conservent 64/64 handles, une exclusion locale en conserve 63/64
+et correspond à la génération complète. **265 tests ciblés PASS**, puis **461 PASS** sur le workspace
+hors `forge_runtime`, inchangé par ce candidat. La passe complète n'est pas annoncée verte : ses deux
+tentatives se sont arrêtées au linkage PDB du runtime avec `LNK1318` sur le volume E: saturé. Clippy
+natif pertinent et Studio WASM strict PASS. [Preuves et limites](docs/evidence/gate2/VEGETATION_CATALOG_AND_EXCLUSIONS.md).
+
+L'UI native est `NOT RUN` à la demande du propriétaire de privilégier les fonctions. Aucun aperçu
+avant relâchement ni promotion/retouche d'instance n'est livré : **R2-019 et R2-020 restent ouvertes**.
+**Gate 2 atteint 17/43 et reste ouverte.** CI distante `NOT RUN — infrastructure billing`, PresentMon
+`NOT RUN`, aucun asset, dépendance, contenu Cadle ou changement de schéma.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2351,9 +2373,9 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 15/43 après R2-015/R2-018. Poursuivre R2-C par le catalogue d'espèces et l'édition
-d'exclusions ; R2-019 ne sera cochée qu'avec un véritable aperçu avant validation et R2-020 avec une
-promotion/retouche persistante. Le contrôle UI natif groupé de la densité reste noté pour plus tard.
+Gate 2 est à 17/43 après R2-016/R2-017. Poursuivre R2-C par un véritable aperçu avant validation
+pour R2-019, puis une promotion/retouche persistante pour R2-020. Le contrôle UI natif groupé de la
+densité, du catalogue et des exclusions reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.
