@@ -2965,8 +2965,18 @@ mod web {
             StudioScene::VisualValley => FrameQualityFingerprint::visual_valley(
                 quality.map(|stats| stats.current_tier),
                 quality.and_then(|stats| stats.dynamically_applied_tier),
-                quality.map(|stats| stats.requested_preset.vegetation.medium_lod_distance_m),
-                quality.map(|stats| stats.requested_preset.vegetation.hlod_distance_m),
+                quality.map(|stats| {
+                    SceneryProjectionStats::replacement_lod_range_for_quality(
+                        &stats.requested_preset,
+                    )
+                    .0
+                }),
+                quality.map(|stats| {
+                    SceneryProjectionStats::replacement_lod_range_for_quality(
+                        &stats.requested_preset,
+                    )
+                    .1
+                }),
                 scenery.map(|stats| stats.replacement_lod_start_m),
                 scenery.map(|stats| stats.replacement_lod_end_m),
             ),
