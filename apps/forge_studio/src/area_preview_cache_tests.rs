@@ -159,6 +159,30 @@ fn paint_one_grass_chunk(area: &mut WorkspaceArea) {
     area.vegetation_density.validate().unwrap();
 }
 
+fn grass_chunk_cells(chunk_x: u16, chunk_z: u16) -> Vec<(u16, u16)> {
+    let first_x = chunk_x * 8;
+    let first_z = chunk_z * 8;
+    (first_z..first_z + 8)
+        .flat_map(|cell_z| (first_x..first_x + 8).map(move |cell_x| (cell_x, cell_z)))
+        .collect()
+}
+
+fn assert_baseline_handle_reuse(
+    cache: &AreaPreviewCache,
+    baseline: &[std::sync::Arc<forge_world::VegetationChunk>],
+    replaced_indices: &[usize],
+) {
+    let current = cache.cached.as_ref().unwrap().vegetation.chunks();
+    assert_eq!(current.len(), baseline.len());
+    for (index, (before, after)) in baseline.iter().zip(current).enumerate() {
+        assert_eq!(
+            std::sync::Arc::ptr_eq(before, after),
+            !replaced_indices.contains(&index),
+            "unexpected CPU cache handle identity at chunk index {index}"
+        );
+    }
+}
+
 fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
     let full = VegetationGenerationPlan::from_documents_with_density(
         &area.terrain,
@@ -440,6 +464,113 @@ fn local_density_paint_changes_only_its_vegetation_chunk_and_keeps_terrain_parti
     assert_full_vegetation_parity(&area, &preview);
     assert_cached_vegetation_is_bit_exact(&area, &cache);
     assert!(json.len() < MAX_PREVIEW_JSON_BYTES);
+}
+
+#[test]
+fn disposable_density_candidates_from_one_base_return_to_the_canonical_cache() {
+    let canonical = workspace();
+    let western_candidate = paint_grass_cells(
+        &canonical,
+        "area-preview/candidate-a",
+        &grass_chunk_cells(0, 0),
+    );
+    let eastern_candidate = paint_grass_cells(
+        &canonical,
+        "area-preview/candidate-b",
+        &grass_chunk_cells(1, 0),
+    );
+    let canonical_area = &canonical.project.modules[0].areas[0];
+    let western_area = &western_candidate.project.modules[0].areas[0];
+    let eastern_area = &eastern_candidate.project.modules[0].areas[0];
+    let canonical_request = request(canonical_area);
+    let mut cache = AreaPreviewCache::default();
+
+    let canonical_preview = read_area_preview(
+        &cache
+            .prepare(canonical_request, canonical_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_full_vegetation_parity(canonical_area, &canonical_preview);
+    let terrain_hash = canonical_preview.terrain.source_document_hash;
+    let canonical_handles = cache.cached.as_ref().unwrap().vegetation.chunks().to_vec();
+
+    let preview_a = read_area_preview(
+        &cache
+            .prepare_vegetation_density_candidate(
+                canonical_request,
+                western_area,
+                Some(terrain_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_full_vegetation_parity(western_area, &preview_a);
+    assert_ne!(
+        preview_a.vegetation_density_source_hash,
+        canonical_preview.vegetation_density_source_hash
+    );
+    assert_eq!(preview_a.vegetation_changed_chunks, 1);
+    assert_eq!(preview_a.vegetation_retained_chunks, 63);
+    assert_baseline_handle_reuse(&cache, &canonical_handles, &[0]);
+
+    let preview_b = read_area_preview(
+        &cache
+            .prepare_vegetation_density_candidate(
+                canonical_request,
+                eastern_area,
+                Some(terrain_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_full_vegetation_parity(eastern_area, &preview_b);
+    assert_ne!(
+        preview_b.vegetation_density_source_hash,
+        preview_a.vegetation_density_source_hash
+    );
+    assert_eq!(preview_b.vegetation_changed_chunks, 2);
+    assert_eq!(preview_b.vegetation_retained_chunks, 62);
+    assert_baseline_handle_reuse(&cache, &canonical_handles, &[0, 1]);
+
+    let candidate_b_handles = cache.cached.as_ref().unwrap().vegetation.chunks().to_vec();
+    let no_op = read_area_preview(
+        &cache
+            .prepare_vegetation_density_candidate(
+                canonical_request,
+                eastern_area,
+                Some(terrain_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+    assert_full_vegetation_parity(eastern_area, &no_op);
+    assert_eq!(no_op.vegetation, preview_b.vegetation);
+    assert_eq!(
+        no_op.vegetation_density_source_hash,
+        preview_b.vegetation_density_source_hash
+    );
+    assert!(!no_op.vegetation_regenerated);
+    assert_eq!(no_op.vegetation_changed_chunks, 0);
+    assert_eq!(no_op.vegetation_retained_chunks, 64);
+    assert_baseline_handle_reuse(&cache, &candidate_b_handles, &[]);
+
+    let restored = read_area_preview(
+        &cache
+            .prepare(canonical_request, canonical_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+    assert_full_vegetation_parity(canonical_area, &restored);
+    assert_eq!(restored.vegetation, canonical_preview.vegetation);
+    assert_eq!(
+        restored.vegetation_density_source_hash,
+        canonical_preview.vegetation_density_source_hash
+    );
+    assert_eq!(restored.vegetation_changed_chunks, 1);
+    assert_eq!(restored.vegetation_retained_chunks, 63);
+    assert_baseline_handle_reuse(&cache, &canonical_handles, &[0, 1]);
+    assert_cached_vegetation_is_bit_exact(canonical_area, &cache);
 }
 
 #[test]

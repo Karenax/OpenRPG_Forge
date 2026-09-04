@@ -1252,6 +1252,9 @@ pub enum StudioCommand {
         #[serde(default)]
         base_source_hash: Option<forge_core::ContentHash>,
     },
+    VegetationDensityStrokePreview {
+        preview: workspace_api::VegetationDensityStrokePreviewRequest,
+    },
     SelectEntity {
         entity_id: EntityId,
     },
@@ -1266,6 +1269,9 @@ pub enum StudioCommand {
 pub enum StudioResponse {
     AreaPreview {
         preview_json: String,
+    },
+    VegetationDensityStrokePreview {
+        preview: workspace_api::VegetationDensityStrokePreviewResponse,
     },
     Workspace {
         state: workspace_api::WorkspaceState,
@@ -1300,7 +1306,9 @@ fn validate_selection_response(
         StudioResponse::SceneSummary { .. } => {
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
         }
-        StudioResponse::Workspace { .. } | StudioResponse::AreaPreview { .. } => {
+        StudioResponse::Workspace { .. }
+        | StudioResponse::AreaPreview { .. }
+        | StudioResponse::VegetationDensityStrokePreview { .. } => {
             Err("Réponse Tauri inattendue : projet reçu pour une sélection".to_owned())
         }
     }

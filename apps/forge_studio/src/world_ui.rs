@@ -36,8 +36,10 @@ pub(crate) struct WorldActions {
     started: RwSignal<bool>,
     observed_starts: RwSignal<u32>,
     busy: RwSignal<bool>,
+    density_preview_busy: RwSignal<bool>,
     error: RwSignal<Option<String>>,
     generation: RwSignal<u64>,
+    canonical_refresh: RwSignal<u64>,
 }
 
 impl WorldActions {
@@ -60,6 +62,87 @@ impl WorldActions {
             self.tabs.update(|tabs| tabs.open(key, &document));
         }
     }
+
+    fn request_canonical_projection(self) {
+        self.canonical_refresh.update(|serial| *serial += 1);
+    }
+
+    fn density_preview_base_hash(
+        self,
+        generation: u64,
+        request: AreaPreviewRequest,
+    ) -> Option<forge_core::ContentHash> {
+        let viewport = self.viewport.get_value();
+        let bridge = viewport.0.lock().ok()?;
+        let status = &bridge.status;
+        (status.generation == generation
+            && status.project_id == Some(request.key.project_id)
+            && status.area_id == Some(request.key.area_id)
+            && status.chunks == 64)
+            .then(|| status.source_hash.parse().ok())
+            .flatten()
+    }
+
+    fn publish_density_preview(
+        self,
+        generation: u64,
+        candidate_revision: u64,
+        preview: crate::area_preview::AreaPreview,
+    ) -> Result<(), String> {
+        let request = preview.request;
+        if self.generation.get_untracked() != generation
+            || self.tabs.get_untracked().active != Some(request.key)
+            || self
+                .document
+                .get_untracked()
+                .is_none_or(|document| document.revision.get() != request.base_revision)
+        {
+            return Err("Cible d’aperçu périmée : projection ignorée.".into());
+        }
+        let viewport = self.viewport.get_value();
+        let mut bridge = viewport
+            .0
+            .lock()
+            .map_err(|_| "Viewport indisponible pour l’aperçu.".to_owned())?;
+        if bridge.desired_generation != generation {
+            return Err("Génération d’aperçu périmée : projection ignorée.".into());
+        }
+        bridge.pending = Some(EditorTerrainRequest {
+            generation,
+            project_id: request.key.project_id,
+            area_id: request.key.area_id,
+            revision: candidate_revision,
+            terrain: preview.terrain,
+            vegetation: Some(EditorVegetationRequest {
+                generated: preview.vegetation,
+                density_source_hash: preview.vegetation_density_source_hash,
+            }),
+            spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
+            base_source_hash: preview.base_source_hash,
+        });
+        drop(bridge);
+        start_once(self);
+        Ok(())
+    }
+
+    fn density_preview_observed(
+        self,
+        generation: u64,
+        request: AreaPreviewRequest,
+        candidate_revision: u64,
+        density_hash: forge_core::ContentHash,
+    ) -> bool {
+        let status = self.status.get_untracked();
+        status.generation == generation
+            && status.project_id == Some(request.key.project_id)
+            && status.area_id == Some(request.key.area_id)
+            && status.revision == candidate_revision
+            && status.chunks == 64
+            && status.pending_chunks == 0
+            && status.error.is_none()
+            && status.vegetation_density_source_hash == density_hash.to_string()
+    }
+
     fn status_text(self) -> String {
         if let Some(error) = self.error.get().or(self.status.get().error) {
             return error;
@@ -105,8 +188,10 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         started: RwSignal::new(false),
         observed_starts: RwSignal::new(0),
         busy: RwSignal::new(false),
+        density_preview_busy: RwSignal::new(false),
         error: RwSignal::new(None),
         generation: RwSignal::new(0),
+        canonical_refresh: RwSignal::new(0),
     };
     install_tab_reconciliation(actions);
     let wanted = area_preview_target(actions);
@@ -159,11 +244,15 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
     Effect::new(move |_| {
         actions.invalidate_projection(wanted.get().map(|target| target.request.key));
     });
-    let completed = RwSignal::new(0_u64);
+    let completed = RwSignal::new(None::<(u64, u64)>);
     Effect::new(move |_| {
         let generation = actions.generation.get();
+        let refresh = actions.canonical_refresh.get();
         let target = wanted.get();
-        if actions.busy.get() || completed.get() == generation {
+        if actions.busy.get()
+            || actions.density_preview_busy.get()
+            || completed.get() == Some((generation, refresh))
+        {
             return;
         }
         let Some(target) = target else {
@@ -192,7 +281,9 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                 base_source_hash,
             )
             .await;
-            if actions.generation.get_untracked() == generation {
+            if actions.generation.get_untracked() == generation
+                && actions.canonical_refresh.get_untracked() == refresh
+            {
                 match result {
                     Ok(preview) => {
                         if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
@@ -214,7 +305,7 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                     }
                     Err(error) => actions.error.set(Some(error)),
                 }
-                completed.set(generation);
+                completed.set(Some((generation, refresh)));
             }
             actions.busy.set(false);
         });
@@ -375,7 +466,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                 </div>
                 <div class="world-canvas-host">
                     <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
-                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" { brush.cancel(false); brush.clear_hover(actions); } }
+                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" { brush.cancel(actions, false); brush.clear_hover(actions); } }
                         on:pointerleave=move |_| brush.clear_hover(actions)
                         on:pointerdown=move |event: web_sys::PointerEvent| {
                             if brush.start(actions, workspace, &event) { return; }
@@ -397,8 +488,8 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                             drag.set(Some(PointerDrag { x: event.client_x(), y: event.client_y(), ..previous }));
                         }
                         on:pointerup=move |event: web_sys::PointerEvent| { brush.finish(actions, &event); drag.set(None); }
-                        on:pointercancel=move |_| { brush.cancel(false); drag.set(None); }
-                        on:lostpointercapture=move |_| { brush.cancel(true); drag.set(None); }
+                        on:pointercancel=move |_| { brush.cancel(actions, false); drag.set(None); }
+                        on:lostpointercapture=move |_| { brush.cancel(actions, true); drag.set(None); }
                         on:wheel=move |event: web_sys::WheelEvent| {
                             event.prevent_default();
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }

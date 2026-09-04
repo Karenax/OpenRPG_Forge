@@ -40,6 +40,36 @@ async fn execute_studio_command(
             .await
             .map_err(|error| format!("Brosse interrompue : {error}"));
     }
+    if let StudioCommand::VegetationDensityStrokePreview { preview } = command {
+        let input = match session.lock() {
+            Ok(session) => session.vegetation_density_stroke_preview_input(preview),
+            Err(_) => Err("Session projet indisponible.".into()),
+        };
+        let input = match input {
+            Ok(input) => input,
+            Err(reason) => return Ok(StudioResponse::Rejected { reason }),
+        };
+        let permit = PreviewPermit::acquire()?;
+        let preview_cache = Arc::clone(preview_cache.inner());
+        return Ok(
+            match tauri::async_runtime::spawn_blocking(move || {
+                let _permit = permit;
+                let (preview, source) = input.resolve()?;
+                let mut cache = preview_cache
+                    .lock()
+                    .map_err(|_| "Cache d’aperçu indisponible.".to_owned())?;
+                prepare_vegetation_density_preview(&preview, &source, &mut cache)
+            })
+            .await
+            {
+                Ok(Ok(preview)) => StudioResponse::VegetationDensityStrokePreview { preview },
+                Ok(Err(reason)) => StudioResponse::Rejected { reason },
+                Err(error) => StudioResponse::Rejected {
+                    reason: format!("Génération interrompue : {error}"),
+                },
+            },
+        );
+    }
     if let StudioCommand::AreaPreview {
         request,
         base_source_hash,
@@ -74,6 +104,39 @@ async fn execute_studio_command(
         );
     }
     Ok(execute_command(command, &session))
+}
+
+fn prepare_vegetation_density_preview(
+    preview: &forge_studio_frontend::workspace_api::VegetationDensityStrokePreviewRequest,
+    source: &forge_studio_frontend::workspace_service::VegetationDensityStrokePreviewSource,
+    cache: &mut forge_studio_frontend::area_preview::AreaPreviewCache,
+) -> Result<forge_studio_frontend::workspace_api::VegetationDensityStrokePreviewResponse, String> {
+    let projection_json = if source.no_op {
+        cache.prepare(preview.request, &source.area, preview.base_source_hash)?
+    } else {
+        cache.prepare_vegetation_density_candidate(
+            preview.request,
+            &source.area,
+            preview.base_source_hash,
+        )?
+    };
+    let projection = forge_studio_frontend::area_preview::read_area_preview(&projection_json)?;
+    if projection.request != preview.request
+        || projection.vegetation_density_source_hash != source.candidate_density_source_hash
+    {
+        return Err("Projection de densité incohérente avec son candidat.".into());
+    }
+    Ok(
+        forge_studio_frontend::workspace_api::VegetationDensityStrokePreviewResponse {
+            request: preview.request,
+            preview_serial: preview.preview_serial,
+            changed_cells: source.changed_cells,
+            no_op: source.no_op,
+            candidate_revision: source.candidate_revision,
+            candidate_density_source_hash: source.candidate_density_source_hash,
+            preview_json: projection_json,
+        },
+    )
 }
 
 /// One bounded generation per Studio, including callers outside the UI queue.
@@ -130,11 +193,11 @@ fn execute_command(command: StudioCommand, session: &Mutex<WorkspaceSession>) ->
                 .to_string(),
             entity_count: document.entities.len(),
         },
-        StudioCommand::Workspace { .. } | StudioCommand::AreaPreview { .. } => {
-            StudioResponse::Rejected {
-                reason: "Commande projet déjà traitée.".into(),
-            }
-        }
+        StudioCommand::Workspace { .. }
+        | StudioCommand::AreaPreview { .. }
+        | StudioCommand::VegetationDensityStrokePreview { .. } => StudioResponse::Rejected {
+            reason: "Commande projet déjà traitée.".into(),
+        },
     }
 }
 
@@ -182,7 +245,48 @@ fn main() {
 mod tests {
     use super::*;
     use forge_core::EntityId;
+    use forge_project::{VegetationKind, WorkspaceDocument};
     use serde_json::Value;
+
+    fn density_preview_request(
+        state: &forge_studio_frontend::workspace_api::WorkspaceState,
+        preview_serial: u64,
+    ) -> forge_studio_frontend::workspace_api::VegetationDensityStrokePreviewRequest {
+        let document =
+            WorkspaceDocument::from_json(state.document_json.as_deref().unwrap()).unwrap();
+        let module = &document.project.modules[0];
+        let area = &module.areas[0];
+        let layer_id = area
+            .vegetation
+            .layers
+            .iter()
+            .find(|layer| layer.kind == VegetationKind::Grass)
+            .unwrap()
+            .id
+            .clone();
+        forge_studio_frontend::workspace_api::VegetationDensityStrokePreviewRequest {
+            request: forge_studio_frontend::area_preview::AreaPreviewRequest {
+                key: forge_studio_frontend::area_tabs::AreaKey {
+                    project_id: document.project.id,
+                    module_id: module.id,
+                    area_id: area.id,
+                },
+                base_revision: state.revision,
+            },
+            brush: forge_world::VegetationDensityBrush {
+                schema_version: 1,
+                center_x_m: 0.0,
+                center_z_m: 0.0,
+                radius_m: 16.0,
+                strength: 1.0,
+                target_density: u8::MAX,
+                layer_id,
+            },
+            additional_centers: vec![[12.0, 0.0]],
+            preview_serial,
+            base_source_hash: None,
+        }
+    }
 
     #[test]
     fn selection_accepts_only_entities_from_the_shared_document() {
@@ -199,6 +303,42 @@ mod tests {
             execute_command(StudioCommand::SelectEntity { entity_id: unknown }, &session),
             StudioResponse::Rejected { .. }
         ));
+    }
+
+    #[test]
+    fn density_preview_response_binds_serial_candidate_hash_and_renderer_projection() {
+        let mut session = WorkspaceSession::default();
+        session
+            .execute(WorkspaceCommand::Create {
+                project_name: "Preview".into(),
+                module_name: "Module".into(),
+                area_name: "Zone".into(),
+                seed: "42".into(),
+                spawn_x: "0".into(),
+                spawn_y: "2".into(),
+                spawn_z: "0".into(),
+            })
+            .unwrap();
+        let before = session.execute(WorkspaceCommand::Current).unwrap();
+        let request = density_preview_request(&before, 73);
+        let (_, source) = session
+            .vegetation_density_stroke_preview_input(request.clone())
+            .unwrap()
+            .resolve()
+            .unwrap();
+        let mut cache = forge_studio_frontend::area_preview::AreaPreviewCache::default();
+        let response = prepare_vegetation_density_preview(&request, &source, &mut cache).unwrap();
+        let projection =
+            forge_studio_frontend::area_preview::read_area_preview(&response.preview_json).unwrap();
+        assert_eq!(response.request, request.request);
+        assert_eq!(response.preview_serial, 73);
+        assert!(!response.no_op && response.changed_cells > 0);
+        assert_eq!(response.candidate_revision, before.revision + 1);
+        assert_eq!(
+            response.candidate_density_source_hash,
+            projection.vegetation_density_source_hash
+        );
+        assert_eq!(session.execute(WorkspaceCommand::Current).unwrap(), before);
     }
 
     #[test]

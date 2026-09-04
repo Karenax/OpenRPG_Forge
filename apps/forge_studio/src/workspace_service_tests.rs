@@ -2,7 +2,8 @@
 
 use super::WorkspaceSession;
 use crate::workspace_api::{
-    MAX_WORKSPACE_IPC_REVISION, VegetationExclusionDraft, WorkspaceCommand, WorkspaceState,
+    MAX_WORKSPACE_IPC_REVISION, VegetationDensityStrokePreviewRequest, VegetationExclusionDraft,
+    WorkspaceCommand, WorkspaceState,
 };
 use forge_project::{
     MAX_WORKSPACE_JSON_BYTES, VegetationExclusion, VegetationExclusionId, VegetationLayerId,
@@ -231,6 +232,38 @@ fn vegetation_density_brush_command(state: &WorkspaceState, dry_run: bool) -> Wo
         },
         dry_run,
     }
+}
+
+fn vegetation_density_preview_request(
+    state: &WorkspaceState,
+    preview_serial: u64,
+) -> VegetationDensityStrokePreviewRequest {
+    let WorkspaceCommand::PaintVegetationDensity {
+        request,
+        brush,
+        additional_centers,
+        ..
+    } = vegetation_density_brush_command(state, false)
+    else {
+        unreachable!();
+    };
+    VegetationDensityStrokePreviewRequest {
+        request,
+        brush,
+        additional_centers,
+        preview_serial,
+        base_source_hash: None,
+    }
+}
+
+fn resolve_density_preview(
+    session: &WorkspaceSession,
+    request: &VegetationDensityStrokePreviewRequest,
+) -> Result<super::VegetationDensityStrokePreviewSource, String> {
+    session
+        .vegetation_density_stroke_preview_input(request.clone())?
+        .resolve()
+        .map(|(_, source)| source)
 }
 
 #[test]
@@ -464,6 +497,144 @@ fn vegetation_density_dry_run_matches_the_canonical_apply() {
     assert!(modified.windows(2).all(|pair| {
         (pair[0].cell_z(), pair[0].cell_x()) < (pair[1].cell_z(), pair[1].cell_x())
     }));
+}
+
+#[test]
+fn density_stroke_preview_candidate_matches_canonical_apply_and_leaves_session_bit_exact() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    save(&mut session, &directory);
+    let before = current(&mut session);
+    let files_before = directory.files();
+    let undo_before = session.undo.clone();
+    let redo_before = session.redo.clone();
+    let saved_hash_before = session.saved_hash;
+    let saved_path_before = session.saved_path.clone();
+    let receipt_before = session.receipt.clone();
+    let request = vegetation_density_preview_request(&before, 41);
+
+    let candidate = resolve_density_preview(&session, &request).unwrap();
+    assert!(!candidate.no_op);
+    assert!(candidate.changed_cells > 0);
+    assert_eq!(candidate.candidate_revision, before.revision + 1);
+    assert_eq!(current(&mut session), before);
+    assert_eq!(session.undo, undo_before);
+    assert_eq!(session.redo, redo_before);
+    assert_eq!(session.saved_hash, saved_hash_before);
+    assert_eq!(session.saved_path, saved_path_before);
+    assert_eq!(session.receipt, receipt_before);
+    assert_eq!(directory.files(), files_before);
+
+    let applied = session
+        .execute(WorkspaceCommand::PaintVegetationDensity {
+            request: request.request,
+            brush: request.brush,
+            additional_centers: request.additional_centers,
+            dry_run: false,
+        })
+        .unwrap();
+    let applied_document = document(&applied);
+    let applied_area = applied_document
+        .area(request.request.key.module_id, request.request.key.area_id)
+        .unwrap();
+    assert_eq!(&candidate.area, applied_area);
+    assert_eq!(
+        candidate.candidate_density_source_hash,
+        applied_area.vegetation_density.content_hash().unwrap()
+    );
+}
+
+#[test]
+fn successive_density_previews_share_the_canonical_base_and_noop_is_explicit() {
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    let before = current(&mut session);
+    let before_document = document(&before);
+    let mut first = vegetation_density_preview_request(&before, 1);
+    first.additional_centers.clear();
+    first.brush.center_x_m = -96.0;
+    first.brush.center_z_m = 0.0;
+    first.brush.strength = 1.0;
+    let mut second = vegetation_density_preview_request(&before, 2);
+    second.additional_centers.clear();
+    second.brush.center_x_m = 96.0;
+    second.brush.center_z_m = 0.0;
+    second.brush.strength = 1.0;
+
+    let first_candidate = resolve_density_preview(&session, &first).unwrap();
+    let second_candidate = resolve_density_preview(&session, &second).unwrap();
+    let expected_second = forge_world::preview_vegetation_density_stroke(
+        &before_document,
+        forge_world::VegetationDensityBrushCommand {
+            command_id: forge_core::CommandId::deterministic("expected-second-preview"),
+            base_revision: forge_core::Revision::new(before.revision),
+            project_id: second.request.key.project_id,
+            module_id: second.request.key.module_id,
+            area_id: second.request.key.area_id,
+            brush: second.brush.clone(),
+        },
+        &second.additional_centers,
+    )
+    .unwrap();
+    let expected_area = expected_second
+        .edit
+        .document
+        .area(second.request.key.module_id, second.request.key.area_id)
+        .unwrap();
+    assert_ne!(first_candidate.area, second_candidate.area);
+    assert_eq!(&second_candidate.area, expected_area);
+    assert_eq!(current(&mut session), before);
+
+    let mut no_op = vegetation_density_preview_request(&before, 3);
+    no_op.additional_centers.clear();
+    no_op.brush.target_density = 0;
+    let no_op_candidate = resolve_density_preview(&session, &no_op).unwrap();
+    assert!(no_op_candidate.no_op);
+    assert_eq!(no_op_candidate.changed_cells, 0);
+    assert_eq!(no_op_candidate.candidate_revision, before.revision);
+    assert_eq!(
+        no_op_candidate.area,
+        before_document.project.modules[0].areas[0]
+    );
+    assert_eq!(current(&mut session), before);
+}
+
+#[test]
+fn rejected_density_previews_never_touch_session_history_dirty_state_or_disk() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    save(&mut session, &directory);
+    let before = current(&mut session);
+    let files_before = directory.files();
+    let undo_before = session.undo.clone();
+    let redo_before = session.redo.clone();
+    let saved_hash_before = session.saved_hash;
+    let saved_path_before = session.saved_path.clone();
+    let receipt_before = session.receipt.clone();
+
+    let mut stale = vegetation_density_preview_request(&before, 1);
+    stale.request.base_revision -= 1;
+    let mut wrong_area = vegetation_density_preview_request(&before, 2);
+    wrong_area.request.key.area_id = forge_core::AreaId::deterministic("missing-area");
+    let mut invalid = vegetation_density_preview_request(&before, 3);
+    invalid.brush.radius_m = 1.0;
+    let mut too_many = vegetation_density_preview_request(&before, 4);
+    too_many.additional_centers = vec![[0.0, 0.0]; 64];
+    let mut unbounded_serial = vegetation_density_preview_request(&before, 5);
+    unbounded_serial.preview_serial = MAX_WORKSPACE_IPC_REVISION + 1;
+
+    for rejected in [stale, wrong_area, invalid, too_many, unbounded_serial] {
+        assert!(resolve_density_preview(&session, &rejected).is_err());
+        assert_eq!(current(&mut session), before);
+        assert_eq!(session.undo, undo_before);
+        assert_eq!(session.redo, redo_before);
+        assert_eq!(session.saved_hash, saved_hash_before);
+        assert_eq!(session.saved_path, saved_path_before);
+        assert_eq!(session.receipt, receipt_before);
+        assert_eq!(directory.files(), files_before);
+    }
 }
 
 #[test]

@@ -2,7 +2,8 @@
 
 use crate::{
     workspace_api::{
-        MAX_WORKSPACE_IPC_REVISION, VegetationExclusionDraft, WorkspaceCommand, WorkspaceState,
+        MAX_WORKSPACE_IPC_REVISION, VegetationDensityStrokePreviewRequest,
+        VegetationExclusionDraft, WorkspaceCommand, WorkspaceState,
     },
     workspace_store,
 };
@@ -10,12 +11,65 @@ use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, 
 use forge_project::{
     MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand, TerrainMaterialRole,
     VegetationExclusion, VegetationExclusionId, VegetationLayer, VegetationLayerId, WorkspaceArea,
-    WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit,
+    WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit, WorkspaceError,
 };
 use std::path::{Path, PathBuf};
 
 /// At most 32 document snapshots across undo and redo (each validated at <= 1 MiB JSON).
 pub const WORKSPACE_HISTORY_LIMIT: usize = 32;
+
+/// Disposable candidate copied out of the canonical session for renderer preparation.
+pub struct VegetationDensityStrokePreviewSource {
+    pub area: WorkspaceArea,
+    pub changed_cells: usize,
+    pub no_op: bool,
+    pub candidate_revision: u64,
+    pub candidate_density_source_hash: ContentHash,
+}
+
+/// Canonical snapshot copied under the session lock and resolved on the blocking pool.
+pub struct VegetationDensityStrokePreviewInput {
+    document: WorkspaceDocument,
+    preview: VegetationDensityStrokePreviewRequest,
+}
+
+impl VegetationDensityStrokePreviewInput {
+    pub fn resolve(
+        self,
+    ) -> Result<
+        (
+            VegetationDensityStrokePreviewRequest,
+            VegetationDensityStrokePreviewSource,
+        ),
+        String,
+    > {
+        let preview = self.preview;
+        let document = self.document;
+        let command = forge_world::VegetationDensityBrushCommand {
+            command_id: CommandId::deterministic(format!(
+                "studio/vegetation-density-preview/{}/{}/{}",
+                preview.request.key.area_id, preview.request.base_revision, preview.preview_serial
+            )),
+            base_revision: Revision::new(preview.request.base_revision),
+            project_id: preview.request.key.project_id,
+            module_id: preview.request.key.module_id,
+            area_id: preview.request.key.area_id,
+            brush: preview.brush.clone(),
+        };
+        let source = match forge_world::preview_vegetation_density_stroke(
+            &document,
+            command,
+            &preview.additional_centers,
+        ) {
+            Ok(candidate) => changed_density_preview_source(&preview, &candidate)?,
+            Err(forge_world::VegetationDensityBrushError::Workspace(WorkspaceError::NoChange)) => {
+                no_op_density_preview_source(&preview, &document)?
+            }
+            Err(error) => return Err(error.to_string()),
+        };
+        Ok((preview, source))
+    }
+}
 
 #[derive(Default)]
 pub struct WorkspaceSession {
@@ -43,6 +97,23 @@ impl WorkspaceSession {
             .area(request.key.module_id, request.key.area_id)
             .ok_or("Zone introuvable.")?;
         Ok(area.clone())
+    }
+
+    /// Copies the accepted source; candidate computation happens after releasing the session lock.
+    pub fn vegetation_density_stroke_preview_input(
+        &self,
+        preview: VegetationDensityStrokePreviewRequest,
+    ) -> Result<VegetationDensityStrokePreviewInput, String> {
+        ensure_ipc_revision(preview.preview_serial)?;
+        self.require_revision(preview.request.base_revision)?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        if !preview.request.key.exists(document) {
+            return Err("La zone demandée n’appartient pas au projet courant.".into());
+        }
+        Ok(VegetationDensityStrokePreviewInput {
+            document: document.clone(),
+            preview,
+        })
     }
 
     pub fn execute(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
@@ -752,6 +823,52 @@ impl WorkspaceSession {
             last_receipt_json: self.receipt.clone(),
         })
     }
+}
+
+fn changed_density_preview_source(
+    preview: &VegetationDensityStrokePreviewRequest,
+    candidate: &forge_world::VegetationDensityBrushResult,
+) -> Result<VegetationDensityStrokePreviewSource, String> {
+    let candidate_revision = candidate.edit.document.revision.get();
+    ensure_ipc_revision(candidate_revision)?;
+    let area = candidate
+        .edit
+        .document
+        .area(preview.request.key.module_id, preview.request.key.area_id)
+        .ok_or("Zone candidate introuvable.")?
+        .clone();
+    let candidate_density_source_hash = area
+        .vegetation_density
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    Ok(VegetationDensityStrokePreviewSource {
+        area,
+        changed_cells: candidate.changed_cells,
+        no_op: false,
+        candidate_revision,
+        candidate_density_source_hash,
+    })
+}
+
+fn no_op_density_preview_source(
+    preview: &VegetationDensityStrokePreviewRequest,
+    document: &WorkspaceDocument,
+) -> Result<VegetationDensityStrokePreviewSource, String> {
+    let area = document
+        .area(preview.request.key.module_id, preview.request.key.area_id)
+        .ok_or("Zone introuvable.")?
+        .clone();
+    let candidate_density_source_hash = area
+        .vegetation_density
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    Ok(VegetationDensityStrokePreviewSource {
+        area,
+        changed_cells: 0,
+        no_op: true,
+        candidate_revision: preview.request.base_revision,
+        candidate_density_source_hash,
+    })
 }
 
 fn first_free_species_id(layers: &[VegetationLayer]) -> Result<VegetationLayerId, String> {

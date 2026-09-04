@@ -63,6 +63,26 @@ impl AreaPreviewCache {
         base_source_hash: Option<ContentHash>,
     ) -> Result<String, String> {
         validate_preview_source(request, area)?;
+        self.prepare_validated(request, area, base_source_hash)
+    }
+
+    /// Projects one disposable density candidate whose revision is exactly the next revision.
+    pub fn prepare_vegetation_density_candidate(
+        &mut self,
+        request: AreaPreviewRequest,
+        area: &WorkspaceArea,
+        base_source_hash: Option<ContentHash>,
+    ) -> Result<String, String> {
+        validate_vegetation_density_candidate_source(request, area)?;
+        self.prepare_validated(request, area, base_source_hash)
+    }
+
+    fn prepare_validated(
+        &mut self,
+        request: AreaPreviewRequest,
+        area: &WorkspaceArea,
+        base_source_hash: Option<ContentHash>,
+    ) -> Result<String, String> {
         let (vegetation_cache, vegetation_regenerated, changed_chunks, retained_chunks) =
             self.prepare_vegetation(area)?;
         let vegetation = vegetation_cache.snapshot();
@@ -165,13 +185,45 @@ fn validate_preview_source(
     request: AreaPreviewRequest,
     area: &WorkspaceArea,
 ) -> Result<(), String> {
-    let project_id = request.key.project_id;
-    let area_id = request.key.area_id;
+    validate_preview_identity(request, area)?;
     let revisions = [
         area.terrain.revision.get(),
         area.vegetation.revision.get(),
         area.vegetation_density.revision.get(),
     ];
+    if revisions
+        .into_iter()
+        .any(|revision| revision > request.base_revision)
+    {
+        return Err("Source d’aperçu incohérente avec la demande.".into());
+    }
+    Ok(())
+}
+
+fn validate_vegetation_density_candidate_source(
+    request: AreaPreviewRequest,
+    area: &WorkspaceArea,
+) -> Result<(), String> {
+    validate_preview_identity(request, area)?;
+    let candidate_revision = request
+        .base_revision
+        .checked_add(1)
+        .ok_or("Révision candidate épuisée.")?;
+    if area.terrain.revision.get() > request.base_revision
+        || area.vegetation.revision.get() > request.base_revision
+        || area.vegetation_density.revision.get() != candidate_revision
+    {
+        return Err("Source candidate incohérente avec la demande d’aperçu.".into());
+    }
+    Ok(())
+}
+
+fn validate_preview_identity(
+    request: AreaPreviewRequest,
+    area: &WorkspaceArea,
+) -> Result<(), String> {
+    let project_id = request.key.project_id;
+    let area_id = request.key.area_id;
     if area.id != area_id
         || area.terrain.project_id != project_id
         || area.terrain.area_id != area_id
@@ -179,9 +231,6 @@ fn validate_preview_source(
         || area.vegetation.area_id != area_id
         || area.vegetation_density.project_id != project_id
         || area.vegetation_density.area_id != area_id
-        || revisions
-            .into_iter()
-            .any(|revision| revision > request.base_revision)
         || ![area.spawn.x, area.spawn.y, area.spawn.z]
             .iter()
             .all(|value| value.is_finite())

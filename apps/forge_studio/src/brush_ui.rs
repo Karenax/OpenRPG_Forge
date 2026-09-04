@@ -1,7 +1,13 @@
-use super::{AreaPreviewRequest, WorkspaceActions, WorldActions};
+use super::{AreaPreviewRequest, WorkspaceActions, WorldActions, invoke_studio};
 use crate::{
-    brush_state::BrushPath,
-    workspace_api::{VegetationExclusionDraft, WorkspaceCommand},
+    StudioCommand, StudioResponse,
+    brush_state::{
+        BrushPath, StrokePreviewCoordinator, StrokePreviewDispatch, StrokePreviewTicket,
+    },
+    workspace_api::{
+        VegetationDensityStrokePreviewRequest, VegetationDensityStrokePreviewResponse,
+        VegetationExclusionDraft, WorkspaceCommand,
+    },
 };
 use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer};
 use forge_project::{TerrainMaterialRole, VegetationLayerId};
@@ -25,6 +31,25 @@ struct StrokeDraft {
     last_serial: u64,
     sampled_serial: u64,
     finishing: bool,
+    final_preview_queued: bool,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct DensityPreviewTrajectory {
+    world_generation: u64,
+    brush: VegetationDensityBrush,
+    additional_centers: Vec<[f32; 2]>,
+}
+
+#[derive(Clone)]
+struct FinalDensityCommit {
+    request: AreaPreviewRequest,
+    generation: u64,
+    trajectory: DensityPreviewTrajectory,
+    candidate_revision: u64,
+    candidate_density_source_hash: forge_core::ContentHash,
+    no_op: bool,
+    apply_sent: bool,
 }
 
 #[derive(Clone)]
@@ -108,6 +133,20 @@ impl StrokeDraft {
             self.path.append(point, self.brush.radius_m())
         }
     }
+
+    fn density_trajectory(&self) -> Option<DensityPreviewTrajectory> {
+        let first = self.path.points.first().copied()?;
+        let ActiveBrush::VegetationDensity(mut brush) = self.brush.clone() else {
+            return None;
+        };
+        brush.center_x_m = first[0];
+        brush.center_z_m = first[1];
+        Some(DensityPreviewTrajectory {
+            world_generation: self.generation,
+            brush,
+            additional_centers: self.path.points[1..].to_vec(),
+        })
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -126,6 +165,9 @@ pub(super) struct BrushActions {
     serial: RwSignal<u64>,
     error: RwSignal<Option<String>>,
     point: RwSignal<Option<[f32; 3]>>,
+    density_preview: StoredValue<Option<StrokePreviewCoordinator<DensityPreviewTrajectory>>>,
+    final_density_commit: RwSignal<Option<FinalDensityCommit>>,
+    restore_after_preview: StoredValue<bool>,
 }
 
 fn vegetation_layer_options(world: WorldActions) -> Vec<(String, String)> {
@@ -287,6 +329,246 @@ impl BrushActions {
         self.height_brush(&mode).map(Some)
     }
 
+    fn begin_density_preview(self, request: AreaPreviewRequest) -> Result<(), String> {
+        let mut coordinator = self.density_preview.write_value();
+        if let Some(coordinator) = coordinator.as_mut() {
+            coordinator
+                .set_request(request)
+                .map_err(|_| "Compteur d’aperçu épuisé.".to_owned())?;
+        } else {
+            *coordinator = Some(StrokePreviewCoordinator::new(request));
+        }
+        *self.restore_after_preview.write_value() = false;
+        self.final_density_commit.set(None);
+        Ok(())
+    }
+
+    fn submit_density_preview(
+        self,
+        world: WorldActions,
+        stroke: &StrokeDraft,
+        finished: bool,
+    ) -> Result<(), String> {
+        let trajectory = stroke
+            .density_trajectory()
+            .ok_or("Trajectoire de densité vide ou incompatible.")?;
+        let dispatch = self
+            .density_preview
+            .write_value()
+            .as_mut()
+            .ok_or("Coordinateur d’aperçu indisponible.")?
+            .submit(preview_now_ms(), trajectory, finished)
+            .map_err(|_| "Compteur d’aperçu épuisé.".to_owned())?;
+        if let Some(dispatch) = dispatch {
+            self.dispatch_density_preview(world, dispatch);
+        }
+        Ok(())
+    }
+
+    fn tick_density_preview(self, world: WorldActions) {
+        if world.density_preview_busy.get_untracked() {
+            return;
+        }
+        let dispatch = self
+            .density_preview
+            .write_value()
+            .as_mut()
+            .and_then(|coordinator| coordinator.tick(preview_now_ms()).ok())
+            .flatten();
+        if let Some(dispatch) = dispatch {
+            self.dispatch_density_preview(world, dispatch);
+        }
+    }
+
+    fn dispatch_density_preview(
+        self,
+        world: WorldActions,
+        dispatch: StrokePreviewDispatch<DensityPreviewTrajectory>,
+    ) {
+        let base_source_hash = world.density_preview_base_hash(
+            dispatch.trajectory.world_generation,
+            dispatch.ticket.request,
+        );
+        let preview = VegetationDensityStrokePreviewRequest {
+            request: dispatch.ticket.request,
+            brush: dispatch.trajectory.brush.clone(),
+            additional_centers: dispatch.trajectory.additional_centers.clone(),
+            preview_serial: dispatch.ticket.serial,
+            base_source_hash,
+        };
+        world.density_preview_busy.set(true);
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = fetch_density_preview(world, dispatch.ticket, preview).await;
+            world.density_preview_busy.set(false);
+            self.finish_density_preview(world, dispatch, result);
+        });
+    }
+
+    fn finish_density_preview(
+        self,
+        world: WorldActions,
+        dispatch: StrokePreviewDispatch<DensityPreviewTrajectory>,
+        result: Result<ValidatedDensityPreview, String>,
+    ) {
+        let ticket = dispatch.ticket;
+        let settlement = {
+            let mut slot = self.density_preview.write_value();
+            let Some(coordinator) = slot.as_mut() else {
+                return;
+            };
+            coordinator.settle(preview_now_ms(), ticket)
+        };
+        let Ok(settlement) = settlement else {
+            self.fail_density_preview(world, "Compteur d’aperçu épuisé.", None);
+            return;
+        };
+
+        if settlement.present_response && result.is_err() {
+            let message = result
+                .err()
+                .unwrap_or_else(|| "Aperçu de densité invalide.".into());
+            self.fail_density_preview(
+                world,
+                &message,
+                settlement.next.as_ref().map(|next| next.ticket),
+            );
+            return;
+        }
+
+        if settlement.present_response
+            && let Ok(validated) = result
+        {
+            if let Err(error) = world.publish_density_preview(
+                dispatch.trajectory.world_generation,
+                validated.response.candidate_revision,
+                validated.projection,
+            ) {
+                self.fail_density_preview(
+                    world,
+                    &error,
+                    settlement.next.as_ref().map(|next| next.ticket),
+                );
+                return;
+            }
+            if dispatch.finished {
+                self.final_density_commit.set(Some(FinalDensityCommit {
+                    request: ticket.request,
+                    generation: dispatch.trajectory.world_generation,
+                    trajectory: dispatch.trajectory,
+                    candidate_revision: validated.response.candidate_revision,
+                    candidate_density_source_hash: validated.response.candidate_density_source_hash,
+                    no_op: validated.response.no_op,
+                    apply_sent: false,
+                }));
+            }
+        }
+
+        if let Some(next) = settlement.next {
+            self.dispatch_density_preview(world, next);
+        } else {
+            self.restore_canonical_if_idle(world);
+        }
+    }
+
+    fn fail_density_preview(
+        self,
+        world: WorldActions,
+        message: &str,
+        unstarted: Option<StrokePreviewTicket>,
+    ) {
+        if let Some(coordinator) = self.density_preview.write_value().as_mut() {
+            if let Some(ticket) = unstarted {
+                let _ = coordinator.discard_before_send(ticket);
+            }
+            let _ = coordinator.cancel();
+        }
+        self.error.set(Some(message.to_owned()));
+        self.stroke.set(None);
+        self.final_density_commit.set(None);
+        *self.restore_after_preview.write_value() = true;
+        self.restore_canonical_if_idle(world);
+    }
+
+    fn restore_canonical_if_idle(self, world: WorldActions) {
+        if !*self.restore_after_preview.read_value() {
+            return;
+        }
+        let idle = self
+            .density_preview
+            .read_value()
+            .as_ref()
+            .is_none_or(|coordinator| !coordinator.has_in_flight());
+        if idle {
+            *self.restore_after_preview.write_value() = false;
+            *self.density_preview.write_value() = None;
+            world.request_canonical_projection();
+        }
+    }
+
+    fn commit_density_if_observed(self, world: WorldActions, workspace: WorkspaceActions) {
+        let Some(mut commit) = self.final_density_commit.get_untracked() else {
+            return;
+        };
+        if commit.apply_sent {
+            if workspace.pending.get_untracked() {
+                return;
+            }
+            if let Some(error) = workspace.error.get_untracked() {
+                self.fail_density_preview(world, &error, None);
+            } else if workspace.state.get_untracked().revision == commit.candidate_revision {
+                self.final_density_commit.set(None);
+            } else {
+                self.fail_density_preview(
+                    world,
+                    "Validation de densité sans révision candidate correspondante.",
+                    None,
+                );
+            }
+            return;
+        }
+        if world.status.get_untracked().error.is_some() {
+            self.fail_density_preview(world, "Le viewport a refusé l’aperçu de densité.", None);
+            return;
+        }
+        if world.generation.get_untracked() != commit.generation
+            || world.tabs.get_untracked().active != Some(commit.request.key)
+            || workspace.state.get_untracked().revision != commit.request.base_revision
+        {
+            self.fail_density_preview(
+                world,
+                "Le projet a changé : trait annulé sans modification.",
+                None,
+            );
+            return;
+        }
+        if workspace.unavailable()
+            || !world.density_preview_observed(
+                commit.generation,
+                commit.request,
+                commit.candidate_revision,
+                commit.candidate_density_source_hash,
+            )
+        {
+            return;
+        }
+
+        self.final_density_commit.set(None);
+        self.stroke.set(None);
+        *self.density_preview.write_value() = None;
+        if commit.no_op {
+            return;
+        }
+        commit.apply_sent = true;
+        let command = WorkspaceCommand::PaintVegetationDensity {
+            request: commit.request,
+            brush: commit.trajectory.brush.clone(),
+            additional_centers: commit.trajectory.additional_centers.clone(),
+            dry_run: false,
+        };
+        self.final_density_commit.set(Some(commit));
+        workspace.send(command);
+    }
+
     pub(super) fn move_pointer(
         self,
         world: WorldActions,
@@ -390,6 +672,7 @@ impl BrushActions {
             }
             event.prevent_default();
             self.error.set(None);
+            let density_preview = matches!(&brush, ActiveBrush::VegetationDensity(_));
             self.stroke.set(Some(StrokeDraft {
                 request: AreaPreviewRequest {
                     key,
@@ -402,7 +685,17 @@ impl BrushActions {
                 last_serial: serial,
                 sampled_serial: 0,
                 finishing: false,
+                final_preview_queued: false,
             }));
+            if density_preview
+                && let Err(error) = self.begin_density_preview(AreaPreviewRequest {
+                    key,
+                    base_revision: workspace.state.get_untracked().revision,
+                })
+            {
+                self.error.set(Some(error));
+                self.stroke.set(None);
+            }
         }
         true
     }
@@ -423,14 +716,33 @@ impl BrushActions {
         });
     }
 
-    pub(super) fn cancel(self, unless_finishing: bool) {
-        if !unless_finishing
-            || !self
+    pub(super) fn cancel(self, world: WorldActions, unless_finishing: bool) {
+        if self
+            .final_density_commit
+            .get_untracked()
+            .is_some_and(|commit| commit.apply_sent)
+        {
+            return;
+        }
+        if unless_finishing
+            && self
                 .stroke
                 .get_untracked()
                 .is_some_and(|stroke| stroke.finishing)
         {
-            self.stroke.set(None);
+            return;
+        }
+        self.stroke.set(None);
+        self.final_density_commit.set(None);
+        let had_density_preview = self.density_preview.read_value().is_some();
+        if let Some(coordinator) = self.density_preview.write_value().as_mut()
+            && coordinator.cancel().is_err()
+        {
+            self.error.set(Some("Compteur d’aperçu épuisé.".into()));
+        }
+        if had_density_preview {
+            *self.restore_after_preview.write_value() = true;
+            self.restore_canonical_if_idle(world);
         }
     }
 
@@ -442,17 +754,23 @@ impl BrushActions {
         }
     }
 
-    fn record_hit(self, stroke: &mut StrokeDraft, hit: EditorBrushHit) -> bool {
+    fn record_hit(
+        self,
+        world: WorldActions,
+        stroke: &mut StrokeDraft,
+        hit: EditorBrushHit,
+    ) -> Option<bool> {
+        let previous_path = stroke.path.clone();
         if let Err(error) = stroke.record_point([
             hit.point[0].clamp(-256.0, 256.0),
             hit.point[2].clamp(-256.0, 256.0),
         ]) {
             self.error.set(Some(error));
-            self.stroke.set(None);
-            return false;
+            self.cancel(world, false);
+            return None;
         }
         stroke.sampled_serial = hit.serial;
-        true
+        Some(stroke.path != previous_path)
     }
 
     fn exclusion_command(
@@ -530,6 +848,8 @@ impl BrushActions {
     }
 
     fn sample(self, world: WorldActions, workspace: WorkspaceActions) {
+        self.tick_density_preview(world);
+        self.commit_density_if_observed(world, workspace);
         let (hit, sampled, start_hit) = {
             let viewport = world.viewport.get_value();
             let Ok(bridge) = viewport.0.lock() else {
@@ -546,29 +866,64 @@ impl BrushActions {
             self.point.set(point);
         }
         let Some(mut stroke) = self.stroke.get_untracked() else {
+            self.restore_canonical_if_idle(world);
             return;
         };
         if world.generation.get_untracked() != stroke.generation
+            || world.tabs.get_untracked().active != Some(stroke.request.key)
             || workspace.state.get_untracked().revision != stroke.request.base_revision
         {
             self.error.set(Some(
                 "Le projet a changé : trait annulé sans modification.".into(),
             ));
-            self.stroke.set(None);
+            self.cancel(world, false);
             return;
         }
+        if matches!(&stroke.brush, ActiveBrush::VegetationDensity(_))
+            && world.status.get_untracked().error.is_some()
+        {
+            self.fail_density_preview(world, "Le viewport a refusé l’aperçu de densité.", None);
+            return;
+        }
+
+        let mut path_changed = false;
         if stroke.sampled_serial == 0
             && let Some(hit) = start_hit.filter(|hit| hit.generation == stroke.generation)
-            && !self.record_hit(&mut stroke, hit)
         {
-            return;
+            let Some(changed) = self.record_hit(world, &mut stroke, hit) else {
+                return;
+            };
+            path_changed |= changed;
         }
         if let Some(hit) = hit
             .filter(|hit| hit.generation == stroke.generation && hit.serial > stroke.sampled_serial)
-            && !self.record_hit(&mut stroke, hit)
         {
+            let Some(changed) = self.record_hit(world, &mut stroke, hit) else {
+                return;
+            };
+            path_changed |= changed;
+        }
+
+        if matches!(&stroke.brush, ActiveBrush::VegetationDensity(_)) {
+            let final_sampled = stroke.finishing && sampled == Some(stroke.last_serial);
+            let queue_final = final_sampled && !stroke.final_preview_queued;
+            if queue_final {
+                stroke.final_preview_queued = true;
+            }
+            self.stroke.set(Some(stroke.clone()));
+            let preview_result = if queue_final {
+                self.submit_density_preview(world, &stroke, true)
+            } else if path_changed && !stroke.finishing {
+                self.submit_density_preview(world, &stroke, false)
+            } else {
+                Ok(())
+            };
+            if let Err(error) = preview_result {
+                self.fail_density_preview(world, &error, None);
+            }
             return;
         }
+
         if stroke.finishing && sampled == Some(stroke.last_serial) {
             self.stroke.set(None);
             self.dispatch_stroke(workspace, stroke);
@@ -576,6 +931,110 @@ impl BrushActions {
             self.stroke.set(Some(stroke));
         }
     }
+}
+
+struct ValidatedDensityPreview {
+    response: VegetationDensityStrokePreviewResponse,
+    projection: crate::area_preview::AreaPreview,
+}
+
+async fn fetch_density_preview(
+    world: WorldActions,
+    ticket: StrokePreviewTicket,
+    sent: VegetationDensityStrokePreviewRequest,
+) -> Result<ValidatedDensityPreview, String> {
+    let response = match invoke_studio(StudioCommand::VegetationDensityStrokePreview {
+        preview: sent.clone(),
+    })
+    .await?
+    {
+        StudioResponse::VegetationDensityStrokePreview { preview } => preview,
+        StudioResponse::Rejected { reason } => return Err(reason),
+        _ => return Err("Réponse inattendue pour l’aperçu de densité.".into()),
+    };
+    validate_density_preview(world, ticket, &sent, response)
+}
+
+fn validate_density_preview(
+    world: WorldActions,
+    ticket: StrokePreviewTicket,
+    sent: &VegetationDensityStrokePreviewRequest,
+    response: VegetationDensityStrokePreviewResponse,
+) -> Result<ValidatedDensityPreview, String> {
+    if sent.request != ticket.request
+        || sent.preview_serial != ticket.serial
+        || response.request != ticket.request
+        || response.preview_serial != ticket.serial
+        || response.no_op != (response.changed_cells == 0)
+    {
+        return Err("Enveloppe d’aperçu de densité périmée ou incohérente.".into());
+    }
+    let changed_revision = ticket
+        .request
+        .base_revision
+        .checked_add(1)
+        .ok_or("Révision candidate épuisée.")?;
+    let expected_revision = if response.no_op {
+        ticket.request.base_revision
+    } else {
+        changed_revision
+    };
+    if response.candidate_revision != expected_revision {
+        return Err("Révision candidate d’aperçu incohérente.".into());
+    }
+
+    let document = world
+        .document
+        .get_untracked()
+        .ok_or("Projet absent pendant l’aperçu.")?;
+    if document.revision.get() != ticket.request.base_revision
+        || world.tabs.get_untracked().active != Some(ticket.request.key)
+    {
+        return Err("Cible d’aperçu changée avant la réponse.".into());
+    }
+    let area = document
+        .area(ticket.request.key.module_id, ticket.request.key.area_id)
+        .ok_or("Zone d’aperçu introuvable.")?;
+    let terrain_hash = area
+        .terrain
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let vegetation_hash = area
+        .vegetation
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let projection = crate::area_preview::read_area_preview(&response.preview_json)?;
+    if projection.request != ticket.request
+        || projection.terrain.source_document_hash != terrain_hash
+        || projection.vegetation.terrain_document_hash != terrain_hash
+        || projection.vegetation.vegetation_document_hash != vegetation_hash
+        || projection.vegetation_density_source_hash != response.candidate_density_source_hash
+        || projection
+            .vegetation_changed_chunks
+            .checked_add(projection.vegetation_retained_chunks)
+            != Some(64)
+        || (projection.base_source_hash.is_some()
+            && projection.base_source_hash != sent.base_source_hash)
+    {
+        return Err("Projection candidate périmée ou incohérente.".into());
+    }
+    Ok(ValidatedDensityPreview {
+        response,
+        projection,
+    })
+}
+
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "Browser monotonic milliseconds are finite and clamped to JavaScript's exact range"
+)]
+fn preview_now_ms() -> u64 {
+    const MAX_EXACT_JS_INTEGER: f64 = 9_007_199_254_740_991.0;
+    web_sys::window()
+        .and_then(|window| window.performance())
+        .map_or_else(js_sys::Date::now, |performance| performance.now())
+        .clamp(0.0, MAX_EXACT_JS_INTEGER) as u64
 }
 
 pub(super) fn create_brush_actions(
@@ -597,6 +1056,9 @@ pub(super) fn create_brush_actions(
         serial: RwSignal::new(0),
         error: RwSignal::new(None),
         point: RwSignal::new(None),
+        density_preview: StoredValue::new(None),
+        final_density_commit: RwSignal::new(None),
+        restore_after_preview: StoredValue::new(false),
     };
     Effect::new(move |_| {
         let _ = world.generation.get();
@@ -611,7 +1073,7 @@ pub(super) fn create_brush_actions(
                 .vegetation_layer
                 .set(layer_ids.first().cloned().unwrap_or_default());
         }
-        actions.cancel(false);
+        actions.cancel(world, false);
         actions.point.set(None);
         if let Ok(mut bridge) = world.viewport.get_value().0.lock() {
             bridge.brush_pointer = None;

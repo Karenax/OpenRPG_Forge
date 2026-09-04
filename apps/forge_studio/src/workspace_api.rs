@@ -8,6 +8,34 @@ use serde::{Deserialize, Serialize};
 /// The domain keeps its full `u64`; the native session rejects larger revisions before mutation.
 pub const MAX_WORKSPACE_IPC_REVISION: u64 = (1_u64 << 53) - 1;
 
+/// One disposable density-stroke request. It is never stored in the workspace.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationDensityStrokePreviewRequest {
+    pub request: crate::area_preview::AreaPreviewRequest,
+    pub brush: forge_world::VegetationDensityBrush,
+    #[serde(default)]
+    pub additional_centers: Vec<[f32; 2]>,
+    /// Monotonic UI token used to discard a response superseded by a newer pointer sample.
+    pub preview_serial: u64,
+    /// Lets the renderer receive only unchanged terrain replacements when its cache is exact.
+    #[serde(default)]
+    pub base_source_hash: Option<forge_core::ContentHash>,
+}
+
+/// Typed envelope around a disposable renderer projection.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationDensityStrokePreviewResponse {
+    pub request: crate::area_preview::AreaPreviewRequest,
+    pub preview_serial: u64,
+    pub changed_cells: usize,
+    pub no_op: bool,
+    pub candidate_revision: u64,
+    pub candidate_density_source_hash: forge_core::ContentHash,
+    pub preview_json: String,
+}
+
 /// Geometry entered by the Studio before the native service assigns a stable exclusion ID.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "shape", rename_all = "snake_case", deny_unknown_fields)]
@@ -234,5 +262,54 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn density_preview_envelopes_round_trip_strictly() {
+        let request = crate::area_preview::AreaPreviewRequest {
+            key: crate::area_tabs::AreaKey {
+                project_id: forge_core::ProjectId::deterministic("preview-project"),
+                module_id: ModuleId::deterministic("preview-module"),
+                area_id: AreaId::deterministic("preview-area"),
+            },
+            base_revision: 7,
+        };
+        let preview = VegetationDensityStrokePreviewRequest {
+            request,
+            brush: forge_world::VegetationDensityBrush {
+                schema_version: 1,
+                center_x_m: 2.0,
+                center_z_m: 3.0,
+                radius_m: 12.0,
+                strength: 0.75,
+                target_density: u8::MAX,
+                layer_id: VegetationLayerId::new("forge_grass"),
+            },
+            additional_centers: vec![[4.0, 5.0]],
+            preview_serial: 19,
+            base_source_hash: Some(forge_core::ContentHash::from_bytes([0xA5; 32])),
+        };
+        let json = serde_json::to_string(&preview).unwrap();
+        assert_eq!(
+            serde_json::from_str::<VegetationDensityStrokePreviewRequest>(&json).unwrap(),
+            preview
+        );
+        let response = VegetationDensityStrokePreviewResponse {
+            request,
+            preview_serial: 19,
+            changed_cells: 12,
+            no_op: false,
+            candidate_revision: 8,
+            candidate_density_source_hash: forge_core::ContentHash::from_bytes([0x5A; 32]),
+            preview_json: "{}".into(),
+        };
+        let json = serde_json::to_string(&response).unwrap();
+        assert_eq!(
+            serde_json::from_str::<VegetationDensityStrokePreviewResponse>(&json).unwrap(),
+            response
+        );
+        let mut value = serde_json::to_value(preview).unwrap();
+        value["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<VegetationDensityStrokePreviewRequest>(value).is_err());
     }
 }
