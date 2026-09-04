@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "branch": "Rust",
+  "code_commit": "d22b68c24c85f0aa44b651c8e04e8b02d1690fba",
+  "acquisition_commit": "e99b2ffc676d090fcaf8e5dfc06ef523e78261fd",
+  "note": "Local ignored evidence. 00-native-d22-before-style.png and logs without e99 suffix are the initial candidate. Browser smoke screenshots were inspected in-session only.",
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/00-native-d22-before-style.png",
+      "bytes": 107366,
+      "sha256": "38dec7c2509b1a0f5ccb036c8c56116a9e324551edaeb3af3e9b050ed91e303d"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/01-native-area-a.png",
+      "bytes": 103859,
+      "sha256": "2c5064d817bfe56f140ed4fcefed6b55581a7ce279a5dd1d60c6930110d58059"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/02-native-area-a-camera.png",
+      "bytes": 103517,
+      "sha256": "142f91b9318db2ee5ee242157b360567d710d09d23e852993a3fef5f6301bbd7"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/03-native-ledger-a.json",
+      "bytes": 674,
+      "sha256": "8a2cf8c1e50a43d086d3c2b955fe8b09b1d8055a2688932411b1b5daa6ee80ec"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/04-native-area-b.png",
+      "bytes": 105626,
+      "sha256": "2806775ea42739542dc6ab952c82d510e9e5758c9eaf00893163d4abce480221"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/05-native-ledger-b.json",
+      "bytes": 645,
+      "sha256": "745f8cb558ea3eb21a881d259873265736e56f04cb63de2610aa3158576a82b9"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/06-native-area-a-restored.png",
+      "bytes": 105309,
+      "sha256": "8642b08a1b50788820c15dafe49a6a3d6fc3a7b34d9ffe254573b632d6c72aff"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/07-native-resized.png",
+      "bytes": 103547,
+      "sha256": "4a5354e12125b7d216f22ac063137e28994a91bf9dde07fee9aec99c5ada9ddf"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/08-native-ledger-restored.json",
+      "bytes": 674,
+      "sha256": "f5cc7f8b279ec3be971169e485f22946e7d3520510632dce55d0c68fb44d52bb"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/09-native-tabs-closed.png",
+      "bytes": 99206,
+      "sha256": "b5703ba899820e9a2e11a4ed5540c6411cddb62409c8b4a7fa16088616f1a1da"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/10-native-spawn-focus.png",
+      "bytes": 102036,
+      "sha256": "8dcbe583ff46568e6518a3cd06d2b7f4ed9d4eb393697e5b4281213461f450f8"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/11-native-menu-source.png",
+      "bytes": 140490,
+      "sha256": "ec4d7780f847fc26c88c314398fafbaa79e39755458d7f596230107d026f38df"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/12-native-ledger-closed.json",
+      "bytes": 558,
+      "sha256": "70e86d419e7cc716febd3ef58b67793e86885cdb439df3fce5de7eebacf3d33f"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/13-native-project-closed.png",
+      "bytes": 120951,
+      "sha256": "0b0fcaa8c739799057c5021e2ee22c8153ee4e023a52d38bc8927fc634a75ce2"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/cadle-boundary-e99.txt",
+      "bytes": 62,
+      "sha256": "7a8cd549dffc39f4e0f6225979dfbac0f7c2d9daab68d817bba7d21dda1c9e97"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/cadle-boundary.txt",
+      "bytes": 62,
+      "sha256": "7a8cd549dffc39f4e0f6225979dfbac0f7c2d9daab68d817bba7d21dda1c9e97"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/clippy-native.txt",
+      "bytes": 378,
+      "sha256": "252b863fec115d52916e541077a63c419427f20ed07cb730430a020b073ee374"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/clippy-wasm.txt",
+      "bytes": 429,
+      "sha256": "81be20b9c87b3838ee7780ec5632ff889cb10692e4def70526c0e4cd22d26072"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/studio-release-e99.txt",
+      "bytes": 165,
+      "sha256": "a7f63e02d9e9553838695769b4be01a7e6e1ebeff1ddfa549761cb817c190af6"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/studio-release.txt",
+      "bytes": 165,
+      "sha256": "5215d1a2ef59e31422bf43ba7acad8221da792abed79ea1f1a4732a2a7d17b63"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/trunk-release-e99.txt",
+      "bytes": 422,
+      "sha256": "33dda659431fc98e994ed9a369a3a30894f5e6035ec0d5278e5491f368f65f25"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/trunk-release.txt",
+      "bytes": 525,
+      "sha256": "d681b5f3b05b037a8c1837ba5c53cb28d292a7668acd1c783baa9059ace908a4"
+    },
+    {
+      "path": "artifacts/gate-2/area-viewport-2026-09-04/workspace-tests.txt",
+      "bytes": 3561,
+      "sha256": "d83b4a9c389c9cefa702187484321e9d4d608464037e97ea6e4aa8b0afb5768a"
+    }
+  ]
+}

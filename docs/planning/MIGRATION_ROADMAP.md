@@ -935,9 +935,11 @@ Workspace v2 et migration v1 stricte sans écrasement, historique borné à 32 o
 [Preuves et limites](../evidence/gate2/MODULES_AND_AREAS.md). R2-006 reste partielle (arborescence
 et sélection des sources uniquement), R2-F reste ouverte. Suite : onglets et viewport réel, puis brosses.
 
-Quatrième lot en qualification : onglets et viewport réel relié aux sources acceptées, préparation
-native, caméra d'édition et renderer partagé Monde/Diagnostics. [Suivi et preuves](../evidence/gate2/AREA_VIEWPORT.md).
-R2-005 n'est pas encore cochée : la compilation et les tests CPU ne prouvent pas le parcours visuel.
+Quatrième lot qualifié : **R2-005 PASS, total courant 5/43**. Onglets et viewport des sources acceptées,
+préparation native, caméra d'édition et renderer partagé Monde/Diagnostics. Code `d22b68c`, finition et
+acquisition `e99b2ff` : 440 tests, Clippy natif/WASM, Release, parcours Windows A/B/A avec caméra
+conservée, onglets fermés sans suppression et projet fermé sans projection résiduelle. Sources intactes.
+[Preuves et limites](../evidence/gate2/AREA_VIEWPORT.md). Brosses, sélection 3D et R2-F restent ouvertes.
 
 ## But
 
@@ -950,7 +952,7 @@ de monde accessible.
 - [x] `R2-002` nouveau module — ajout dans un projet existant et réouverture native vérifiés.
 - [x] `R2-003` nouvelle zone extérieure — plusieurs zones par module, terrains source indépendants.
 - [x] `R2-004` métadonnées et point de départ — édition source validée et annulable, pas de personnage placé.
-- [ ] `R2-005` onglets de zones.
+- [x] `R2-005` onglets de zones — parcours natif et caméra par zone qualifiés le 4 septembre.
 - [ ] `R2-006` hiérarchie et sélection.
 
 ## R2-B — Brosses de terrain

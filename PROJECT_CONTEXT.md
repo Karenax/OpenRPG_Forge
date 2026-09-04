@@ -54,12 +54,16 @@ reste une métadonnée, pas un personnage placé. Onglets, viewport réel, bross
 de commandes/persistance restent dus. L'erreur de champ doit être rendue plus visible après
 défilement. Le bureau doré est conservé ; aucune nouvelle dépendance ni aucun asset Cadle.
 
-### Onglets et aperçu de zones — quatrième incrément en qualification
+### Onglets et aperçu de zones — quatrième incrément qualifié
 
 Monde est raccordé aux zones réelles par une projection préparée côté natif, avec onglets par IDs,
 caméra d'édition et canvas conservé. Diagnostics partage ce renderer ; les scènes de preuve restent
-sur leurs routes autonomes. **Aucun nouveau PASS : Gate 2 reste 4/43** tant que le parcours visuel
-du candidat n'est pas qualifié. [Contrat, preuves acquises et contrôles restants](docs/evidence/gate2/AREA_VIEWPORT.md).
+sur leurs routes autonomes. **R2-005 PASS : Gate 2 est à 5/43**, toujours ouverte. Code `d22b68c`,
+finition graphique et acquisition `e99b2ff` : 440 tests, Clippy natif/WASM et Release PASS ; parcours
+natif A/B/A, caméra retrouvée, réduction/restauration/redimensionnement, fermeture des onglets et du
+projet, snapshot intact. Boutons Monde harmonisés avec le bureau crème/doré. Pas de brosses, picking,
+playtest ni nouvelle qualification de cadence. Les erreurs sources sont testées en Rust ; édition/undo
+pendant une génération reste à qualifier en UI. [Contrat, preuves et limites](docs/evidence/gate2/AREA_VIEWPORT.md).
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
