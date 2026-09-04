@@ -138,14 +138,32 @@ fn creation_builds_a_real_project_module_area_and_source_receipt() {
     assert_eq!(state.revision, 1);
     assert_eq!(source.revision.get(), 1);
     assert_eq!(source.project.name, "Projet des collines");
-    assert_eq!(source.module().name, "Module de preuve");
-    assert_eq!(source.area().name, "Clairière extérieure");
-    assert_eq!(source.area().terrain.seed, u64::MAX);
-    assert_eq!(source.area().terrain.project_id, source.project.id);
-    assert_eq!(source.area().terrain.area_id, source.area().id);
-    assert_eq!(source.area().terrain.revision, source.revision);
-    assert_eq!(source.area().terrain.material_layers.len(), 3);
-    let spawn = source.area().spawn;
+    assert_eq!(source.project.modules[0].name, "Module de preuve");
+    assert_eq!(
+        source.project.modules[0].areas[0].name,
+        "Clairière extérieure"
+    );
+    assert_eq!(source.project.modules[0].areas[0].terrain.seed, u64::MAX);
+    assert_eq!(
+        source.project.modules[0].areas[0].terrain.project_id,
+        source.project.id
+    );
+    assert_eq!(
+        source.project.modules[0].areas[0].terrain.area_id,
+        source.project.modules[0].areas[0].id
+    );
+    assert_eq!(
+        source.project.modules[0].areas[0].terrain.revision,
+        source.revision
+    );
+    assert_eq!(
+        source.project.modules[0].areas[0]
+            .terrain
+            .material_layers
+            .len(),
+        3
+    );
+    let spawn = source.project.modules[0].areas[0].spawn;
     assert_eq!(
         [spawn.x, spawn.y, spawn.z].map(f32::to_bits),
         [-12.5_f32, 17.5, 48.25].map(f32::to_bits)
@@ -210,16 +228,28 @@ fn identical_names_in_independent_sessions_receive_distinct_identities() {
             .unwrap(),
     );
     assert_eq!(first.project.name, second.project.name);
-    assert_eq!(first.module().name, second.module().name);
-    assert_eq!(first.area().name, second.area().name);
+    assert_eq!(
+        first.project.modules[0].name,
+        second.project.modules[0].name
+    );
+    assert_eq!(
+        first.project.modules[0].areas[0].name,
+        second.project.modules[0].areas[0].name
+    );
     assert_ne!(first.project.id, second.project.id);
-    assert_ne!(first.module().id, second.module().id);
-    assert_ne!(first.area().id, second.area().id);
+    assert_ne!(first.project.modules[0].id, second.project.modules[0].id);
+    assert_ne!(
+        first.project.modules[0].areas[0].id,
+        second.project.modules[0].areas[0].id
+    );
     assert_ne!(
         first.content_hash().unwrap(),
         second.content_hash().unwrap()
     );
-    assert_eq!(first.area().terrain.seed, second.area().terrain.seed);
+    assert_eq!(
+        first.project.modules[0].areas[0].terrain.seed,
+        second.project.modules[0].areas[0].terrain.seed
+    );
     assert!(directory.files().is_empty());
 }
 
@@ -271,7 +301,7 @@ fn undo_redo_advance_revisions_preserve_identities_and_never_delete_saved_files(
     let restored = document(&redone);
     let mut expected = original;
     expected.revision = forge_core::Revision::new(3);
-    expected.project.module.area.terrain.revision = expected.revision;
+    expected.project.modules[0].areas[0].terrain.revision = expected.revision;
     assert_eq!(restored, expected);
     assert!(redone.dirty && redone.can_undo && !redone.can_redo);
     assert!(redone.saved_path.is_none());
@@ -322,8 +352,11 @@ fn save_then_open_in_a_fresh_session_preserves_exact_source_hash_seed_and_spawn(
         restored.content_hash().unwrap(),
         source.content_hash().unwrap()
     );
-    assert_eq!(restored.area().terrain.seed, u64::MAX);
-    assert_eq!(restored.area().spawn.y.to_bits(), 17.5_f32.to_bits());
+    assert_eq!(restored.project.modules[0].areas[0].terrain.seed, u64::MAX);
+    assert_eq!(
+        restored.project.modules[0].areas[0].spawn.y.to_bits(),
+        17.5_f32.to_bits()
+    );
     assert_eq!(directory.files(), before);
 }
 
@@ -421,9 +454,9 @@ fn invalid_snapshot_extension_size_encoding_schema_and_json_are_refused() {
     let mut unknown = serde_json::to_value(&source).unwrap();
     unknown["unexpected"] = json!(true);
     let mut nested_unknown = serde_json::to_value(&source).unwrap();
-    nested_unknown["project"]["module"]["area"]["unexpected"] = json!(true);
+    nested_unknown["project"]["modules"][0]["areas"][0]["unexpected"] = json!(true);
     let mut future = serde_json::to_value(&source).unwrap();
-    future["schema_version"] = json!(2);
+    future["schema_version"] = json!(3);
     let mut oversized = valid.as_bytes().to_vec();
     oversized.resize(MAX_WORKSPACE_JSON_BYTES + 1, b' ');
     let fixtures = [
@@ -574,7 +607,7 @@ fn open_rejects_revisions_outside_ipc_integer_range_without_replacing_the_sessio
     for revision in [MAX_WORKSPACE_IPC_REVISION + 1, u64::MAX] {
         let mut candidate = source.clone();
         candidate.revision = forge_core::Revision::new(revision);
-        candidate.project.module.area.terrain.revision = candidate.revision;
+        candidate.project.modules[0].areas[0].terrain.revision = candidate.revision;
         // These remain valid full-u64 domain documents; only the Studio transport is bounded.
         candidate.validate().unwrap();
         let path = directory.write(
@@ -588,7 +621,7 @@ fn open_rejects_revisions_outside_ipc_integer_range_without_replacing_the_sessio
     }
     let mut boundary = source;
     boundary.revision = forge_core::Revision::new(MAX_WORKSPACE_IPC_REVISION);
-    boundary.project.module.area.terrain.revision = boundary.revision;
+    boundary.project.modules[0].areas[0].terrain.revision = boundary.revision;
     let path = directory.write("boundary.forge.json", boundary.to_pretty_json().unwrap());
     let opened = session.execute(open_command(&path)).unwrap();
     assert_eq!(opened.revision, MAX_WORKSPACE_IPC_REVISION);
@@ -606,7 +639,7 @@ fn redo_accepts_last_exact_ipc_revision_and_refuses_crossing_it_before_mutation(
     );
     // Direct boundary setup avoids quadrillions of undo/redo cycles; the tested operation is real.
     let mut session = WorkspaceSession {
-        redo: Some(source.clone()),
+        redo: vec![Some(source.clone())],
         last_revision: MAX_WORKSPACE_IPC_REVISION - 1,
         ..WorkspaceSession::default()
     };
@@ -629,7 +662,7 @@ fn redo_accepts_last_exact_ipc_revision_and_refuses_crossing_it_before_mutation(
     );
 
     let mut pending = WorkspaceSession {
-        redo: Some(source.clone()),
+        redo: vec![Some(source.clone())],
         last_revision: MAX_WORKSPACE_IPC_REVISION,
         ..WorkspaceSession::default()
     };
@@ -639,7 +672,7 @@ fn redo_accepts_last_exact_ipc_revision_and_refuses_crossing_it_before_mutation(
             base_revision: MAX_WORKSPACE_IPC_REVISION,
         },
     );
-    assert_eq!(pending.redo.as_ref(), Some(&source));
+    assert_eq!(pending.redo.last(), Some(&Some(source)));
     assert!(directory.files().is_empty());
 }
 
@@ -661,4 +694,277 @@ fn ipc_unsafe_command_revisions_are_refused_without_writing_or_changing_state() 
         }
     }
     assert!(directory.files().is_empty());
+}
+
+#[test]
+fn multiple_modules_areas_metadata_history_and_reopen_preserve_sources() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let initial = session.execute(create_command()).unwrap();
+    let source = document(&initial);
+    let saved_initial = save(&mut session, &directory);
+    let saved_bytes = directory.files();
+    let added = session
+        .execute(WorkspaceCommand::AddModule {
+            base_revision: 1,
+            name: "Deuxième chapitre".into(),
+        })
+        .unwrap();
+    let module_id = document(&added).project.modules[1].id;
+    assert_eq!(
+        document(&added).project.modules[0],
+        source.project.modules[0]
+    );
+    let added = session
+        .execute(WorkspaceCommand::AddArea {
+            base_revision: 2,
+            module_id,
+            name: "Montagne".into(),
+            seed: u64::MAX.to_string(),
+            spawn_x: "12".into(),
+            spawn_y: "3.5".into(),
+            spawn_z: "-21".into(),
+        })
+        .unwrap();
+    let area_id = document(&added).project.modules[1].areas[0].id;
+    let edited = session
+        .execute(WorkspaceCommand::UpdateAreaMetadata {
+            base_revision: 3,
+            module_id,
+            area_id,
+            name: "Sommet".into(),
+            spawn_x: "24".into(),
+            spawn_y: "17.5".into(),
+            spawn_z: "-36".into(),
+        })
+        .unwrap();
+    let final_source = document(&edited);
+    assert_eq!(final_source.project.modules[0], source.project.modules[0]);
+    assert_eq!(
+        final_source
+            .area(module_id, area_id)
+            .unwrap()
+            .spawn
+            .y
+            .to_bits(),
+        17.5_f32.to_bits()
+    );
+    let audit = receipt(&edited);
+    assert_eq!(
+        audit["command"]["change"]["operation"],
+        "update_area_metadata"
+    );
+    assert_eq!(audit["command"]["base_revision"], 3);
+    assert_eq!(
+        audit["before_hash"],
+        json!(document(&added).content_hash().unwrap())
+    );
+    assert_eq!(
+        audit["after_hash"],
+        json!(final_source.content_hash().unwrap())
+    );
+    assert_eq!(
+        audit["inverse_snapshot"],
+        serde_json::to_value(document(&added)).unwrap()
+    );
+    for base_revision in 4..7 {
+        session
+            .execute(WorkspaceCommand::Undo { base_revision })
+            .unwrap();
+    }
+    let undone = document(&current(&mut session));
+    assert_eq!(undone.project.modules.len(), 1);
+    assert_eq!(
+        undone.project.modules[0].areas[0].id,
+        source.project.modules[0].areas[0].id
+    );
+    for base_revision in 7..10 {
+        session
+            .execute(WorkspaceCommand::Redo { base_revision })
+            .unwrap();
+    }
+    let redone = document(&current(&mut session));
+    let mut expected = final_source;
+    super::stamp_revision(&mut expected, 10);
+    assert_eq!(redone, expected);
+    let saved = save(&mut session, &directory);
+    assert_eq!(directory.files().len(), 2);
+    for (name, bytes) in saved_bytes {
+        assert_eq!(directory.files()[&name], bytes);
+    }
+    let fresh = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(fresh.document_json, saved.document_json);
+    assert!(!fresh.can_undo && !fresh.can_redo && !fresh.dirty);
+    assert_ne!(saved.saved_path, saved_initial.saved_path);
+}
+
+#[test]
+fn invalid_or_stale_edits_preserve_document_history_and_files() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let source = document(&created);
+    let module_id = source.project.modules[0].id;
+    let area_id = source.project.modules[0].areas[0].id;
+    save(&mut session, &directory);
+    let before = directory.files();
+    for command in [
+        WorkspaceCommand::AddModule {
+            base_revision: 0,
+            name: "Stale".into(),
+        },
+        WorkspaceCommand::AddModule {
+            base_revision: 1,
+            name: "\n".into(),
+        },
+        WorkspaceCommand::RenameModule {
+            base_revision: 1,
+            module_id: forge_core::ModuleId::deterministic("missing"),
+            name: "Nom".into(),
+        },
+        WorkspaceCommand::UpdateAreaMetadata {
+            base_revision: 1,
+            module_id,
+            area_id,
+            name: "Nom".into(),
+            spawn_x: "NaN".into(),
+            spawn_y: "0".into(),
+            spawn_z: "0".into(),
+        },
+        WorkspaceCommand::AddArea {
+            base_revision: 1,
+            module_id,
+            name: "Nom".into(),
+            seed: "-1".into(),
+            spawn_x: "0".into(),
+            spawn_y: "0".into(),
+            spawn_z: "0".into(),
+        },
+        WorkspaceCommand::AddArea {
+            base_revision: 1,
+            module_id,
+            name: "Nom".into(),
+            seed: "0".into(),
+            spawn_x: "257".into(),
+            spawn_y: "0".into(),
+            spawn_z: "0".into(),
+        },
+        WorkspaceCommand::RenameProject {
+            base_revision: MAX_WORKSPACE_IPC_REVISION + 1,
+            name: "Nom".into(),
+        },
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), before);
+    }
+    session
+        .execute(WorkspaceCommand::RenameProject {
+            base_revision: 1,
+            name: "Nom différent".into(),
+        })
+        .unwrap();
+    session
+        .execute(WorkspaceCommand::Undo { base_revision: 2 })
+        .unwrap();
+    assert!(current(&mut session).can_redo);
+    assert_rejected_without_state_change(
+        &mut session,
+        WorkspaceCommand::AddModule {
+            base_revision: 3,
+            name: String::new(),
+        },
+    );
+    session
+        .execute(WorkspaceCommand::AddModule {
+            base_revision: 3,
+            name: "Nouvelle branche".into(),
+        })
+        .unwrap();
+    assert!(!current(&mut session).can_redo);
+}
+
+#[test]
+fn history_is_bounded_and_new_creation_does_not_reuse_a_session_revision() {
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    session
+        .execute(WorkspaceCommand::Undo { base_revision: 1 })
+        .unwrap();
+    assert_eq!(session.execute(create_command()).unwrap().revision, 3);
+    for i in 0..40 {
+        let revision = current(&mut session).revision;
+        session
+            .execute(WorkspaceCommand::RenameProject {
+                base_revision: revision,
+                name: format!("Projet {i}"),
+            })
+            .unwrap();
+    }
+    assert_eq!(session.undo.len(), super::WORKSPACE_HISTORY_LIMIT);
+    for _ in 0..super::WORKSPACE_HISTORY_LIMIT {
+        let revision = current(&mut session).revision;
+        session
+            .execute(WorkspaceCommand::Undo {
+                base_revision: revision,
+            })
+            .unwrap();
+        assert_eq!(
+            session.undo.len() + session.redo.len(),
+            super::WORKSPACE_HISTORY_LIMIT
+        );
+    }
+    let state = current(&mut session);
+    assert!(!state.can_undo && state.can_redo);
+    assert_eq!(document(&state).project.name, "Projet 7");
+    assert_rejected_without_state_change(
+        &mut session,
+        WorkspaceCommand::Undo {
+            base_revision: state.revision,
+        },
+    );
+}
+
+#[test]
+fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
+    let directory = TestDirectory::new();
+    let source = document(
+        &WorkspaceSession::default()
+            .execute(create_command())
+            .unwrap(),
+    );
+    let mut legacy = serde_json::to_value(&source).unwrap();
+    legacy["schema_version"] = json!(1);
+    let mut module = legacy["project"]["modules"][0].clone();
+    let area = module["areas"][0].clone();
+    module.as_object_mut().unwrap().remove("areas");
+    module["area"] = area;
+    legacy["project"].as_object_mut().unwrap().remove("modules");
+    legacy["project"]["module"] = module;
+    let path = directory.write(
+        &format!("{}-r1.forge.json", source.project.id),
+        legacy.to_string(),
+    );
+    let bytes = fs::read(&path).unwrap();
+    let mut session = WorkspaceSession::default();
+    let opened = session.execute(open_command(&path)).unwrap();
+    assert_eq!(document(&opened), source);
+    assert!(!opened.dirty);
+    save(&mut session, &directory); // Existing v1 content is semantically identical and stays intact.
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+    session
+        .execute(WorkspaceCommand::AddModule {
+            base_revision: 1,
+            name: "Après migration".into(),
+        })
+        .unwrap();
+    let saved = save(&mut session, &directory);
+    assert_eq!(fs::read(&path).unwrap(), bytes);
+    assert_eq!(directory.files().len(), 2);
+    let fresh = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(fresh.document_json, saved.document_json);
+    assert_eq!(document(&fresh).schema_version, 2);
 }

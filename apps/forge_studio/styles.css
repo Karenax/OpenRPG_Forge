@@ -69,6 +69,7 @@ h1 { margin: 3px 0 0; font-size: 22px; font-weight: 600; }
 .project-main-grid { display: grid; grid-template-columns: minmax(320px, 1.2fr) minmax(260px, 1fr); gap: 18px; margin-bottom: 18px; align-items: start; }
 .project-card { padding: 20px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); min-width: 0; }
 .project-card h2 { margin: 0 0 8px; font-size: 17px; font-weight: 650; }
+.project-main-grid > div > .project-card + .project-card { margin-top: 14px; }
 .project-card > .hint { margin: 0 0 18px; }
 .project-workspace fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
 .project-field { display: grid; gap: 7px; margin-bottom: 14px; color: var(--text); font-size: 12px; }

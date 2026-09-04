@@ -5,14 +5,19 @@ use crate::{
     workspace_store,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
-use forge_project::{NewProjectCommand, WorkspaceDocument};
+use forge_project::{
+    NewProjectCommand, WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit,
+};
 use std::path::{Path, PathBuf};
+
+/// At most 32 document snapshots across undo and redo (each validated at <= 1 MiB JSON).
+pub const WORKSPACE_HISTORY_LIMIT: usize = 32;
 
 #[derive(Default)]
 pub struct WorkspaceSession {
     document: Option<WorkspaceDocument>,
-    redo: Option<WorkspaceDocument>,
-    undo_hash: Option<ContentHash>,
+    undo: Vec<Option<WorkspaceDocument>>,
+    redo: Vec<Option<WorkspaceDocument>>,
     saved_hash: Option<ContentHash>,
     saved_path: Option<PathBuf>,
     last_revision: u64,
@@ -23,57 +28,19 @@ impl WorkspaceSession {
     pub fn execute(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
         let message = match command {
             WorkspaceCommand::Current => "Projet courant".into(),
-            WorkspaceCommand::Create {
-                project_name,
-                module_name,
-                area_name,
-                seed,
-                spawn_x,
-                spawn_y,
-                spawn_z,
-            } => {
-                if self.document.is_some() {
-                    return Err(
-                        "Un projet est déjà ouvert. Annuler le brouillon avant une autre création."
-                            .into(),
-                    );
-                }
-                let key = workspace_store::unique_key()?;
-                let command = NewProjectCommand {
-                    command_id: CommandId::deterministic(&key),
-                    project_id: ProjectId::deterministic(&key),
-                    module_id: ModuleId::deterministic(&key),
-                    area_id: AreaId::deterministic(&key),
-                    project_name,
-                    module_name,
-                    area_name,
-                    seed: seed.trim().parse().map_err(|_| {
-                        "La seed doit être un entier positif sur 64 bits.".to_owned()
-                    })?,
-                    spawn: Vec3::new(
-                        parse_coordinate(&spawn_x)?,
-                        parse_coordinate(&spawn_y)?,
-                        parse_coordinate(&spawn_z)?,
-                    ),
-                };
-                let created = WorkspaceDocument::create(command).map_err(|e| e.to_string())?;
-                let receipt = serde_json::to_string(&created.receipt).map_err(|e| e.to_string())?;
-                self.last_revision = created.document.revision.get();
-                self.undo_hash = Some(created.receipt.after_hash);
-                self.document = Some(created.document);
-                self.redo = None;
-                self.saved_path = None;
-                self.saved_hash = None;
-                self.receipt = Some(receipt);
-                "Projet, module et zone créés en mémoire — non enregistrés.".into()
-            }
+            command @ WorkspaceCommand::Create { .. } => self.execute_creation(command)?,
+            command @ (WorkspaceCommand::AddModule { .. }
+            | WorkspaceCommand::AddArea { .. }
+            | WorkspaceCommand::RenameProject { .. }
+            | WorkspaceCommand::RenameModule { .. }
+            | WorkspaceCommand::UpdateAreaMetadata { .. }) => self.execute_edit(command)?,
             WorkspaceCommand::Undo { base_revision } => {
                 self.require_revision(base_revision)?;
-                self.undo_creation()?
+                self.restore_history(false)?
             }
             WorkspaceCommand::Redo { base_revision } => {
                 self.require_revision(base_revision)?;
-                self.redo_creation()?
+                self.restore_history(true)?
             }
             WorkspaceCommand::Close => {
                 if self.is_dirty()? {
@@ -112,13 +79,166 @@ impl WorkspaceSession {
                 self.document = Some(document);
                 self.saved_hash = Some(hash);
                 self.saved_path = Some(path);
-                self.undo_hash = None;
-                self.redo = None;
+                self.undo.clear();
+                self.redo.clear();
                 self.receipt = None;
                 "Projet rouvert depuis le snapshot vérifié.".into()
             }
         };
         self.state(message)
+    }
+
+    fn execute_creation(&mut self, command: WorkspaceCommand) -> Result<String, String> {
+        let WorkspaceCommand::Create {
+            project_name,
+            module_name,
+            area_name,
+            seed,
+            spawn_x,
+            spawn_y,
+            spawn_z,
+        } = command
+        else {
+            return Err("Commande de création attendue.".into());
+        };
+        if self.document.is_some() {
+            return Err(
+                "Un projet est déjà ouvert. Annuler le brouillon avant une autre création.".into(),
+            );
+        }
+        let key = workspace_store::unique_key()?;
+        let command = NewProjectCommand {
+            command_id: CommandId::deterministic(&key),
+            project_id: ProjectId::deterministic(&key),
+            module_id: ModuleId::deterministic(&key),
+            area_id: AreaId::deterministic(&key),
+            project_name,
+            module_name,
+            area_name,
+            seed: seed
+                .trim()
+                .parse()
+                .map_err(|_| "La seed doit être un entier positif sur 64 bits.".to_owned())?,
+            spawn: Vec3::new(
+                parse_coordinate(&spawn_x)?,
+                parse_coordinate(&spawn_y)?,
+                parse_coordinate(&spawn_z)?,
+            ),
+        };
+        let mut created = WorkspaceDocument::create(command).map_err(|e| e.to_string())?;
+        let next = self.next_revision()?;
+        stamp_revision(&mut created.document, next);
+        let hash = created.document.content_hash().map_err(|e| e.to_string())?;
+        created.receipt.new_revision = created.document.revision;
+        created.receipt.after_hash = hash;
+        created.receipt.inverse = WorkspaceCreationInverse::DiscardDraft {
+            expected_after_hash: hash,
+        };
+        let receipt = serde_json::to_string(&created.receipt).map_err(|e| e.to_string())?;
+        self.last_revision = created.document.revision.get();
+        self.undo.clear();
+        self.undo.push(None);
+        self.document = Some(created.document);
+        self.redo.clear();
+        self.saved_path = None;
+        self.saved_hash = None;
+        self.receipt = Some(receipt);
+        Ok("Projet, module et zone créés en mémoire — non enregistrés.".into())
+    }
+
+    fn execute_edit(&mut self, command: WorkspaceCommand) -> Result<String, String> {
+        let message = match command {
+            WorkspaceCommand::AddModule {
+                base_revision,
+                name,
+            } => {
+                let id = ModuleId::deterministic(workspace_store::unique_key()?);
+                self.apply_change(
+                    base_revision,
+                    WorkspaceChange::AddModule {
+                        module_id: id,
+                        name,
+                    },
+                )?;
+                "Module ajouté — sélectionnez-le pour créer sa première zone.".into()
+            }
+            WorkspaceCommand::AddArea {
+                base_revision,
+                module_id,
+                name,
+                seed,
+                spawn_x,
+                spawn_y,
+                spawn_z,
+            } => {
+                let area_id = AreaId::deterministic(workspace_store::unique_key()?);
+                let seed = seed
+                    .trim()
+                    .parse()
+                    .map_err(|_| "Seed invalide : entier de 0 à 18446744073709551615.")?;
+                let spawn = Vec3::new(
+                    parse_coordinate(&spawn_x)?,
+                    parse_coordinate(&spawn_y)?,
+                    parse_coordinate(&spawn_z)?,
+                );
+                self.apply_change(
+                    base_revision,
+                    WorkspaceChange::AddExteriorArea {
+                        module_id,
+                        area_id,
+                        name,
+                        seed,
+                        spawn,
+                    },
+                )?;
+                "Zone extérieure ajoutée avec son propre terrain — non enregistrée.".into()
+            }
+            WorkspaceCommand::RenameProject {
+                base_revision,
+                name,
+            } => {
+                self.apply_change(base_revision, WorkspaceChange::RenameProject { name })?;
+                "Nom du projet modifié — non enregistré.".into()
+            }
+            WorkspaceCommand::RenameModule {
+                base_revision,
+                module_id,
+                name,
+            } => {
+                self.apply_change(
+                    base_revision,
+                    WorkspaceChange::RenameModule { module_id, name },
+                )?;
+                "Nom du module modifié — non enregistré.".into()
+            }
+            WorkspaceCommand::UpdateAreaMetadata {
+                base_revision,
+                module_id,
+                area_id,
+                name,
+                spawn_x,
+                spawn_y,
+                spawn_z,
+            } => {
+                let spawn = Vec3::new(
+                    parse_coordinate(&spawn_x)?,
+                    parse_coordinate(&spawn_y)?,
+                    parse_coordinate(&spawn_z)?,
+                );
+                self.apply_change(
+                    base_revision,
+                    WorkspaceChange::UpdateAreaMetadata {
+                        module_id,
+                        area_id,
+                        name,
+                        spawn,
+                    },
+                )?;
+                "Nom et point de départ de la zone modifiés — non enregistrés.".into()
+            }
+            _ => return Err("Commande d'édition attendue.".into()),
+        };
+        Ok(message)
     }
 
     fn require_revision(&self, base_revision: u64) -> Result<(), String> {
@@ -141,47 +261,75 @@ impl WorkspaceSession {
         Ok(next)
     }
 
-    fn undo_creation(&mut self) -> Result<String, String> {
-        let expected = self.undo_hash.ok_or("Aucune création à annuler.")?;
-        let document = self.document.as_ref().ok_or("Aucun brouillon à annuler.")?;
-        if document.content_hash().map_err(|e| e.to_string())? != expected {
-            return Err("Le brouillon a changé depuis la création : annulation refusée.".into());
+    fn apply_change(&mut self, base: u64, change: WorkspaceChange) -> Result<(), String> {
+        self.require_revision(base)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = document
+            .preview_edit(WorkspaceEdit {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(base),
+                change,
+            })
+            .map_err(|e| e.to_string())?;
+        let receipt = serde_json::to_string(&candidate.receipt).map_err(|e| e.to_string())?;
+        self.undo.push(self.document.take());
+        if self.undo.len() > WORKSPACE_HISTORY_LIMIT {
+            self.undo.remove(0);
         }
-        let next = self.next_revision()?;
-        let receipt = transition_receipt(
-            "undo_create",
-            self.last_revision,
-            next,
-            Some(expected),
-            None,
-        )?;
-        self.redo = self.document.take();
-        self.undo_hash = None;
-        self.last_revision = next;
-        self.saved_path = None;
-        self.saved_hash = None;
+        self.redo.clear();
+        self.last_revision = candidate.document.revision.get();
+        self.document = Some(candidate.document);
         self.receipt = Some(receipt);
-        Ok("Création annulée dans la session. Aucun fichier enregistré n'a été supprimé.".into())
+        Ok(())
     }
 
-    fn redo_creation(&mut self) -> Result<String, String> {
-        let mut document = self
-            .redo
-            .as_ref()
-            .ok_or("Aucune création à rétablir.")?
+    fn restore_history(&mut self, redo: bool) -> Result<String, String> {
+        let history = if redo { &self.redo } else { &self.undo };
+        let mut target = history
+            .last()
+            .ok_or("Aucune opération disponible dans cet historique.")?
             .clone();
         let next = self.next_revision()?;
-        document.revision = Revision::new(next);
-        document.project.module.area.terrain.revision = document.revision;
-        let hash = document.content_hash().map_err(|e| e.to_string())?;
-        let receipt =
-            transition_receipt("redo_create", self.last_revision, next, None, Some(hash))?;
-        self.document = Some(document);
-        self.redo = None;
-        self.undo_hash = Some(hash);
+        let before = self
+            .document
+            .as_ref()
+            .map(WorkspaceDocument::content_hash)
+            .transpose()
+            .map_err(|e| e.to_string())?;
+        if let Some(document) = &mut target {
+            stamp_revision(document, next);
+        }
+        let after = target
+            .as_ref()
+            .map(WorkspaceDocument::content_hash)
+            .transpose()
+            .map_err(|e| e.to_string())?;
+        let action = match (redo, self.document.is_some(), target.is_some()) {
+            (false, true, false) => "undo_create",
+            (true, false, true) => "redo_create",
+            (false, _, _) => "undo",
+            (true, _, _) => "redo",
+        };
+        let receipt = transition_receipt(action, self.last_revision, next, before, after)?;
+        if redo {
+            self.redo.pop();
+            self.undo.push(self.document.take());
+        } else {
+            self.undo.pop();
+            self.redo.push(self.document.take());
+        }
+        self.document = target;
         self.last_revision = next;
         self.receipt = Some(receipt);
-        Ok("Création rétablie avec une nouvelle révision — non enregistrée.".into())
+        if self.document.is_none() {
+            self.saved_hash = None;
+            self.saved_path = None;
+        }
+        Ok(
+            "Historique appliqué avec une nouvelle révision. Aucun fichier enregistré modifié."
+                .into(),
+        )
     }
 
     fn is_dirty(&self) -> Result<bool, String> {
@@ -199,8 +347,8 @@ impl WorkspaceSession {
                 .map(WorkspaceDocument::to_pretty_json)
                 .transpose()
                 .map_err(|e| e.to_string())?,
-            can_undo: self.undo_hash.is_some(),
-            can_redo: self.redo.is_some(),
+            can_undo: !self.undo.is_empty(),
+            can_redo: !self.redo.is_empty(),
             saved_path: self
                 .saved_path
                 .as_ref()
@@ -209,6 +357,15 @@ impl WorkspaceSession {
             message,
             last_receipt_json: self.receipt.clone(),
         })
+    }
+}
+
+fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
+    document.revision = Revision::new(next);
+    for module in &mut document.project.modules {
+        for area in &mut module.areas {
+            area.terrain.revision = document.revision;
+        }
     }
 }
 

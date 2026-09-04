@@ -1,5 +1,6 @@
 //! Small shared IPC boundary for the first project authoring workflow.
 
+use forge_core::{AreaId, ModuleId};
 use serde::{Deserialize, Serialize};
 
 /// Largest revision representable exactly by the JavaScript number used by the IPC bridge.
@@ -15,6 +16,37 @@ pub enum WorkspaceCommand {
         module_name: String,
         area_name: String,
         seed: String,
+        spawn_x: String,
+        spawn_y: String,
+        spawn_z: String,
+    },
+    AddModule {
+        base_revision: u64,
+        name: String,
+    },
+    AddArea {
+        base_revision: u64,
+        module_id: ModuleId,
+        name: String,
+        seed: String,
+        spawn_x: String,
+        spawn_y: String,
+        spawn_z: String,
+    },
+    RenameProject {
+        base_revision: u64,
+        name: String,
+    },
+    RenameModule {
+        base_revision: u64,
+        module_id: ModuleId,
+        name: String,
+    },
+    UpdateAreaMetadata {
+        base_revision: u64,
+        module_id: ModuleId,
+        area_id: AreaId,
+        name: String,
         spawn_x: String,
         spawn_y: String,
         spawn_z: String,

@@ -31,7 +31,7 @@ The future Monde/Assets/Personnages/Narration/Playtest entries are labelled unav
 
 Menu undo/redo uses the same `WorkspaceActions` as the form toolbar. File commands bring the real
 forms into focus; saving still requires an explicit destination. Ctrl+S focuses that destination;
-Ctrl+Z / Ctrl+Shift+Z operate the creation history only outside editable fields in Projets.
+Ctrl+Z / Ctrl+Shift+Z operate the authoring history only outside editable fields in Projets.
 Arrow keys on the window title move it, and on the resize handle resize it. Escape dismisses menus.
 No dependencies, Tauri capabilities, remote assets, or JavaScript business logic were added.
 
@@ -40,12 +40,16 @@ protects accepted dirty documents, not unsubmitted form text; process terminatio
 recovery remain outside this slice. Hidden Diagnostics keeps rendering; hiding is not a GPU pause.
 The CSS wallpaper and vector glyphs are original local code, inspired by the user-selected style.
 
-The first slice creates **one project, one module and one exterior area**, with a 512 × 512 m
+Creation starts with **one project, one module and one exterior area**, with a 512 × 512 m
 terrain source. Project/module/area names, the terrain seed and the X/Y/Z spawn coordinates are
 entered through labelled fields. Seed and coordinate strings are parsed and validated by Rust.
 Spawn is authored metadata only: creation does not snap it to the ground or place a character.
 The hierarchy selects the project, module or area and displays the accepted document's metadata.
-It does not yet add further modules/areas, provide area tabs or edit an existing document's fields.
+The v2 authoring slice adds modules and exterior areas through the same native commands. Select a
+module (or one of its areas) in the hierarchy to choose the destination of a new area. New modules
+start empty. The inspector edits the selected project's/module's name, or the selected area's name
+and explicit spawn coordinates. IDs, not names, identify the targets; neighbouring areas are intact.
+Area tabs and the real project viewport remain subsequent work.
 
 There is **no live 3D viewport on this route**. Its links open the unchanged proof scenes, not a
 rendering of the newly created project. Terrain brushes, picking, gizmos and playtest are not part
@@ -63,7 +67,10 @@ not a second editable canonical project. The shared IPC envelope is
 - `Undo`, `Redo` and `Save` carry the observed `base_revision`; stale requests are rejected.
   For a fresh creation the bounded cycle is revision **1 → 2 → 3**: creation at 1, no current
   document after undo at session revision 2, then the restored document and terrain at revision 3.
-  Undo concerns the unchanged creation draft, not arbitrary form edits or a general command history.
+  A shared history now covers creation, module/area additions and accepted metadata edits, with
+  at most 32 snapshots across undo and redo. A new edit after undo invalidates redo; invalid/stale
+  commands leave both stacks unchanged. Undo/redo restamp the restored document and terrain revisions.
+  Unsubmitted form text is not part of this history.
   Neither undo nor redo deletes previously saved files.
 - `Close` clears a clean session without deleting files. `Close` and `Open` reject an unsaved draft;
   first save it or explicitly undo its creation. Reopening starts without an undo/redo history.
@@ -91,9 +98,18 @@ file. A filesystem unable to perform that publication returns an error, not an o
 For **Ouvrir**, enter the exact absolute path of an existing `.forge.json` file. Its size, UTF-8,
 schema and document invariants are checked before it becomes the current project.
 
+Opening a v1 snapshot migrates its single module/area to v2 collections in memory, preserving IDs,
+revision and terrain. It does not rewrite the file or mark the document dirty. Saving the same
+project/revision into the same directory accepts semantically identical v1 content without replacing
+it. A later edit writes a new v2 revision. Old v1 byte hashes are not v2 canonical hashes.
+
 Pending files are **not a recovery journal**. They may remain after interruption; this slice does
-not discover, promote or restore them automatically. No crash/power-loss recovery, general undo
-stack, durable audit history or complete Gate 2 command bus is claimed.
+not discover, promote or restore them automatically. No crash/power-loss recovery, durable audit
+history or complete Gate 2 command bus is claimed. The latest edit receipt contains typed parameters,
+base/new revisions, before/after hashes and an inverse snapshot; history is session-only.
+
+The metadata form reloads accepted values on selection or document change, not on a save/status-only
+response. Module/area creation drafts remain mounted across those operations and desktop hiding.
 
 In a standalone Browser, the forms remain consultable but creation, undo/redo, save, open and close
 are disabled with an explicit explanation that the Tauri backend is absent. There is no mock

@@ -10,11 +10,18 @@ mod vegetation;
 mod water;
 mod weather;
 mod workspace;
+mod workspace_edit;
+mod workspace_legacy;
+
+pub use workspace_edit::{
+    WorkspaceChange, WorkspaceEdit, WorkspaceEditReceipt, WorkspaceEditResult,
+};
 
 pub use workspace::{
-    CreatedWorkspace, MAX_WORKSPACE_JSON_BYTES, NewProjectCommand, WORKSPACE_SCHEMA,
-    WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceAreaKind, WorkspaceCreationInverse,
-    WorkspaceCreationReceipt, WorkspaceDocument, WorkspaceError, WorkspaceModule, WorkspaceProject,
+    CreatedWorkspace, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_JSON_BYTES, MAX_WORKSPACE_MODULES,
+    NewProjectCommand, WORKSPACE_SCHEMA, WORKSPACE_SCHEMA_VERSION, WorkspaceArea,
+    WorkspaceAreaKind, WorkspaceCreationInverse, WorkspaceCreationReceipt, WorkspaceDocument,
+    WorkspaceError, WorkspaceModule, WorkspaceProject,
 };
 
 pub use environment::{

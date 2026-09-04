@@ -2,7 +2,11 @@
 
 use crate::workspace_api::{WorkspaceCommand, WorkspaceState};
 use crate::{StudioCommand, StudioResponse};
+use forge_core::{AreaId, ModuleId};
 use forge_project::WorkspaceDocument;
+#[path = "workspace_authoring_ui.rs"]
+mod authoring;
+use authoring::{AddSourcesForms, EditMetadataForm};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 
@@ -41,8 +45,8 @@ impl WorkspaceActions {
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum WorkspaceNode {
     Project,
-    Module,
-    Area,
+    Module(ModuleId),
+    Area(ModuleId, AreaId),
 }
 
 pub(crate) fn mount_project_workspace() {
@@ -95,7 +99,17 @@ pub(crate) fn ProjectWorkspace(
         backend_available,
         ..
     } = actions;
-    let (selected, set_selected) = signal(WorkspaceNode::Area);
+    let (selected, set_selected) = signal(WorkspaceNode::Project);
+    Effect::new(move |_| {
+        let valid = read_document(actions).is_some_and(|document| match selected.get() {
+            WorkspaceNode::Project => true,
+            WorkspaceNode::Module(id) => document.module(id).is_some(),
+            WorkspaceNode::Area(module, area) => document.area(module, area).is_some(),
+        });
+        if !valid {
+            set_selected.set(WorkspaceNode::Project);
+        }
+    });
 
     view! {
         <main class="project-workspace" data-forge-mode="project-sources" aria-busy=move || pending.get().to_string()>
@@ -134,8 +148,14 @@ pub(crate) fn ProjectWorkspace(
                         <div class="project-error" role="alert" id="workspace-error">{message}</div>
                     })}
                     <div class="project-main-grid">
-                        <CreateProjectForm actions/>
-                        <WorkspaceMetadata actions selected/>
+                        <div hidden=move || state.get().document_json.is_some()><CreateProjectForm actions/></div>
+                        <div hidden=move || state.get().document_json.is_none()>
+                            <AddSourcesForms actions selected/>
+                        </div>
+                        <div>
+                            <WorkspaceMetadata actions selected/>
+                            <EditMetadataForm actions selected/>
+                        </div>
                     </div>
                     <StorageForms actions/>
                 </div>
@@ -169,7 +189,7 @@ fn WorkspaceToolbar(actions: WorkspaceActions) -> impl IntoView {
                 <button id="workspace-undo" type="button" disabled=move || actions.unavailable() || !actions.state.get().can_undo
                     on:click=move |_| actions.send(WorkspaceCommand::Undo {
                         base_revision: actions.state.get_untracked().revision,
-                    })>"Annuler le brouillon"</button>
+                    })>"Annuler"</button>
                 <button id="workspace-redo" type="button" disabled=move || actions.unavailable() || !actions.state.get().can_redo
                     on:click=move |_| actions.send(WorkspaceCommand::Redo {
                         base_revision: actions.state.get_untracked().revision,
@@ -325,20 +345,28 @@ fn ProjectTree(
                             on:click=move |_| set_selected.set(WorkspaceNode::Project)>
                             <small>"PROJET"</small><span>{document.project.name.clone()}</span>
                         </button>
-                        <ul><li>
-                            <button type="button" class:selected=move || selected.get() == WorkspaceNode::Module
-                                aria-pressed=move || (selected.get() == WorkspaceNode::Module).to_string()
-                                on:click=move |_| set_selected.set(WorkspaceNode::Module)>
-                                <small>"MODULE"</small><span>{document.module().name.clone()}</span>
-                            </button>
-                            <ul><li>
-                                <button type="button" class:selected=move || selected.get() == WorkspaceNode::Area
-                                    aria-pressed=move || (selected.get() == WorkspaceNode::Area).to_string()
-                                    on:click=move |_| set_selected.set(WorkspaceNode::Area)>
-                                    <small>"ZONE EXTÉRIEURE"</small><span>{document.area().name.clone()}</span>
+                        <ul>{document.project.modules.iter().map(|module| {
+                            let module_id = module.id;
+                            let module_node = WorkspaceNode::Module(module_id);
+                            view! { <li>
+                                <button type="button" class:selected=move || selected.get() == module_node
+                                    aria-pressed=move || (selected.get() == module_node).to_string()
+                                    on:click=move |_| set_selected.set(module_node)>
+                                    <small>"MODULE"</small><span>{module.name.clone()}</span>
                                 </button>
-                            </li></ul>
-                        </li></ul>
+                                <ul>{module.areas.iter().map(|area| {
+                                    let area_node = WorkspaceNode::Area(module_id, area.id);
+                                    view! { <li>
+                                        <button type="button" class:selected=move || selected.get() == area_node
+                                            aria-pressed=move || (selected.get() == area_node).to_string()
+                                            on:click=move |_| set_selected.set(area_node)>
+                                            <small>"ZONE EXTÉRIEURE"</small><span>{area.name.clone()}</span>
+                                        </button>
+                                    </li> }
+                                }).collect_view()}</ul>
+                                {module.areas.is_empty().then(|| view! { <p class="hint">"Aucune zone"</p> })}
+                            </li> }
+                        }).collect_view()}</ul>
                     </li>
                 </ul>
             }.into_any(),
@@ -358,20 +386,22 @@ fn WorkspaceMetadata(
             {move || read_document(actions).map_or_else(
                 || view! { <p class="project-empty">"Le projet créé apparaîtra ici avec son module, sa zone et son point de départ."</p> }.into_any(),
                 |document| {
-                    let (kind, name, id) = match selected.get() {
-                        WorkspaceNode::Project => ("Projet", document.project.name.clone(), document.project.id.to_string()),
-                        WorkspaceNode::Module => ("Module", document.module().name.clone(), document.module().id.to_string()),
-                        WorkspaceNode::Area => ("Zone extérieure", document.area().name.clone(), document.area().id.to_string()),
-                    };
-                    let spawn = document.area().spawn;
+                    let (kind, name, id, area) = match selected.get() {
+                        WorkspaceNode::Module(id) => document.module(id).map(|module| ("Module", module.name.clone(), id.to_string(), None)),
+                        WorkspaceNode::Area(module, id) => document.area(module, id).map(|area| ("Zone extérieure", area.name.clone(), id.to_string(), Some(area.clone()))),
+                        WorkspaceNode::Project => Some(("Projet", document.project.name.clone(), document.project.id.to_string(), None)),
+                    }.unwrap_or(("Projet", document.project.name.clone(), document.project.id.to_string(), None));
                     view! {
                         <dl class="project-metadata" id="workspace-document-metadata">
                             <dt>"Sélection"</dt><dd>{kind}</dd>
                             <dt>"Nom"</dt><dd>{name}</dd>
                             <dt>"Identifiant"</dt><dd class="project-identifier">{id}</dd>
                             <dt>"Révision"</dt><dd>{document.revision.get().to_string()}</dd>
-                            <dt>"Seed de la zone"</dt><dd>{document.area().terrain.seed.to_string()}</dd>
-                            <dt>"Point de départ · X / Y / Z"</dt><dd>{format!("{} / {} / {} m", spawn.x, spawn.y, spawn.z)}</dd>
+                            {area.map(|area| view! {
+                                <dt>"Seed de la zone"</dt><dd>{area.terrain.seed.to_string()}</dd>
+                                <dt>"Point de départ · X / Y / Z"</dt><dd>{format!("{} / {} / {} m", area.spawn.x, area.spawn.y, area.spawn.z)}</dd>
+                            })}
+                            <dt>"Modules / zones"</dt><dd>{format!("{} / {}", document.project.modules.len(), document.project.modules.iter().map(|m| m.areas.len()).sum::<usize>())}</dd>
                         </dl>
                     }.into_any()
                 },

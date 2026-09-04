@@ -1,4 +1,4 @@
-//! The first authored workspace: one project, one module and one exterior area.
+//! Authored workspace with stable module/area collections and strict v1 migration.
 //!
 //! Creation is pure. Its inverse discards only an unchanged in-memory draft; filesystem
 //! persistence and any actual player placement belong to explicit consumers.
@@ -15,7 +15,9 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub const WORKSPACE_SCHEMA: &str = "forge.workspace";
-pub const WORKSPACE_SCHEMA_VERSION: u32 = 1;
+pub const WORKSPACE_SCHEMA_VERSION: u32 = 2;
+pub const MAX_WORKSPACE_MODULES: usize = 64;
+pub const MAX_WORKSPACE_AREAS: usize = 256;
 pub const MAX_WORKSPACE_JSON_BYTES: usize = 1_048_576;
 const MAX_NAME_BYTES: usize = 128;
 const AREA_SIZE_M: f32 = 512.0;
@@ -37,7 +39,7 @@ pub struct NewProjectCommand {
     pub spawn: Vec3,
 }
 
-/// Version 1 intentionally supports exactly one module and one area, not placeholder collections.
+/// Canonical v2 model. Use `from_json` for explicit v1 import.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceDocument {
@@ -52,7 +54,7 @@ pub struct WorkspaceDocument {
 pub struct WorkspaceProject {
     pub id: ProjectId,
     pub name: String,
-    pub module: WorkspaceModule,
+    pub modules: Vec<WorkspaceModule>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -60,7 +62,7 @@ pub struct WorkspaceProject {
 pub struct WorkspaceModule {
     pub id: ModuleId,
     pub name: String,
-    pub area: WorkspaceArea,
+    pub areas: Vec<WorkspaceArea>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -111,29 +113,6 @@ impl WorkspaceDocument {
         if command.command_id.as_uuid().is_nil() {
             return Err(WorkspaceError::NilIdentity("command_id"));
         }
-        let terrain = TerrainDocument::new(
-            command.project_id,
-            command.area_id,
-            Revision::INITIAL,
-            command.area_name.clone(),
-            command.seed,
-            TerrainExtent::new(AREA_SIZE_M, AREA_SIZE_M),
-            HeightSamplingParameters {
-                algorithm: HeightSamplingAlgorithm::FractalValueNoiseV1,
-                sample_spacing_m: SAMPLE_SPACING_M,
-                base_elevation_m: 0.0,
-                amplitude_m: 12.0,
-                base_frequency_cycles_per_m: 1.0 / 256.0,
-                octaves: 5,
-                lacunarity: 2.0,
-                persistence: 0.5,
-            },
-            vec![
-                TerrainMaterialLayer::new("meadow_grass", "Herbe"),
-                TerrainMaterialLayer::new("valley_earth", "Terre"),
-                TerrainMaterialLayer::new("ridge_rock", "Roche"),
-            ],
-        );
         let document = Self {
             schema: WORKSPACE_SCHEMA.to_owned(),
             schema_version: WORKSPACE_SCHEMA_VERSION,
@@ -141,17 +120,18 @@ impl WorkspaceDocument {
             project: WorkspaceProject {
                 id: command.project_id,
                 name: command.project_name,
-                module: WorkspaceModule {
+                modules: vec![WorkspaceModule {
                     id: command.module_id,
                     name: command.module_name,
-                    area: WorkspaceArea {
-                        id: command.area_id,
-                        name: command.area_name,
-                        kind: WorkspaceAreaKind::Exterior,
-                        spawn: command.spawn,
-                        terrain,
-                    },
-                },
+                    areas: vec![new_exterior_area(
+                        command.project_id,
+                        command.area_id,
+                        Revision::INITIAL,
+                        command.area_name,
+                        command.seed,
+                        command.spawn,
+                    )],
+                }],
             },
         };
         let after_hash = document.content_hash()?;
@@ -171,13 +151,16 @@ impl WorkspaceDocument {
     }
 
     #[must_use]
-    pub const fn module(&self) -> &WorkspaceModule {
-        &self.project.module
+    pub fn module(&self, id: ModuleId) -> Option<&WorkspaceModule> {
+        self.project.modules.iter().find(|module| module.id == id)
     }
 
     #[must_use]
-    pub const fn area(&self) -> &WorkspaceArea {
-        &self.project.module.area
+    pub fn area(&self, module_id: ModuleId, area_id: AreaId) -> Option<&WorkspaceArea> {
+        self.module(module_id)?
+            .areas
+            .iter()
+            .find(|area| area.id == area_id)
     }
 
     pub fn validate(&self) -> Result<(), WorkspaceError> {
@@ -190,46 +173,60 @@ impl WorkspaceDocument {
         if self.revision.get() == 0 {
             return Err(WorkspaceError::InvalidRevision("workspace"));
         }
-        for (field, nil) in [
-            ("project_id", self.project.id.as_uuid().is_nil()),
-            ("module_id", self.module().id.as_uuid().is_nil()),
-            ("area_id", self.area().id.as_uuid().is_nil()),
-        ] {
-            if nil {
-                return Err(WorkspaceError::NilIdentity(field));
+        if self.project.id.as_uuid().is_nil() {
+            return Err(WorkspaceError::NilIdentity("project_id"));
+        }
+        validate_name("project_name", &self.project.name)?;
+        if self.project.modules.is_empty() || self.project.modules.len() > MAX_WORKSPACE_MODULES {
+            return Err(WorkspaceError::CollectionLimit("modules"));
+        }
+        let mut module_ids = std::collections::BTreeSet::new();
+        let mut area_ids = std::collections::BTreeSet::new();
+        for module in &self.project.modules {
+            if module.id.as_uuid().is_nil() {
+                return Err(WorkspaceError::NilIdentity("module_id"));
+            }
+            if !module_ids.insert(module.id) {
+                return Err(WorkspaceError::DuplicateIdentity("module_id"));
+            }
+            validate_name("module_name", &module.name)?;
+            for area in &module.areas {
+                if area.id.as_uuid().is_nil() {
+                    return Err(WorkspaceError::NilIdentity("area_id"));
+                }
+                if !area_ids.insert(area.id) {
+                    return Err(WorkspaceError::DuplicateIdentity("area_id"));
+                }
+                if area_ids.len() > MAX_WORKSPACE_AREAS {
+                    return Err(WorkspaceError::CollectionLimit("areas"));
+                }
+                validate_name("area_name", &area.name)?;
+                validate_spawn(area.spawn)?;
+                let terrain = &area.terrain;
+                terrain.validate()?;
+                if terrain.project_id != self.project.id || terrain.area_id != area.id {
+                    return Err(WorkspaceError::TerrainOwnershipMismatch);
+                }
+                if terrain.revision.get() == 0 || terrain.revision > self.revision {
+                    return Err(WorkspaceError::InvalidRevision("terrain"));
+                }
+                if terrain.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
+                    || terrain.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
+                    || terrain.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
+                    || terrain.height_sampling.sample_spacing_m.to_bits()
+                        != SAMPLE_SPACING_M.to_bits()
+                    || terrain.material_layers.len() != 3
+                {
+                    return Err(WorkspaceError::UnsupportedTerrainShape);
+                }
             }
         }
-        for (field, name) in [
-            ("project_name", self.project.name.as_str()),
-            ("module_name", self.module().name.as_str()),
-            ("area_name", self.area().name.as_str()),
-        ] {
-            validate_name(field, name)?;
-        }
-        validate_spawn(self.area().spawn)?;
-        let terrain = &self.area().terrain;
-        terrain.validate()?;
-        if terrain.project_id != self.project.id || terrain.area_id != self.area().id {
-            return Err(WorkspaceError::TerrainOwnershipMismatch);
-        }
-        if terrain.revision.get() == 0 || terrain.revision > self.revision {
-            return Err(WorkspaceError::InvalidRevision("terrain"));
-        }
-        if terrain.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
-            || terrain.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
-            || terrain.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
-            || terrain.height_sampling.sample_spacing_m.to_bits() != SAMPLE_SPACING_M.to_bits()
-            || terrain.material_layers.len() != 3
-        {
-            return Err(WorkspaceError::UnsupportedTerrainShape);
-        }
-        // A valid document must fit its actual save representation, not only compact input.
         ensure_json_budget(serde_json::to_string_pretty(self)?.len())
     }
 
     pub fn from_json(json: &str) -> Result<Self, WorkspaceError> {
         ensure_json_budget(json.len())?;
-        let document: Self = serde_json::from_str(json)?;
+        let document = super::workspace_legacy::read(json)?;
         document.validate()?;
         Ok(document)
     }
@@ -244,6 +241,46 @@ impl WorkspaceDocument {
     pub fn content_hash(&self) -> Result<ContentHash, WorkspaceError> {
         self.validate()?;
         Ok(canonical_json_sha256(self)?)
+    }
+}
+
+pub(crate) fn new_exterior_area(
+    project_id: ProjectId,
+    area_id: AreaId,
+    revision: Revision,
+    name: String,
+    seed: u64,
+    spawn: Vec3,
+) -> WorkspaceArea {
+    let terrain = TerrainDocument::new(
+        project_id,
+        area_id,
+        revision,
+        name.clone(),
+        seed,
+        TerrainExtent::new(AREA_SIZE_M, AREA_SIZE_M),
+        HeightSamplingParameters {
+            algorithm: HeightSamplingAlgorithm::FractalValueNoiseV1,
+            sample_spacing_m: SAMPLE_SPACING_M,
+            base_elevation_m: 0.0,
+            amplitude_m: 12.0,
+            base_frequency_cycles_per_m: 1.0 / 256.0,
+            octaves: 5,
+            lacunarity: 2.0,
+            persistence: 0.5,
+        },
+        vec![
+            TerrainMaterialLayer::new("meadow_grass", "Herbe"),
+            TerrainMaterialLayer::new("valley_earth", "Terre"),
+            TerrainMaterialLayer::new("ridge_rock", "Roche"),
+        ],
+    );
+    WorkspaceArea {
+        id: area_id,
+        name,
+        kind: WorkspaceAreaKind::Exterior,
+        spawn,
+        terrain,
     }
 }
 
@@ -302,12 +339,22 @@ pub enum WorkspaceError {
     InvalidRevision(&'static str),
     #[error("terrain project/area identities do not match their workspace owners")]
     TerrainOwnershipMismatch,
-    #[error(
-        "workspace v1 requires a v2 terrain, 512 m square, 2 m samples and three material layers"
-    )]
+    #[error("workspace requires a v2 terrain, 512 m square, 2 m samples and three material layers")]
     UnsupportedTerrainShape,
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
+    #[error("workspace collection limit exceeded or no module: {0}")]
+    CollectionLimit(&'static str),
+    #[error("duplicate workspace identity: {0}")]
+    DuplicateIdentity(&'static str),
+    #[error("workspace target not found: {0}")]
+    MissingTarget(&'static str),
+    #[error("stale workspace revision")]
+    StaleRevision,
+    #[error("workspace revision exhausted")]
+    RevisionExhausted,
+    #[error("workspace edit does not change the document")]
+    NoChange,
     #[error("invalid workspace terrain: {0}")]
     Terrain(#[from] TerrainDocumentError),
     #[error("invalid workspace JSON: {0}")]
@@ -344,15 +391,18 @@ mod tests {
         let input = command();
         let created = WorkspaceDocument::create(input.clone()).unwrap();
         let document = &created.document;
-        let terrain = &document.area().terrain;
+        let terrain = &document.project.modules[0].areas[0].terrain;
         assert_eq!(document.project.id, input.project_id);
-        assert_eq!(document.module().id, input.module_id);
-        assert_eq!(document.area().id, input.area_id);
+        assert_eq!(document.project.modules[0].id, input.module_id);
+        assert_eq!(document.project.modules[0].areas[0].id, input.area_id);
         assert_eq!(document.project.name, input.project_name);
-        assert_eq!(document.module().name, input.module_name);
-        assert_eq!(document.area().name, input.area_name);
-        assert_eq!(document.area().kind, WorkspaceAreaKind::Exterior);
-        assert_eq!(document.area().spawn, input.spawn);
+        assert_eq!(document.project.modules[0].name, input.module_name);
+        assert_eq!(document.project.modules[0].areas[0].name, input.area_name);
+        assert_eq!(
+            document.project.modules[0].areas[0].kind,
+            WorkspaceAreaKind::Exterior
+        );
+        assert_eq!(document.project.modules[0].areas[0].spawn, input.spawn);
         assert_eq!(document.revision, Revision::INITIAL);
         assert_eq!(terrain.revision, Revision::INITIAL);
         assert_eq!(terrain.project_id, input.project_id);
@@ -426,8 +476,10 @@ mod tests {
             changed_identity.receipt.after_hash
         );
         assert_eq!(
-            changed_identity.document.area().terrain.area_id,
-            changed_identity.document.area().id
+            changed_identity.document.project.modules[0].areas[0]
+                .terrain
+                .area_id,
+            changed_identity.document.project.modules[0].areas[0].id
         );
     }
 
@@ -444,7 +496,10 @@ mod tests {
                 document.content_hash().unwrap()
             );
         }
-        assert_eq!(document.area().spawn.y.to_bits(), 17.5_f32.to_bits());
+        assert_eq!(
+            document.project.modules[0].areas[0].spawn.y.to_bits(),
+            17.5_f32.to_bits()
+        );
     }
 
     #[test]
@@ -478,7 +533,7 @@ mod tests {
             let document = WorkspaceDocument::create(input).unwrap().document;
             let restored =
                 WorkspaceDocument::from_json(&document.to_pretty_json().unwrap()).unwrap();
-            assert_eq!(restored.area().terrain.seed, seed);
+            assert_eq!(restored.project.modules[0].areas[0].terrain.seed, seed);
         }
         for seed in [json!(-1), json!(1.5), json!("18446744073709551616")] {
             let mut input = serde_json::to_value(command()).unwrap();
@@ -499,7 +554,9 @@ mod tests {
                 WorkspaceDocument::create(input)
                     .unwrap()
                     .document
-                    .area()
+                    .project
+                    .modules[0]
+                    .areas[0]
                     .spawn,
                 spawn
             );
@@ -535,13 +592,14 @@ mod tests {
             );
         }
         let mut changed = document();
-        changed.project.module.area.terrain.project_id = ProjectId::deterministic("other-project");
+        changed.project.modules[0].areas[0].terrain.project_id =
+            ProjectId::deterministic("other-project");
         assert!(matches!(
             changed.validate(),
             Err(WorkspaceError::TerrainOwnershipMismatch)
         ));
         let mut changed = document();
-        changed.project.module.area.terrain.area_id = AreaId::deterministic("other-area");
+        changed.project.modules[0].areas[0].terrain.area_id = AreaId::deterministic("other-area");
         assert!(matches!(
             changed.validate(),
             Err(WorkspaceError::TerrainOwnershipMismatch)
@@ -558,7 +616,7 @@ mod tests {
         ));
         for revision in [0, 2] {
             let mut changed = document();
-            changed.project.module.area.terrain.revision = Revision::new(revision);
+            changed.project.modules[0].areas[0].terrain.revision = Revision::new(revision);
             assert!(matches!(
                 changed.validate(),
                 Err(WorkspaceError::InvalidRevision("terrain"))
@@ -566,7 +624,7 @@ mod tests {
         }
         for mutation in 0..4 {
             let mut changed = document();
-            let terrain = &mut changed.project.module.area.terrain;
+            let terrain = &mut changed.project.modules[0].areas[0].terrain;
             match mutation {
                 0 => terrain.schema_version = 1,
                 1 => terrain.extent_m.size_x_m = 256.0,
@@ -591,17 +649,17 @@ mod tests {
             Err(WorkspaceError::InvalidSchema(_))
         ));
         value["schema"] = json!(WORKSPACE_SCHEMA);
-        value["schema_version"] = json!(2);
+        value["schema_version"] = json!(3);
         assert!(matches!(
             WorkspaceDocument::from_json(&value.to_string()),
-            Err(WorkspaceError::UnsupportedVersion(2))
+            Err(WorkspaceError::UnsupportedVersion(3))
         ));
         for pointer in [
             "",
             "/project",
-            "/project/module",
-            "/project/module/area",
-            "/project/module/area/terrain",
+            "/project/modules/0",
+            "/project/modules/0/areas/0",
+            "/project/modules/0/areas/0/terrain",
         ] {
             let mut value = serde_json::to_value(document()).unwrap();
             value.pointer_mut(pointer).unwrap()["unknown_field"] = json!(true);
@@ -611,7 +669,7 @@ mod tests {
             ));
         }
         let mut value = serde_json::to_value(document()).unwrap();
-        value["project"]["module"]["area"]["kind"] = json!("interior");
+        value["project"]["modules"][0]["areas"][0]["kind"] = json!("interior");
         assert!(WorkspaceDocument::from_json(&value.to_string()).is_err());
         let mut input = serde_json::to_value(command()).unwrap();
         input["free_asset_path"] = json!("../other-file");
@@ -636,10 +694,13 @@ mod tests {
     #[test]
     fn compact_input_cannot_admit_a_document_too_large_to_save() {
         let mut document = document();
-        document.project.module.area.terrain.height_deltas = (0_u16..15_000)
+        document.project.modules[0].areas[0].terrain.height_deltas = (0_u16..15_000)
             .map(|index| crate::TerrainHeightDelta::new(index % 257, index / 257, 1.0))
             .collect();
-        document.area().terrain.validate().unwrap();
+        document.project.modules[0].areas[0]
+            .terrain
+            .validate()
+            .unwrap();
         let compact = serde_json::to_string(&document).unwrap();
         assert!(compact.len() < MAX_WORKSPACE_JSON_BYTES);
         assert!(serde_json::to_string_pretty(&document).unwrap().len() > MAX_WORKSPACE_JSON_BYTES);

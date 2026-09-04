@@ -291,9 +291,9 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                         }.into_any(),
                         Menu::Edit => view! {
                             <button class="desktop-menu-item" disabled=move || controls.layout.get().active != Some(DesktopApp::Projects) || controls.workspace.unavailable() || !controls.workspace.state.get().can_undo
-                                on:click=move |_| controls.undo(false)>"Annuler le brouillon" <kbd>"Ctrl Z"</kbd></button>
+                                on:click=move |_| controls.undo(false)>"Annuler l’opération" <kbd>"Ctrl Z"</kbd></button>
                             <button class="desktop-menu-item" disabled=move || controls.layout.get().active != Some(DesktopApp::Projects) || controls.workspace.unavailable() || !controls.workspace.state.get().can_redo
-                                on:click=move |_| controls.undo(true)>"Rétablir le brouillon" <kbd>"Ctrl Maj Z"</kbd></button>
+                                on:click=move |_| controls.undo(true)>"Rétablir l’opération" <kbd>"Ctrl Maj Z"</kbd></button>
                             <p class="desktop-menu-note">"Dans un champ, Ctrl Z reste l’annulation du texte."</p>
                         }.into_any(),
                         Menu::Window => view! {
