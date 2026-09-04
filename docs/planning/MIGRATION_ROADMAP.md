@@ -1012,11 +1012,24 @@ pertinent et Studio WASM strict PASS ; l'avis tiers `proc-macro-error2 2.0.1` es
 `NOT RUN` à la demande du propriétaire, CI distante et PresentMon inchangés. Aucun asset, dépendance,
 contenu Cadle ou changement de schéma. [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_CATALOG_AND_EXCLUSIONS.md).
 
+Le candidat `cb9a8b1` qualifie **R2-019** dans sa portée exacte : la densité de végétation est
+projetée avant validation par un coordinateur latest-wins borné à une requête active, une attente et
+125 ms entre opportunités non finales. Le point final est prioritaire ; une réponse obsolète ou son
+erreur ne peut plus annuler sa relève. Le candidat natif ne touche ni session, ni historique, ni
+disque ; l'unique commande persistante attend l'observation renderer de la révision et du hash exacts.
+Le retour au cache canonique et la parité génération complète sont testés. **285 tests ciblés et 476
+tests workspace hors `forge_runtime` PASS**, Clippy natif/WASM strict, check WASM et build Trunk debug
+PASS. Le build Trunk Release est `NOT COMPLETED` faute de `wasm-opt` disponible offline après la
+compilation Rust. UI native, latence/FPS/GPU, CI distante et PresentMon restent `NOT RUN` ; aucun
+aperçu pré-validation terrain/matériaux/exclusions n'est revendiqué. Aucun asset, dépendance, contenu
+Cadle ni changement de schéma. **Gate 2 atteint 18/43 et reste ouverte.**
+[Preuves, manifeste et limites](../evidence/gate2/VEGETATION_DENSITY_REALTIME_PREVIEW.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
 - [x] `R2-018` seed stable — replay bit-identique, IDs/survivants stables et divergence d'une autre seed qualifiés.
-- [ ] `R2-019` aperçu temps réel.
+- [x] `R2-019` aperçu temps réel — densité pré-validée uniquement, latest-wins/cadence bornée et retour au cache canonique ; contrôle natif groupé reporté.
 - [ ] `R2-020` promotion et retouche.
 
 ## R2-D — Splines

@@ -1,6 +1,6 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **4 septembre 2026**
+Dernière mise à jour : **5 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 2 active sous dérogation explicite ADR-0011 ; Gate 0 passée sur preuves automatisées
 locales ; Gate 1 acceptée comme prototype avec réserves, techniquement incomplète à 43/55 ;
@@ -152,6 +152,24 @@ L'UI native est `NOT RUN` à la demande du propriétaire de privilégier les fon
 avant relâchement ni promotion/retouche d'instance n'est livré : **R2-019 et R2-020 restent ouvertes**.
 **Gate 2 atteint 17/43 et reste ouverte.** CI distante `NOT RUN — infrastructure billing`, PresentMon
 `NOT RUN`, aucun asset, dépendance, contenu Cadle ou changement de schéma.
+
+### Aperçu pré-validation de densité — onzième incrément qualifié
+
+Le code `cb9a8b1` qualifie **R2-019** dans sa portée densité de végétation. Pendant le trait, un
+coordinateur latest-wins borne le travail à une requête native active, une trajectoire en attente et
+125 ms entre opportunités non finales ; le point final est prioritaire et une erreur obsolète ne peut
+plus l'annuler. Le service calcule le candidat depuis une copie du workspace accepté, sans modifier
+session, historique, dirty ou disque. Le navigateur valide séries, révisions et hashes, publie le
+candidat, puis l'unique commande persistante attend que le renderer observe exactement ses 64 chunks,
+sa révision et son hash de densité. Annulation ou cible changée restaure la projection canonique.
+
+**285 tests ciblés PASS**, puis **476 PASS** sur le workspace hors `forge_runtime`, inchangé. Clippy
+natif/WASM strict, check WASM et build Trunk debug PASS. Le build Trunk Release a compilé le Rust puis
+s'est arrêté dans l'étape d'assets : `wasm-opt` absent et téléchargement interdit offline ; il reste
+`NOT COMPLETED`. UI native, latence/FPS/GPU, CI distante et PresentMon restent `NOT RUN`. Aucun aperçu
+pré-validation terrain/matériaux/exclusions, asset, dépendance, contenu Cadle ou changement de schéma
+n'est revendiqué. [Preuves et limites](docs/evidence/gate2/VEGETATION_DENSITY_REALTIME_PREVIEW.md).
+**Gate 2 atteint 18/43 et reste ouverte ; R2-020 est la prochaine tranche fonctionnelle.**
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
@@ -2373,9 +2391,10 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 17/43 après R2-016/R2-017. Poursuivre R2-C par un véritable aperçu avant validation
-pour R2-019, puis une promotion/retouche persistante pour R2-020. Le contrôle UI natif groupé de la
-densité, du catalogue et des exclusions reste noté pour plus tard.
+Gate 2 est à 18/43 après R2-019, qualifiée pour l'aperçu pré-validation de densité uniquement.
+Poursuivre R2-C par une promotion/retouche persistante pour R2-020, sans anticiper le picking ou le
+gizmo génériques. Le contrôle UI natif groupé de la densité, du catalogue et des exclusions reste
+noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.

@@ -1,0 +1,136 @@
+{
+  "schema": "forge.gate2.vegetation-density-realtime-preview-evidence",
+  "schema_version": 1,
+  "source_commit": "cb9a8b1e2d2b2e6b85792a508df54925b2026a59",
+  "source_tree": "ae61bc521e7a95f6b7e2ab23168da370c34cb40c",
+  "base_commit": "718eb9882319c71f5395877f785d1dcc110b3951",
+  "routes": [
+    {
+      "id": "R2-019",
+      "status": "PASS",
+      "basis": "automated functional qualification of vegetation-density preview before the single accepted commit; native UI interaction not run by owner request"
+    }
+  ],
+  "scope": "Vegetation-density strokes only: bounded latest-wins preview, immutable native candidate generation, validated viewport publication, canonical-cache restoration and one accepted history mutation after the final candidate is observed; no prerelease preview for terrain, materials or exclusions, no instance promotion, native UI, GPU, latency or performance qualification",
+  "automated_validation": {
+    "targeted_tests_status": "PASS",
+    "targeted_tests_passed": 285,
+    "targeted_tests_failed": 0,
+    "targeted_tests_ignored": 0,
+    "targeted_suite_counts": {
+      "forge_project_lib": 94,
+      "forge_studio_lib": 100,
+      "forge_studio_native_bin": 6,
+      "forge_world_lib": 85
+    },
+    "expanded_workspace_status": "PASS",
+    "expanded_workspace_excluded_unchanged_package": "forge_runtime",
+    "expanded_workspace_test_targets": 10,
+    "expanded_workspace_tests_passed": 476,
+    "expanded_workspace_tests_failed": 0,
+    "expanded_workspace_tests_ignored": 0,
+    "native_relevant_clippy_strict": "PASS",
+    "wasm_studio_clippy_strict": "PASS",
+    "wasm_studio_check": "PASS",
+    "trunk_debug_build": "PASS",
+    "trunk_release_build": "NOT COMPLETED",
+    "trunk_release_reason": "the Rust release compilation finished, then the offline Trunk asset pipeline could not find wasm-opt and was forbidden to download it",
+    "native_release_build": "NOT RUN",
+    "wasm_advisory": "transitive future-incompatibility advisory for proc-macro-error2 2.0.1"
+  },
+  "functional_contract": {
+    "workspace_schema_version": 3,
+    "vegetation_schema_version": 1,
+    "schema_bump": false,
+    "preview_interval_ms": 125,
+    "logical_dispatch_opportunities_per_second": 8,
+    "maximum_in_flight_native_previews": 1,
+    "maximum_pending_ui_trajectories": 1,
+    "pending_policy": "latest-wins; a queued finished trajectory cannot be replaced by later movement",
+    "finished_trajectory_priority": true,
+    "superseded_errors_are_nonfatal": true,
+    "changed_candidate_revision": "base_revision + 1",
+    "no_op_candidate_revision": "base_revision",
+    "candidate_session_mutation": false,
+    "candidate_history_mutation": false,
+    "candidate_dirty_state_mutation": false,
+    "candidate_disk_mutation": false,
+    "accepted_commit_history_entries": 1,
+    "final_commit_guard": "exact generation, project, area, candidate revision and density hash observed with 64 chunks, zero pending chunks and no renderer error",
+    "response_rejection_scope": [
+      "stale project or area",
+      "stale base revision",
+      "wrong preview serial",
+      "wrong candidate revision",
+      "mismatched source hashes",
+      "late cancelled generation"
+    ],
+    "canonical_cache_sequence": "canonical -> disposable candidate A -> disposable candidate B from the same base -> no-op -> canonical",
+    "candidate_matches_full_generation": true,
+    "canonical_cache_return_matches_full_generation": true,
+    "vegetation_chunk_count": 64,
+    "prerelease_preview_modes": ["vegetation_density"],
+    "persistent_instance_promotion": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and fewer repeated interface checks.",
+    "follow_up": "Review the accumulated Gate 2 world-editor interactions in one later grouped native pass."
+  },
+  "performance_qualification": {
+    "status": "NOT RUN",
+    "note": "The 125 ms coordinator interval is a logical bound, not a measured latency, FPS or GPU result."
+  },
+  "open_routes": ["R2-020"],
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_files": 10,
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "dependencies_changed": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/cargo-test-targeted.log",
+      "bytes": 27719,
+      "sha256": "5f0d1d0f72fb4c0581661dad13e8ffa038c4dff7c27fa4ca187291243c4602f2"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/cargo-test-workspace-excluding-unchanged-runtime.log",
+      "bytes": 46649,
+      "sha256": "2d344781c5343cd0c78adc7b329d4d6401c1f7abdef3a26f4e42a06a9ae1da5b"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/cargo-clippy-relevant-native.log",
+      "bytes": 478,
+      "sha256": "0430c221950d670231ee7388146396817c8381b3ae492f0cd5c6d524b2ecc844"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/cargo-clippy-studio-wasm.log",
+      "bytes": 429,
+      "sha256": "3ba947ff78d352e28f45158d743d993eb7deb79c2f59c7177f8d733c37da3623"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/cargo-check-studio-wasm.log",
+      "bytes": 429,
+      "sha256": "2de36ff037af6801bac87960ab14000fa9d15f6bacbbccdecc858e9411042ea0"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/trunk-build-debug.log",
+      "bytes": 838,
+      "sha256": "0cca37efb098eaa5761e740cb30f08179d9100d10b4617583c15a5fe43b72ec2"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-live-preview-2026-09-05/trunk-build-release.log",
+      "bytes": 1090,
+      "sha256": "4506b127c0c2e5664e3118da2654c7dbb4e842dfc7b68613ba4b56ee0fcad455"
+    }
+  ]
+}
