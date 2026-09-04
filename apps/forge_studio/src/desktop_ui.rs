@@ -4,6 +4,7 @@
 use crate::desktop_state::{DesktopApp, DesktopState, WindowRect};
 use crate::workspace_api::WorkspaceCommand;
 use crate::workspace_ui::{ProjectWorkspace, WorkspaceActions, create_workspace_actions};
+use crate::world_ui::{WorldActions, WorldDiagnostics, WorldWorkspace, create_world_actions};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
 
@@ -31,7 +32,7 @@ struct DesktopControls {
     layout: RwSignal<DesktopState>,
     menu: RwSignal<Option<Menu>>,
     drag: RwSignal<Option<Drag>>,
-    diagnostics_mounted: RwSignal<bool>,
+    world: WorldActions,
     message: RwSignal<String>,
     workspace: WorkspaceActions,
 }
@@ -40,9 +41,6 @@ impl DesktopControls {
     fn open(self, app: DesktopApp) {
         self.menu.set(None);
         self.layout.update(|layout| layout.open(app));
-        if app == DesktopApp::Diagnostics {
-            self.diagnostics_mounted.set(true);
-        }
         focus_element(title_id(app));
     }
 
@@ -144,13 +142,14 @@ pub(crate) fn mount_desktop() {
 #[component]
 fn ForgeDesktop() -> impl IntoView {
     let (width, height) = desktop_size();
+    let workspace = create_workspace_actions();
     let controls = DesktopControls {
         layout: RwSignal::new(DesktopState::new(width, height)),
         menu: RwSignal::new(None),
         drag: RwSignal::new(None),
-        diagnostics_mounted: RwSignal::new(false),
+        world: create_world_actions(workspace),
         message: RwSignal::new("Vos outils, dans un même atelier.".into()),
-        workspace: create_workspace_actions(),
+        workspace,
     };
     install_desktop_listeners(controls);
     view! {
@@ -179,24 +178,21 @@ fn ForgeDesktop() -> impl IntoView {
                     <p>"Un monde à imaginer. Un atelier pour lui donner vie."</p>
                 </section>
                 <DesktopWindow controls app=DesktopApp::Projects>
-                    <ProjectWorkspace actions=controls.workspace embedded=true/>
+                    <ProjectWorkspace actions=controls.workspace embedded=true on_open_area=Callback::new(move |key| {
+                        controls.world.open(key); controls.open(DesktopApp::World);
+                    })/>
                 </DesktopWindow>
-                // This condition becomes true only once. Visibility is controlled by the outer
-                // window; closing or minimizing never destroys the renderer or the form signals.
-                <Show when=move || controls.diagnostics_mounted.get()>
-                    <DesktopWindow controls app=DesktopApp::Diagnostics>
-                        <section class="desktop-proof-notice">
-                            <strong>"Laboratoire · scène Gate 0"</strong>
-                            <span>"Démonstration technique indépendante. Ce n’est pas la zone de votre projet."</span>
-                        </section>
-                        <crate::web::Studio embedded=true/>
-                    </DesktopWindow>
-                </Show>
+                <DesktopWindow controls app=DesktopApp::World>
+                    <WorldWorkspace actions=controls.world/>
+                </DesktopWindow>
+                <DesktopWindow controls app=DesktopApp::Diagnostics>
+                    <WorldDiagnostics actions=controls.world/>
+                </DesktopWindow>
             </div>
             <div class="desktop-announcement" role="status" aria-live="polite">{move || controls.message.get()}</div>
             <nav class="desktop-dock" aria-label="Applications Forge">
                 <DockButton controls app=DesktopApp::Projects/>
-                <FutureApp label="Monde" kind="world"/>
+                <DockButton controls app=DesktopApp::World/>
                 <FutureApp label="Assets" kind="assets"/>
                 <FutureApp label="Personnages" kind="characters"/>
                 <FutureApp label="Narration" kind="narration"/>
@@ -212,7 +208,7 @@ fn ForgeDesktop() -> impl IntoView {
                         "x": state.rect.x, "y": state.rect.y, "width": state.rect.width, "height": state.rect.height })
                 };
                 serde_json::json!({ "projects": describe(DesktopApp::Projects), "diagnostics": describe(DesktopApp::Diagnostics),
-                    "active": layout.active.map(app_key), "diagnostics_mounted": controls.diagnostics_mounted.get() }).to_string()
+                    "world": describe(DesktopApp::World), "active": layout.active.map(app_key) }).to_string()
             }}</output>
         </main>
     }
@@ -250,7 +246,7 @@ fn DesktopWindow(controls: DesktopControls, app: DesktopApp, children: Children)
                     on:lostpointercapture=move |_| controls.drag.set(None)
                     on:dblclick=move |_| controls.layout.update(|layout| layout.toggle_maximize(app))
                     on:keydown=move |event| geometry_key(controls, app, false, &event)>{app_title(app)}</button>
-                <span class="window-caption">{if app == DesktopApp::Projects { "Sources du projet" } else { "Scène de preuve" }}</span>
+                <span class="window-caption">{match app { DesktopApp::Projects => "Sources du projet", DesktopApp::World => "Terrain du projet", DesktopApp::Diagnostics => "Projection courante" }}</span>
             </header>
             <div class="window-content">{children()}</div>
             <button class="window-resize-handle" type="button" aria-label=format!("Redimensionner {} avec les flèches", app_title(app))
@@ -275,7 +271,8 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                     {match menu {
                         Menu::Forge => view! {
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Projects)>"Projets"</button>
-                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Diagnostics)>"Diagnostics · preuve Gate 0"</button>
+                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::World)>"Monde"</button>
+                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Diagnostics)>"Diagnostics du monde"</button>
                             <p class="desktop-menu-note">"Un seul Studio, une seule session de projet."</p>
                         }.into_any(),
                         Menu::File => view! {
@@ -298,6 +295,7 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                         }.into_any(),
                         Menu::Window => view! {
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Projects)>"Afficher Projets"</button>
+                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::World)>"Afficher Monde"</button>
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Diagnostics)>"Afficher Diagnostics"</button>
                             <hr class="desktop-menu-separator"/>
                             <button class="desktop-menu-item" disabled=move || controls.layout.get().active.is_none() on:click=move |_| {
@@ -309,8 +307,8 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                             }>"Agrandir / restaurer"</button>
                         }.into_any(),
                         Menu::Help => view! {
-                            <p class="desktop-menu-note">"Projets crée, enregistre et rouvre les sources. Diagnostics conserve une scène de preuve indépendante."</p>
-                            <p class="desktop-menu-note">"Monde, Assets, Personnages, Narration et Playtest ne sont pas encore disponibles."</p>
+                            <p class="desktop-menu-note">"Projets édite les sources. Monde affiche le terrain de vos zones. Diagnostics observe ce même viewport."</p>
+                            <p class="desktop-menu-note">"Assets, Personnages, Narration et Playtest ne sont pas encore disponibles."</p>
                             <p class="desktop-menu-note">"Les fenêtres conservent les saisies pendant cette session. Enregistrez le projet avant de quitter le Studio."</p>
                         }.into_any(),
                     }}
@@ -360,24 +358,28 @@ fn AppIcon(kind: &'static str) -> impl IntoView {
 fn app_title(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "Projets",
+        DesktopApp::World => "Monde",
         DesktopApp::Diagnostics => "Diagnostics",
     }
 }
 fn app_key(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "projects",
+        DesktopApp::World => "world",
         DesktopApp::Diagnostics => "diagnostics",
     }
 }
 fn title_id(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "window-title-projects",
+        DesktopApp::World => "window-title-world",
         DesktopApp::Diagnostics => "window-title-diagnostics",
     }
 }
 fn dock_id(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "dock-projects",
+        DesktopApp::World => "dock-world",
         DesktopApp::Diagnostics => "dock-diagnostics",
     }
 }

@@ -488,28 +488,8 @@
 .forge-desktop .project-metadata .project-identifier { color: #7a6a53; font-size: 10px; }
 .forge-desktop .project-empty { margin: 12px 0; padding: 16px 0; color: #887861; font-size: 12px; }
 
-/* Diagnostics remain the real existing scene, with a bounded layout inside its own window. */
-.forge-desktop .desktop-window[data-app="diagnostics"] .window-content { overflow: hidden; display: grid; grid-template-rows: auto minmax(0, 1fr); }
-.forge-desktop .desktop-window[data-app="diagnostics"] .studio-shell {
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  grid-template-rows: 65px minmax(0, 1fr);
-}
-.forge-desktop .desktop-window[data-app="diagnostics"] .topbar { gap: 14px; padding: 10px 16px; background: #fffdf8; }
+/* Diagnostics describe the same project viewport; no second embedded renderer. */
 .forge-desktop .desktop-window[data-app="diagnostics"] h1 { font-size: 17px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .status-stack { max-width: 48%; gap: 3px; font-size: 10px; text-align: right; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 155px minmax(0, 1fr) 212px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .panel { padding: 14px 11px; background: #f5f2eb; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .panel h2 { margin-bottom: 10px; color: #7c6b51; font-size: 10px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .hierarchy button { padding: 8px; font-size: 11px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .hierarchy button.selected { color: #5e4926; background: #e6d8b9; box-shadow: inset 2px 0 #9b783f; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .viewport-panel { grid-template-rows: 34px minmax(0, 1fr); }
-.forge-desktop .desktop-window[data-app="diagnostics"] .viewport-toolbar { gap: 8px; padding: 0 10px; color: #736248; background: #ebe5d8; font-size: 10px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .inspector label { gap: 5px; margin-bottom: 12px; color: #796a52; font-size: 11px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .inspector output { padding: 7px; border-color: #d8d0c1; color: #504430; background: #fffdf8; font-size: 10px; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .webgpu-error { inset: 34px 0 0; padding: 20px; color: #983b31; background: #fff9eff5; }
-.forge-desktop .desktop-window[data-app="diagnostics"] .webgpu-error span { color: #766653; }
 
 /* Respond to the window's own width, even when the desktop viewport remains Full HD. */
 @container forge-window (max-width: 850px) {
@@ -519,7 +499,6 @@
   .forge-desktop .project-storage-grid { grid-template-columns: minmax(0, 1fr); }
   .forge-desktop .project-workspace .project-topbar { padding: 14px 17px; }
   .forge-desktop .project-notice { flex-wrap: wrap; padding: 8px 17px; }
-  .forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 128px minmax(0, 1fr) 182px; }
 }
 
 @container forge-window (max-width: 620px) {
@@ -528,9 +507,6 @@
   .forge-desktop .project-topbar { flex-wrap: wrap; }
   .forge-desktop .project-proof-links { justify-content: flex-start; max-width: none; }
   .forge-desktop .project-proof-links small { text-align: left; }
-  .forge-desktop .desktop-window[data-app="diagnostics"] .workspace { grid-template-columns: 120px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) 150px; }
-  .forge-desktop .desktop-window[data-app="diagnostics"] .inspector { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; border-top: 1px solid var(--line); }
-  .forge-desktop .desktop-window[data-app="diagnostics"] .inspector h2 { grid-column: 1 / -1; }
 }
 
 @media (max-width: 1200px), (max-height: 760px) {
@@ -557,3 +533,26 @@
 .forge-desktop .dock-item.is-unavailable { cursor: not-allowed; }
 .forge-desktop .dock-item.is-unavailable .app-icon { opacity: .65; }
 .forge-desktop .desktop-proof-notice { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 9px 15px; background: #f1e9d7; color: #755422; font-size: 11px; }
+
+.forge-desktop .desktop-window[data-app="world"] .window-content { overflow: hidden; }
+.forge-desktop .world-workspace { display: grid; grid-template-columns: 190px minmax(0, 1fr); height: 100%; min-height: 0; }
+.forge-desktop .world-area-browser { padding: 18px 12px; overflow: auto; border-right: 1px solid var(--line); background: #eee8da90; }
+.forge-desktop .world-area-browser h2 { margin: 0 0 18px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.forge-desktop .world-area-browser h3 { margin: 20px 4px 8px; font-size: 12px; }
+.forge-desktop .world-area-browser button { width: 100%; text-align: left; margin: 3px 0; padding: 9px 10px; white-space: normal; }
+.forge-desktop .world-area-browser button.active { background: #ead8aa; border-color: #b99b63; }
+.forge-desktop .world-editor { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.forge-desktop .world-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 8px; min-height: 44px; border-bottom: 1px solid var(--line); }
+.forge-desktop .world-tab { display: flex; flex-shrink: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.forge-desktop .world-tab button { border: 0; border-radius: 0; }
+.forge-desktop .world-tab button[aria-selected="true"] { background: #ebd5a2; }
+.forge-desktop .world-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+.forge-desktop .world-toolbar span { font-size: 10px; color: var(--muted); }
+.forge-desktop .world-canvas-host { position: relative; overflow: hidden; min-height: 0; background: #90a8b4; }
+.forge-desktop #forge-world-canvas { display: block; width: 100%; height: 100%; touch-action: none; outline-offset: -3px; }
+.forge-desktop .world-empty { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: #fdfbf4; padding: 24px; pointer-events: none; background: linear-gradient(145deg, #344e56, #809590); }
+.forge-desktop .world-empty h2 { font-size: 28px; font-weight: 500; margin-bottom: 8px; }
+.forge-desktop .world-status { padding: 9px 12px; font-size: 11px; border-top: 1px solid var(--line); }
+.forge-desktop .world-diagnostics { padding: 24px; }
+.forge-desktop .world-diagnostics pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #ede5d3; padding: 16px; border-radius: 12px; font-size: 12px; }
+.forge-desktop .open-world-button { margin-top: 14px; width: 100%; }

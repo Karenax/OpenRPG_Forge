@@ -24,10 +24,11 @@ complete Gate 2. Explicit Gate 0 and Visual Valley proof routes remain separate.
 
 The desktop adds top menus, a dock, and movable/resizable/minimizable/maximizable windows.
 Projets is mounted once; hiding its window retains form fields and does not issue `Close`.
-Diagnostics lazily mounts the existing Gate 0 proof once. Subsequent hides use `visibility:hidden`
-and `inert`, retaining the same canvas and its positive layout dimensions. It is an independent
-technical proof, **not** the newly authored area. The renderer does not claim initial keyboard focus.
-The future Monde/Assets/Personnages/Narration/Playtest entries are labelled unavailable.
+Monde owns the project viewport; Diagnostics observes that same renderer rather than starting a
+second Bevy app. Subsequent hides use `visibility:hidden` and `inert`, retaining the canvas and its
+positive layout dimensions. Explicit Gate 0/1 proof URLs remain independent and unchanged.
+The renderer does not request initial keyboard focus. Assets/Personnages/Narration/Playtest remain
+labelled unavailable.
 
 Menu undo/redo uses the same `WorkspaceActions` as the form toolbar. File commands bring the real
 forms into focus; saving still requires an explicit destination. Ctrl+S focuses that destination;
@@ -49,11 +50,38 @@ The v2 authoring slice adds modules and exterior areas through the same native c
 module (or one of its areas) in the hierarchy to choose the destination of a new area. New modules
 start empty. The inspector edits the selected project's/module's name, or the selected area's name
 and explicit spawn coordinates. IDs, not names, identify the targets; neighbouring areas are intact.
-Area tabs and the real project viewport remain subsequent work.
+Area tabs and the project viewport are implemented by `area_tabs.rs`, `world_ui.rs` and the shared
+`forge_engine::editor_viewport` adapter. See the project viewport contract below for limits.
 
-There is **no live 3D viewport on this route**. Its links open the unchanged proof scenes, not a
+There is **no live 3D viewport in the standalone source assistant**. Its links open the unchanged proof scenes, not a
 rendering of the newly created project. Terrain brushes, picking, gizmos and playtest are not part
 of this source-management slice.
+
+### Project viewport and area tabs
+
+Select an area in Projets and use **Ouvrir dans Monde**, or select it in Monde's source browser.
+Tabs use project/module/area IDs, deduplicate repeated opens, and reconcile against accepted source
+documents after undo/redo/open/close. Closing a tab never deletes its area. The current page retains
+per-area orbit cameras; tabs/cameras are presentation state, not saved project content.
+
+`StudioCommand::AreaPreview` reads the accepted native source at an explicit revision. It refuses
+foreign IDs and stale revisions, copies the source under the session lock, then generates the exact
+existing 64-chunk terrain on Tauri's blocking pool. One native generation is permitted at a time;
+the UI coalesces rapid selection changes and discards obsolete responses. The derived JSON transfer
+is capped at 24 MiB and never saved. This initial transfer includes the existing generated terrain
+contract, including unused collider data; no new dependency or second terrain algorithm is added.
+
+The Bevy adapter clears old geometry on invalidation, uploads two derived meshes per update, and
+reveals the new area only when all 64 chunks are materialized. Removed mesh assets are released.
+It reuses Forge's terrain PBR shader/material and starts only one app/canvas per desktop page.
+Pointer input is attached to that canvas only: drag to orbit, Shift-drag to pan, wheel to zoom;
+overview and spawn-focus buttons are also provided. The gold cube is authored spawn metadata,
+not a character or a surface-snapped position; it may be below the terrain.
+
+Diagnostics distinguishes renderer startup, applied request/revision/source hash, chunk count,
+camera pose and CPU loop timing from GPU presentation/timestamps, which remain unobserved by the
+ledger. Actual rendered output requires native captures. No brushes, picking, general command bus,
+playtest, crash recovery, performance qualification or route PASS follows from compilation alone.
 
 ### Native commands and draft state
 

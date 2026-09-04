@@ -3,6 +3,7 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DesktopApp {
     Projects,
+    World,
     Diagnostics,
 }
 
@@ -25,7 +26,7 @@ pub struct WindowState {
 
 #[derive(Clone, Copy, Debug)]
 pub struct DesktopState {
-    windows: [WindowState; 2],
+    windows: [WindowState; 3],
     pub active: Option<DesktopApp>,
     width: f64,
     height: f64,
@@ -66,7 +67,7 @@ impl DesktopState {
             ..project
         };
         Self {
-            windows: [project, diagnostics],
+            windows: [project, diagnostics, diagnostics],
             active: Some(DesktopApp::Projects),
             width,
             height,
@@ -108,12 +109,13 @@ impl DesktopState {
         if self.active != Some(hidden) {
             return;
         }
-        let other = match hidden {
-            DesktopApp::Projects => DesktopApp::Diagnostics,
-            DesktopApp::Diagnostics => DesktopApp::Projects,
-        };
-        let window = self.window(other);
-        self.active = (window.open && !window.minimized).then_some(other);
+        self.active = [
+            DesktopApp::Projects,
+            DesktopApp::World,
+            DesktopApp::Diagnostics,
+        ]
+        .into_iter()
+        .find(|app| *app != hidden && self.window(*app).open && !self.window(*app).minimized);
     }
 
     pub fn toggle_maximize(&mut self, app: DesktopApp) {
@@ -193,7 +195,8 @@ impl DesktopState {
 const fn index(app: DesktopApp) -> usize {
     match app {
         DesktopApp::Projects => 0,
-        DesktopApp::Diagnostics => 1,
+        DesktopApp::World => 1,
+        DesktopApp::Diagnostics => 2,
     }
 }
 fn positive_or(value: f64, fallback: f64) -> f64 {
@@ -295,5 +298,21 @@ mod tests {
         assert_eq!(state.active, None);
         state.open(PROJECTS);
         assert_eq!(state.active, Some(PROJECTS));
+    }
+
+    #[test]
+    fn world_window_survives_other_windows_and_is_the_focus_fallback() {
+        let mut state = DesktopState::new(1600.0, 756.0);
+        state.open(DesktopApp::World);
+        state.resize_window(DesktopApp::World, 900.0, 600.0);
+        let rect = state.window(DesktopApp::World).rect;
+        state.close(PROJECTS);
+        state.open(DIAGNOSTICS);
+        state.close(DIAGNOSTICS);
+        assert_eq!(state.active, Some(DesktopApp::World));
+        state.minimize(DesktopApp::World);
+        assert_eq!(state.active, None);
+        state.open(DesktopApp::World);
+        assert_eq!(state.window(DesktopApp::World).rect, rect);
     }
 }

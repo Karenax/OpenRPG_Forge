@@ -91,6 +91,7 @@ pub(crate) fn create_workspace_actions() -> WorkspaceActions {
 pub(crate) fn ProjectWorkspace(
     #[prop(optional)] actions: Option<WorkspaceActions>,
     #[prop(default = false)] embedded: bool,
+    #[prop(optional)] on_open_area: Option<Callback<crate::area_tabs::AreaKey>>,
 ) -> impl IntoView {
     let actions = actions.unwrap_or_else(create_workspace_actions);
     let WorkspaceActions {
@@ -127,7 +128,7 @@ pub(crate) fn ProjectWorkspace(
             </header>
             <section class="project-notice" aria-label="Portée de cette version">
                 <strong>"Gestion des sources uniquement"</strong>
-                <span>"L’édition 3D et l’affichage des zones dans le viewport viennent ensuite. Aucun aperçu 3D du projet n’est présenté ici."</span>
+                <span>{if embedded { "Sélectionnez une zone puis Ouvrir dans Monde pour afficher son terrain. Les brosses 3D viennent ensuite." } else { "Cet assistant gère les sources. L’aperçu du projet est disponible dans Monde, depuis le bureau Forge." }}</span>
             </section>
             <Show when=move || !backend_available>
                 <section class="project-notice project-warning" role="status" id="workspace-backend-unavailable">
@@ -138,6 +139,16 @@ pub(crate) fn ProjectWorkspace(
             <div class="project-layout">
                 <aside class="panel project-tree-panel" aria-label="Arborescence du projet">
                     <ProjectTree actions selected set_selected/>
+                    {on_open_area.map(|callback| view! {
+                        <button type="button" class="open-world-button"
+                            disabled=move || !matches!(selected.get(), WorkspaceNode::Area(..))
+                            on:click=move |_| {
+                                if let WorkspaceNode::Area(module_id, area_id) = selected.get_untracked()
+                                    && let Some(document) = read_document(actions) {
+                                    callback.run(crate::area_tabs::AreaKey { project_id: document.project.id, module_id, area_id });
+                                }
+                            }>"Ouvrir dans Monde"</button>
+                    })}
                 </aside>
                 <div class="project-content">
                     <WorkspaceToolbar actions/>
@@ -430,12 +441,26 @@ fn tauri_core() -> Result<JsValue, String> {
 }
 
 async fn invoke_workspace(command: WorkspaceCommand) -> Result<WorkspaceState, String> {
+    match invoke_studio(StudioCommand::Workspace { request: command }).await? {
+        StudioResponse::Workspace { state } => {
+            if let Some(json) = state.document_json.as_deref() {
+                WorkspaceDocument::from_json(json)
+                    .map_err(|error| format!("Document retourné invalide : {error}"))?;
+            }
+            Ok(state)
+        }
+        StudioResponse::Rejected { reason } => Err(reason),
+        _ => Err("Réponse reçue pour une autre opération Studio.".to_owned()),
+    }
+}
+
+pub(crate) async fn invoke_studio(command: StudioCommand) -> Result<StudioResponse, String> {
     let core = tauri_core()?;
     let invoke = js_sys::Reflect::get(&core, &JsValue::from_str("invoke"))
         .map_err(|error| format!("Commande Tauri inaccessible : {error:?}"))?
         .dyn_into::<js_sys::Function>()
         .map_err(|_| "API Tauri invoke invalide.".to_owned())?;
-    let payload = serde_wasm_bindgen::to_value(&StudioCommand::Workspace { request: command })
+    let payload = serde_wasm_bindgen::to_value(&command)
         .map_err(|error| format!("Commande non sérialisable : {error}"))?;
     let arguments = js_sys::Object::new();
     js_sys::Reflect::set(&arguments, &JsValue::from_str("command"), &payload)
@@ -453,17 +478,6 @@ async fn invoke_workspace(command: WorkspaceCommand) -> Result<WorkspaceState, S
     let value = wasm_bindgen_futures::JsFuture::from(promise)
         .await
         .map_err(|error| format!("Commande refusée ou échouée : {error:?}"))?;
-    match serde_wasm_bindgen::from_value(value)
-        .map_err(|error| format!("Réponse Studio invalide : {error}"))?
-    {
-        StudioResponse::Workspace { state } => {
-            if let Some(json) = state.document_json.as_deref() {
-                WorkspaceDocument::from_json(json)
-                    .map_err(|error| format!("Document retourné invalide : {error}"))?;
-            }
-            Ok(state)
-        }
-        StudioResponse::Rejected { reason } => Err(reason),
-        _ => Err("Réponse reçue pour une autre opération Studio.".to_owned()),
-    }
+    serde_wasm_bindgen::from_value(value)
+        .map_err(|error| format!("Réponse Studio invalide : {error}"))
 }

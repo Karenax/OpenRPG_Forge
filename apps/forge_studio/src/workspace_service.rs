@@ -25,6 +25,22 @@ pub struct WorkspaceSession {
 }
 
 impl WorkspaceSession {
+    /// Copies only the accepted source. Generation never holds the session lock.
+    pub fn area_preview_source(
+        &self,
+        request: crate::area_preview::AreaPreviewRequest,
+    ) -> Result<(forge_project::TerrainDocument, Vec3), String> {
+        self.require_revision(request.base_revision)?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        if !request.key.exists(document) {
+            return Err("La zone demandée n’appartient pas au projet courant.".into());
+        }
+        let area = document
+            .area(request.key.module_id, request.key.area_id)
+            .ok_or("Zone introuvable.")?;
+        Ok((area.terrain.clone(), area.spawn))
+    }
+
     pub fn execute(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
         let message = match command {
             WorkspaceCommand::Current => "Projet courant".into(),

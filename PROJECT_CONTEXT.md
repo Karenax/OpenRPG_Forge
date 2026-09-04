@@ -54,6 +54,13 @@ reste une métadonnée, pas un personnage placé. Onglets, viewport réel, bross
 de commandes/persistance restent dus. L'erreur de champ doit être rendue plus visible après
 défilement. Le bureau doré est conservé ; aucune nouvelle dépendance ni aucun asset Cadle.
 
+### Onglets et aperçu de zones — quatrième incrément en qualification
+
+Monde est raccordé aux zones réelles par une projection préparée côté natif, avec onglets par IDs,
+caméra d'édition et canvas conservé. Diagnostics partage ce renderer ; les scènes de preuve restent
+sur leurs routes autonomes. **Aucun nouveau PASS : Gate 2 reste 4/43** tant que le parcours visuel
+du candidat n'est pas qualifié. [Contrat, preuves acquises et contrôles restants](docs/evidence/gate2/AREA_VIEWPORT.md).
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;

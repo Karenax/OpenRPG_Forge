@@ -1,5 +1,19 @@
 # forge_engine
 
+## Editor terrain projection
+
+`editor_viewport` projects accepted project terrain prepared by the native Studio service. It reuses
+the existing terrain mesh adapter and PBR material, but does not install the embedded Visual Valley
+recipe, physics, player, weather, vegetation or runtime proof harness. One camera and one renderer
+serve all open areas. Its bounded bridge coalesces requests; a stale generation cannot replace the
+current selection. Old mesh assets are explicitly released, two chunks are adapted per update,
+and all new geometry is revealed together after 64 chunks. Up to 256 per-area camera poses survive
+tab switches in the same project/page. They are presentation-only state.
+
+Headless tests exercise request replacement/cancellation, asset release, camera restoration and
+invalid topology. These are ECS/CPU proofs, not evidence of GPU presentation. Studio Diagnostics
+retains that distinction; capture and inspect the native viewport before qualifying a visual route.
+
 Adapts engine-neutral Forge documents to Bevy entities. `ProofScenePlugin` keeps the Gate 0 scene
 API intact. `VisualValleyPlugin` consumes a validated `TerrainDocument`, asks `forge_world` for the
 deterministic derived terrain and materializes its 64 chunks without becoming a persistent source of

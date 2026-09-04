@@ -935,6 +935,10 @@ Workspace v2 et migration v1 stricte sans écrasement, historique borné à 32 o
 [Preuves et limites](../evidence/gate2/MODULES_AND_AREAS.md). R2-006 reste partielle (arborescence
 et sélection des sources uniquement), R2-F reste ouverte. Suite : onglets et viewport réel, puis brosses.
 
+Quatrième lot en qualification : onglets et viewport réel relié aux sources acceptées, préparation
+native, caméra d'édition et renderer partagé Monde/Diagnostics. [Suivi et preuves](../evidence/gate2/AREA_VIEWPORT.md).
+R2-005 n'est pas encore cochée : la compilation et les tests CPU ne prouvent pas le parcours visuel.
+
 ## But
 
 Créer une carte complète sans modifier de JSON à la main, avec une expérience proche d’un constructeur

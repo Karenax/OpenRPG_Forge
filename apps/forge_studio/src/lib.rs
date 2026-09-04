@@ -7,6 +7,8 @@
     )
 )]
 
+pub mod area_preview;
+pub mod area_tabs;
 pub mod desktop_state;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod desktop_ui;
@@ -17,6 +19,8 @@ pub mod workspace_service;
 mod workspace_store;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod workspace_ui;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod world_ui;
 
 mod gate1_browser_weather_matrix;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
@@ -1241,6 +1245,9 @@ mod telemetry;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
+    AreaPreview {
+        request: area_preview::AreaPreviewRequest,
+    },
     SelectEntity {
         entity_id: EntityId,
     },
@@ -1253,6 +1260,9 @@ pub enum StudioCommand {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    AreaPreview {
+        preview_json: String,
+    },
     Workspace {
         state: workspace_api::WorkspaceState,
     },
@@ -1286,7 +1296,7 @@ fn validate_selection_response(
         StudioResponse::SceneSummary { .. } => {
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
         }
-        StudioResponse::Workspace { .. } => {
+        StudioResponse::Workspace { .. } | StudioResponse::AreaPreview { .. } => {
             Err("Réponse Tauri inattendue : projet reçu pour une sélection".to_owned())
         }
     }

@@ -19,11 +19,58 @@ const UNAVAILABLE_CLOSE_MESSAGE: &str =
     clippy::needless_pass_by_value,
     reason = "Tauri commands deserialize request payloads into owned Rust values"
 )]
-fn execute_studio_command(
+async fn execute_studio_command(
     command: StudioCommand,
     session: tauri::State<'_, Mutex<WorkspaceSession>>,
-) -> StudioResponse {
-    execute_command(command, &session)
+) -> Result<StudioResponse, String> {
+    if let StudioCommand::AreaPreview { request } = command {
+        let source = match session.lock() {
+            Ok(session) => session.area_preview_source(request),
+            Err(_) => Err("Session projet indisponible.".into()),
+        };
+        let (document, spawn) = match source {
+            Ok(source) => source,
+            Err(reason) => return Ok(StudioResponse::Rejected { reason }),
+        };
+        let permit = PreviewPermit::acquire()?;
+        return Ok(
+            match tauri::async_runtime::spawn_blocking(move || {
+                let _permit = permit;
+                forge_studio_frontend::area_preview::prepare_area_preview(request, &document, spawn)
+            })
+            .await
+            {
+                Ok(Ok(preview_json)) => StudioResponse::AreaPreview { preview_json },
+                Ok(Err(reason)) => StudioResponse::Rejected { reason },
+                Err(error) => StudioResponse::Rejected {
+                    reason: format!("Génération interrompue : {error}"),
+                },
+            },
+        );
+    }
+    Ok(execute_command(command, &session))
+}
+
+/// One bounded generation per Studio, including callers outside the UI queue.
+static PREVIEW_BUSY: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+struct PreviewPermit;
+impl PreviewPermit {
+    fn acquire() -> Result<Self, String> {
+        PREVIEW_BUSY
+            .compare_exchange(
+                false,
+                true,
+                std::sync::atomic::Ordering::AcqRel,
+                std::sync::atomic::Ordering::Acquire,
+            )
+            .map(|_| Self)
+            .map_err(|_| "Un aperçu est déjà en préparation. Réessayez après sa fin.".into())
+    }
+}
+impl Drop for PreviewPermit {
+    fn drop(&mut self) {
+        PREVIEW_BUSY.store(false, std::sync::atomic::Ordering::Release);
+    }
 }
 
 fn execute_command(command: StudioCommand, session: &Mutex<WorkspaceSession>) -> StudioResponse {
@@ -58,9 +105,11 @@ fn execute_command(command: StudioCommand, session: &Mutex<WorkspaceSession>) ->
                 .to_string(),
             entity_count: document.entities.len(),
         },
-        StudioCommand::Workspace { .. } => StudioResponse::Rejected {
-            reason: "Commande projet déjà traitée.".into(),
-        },
+        StudioCommand::Workspace { .. } | StudioCommand::AreaPreview { .. } => {
+            StudioResponse::Rejected {
+                reason: "Commande projet déjà traitée.".into(),
+            }
+        }
     }
 }
 

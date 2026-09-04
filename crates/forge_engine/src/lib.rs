@@ -2,6 +2,7 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+pub mod editor_viewport;
 mod environment;
 mod gpu_performance;
 #[cfg(feature = "physics-rapier")]
