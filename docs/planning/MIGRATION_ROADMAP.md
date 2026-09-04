@@ -914,7 +914,7 @@ Premier lot livré le 4 septembre : **R2-001 PASS, 1/43 routes**. Code `c165a30`
 clippy natif/WASM PASS et parcours Studio autonome capturé : créer → annuler → rétablir →
 enregistrer → fermer → rouvrir. Preuves et limites :
 [`R2_001_PROJECT_SOURCES.md`](../evidence/gate2/R2_001_PROJECT_SOURCES.md).
-R2-002/003/004/006 sont partiels : module/zone initiaux, métadonnées et sélection des sources,
+À ce premier lot, R2-002/003/004/006 sont partiels : module/zone initiaux, métadonnées et sélection des sources,
 sans ajout ultérieur, onglets, édition existante ni viewport 3D. Les acquis de commandes,
 undo/redo, snapshots immuables et réouverture ne ferment pas les routes générales R2-F.
 
@@ -925,8 +925,15 @@ de gates ultérieures pour remplir le dock. Code `0b3b9ef` : style doré/verre, 
 mobiles/redimensionnables/réductibles/agrandissables, Projets partagé et Diagnostics de preuve.
 422 tests PASS, builds natif/WASM et captures, conservation des formulaires/canvas, sauvegarde puis
 réouverture native après redémarrage vérifiées. [Preuve et limites](../evidence/gate2/DESKTOP_SHELL.md).
-Aucun PASS de route supplémentaire : Gate 2 reste **1/43**. Prochaine tranche métier : modules/zones
+À ce second lot, aucun PASS de route supplémentaire : Gate 2 reste **1/43**. Prochaine tranche métier : modules/zones
 éditables et liaison du document réel au viewport, sans présenter Diagnostics comme la zone créée.
+
+Troisième lot qualifié le 4 septembre : **R2-002/003/004 PASS, total courant 4/43**. Code `1e151b2`,
+432 tests PASS, clippy natif/WASM et builds Release ; parcours natif multi-modules/multi-zones,
+métadonnées, refus d'entrée invalide, undo/redo, sauvegarde et réouverture après redémarrage.
+Workspace v2 et migration v1 stricte sans écrasement, historique borné à 32 opérations.
+[Preuves et limites](../evidence/gate2/MODULES_AND_AREAS.md). R2-006 reste partielle (arborescence
+et sélection des sources uniquement), R2-F reste ouverte. Suite : onglets et viewport réel, puis brosses.
 
 ## But
 
@@ -936,9 +943,9 @@ de monde accessible.
 ## R2-A — Projet et zones
 
 - [x] `R2-001` assistant nouveau projet — sources canoniques, parcours natif qualifié le 4 septembre.
-- [ ] `R2-002` nouveau module.
-- [ ] `R2-003` nouvelle zone extérieure.
-- [ ] `R2-004` métadonnées et point de départ.
+- [x] `R2-002` nouveau module — ajout dans un projet existant et réouverture native vérifiés.
+- [x] `R2-003` nouvelle zone extérieure — plusieurs zones par module, terrains source indépendants.
+- [x] `R2-004` métadonnées et point de départ — édition source validée et annulable, pas de personnage placé.
 - [ ] `R2-005` onglets de zones.
 - [ ] `R2-006` hiérarchie et sélection.
 

@@ -42,6 +42,18 @@ clippy natif/WASM, builds Release et parcours natif de sauvegarde puis réouvert
 vérifiés. Rapport : [bureau Forge](docs/evidence/gate2/DESKTOP_SHELL.md). Aucun PASS de route ajouté :
 Gate 2 reste **1/43**. L'édition et la projection 3D des zones restent le prochain travail métier.
 
+### Modules et zones source — troisième incrément Gate 2
+
+Le code `1e151b2` qualifie **R2-002/003/004** : ajout de modules, plusieurs zones par module et édition
+des noms/points de départ, avec commandes typées et historique de 32 opérations. Workspace v2,
+migration stricte du v1 en mémoire, sauvegarde immuable ; 432 tests, clippy natif/WASM et builds Release
+PASS. Parcours natif : ancien snapshot intact, deux modules/trois zones, édition, refus d'un départ
+invalide, undo/redo puis sauvegarde et réouverture après redémarrage. [Preuves et limites](docs/evidence/gate2/MODULES_AND_AREAS.md).
+Gate 2 est désormais à **4/43**, toujours ouverte. La sélection concerne les sources ; le départ
+reste une métadonnée, pas un personnage placé. Onglets, viewport réel, brosses et routes générales
+de commandes/persistance restent dus. L'erreur de champ doit être rendue plus visible après
+défilement. Le bureau doré est conservé ; aucune nouvelle dépendance ni aucun asset Cadle.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
