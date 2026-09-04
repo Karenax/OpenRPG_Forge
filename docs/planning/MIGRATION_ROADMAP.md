@@ -3,11 +3,13 @@
 Dernière mise à jour : 2026-09-04
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
-automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 ouverte ; Gate 2 interdite sans
-nouvelle dérogation explicite**
-Gate active : **Gate 1 — Visual Valley (OUVERTE)**
+automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 prototype avec réserves,
+techniquement incomplète ; entrée en Gate 2 autorisée explicitement sous ADR-0011**
+Gate active : **Gate 2 — Éditeur de monde (OUVERTE)**
 
-Décision courante : **critères stricts de performance DIFFÉRÉS sous ADR-0010**, accord explicite du
+Décision courante : **entrée en Gate 2 avec réserves de Gate 1 sous
+[ADR-0011](../ADR/ADR-0011-gate2-entry-with-gate1-reservations.md)**, accord explicite du 4 septembre.
+Les **critères stricts de performance restent DIFFÉRÉS sous ADR-0010**, accord explicite du
 propriétaire le 3 septembre 2026. Aucun FAIL n'est reclassé PASS. La campagne de cadence reste
 suspendue ; les demandes historiques de replay ci-dessous ne sont plus le travail suivant.
 
@@ -293,7 +295,21 @@ et sans transformer une acquisition automatisée en revue humaine.
 
 # Gate 1 — Visual Valley
 
-Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004, ADR-0005 et ADR-0006.
+Statut : **PROTOTYPE ACCEPTÉ AVEC RÉSERVES sous ADR-0011, TECHNIQUEMENT INCOMPLÈTE : 43/55**.
+Gate 2 peut démarrer ; les 12 routes ouvertes ci-dessous ne sont pas transformées en PASS.
+
+## Réserves de passage vers Gate 2 — ADR-0011
+
+- [ ] `G1-VIS-001` herbe en nappes irrégulières et localement denses, transitions progressives.
+- [ ] `G1-VIS-002` sol détaillé/texturé et raccord cohérent avec la végétation.
+- [ ] `G1-REV-001` vent, mouvement et jouabilité : `R1-014`, vidéo/humain `R1-048`.
+- [ ] `G1-REV-002` validations fonctionnelles/visuelles eau, wetness, post-traitement et profils : `R1-023/025/026`.
+- [ ] `G1-REV-003` vues, matériaux, composition : `R1-046/047/049/050`.
+- [ ] `G1-REV-004` comparaisons WebGPU/Grassworks et Cadle : `R1-051/052`.
+
+Ces réserves et les dettes de performance suivantes ne bloquent plus l'entrée en Gate 2. Elles restent
+dues, sans faux verdict humain ni qualification de distribution. L'historique de Gate 1 ci-dessous
+est conservé ; ses anciennes interdictions de Gate 2 ne remplacent pas la décision ADR-0011.
 
 ## Report de performance accepté — ADR-0010
 
@@ -891,8 +907,8 @@ pas techniquement satisfaites. Les cases restent décochées et toutes les autre
 
 # Gate 2 — Éditeur de monde
 
-Statut : **INTERDITE tant que Gate 1 reste ouverte**. Aucun travail Gate 2 ne commence sans passage
-formel de Gate 1 ou nouvelle dérogation explicite acceptée.
+Statut : **ACTIVE sous dérogation explicite ADR-0011 du 4 septembre 2026**. Gate 1 reste un prototype
+avec réserves ; cette autorisation ne valide aucune route Gate 2 et n'autorise pas encore Gate 3.
 
 ## But
 

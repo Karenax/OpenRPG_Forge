@@ -1,5 +1,9 @@
 # Gate 1 — paquet de revue humaine séparé et fail-closed
 
+Décision ultérieure : [ADR-0011](../../ADR/ADR-0011-gate2-entry-with-gate1-reservations.md) autorise
+Gate 2 avec réserves. Ce passage n'est pas un reçu humain de ce paquet ; ses artefacts, son hash et
+ses verdicts restent inchangés. Les sections suivantes conservent l'état des revues antérieures.
+
 ## Retour du propriétaire et correctif courant — 4 septembre 2026
 
 Le propriétaire accepte la base mais demande davantage de végétation. Le correctif `8b3e3e6`

@@ -20,7 +20,7 @@ Avant toute modification importante, lire dans cet ordre :
 5. `docs/ADR/ADR-0004-gate0-draw-call-telemetry-exception.md` ;
 6. `docs/ADR/ADR-0005-studio-web-confirmed-gate0.md` ;
 7. `docs/ADR/ADR-0006-remote-ci-exception-gates-0-4.md` ;
-8. `docs/planning/MIGRATION_ROADMAP.md` ;
+8. `docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md`, puis `docs/planning/MIGRATION_ROADMAP.md` ;
 9. `docs/migration/LEGACY_REUSE_MATRIX.md` si la tâche reprend un besoin de `main` ;
 10. `docs/migration/CADLE_REUSE_MATRIX.md` dès sa création pendant Gate C ;
 11. les ADR et README du sous-système concerné.
@@ -30,14 +30,16 @@ planning détaillent le travail mais ne redéfinissent pas la vision.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
 Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est
-la gate active. La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
+techniquement incomplète (43/55). Gate 2 est la gate active par dérogation explicite ADR-0011.
+La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
 empêche les runners de démarrer et ne doit jamais être décrite comme verte. Chaque gate conserve les
 preuves de la précédente.
 
 ADR-0010 (`docs/ADR/ADR-0010-gate1-strict-performance-deferral.md`) reporte explicitement les
 critères stricts de performance de Gate 1. Ne pas relancer la campagne PresentMon, ses rebuilds ou
 les micro-optimisations exploratoires sans nouvelle demande explicite. Les FAIL restent FAIL ;
-les validations humaines, GPU et fonctionnelles non couvertes restent dues, et Gate 2 n'est pas ouverte.
+les validations humaines, GPU et fonctionnelles non couvertes restent dues. ADR-0011 autorise désormais
+l'entrée en Gate 2 avec ces réserves, sans les transformer en PASS ni relancer les audits de cadence.
 
 La branche `main` est une référence historique C#/Godot, pas une dépendance. Sa référence initiale est
 `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`.

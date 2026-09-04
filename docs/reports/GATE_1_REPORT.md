@@ -2,11 +2,21 @@
 
 Date de consolidation : **2026-09-04**
 
-Verdict : **POURSUIVRE GATE 1 HORS AUDITS DE CADENCE — PERFORMANCE DIFFÉRÉE ADR-0010, GATE 1 OUVERTE**
+Verdict : **PROTOTYPE ACCEPTÉ AVEC RÉSERVES — PASSAGE ADMINISTRATIF VERS GATE 2 SOUS ADR-0011**
 
-Gate suivante : **Gate 2 interdite sans passage de Gate 1 ou nouvelle dérogation explicite acceptée**
+Gate suivante : **Gate 2 active ; Gate 1 techniquement incomplète, 43/55 routes cochées**
 
 ## Résumé de décision
+
+Le 4 septembre, le propriétaire confirme « oui » au démarrage de Gate 2 avec réserves explicitement
+présentées : prototype accepté, herbe en zones et sol texturé à terminer, validations visuelles,
+de mouvement et comparatives manquantes conservées. [ADR-0011](../ADR/ADR-0011-gate2-entry-with-gate1-reservations.md)
+enregistre cette autorisation, pas un PASS technique ni une revue humaine des 12 routes ouvertes.
+Le dernier correctif et ses preuves sont [ici](../evidence/gate1/VEGETATION_COVERAGE.md) (`8b3e3e6`,
+publication `28a2078`). Les réserves figurent dans la roadmap. Les statuts historiques ci-dessous
+restent inchangés dans leur portée ; leurs anciennes consignes d'arrêt avant Gate 2 sont supersédées.
+
+## Historique de la décision avant ADR-0011
 
 Le propriétaire accepte explicitement le report des critères stricts de performance selon
 [ADR-0010](../ADR/ADR-0010-gate1-strict-performance-deferral.md). Les quatre conditions

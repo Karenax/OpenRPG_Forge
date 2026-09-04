@@ -2,10 +2,9 @@
 
 Dernière mise à jour : **4 septembre 2026**
 Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, critères stricts de
-performance différés par accord explicite ADR-0010 ; dernier replay schema 13 FAIL, audits suspendus ;
-preuves GPU ciblées acquises sur leur candidat, revue fonctionnelle/visuelle et humaine due ;
-Gate 2 interdite ; produit non qualifié**
+Statut : **Gate 2 active sous dérogation explicite ADR-0011 ; Gate 0 passée sur preuves automatisées
+locales ; Gate 1 acceptée comme prototype avec réserves, techniquement incomplète à 43/55 ;
+performances différées ADR-0010, audits suspendus ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -13,7 +12,23 @@ Ce document est la source de vérité narrative de la branche `Rust`. Il doit pe
 développement de comprendre le produit, les objectifs, les frontières, l’architecture cible, la
 stratégie de migration et les critères d’acceptation sans charger le dépôt C#/Godot complet.
 
-Décision courante du 3 septembre :
+## Décision courante — entrée en Gate 2 le 4 septembre
+
+Le propriétaire confirme explicitement le passage à Gate 2 avec les réserves proposées, selon
+[ADR-0011](docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md). Le rendu `8b3e3e6`, publié avec
+ses preuves à `28a2078`, est accepté comme prototype, pas comme finition. L'herbe en zones denses,
+le sol texturé, les revues visuelles/de mouvement et les comparaisons restent à terminer.
+Les 12 routes ouvertes de Gate 1 ne sont pas cochées par cette décision. Aucun reçu humain ni PASS
+technique n'est inventé. La gate principale active devient **Gate 2 — Éditeur de monde** ; ses
+critères restent entièrement dus, à commencer par le parcours nouveau projet/module/zone.
+CI distante `NOT RUN — infrastructure billing` sous ADR-0006 ; PresentMon reste suspendu sous ADR-0010.
+
+## Historique Gate 1 conservé — antérieur à ADR-0011
+
+Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
+la décision courante ci-dessus et la section Gate 2 priment pour le travail suivant.
+
+Décision du 3 septembre :
 [ADR-0010](docs/ADR/ADR-0010-gate1-strict-performance-deferral.md) rend non bloquantes pour Gate 1
 les quatre conditions quantitatives FPS/p95/1 % low/stutter et diffère le benchmark cible `R1-041`.
 Le volet cadence de `R1-048` est différé, pas sa revue humaine. Les dettes `G1-PERF-001` à `004`
@@ -1691,8 +1706,8 @@ couche ou arrêter le reboot.
 
 ### Gate 2 — Éditeur de monde
 
-Statut : **INTERDITE tant que Gate 1 reste ouverte**. Seul un passage formel de Gate 1 ou une nouvelle
-dérogation explicite acceptée peut autoriser son démarrage.
+Statut : **ACTIVE sous ADR-0011**. Le propriétaire autorise l'entrée avec Gate 1 acceptée comme
+prototype et ses réserves conservées. Aucun critère de Gate 2 n'est satisfait par cette autorisation.
 
 Livrables :
 
@@ -2201,12 +2216,17 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
+ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
+Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
+Commencer le parcours nouveau projet/module/zone, puis les outils d'édition selon la roadmap.
+Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
+Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.
 Ne pas relancer les audits PresentMon, leurs rebuilds ou les micro-optimisations sans nouvelle demande
 explicite. Dernier replay gouverné 61713887 / 7fbcae7b : schema 13 FAIL (26,1661 FPS, p95 131,956 ms,
 1 % low 3,4183 FPS), acquisition valide ; aucune optimisation produit promue. Les instructions de
-replay qui suivent sont historiques. Poursuivre seulement les exigences non différées de Gate 1 ;
-revues humaines et preuves GPU restent dues, Gate 2 n'est pas ouverte.
+replay qui suivent sont historiques. Les exigences non satisfaites de Gate 1 restent des réserves
+sous ADR-0011 et ne bloquent plus le démarrage de Gate 2 ; aucun PASS n'est inventé.
 
 Gate C et Gate 0 sont passées. Gate 1 reste ouverte sur la base logicielle qualifiée
 `4e476b31ee33533b6f4023804d8ecd1be02f9c55` / `cc6efae0289b10dcf12f97e6bb4d97b3ead29f90`.
@@ -2271,7 +2291,7 @@ au worktree propre et acquiert Low/High **frames-only** avec 29 PNG par tier, 6/
 neuf modèles CC0 lus en place et zéro copie. Ces diagnostics sans identité de frame ni attribution au
 matériau eau ne prouvent pas la wetness shader ; `R1-023`, `R1-025` et `R1-026` restent ouvertes.
 Aucun asset Cadle n'a été ajouté à Forge.
-Poursuivre uniquement Gate 1. Gate 2 est interdite sans passage formel ou nouvelle dérogation
-explicite. La CI distante reste `NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
+Poursuivre Gate 2 sous ADR-0011 ; Gate 3 attend son passage formel. La CI distante reste
+`NOT RUN — infrastructure billing` sous ADR-0006 tant que les runners
 ne démarrent pas.
 ```

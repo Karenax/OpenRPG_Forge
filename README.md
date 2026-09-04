@@ -48,7 +48,9 @@ Les preuves locales reproductibles et le rapport sont dans
 [`docs/evidence/gate0/LOCAL_VALIDATION.md`](docs/evidence/gate0/LOCAL_VALIDATION.md) et
 [`docs/reports/GATE_0_REPORT.md`](docs/reports/GATE_0_REPORT.md).
 
-La gate active est **Gate 1 — Visual Valley**. Les revues visuelles humaines de Gate 0 restent
+La gate active est **Gate 2 — Éditeur de monde**, autorisée sous
+[ADR-0011](docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md). Gate 1 est acceptée comme
+prototype avec réserves, pas entièrement qualifiée (43/55). Les revues visuelles humaines de Gate 0 restent
 explicitement différées par ADR-0005. La CI GitHub distante est `NOT RUN` à cause du blocage de
 facturation du compte ; ADR-0006 autorise jusqu’à Gate 4 le passage sur preuves locales sans jamais
 présenter cette CI comme verte. Cadle reste une référence locale : aucun de ses assets n’est copié ou
