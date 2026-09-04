@@ -667,7 +667,10 @@ qualité                   Low / Medium / High / Ultra
 - [x] `R1-010` Instances regroupées — handles partagés, éligibles au batching Bevy sans faux compteur de draws.
 - [x] `R1-011` LOD arbres — near/medium distincts et plages complémentaires testées.
 - [x] `R1-012` imposteurs ou HLOD lointain — 64 meshes HLOD de chunk observés.
-- [x] `R1-013` herbe dense sans entité par brin — 162 176 brins dans 64 lots.
+- [x] `R1-013` herbe dense sans entité par brin — 324 352 brins High dans 64 lots au candidat
+  `68af815` (précédemment 162 176). Courbure et détail du sol ajoutés sans relever les plafonds ;
+  374 tests et captures natives/Browser PASS automatisés. Coût géométrique accru, pas de qualification
+  esthétique finale. [Preuve bornée](../evidence/gate1/GRASS_AND_GROUND_DETAIL.md).
 - [ ] `R1-014` vent shader — PASS natif et acquisition temporelle Browser automatisée exacte
   `4e476b31`/`cc6efae0`
   PASS : 120 RAF, 3/3 ROIs végétation, témoin terrain, 4/4 bundles exacts, console/réseau propres.
@@ -772,6 +775,8 @@ qualité                   Low / Medium / High / Ultra
   humain comparatif encore dû.
   Vue humaine réacquise en Release High `99a724a` après le correctif grass ; scène fonctionnelle
   mais encore rudimentaire, sans nouveau verdict humain.
+  Nouvelle vue `68af815` : touffes mieux remplies et courbées, sol moins uniforme ; premier plan
+  encore anguleux. Inspection d'agent seulement, revue humaine toujours due.
 - [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
   paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict LOD/composition encore dû.
 - [ ] `R1-048` vidéo de déplacement courte — **CADENCE DIFFÉRÉE sous ADR-0010 / REVUE HUMAINE DUE**.
@@ -801,6 +806,8 @@ qualité                   Low / Medium / High / Ultra
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux — six preuves Forge hashées dans le paquet v1, **PRÊT POUR REVUE
   HUMAINE**, verdict encore dû.
+  Détail terrain `68af815` lancé et capturé natif High/Browser Low-High ; nouvelles preuves dans
+  `GRASS_AND_GROUND_DETAIL.md`, sans modifier les anciens reçus ni fermer cette route.
 - [ ] `R1-050` revue de composition et lisibilité — quatre preuves Forge hashées dans le paquet v1,
   **PRÊT POUR REVUE HUMAINE**, verdict encore dû.
 - [ ] `R1-051` comparaison avec la référence WebGPU ayant motivé le reboot — **OUVERTE, PAQUET PRÊT

@@ -55,6 +55,15 @@ du chargeur Vulkan ; il est conservé séparément. [Preuve du correctif](docs/e
 L'inspection confirme une scène fonctionnelle mais encore rudimentaire, pas une qualité visuelle
 finale. Gate 1 reste à 43/55 ; prochaines avancées centrées sur le rendu visible et sa revue.
 
+Amélioration visuelle suivante, `68af815` : brins courbés plus courts, 324 352 brins High dans les
+64 batches existants, détail procédural du sol. Plafonds, placements et assets inchangés ; coût
+géométrique d'herbe High ×3 triangles assumé, pas un gain de performance annoncé. **374/374 tests,
+Clippy natif/WASM, capture native High (29 PNG) et matrice Browser Low/High (12 PNG) PASS automatisés**.
+Le premier Browser en sandbox reste ABORT et conservé ; le rejeu autorisé hors sandbox passe.
+[Preuve, comparaison et limites](docs/evidence/gate1/GRASS_AND_GROUND_DETAIL.md).
+Amélioration locale visible, mais premier plan encore anguleux et composition rudimentaire.
+Aucune revue humaine inventée : Gate 1 reste à 43/55, Gate 2 non commencée, audits de cadence suspendus.
+
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
 migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de

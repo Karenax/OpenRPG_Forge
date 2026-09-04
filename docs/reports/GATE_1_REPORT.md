@@ -15,7 +15,18 @@ pour Gate 1, mais jamais déclarés PASS. Le volet cadence de `R1-048` est diff�
 la vidéo et les preuves GPU par matériau restent dues. **43/55 routes sont cochées**, après le PASS
 local Windows/Vulkan de R1-037 le 4 septembre ; Gate 1 reste ouverte.
 
-### Correctif végétation validé
+### Amélioration du rendu, sans fermeture de gate
+
+Candidat `68af815` : herbe courbée, budgets Low/Medium/High/Ultra 24/40/64/64 brins par patch et
+détail procédural du terrain, sans changer scatter, identités, assets ou plafonds. **374 tests,
+Clippy et contrôles WASM PASS** ; natif High 29 PNG et Browser Low/High 12 PNG PASS automatisés.
+Le premier Browser en sandbox reste ABORT ; le rejeu autorisé hors sandbox est distinct.
+[Preuve et vues avant/après](../evidence/gate1/GRASS_AND_GROUND_DETAIL.md).
+Couverture et forme localement améliorées, mais rubans anguleux, sols nus et berges polygonales
+persistants. Le coût géométrique High augmente ; aucun gain de cadence revendiqué. Gate 1 reste
+à 43/55, revues humaines dues et Gate 2 non commencée.
+
+### Correctif végétation précédent conservé
 
 Complément correctif `d2c5e52`, exécuté sur `99a724a` : centre de fade des batches grass aligné sur
 l'AABB CPU, géométrie monde et densité conservées. **369 tests workspace, Clippy et check WASM PASS** ;
