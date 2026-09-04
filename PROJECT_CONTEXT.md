@@ -42,7 +42,10 @@ ressources eau/MSAA/Bloom/tonemapping sont extraits ; wetness terrain/végétati
 [Preuve native High ciblée](docs/evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md).
 Les chemins compilés sont attribués au WGSL, sans pixel debug, couverture des autres profils/Browser,
 retour météo GPU dans une même instance ou revue humaine. `R1-023/025/026` restent ouvertes,
-43/55 routes cochées ; aucune modification du moteur Rust ni copie d'asset Cadle.
+43/55 routes cochées ; aucune modification du moteur Rust ni copie d'asset Cadle dans ce replay.
+La trace d'un pixel est une limite de cet outil, pas une exigence supplémentaire de Gate 1.
+La suite exploite les séquences natives/Browser sec/pluie/sec existantes pour la revue visuelle,
+en conservant leurs sources et verdicts historiques ; aucun nouvel audit de fragment n'est requis.
 
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une

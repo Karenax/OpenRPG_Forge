@@ -45,6 +45,12 @@ de qualification GPU des autres profils/Browser ni de verdict humain : `R1-023/0
 ouvertes. Les affirmations historiques « aucune identité de frame/aucune attribution » ci-dessous
 décrivent leurs anciennes preuves, pas ce nouveau replay ciblé.
 
+La roadmap initiale demande réflexion/réfraction selon profil, wetness réversible et post-traitement
+borné, pas une trace de fragment. L'absence de pixel debug est une limite de l'outil, non un nouveau
+critère bloquant. Les captures existantes, les données liées et les chemins compilés se complètent ;
+la suite doit porter sur l'inspection des effets et leur acceptation visuelle, sans oublier les
+séquences sec/pluie/sec déjà acquises dans une même instance native/Browser.
+
 Visual Valley conserve la paire native/Browser exacte `d9e2670`, les captures fixes, les ledgers
 versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié dans Forge. Les lots
 `6a24cabe` et `873618af` préservent respectivement la correction du défaut depth-only puis le vrai

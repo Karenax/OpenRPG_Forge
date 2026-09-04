@@ -10,7 +10,8 @@ Le replay offline utilise l'outillage committé
 Les quatre RDC sont les captures R1-037 déjà qualifiées du runtime Release
 `5f6ed5798fd93613200e0e8fbb4f9251f77e0e43`, binaire SHA-256
 `9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815`.
-Les entrées compilées `apps`, `crates`, `Cargo.toml` et `Cargo.lock` sont inchangées depuis ce runtime.
+Cette preuve reste attachée à ce runtime ; elle ne qualifie pas automatiquement une modification
+ultérieure du moteur.
 
 - Machine : RX 7800 XT, Vulkan, pilote 26.8.1 (LLPC), High 1920 × 1080.
 - Capture parent : `E:\OpenRPG_Forge\.gate1-tools\evidence\rd-final-20260904T071600Z`.
@@ -99,7 +100,15 @@ et cette intensité lignes3256–3264, puis référence `_175[index]` lignes3300
 sélectionnable par le chemin compilé avec un index valide ; ce n'est toujours pas une observation
 de la branche effectivement prise par un pixel contribuant à l'image.
 
-## Limites qui restent dues
+## Portée de l'outillage et critères fonctionnels restants
+
+Les critères d'origine de la roadmap (`89963bb`) sont « réflexion/réfraction selon profil »,
+« wetness réversible » et « bloom et color grading bornés ».
+[ADR-0010](../../ADR/ADR-0010-gate1-strict-performance-deferral.md) conserve les preuves GPU,
+le fonctionnement des profils, la parité native/Studio et les revues humaines ; il n'impose pas
+de traceur de pixel. Les limites ci-dessous bornent ce replay, sans créer un critère supplémentaire
+de contribution à un pixel précis. L'état lié et le dataflow compilé constituent une preuve
+technique native High complémentaire des séquences fonctionnelles, pas une acceptation visuelle.
 
 - Pas de pixel debug : la présence du chemin compilé et de ses données liées ne démontre pas
   qu'une branche IBL/transmission ou un fragment choisi contribue à l'image finale.
@@ -115,6 +124,74 @@ de la branche effectivement prise par un pixel contribuant à l'image.
   restent différés sous ADR-0010, la CI distante `NOT RUN` sous ADR-0006.
 
 **R1-023, R1-025 et R1-026 restent décochées ; Gate 1 =43/55 ; Gate 2 interdite.**
+
+## Revue technique des séquences existantes — 2026-09-04
+
+Inspection d'agent des **six PNG natifs et six PNG canvas Browser** existants, sans lancement,
+nouvelle capture, build ou revue humaine. Les comparaisons portent sur les sources d'acquisition
+ci-dessous, pas sur un futur HEAD ou binaire modifié.
+
+### Identités et intégrité relues
+
+| Lot | Source et reçu | Contrôle en lecture seule du 2026-09-04 |
+|---|---|---|
+| Natif Low/High | `41b49f66d4573de505be44dfd38da75704d697f7` ; [matrice et inventaire](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-matrix.v1.json) | 14/14 tailles et SHA-256 concordants ; matrice SHA-256 `c5d896b064cbf16cc56845f12d9b6b4342a3896c4a4e94298753e62d8292c4d8` |
+| Browser Low/High | `534ce4faef69972dc1a495981387ac24a3ca1cfd` ; run `534ce4faef69-20260903T161148993Z` ; [protocole et identité](R1_023_026_BROWSER_WEATHER_MATRIX_PROTOCOL.md) | 28/28 artefacts du manifeste concordants ; `artifact-manifest.json` SHA-256 `40952f814fde7b433a9b443a8157cb20f3bfb59bcfd9bfd044b72aa5dc1e1267` |
+
+Le binaire natif est lié au SHA-256
+`0d2e7c32b18ba18dbdfac503765cfed5a2dfd29366d5ae13d12b044866b42c48` par les validations suivies,
+distinct du binaire RenderDoc `5f6ed579`. Le ledger Browser
+`r1-023-025-026-browser-weather-matrix-ledger.json` conserve le SHA-256
+`aae5df2efe336e2521d0d9a19a9c77be4484fe82b5a5a6869f2008a4c33c021a`, recoupé avec le manifeste.
+Les fichiers `crates/forge_engine/src` et `examples/visual_valley` ne diffèrent pas entre les commits
+natifs `41b49f66` et `5f6ed579` ; ce lien de sources n'assimile ni leurs binaires ni leurs frames.
+
+### Images à comparer, dans l'ordre sec / pluie / retour sec
+
+| Lot | Images existantes |
+|---|---|
+| Natif Low | [sec](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-low/captures/water-clear.png), [pluie](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-low/captures/water-rain.png), [retour sec](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-low/captures/water-restored.png) |
+| Natif High | [sec](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-high/captures/water-clear.png), [pluie](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-high/captures/water-rain.png), [retour sec](native/41b49f66d4573de505be44dfd38da75704d697f7/scene-gpu-high/captures/water-restored.png) |
+| Browser Low | Sous `<racine Browser>/low/` : `1-initial_clear-canvas.png`, `2-rain-canvas.png`, `3-restored_clear-canvas.png` |
+| Browser High | Sous `<racine Browser>/high/` : `1-initial_clear-canvas.png`, `2-rain-canvas.png`, `3-restored_clear-canvas.png` |
+
+Racine Browser exacte, externe et non copiée dans Forge :
+
+```text
+E:\OpenRPG_Forge\.gate1-tools\evidence\gate1-browser-weather-matrix-534ce4f\534ce4faef69-20260903T161148993Z
+```
+
+Les reçus natifs `gate1-visual-proof.json` et `gate1-visual-proof.validation.json` sont dans chaque
+dossier `scene-gpu-low/high`. Les reçus Browser `*-proof-ledger.json` accompagnent chaque checkpoint ;
+le manifeste et le ledger global sont à la racine Browser. Les tailles et hashes de chaque PNG sont
+dans les inventaires référencés ci-dessus. Les six captures Browser de page restent disponibles,
+mais seules les six captures canvas ont été inspectées dans cette revue.
+
+### Constats visibles et limites
+
+- Les quatre séquences sont lisibles : rivière turquoise continue, pluie visible à l'étape pluie,
+  tonalité plus sombre et moins saturée, puis retour clair visuellement cohérent. Il ne s'agit pas
+  d'un retour pixel-identique : eau, végétation et overlay changent entre captures.
+- High montre davantage de végétation et des ombres différentes de Low. La rivière a une surface
+  nuancée et des berges polygonales visibles. Ces vues ne permettent pas d'identifier de façon
+  indépendante une réflexion de l'environnement ou une déformation réfractive d'un objet repère.
+  Elles ne prouvent donc pas à elles seules la qualité optique exigée par R1-023.
+- Le changement météo affecte simultanément éclairage, grading et matériaux. L'assombrissement
+  visible ne peut être attribué exclusivement à la wetness. De même, Low/High ne constitue pas un
+  A/B isolant le Bloom. Les valeurs liées et les chaînes compilées ci-dessus complètent ces pixels,
+  sans inventer la contribution séparée de chaque effet.
+- Les natifs sont en 1920×1080, les canvas Browser inspectés en 1408×966 : mêmes repères de scène,
+  mais aspect et cadrage différents. Comparaison qualitative seulement, pas parité pixel à pixel.
+- Les overlays natifs pluie affichent wetness `0,77` en Low et `0,76` en High ; le retour Low affiche
+  `0,01`. Les ledgers consignent séparément les endpoints exacts `0 → 0,78 → 0`. Cette différence
+  confirme qu'on ne doit pas attribuer l'endpoint exact à la frame PNG. Les overlays Browser montrent
+  `0 → 0,78 → 0`, sans que cela transforme leur reçu en preuve d'identité exacte de frame GPU.
+
+La suite utile est la revue fonctionnelle/visuelle de l'eau selon profil, du retour sec et du
+post-traitement, puis l'acceptation humaine versionnée. Si un effet reste indiscernable dans les
+preuves existantes, une observation fonctionnelle ciblée de cet effet sera nécessaire ; l'absence
+de pixel debug n'impose pas à elle seule une nouvelle campagne d'instrumentation. Cette revue
+technique ne modifie aucun verdict historique ni aucun champ `false` des reçus et ne ferme aucune route.
 
 ## Validation et échecs conservés
 

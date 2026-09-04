@@ -697,8 +697,9 @@ qualité                   Low / Medium / High / Ultra
   durci puis acquis à `534ce4fa`. La campagne automatisée Low/High passe ses 6 checkpoints et 12
   captures, mais ne prouve ni draw/matériau eau, ni frame exacte, ni revue humaine.
   Complément natif High `e6441510` : [état GPU lié PASS](../evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md),
-  draw eau identifié, buffers et texture de transmission liés ; pas de trace pixel, ni autres
-  profils/Browser qualifiés, ni revue humaine. Route maintenue ouverte.
+  draw eau identifié, buffers et texture de transmission liés, chemins compilés reliés à la sortie.
+  Le pixel debug n'est pas un critère de passage. Restent l'appréciation visuelle de l'optique et des
+  bords ainsi que la revue des profils/native/Browser ; route maintenue ouverte.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
   trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
@@ -708,7 +709,9 @@ qualité                   Low / Medium / High / Ultra
   acceptation visuelle humaine non acquises.
   Le replay High `e6441510` extrait désormais les octets wetness terrain/végétation0/0,78
   dans les draws exacts et relie leurs lectures au code shader compilé ; répétitions A/B identiques.
-  Pas de pixel debug ni retour sec GPU dans une même instance ; route maintenue ouverte.
+  Les RDC indépendants ne prouvent pas seuls le retour sec, déjà capturé dans les séquences
+  natives/Browser d'une même instance. Reste leur appréciation visuelle ; aucune trace de fragment
+  supplémentaire n'est imposée par la roadmap. Route maintenue ouverte.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
   campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
   post-process attendues, sans identité de frame de rendu exacte. La matrice Browser Low/High est
@@ -716,8 +719,9 @@ qualité                   Low / Medium / High / Ultra
   color grading présent dans les deux tiers. Aucune exécution GPU précise, identité de frame qualifiée
   ou acceptation humaine n'est acquise.
   Le replay High `e6441510` identifie maintenant les16 draws Bloom, le resolve MSAA, le grading lié
-  et la chaîne HDR jusqu'au tonemapping, avec constante finale Bloom0,08. Autres profils/Browser,
-  contribution à un pixel précis et acceptation humaine restent dus ; route maintenue ouverte.
+  et la chaîne HDR jusqu'au tonemapping, avec constante finale Bloom0,08. Restent la revue visuelle
+  du rendu borné, du retour clair et des profils/native/Browser. La contribution chiffrée d'un pixel
+  n'est pas un critère de passage ; route maintenue ouverte.
 
 ## R1-D — Personnage et caméra
 
