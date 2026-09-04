@@ -628,6 +628,13 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
                         with self.assertRaises(namespace["AdapterError"]):
                             namespace["wait_for_ready"](*arguments)
 
+    def test_adapter_preserves_empty_runtime_output_before_injection(self) -> None:
+        source = _ADAPTER_PATH.read_text(encoding="utf-8")
+        main_source = source[source.index("def main():"):]
+        before_injection = main_source[:main_source.index("rd.ExecuteAndInject(")]
+        self.assertNotIn("write_json_atomic(", before_injection)
+        self.assertNotIn("SetDebugLogFile(", before_injection)
+
     def test_ready_validator_rejects_shape_tick_seed_and_binding_drift(self) -> None:
         namespace = _adapter_validation_namespace()
         validate_ready = namespace["validate_ready"]

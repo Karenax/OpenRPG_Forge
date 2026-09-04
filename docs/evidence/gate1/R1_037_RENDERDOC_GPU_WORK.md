@@ -90,7 +90,10 @@ prêt. Le problème ne se limite donc pas à l'ordre des notifications. L'adapta
 le chemin du journal diagnostic RenderDoc dans le dossier externe de chaque run pour identifier
 l'injection effective, sans nouveau build ni modification des critères. L'essai intermédiaire
 `SetDebugLogFile` entraîne deux échecs de connexion Target Control et n'est pas retenu : seul
-`GetLogFile`, en lecture seule, est conservé.
+`GetLogFile`, en lecture seule, est conservé dans le reçu d'échec. Écrire un fichier diagnostic avant
+l'injection violait le préflight runtime exigeant un dossier vide ; ces écritures ont été retirées
+et un test prévient leur réintroduction. Aucun journal ne doit être créé dans le dossier du runtime
+avant qu'il ait franchi son préflight.
 
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 

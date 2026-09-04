@@ -836,10 +836,6 @@ def main():
     output_dir = Path(required_environment("FORGE_GATE1_RENDERDOC_OUTPUT_DIR")).resolve(
         strict=True
     )
-    write_json_atomic(
-        output_dir / "renderdoc-diagnostic-location.json",
-        {"path": str(rd.GetLogFile())},
-    )
     nonce = required_environment("FORGE_GATE1_RENDERDOC_NONCE")
     weather = required_environment("FORGE_GATE1_RENDERDOC_WEATHER")
     source_commit = required_environment("FORGE_GATE1_RENDERDOC_SOURCE_COMMIT")
@@ -1044,6 +1040,7 @@ except Exception as error:  # qrenderdoc converts SystemExit into process termin
                     "status": "FAIL",
                     "error_type": type(error).__name__,
                     "message": str(error),
+                    "diagnostic_log_path": str(rd.GetLogFile()),
                 },
             )
         except Exception:
