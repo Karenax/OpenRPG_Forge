@@ -45,6 +45,13 @@ impl WorkspaceSession {
         let message = match command {
             WorkspaceCommand::Current => "Projet courant".into(),
             command @ WorkspaceCommand::Create { .. } => self.execute_creation(command)?,
+            WorkspaceCommand::SculptTerrain {
+                request,
+                brush,
+                dry_run,
+            } => {
+                return self.execute_brush(request, brush, dry_run);
+            }
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -102,6 +109,43 @@ impl WorkspaceSession {
             }
         };
         self.state(message)
+    }
+
+    fn execute_brush(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::TerrainBrush,
+        dry_run: bool,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_terrain_brush(
+            document,
+            forge_world::TerrainBrushCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                brush,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        // Serialize intent, exact patch and inverse BEFORE the first mutation, including in dry-run.
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        let samples = candidate.changed_samples;
+        if dry_run {
+            let mut state = self.state(format!(
+                "Aperçu : {samples} hauteurs modifiées. Rien n’a été appliqué."
+            ))?;
+            state.last_receipt_json = Some(receipt);
+            return Ok(state);
+        }
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Brosse appliquée : {samples} hauteurs modifiées. Annulation disponible."
+        ))
     }
 
     fn execute_creation(&mut self, command: WorkspaceCommand) -> Result<String, String> {
@@ -289,6 +333,11 @@ impl WorkspaceSession {
             })
             .map_err(|e| e.to_string())?;
         let receipt = serde_json::to_string(&candidate.receipt).map_err(|e| e.to_string())?;
+        self.commit_edit(candidate, receipt);
+        Ok(())
+    }
+
+    fn commit_edit(&mut self, candidate: forge_project::WorkspaceEditResult, receipt: String) {
         self.undo.push(self.document.take());
         if self.undo.len() > WORKSPACE_HISTORY_LIMIT {
             self.undo.remove(0);
@@ -297,7 +346,6 @@ impl WorkspaceSession {
         self.last_revision = candidate.document.revision.get();
         self.document = Some(candidate.document);
         self.receipt = Some(receipt);
-        Ok(())
     }
 
     fn restore_history(&mut self, redo: bool) -> Result<String, String> {

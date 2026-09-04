@@ -7,9 +7,15 @@ use serde::{Deserialize, Serialize};
 /// The domain keeps its full `u64`; the native session rejects larger revisions before mutation.
 pub const MAX_WORKSPACE_IPC_REVISION: u64 = (1_u64 << 53) - 1;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
 pub enum WorkspaceCommand {
+    SculptTerrain {
+        request: crate::area_preview::AreaPreviewRequest,
+        brush: forge_world::TerrainBrush,
+        /// Preview computes the same candidate but leaves the session and its history intact.
+        dry_run: bool,
+    },
     Current,
     Create {
         project_name: String,

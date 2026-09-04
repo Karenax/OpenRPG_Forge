@@ -1242,7 +1242,7 @@ const fn scene_proof_kind_glyph(kind: &SceneProofKind) -> &'static str {
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod telemetry;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
     AreaPreview {

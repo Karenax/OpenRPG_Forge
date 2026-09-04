@@ -5,10 +5,16 @@
 mod environment;
 mod player;
 mod terrain;
+mod terrain_brush;
 mod terrain_generation;
 mod vegetation;
 mod water;
 mod weather;
+
+pub use terrain_brush::{
+    TerrainBrush, TerrainBrushCommand, TerrainBrushError, TerrainBrushOperation,
+    TerrainBrushResult, preview_terrain_brush,
+};
 
 pub use environment::{
     VISUAL_VALLEY_ENVIRONMENT_JSON, VisualValleyEnvironmentRecipe,

@@ -2,7 +2,7 @@
 #[cfg(test)]
 #[path = "workspace_edit_tests.rs"]
 mod tests;
-use crate::{WorkspaceDocument, WorkspaceError, WorkspaceModule};
+use crate::{TerrainHeightDelta, WorkspaceDocument, WorkspaceError, WorkspaceModule};
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +17,13 @@ pub struct WorkspaceEdit {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "operation", rename_all = "snake_case", deny_unknown_fields)]
 pub enum WorkspaceChange {
+    /// Resolved source patch. Brush calculation belongs to `forge_world`, not the renderer.
+    SetTerrainHeightDeltas {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_terrain_hash: ContentHash,
+        height_deltas: Vec<TerrainHeightDelta>,
+    },
     AddModule {
         module_id: ModuleId,
         name: String,
@@ -79,7 +86,44 @@ impl WorkspaceDocument {
             .next()
             .map_err(|_| WorkspaceError::RevisionExhausted)?;
         let mut document = self.clone();
-        match &command.change {
+        document.apply_change(&command.change, next)?;
+        if document == *self {
+            return Err(WorkspaceError::NoChange);
+        }
+        document.revision = next;
+        let after_hash = document.content_hash()?;
+        Ok(WorkspaceEditResult {
+            document,
+            receipt: WorkspaceEditReceipt {
+                command,
+                new_revision: next,
+                before_hash,
+                after_hash,
+                inverse_snapshot: Box::new(self.clone()),
+            },
+        })
+    }
+
+    fn apply_change(
+        &mut self,
+        change: &WorkspaceChange,
+        next: Revision,
+    ) -> Result<(), WorkspaceError> {
+        let document = self;
+        match change {
+            WorkspaceChange::SetTerrainHeightDeltas {
+                module_id,
+                area_id,
+                expected_terrain_hash,
+                height_deltas,
+            } => set_terrain_heights(
+                document,
+                *module_id,
+                *area_id,
+                *expected_terrain_hash,
+                height_deltas,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -95,7 +139,7 @@ impl WorkspaceDocument {
                 spawn,
             } => {
                 let area = super::workspace::new_exterior_area(
-                    self.project.id,
+                    document.project.id,
                     *area_id,
                     next,
                     name.clone(),
@@ -147,20 +191,35 @@ impl WorkspaceDocument {
                 area.terrain.revision = next;
             }
         }
-        if document == *self {
-            return Err(WorkspaceError::NoChange);
-        }
-        document.revision = next;
-        let after_hash = document.content_hash()?;
-        Ok(WorkspaceEditResult {
-            document,
-            receipt: WorkspaceEditReceipt {
-                command,
-                new_revision: next,
-                before_hash,
-                after_hash,
-                inverse_snapshot: Box::new(self.clone()),
-            },
-        })
+        Ok(())
     }
+}
+
+fn set_terrain_heights(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_hash: ContentHash,
+    deltas: &[TerrainHeightDelta],
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.terrain.content_hash()? != expected_hash {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    if area.terrain.height_deltas == deltas {
+        return Err(WorkspaceError::NoChange);
+    }
+    area.terrain.height_deltas = deltas.to_vec();
+    area.terrain.revision = revision;
+    Ok(())
 }

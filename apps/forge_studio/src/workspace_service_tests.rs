@@ -128,6 +128,140 @@ fn assert_rejected_without_state_change(session: &mut WorkspaceSession, command:
     assert_eq!(current(session), before);
 }
 
+fn brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCommand {
+    let source = document(state);
+    WorkspaceCommand::SculptTerrain {
+        request: crate::area_preview::AreaPreviewRequest {
+            key: crate::area_tabs::AreaKey {
+                project_id: source.project.id,
+                module_id: source.project.modules[0].id,
+                area_id: source.project.modules[0].areas[0].id,
+            },
+            base_revision: state.revision,
+        },
+        brush: forge_world::TerrainBrush {
+            schema_version: 1,
+            center_x_m: 0.0,
+            center_z_m: 0.0,
+            radius_m: 12.0,
+            strength: 0.75,
+            operation: forge_world::TerrainBrushOperation::RaiseLower { delta_m: 8.0 },
+        },
+        dry_run,
+    }
+}
+
+#[test]
+fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    session.execute(create_command()).unwrap();
+    let before = save(&mut session, &directory);
+    let old_files = directory.files();
+    let preview = session.execute(brush_command(&before, true)).unwrap();
+    let unchanged = current(&mut session);
+    assert_eq!(unchanged.document_json, before.document_json);
+    assert_eq!(unchanged.last_receipt_json, before.last_receipt_json);
+    assert_eq!(unchanged.revision, before.revision);
+    assert_eq!(
+        (unchanged.can_undo, unchanged.can_redo, unchanged.dirty),
+        (before.can_undo, before.can_redo, before.dirty)
+    );
+    let predicted: forge_world::TerrainBrushResult =
+        serde_json::from_str(preview.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert!(predicted.changed_samples > 1);
+    let applied = session.execute(brush_command(&before, false)).unwrap();
+    let accepted: forge_world::TerrainBrushResult =
+        serde_json::from_str(applied.last_receipt_json.as_deref().unwrap()).unwrap();
+    assert_eq!(document(&applied), predicted.edit.document);
+    assert_eq!(
+        accepted.edit.receipt.after_hash,
+        predicted.edit.receipt.after_hash
+    );
+    assert_eq!(
+        accepted.edit.receipt.inverse_snapshot.as_ref(),
+        &document(&before)
+    );
+    assert!(applied.can_undo && applied.dirty);
+    let modified = document(&applied).project.modules[0].areas[0]
+        .terrain
+        .height_deltas
+        .clone();
+    assert!(!modified.is_empty());
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: applied.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .terrain
+            .height_deltas
+            .is_empty()
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .terrain
+            .height_deltas,
+        modified
+    );
+    assert_eq!(directory.files(), old_files);
+    let saved = save(&mut session, &directory);
+    let path = saved.saved_path.as_deref().unwrap();
+    let mut reopened = WorkspaceSession::default();
+    let opened = reopened.execute(open_command(Path::new(path))).unwrap();
+    assert_eq!(opened.document_json, saved.document_json);
+    assert_eq!(
+        document(&opened).content_hash().unwrap(),
+        document(&saved).content_hash().unwrap()
+    );
+    for (name, bytes) in old_files {
+        assert_eq!(directory.files()[&name], bytes);
+    }
+}
+
+#[test]
+fn terrain_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let command = brush_command(&created, false);
+    let json = serde_json::to_string(&command).unwrap();
+    assert_eq!(
+        serde_json::from_str::<WorkspaceCommand>(&json).unwrap(),
+        command
+    );
+    assert!(
+        serde_json::from_str::<WorkspaceCommand>(&json.replace(
+            "\"schema_version\":1",
+            "\"schema_version\":1,\"extra\":true"
+        ))
+        .is_err()
+    );
+    session.execute(command.clone()).unwrap();
+    assert_rejected_without_state_change(&mut session, command);
+    for mutation in 0..5 {
+        let mut command = brush_command(&current(&mut session), false);
+        if let WorkspaceCommand::SculptTerrain { request, brush, .. } = &mut command {
+            match mutation {
+                0 => {
+                    request.key.project_id =
+                        forge_core::ProjectId::deterministic("foreign-project");
+                }
+                1 => brush.radius_m = 1000.0,
+                2 => brush.center_x_m = f32::NAN,
+                3 => brush.strength = 0.0,
+                _ => request.base_revision = MAX_WORKSPACE_IPC_REVISION + 1,
+            }
+        }
+        assert_rejected_without_state_change(&mut session, command);
+    }
+}
+
 #[test]
 fn creation_builds_a_real_project_module_area_and_source_receipt() {
     let directory = TestDirectory::new();
