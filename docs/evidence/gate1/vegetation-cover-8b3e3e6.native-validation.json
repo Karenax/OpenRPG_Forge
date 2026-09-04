@@ -1,0 +1,265 @@
+{
+  "schema": "forge.gate1-visual-proof-validation",
+  "schema_version": 3,
+  "status": "automated_frames_and_native_scene_gpu_pass_diagnostics_sampled_pending_video_browser_water_isolation_wetness_stutter_human_and_target_gpu_qualification",
+  "repository_commit": "8b3e3e6ccd77f33e7784306891c715c31a908cfb",
+  "repository_tree": "b277558f1e037d9894e4698ae3dcf61c7afccd3c",
+  "runtime_sha256": "e6eee48fac7d6c4f281a3e2ac2c2e1a2d10b66fe2cbf9a98a015b4b08b02be9a",
+  "runtime": {
+    "working_directory": "E:\\OpenRPG_Forge\\.gate1-qualification-055cd36a",
+    "bevy_asset_root": "E:\\OpenRPG_Forge\\.gate1-qualification-055cd36a",
+    "asset_directory": "E:\\OpenRPG_Forge\\.gate1-qualification-055cd36a\\assets",
+    "assets_referenced_in_place": true,
+    "assets_copied_to_release_directory": false,
+    "requested_wgpu_backend": "vulkan"
+  },
+  "runtime_logs": {
+    "stdout": {
+      "relative_path": "runtime.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "relative_path": "runtime.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "disallowed_entries": 0
+  },
+  "ledger_sha256": "f6e80743516d03b487cbc43160418c37efde68c4f4ff35e3a13083a945eae061",
+  "captures": [
+    {
+      "id": "distant-clear",
+      "relative_path": "captures/distant-clear.png",
+      "bytes": 2087456,
+      "sha256": "e77be0f86ef1ceeceb96ae33827057f3499ff674ca8317991733151362ef9e9b",
+      "sampled_unique_colors": 121
+    },
+    {
+      "id": "human-clear",
+      "relative_path": "captures/human-clear.png",
+      "bytes": 2311789,
+      "sha256": "e7adbdcd334e204c7fa8bad92170ab00b50fa31ab0dc2f943dccf15c20e283b6",
+      "sampled_unique_colors": 133
+    },
+    {
+      "id": "water-clear",
+      "relative_path": "captures/water-clear.png",
+      "bytes": 2261625,
+      "sha256": "430c7a8c09e403e79ba6949c3f362d2ec56721f57381fad0e4fa3dfaacac449d",
+      "sampled_unique_colors": 141
+    },
+    {
+      "id": "water-rain",
+      "relative_path": "captures/water-rain.png",
+      "bytes": 2277629,
+      "sha256": "b9f66d5be5cb7c7029d732b34e1ca99d4c35747653ccc6ec2355837e0720f408",
+      "sampled_unique_colors": 139
+    },
+    {
+      "id": "water-restored",
+      "relative_path": "captures/water-restored.png",
+      "bytes": 2251268,
+      "sha256": "9179abb5756a554a2ca93de9724b3d4ea94ec855694cc7b52c03273e3807bd5f",
+      "sampled_unique_colors": 141
+    },
+    {
+      "id": "movement-000",
+      "relative_path": "movement/frame-000.png",
+      "bytes": 2363672,
+      "sha256": "85a78281852f3a8c52463a1687a5f02281371208f9f231e4a33bb438ea274593",
+      "sampled_unique_colors": 135
+    },
+    {
+      "id": "movement-001",
+      "relative_path": "movement/frame-001.png",
+      "bytes": 2358104,
+      "sha256": "db318b666babc58f2335e180b65847e469daf3863e33fc4db019d3b6302c6acb",
+      "sampled_unique_colors": 135
+    },
+    {
+      "id": "movement-002",
+      "relative_path": "movement/frame-002.png",
+      "bytes": 2361501,
+      "sha256": "afc15ea01b4fdb3f42c19e6d177954af8aa37b2f00116eb970dbe846f98afd7b",
+      "sampled_unique_colors": 127
+    },
+    {
+      "id": "movement-003",
+      "relative_path": "movement/frame-003.png",
+      "bytes": 2349742,
+      "sha256": "bc229f739c1e2046f40059372528b3234bd29213df64208b1f0fa3603e036e7c",
+      "sampled_unique_colors": 128
+    },
+    {
+      "id": "movement-004",
+      "relative_path": "movement/frame-004.png",
+      "bytes": 2353380,
+      "sha256": "c894a536f3d6cb87226bb6cc759b994c21e2448411e0e62d8c425143a1219e94",
+      "sampled_unique_colors": 131
+    },
+    {
+      "id": "movement-005",
+      "relative_path": "movement/frame-005.png",
+      "bytes": 2347232,
+      "sha256": "a8e5cfa1e7f8a1a8c003b1f6406a32051dc133634d22a14f4129f6ff2a40260e",
+      "sampled_unique_colors": 126
+    },
+    {
+      "id": "movement-006",
+      "relative_path": "movement/frame-006.png",
+      "bytes": 2345258,
+      "sha256": "9e2c7f0f7bbad94ab94a68f2ad3d034139e3880f99a133a72235d24f47a661f4",
+      "sampled_unique_colors": 133
+    },
+    {
+      "id": "movement-007",
+      "relative_path": "movement/frame-007.png",
+      "bytes": 2344943,
+      "sha256": "3e47c7c08a44b1c5495a5f3421347375bd84f5657696b8f138f1b70fdc2911eb",
+      "sampled_unique_colors": 132
+    },
+    {
+      "id": "movement-008",
+      "relative_path": "movement/frame-008.png",
+      "bytes": 2334188,
+      "sha256": "11aa7d40c441227b4b5faf2ecc0f75287fd17b813fb72ac703a958fe282a6b0f",
+      "sampled_unique_colors": 127
+    },
+    {
+      "id": "movement-009",
+      "relative_path": "movement/frame-009.png",
+      "bytes": 2324526,
+      "sha256": "93cb61b792862f0a1068474d0d82818d7539dd89efeef09ea8aeab003bc6ed78",
+      "sampled_unique_colors": 128
+    },
+    {
+      "id": "movement-010",
+      "relative_path": "movement/frame-010.png",
+      "bytes": 2305308,
+      "sha256": "68941f64893e69ed919207548a1fa7075e1886ed20cc6afc0d0d786a7dffc2f8",
+      "sampled_unique_colors": 127
+    },
+    {
+      "id": "movement-011",
+      "relative_path": "movement/frame-011.png",
+      "bytes": 2284839,
+      "sha256": "fadf25228f1605d7934d951223edc7b8ba38133c2c56e33fd038c2aa779f06fa",
+      "sampled_unique_colors": 122
+    },
+    {
+      "id": "movement-012",
+      "relative_path": "movement/frame-012.png",
+      "bytes": 2268980,
+      "sha256": "b732a296d9304b26a8dcefa5c07d849fa9131ceb2dd0ad15c05c4d2679d78409",
+      "sampled_unique_colors": 122
+    },
+    {
+      "id": "movement-013",
+      "relative_path": "movement/frame-013.png",
+      "bytes": 2249748,
+      "sha256": "026fc160c32ce7f74807380711d072c3756679e681139137c8ae5b78ba7eb954",
+      "sampled_unique_colors": 127
+    },
+    {
+      "id": "movement-014",
+      "relative_path": "movement/frame-014.png",
+      "bytes": 2232886,
+      "sha256": "dd1f57e911ebfb2d3748d5557bd20f506af65557cc19a100a86a9154155680d3",
+      "sampled_unique_colors": 124
+    },
+    {
+      "id": "movement-015",
+      "relative_path": "movement/frame-015.png",
+      "bytes": 2217645,
+      "sha256": "6937b0bfdde14f2bd5cb42a22fea3db57acb8e52012d3ba663d6a13496d3ca08",
+      "sampled_unique_colors": 126
+    },
+    {
+      "id": "movement-016",
+      "relative_path": "movement/frame-016.png",
+      "bytes": 2204193,
+      "sha256": "42448bcd44f02c94cc920d221be1336c77a4b8b8931a8d00593364086a95ca87",
+      "sampled_unique_colors": 122
+    },
+    {
+      "id": "movement-017",
+      "relative_path": "movement/frame-017.png",
+      "bytes": 2190301,
+      "sha256": "28afeead971b6d6aadd5e264873bf731207b1271660d2eac55107a76c8862e64",
+      "sampled_unique_colors": 128
+    },
+    {
+      "id": "movement-018",
+      "relative_path": "movement/frame-018.png",
+      "bytes": 2184357,
+      "sha256": "e9a57fb3d7b9744b1652f20480bbc7fa7c84290d86a5f240f375aba530d701f1",
+      "sampled_unique_colors": 124
+    },
+    {
+      "id": "movement-019",
+      "relative_path": "movement/frame-019.png",
+      "bytes": 2134118,
+      "sha256": "06a99285a1f936f7dea92332a9d0005a26a189fd1e2297e7f1b4cb8a436aa992",
+      "sampled_unique_colors": 120
+    },
+    {
+      "id": "movement-020",
+      "relative_path": "movement/frame-020.png",
+      "bytes": 2092547,
+      "sha256": "1f2bd8252ac352b0a25f92df45e81f2382cd4f65685acb1bae35d4d5177356df",
+      "sampled_unique_colors": 120
+    },
+    {
+      "id": "movement-021",
+      "relative_path": "movement/frame-021.png",
+      "bytes": 2039553,
+      "sha256": "df344fd5d182f54ce822e3dcc5a4ba1c300e6123cd2b480b81996f2238e27586",
+      "sampled_unique_colors": 93
+    },
+    {
+      "id": "movement-022",
+      "relative_path": "movement/frame-022.png",
+      "bytes": 1999907,
+      "sha256": "d4b49fa5499de3353cc8f447aad8d5235c84db5e174299fdaf44111121a4e04b",
+      "sampled_unique_colors": 92
+    },
+    {
+      "id": "movement-023",
+      "relative_path": "movement/frame-023.png",
+      "bytes": 1982222,
+      "sha256": "1224e236c31adb3df323275f7fce22e071617e782b1060660d924cf6b91ba358",
+      "sampled_unique_colors": 66
+    }
+  ],
+  "video": null,
+  "checks": {
+    "clear_rain_clear_same_process": true,
+    "exact_wetness_restoration": true,
+    "bounded_grade_endpoints": true,
+    "fixed_quality": true,
+    "exact_commit_embedded": true,
+    "clean_worktree_before_and_after": true,
+    "bevy_asset_root_is_clean_repository": true,
+    "governed_assets_referenced_in_place": true,
+    "governed_assets_copied_to_release_directory": false,
+    "no_vsync_requested": true,
+    "gpu_identity_recorded": true,
+    "native_scene_gpu_pass_diagnostics_sampled": true,
+    "native_gpu_pass_measurements": 12,
+    "gpu_measurements_synced_during_settle_window": true,
+    "render_frame_identity_observed": false,
+    "water_draw_or_material_isolated": false,
+    "runtime_warning_error_panic_entries": 0,
+    "png_1920x1080_nonuniform": true,
+    "gameplay_controller_exercised": true,
+    "gameplay_fixed_tick_checkpoints": true,
+    "video_requested": false,
+    "video_acquired": false,
+    "real_time_stutter_qualified": false,
+    "cadle_assets_used": false,
+    "weather_gpu_execution_observed": false,
+    "human_review_performed": false,
+    "gate1_routes_qualified": false
+  }
+}

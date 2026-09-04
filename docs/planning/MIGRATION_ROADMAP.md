@@ -320,6 +320,12 @@ images. Obtenir un verdict visuel ciblé avant de convertir les limites qualitat
 correctifs ; les revues temporelles et comparatives restent distinctes. **43/55 inchangé**,
 aucune case humaine cochée, Gate 2 non commencée.
 
+Retour reçu : base acceptable, réserve sur le manque de végétation. Correctif `8b3e3e6` :
+densités et couverture des touffes augmentées, plafonds/profils/assets conservés ; 382/382 tests
+et nouvelles captures natives/Browser au même commit PASS automatisés.
+[Comparaison et limites](../evidence/gate1/VEGETATION_COVERAGE.md). Le corpus précédent reste
+historique ; ce retour partiel ne clôt pas les revues temporelles/comparatives. **43/55 inchangé**.
+
 ## Historique des preuves avant report
 
 État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée

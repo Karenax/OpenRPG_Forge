@@ -1,8 +1,15 @@
 # Gate 1 — paquet de revue humaine séparé et fail-closed
 
-## Revue courante — 4 septembre 2026
+## Retour du propriétaire et correctif courant — 4 septembre 2026
 
-**Commencer ici pour juger le rendu actuel.** Le JSON v1 décrit un corpus historique : il n'est
+Le propriétaire accepte la base mais demande davantage de végétation. Le correctif `8b3e3e6`
+et ses captures natives/Browser sont présentés dans [Densification visible](VEGETATION_COVERAGE.md).
+Ce retour partiel n'est ni un reçu v1, ni une validation humaine des nouvelles images, ni un passage
+de Gate 1. Les 11 PNG ci-dessous sont désormais le corpus **avant densification**, conservé intact.
+
+## Corpus avant densification — 4 septembre 2026
+
+**Pour le rendu actuel, suivre le rapport lié ci-dessus.** Le JSON v1 décrit un corpus historique : il n'est
 pas actualisé silencieusement vers les captures récentes. Ses 27 artefacts, ses identifiants, son
 hash et son validateur restent inchangés ; aucun reçu v1 ne peut attester les images ci-dessous.
 Ce complément est un index de consultation, pas un nouveau paquet ni une acceptation humaine.

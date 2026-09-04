@@ -82,6 +82,16 @@ inventer de nouveau lot technique à partir des adjectifs qualitatifs d'O1 : pr�
 visibles et obtenir un verdict ciblé. Mouvement, contrôleur et comparaisons externes restent des
 revues distinctes ; aucun accord général sur ces images ne passe à lui seul Gate 1.
 
+Retour du propriétaire le 4 septembre : base acceptée, mais végétation visuellement insuffisante.
+Le correctif **`8b3e3e6`** densifie les quatre couches et élargit les touffes : 1 239 arbres,
+2 520 arbustes, 2 959 fougères et 12 593 touffes ; 453 objets CC0 sous le plafond inchangé de 512.
+**382/382 tests**, Clippy natif/WASM et captures au même commit natif High (29 PNG) / Browser Low/High
+(12 PNG) PASS automatisés. Les cinq cadrages natifs sont identiques à l'avant ; deux inspections
+d'agent confirment le gain visible. [Preuves et limites](docs/evidence/gate1/VEGETATION_COVERAGE.md).
+Coût géométrique accru assumé, pas nouvelle qualification de cadence. Arbres simplifiés et raccord
+près de la rivière restent visibles ; aucune acceptation humaine de ce correctif n'est inventée.
+Gate 1 reste 43/55, Gate 2 non commencée ; le retour reçu ne remplace pas les revues distinctes.
+
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
 migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de
