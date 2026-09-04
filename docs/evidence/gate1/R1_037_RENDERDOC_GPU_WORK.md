@@ -95,6 +95,14 @@ l'injection violait le préflight runtime exigeant un dossier vide ; ces écritu
 et un test prévient leur réintroduction. Aucun journal ne doit être créé dans le dossier du runtime
 avant qu'il ait franchi son préflight.
 
+Le run `rd-module-20260904T071000Z` confirme en lecture directe des modules du PID 26256 deux
+`renderdoc.dll` : miroir d'exécution et bundle original enregistré. Le loader Windows est 1.4.341.0,
+le shell non élevé. La preuve externe `injected-modules.md` conserve chemins, PID et nonce. Cette
+double instance explique l'API vide du contrôleur injecté alors que le runtime utilise Vulkan.
+L'orchestrateur borne désormais `VK_IMPLICIT_LAYER_PATH` au miroir vérifié et active sa couche
+uniquement dans les processus enfants. Aucune nouvelle mutation registre : OBS/Steam restent
+installés, mais leurs couches ne participent pas à cette capture isolée. ADR-0009 documente ce choix.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné

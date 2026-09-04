@@ -509,6 +509,14 @@ class Gate1RenderDocContractChainTests(unittest.TestCase):
         self.assertIn("$actualInventoryRelativePath", orchestrator)
         self.assertIn("$executionViewOwned = $true", orchestrator)
         self.assertIn("$activeProfileOwned = $true", orchestrator)
+        self.assertIn(
+            'Set-ProcessEnvironment -Saved $environmentBefore -Name "VK_IMPLICIT_LAYER_PATH" -Value $executionViewPath',
+            orchestrator,
+        )
+        self.assertIn(
+            'Set-ProcessEnvironment -Saved $environmentBefore -Name "ENABLE_VULKAN_RENDERDOC_CAPTURE" -Value "1"',
+            orchestrator,
+        )
         self.assertIn("FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256", adapter)
         self.assertIn("FORGE_GATE1_RENDERDOC_RENDERDOC_DLL_SHA256", orchestrator)
         adapter_namespace = _adapter_validation_namespace()

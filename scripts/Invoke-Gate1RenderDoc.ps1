@@ -553,6 +553,8 @@ function Measure-PresentActions {
 }
 
 Assert-Condition -Condition ([OperatingSystem]::IsWindows()) -Message "Gate 1 RenderDoc acquisition requires Windows."
+$capturePrincipal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+Assert-Condition -Condition (-not $capturePrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) -Message "Capture must run without elevation so Vulkan honors its process-local layer path."
 Assert-Condition -Condition ($Backend -ceq "Vulkan") -Message "Only the Vulkan qualification backend is implemented."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($OutputRoot)) -Message "OutputRoot must be an absolute external path."
 Assert-Condition -Condition ([IO.Path]::IsPathRooted($CargoTargetDirectory)) -Message "CargoTargetDirectory must be an absolute external path."
@@ -805,6 +807,10 @@ try {
     $stagedRenderdoccmdPath = Join-Path $executionViewPath "renderdoccmd.exe"
     $stagedRenderdocDllPath = Join-Path $executionViewPath "renderdoc.dll"
     $stagedQtCorePath = Join-Path $executionViewPath "Qt5Core.dll"
+    # The injected DLL and Vulkan layer must be the same physical module. Using
+    # the registered original alongside the execution mirror loads two instances.
+    Set-ProcessEnvironment -Saved $environmentBefore -Name "VK_IMPLICIT_LAYER_PATH" -Value $executionViewPath
+    Set-ProcessEnvironment -Saved $environmentBefore -Name "ENABLE_VULKAN_RENDERDOC_CAPTURE" -Value "1"
     Assert-Condition -Condition (
         (Get-LowerSha256 -Path $stagedQrenderdocPath) -ceq $qrenderdocSha256 -and
         (Get-LowerSha256 -Path $stagedRenderdoccmdPath) -ceq $renderdoccmdSha256 -and
@@ -1093,6 +1099,10 @@ try {
             check = "renderdoccmd vulkanlayer explain"
             expected_sentence_observed = $true
             host_configuration_modified = $false
+            process_implicit_layer_path = $executionViewCandidate
+            process_layer_discovery = "VK_IMPLICIT_LAYER_PATH_execution_mirror_only"
+            other_implicit_layers_excluded_for_capture = $true
+            elevated = $false
         }
         qrenderdoc_profile = [ordered]@{
             strategy = $manifest.capture.automation_profile.strategy

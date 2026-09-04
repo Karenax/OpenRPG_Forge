@@ -129,6 +129,16 @@ l'enregistrement. Seules les deux valeurs RenderDoc x64/x86 ont été ajoutées 
 Steam sont conservées. La capture elle-même ne modifie pas ce registre. Cette autorisation ne vaut
 pas validation humaine.
 
+Le lancement réel a révélé deux instances de `renderdoc.dll` : celle injectée depuis le miroir et
+celle chargée depuis le manifeste système original. Pour les seuls processus de capture non élevés,
+`VK_IMPLICIT_LAYER_PATH` pointe maintenant vers le miroir vérifié et
+`ENABLE_VULKAN_RENDERDOC_CAPTURE=1` active sa couche. Injection et Vulkan utilisent ainsi la même
+copie. Les autres couches implicites, dont OBS/Steam, sont exclues de ce processus de capture ; leurs
+clés et les autres processus Windows restent inchangés. Les variables sont restaurées en `finally`
+et ce choix est consigné dans le résultat. Un lancement élevé est refusé, car le loader ignore alors
+l'override. Source :
+[Khronos, Windows Layer Discovery](https://github.com/KhronosGroup/Vulkan-Loader/blob/main/docs/LoaderLayerInterface.md#windows-layer-discovery).
+
 ### Replay et enveloppe normalisée
 
 Chaque `.rdc` doit être ouvert avec :
