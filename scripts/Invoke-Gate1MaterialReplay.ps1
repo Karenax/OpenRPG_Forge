@@ -242,6 +242,7 @@ $profileBefore = $null
 $profileAfter = $null
 $errors = [Collections.Generic.List[string]]::new()
 $results = [Collections.Generic.List[object]]::new()
+$generatedCaches = [Collections.Generic.List[object]]::new()
 $activeRun = $null
 try {
     $acquired = $mutex.WaitOne(0)
@@ -312,6 +313,28 @@ finally {
         catch { $errors.Add($_.Exception.Message) }
     }
     if ($mirrorOwned) {
+        try {
+            # QRenderDoc initializes these two Python packages before --python.
+            # Its embedded interpreter ignores PYTHONDONTWRITEBYTECODE then.
+            # Preserve their bytes outside the mirror, and remove only these
+            # exact generated files before the unchanged 72-file pin check.
+            foreach ($relative in @('PySide2/__pycache__/__init__.cpython-38.pyc', 'shiboken2/__pycache__/__init__.cpython-38.pyc')) {
+                $cache = Join-Path $mirror $relative
+                if (Test-Path -LiteralPath $cache) {
+                    Assert-Replay ((Test-ReplayInside $mirror $cache) -and [IO.File]::Exists($cache)) 'Generated cache escaped the owned mirror'
+                    Assert-PlainPath $cache
+                    $cacheHash = Get-ReplayHash $cache
+                    $preservedName = ($relative.Split('/')[0]) + '-startup.cpython-38.pyc'
+                    $preservedCache = Join-Path $output $preservedName
+                    Assert-Replay (-not (Test-Path -LiteralPath $preservedCache)) 'Preserved cache already exists'
+                    Copy-Item -LiteralPath $cache -Destination $preservedCache
+                    Assert-Replay ((Get-ReplayHash $preservedCache) -ceq $cacheHash) 'Preserved cache hash mismatch'
+                    $generatedCaches.Add(@{ relative_path = $relative; preserved_file = $preservedName; sha256 = $cacheHash })
+                    Remove-Item -LiteralPath $cache
+                }
+            }
+        }
+        catch { $errors.Add($_.Exception.Message) }
         try { Assert-ReplayBundle $mirror $inventory "$applicationName.exe" }
         catch {
             $bundleError = $_.Exception.Message
@@ -387,6 +410,7 @@ finally {
                 host_registry_modified = $false; runtime_launched = $false; build_performed = $false
             }
             results = @($results.ToArray()); errors = @($errors.ToArray())
+            generated_startup_caches = @($generatedCaches.ToArray())
             gate1_routes_qualified = $false
             dynamic_shader_execution_qualified = $false
         })
