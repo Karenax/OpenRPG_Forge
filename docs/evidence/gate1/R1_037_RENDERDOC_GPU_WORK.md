@@ -58,6 +58,21 @@ passe avec la suite **23/23 Python**. Source primaire :
 Cette correction de l'analyseur ne modifie pas le binaire Release en cours de construction et ne
 constitue pas encore une observation GPU.
 
+Le build Release `0497bb4c0d061c91adf5dcb5a5472c831314c777` passe en 9 min 20 s avec cache,
+SHA-256 `a81e2de92b689b26f79fcfe9bfcfb11f302e461332059b5c23b532bfdd46e327`.
+La tentative outillage `b986e015493c3dc09ed594f5251b1d88f2832a90` franchit le contrôle High puis
+échoue en `freeze_settling` avant toute capture : le hash de végétation incluait
+`visibility.observation_frames`, compteur d'audit qui avance avec le main world même à temps de jeu
+figé. Le hash neutralise désormais uniquement cet âge dans une copie ; les comptes de visibilité,
+projections et autres invariants restent contrôlés. Un test prouve l'égalité du hash quand seul l'âge
+change, l'intégrité de la ressource originale et le rejet des changements de comptes/projections.
+Tout futur échec de stabilité conserve aussi les deux observations complètes dans son message.
+La tentative échouée reste externe sous `r1-037-renderdoc-b986e01-20260904T064400Z` ; aucun `.rdc`
+ou verdict GPU PASS n'y a été produit.
+
+Validation de ce dernier correctif : **76/76 tests runtime PASS**, dont les deux régressions réelles
+High appliqué et âge d'audit ; Clippy runtime strict, formatage et suite Python **23/23 PASS**.
+
 Les sections qui suivent conservent les acquisitions et préflights antérieurs.
 
 ## Résultat borné

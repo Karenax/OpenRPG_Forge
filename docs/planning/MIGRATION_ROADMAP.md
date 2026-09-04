@@ -737,7 +737,9 @@ qualité                   Low / Medium / High / Ultra
   vérifié le 4 septembre ; build Release `d6ec361` réussi, premier lancement arrêté avant injection
   sur la réécriture normale du profil QRenderDoc. Garde corrigé/testé et reprise du binaire épinglé
   sans rebuild ajoutée. Reprise `2902353` : profil franchi, arrêt sur un garde runtime contradictoire
-  rejetant High appliqué ; ce garde est corrigé/testé avec le plugin qualité réel. Quatre captures
+  rejetant High appliqué ; ce garde est corrigé/testé avec le plugin qualité réel. Le binaire `0497bb4`
+  franchit ce contrôle puis révèle l'âge de l'audit dans le hash figé : seul ce compteur administratif
+  est neutralisé, les comptes de visibilité restent contrôlés. Quatre captures
   indépendantes clear A/B + rain A/B restent à acquérir.
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,

@@ -31,7 +31,9 @@ QRenderDoc échoue avant injection parce que la configuration est complétée au
 est corrigé et testé, avec reprise du binaire hashé sans rebuild lorsque seuls les documents/outils
 ont changé. Cette reprise franchit le profil et révèle un garde runtime contradictoire rejetant
 `Some(High)` alors que High doit être appliqué. Ce garde est corrigé avec un test du vrai plugin
-qualité ; un nouveau binaire de capture reste à qualifier. Aucune capture GPU qualifiante n'est encore acquise ; voir
+qualité. Le binaire `0497bb4` passe le build et ce contrôle, puis révèle une empreinte de végétation
+incluant l'âge croissant de l'audit : seul cet âge est désormais neutralisé, pas les comptes réels.
+Un nouveau binaire de capture reste à qualifier. Aucune capture GPU qualifiante n'est encore acquise ; voir
 [preuve R1-037](docs/evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md). Les mentions plus anciennes
 « couche non enregistrée » décrivent désormais l'historique, pas un blocage courant.
 

@@ -568,11 +568,12 @@ fn drive_capture_protocol(
         return;
     };
     if runtime.frozen_state_sha256.as_deref() != Some(observation_hash.as_str()) {
-        fail(
-            &mut runtime,
-            &mut exit,
-            "governed scene, camera, window, quality or GPU identity changed after freeze",
+        let reason = format!(
+            "governed scene, camera, window, quality or GPU identity changed after freeze: initial={}, observed={}",
+            serde_json::to_string(&runtime.frozen_state).unwrap_or_default(),
+            serde_json::to_string(&observation).unwrap_or_default(),
         );
+        fail(&mut runtime, &mut exit, &reason);
         return;
     }
 
@@ -793,7 +794,7 @@ fn observe_frozen_state(
         governed_scene_hashes: GovernedSceneHashes {
             visual_valley: content_hash(&scene.visual_valley, "Visual Valley observation")?,
             shadow: content_hash(&scene.shadow, "shadow observation")?,
-            vegetation: content_hash(&scene.vegetation, "vegetation observation")?,
+            vegetation: vegetation_static_hash(&scene.vegetation)?,
             scenery: content_hash(&scene.scenery, "scenery observation")?,
             environment: content_hash(&scene.environment, "environment observation")?,
             water_static: content_hash(&water_static, "static water observation")?,
@@ -802,6 +803,14 @@ fn observe_frozen_state(
     };
     let hash = content_hash(&evidence, "frozen state")?;
     Ok((evidence, hash))
+}
+
+fn vegetation_static_hash(observation: &VegetationProjectionStats) -> Result<String, String> {
+    let mut static_observation = observation.clone();
+    // Audit age advances with main-world frames even when virtual time is paused.
+    // Keep every actual visibility count and projection field in the fingerprint.
+    static_observation.visibility.observation_frames = 0;
+    content_hash(&static_observation, "static vegetation observation")
 }
 
 fn validate_frozen_preconditions(
@@ -1292,6 +1301,30 @@ const fn weather_label(weather: WeatherState) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn vegetation_fingerprint_ignores_audit_age_but_detects_graphical_changes() {
+        let terrain = TerrainDocument::from_json(include_str!(
+            "../../../examples/visual_valley/terrain.v1.json"
+        ))
+        .unwrap();
+        let vegetation = VegetationDocument::from_json(include_str!(
+            "../../../examples/visual_valley/vegetation.v1.json"
+        ))
+        .unwrap();
+        let mut observation =
+            forge_engine::inspect_vegetation_projection(&terrain, &vegetation).unwrap();
+        observation.visibility.observation_frames = 17;
+        let initial = vegetation_static_hash(&observation).unwrap();
+        assert_eq!(observation.visibility.observation_frames, 17);
+        observation.visibility.observation_frames = 18;
+        assert_eq!(initial, vegetation_static_hash(&observation).unwrap());
+        observation.visibility.total.cpu_visible_for_camera += 1;
+        assert_ne!(initial, vegetation_static_hash(&observation).unwrap());
+        observation.visibility.total.cpu_visible_for_camera -= 1;
+        observation.projection.total_entities += 1;
+        assert_ne!(initial, vegetation_static_hash(&observation).unwrap());
+    }
 
     #[test]
     fn fixed_high_capture_requires_the_quality_tier_to_be_applied() {

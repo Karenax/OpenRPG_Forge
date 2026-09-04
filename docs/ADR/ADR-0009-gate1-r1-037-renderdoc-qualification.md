@@ -70,6 +70,12 @@ nonce, PID, backend, GPU, pilote, horloge, seed ou hash.
 `CaptureOptions.allowVSync=false`; ce champ ne prétend pas observer le mode WSI finalement négocié
 par le pilote.
 
+Le hash végétation conserve les sources, placements, projections et tous les compteurs de visibilité,
+mais neutralise uniquement `visibility.observation_frames` dans une copie de l'observation. Ce champ
+mesure l'âge administratif de l'audit dans le main world et avance même lorsque le temps virtuel est
+figé ; il ne décrit pas la scène. La ressource observée n'est pas modifiée. Une variation des comptes
+réels, de caméra, de qualité ou d'identité GPU reste un échec.
+
 ### Capture externe
 
 Le contrôleur utilise le `qrenderdoc.exe` épinglé et son mode Python. Il lance le processus cible avec
