@@ -1,0 +1,814 @@
+{
+  "schema": "forge-gate1-material-bound-state-validation/v1",
+  "status": "PASS_BOUND_STATE_ONLY",
+  "evidence_root": "E:\\OpenRPG_Forge\\.gate1-tools\\evidence\\material-replay-20260904-04",
+  "launcher_sha256": "77091c2ca9b46172011b583d692f2fb90645306b01be09e1c9385ab177982bab",
+  "validator_sha256": "a7ab757abb764e8d1bdfca6a22e748d88798cc36cee012e3095de5ee459ce901",
+  "parent_receipt_sha256": "c0d9d5d98f53a6928203dbdf07845522564e55713f3c90baaaff66daaaac9251",
+  "safety": {
+    "git_unchanged": true,
+    "captures_unchanged": true,
+    "input_receipt_scripts_manifest_unchanged": true,
+    "real_profile_before": "absent",
+    "real_profile_after": "absent",
+    "real_profile_unchanged": true,
+    "disposable_profile_removed": true,
+    "execution_mirror_removed": true,
+    "host_registry_modified": false,
+    "runtime_launched": false,
+    "build_performed": false
+  },
+  "bound_values_repeatable_per_weather": true,
+  "results": [
+    {
+      "status": "PASS_BOUND_STATE_ONLY",
+      "run": "clear-01",
+      "capture_sha256": "6a9e124ce0b215a49025e254524cca8be6b127eb683da2b09b5869350cee81b9",
+      "events": {
+        "water": 919,
+        "terrain": 819,
+        "vegetation": 770,
+        "tonemapping": 1140
+      },
+      "water_optical": [
+        0.8399999737739563,
+        0.1599999964237213,
+        1.3300000429153442,
+        0.7200000286102295
+      ],
+      "water_transmission_thickness_ior": [
+        0.18000000715255737,
+        3.200000047683716,
+        1.3300000429153442
+      ],
+      "wetness": {
+        "terrain": [
+          0,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ],
+        "vegetation": [
+          0,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ]
+      },
+      "grading_contrast": [
+        1.059999942779541,
+        1.059999942779541,
+        1.059999942779541
+      ],
+      "grading_exposure": 0,
+      "grading_post_saturation": 1.0399999618530273,
+      "bloom_events": [
+        936,
+        948,
+        960,
+        972,
+        984,
+        996,
+        1008,
+        1020,
+        1033,
+        1046,
+        1059,
+        1072,
+        1085,
+        1098,
+        1111,
+        1124
+      ],
+      "bloom_blend_factors": [
+        [
+          0.3137561082839966,
+          0.3137561082839966,
+          0.3137561082839966,
+          1
+        ],
+        [
+          0.3837909400463104,
+          0.3837909400463104,
+          0.3837909400463104,
+          1
+        ],
+        [
+          0.4020000100135803,
+          0.4020000100135803,
+          0.4020000100135803,
+          1
+        ],
+        [
+          0.40199995040893555,
+          0.40199995040893555,
+          0.40199995040893555,
+          1
+        ],
+        [
+          0.40199553966522217,
+          0.40199553966522217,
+          0.40199553966522217,
+          1
+        ],
+        [
+          0.4016151428222656,
+          0.4016151428222656,
+          0.4016151428222656,
+          1
+        ],
+        [
+          0.38724565505981445,
+          0.38724565505981445,
+          0.38724565505981445,
+          1
+        ],
+        [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.07999999821186066,
+          1
+        ]
+      ],
+      "transmission_texture": {
+        "resource": "ResourceId::945",
+        "view": "ResourceId::946",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 1,
+        "first_slice": 0,
+        "num_slices": 1
+      },
+      "ibl_texture": {
+        "resource": "ResourceId::1647",
+        "view": "ResourceId::1702",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 9,
+        "first_slice": 0,
+        "num_slices": 6
+      },
+      "qualification": {
+        "pixel_debug_performed": false,
+        "human_review_performed": false,
+        "same_process_weather_reversal": false,
+        "browser_observed": false,
+        "routes_closed": [],
+        "gate1_transition_authorized": false
+      },
+      "extraction_sha256": "79d66b8a7e7423831c58170d9550f4848a99eb1ea36bbd3fab58e18cda2ffe8a"
+    },
+    {
+      "status": "PASS_BOUND_STATE_ONLY",
+      "run": "clear-02",
+      "capture_sha256": "bc6e2b7f193c55e9f28aa6740af0abe945823b28d8606222c0e168ba043219a0",
+      "events": {
+        "water": 919,
+        "terrain": 819,
+        "vegetation": 770,
+        "tonemapping": 1140
+      },
+      "water_optical": [
+        0.8399999737739563,
+        0.1599999964237213,
+        1.3300000429153442,
+        0.7200000286102295
+      ],
+      "water_transmission_thickness_ior": [
+        0.18000000715255737,
+        3.200000047683716,
+        1.3300000429153442
+      ],
+      "wetness": {
+        "terrain": [
+          0,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ],
+        "vegetation": [
+          0,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ]
+      },
+      "grading_contrast": [
+        1.059999942779541,
+        1.059999942779541,
+        1.059999942779541
+      ],
+      "grading_exposure": 0,
+      "grading_post_saturation": 1.0399999618530273,
+      "bloom_events": [
+        936,
+        948,
+        960,
+        972,
+        984,
+        996,
+        1008,
+        1020,
+        1033,
+        1046,
+        1059,
+        1072,
+        1085,
+        1098,
+        1111,
+        1124
+      ],
+      "bloom_blend_factors": [
+        [
+          0.3137561082839966,
+          0.3137561082839966,
+          0.3137561082839966,
+          1
+        ],
+        [
+          0.3837909400463104,
+          0.3837909400463104,
+          0.3837909400463104,
+          1
+        ],
+        [
+          0.4020000100135803,
+          0.4020000100135803,
+          0.4020000100135803,
+          1
+        ],
+        [
+          0.40199995040893555,
+          0.40199995040893555,
+          0.40199995040893555,
+          1
+        ],
+        [
+          0.40199553966522217,
+          0.40199553966522217,
+          0.40199553966522217,
+          1
+        ],
+        [
+          0.4016151428222656,
+          0.4016151428222656,
+          0.4016151428222656,
+          1
+        ],
+        [
+          0.38724565505981445,
+          0.38724565505981445,
+          0.38724565505981445,
+          1
+        ],
+        [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.07999999821186066,
+          1
+        ]
+      ],
+      "transmission_texture": {
+        "resource": "ResourceId::940",
+        "view": "ResourceId::941",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 1,
+        "first_slice": 0,
+        "num_slices": 1
+      },
+      "ibl_texture": {
+        "resource": "ResourceId::1639",
+        "view": "ResourceId::1694",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 9,
+        "first_slice": 0,
+        "num_slices": 6
+      },
+      "qualification": {
+        "pixel_debug_performed": false,
+        "human_review_performed": false,
+        "same_process_weather_reversal": false,
+        "browser_observed": false,
+        "routes_closed": [],
+        "gate1_transition_authorized": false
+      },
+      "extraction_sha256": "d05efabd97efd2755a19db8f9de46fbbb33082d01dfd088979dde8a3912de3af"
+    },
+    {
+      "status": "PASS_BOUND_STATE_ONLY",
+      "run": "rain-01",
+      "capture_sha256": "d2ad4b7bd02a258fe900910e1ec26a155a3e500bdef752a1cc7146244c28da3a",
+      "events": {
+        "water": 948,
+        "terrain": 848,
+        "vegetation": 799,
+        "tonemapping": 1190
+      },
+      "water_optical": [
+        0.8399999737739563,
+        0.1599999964237213,
+        1.3300000429153442,
+        0.7200000286102295
+      ],
+      "water_transmission_thickness_ior": [
+        0.18000000715255737,
+        3.200000047683716,
+        1.3300000429153442
+      ],
+      "wetness": {
+        "terrain": [
+          0.7799999713897705,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ],
+        "vegetation": [
+          0.7799999713897705,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ]
+      },
+      "grading_contrast": [
+        1.0800000429153442,
+        1.0800000429153442,
+        1.0800000429153442
+      ],
+      "grading_exposure": -0.3499999940395355,
+      "grading_post_saturation": 0.8600000143051147,
+      "bloom_events": [
+        986,
+        998,
+        1010,
+        1022,
+        1034,
+        1046,
+        1058,
+        1070,
+        1083,
+        1096,
+        1109,
+        1122,
+        1135,
+        1148,
+        1161,
+        1174
+      ],
+      "bloom_blend_factors": [
+        [
+          0.3137561082839966,
+          0.3137561082839966,
+          0.3137561082839966,
+          1
+        ],
+        [
+          0.3837909400463104,
+          0.3837909400463104,
+          0.3837909400463104,
+          1
+        ],
+        [
+          0.4020000100135803,
+          0.4020000100135803,
+          0.4020000100135803,
+          1
+        ],
+        [
+          0.40199995040893555,
+          0.40199995040893555,
+          0.40199995040893555,
+          1
+        ],
+        [
+          0.40199553966522217,
+          0.40199553966522217,
+          0.40199553966522217,
+          1
+        ],
+        [
+          0.4016151428222656,
+          0.4016151428222656,
+          0.4016151428222656,
+          1
+        ],
+        [
+          0.38724565505981445,
+          0.38724565505981445,
+          0.38724565505981445,
+          1
+        ],
+        [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.07999999821186066,
+          1
+        ]
+      ],
+      "transmission_texture": {
+        "resource": "ResourceId::945",
+        "view": "ResourceId::946",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 1,
+        "first_slice": 0,
+        "num_slices": 1
+      },
+      "ibl_texture": {
+        "resource": "ResourceId::1724",
+        "view": "ResourceId::1779",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 9,
+        "first_slice": 0,
+        "num_slices": 6
+      },
+      "qualification": {
+        "pixel_debug_performed": false,
+        "human_review_performed": false,
+        "same_process_weather_reversal": false,
+        "browser_observed": false,
+        "routes_closed": [],
+        "gate1_transition_authorized": false
+      },
+      "extraction_sha256": "2ca60c0e692cbc1f37cabeae6a5e0a6121e947a7e16ca2e501c1c12529cf76e7"
+    },
+    {
+      "status": "PASS_BOUND_STATE_ONLY",
+      "run": "rain-02",
+      "capture_sha256": "015b74e019feb1d3fea1e985591afa0b93a9765752629e56157534ed2219dde8",
+      "events": {
+        "water": 948,
+        "terrain": 848,
+        "vegetation": 799,
+        "tonemapping": 1190
+      },
+      "water_optical": [
+        0.8399999737739563,
+        0.1599999964237213,
+        1.3300000429153442,
+        0.7200000286102295
+      ],
+      "water_transmission_thickness_ior": [
+        0.18000000715255737,
+        3.200000047683716,
+        1.3300000429153442
+      ],
+      "wetness": {
+        "terrain": [
+          0.7799999713897705,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ],
+        "vegetation": [
+          0.7799999713897705,
+          0.3199999928474426,
+          0.7200000286102295,
+          0
+        ]
+      },
+      "grading_contrast": [
+        1.0800000429153442,
+        1.0800000429153442,
+        1.0800000429153442
+      ],
+      "grading_exposure": -0.3499999940395355,
+      "grading_post_saturation": 0.8600000143051147,
+      "bloom_events": [
+        986,
+        998,
+        1010,
+        1022,
+        1034,
+        1046,
+        1058,
+        1070,
+        1083,
+        1096,
+        1109,
+        1122,
+        1135,
+        1148,
+        1161,
+        1174
+      ],
+      "bloom_blend_factors": [
+        [
+          0.3137561082839966,
+          0.3137561082839966,
+          0.3137561082839966,
+          1
+        ],
+        [
+          0.3837909400463104,
+          0.3837909400463104,
+          0.3837909400463104,
+          1
+        ],
+        [
+          0.4020000100135803,
+          0.4020000100135803,
+          0.4020000100135803,
+          1
+        ],
+        [
+          0.40199995040893555,
+          0.40199995040893555,
+          0.40199995040893555,
+          1
+        ],
+        [
+          0.40199553966522217,
+          0.40199553966522217,
+          0.40199553966522217,
+          1
+        ],
+        [
+          0.4016151428222656,
+          0.4016151428222656,
+          0.4016151428222656,
+          1
+        ],
+        [
+          0.38724565505981445,
+          0.38724565505981445,
+          0.38724565505981445,
+          1
+        ],
+        [
+          0.07999999821186066,
+          0.07999999821186066,
+          0.07999999821186066,
+          1
+        ]
+      ],
+      "transmission_texture": {
+        "resource": "ResourceId::946",
+        "view": "ResourceId::947",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 1,
+        "first_slice": 0,
+        "num_slices": 1
+      },
+      "ibl_texture": {
+        "resource": "ResourceId::1720",
+        "view": "ResourceId::1775",
+        "byte_offset": 5,
+        "byte_size": 0,
+        "first_mip": 0,
+        "num_mips": 9,
+        "first_slice": 0,
+        "num_slices": 6
+      },
+      "qualification": {
+        "pixel_debug_performed": false,
+        "human_review_performed": false,
+        "same_process_weather_reversal": false,
+        "browser_observed": false,
+        "routes_closed": [],
+        "gate1_transition_authorized": false
+      },
+      "extraction_sha256": "5eb498846226ff10f4178e9d7fad7c827265fbae55db8a196e18272c7b29a21c"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "clear-01/material-replay.json",
+      "bytes": 1087783,
+      "sha256": "79d66b8a7e7423831c58170d9550f4848a99eb1ea36bbd3fab58e18cda2ffe8a"
+    },
+    {
+      "file": "clear-01/profile-final.json",
+      "bytes": 6565,
+      "sha256": "b9ca068138c02f8b58d65a6d679b8f4e6592d201feefbc45a4c734703e001ce5"
+    },
+    {
+      "file": "clear-01/qrenderdoc.log",
+      "bytes": 1584,
+      "sha256": "2f88965111bd7b9c98b2d9817877a46c212cb595025c842b4c7cfdc6989da18b"
+    },
+    {
+      "file": "clear-01/shader-12073.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "clear-01/shader-12711.txt",
+      "bytes": 3380,
+      "sha256": "f5d0f3fbd67bd5bee9e7d39aed64e06df5f4a2d0f383865939a56d997fa6b6ee"
+    },
+    {
+      "file": "clear-01/shader-13062.txt",
+      "bytes": 5640,
+      "sha256": "2901ba3b666347d3a1dde6448f51419b8ef3fabd03956ea43403897f1daf32ef"
+    },
+    {
+      "file": "clear-01/shader-18431.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "clear-01/shader-19720.txt",
+      "bytes": 150072,
+      "sha256": "f676ee43dc9f10f86dd8fe21430ea9bac8c3d9e1f665c58a0bdb0af2ec9d46ca"
+    },
+    {
+      "file": "clear-01/shader-21599.txt",
+      "bytes": 147945,
+      "sha256": "32c59840d6e5794d5b65cf19617f2dc17b9b988deac4218a18856fad27b0cee9"
+    },
+    {
+      "file": "clear-01/shader-21784.txt",
+      "bytes": 9429,
+      "sha256": "16fdeb7d1e55126db5a260862cea98f10a7ab578a4706f870c5eaa72f12f3e03"
+    },
+    {
+      "file": "clear-01/shader-27872.txt",
+      "bytes": 156053,
+      "sha256": "ed0cafa72a2238a3fc7d8cd55ba2ec0586ddaafcaac78e72697a1c93d94360af"
+    },
+    {
+      "file": "clear-02/material-replay.json",
+      "bytes": 1087760,
+      "sha256": "d05efabd97efd2755a19db8f9de46fbbb33082d01dfd088979dde8a3912de3af"
+    },
+    {
+      "file": "clear-02/profile-final.json",
+      "bytes": 6565,
+      "sha256": "584fe20c4963ab377960a8997e44fccfe276ada831881f509f3f4899f869167f"
+    },
+    {
+      "file": "clear-02/qrenderdoc.log",
+      "bytes": 1584,
+      "sha256": "11932ed5bae27a5a74fae7f2bf8b2061d50d4099426b2cc0b3191e93746a746f"
+    },
+    {
+      "file": "clear-02/shader-11782.txt",
+      "bytes": 5640,
+      "sha256": "2901ba3b666347d3a1dde6448f51419b8ef3fabd03956ea43403897f1daf32ef"
+    },
+    {
+      "file": "clear-02/shader-11815.txt",
+      "bytes": 147945,
+      "sha256": "32c59840d6e5794d5b65cf19617f2dc17b9b988deac4218a18856fad27b0cee9"
+    },
+    {
+      "file": "clear-02/shader-12001.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "clear-02/shader-18629.txt",
+      "bytes": 156053,
+      "sha256": "ed0cafa72a2238a3fc7d8cd55ba2ec0586ddaafcaac78e72697a1c93d94360af"
+    },
+    {
+      "file": "clear-02/shader-21950.txt",
+      "bytes": 9429,
+      "sha256": "16fdeb7d1e55126db5a260862cea98f10a7ab578a4706f870c5eaa72f12f3e03"
+    },
+    {
+      "file": "clear-02/shader-22809.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "clear-02/shader-23823.txt",
+      "bytes": 150072,
+      "sha256": "f676ee43dc9f10f86dd8fe21430ea9bac8c3d9e1f665c58a0bdb0af2ec9d46ca"
+    },
+    {
+      "file": "clear-02/shader-2634.txt",
+      "bytes": 3380,
+      "sha256": "f5d0f3fbd67bd5bee9e7d39aed64e06df5f4a2d0f383865939a56d997fa6b6ee"
+    },
+    {
+      "file": "rain-01/material-replay.json",
+      "bytes": 1089436,
+      "sha256": "2ca60c0e692cbc1f37cabeae6a5e0a6121e947a7e16ca2e501c1c12529cf76e7"
+    },
+    {
+      "file": "rain-01/profile-final.json",
+      "bytes": 6565,
+      "sha256": "fc9abf557c26bf427a7aed4e6505f7fb965aca4c1c3e0ac73d239cb6a4573722"
+    },
+    {
+      "file": "rain-01/qrenderdoc.log",
+      "bytes": 1584,
+      "sha256": "d17e0b21de53d1d81c83f271ed67f63a11b73d3e91905eaa231e145e94d1032f"
+    },
+    {
+      "file": "rain-01/shader-15469.txt",
+      "bytes": 150072,
+      "sha256": "f676ee43dc9f10f86dd8fe21430ea9bac8c3d9e1f665c58a0bdb0af2ec9d46ca"
+    },
+    {
+      "file": "rain-01/shader-16764.txt",
+      "bytes": 9429,
+      "sha256": "16fdeb7d1e55126db5a260862cea98f10a7ab578a4706f870c5eaa72f12f3e03"
+    },
+    {
+      "file": "rain-01/shader-17000.txt",
+      "bytes": 5640,
+      "sha256": "2901ba3b666347d3a1dde6448f51419b8ef3fabd03956ea43403897f1daf32ef"
+    },
+    {
+      "file": "rain-01/shader-17533.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "rain-01/shader-26290.txt",
+      "bytes": 147945,
+      "sha256": "32c59840d6e5794d5b65cf19617f2dc17b9b988deac4218a18856fad27b0cee9"
+    },
+    {
+      "file": "rain-01/shader-29951.txt",
+      "bytes": 156053,
+      "sha256": "ed0cafa72a2238a3fc7d8cd55ba2ec0586ddaafcaac78e72697a1c93d94360af"
+    },
+    {
+      "file": "rain-01/shader-5471.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "rain-01/shader-7560.txt",
+      "bytes": 3380,
+      "sha256": "f5d0f3fbd67bd5bee9e7d39aed64e06df5f4a2d0f383865939a56d997fa6b6ee"
+    },
+    {
+      "file": "rain-02/material-replay.json",
+      "bytes": 1089478,
+      "sha256": "5eb498846226ff10f4178e9d7fad7c827265fbae55db8a196e18272c7b29a21c"
+    },
+    {
+      "file": "rain-02/profile-final.json",
+      "bytes": 6565,
+      "sha256": "206e5bd77a0cb8a63b469d6692e89f8065660c4e8f8c6e4f60cf4ead389d533f"
+    },
+    {
+      "file": "rain-02/qrenderdoc.log",
+      "bytes": 1584,
+      "sha256": "c039ad8af1a35fc126b6654b28633b020531f1fbb767d3ca1931754bafce7c78"
+    },
+    {
+      "file": "rain-02/shader-14843.txt",
+      "bytes": 156053,
+      "sha256": "ed0cafa72a2238a3fc7d8cd55ba2ec0586ddaafcaac78e72697a1c93d94360af"
+    },
+    {
+      "file": "rain-02/shader-21206.txt",
+      "bytes": 150072,
+      "sha256": "f676ee43dc9f10f86dd8fe21430ea9bac8c3d9e1f665c58a0bdb0af2ec9d46ca"
+    },
+    {
+      "file": "rain-02/shader-21210.txt",
+      "bytes": 3380,
+      "sha256": "f5d0f3fbd67bd5bee9e7d39aed64e06df5f4a2d0f383865939a56d997fa6b6ee"
+    },
+    {
+      "file": "rain-02/shader-21550.txt",
+      "bytes": 9429,
+      "sha256": "16fdeb7d1e55126db5a260862cea98f10a7ab578a4706f870c5eaa72f12f3e03"
+    },
+    {
+      "file": "rain-02/shader-21588.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "rain-02/shader-24124.txt",
+      "bytes": 5640,
+      "sha256": "2901ba3b666347d3a1dde6448f51419b8ef3fabd03956ea43403897f1daf32ef"
+    },
+    {
+      "file": "rain-02/shader-27159.txt",
+      "bytes": 4247,
+      "sha256": "b43052020196a4041248b9106abc21de11fe5aa91682f98977b570185b7b7e32"
+    },
+    {
+      "file": "rain-02/shader-29160.txt",
+      "bytes": 147945,
+      "sha256": "32c59840d6e5794d5b65cf19617f2dc17b9b988deac4218a18856fad27b0cee9"
+    }
+  ],
+  "qualification": {
+    "pixel_debug_performed": false,
+    "human_review_performed": false,
+    "same_process_weather_reversal": false,
+    "browser_observed": false,
+    "routes_closed": [],
+    "gate1_transition_authorized": false
+  }
+}

@@ -34,6 +34,16 @@ routes cochées**, 12 ouvertes. Aucun FPS ni verdict humain n'est déduit de cet
 Les preuves précises eau/wetness/post-traitement et les revues humaines restent dues ; Gate 2 reste
 interdite. Les mentions anciennes de couche absente/captures NOT RUN sont des états historiques.
 
+Complément du 4 septembre : replay offline `e6441510` des quatre RDC existants, sans build ni
+lancement Forge, **PASS_BOUND_STATE_ONLY**. Les événements, buffers réellement liés et chaînes de
+ressources eau/MSAA/Bloom/tonemapping sont extraits ; wetness terrain/végétation vaut0 en clair et
+0,78 sous pluie, avec répétitions identiques. **49/49 tests Python et23 contrôles PowerShell PASS**,
+44 artefacts inventoriés, entrées/profil utilisateur inchangés.
+[Preuve native High ciblée](docs/evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md).
+Les chemins compilés sont attribués au WGSL, sans pixel debug, couverture des autres profils/Browser,
+retour météo GPU dans une même instance ou revue humaine. `R1-023/025/026` restent ouvertes,
+43/55 routes cochées ; aucune modification du moteur Rust ni copie d'asset Cadle.
+
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
 migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de

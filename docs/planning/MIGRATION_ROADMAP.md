@@ -696,6 +696,9 @@ qualité                   Low / Medium / High / Ultra
   `human_review_performed=false`. Le protocole Browser séparé Low/High est committé à `48038854`,
   durci puis acquis à `534ce4fa`. La campagne automatisée Low/High passe ses 6 checkpoints et 12
   captures, mais ne prouve ni draw/matériau eau, ni frame exacte, ni revue humaine.
+  Complément natif High `e6441510` : [état GPU lié PASS](../evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md),
+  draw eau identifié, buffers et texture de transmission liés ; pas de trace pixel, ni autres
+  profils/Browser qualifiés, ni revue humaine. Route maintenue ouverte.
 - [x] `R1-024` pluie — clear/rain High acquis en natif et Browser ; animation GPU non revendiquée.
 - [ ] `R1-025` wetness réversible — endpoints CPU/ECS exacts 0 → 0,78 → 0 dans un même processus et
   trois PNG liés acquis au commit exact `125ba0b`, puis réacquis en Low/High à `41b49f66` ; les
@@ -703,12 +706,18 @@ qualité                   Low / Medium / High / Ultra
   contrôleur Browser même instance committé à `48038854` et durci à `534ce4fa` acquiert aussi les
   endpoints exacts Low/High `0 → 0,78 → 0` avec huit frames stables ; consommation shader GPU et
   acceptation visuelle humaine non acquises.
+  Le replay High `e6441510` extrait désormais les octets wetness terrain/végétation0/0,78
+  dans les draws exacts et relie leurs lectures au code shader compilé ; répétitions A/B identiques.
+  Pas de pixel debug ni retour sec GPU dans une même instance ; route maintenue ouverte.
 - [ ] `R1-026` bloom et color grading bornés — endpoints de grade, présence du composant Bloom et
   campagne native exacte `125ba0b` acquis ; `41b49f66` échantillonne en Low/High les passes de scène
   post-process attendues, sans identité de frame de rendu exacte. La matrice Browser Low/High est
   committée à `48038854`, durcie et acquise à `534ce4fa` : Bloom absent en Low, présent en High et
   color grading présent dans les deux tiers. Aucune exécution GPU précise, identité de frame qualifiée
   ou acceptation humaine n'est acquise.
+  Le replay High `e6441510` identifie maintenant les16 draws Bloom, le resolve MSAA, le grading lié
+  et la chaîne HDR jusqu'au tonemapping, avec constante finale Bloom0,08. Autres profils/Browser,
+  contribution à un pixel précis et acceptation humaine restent dus ; route maintenue ouverte.
 
 ## R1-D — Personnage et caméra
 

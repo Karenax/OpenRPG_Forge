@@ -24,6 +24,9 @@ identités proviennent de la réflexion de la capture, pas des noms source atten
 interdit les bytecodes Python **avant** l'import QRenderDoc ; les valeurs infinies non concernées
 sont représentées explicitement, avec leurs octets originaux conservés. Aucun seuil GPU n'est
 assoupli et aucun résultat de performance n'est déduit.
+QRenderDoc initialise aussi deux caches PySide2/shiboken2 avant le script : leurs copies générées
+sont préservées et hashées hors du miroir puis retirées de celui-ci avant le contrôle final inchangé
+des 72 fichiers épinglés. Aucun autre fichier inattendu n'est admis.
 
 ## Interface stable
 

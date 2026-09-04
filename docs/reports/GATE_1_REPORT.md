@@ -36,6 +36,15 @@ Cet état courant prévaut sur les demandes de replay de la chronologie historiq
 
 ### Preuves acquises et historique conservé
 
+Le replay offline exact `e6441510` ajoute une [preuve d'état GPU lié natif High](../evidence/gate1/R1_023_025_026_GPU_BOUND_STATE.md),
+statut **PASS_BOUND_STATE_ONLY**, sur les quatre captures R1-037 intactes. Il identifie les draws,
+octets des buffers, résolution MSAA et chaîne Bloom/tonemapping ; valeurs eau, wetness et grading
+conformes et répétables, 44 artefacts avec SHA-256. **49 tests Python et23 contrôles PowerShell PASS**.
+Pas de build, lancement Forge, campagne de performance ou modification du moteur. Pas de pixel debug,
+de qualification GPU des autres profils/Browser ni de verdict humain : `R1-023/025/026` restent
+ouvertes. Les affirmations historiques « aucune identité de frame/aucune attribution » ci-dessous
+décrivent leurs anciennes preuves, pas ce nouveau replay ciblé.
+
 Visual Valley conserve la paire native/Browser exacte `d9e2670`, les captures fixes, les ledgers
 versionnés et l'audit de provenance CC0/Cadle. Aucun asset Cadle n'est copié dans Forge. Les lots
 `6a24cabe` et `873618af` préservent respectivement la correction du défaut depth-only puis le vrai
