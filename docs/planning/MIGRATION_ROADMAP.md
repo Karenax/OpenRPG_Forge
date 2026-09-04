@@ -313,6 +313,13 @@ Dernier replay gouverné `61713887` / `7fbcae7b` : **FAIL schema 13**, acquisiti
 26,1661 FPS affichés, p95 131,956 ms, 1 % low 3,4183 FPS. Les expériences n'ont démontré aucune
 optimisation produit et ont été retirées. R1-037 et les preuves GPU/humaines restent hors dérogation.
 
+Prochaine action bornée : [revue du rendu courant](../evidence/gate1/GATE1_HUMAN_REVIEW_PACKET.md).
+Les 11 PNG natifs `df6d350b` / Browser `d1895ecb` sont indexés et leurs tailles/hashes revérifiés ;
+aucune nouvelle acquisition. Le paquet humain v1 reste historique, inchangé et distinct de ces
+images. Obtenir un verdict visuel ciblé avant de convertir les limites qualitatives en nouveaux
+correctifs ; les revues temporelles et comparatives restent distinctes. **43/55 inchangé**,
+aucune case humaine cochée, Gate 2 non commencée.
+
 ## Historique des preuves avant report
 
 État courant de la chaîne d'intégration : `R1-023` dispose de l'implémentation native bornée

@@ -1,5 +1,56 @@
 # Gate 1 — paquet de revue humaine séparé et fail-closed
 
+## Revue courante — 4 septembre 2026
+
+**Commencer ici pour juger le rendu actuel.** Le JSON v1 décrit un corpus historique : il n'est
+pas actualisé silencieusement vers les captures récentes. Ses 27 artefacts, ses identifiants, son
+hash et son validateur restent inchangés ; aucun reçu v1 ne peut attester les images ci-dessous.
+Ce complément est un index de consultation, pas un nouveau paquet ni une acceptation humaine.
+
+La dernière tranche exécutée est documentée dans
+[Berges intégrées et relais des arbres](BANKS_AND_TREE_HANDOFFS.md) : natif High `df6d350b` et
+Browser Low/High `d1895ecb`. Seul Studio change entre ces deux commits ; leurs identités restent
+distinctes. Le HEAD de préparation `f4d3f19` ne change ensuite que documentation et preuves.
+
+| Ensemble | Vue humaine | Vue lointaine | Sec initial | Pluie | Retour au sec |
+|---|---|---|---|---|---|
+| Natif High, 1920×1080 | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-high-release-20260904/captures/human-clear.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-high-release-20260904/captures/distant-clear.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-high-release-20260904/captures/water-clear.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-high-release-20260904/captures/water-rain.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-high-release-20260904/captures/water-restored.png) |
+| Browser Low, 1408×966 | — | — | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/low/1-initial_clear-canvas.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/low/2-rain-canvas.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/low/3-restored_clear-canvas.png) |
+| Browser High, 1408×966 | — | — | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/high/1-initial_clear-canvas.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/high/2-rain-canvas.png) | [Ouvrir](E:/OpenRPG_Forge/.gate1-tools/evidence/banks-trees-df6d350-browser-20260904/d1895ecb7070-20260904T091028020Z/high/3-restored_clear-canvas.png) |
+
+Ces liens consultent les originaux locaux sans copie ni réencodage. Sur un autre poste, utiliser
+les racines indiquées dans le rapport de tranche et les chemins relatifs de ses ledgers.
+Contrôle du complément : **11/11 tailles et SHA-256 des PNG conformes**, hashes des quatre JSON
+natifs/Browser conformes au rapport ; hash du paquet v1 inchangé. Aucun moteur, build, benchmark
+ou nouveau processus de capture lancé pour préparer cette revue.
+Le validateur statique v1 repasse avec 27 artefacts / 6 ensembles, `external_verified=false` :
+ce PASS vérifie le paquet historique, pas une nouvelle revue humaine ni les racines externes v1.
+
+La décision demandée porte d'abord sur la vue humaine, la vue lointaine, les matériaux et la
+composition (`R1-046/047/049/050`). Les trois cycles météo servent aussi à apprécier le rendu humide,
+le retour au sec et le post-traitement (`R1-025/026`) ; le changement simultané d'éclairage ne prouve
+pas isolément chaque effet. Pour l'eau (`R1-023`), distinguer eau/berges lisibles de reflets/réfraction
+effectivement discernables : une image ambiguë reste **inconclusive**, pas PASS.
+
+Limites visibles à examiner : herbe proche anguleuse, rivière géométrique, lointain répétitif,
+silhouettes CC0/procédurales différentes. Ce sont des points de décision, pas une nouvelle campagne
+automatique de retouches. En cas de refus, consigner le défaut nommé et le résultat attendu avant
+un correctif borné. Un accord sur ces vues ne vaut ni jugement du mouvement/contrôleur
+(`R1-014/048`), ni comparaison Grassworks/Cadle (`R1-051/052`), ni passage de Gate 1.
+
+Actualisation des prérequis historiques décrits plus bas :
+
+- `R1-037` est désormais PASS Windows/Vulkan ; l'autorisation hôte et les quatre captures sont acquises.
+- `R1-023/025/026` disposent de [preuves GPU liées et chemins compilés](R1_023_025_026_GPU_BOUND_STATE.md)
+  sur `5f6ed579`, pas d'une qualification GPU universelle des images actuelles. Aucun pixel debug
+  supplémentaire n'est exigé ; la revue fonctionnelle/visuelle reste due.
+- [ADR-0010](../../ADR/ADR-0010-gate1-strict-performance-deferral.md) diffère `R1-041` et le volet
+  cadence de `R1-048`. Ne pas relancer PresentMon. La revue vidéo/contrôleur reste due ; le dernier
+  lot est frames-only, sans nouvelle vidéo.
+
+**Aucune nouvelle acceptation enregistrée. Gate 1 : 43/55 routes cochées ; Gate 2 non commencée.**
+Les procédures suivantes s'appliquent exclusivement au paquet historique v1 et à ses propres fichiers.
+
 ## Portée et frontière de décision
 
 Le paquet [`gate1-human-review-package.v1.json`](gate1-human-review-package.v1.json) prépare une
@@ -37,7 +88,7 @@ ou locales. Le protocole R1-051 suivi porte le SHA-256
 SHA-256 `6d1219d19748f9e90d49e6431e17f160e65c90e7483b4d38a388e801ad754ac8` ; toujours le recalculer avant une revue, car
 tout changement d'octets invalide un reçu antérieur.
 
-## Les sept routes prêtes à la revue
+## Les sept routes prêtes dans le paquet historique v1
 
 Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Prête » ne vaut pas
 « acceptée » et aucune case de la roadmap n'est fermée par la seule préparation du paquet.
@@ -55,7 +106,10 @@ Seules les routes suivantes ont `review_readiness=ready_for_human_review`. « Pr
 Le relecteur doit ouvrir les fichiers enregistrés dans le paquet, vérifier leurs hashes avec le
 validateur, les examiner sans réencodage ni remplacement, puis consigner des observations concrètes.
 
-## Routes encore soumises à des prérequis
+## Prérequis historiques du paquet v1
+
+Cette liste explique les états figés du JSON v1. Elle ne constitue plus le plan de travail courant :
+les actualisations RenderDoc, météo et ADR-0010 figurent en tête de ce guide.
 
 Les quatre autres routes humaines sont présentes pour rendre leurs blocages visibles, pas pour recevoir
 prématurément un verdict favorable :

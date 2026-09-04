@@ -4,7 +4,8 @@ Dernière mise à jour : **4 septembre 2026**
 Branche : **`Rust`**
 Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 ouverte, critères stricts de
 performance différés par accord explicite ADR-0010 ; dernier replay schema 13 FAIL, audits suspendus ;
-preuves GPU précises et revue humaine dues ; Gate 2 interdite ; produit non qualifié**
+preuves GPU ciblées acquises sur leur candidat, revue fonctionnelle/visuelle et humaine due ;
+Gate 2 interdite ; produit non qualifié**
 Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
 Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
 
@@ -73,6 +74,13 @@ le driver. Les commits d'acquisition diffèrent uniquement dans Studio, pas dans
 [Preuve, échec et limites](docs/evidence/gate1/BANKS_AND_TREE_HANDOFFS.md). Berges mieux intégrées et
 arbres plus variés à l'inspection d'agent ; rendu encore provisoire, pas de qualification humaine.
 Gate 1 reste **43/55**, Gate 2 non commencée ; aucune reprise des audits de cadence.
+
+Prochaine décision : [revue du rendu courant](docs/evidence/gate1/GATE1_HUMAN_REVIEW_PACKET.md),
+index des 11 PNG natifs/Browser du dernier lot, originaux et hashes revérifiés. Le paquet humain v1
+reste historique et inchangé ; aucun de ses reçus ne peut attester ces nouvelles images. Ne pas
+inventer de nouveau lot technique à partir des adjectifs qualitatifs d'O1 : présenter les limites
+visibles et obtenir un verdict ciblé. Mouvement, contrôleur et comparaisons externes restent des
+revues distinctes ; aucun accord général sur ces images ne passe à lui seul Gate 1.
 
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
