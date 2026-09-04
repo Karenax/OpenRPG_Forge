@@ -676,6 +676,9 @@ qualité                   Low / Medium / High / Ultra
   fermer avant un reçu humain versionné.
 - [x] `R1-015` interaction locale avec personnage — champ borné aligné sur la pose post-physique.
 - [x] `R1-016` culling par chunks — instantané cohérent après 241 observations caméra/range.
+  Correctif `d2c5e52` : origine shader des batches grass recentrée sur l'AABB CPU, sans déplacement
+  monde ni changement de densité ; 369 tests workspace et capture Release High `99a724a` PASS
+  automatisé frames-only. [Preuve bornée](../evidence/gate1/GRASS_BATCH_RANGE_CENTER.md).
 - [x] `R1-017` réglage des ombres par distance — CSM 128 m et règles caster/opt-out observés.
 - [x] `R1-018` métriques instances visibles/cullées — schéma v4, draw calls explicitement indisponibles.
 
@@ -767,6 +770,8 @@ qualité                   Low / Medium / High / Ultra
 - [ ] `R1-046` vue à hauteur humaine — PNG Release exact `125ba0b` réacquis, non vide et cohérent à
   l'inspection d'agent ; défaut depth-only corrigé, paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict
   humain comparatif encore dû.
+  Vue humaine réacquise en Release High `99a724a` après le correctif grass ; scène fonctionnelle
+  mais encore rudimentaire, sans nouveau verdict humain.
 - [ ] `R1-047` vue lointaine — PNG Release exact `125ba0b` réacquis, correction bleu-noir préservée ;
   paquet v1 **PRÊT POUR REVUE HUMAINE**, verdict LOD/composition encore dû.
 - [ ] `R1-048` vidéo de déplacement courte — **CADENCE DIFFÉRÉE sous ADR-0010 / REVUE HUMAINE DUE**.

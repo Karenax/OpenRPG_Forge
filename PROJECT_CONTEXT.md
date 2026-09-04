@@ -47,6 +47,14 @@ La trace d'un pixel est une limite de cet outil, pas une exigence supplémentair
 La suite exploite les séquences natives/Browser sec/pluie/sec existantes pour la revue visuelle,
 en conservant leurs sources et verdicts historiques ; aucun nouvel audit de fragment n'est requis.
 
+Correction visuelle du 4 septembre : `d2c5e52` aligne le centre AABB CPU des batches grass avec
+l'origine utilisée par le shader pour le fade sur relief, sans changer densité, assets ou positions
+monde. Candidat `99a724a` : **369/369 tests workspace, Clippy strict, check WASM et capture native
+Release High frames-only PASS** (29 PNG, logs vides). Le premier essai Dev reste FAIL sur warnings
+du chargeur Vulkan ; il est conservé séparément. [Preuve du correctif](docs/evidence/gate1/GRASS_BATCH_RANGE_CENTER.md).
+L'inspection confirme une scène fonctionnelle mais encore rudimentaire, pas une qualité visuelle
+finale. Gate 1 reste à 43/55 ; prochaines avancées centrées sur le rendu visible et sa revue.
+
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
 migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de

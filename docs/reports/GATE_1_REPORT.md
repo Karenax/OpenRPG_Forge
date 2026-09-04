@@ -15,7 +15,15 @@ pour Gate 1, mais jamais déclarés PASS. Le volet cadence de `R1-048` est diff�
 la vidéo et les preuves GPU par matériau restent dues. **43/55 routes sont cochées**, après le PASS
 local Windows/Vulkan de R1-037 le 4 septembre ; Gate 1 reste ouverte.
 
-### Résultat nouveau : R1-037 PASS
+### Correctif végétation validé
+
+Complément correctif `d2c5e52`, exécuté sur `99a724a` : centre de fade des batches grass aligné sur
+l'AABB CPU, géométrie monde et densité conservées. **369 tests workspace, Clippy et check WASM PASS** ;
+rejeu Release High **29 PNG, logs vides, 12 diagnostics de passes**, sans campagne de cadence.
+Le run Dev refusé sur warnings Vulkan reste FAIL et conservé. [Preuve et vues](../evidence/gate1/GRASS_BATCH_RANGE_CENTER.md).
+La scène reste rudimentaire ; ce correctif n'est pas une validation artistique ni une fermeture de gate.
+
+### R1-037 — preuve GPU conservée
 
 Runtime Release `5f6ed579`, outillage `7d2db384`, RX 7800 XT/Vulkan 26.8.1, High 1080p : quatre
 captures et replays indépendants, état figé et compteurs identiques par météo, un Present par capture,
