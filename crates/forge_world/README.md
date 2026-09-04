@@ -27,6 +27,14 @@ colliders moteur restent la responsabilité des adapters. Le module ne contient 
 Cadle. Le plan sale ne régénère et n'applique pas encore les chunks ; il ne qualifie donc pas à lui
 seul `R1-007`.
 
+La fixture de végétation est produite par `VisualValleyVegetationRecipe`. Ses quatre probabilités
+de placement (arbres 0,20 ; arbustes 0,36 ; fougères 0,42 ; herbe 0,80) renforcent la couverture sans
+changer seed, grille, tentatives, filtres, espacements ni exclusions. La nouvelle fixture initiale
+reste en révision partagée 1 ; son hash et son commit distinguent ce contenu des preuves antérieures.
+Les anciens placements d'herbe sont tous conservés. Pour les autres couches, de nouveaux candidats
+peuvent remplacer des anciens dans l'ordre glouton d'espacement ; les instances survivantes restent
+bit-identiques. Les tests épinglent la recette antérieure, les nouveaux comptes et cette distinction.
+
 Validation ciblée :
 
 ```text

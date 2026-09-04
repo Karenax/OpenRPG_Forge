@@ -3381,7 +3381,7 @@ mod tests {
         );
         assert_eq!(
             manifest.source_hashes.vegetation.as_deref(),
-            Some("3c87dc39beccd22b96dba19448b72ec7dd58881a371fe5863c8039585068ce6d")
+            Some("664df33ffe5ea42ae8e6dc9b30e496abe62f054583f483f8019f9abb6f8d00f7")
         );
         assert_eq!(
             manifest.source_hashes.environment.as_deref(),

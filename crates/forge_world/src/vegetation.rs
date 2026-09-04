@@ -67,7 +67,7 @@ impl VisualValleyVegetationRecipe {
                     "forge_trees",
                     "Forge trees",
                     VegetationKind::Tree,
-                    0.10,
+                    0.20,
                     2,
                     6.0,
                     0.8,
@@ -92,7 +92,7 @@ impl VisualValleyVegetationRecipe {
                     "forge_shrubs",
                     "Forge shrubs",
                     VegetationKind::Shrub,
-                    0.16,
+                    0.36,
                     2,
                     3.5,
                     0.65,
@@ -112,7 +112,7 @@ impl VisualValleyVegetationRecipe {
                     "forge_ferns",
                     "Forge ferns",
                     VegetationKind::Fern,
-                    0.18,
+                    0.42,
                     2,
                     2.5,
                     0.75,
@@ -132,7 +132,7 @@ impl VisualValleyVegetationRecipe {
                     "forge_grass",
                     "Forge grass patches",
                     VegetationKind::Grass,
-                    0.32,
+                    0.80,
                     4,
                     0.0,
                     0.7,
@@ -803,9 +803,10 @@ mod tests {
         );
         assert_eq!(
             fixture.content_hash().unwrap().to_string(),
-            "3c87dc39beccd22b96dba19448b72ec7dd58881a371fe5863c8039585068ce6d"
+            "664df33ffe5ea42ae8e6dc9b30e496abe62f054583f483f8019f9abb6f8d00f7"
         );
         assert_eq!(fixture.extent_m, VegetationExtent::new(512.0, 512.0));
+        assert_eq!(fixture.revision, Revision::INITIAL);
         assert_eq!(fixture.layers.len(), 4);
         assert_eq!(fixture.layers[0].kind, VegetationKind::Tree);
         assert_eq!(fixture.layers[1].kind, VegetationKind::Shrub);
@@ -987,15 +988,15 @@ mod tests {
         assert_eq!(
             generated.kind_counts,
             VegetationKindCounts {
-                trees: 704,
-                shrubs: 1_228,
-                ferns: 1_282,
-                grass_patches: 5_068,
+                trees: 1_239,
+                shrubs: 2_520,
+                ferns: 2_959,
+                grass_patches: 12_593,
             }
         );
         assert_eq!(
             generated.content_hash().unwrap().to_string(),
-            "40869c0bb7cad029f966d757d6fb8046243e0e94b58477895ee8c5713d267ac6"
+            "a12f488543df697325eb5df77df803ef6cf633b78fdcf017b5d2d3f4e7e263b0"
         );
         for kind in [
             VegetationKind::Tree,
@@ -1031,6 +1032,96 @@ mod tests {
             current.content_hash().unwrap(),
             previous.content_hash().unwrap()
         );
+    }
+
+    fn assert_instance_bits_equal(actual: &VegetationInstance, expected: &VegetationInstance) {
+        assert_eq!(actual, expected);
+        let scalar_bits = |instance: &VegetationInstance| {
+            [
+                instance.position_m.x,
+                instance.position_m.y,
+                instance.position_m.z,
+                instance.yaw_radians,
+                instance.scale,
+                instance.wind_phase_radians,
+                instance.wind_response,
+            ]
+            .map(f32::to_bits)
+        };
+        assert_eq!(scalar_bits(actual), scalar_bits(expected));
+        assert_eq!(
+            actual.slope_gradient_squared.to_bits(),
+            expected.slope_gradient_squared.to_bits()
+        );
+        assert_eq!(
+            actual.material_weight.map(f32::to_bits),
+            expected.material_weight.map(f32::to_bits)
+        );
+    }
+
+    #[test]
+    fn denser_recipe_preserves_old_grass_and_bit_identical_surviving_attempts() {
+        let (terrain, vegetation) = documents();
+        let current = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+
+        // Reconstruct the exact 8fb042c recipe. Its hash also pins all unchanged exclusions,
+        // filters, spacings, scales, seed, grid, attempts and presentation settings.
+        let mut previous = vegetation;
+        previous.revision = Revision::INITIAL;
+        for (layer, probability) in previous.layers.iter_mut().zip([0.10, 0.16, 0.18, 0.32]) {
+            layer.acceptance_probability = probability;
+        }
+        assert_eq!(
+            previous.content_hash().unwrap().to_string(),
+            "3c87dc39beccd22b96dba19448b72ec7dd58881a371fe5863c8039585068ce6d"
+        );
+        let previous = VegetationGenerationPlan::from_documents(&terrain, &previous)
+            .unwrap()
+            .generate()
+            .unwrap();
+        assert_eq!(
+            previous.content_hash().unwrap().to_string(),
+            "40869c0bb7cad029f966d757d6fb8046243e0e94b58477895ee8c5713d267ac6"
+        );
+        assert_eq!(current.chunks.len(), previous.chunks.len());
+        for (current_chunk, previous_chunk) in current.chunks.iter().zip(&previous.chunks) {
+            assert_eq!(current_chunk.id, previous_chunk.id);
+            assert_eq!(current_chunk.coordinate, previous_chunk.coordinate);
+        }
+
+        let current_instances = current
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .map(|instance| (instance.id, instance))
+            .collect::<BTreeMap<_, _>>();
+        let mut retained = VegetationKindCounts::default();
+        for old in previous.chunks.iter().flat_map(|chunk| &chunk.instances) {
+            if let Some(current) = current_instances.get(&old.id) {
+                assert_instance_bits_equal(current, old);
+                retained.increment(old.kind);
+            } else {
+                // New earlier candidates may replace later spaced plants in the unchanged
+                // global greedy order; zero-spacing grass must remain a strict superset.
+                assert_ne!(old.kind, VegetationKind::Grass);
+            }
+        }
+        assert_eq!(retained.grass_patches, previous.kind_counts.grass_patches);
+        for kind in [
+            VegetationKind::Tree,
+            VegetationKind::Shrub,
+            VegetationKind::Fern,
+            VegetationKind::Grass,
+        ] {
+            assert!(retained.count(kind) > 0, "no surviving {kind:?}");
+            assert!(
+                current.kind_counts.count(kind) > previous.kind_counts.count(kind),
+                "density did not increase for {kind:?}"
+            );
+        }
     }
 
     #[test]

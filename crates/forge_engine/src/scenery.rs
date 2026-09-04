@@ -1335,11 +1335,17 @@ mod tests {
             );
         }
         assert_eq!(prepared.stats.selected_by_kind.trees, eligible_trees);
-        assert!(eligible_trees > 48);
-        assert_eq!(prepared.stats.selected_by_kind.shrubs, 33);
-        assert_eq!(prepared.stats.selected_by_kind.ferns, 18);
-        assert_eq!(prepared.stats.selected_by_kind.rocks, 22);
-        assert_eq!(prepared.stats.selected_by_kind.details, 4);
+        assert_eq!(eligible_trees, 285);
+        assert_eq!(
+            prepared.stats.selected_by_kind,
+            SceneryInstanceCounts {
+                trees: eligible_trees,
+                shrubs: 68,
+                ferns: 40,
+                rocks: 43,
+                details: 17,
+            }
+        );
         assert_eq!(
             prepared.stats.selected_by_kind.hidden_procedural_entities(),
             usize::try_from(eligible_trees).ok()

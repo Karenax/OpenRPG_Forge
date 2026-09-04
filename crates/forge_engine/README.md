@@ -82,6 +82,11 @@ opt-in gizmo group, never Bevy wireframe rendering.
 Grass batch meshes are recentered on their deformation-safe AABB before upload, with the opposite
 translation applied to their entity. This preserves world geometry and makes CPU/compute AABB range
 checks agree with the vertex shader's origin-based distance fade, including on elevated terrain.
+Grass roots now cover a 2.5 m patch radius before authored scale, with the same seven vertices and
+three triangles per blade. Exclusions apply to patch centres: at the maximum 1.25 scale, a 3.75 m
+wide root-free core remains in the movement corridor and a 10.875 m radius around spawn. These are
+root bounds, not a guarantee on the animated leaf envelope. LOD distances, batch counts and defensive
+budgets are unchanged; the denser source recipe increases geometry rather than claiming a free gain.
 
 `VisualValleyWeatherPlugin` projects the versioned clear/rain contract without adding an asset or a
 second particle dependency. The selected quality tier becomes one procedural cross-quad mesh and one

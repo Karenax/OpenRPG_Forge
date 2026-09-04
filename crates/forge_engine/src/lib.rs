@@ -2911,7 +2911,7 @@ mod tests {
         assert_eq!(serialized["visual_valley"]["triangles"], 131_072);
         assert_eq!(
             serialized["vegetation"]["placements"]["accepted_placements"],
-            8_282
+            19_311
         );
         assert_eq!(serialized["vegetation"]["projection"]["grass_batches"], 64);
         assert_eq!(serialized["scenery"]["status"], "activated");

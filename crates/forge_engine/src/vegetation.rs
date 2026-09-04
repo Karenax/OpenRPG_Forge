@@ -38,7 +38,7 @@ const VEGETATION_SHADER_PATH: &str =
     "embedded://forge_engine/shaders/visual_valley_vegetation_deform.wgsl";
 const MAX_WIND_AMPLITUDE_M: f32 = 0.55;
 const MAX_INTERACTION_AMPLITUDE_M: f32 = 0.45;
-const GRASS_PATCH_RADIUS_M: f32 = 1.55;
+const GRASS_PATCH_RADIUS_M: f32 = 2.5;
 const GOLDEN_ANGLE_RADIANS: f32 = 2.399_963_1;
 const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
@@ -2598,7 +2598,89 @@ mod tests {
                 }
                 assert_eq!(weights[6][3].to_bits(), patch.wind_response.to_bits());
             }
-            assert!((1.5 * scale..1.6 * scale).contains(&maximum_root_radius));
+            assert!((2.45 * scale..2.5 * scale).contains(&maximum_root_radius));
+        }
+    }
+
+    #[test]
+    fn grass_footprint_preserves_root_clearance_at_maximum_authored_scale() {
+        let terrain_document = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain_document).unwrap();
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let grass = vegetation
+            .layers
+            .iter()
+            .find(|layer| layer.kind == VegetationKind::Grass)
+            .unwrap();
+        let radius = GRASS_PATCH_RADIUS_M * grass.maximum_scale;
+        let blades = vegetation.presentation.grass_blades_per_patch;
+        assert_eq!(GRASS_PATCH_RADIUS_M.to_bits(), 2.5_f32.to_bits());
+        assert_eq!(radius.to_bits(), 3.125_f32.to_bits());
+
+        for exclusion in &vegetation.exclusions {
+            let (center, exclusion_radius, circular) = match exclusion {
+                forge_project::VegetationExclusion::Circle {
+                    center_x_m,
+                    center_z_m,
+                    radius_m,
+                    ..
+                } => (Vec3::new(*center_x_m, 0.0, *center_z_m), *radius_m, true),
+                forge_project::VegetationExclusion::CorridorSegment {
+                    start_x_m,
+                    start_z_m,
+                    end_x_m,
+                    end_z_m,
+                    half_width_m,
+                    ..
+                } => {
+                    assert_eq!(start_x_m.to_bits(), end_x_m.to_bits());
+                    (
+                        Vec3::new(*start_x_m, 0.0, f32::midpoint(*start_z_m, *end_z_m)),
+                        *half_width_m,
+                        false,
+                    )
+                }
+            };
+            // Exclusions reject patch centres, not individual blades. The wider footprint
+            // may enter the authored margin but retains this smaller root-free core.
+            let root_clearance = exclusion_radius - radius;
+            let expected_clearance = if circular { 10.875_f32 } else { 1.875_f32 };
+            assert_eq!(root_clearance.to_bits(), expected_clearance.to_bits());
+            for side in [-1.0, 1.0] {
+                let patch_center = center + Vec3::X * side * (exclusion_radius + 0.001);
+                let mut patch = placement(VegetationKind::Grass, patch_center.x, patch_center.z);
+                patch.scale = grass.maximum_scale;
+                let mesh =
+                    build_grass_chunk_mesh(&terrain, Vec3::ZERO, &[patch], blades, 0.0).unwrap();
+                assert_eq!(mesh.mesh.count_vertices(), usize::from(blades) * 7);
+                assert_eq!(mesh.triangles, usize::from(blades) * 3);
+                let Some(VertexAttributeValues::Float32x3(positions)) =
+                    mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+                else {
+                    panic!("grass positions must be Float32x3");
+                };
+                let mut maximum_root_radius = 0.0_f32;
+                for blade in positions.as_chunks::<7>().0 {
+                    let base = Vec3::from(blade[0]).midpoint(Vec3::from(blade[1]));
+                    let root_radius = (base - patch_center).with_y(0.0).length();
+                    assert!(root_radius <= radius + 1.0e-4);
+                    maximum_root_radius = maximum_root_radius.max(root_radius);
+                    let clearance = if circular {
+                        (base - center).with_y(0.0).length()
+                    } else {
+                        (base.x - center.x).abs()
+                    };
+                    assert!(clearance >= root_clearance);
+                    assert!(
+                        (base.y - terrain.surface_at(base.x, base.z).unwrap().height_m).abs()
+                            < 1.0e-4
+                    );
+                }
+                let expected_outer_radius =
+                    radius * ((f32::from(blades) - 0.5) / f32::from(blades)).sqrt();
+                assert!((maximum_root_radius - expected_outer_radius).abs() < 1.0e-4);
+                assert!(maximum_root_radius > radius * 0.99);
+            }
         }
     }
 
