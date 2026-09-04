@@ -1336,6 +1336,88 @@ mod tests {
     }
 
     #[test]
+    fn wetness_cycle_updates_terrain_and_bank_materials_without_changing_palettes() {
+        let mut harness = headless_weather_harness(WeatherState::Clear, None);
+        let document = profile();
+        let bank_material = {
+            let mut materials = harness
+                .app
+                .world_mut()
+                .resource_mut::<Assets<VisualValleyTerrainMaterial>>();
+            let mut bank = materials.get(&harness.terrain_material).unwrap().clone();
+            // A distinct fixture catches accidental palette replacement across material assets.
+            bank.extension.earth_color_roughness = Vec4::new(0.18, 0.08, 0.025, 0.91);
+            materials.add(bank)
+        };
+        let material_ids = [harness.terrain_material.id(), bank_material.id()];
+        assert_ne!(material_ids[0], material_ids[1]);
+        let palette = |material: &VisualValleyTerrainMaterial| {
+            let extension = &material.extension;
+            [
+                extension.grass_color_roughness,
+                extension.earth_color_roughness,
+                extension.rock_color_roughness,
+                extension.grass_metallic_reflectance,
+                extension.earth_metallic_reflectance,
+                extension.rock_metallic_reflectance,
+            ]
+        };
+        let authored_palettes = material_ids.map(|id| {
+            palette(
+                harness
+                    .app
+                    .world()
+                    .resource::<Assets<VisualValleyTerrainMaterial>>()
+                    .get(id)
+                    .unwrap(),
+            )
+        });
+
+        for (target_state, target_wetness, steps) in [
+            (WeatherState::Clear, document.wetness.clear_target, 0),
+            (WeatherState::Rain, document.wetness.rain_target, 60),
+            (WeatherState::Clear, document.wetness.clear_target, 120),
+        ] {
+            {
+                let mut state = harness
+                    .app
+                    .world_mut()
+                    .resource_mut::<WeatherRuntimeState>();
+                state.request_state(target_state);
+                for _ in 0..steps {
+                    advance_runtime(&document, &mut state, 0.1);
+                }
+            }
+            harness.app.update();
+
+            let world = harness.app.world();
+            let state = world.resource::<WeatherRuntimeState>();
+            assert_eq!(state.current_wetness.to_bits(), target_wetness.to_bits());
+            let materials = world.resource::<Assets<VisualValleyTerrainMaterial>>();
+            assert_eq!(materials.len(), 2);
+            for (id, authored_palette) in material_ids.into_iter().zip(authored_palettes) {
+                let material = materials.get(id).unwrap();
+                assert_eq!(
+                    material.extension.wetness_parameters,
+                    wetness_uniform(&document, target_wetness)
+                );
+                assert_eq!(
+                    material.extension.wetness_parameters.x.to_bits(),
+                    target_wetness.to_bits()
+                );
+                assert_eq!(palette(material), authored_palette);
+            }
+            let projection = world.resource::<WeatherProjectionStats>();
+            assert_eq!(projection.wetness.terrain_materials, 2);
+            assert!(projection.wetness.terrain_uniforms_match);
+            if target_state == WeatherState::Clear {
+                assert_eq!(projection.wetness.clear_target_restored_exactly, Some(true));
+            }
+            assert!(!projection.gpu_execution_observed);
+        }
+    }
+
+    #[test]
     fn color_grade_mapping_is_bounded_and_returns_exact_clear_values() {
         let profile = profile();
         let clear = interpolated_grade(&profile, 0.0);

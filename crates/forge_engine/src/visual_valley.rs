@@ -161,6 +161,20 @@ impl MaterialExtension for VisualValleyTerrainExtension {
 pub type VisualValleyTerrainMaterial =
     ExtendedMaterial<StandardMaterial, VisualValleyTerrainExtension>;
 
+/// Shared PBR base for terrain chunks and their derived river-bank transition meshes.
+pub(crate) fn procedural_terrain_material() -> VisualValleyTerrainMaterial {
+    VisualValleyTerrainMaterial {
+        base: StandardMaterial {
+            base_color: Color::WHITE,
+            metallic: 0.0,
+            perceptual_roughness: 1.0,
+            opaque_render_method: OpaqueRendererMethod::Auto,
+            ..default()
+        },
+        extension: VisualValleyTerrainExtension::default(),
+    }
+}
+
 /// Bevy adapter for the first asset-free Visual Valley terrain tranche.
 pub struct VisualValleyPlugin {
     document: TerrainDocument,
@@ -585,16 +599,7 @@ fn spawn_visual_valley(
         .0
         .take()
         .expect("Visual Valley preparation is consumed exactly once at startup");
-    let material = materials.add(VisualValleyTerrainMaterial {
-        base: StandardMaterial {
-            base_color: Color::WHITE,
-            metallic: 0.0,
-            perceptual_roughness: 1.0,
-            opaque_render_method: OpaqueRendererMethod::Auto,
-            ..default()
-        },
-        extension: VisualValleyTerrainExtension::default(),
-    });
+    let material = materials.add(procedural_terrain_material());
 
     for chunk in prepared.chunks {
         let mesh_handle = meshes.add(chunk.mesh);

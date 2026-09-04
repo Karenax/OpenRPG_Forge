@@ -97,16 +97,33 @@ puddle response as deferred; those require the later runtime/Studio capture and 
 `VisualValleySceneryPlugin` is an optional presentation adapter layered over the deterministic
 vegetation plan. It selects a bounded hero-area subset from the canonical placements and loads only
 the models declared in the embedded governed-asset manifest. Imported roots remain hidden until all
-glTF scenes and recursive dependencies are loaded. Only then are corresponding procedural visuals
-hidden; any failed load leaves the procedural projection visible. The source documents, placement
-IDs, collisions and persistence contracts are unchanged.
+glTF scenes and recursive dependencies are loaded. Only then are replaced tree Near visuals hidden;
+their Medium visuals and shrub/fern Individual visuals take over at each imported root's cutoff,
+before the existing complementary HLOD fade. Any failed load leaves the procedural projection
+visible. The source documents, placement IDs, collisions and persistence contracts are unchanged.
+Every eligible tree in the existing 140 m hero disk uses one of the three already governed CC0 tree
+models; shrub/fern/detail selection and the 512-instance cap remain unchanged. Imported glTF materials
+are preserved and do not inherit Forge's procedural wind or wetness shader.
 
 Applied quality tiers drive the governed replacement visibility ranges without changing the source
-placements: Low `48-128 m`, Medium `60-160 m`, High `72-180 m` and Ultra `96-240 m`. The Studio scene
+placements: Low `35-82 m`, Medium `43-104 m`, High `51-120 m` and Ultra `67-162 m`. Each cutoff is
+derived inside the stable Medium band using the same placement ID. CC0 roots are visible strictly
+below the cutoff; procedural relay ranges include it. Ranges are reapplied after an actual quality
+transition, not recomputed for every placement each frame. Tier application, procedural relay and
+CC0 visibility run in that order before visibility propagation; vegetation shader uniforms consume
+the applied tier in the same `PostUpdate`. `hidden_procedural_entities` counts only
+permanently hidden Near tree entities; relays remain inherited. The Studio scene
 ledger v7 observes both the current and actually applied tier plus the expected replacement LOD
 range. Visual Valley readiness remains pending until those values agree with the activated scenery
 observation. These are observable contracts; final combined native GPU and browser qualification is
 required separately from unit-test evidence.
+
+Derived river banks share the terrain PBR material and weather wetness projection. Five transverse
+vertices per bank follow the canonical terrain while retaining the exact CPU water edge and the
+outer 1.5 cm clearance. Earth weights blend into canonical terrain weights across the existing 5 m
+shoulder (the requested 9 m blend is retained as requested, not claimed fully applied). This is a
+visual ribbon, not terrain carving: colliders, river data, permanent wet-edge shading and erosion
+remain unchanged. Vertex clearance does not prove triangle-wide clearance or animated wave sealing.
 
 On the current `d9e2670` candidate, `cargo fmt --all -- --check` and strict workspace Clippy pass,
 as do 120/120 `forge_engine` library tests and **296/296** workspace/all-target tests. The exact

@@ -11,7 +11,7 @@ use crate::{
     VisualValleyShadowStats, WaterProjectionStats, WeatherRuntimeState,
 };
 use bevy::{
-    camera::visibility::VisibilityRange,
+    camera::visibility::{VisibilityRange, VisibilitySystems},
     core_pipeline::{prepass::DeferredPrepass, tonemapping::Tonemapping},
     light::{CascadeShadowConfig, CascadeShadowConfigBuilder, DirectionalLightShadowMap},
     pbr::{ContactShadows, ScreenSpaceReflections},
@@ -119,6 +119,13 @@ struct VisualValleyQualityRuntime {
     cooldown_remaining_frames: u16,
     transition_count: u64,
     last_transition: Option<QualityTierTransition>,
+}
+
+#[cfg(test)]
+pub(crate) fn set_quality_tier_for_test(world: &mut World, tier: VisualQualityTier) {
+    world
+        .resource_mut::<VisualValleyQualityRuntime>()
+        .current_tier = tier;
 }
 
 impl VisualValleyQualityRuntime {
@@ -261,9 +268,11 @@ impl Plugin for VisualValleyQualityPlugin {
             field_projections: quality_field_projections(),
         })
         .add_systems(
-            Last,
+            PostUpdate,
+            // Commit the tier and its derived ranges before this frame's visibility traversal.
             (advance_quality_adaptation, apply_quality_tier)
                 .chain()
+                .before(VisibilitySystems::VisibilityPropagate)
                 .in_set(VisualValleyQualitySet::Apply),
         );
     }
@@ -777,7 +786,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
         app.init_asset::<Mesh>();
-        app.init_asset::<StandardMaterial>();
+        app.init_asset::<crate::VisualValleyTerrainMaterial>();
         let camera = app
             .world_mut()
             .spawn((

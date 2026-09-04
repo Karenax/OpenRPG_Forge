@@ -416,12 +416,7 @@ impl StudioSceneryInstanceCounts {
     }
 
     fn hidden_procedural_entities(self) -> Option<usize> {
-        u64::from(self.trees)
-            .checked_mul(2)?
-            .checked_add(u64::from(self.shrubs))?
-            .checked_add(u64::from(self.ferns))?
-            .try_into()
-            .ok()
+        self.trees.try_into().ok()
     }
 }
 
@@ -2688,10 +2683,16 @@ mod web {
             quality_current_tier: Some(quality.current_tier),
             quality_applied_tier: quality.dynamically_applied_tier,
             quality_replacement_lod_start_m: Some(
-                quality.requested_preset.vegetation.medium_lod_distance_m,
+                SceneryProjectionStats::replacement_lod_range_for_quality(
+                    &quality.requested_preset,
+                )
+                .0,
             ),
             quality_replacement_lod_end_m: Some(
-                quality.requested_preset.vegetation.hlod_distance_m,
+                SceneryProjectionStats::replacement_lod_range_for_quality(
+                    &quality.requested_preset,
+                )
+                .1,
             ),
             scenery_observation: Some(studio_scenery_runtime_observation(scenery)),
         }))
@@ -2819,17 +2820,17 @@ mod web {
         if let (Some(scenery), Some(quality)) = (resources.scenery, resources.quality)
             && quality.dynamically_applied_tier == Some(quality.current_tier)
             && (scenery.replacement_lod_start_m.to_bits()
-                != quality
-                    .requested_preset
-                    .vegetation
-                    .medium_lod_distance_m
-                    .to_bits()
+                != SceneryProjectionStats::replacement_lod_range_for_quality(
+                    &quality.requested_preset,
+                )
+                .0
+                .to_bits()
                 || scenery.replacement_lod_end_m.to_bits()
-                    != quality
-                        .requested_preset
-                        .vegetation
-                        .hlod_distance_m
-                        .to_bits())
+                    != SceneryProjectionStats::replacement_lod_range_for_quality(
+                        &quality.requested_preset,
+                    )
+                    .1
+                    .to_bits())
         {
             pending.push("SceneryProjectionStats.quality_lod_range");
         }
@@ -3466,8 +3467,8 @@ mod tests {
                 weather_target_state: Some("rain".to_owned()),
                 quality_current_tier: Some(VisualQualityTier::High),
                 quality_applied_tier: Some(VisualQualityTier::High),
-                quality_replacement_lod_start_m: Some(72.0),
-                quality_replacement_lod_end_m: Some(180.0),
+                quality_replacement_lod_start_m: Some(51.0),
+                quality_replacement_lod_end_m: Some(120.0),
                 scenery_observation: Some(valid_studio_scenery_observation()),
                 gpu_presentation: StudioGpuPresentationStatus::NotObserved,
                 evidence_source: "synthetic_test_not_webgpu_execution".to_owned(),
@@ -3506,11 +3507,11 @@ mod tests {
         let mut observation = valid_visual_valley_runtime_observation();
         observation.quality_current_tier = Some(VisualQualityTier::Medium);
         observation.quality_applied_tier = Some(VisualQualityTier::Medium);
-        observation.quality_replacement_lod_start_m = Some(60.0);
-        observation.quality_replacement_lod_end_m = Some(160.0);
+        observation.quality_replacement_lod_start_m = Some(43.0);
+        observation.quality_replacement_lod_end_m = Some(104.0);
         if let Some(scenery) = observation.scenery_observation.as_mut() {
-            scenery.replacement_lod_start_m = 60.0;
-            scenery.replacement_lod_end_m = 160.0;
+            scenery.replacement_lod_start_m = 43.0;
+            scenery.replacement_lod_end_m = 104.0;
         }
         telemetry.observe_runtime(runtime, observation);
 
@@ -3703,8 +3704,8 @@ mod tests {
             weather_target_state: Some("rain".to_owned()),
             quality_current_tier: Some(VisualQualityTier::High),
             quality_applied_tier: Some(VisualQualityTier::High),
-            quality_replacement_lod_start_m: Some(72.0),
-            quality_replacement_lod_end_m: Some(180.0),
+            quality_replacement_lod_start_m: Some(51.0),
+            quality_replacement_lod_end_m: Some(120.0),
             scenery_observation: Some(valid_studio_scenery_observation()),
             gpu_presentation: StudioGpuPresentationStatus::NotObserved,
             evidence_source: "synthetic_headless_contract_test".to_owned(),
@@ -3727,11 +3728,11 @@ mod tests {
                 rocks: 2,
                 details: 1,
             },
-            hidden_procedural_entities: 17,
+            hidden_procedural_entities: 5,
             tracked_files: 27,
             tracked_bytes: 16_652_493,
-            replacement_lod_start_m: 72.0,
-            replacement_lod_end_m: 180.0,
+            replacement_lod_start_m: 51.0,
+            replacement_lod_end_m: 120.0,
             detail_cull_distance_m: 120.0,
         }
     }

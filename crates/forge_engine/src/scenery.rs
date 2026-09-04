@@ -1,8 +1,13 @@
-use crate::{VegetationPlacementMarker, VisualValleyQualityStats};
+use crate::{
+    VegetationLodRanges, VegetationPlacementMarker, VegetationProjectionLod,
+    VisualValleyQualityStats,
+};
 use bevy::{
     asset::{DependencyLoadState, LoadState, RecursiveDependencyLoadState},
+    camera::visibility::{VisibilityRange, VisibilitySystems},
     gltf::GltfAssetLabel,
     prelude::*,
+    transform::TransformSystems,
 };
 use forge_core::{CanonicalJsonError, ContentHash, canonical_json_sha256};
 use forge_project::{TerrainDocument, VegetationDocument, VegetationKind, VisualQualityPreset};
@@ -103,12 +108,9 @@ impl SceneryInstanceCounts {
     }
 
     pub(crate) fn hidden_procedural_entities(self) -> Option<usize> {
-        u64::from(self.trees)
-            .checked_mul(2)?
-            .checked_add(u64::from(self.shrubs))?
-            .checked_add(u64::from(self.ferns))?
-            .try_into()
-            .ok()
+        // Only the replaced tree's Near mesh stays hidden. Medium trees and individual
+        // shrubs/ferns remain available as distance-gated relays to the existing HLOD.
+        usize::try_from(self.trees).ok()
     }
 }
 
@@ -131,9 +133,25 @@ pub struct SceneryProjectionStats {
     pub detail_cull_distance_m: f32,
     pub loaded_models: usize,
     pub failed_models: usize,
+    /// Replaced Near tree entities held Hidden after activation, not distance-culled relays.
     pub hidden_procedural_entities: usize,
     pub status: SceneryProjectionStatus,
     pub fallback: &'static str,
+}
+
+impl SceneryProjectionStats {
+    /// The CC0-to-procedural handoff stays inside the fully visible Medium interval.
+    /// Its endpoints come from the renderer's actual crossfade ranges, not the authored labels.
+    #[must_use]
+    pub fn replacement_lod_range_for_quality(quality: &VisualQualityPreset) -> (f32, f32) {
+        let ranges = VegetationLodRanges::from_distances(
+            quality.vegetation.near_lod_distance_m,
+            quality.vegetation.medium_lod_distance_m,
+            quality.vegetation.hlod_distance_m,
+            quality.vegetation.cull_distance_m,
+        );
+        replacement_lod_range(&ranges)
+    }
 }
 
 /// Optional Gate 1 presentation overlay using a minimal, governed CC0 asset subset.
@@ -141,6 +159,7 @@ pub struct SceneryProjectionStats {
 /// The canonical terrain and vegetation documents still own every replacement position. The
 /// procedural projection remains visible until every referenced glTF scene and dependency has
 /// loaded. If one load fails, all CC0 roots stay hidden and the procedural scene remains intact.
+/// Imported glTF materials are preserved; this adapter does not add procedural wind or wetness.
 pub struct VisualValleySceneryPlugin {
     terrain: TerrainDocument,
     vegetation: VegetationDocument,
@@ -170,12 +189,16 @@ impl Plugin for VisualValleySceneryPlugin {
         app.insert_resource(prepared.stats.clone())
             .insert_resource(PreparedScenery(Some(prepared)))
             .add_systems(Startup, spawn_scenery_projection)
+            .add_systems(Update, observe_scenery_loading)
             .add_systems(
-                Update,
-                (observe_scenery_loading, update_scenery_lod_visibility).chain(),
+                PostUpdate,
+                update_scenery_lod_visibility
+                    .after(TransformSystems::Propagate)
+                    .after(VisualValleyScenerySet::ApplyQuality)
+                    .before(VisibilitySystems::VisibilityPropagate),
             )
             .add_systems(
-                Last,
+                PostUpdate,
                 apply_scenery_quality_lod
                     .after(crate::quality::VisualValleyQualitySet::Apply)
                     .in_set(VisualValleyScenerySet::ApplyQuality),
@@ -567,6 +590,12 @@ struct SceneryRoot {
     maximum_visibility_distance_m: f32,
 }
 
+/// A reversible presentation override; the procedural LOD entities are never destroyed.
+#[derive(Component)]
+struct SceneryProceduralReplacement {
+    lod_phase: f32,
+}
+
 #[derive(Resource)]
 struct SceneryLoading {
     handles: Vec<Handle<WorldAsset>>,
@@ -691,9 +720,7 @@ fn select_model(source: &VegetationInstance, required: RequiredModels) -> Option
     };
 
     match source.kind {
-        VegetationKind::Tree
-            if inside_hero_radius(source, TREE_RADIUS_M) && selector.is_multiple_of(3) =>
-        {
+        VegetationKind::Tree if inside_hero_radius(source, TREE_RADIUS_M) => {
             let tree = match (selector / 3) % 3 {
                 0 => required.common_tree_1,
                 1 => required.common_tree_3,
@@ -759,18 +786,15 @@ fn scenery_replacement_lod_range(
     quality: Option<&VisualQualityPreset>,
 ) -> (f32, f32) {
     quality.map_or_else(
-        || {
-            (
-                vegetation.presentation.medium_lod_distance_m,
-                vegetation.presentation.hlod_distance_m,
-            )
-        },
-        |preset| {
-            (
-                preset.vegetation.medium_lod_distance_m,
-                preset.vegetation.hlod_distance_m,
-            )
-        },
+        || replacement_lod_range(&VegetationLodRanges::from_profile(vegetation.presentation)),
+        SceneryProjectionStats::replacement_lod_range_for_quality,
+    )
+}
+
+fn replacement_lod_range(ranges: &VegetationLodRanges) -> (f32, f32) {
+    (
+        ranges.medium.start_margin.end,
+        ranges.hlod.start_margin.start,
     )
 }
 
@@ -835,6 +859,8 @@ fn apply_scenery_quality_lod(
     quality: Option<Res<VisualValleyQualityStats>>,
     mut stats: ResMut<SceneryProjectionStats>,
     mut roots: Query<&mut SceneryRoot>,
+    mut procedural: Query<(&SceneryProceduralReplacement, &mut VisibilityRange)>,
+    mut last_applied_tier: Local<Option<forge_project::VisualQualityTier>>,
 ) {
     let Some(quality) = quality.as_deref() else {
         return;
@@ -842,11 +868,11 @@ fn apply_scenery_quality_lod(
     if quality.dynamically_applied_tier != Some(quality.current_tier) {
         return;
     }
-    let replacement_lod_start_m = quality.requested_preset.vegetation.medium_lod_distance_m;
-    let replacement_lod_end_m = quality.requested_preset.vegetation.hlod_distance_m;
-    if stats.replacement_lod_start_m.to_bits() == replacement_lod_start_m.to_bits()
-        && stats.replacement_lod_end_m.to_bits() == replacement_lod_end_m.to_bits()
-    {
+    let (replacement_lod_start_m, replacement_lod_end_m) =
+        SceneryProjectionStats::replacement_lod_range_for_quality(&quality.requested_preset);
+    let changed = stats.replacement_lod_start_m.to_bits() != replacement_lod_start_m.to_bits()
+        || stats.replacement_lod_end_m.to_bits() != replacement_lod_end_m.to_bits();
+    if !changed && *last_applied_tier == Some(quality.current_tier) {
         return;
     }
 
@@ -860,8 +886,21 @@ fn apply_scenery_quality_lod(
             phase,
         );
     }
+    // These markers only exist after successful loading. Quality first restores each base
+    // procedural range; then this adapter reinstalls the exact, reversible CC0 handoff.
+    if stats.status == SceneryProjectionStatus::Activated {
+        for (replacement, mut range) in &mut procedural {
+            let threshold = replacement_maximum_visibility_distance(
+                replacement_lod_start_m,
+                replacement_lod_end_m,
+                replacement.lod_phase,
+            );
+            range.start_margin = threshold..threshold;
+        }
+    }
     stats.replacement_lod_start_m = replacement_lod_start_m;
     stats.replacement_lod_end_m = replacement_lod_end_m;
+    *last_applied_tier = Some(quality.current_tier);
 }
 
 fn desired_root_visibility(
@@ -871,7 +910,7 @@ fn desired_root_visibility(
 ) -> Visibility {
     if status == SceneryProjectionStatus::Activated
         && distance_squared_m.is_finite()
-        && distance_squared_m <= maximum_visibility_distance_m * maximum_visibility_distance_m
+        && distance_squared_m < maximum_visibility_distance_m * maximum_visibility_distance_m
     {
         Visibility::Inherited
     } else {
@@ -917,6 +956,27 @@ enum GovernedLoadState {
     Failed,
 }
 
+fn configure_procedural_replacement(
+    marker: &VegetationPlacementMarker,
+    range: &mut VisibilityRange,
+    visibility: &mut Visibility,
+    handoff_start_m: f32,
+    handoff_end_m: f32,
+) -> Option<SceneryProceduralReplacement> {
+    if marker.kind == VegetationKind::Tree && marker.lod == VegetationProjectionLod::Near {
+        *visibility = Visibility::Hidden;
+        return None;
+    }
+    let lod_phase = stable_lod_phase(marker.id);
+    let threshold =
+        replacement_maximum_visibility_distance(handoff_start_m, handoff_end_m, lod_phase);
+    // Keep the procedural end fade, so the shader's existing complementary HLOD fade is intact.
+    // CC0 roots are visible strictly below the same threshold; this range includes its start.
+    range.start_margin = threshold..threshold;
+    *visibility = Visibility::Inherited;
+    Some(SceneryProceduralReplacement { lod_phase })
+}
+
 fn governed_load_state(
     states: Option<&(LoadState, DependencyLoadState, RecursiveDependencyLoadState)>,
 ) -> GovernedLoadState {
@@ -941,12 +1001,21 @@ fn governed_load_state(
     reason = "Bevy systems own their parameter wrappers and this ParamSet prevents visibility aliasing"
 )]
 fn observe_scenery_loading(
+    mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut loading: Option<ResMut<SceneryLoading>>,
     mut stats: ResMut<SceneryProjectionStats>,
     mut visibility: ParamSet<(
         Query<&mut Visibility, With<SceneryRoot>>,
-        Query<(&VegetationPlacementMarker, &mut Visibility), Without<SceneryRoot>>,
+        Query<
+            (
+                Entity,
+                &VegetationPlacementMarker,
+                &mut VisibilityRange,
+                &mut Visibility,
+            ),
+            Without<SceneryRoot>,
+        >,
     )>,
 ) {
     let Some(loading) = loading.as_deref_mut() else {
@@ -991,10 +1060,19 @@ fn observe_scenery_loading(
         *root_visibility = Visibility::Inherited;
     }
     let mut hidden_procedural_entities = 0_usize;
-    for (marker, mut procedural_visibility) in &mut visibility.p1() {
+    for (entity, marker, mut range, mut procedural_visibility) in &mut visibility.p1() {
         if loading.replacement_ids.contains(&marker.id) {
-            *procedural_visibility = Visibility::Hidden;
-            hidden_procedural_entities += 1;
+            if let Some(replacement) = configure_procedural_replacement(
+                marker,
+                &mut range,
+                &mut procedural_visibility,
+                stats.replacement_lod_start_m,
+                stats.replacement_lod_end_m,
+            ) {
+                commands.entity(entity).insert(replacement);
+            } else {
+                hidden_procedural_entities += 1;
+            }
         }
     }
     stats.hidden_procedural_entities = hidden_procedural_entities;
@@ -1149,14 +1227,12 @@ mod tests {
             first.stats.replacement_instances,
             first.replacement_ids.len()
         );
-        assert!(
-            (first.stats.replacement_lod_start_m - vegetation.presentation.medium_lod_distance_m)
-                .abs()
-                <= f32::EPSILON
-        );
-        assert!(
-            (first.stats.replacement_lod_end_m - vegetation.presentation.hlod_distance_m).abs()
-                <= f32::EPSILON
+        assert_eq!(
+            (
+                first.stats.replacement_lod_start_m,
+                first.stats.replacement_lod_end_m
+            ),
+            replacement_lod_range(&VegetationLodRanges::from_profile(vegetation.presentation))
         );
         let used = first
             .instances
@@ -1190,14 +1266,14 @@ mod tests {
         .unwrap();
 
         for (tier, expected_start_m, expected_end_m) in [
-            (forge_project::VisualQualityTier::Low, 48.0_f32, 128.0_f32),
+            (forge_project::VisualQualityTier::Low, 35.0_f32, 82.0_f32),
             (
                 forge_project::VisualQualityTier::Medium,
-                60.0_f32,
-                160.0_f32,
+                43.0_f32,
+                104.0_f32,
             ),
-            (forge_project::VisualQualityTier::High, 72.0_f32, 180.0_f32),
-            (forge_project::VisualQualityTier::Ultra, 96.0_f32, 240.0_f32),
+            (forge_project::VisualQualityTier::High, 51.0_f32, 120.0_f32),
+            (forge_project::VisualQualityTier::Ultra, 67.0_f32, 162.0_f32),
         ] {
             let (start_m, end_m) =
                 scenery_replacement_lod_range(&vegetation, Some(profile.preset(tier)));
@@ -1215,10 +1291,179 @@ mod tests {
     }
 
     #[test]
-    fn applied_ultra_quality_updates_existing_cc0_roots_after_the_quality_transaction() {
+    fn hero_selection_uses_every_eligible_tree_without_moving_the_source() {
         let terrain = embedded_visual_valley_terrain_document().unwrap();
         let vegetation = embedded_visual_valley_vegetation_document().unwrap();
         let prepared = prepare_scenery_projection(&terrain, &vegetation).unwrap();
+        let generated = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let mut eligible_trees = 0_u32;
+        for source in generated.chunks.iter().flat_map(|chunk| &chunk.instances) {
+            if source.kind != VegetationKind::Tree {
+                continue;
+            }
+            let selected = prepared
+                .instances
+                .iter()
+                .find(|instance| instance.source_id == source.id);
+            if !inside_hero_radius(source, TREE_RADIUS_M) {
+                assert!(selected.is_none());
+                continue;
+            }
+            eligible_trees += 1;
+            let selected = selected.unwrap();
+            assert!(selected.replaces_procedural);
+            let model = &prepared.manifest.models[selected.model_index];
+            assert!(matches!(
+                model.id.as_str(),
+                "common-tree-1" | "common-tree-3" | "pine-2"
+            ));
+            assert_eq!(
+                selected.translation,
+                Vec3::new(
+                    source.position_m.x,
+                    source.position_m.y,
+                    source.position_m.z
+                )
+            );
+            assert_eq!(selected.yaw_radians.to_bits(), source.yaw_radians.to_bits());
+            assert_eq!(
+                selected.scale.to_bits(),
+                (source.scale * model.base_scale).to_bits()
+            );
+        }
+        assert_eq!(prepared.stats.selected_by_kind.trees, eligible_trees);
+        assert!(eligible_trees > 48);
+        assert_eq!(prepared.stats.selected_by_kind.shrubs, 33);
+        assert_eq!(prepared.stats.selected_by_kind.ferns, 18);
+        assert_eq!(prepared.stats.selected_by_kind.rocks, 22);
+        assert_eq!(prepared.stats.selected_by_kind.details, 4);
+        assert_eq!(
+            prepared.stats.selected_by_kind.hidden_procedural_entities(),
+            usize::try_from(eligible_trees).ok()
+        );
+        assert!(prepared.instances.len() <= MAX_SCENERY_INSTANCES);
+    }
+
+    #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "the four tiers share one complete replacement-kind transition matrix"
+    )]
+    fn procedural_relay_keeps_hlod_fades_and_only_hides_near_tree_meshes() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let generated = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let profile = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        for tier in [
+            forge_project::VisualQualityTier::Low,
+            forge_project::VisualQualityTier::Medium,
+            forge_project::VisualQualityTier::High,
+            forge_project::VisualQualityTier::Ultra,
+        ] {
+            let preset = profile.preset(tier);
+            let ranges = VegetationLodRanges::from_distances(
+                preset.vegetation.near_lod_distance_m,
+                preset.vegetation.medium_lod_distance_m,
+                preset.vegetation.hlod_distance_m,
+                preset.vegetation.cull_distance_m,
+            );
+            let (start, end) = replacement_lod_range(&ranges);
+            for (kind, lod, original) in [
+                (
+                    VegetationKind::Tree,
+                    VegetationProjectionLod::Near,
+                    ranges.near.clone(),
+                ),
+                (
+                    VegetationKind::Tree,
+                    VegetationProjectionLod::Medium,
+                    ranges.medium.clone(),
+                ),
+                (
+                    VegetationKind::Shrub,
+                    VegetationProjectionLod::Near,
+                    ranges.individual.clone(),
+                ),
+                (
+                    VegetationKind::Fern,
+                    VegetationProjectionLod::Near,
+                    ranges.individual.clone(),
+                ),
+            ] {
+                let source = generated
+                    .chunks
+                    .iter()
+                    .flat_map(|chunk| &chunk.instances)
+                    .find(|source| source.kind == kind)
+                    .unwrap();
+                let marker = VegetationPlacementMarker {
+                    id: source.id,
+                    kind,
+                    lod,
+                };
+                let mut range = original.clone();
+                let mut visibility = Visibility::Inherited;
+                let replacement = configure_procedural_replacement(
+                    &marker,
+                    &mut range,
+                    &mut visibility,
+                    start,
+                    end,
+                );
+                if kind == VegetationKind::Tree && lod == VegetationProjectionLod::Near {
+                    assert!(replacement.is_none());
+                    assert_eq!(visibility, Visibility::Hidden);
+                    assert!(range == original);
+                    continue;
+                }
+                let threshold = replacement_maximum_visibility_distance(
+                    start,
+                    end,
+                    replacement.unwrap().lod_phase,
+                );
+                assert_eq!(visibility, Visibility::Inherited);
+                assert_eq!(range.start_margin, threshold..threshold);
+                assert_eq!(range.end_margin, ranges.hlod.start_margin);
+                assert!(!range.use_aabb);
+                for distance in [
+                    threshold - 0.01,
+                    threshold,
+                    threshold + 0.01,
+                    threshold,
+                    threshold - 0.01,
+                ] {
+                    let cc0 = desired_root_visibility(
+                        SceneryProjectionStatus::Activated,
+                        distance * distance,
+                        threshold,
+                    ) == Visibility::Inherited;
+                    assert_ne!(cc0, range.is_visible_at_all(distance));
+                }
+                assert!(range.is_visible_at_all(ranges.hlod.start_margin.start));
+                assert!(!range.is_visible_at_all(ranges.hlod.start_margin.end));
+            }
+        }
+    }
+
+    #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one transaction test covers roots, procedural relays and restoration"
+    )]
+    fn applied_ultra_quality_updates_existing_cc0_roots_after_the_quality_transaction() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = embedded_visual_valley_vegetation_document().unwrap();
+        let mut prepared = prepare_scenery_projection(&terrain, &vegetation).unwrap();
+        prepared.stats.status = SceneryProjectionStatus::Activated;
         let profile = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
             "../../../examples/visual_valley/quality-profile.v1.json"
         ))
@@ -1226,20 +1471,40 @@ mod tests {
         let mut app = App::new();
         app.add_plugins(MinimalPlugins)
             .insert_resource(prepared.stats)
+            .insert_resource(crate::vegetation::VegetationPresentation(
+                vegetation.presentation,
+            ))
             .add_plugins(crate::VisualValleyQualityPlugin::new(
                 profile,
                 crate::VisualValleyQualitySelection::Fixed(forge_project::VisualQualityTier::Ultra),
             ))
             .add_systems(
-                Last,
-                apply_scenery_quality_lod.after(crate::quality::VisualValleyQualitySet::Apply),
+                PostUpdate,
+                apply_scenery_quality_lod
+                    .after(crate::quality::VisualValleyQualitySet::Apply)
+                    .in_set(VisualValleyScenerySet::ApplyQuality),
+            )
+            .add_systems(
+                PostUpdate,
+                update_scenery_lod_visibility
+                    .after(TransformSystems::Propagate)
+                    .after(VisualValleyScenerySet::ApplyQuality)
+                    .before(VisibilitySystems::VisibilityPropagate),
             );
+        app.world_mut().spawn((
+            Camera3d::default(),
+            GlobalTransform::from_translation(Vec3::X * 80.0),
+        ));
         let replacement = app
             .world_mut()
-            .spawn(SceneryRoot {
-                replacement_lod_phase: Some(0.5),
-                maximum_visibility_distance_m: 1.0,
-            })
+            .spawn((
+                SceneryRoot {
+                    replacement_lod_phase: Some(0.5),
+                    maximum_visibility_distance_m: 1.0,
+                },
+                GlobalTransform::IDENTITY,
+                Visibility::Hidden,
+            ))
             .id();
         let detail = app
             .world_mut()
@@ -1248,20 +1513,42 @@ mod tests {
                 maximum_visibility_distance_m: DETAIL_CULL_DISTANCE_M,
             })
             .id();
+        let source = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let tree = source
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .find(|source| source.kind == VegetationKind::Tree)
+            .unwrap();
+        let relay = app
+            .world_mut()
+            .spawn((
+                SceneryProceduralReplacement { lod_phase: 0.5 },
+                VegetationPlacementMarker {
+                    id: tree.id,
+                    kind: VegetationKind::Tree,
+                    lod: VegetationProjectionLod::Medium,
+                },
+                VegetationLodRanges::from_profile(vegetation.presentation).medium,
+            ))
+            .id();
 
         app.update();
 
         let world = app.world();
         let stats = world.resource::<SceneryProjectionStats>();
-        assert_eq!(stats.replacement_lod_start_m.to_bits(), 96.0_f32.to_bits());
-        assert_eq!(stats.replacement_lod_end_m.to_bits(), 240.0_f32.to_bits());
+        assert_eq!(stats.replacement_lod_start_m.to_bits(), 67.0_f32.to_bits());
+        assert_eq!(stats.replacement_lod_end_m.to_bits(), 162.0_f32.to_bits());
         assert_eq!(
             world
                 .get::<SceneryRoot>(replacement)
                 .unwrap()
                 .maximum_visibility_distance_m
                 .to_bits(),
-            168.0_f32.to_bits()
+            114.5_f32.to_bits()
         );
         assert_eq!(
             world
@@ -1271,6 +1558,48 @@ mod tests {
                 .to_bits(),
             DETAIL_CULL_DISTANCE_M.to_bits()
         );
+        assert_eq!(
+            world.get::<VisibilityRange>(relay).unwrap().start_margin,
+            114.5..114.5
+        );
+        assert_eq!(
+            world.get::<VisibilityRange>(relay).unwrap().end_margin,
+            162.0..174.0
+        );
+        assert_eq!(
+            world.get::<Visibility>(replacement),
+            Some(&Visibility::Inherited)
+        );
+        assert!(
+            !world
+                .get::<VisibilityRange>(relay)
+                .unwrap()
+                .is_visible_at_all(80.0)
+        );
+
+        for (tier, threshold, end_margin) in [
+            (forge_project::VisualQualityTier::Low, 58.5, 82.0..94.0),
+            (forge_project::VisualQualityTier::Ultra, 114.5, 162.0..174.0),
+            (forge_project::VisualQualityTier::Low, 58.5, 82.0..94.0),
+        ] {
+            crate::quality::set_quality_tier_for_test(app.world_mut(), tier);
+            app.update();
+            let range = app.world().get::<VisibilityRange>(relay).unwrap();
+            assert_eq!(range.start_margin, threshold..threshold);
+            assert_eq!(range.end_margin, end_margin);
+            assert_eq!(
+                app.world()
+                    .get::<SceneryRoot>(replacement)
+                    .unwrap()
+                    .maximum_visibility_distance_m
+                    .to_bits(),
+                threshold.to_bits()
+            );
+            let cc0_visible =
+                app.world().get::<Visibility>(replacement) == Some(&Visibility::Inherited);
+            assert_eq!(cc0_visible, 80.0 < threshold);
+            assert_ne!(cc0_visible, range.is_visible_at_all(80.0));
+        }
     }
 
     #[test]
@@ -1285,6 +1614,10 @@ mod tests {
         );
         assert_eq!(
             desired_root_visibility(SceneryProjectionStatus::Activated, 121.0 * 121.0, 120.0),
+            Visibility::Hidden
+        );
+        assert_eq!(
+            desired_root_visibility(SceneryProjectionStatus::Activated, 120.0 * 120.0, 120.0),
             Visibility::Hidden
         );
         assert_eq!(

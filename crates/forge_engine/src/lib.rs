@@ -2025,8 +2025,9 @@ fn validate_gate1_scenery_quality_projection(
     scenery: &SceneryProjectionStats,
     quality: &VisualValleyQualityStats,
 ) -> Result<(), String> {
-    let expected_lod_start_m = quality.requested_preset.vegetation.medium_lod_distance_m;
-    let expected_lod_end_m = quality.requested_preset.vegetation.hlod_distance_m;
+    let expected_range =
+        SceneryProjectionStats::replacement_lod_range_for_quality(&quality.requested_preset);
+    let (expected_lod_start_m, expected_lod_end_m) = expected_range;
     if scenery.replacement_lod_start_m.to_bits() != expected_lod_start_m.to_bits()
         || scenery.replacement_lod_end_m.to_bits() != expected_lod_end_m.to_bits()
     {
@@ -2458,7 +2459,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, bevy::asset::AssetPlugin::default()));
         app.init_asset::<Mesh>();
-        app.init_asset::<StandardMaterial>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
         app.world_mut().spawn((
             Camera3d::default(),
             bevy::light::AtmosphereEnvironmentMapLight::default(),

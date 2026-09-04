@@ -1,3 +1,4 @@
+use crate::{VisualValleyTerrainMaterial, visual_valley::procedural_terrain_material};
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
@@ -35,7 +36,11 @@ const WATER_DISABLED_REFLECTANCE: f32 = 0.0;
 
 const RIVER_LANE_COUNT: usize = 3;
 const RIVER_BANK_LANE_COUNT: usize = 2;
-const RIVER_BANK_VERTICES_PER_SECTION: usize = 4;
+const BANK_TRANSVERSE_FRACTIONS: [f32; 5] = [0.0, 0.25, 0.5, 0.75, 1.0];
+const RIVER_BANK_VERTICES_PER_SECTION: usize =
+    RIVER_BANK_LANE_COUNT * BANK_TRANSVERSE_FRACTIONS.len();
+const BANK_TRIANGLES_PER_SECTION_PAIR: usize =
+    RIVER_BANK_LANE_COUNT * (BANK_TRANSVERSE_FRACTIONS.len() - 1) * 2;
 const TRIANGLES_PER_SECTION_PAIR: usize = 4;
 const INDICES_PER_TRIANGLE: usize = 3;
 const WATER_CLEARANCE_ABOVE_WAVE_M: f32 = 0.02;
@@ -107,6 +112,7 @@ pub struct WaterProjectionStats {
     pub bed_depth_status: &'static str,
     pub requested_bank_shoulder_width_m: f32,
     pub requested_bank_blend_width_m: f32,
+    pub applied_bank_material_blend_width_m: f32,
     pub requested_bank_wet_margin_m: f32,
     pub requested_bank_horizontal_to_vertical_slope: f32,
     pub requested_bank_erosion_amplitude_m: f32,
@@ -456,7 +462,7 @@ struct PreparedWaterScene {
     water_geometry: RiverSurfaceGeometry,
     river_bank_geometry: RiverSurfaceGeometry,
     water_material: VisualValleyWaterMaterial,
-    river_bank_material: StandardMaterial,
+    river_bank_material: VisualValleyTerrainMaterial,
     stats: WaterProjectionStats,
 }
 
@@ -473,6 +479,7 @@ struct RiverSurfaceGeometry {
 struct ProjectedLane {
     position: [f32; 3],
     terrain_height_m: f32,
+    material_weights: [f32; 3],
 }
 
 #[derive(Clone, Copy)]
@@ -503,7 +510,7 @@ fn checked_bank_mesh_counts(sample_count: usize) -> Result<MeshCounts, WaterAdap
     checked_mesh_counts_for(
         sample_count,
         RIVER_BANK_VERTICES_PER_SECTION,
-        TRIANGLES_PER_SECTION_PAIR,
+        BANK_TRIANGLES_PER_SECTION_PAIR,
     )
 }
 
@@ -584,6 +591,7 @@ fn prepare_water_surface(
         let mut lanes = [ProjectedLane {
             position: [0.0; 3],
             terrain_height_m: 0.0,
+            material_weights: [0.0; 3],
         }; RIVER_LANE_COUNT];
         for (lane_index, xz) in lane_xz.into_iter().enumerate() {
             let lane = lane_label(lane_index);
@@ -603,11 +611,13 @@ fn prepare_water_surface(
             lanes[lane_index] = ProjectedLane {
                 position: [xz[0], projected_y, xz[1]],
                 terrain_height_m: surface.height_m,
+                material_weights: surface.material_weights.as_array(),
             };
         }
         let mut bank_outer_lanes = [ProjectedLane {
             position: [0.0; 3],
             terrain_height_m: 0.0,
+            material_weights: [0.0; 3],
         }; RIVER_BANK_LANE_COUNT];
         for (bank_index, xz) in bank_outer_xz.into_iter().enumerate() {
             let lane = bank_lane_label(bank_index);
@@ -625,6 +635,7 @@ fn prepare_water_surface(
             bank_outer_lanes[bank_index] = ProjectedLane {
                 position: [xz[0], projected_y, xz[1]],
                 terrain_height_m: surface.height_m,
+                material_weights: surface.material_weights.as_array(),
             };
         }
         sections.push(ProjectedSection {
@@ -636,8 +647,13 @@ fn prepare_water_surface(
 
     let downstream_monotone_lifts = apply_downstream_monotone_pass(&mut sections);
     let (water_geometry, water_winding_corrections) = build_geometry(&sections, water_counts)?;
-    let (river_bank_geometry, river_bank_winding_corrections) =
-        build_river_bank_geometry(&sections, river_bank_counts)?;
+    let (river_bank_geometry, river_bank_winding_corrections) = build_river_bank_geometry(
+        &sections,
+        river_bank_counts,
+        &terrain_plan,
+        water.banks.shoulder_width_m,
+        water.banks.blend_width_m,
+    )?;
     let (minimum_observed_clearance_m, maximum_observed_clearance_m) = water_geometry
         .positions
         .iter()
@@ -659,9 +675,13 @@ fn prepare_water_surface(
     let flow_direction = downstream_flow_direction(&samples);
     let runtime_state = WaterRuntimeState::from_profile(water);
     let water_surface_queries = water_counts.vertices;
-    let river_bank_surface_queries = samples.len().checked_mul(RIVER_BANK_LANE_COUNT).ok_or(
-        WaterAdapterError::ArithmeticOverflow("river bank surface queries"),
-    )?;
+    // Each bank reuses its inner water sample, plus one outer and three intermediate queries.
+    let river_bank_surface_queries = samples
+        .len()
+        .checked_mul(RIVER_BANK_VERTICES_PER_SECTION - RIVER_BANK_LANE_COUNT)
+        .ok_or(WaterAdapterError::ArithmeticOverflow(
+            "river bank surface queries",
+        ))?;
     let terrain_surface_queries = water_surface_queries
         .checked_add(river_bank_surface_queries)
         .ok_or(WaterAdapterError::ArithmeticOverflow(
@@ -723,16 +743,20 @@ fn prepare_water_surface(
         bed_depth_status: "sampled_bed_depth_encoded_in_vertex_color_and_shader_palette",
         requested_bank_shoulder_width_m: water.banks.shoulder_width_m,
         requested_bank_blend_width_m: water.banks.blend_width_m,
+        applied_bank_material_blend_width_m: water
+            .banks
+            .blend_width_m
+            .min(water.banks.shoulder_width_m),
         requested_bank_wet_margin_m: water.banks.wet_margin_m,
         requested_bank_horizontal_to_vertical_slope: water.banks.horizontal_to_vertical_slope,
         requested_bank_erosion_amplitude_m: water.banks.erosion_amplitude_m,
         requested_bank_erosion_frequency_cycles_per_m: water.banks.erosion_frequency_cycles_per_m,
-        bank_shoulder_status: "procedural_outer_strip_projected_from_shoulder_width",
-        bank_blend_status: "deferred_no_terrain_carving_adapter",
+        bank_shoulder_status: "five_transverse_samples_per_bank_with_fixed_water_edge_and_projected_outer_edge",
+        bank_blend_status: "terrain_material_weights_blended_within_shoulder_no_terrain_carving",
         bank_wet_margin_status: "deferred_no_wet_edge_shader",
-        bank_slope_status: "deferred_strip_bridges_water_edge_to_projected_terrain",
+        bank_slope_status: "terrain_following_visual_ribbon_with_fading_water_edge_lift_authored_slope_deferred",
         bank_erosion_status: "deferred_no_terrain_carving_adapter",
-        bank_material_status: "opaque_forward_matches_terrain_earth_palette",
+        bank_material_status: "shared_terrain_pbr_with_earth_to_canonical_weights_blend",
         requested_reflection_intensity,
         applied_material_reflectance: None,
         requested_reflection_steps: 0,
@@ -794,7 +818,7 @@ fn prepare_water_surface(
         water_geometry,
         river_bank_geometry,
         water_material: material,
-        river_bank_material: river_bank_material(),
+        river_bank_material: procedural_terrain_material(),
         stats,
     })
 }
@@ -943,10 +967,14 @@ fn build_geometry(
 fn build_river_bank_geometry(
     sections: &[ProjectedSection],
     counts: MeshCounts,
+    terrain: &TerrainGenerationPlan,
+    shoulder_width_m: f32,
+    requested_blend_width_m: f32,
 ) -> Result<(RiverSurfaceGeometry, usize), WaterAdapterError> {
     let mut positions = Vec::new();
     let mut terrain_heights = Vec::new();
     let mut uvs = Vec::new();
+    let mut colors = Vec::new();
     let mut indices = Vec::new();
     positions
         .try_reserve_exact(counts.vertices)
@@ -956,6 +984,9 @@ fn build_river_bank_geometry(
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank terrain heights"))?;
     uvs.try_reserve_exact(counts.vertices)
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank UVs"))?;
+    colors
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank material weights"))?;
     indices
         .try_reserve_exact(counts.indices)
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank indices"))?;
@@ -964,16 +995,32 @@ fn build_river_bank_geometry(
     for (sample_index, section) in sections.iter().enumerate() {
         #[allow(clippy::cast_precision_loss)]
         let v = sample_index as f32 / denominator as f32;
-        let vertices = [
-            section.bank_outer_lanes[0],
-            section.lanes[0],
-            section.lanes[2],
-            section.bank_outer_lanes[1],
-        ];
-        for (vertex_index, vertex) in vertices.into_iter().enumerate() {
-            positions.push(vertex.position);
-            terrain_heights.push(vertex.terrain_height_m);
-            uvs.push([bank_lane_uv(vertex_index), v]);
+        for bank_index in 0..RIVER_BANK_LANE_COUNT {
+            for fraction in BANK_TRANSVERSE_FRACTIONS {
+                let vertex = project_bank_lane(
+                    terrain,
+                    section.lanes[bank_index * 2],
+                    section.bank_outer_lanes[bank_index],
+                    fraction,
+                    sample_index,
+                    bank_index,
+                )?;
+                let blend = bank_material_blend(
+                    fraction * shoulder_width_m,
+                    shoulder_width_m,
+                    requested_blend_width_m,
+                );
+                let weights = vertex.material_weights;
+                positions.push(vertex.position);
+                terrain_heights.push(vertex.terrain_height_m);
+                uvs.push([fraction, v]);
+                colors.push([
+                    weights[0] * blend,
+                    (1.0 - blend) + weights[1] * blend,
+                    weights[2] * blend,
+                    1.0,
+                ]);
+            }
         }
     }
 
@@ -987,13 +1034,16 @@ fn build_river_bank_geometry(
         let next_row = row.checked_add(RIVER_BANK_VERTICES_PER_SECTION).ok_or(
             WaterAdapterError::ArithmeticOverflow("river bank next-row vertex offset"),
         )?;
-        for strip_start in [0, 2] {
-            let a = row + strip_start;
-            let b = next_row + strip_start;
-            let c = row + strip_start + 1;
-            let d = next_row + strip_start + 1;
-            winding_corrections += push_positive_triangle(&positions, &mut indices, [a, b, c])?;
-            winding_corrections += push_positive_triangle(&positions, &mut indices, [c, b, d])?;
+        for bank_index in 0..RIVER_BANK_LANE_COUNT {
+            for lane_index in 0..BANK_TRANSVERSE_FRACTIONS.len() - 1 {
+                let strip_start = bank_index * BANK_TRANSVERSE_FRACTIONS.len() + lane_index;
+                let a = row + strip_start;
+                let b = next_row + strip_start;
+                let c = row + strip_start + 1;
+                let d = next_row + strip_start + 1;
+                winding_corrections += push_positive_triangle(&positions, &mut indices, [a, b, c])?;
+                winding_corrections += push_positive_triangle(&positions, &mut indices, [c, b, d])?;
+            }
         }
     }
 
@@ -1004,11 +1054,62 @@ fn build_river_bank_geometry(
             terrain_heights,
             normals,
             uvs,
-            colors: None,
+            colors: Some(colors),
             indices,
         },
         winding_corrections,
     ))
+}
+
+fn project_bank_lane(
+    terrain: &TerrainGenerationPlan,
+    inner: ProjectedLane,
+    outer: ProjectedLane,
+    fraction: f32,
+    sample_index: usize,
+    bank_index: usize,
+) -> Result<ProjectedLane, WaterAdapterError> {
+    if fraction <= 0.0 {
+        return Ok(inner);
+    }
+    if fraction >= 1.0 {
+        return Ok(outer);
+    }
+    let x = inner.position[0] + (outer.position[0] - inner.position[0]) * fraction;
+    let z = inner.position[2] + (outer.position[2] - inner.position[2]) * fraction;
+    let lane = bank_lane_label(bank_index);
+    let surface =
+        terrain
+            .surface_at(x, z)
+            .map_err(|source| WaterAdapterError::SurfaceProjection {
+                sample_index,
+                lane,
+                source,
+            })?;
+    let inner_lift = (inner.position[1] - inner.terrain_height_m - BANK_MESH_CLEARANCE_M).max(0.0);
+    // Only the derived ribbon changes: terrain and colliders stay authoritative and untouched.
+    // Clearance is sampled at vertices, not a claim of triangle-wide or animated water sealing.
+    let y = surface.height_m
+        + BANK_MESH_CLEARANCE_M
+        + inner_lift * (1.0 - smooth_bank_fraction(fraction));
+    if !y.is_finite() {
+        return Err(WaterAdapterError::InvalidProjectedVertex { sample_index, lane });
+    }
+    Ok(ProjectedLane {
+        position: [x, y, z],
+        terrain_height_m: surface.height_m,
+        material_weights: surface.material_weights.as_array(),
+    })
+}
+
+fn smooth_bank_fraction(fraction: f32) -> f32 {
+    fraction * fraction * (3.0 - 2.0 * fraction)
+}
+
+fn bank_material_blend(distance_m: f32, shoulder_width_m: f32, requested_width_m: f32) -> f32 {
+    let width_m = requested_width_m.min(shoulder_width_m);
+    let fraction = ((distance_m - (shoulder_width_m - width_m)) / width_m).clamp(0.0, 1.0);
+    smooth_bank_fraction(fraction)
 }
 
 fn push_positive_triangle(
@@ -1212,17 +1313,6 @@ fn downstream_flow_direction(samples: &[RiverCenterlineSample]) -> Vec2 {
         delta.normalize()
     } else {
         Vec2::X
-    }
-}
-
-fn river_bank_material() -> StandardMaterial {
-    StandardMaterial {
-        base_color: Color::linear_rgb(0.24, 0.105, 0.035),
-        alpha_mode: AlphaMode::Opaque,
-        metallic: 0.0,
-        perceptual_roughness: 0.86,
-        opaque_render_method: OpaqueRendererMethod::Forward,
-        ..default()
     }
 }
 
@@ -1660,8 +1750,8 @@ fn lane_label(index: usize) -> &'static str {
 
 fn bank_lane_label(index: usize) -> &'static str {
     match index {
-        0 => "left_bank_outer",
-        1 => "right_bank_outer",
+        0 => "left_bank_shoulder",
+        1 => "right_bank_shoulder",
         _ => "invalid_bank_lane",
     }
 }
@@ -1674,19 +1764,12 @@ fn lane_uv(index: usize) -> f32 {
     }
 }
 
-fn bank_lane_uv(index: usize) -> f32 {
-    match index {
-        1 | 3 => 1.0,
-        _ => 0.0,
-    }
-}
-
 fn spawn_water_surface(
     mut commands: Commands,
     mut prepared: ResMut<PreparedWaterSurface>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut water_materials: ResMut<Assets<VisualValleyWaterMaterial>>,
-    mut standard_materials: ResMut<Assets<StandardMaterial>>,
+    mut terrain_materials: ResMut<Assets<VisualValleyTerrainMaterial>>,
 ) {
     let prepared = prepared
         .0
@@ -1707,7 +1790,7 @@ fn spawn_water_surface(
         Name::new(river_bank_name),
         VisualValleyRiverBankSurface,
         Mesh3d(meshes.add(river_bank_mesh)),
-        MeshMaterial3d(standard_materials.add(prepared.river_bank_material)),
+        MeshMaterial3d(terrain_materials.add(prepared.river_bank_material)),
         Transform::IDENTITY,
     ));
     commands.insert_resource(WaterSurfaceMaterial(water_material));
@@ -2032,7 +2115,7 @@ mod tests {
         assert_eq!(stats.water_surface_queries, stats.centerline_samples * 3);
         assert_eq!(
             stats.river_bank_surface_queries,
-            stats.centerline_samples * 2
+            stats.centerline_samples * 8
         );
         assert_eq!(
             stats.terrain_surface_queries,
@@ -2040,10 +2123,10 @@ mod tests {
         );
         assert_eq!(stats.water_vertices, stats.centerline_samples * 3);
         assert_eq!(stats.water_triangles, (stats.centerline_samples - 1) * 4);
-        assert_eq!(stats.river_bank_vertices, stats.centerline_samples * 4);
+        assert_eq!(stats.river_bank_vertices, stats.centerline_samples * 10);
         assert_eq!(
             stats.river_bank_triangles,
-            (stats.centerline_samples - 1) * 4
+            (stats.centerline_samples - 1) * 16
         );
         assert_eq!(
             stats.vertices,
@@ -2092,6 +2175,194 @@ mod tests {
     }
 
     #[test]
+    fn subdivided_banks_keep_water_edges_and_blend_to_sampled_terrain_weights() {
+        let terrain_document = embedded_visual_valley_terrain_document().unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&terrain_document).unwrap();
+        let water = embedded_visual_valley_water_document().unwrap();
+        let prepared = prepare_water_surface(&terrain_document, &water).unwrap();
+        let geometry = &prepared.river_bank_geometry;
+        let colors = geometry.colors.as_ref().unwrap();
+        for (section_index, banks) in geometry.positions.as_chunks::<10>().0.iter().enumerate() {
+            let water_lanes = &prepared.water_geometry.positions[section_index * 3..][..3];
+            for bank in 0..2 {
+                let inner = banks[bank * 5];
+                let outer = banks[bank * 5 + 4];
+                assert_eq!(
+                    inner.map(f32::to_bits),
+                    water_lanes[bank * 2].map(f32::to_bits)
+                );
+                assert!(
+                    (Vec2::new(outer[0] - inner[0], outer[2] - inner[2]).length()
+                        - water.banks.shoulder_width_m)
+                        .abs()
+                        < 1.0e-4
+                );
+                let inner_surface = terrain.surface_at(inner[0], inner[2]).unwrap();
+                let lift = inner[1] - inner_surface.height_m - BANK_MESH_CLEARANCE_M;
+                for (lane, fraction) in BANK_TRANSVERSE_FRACTIONS.into_iter().enumerate() {
+                    let index = section_index * 10 + bank * 5 + lane;
+                    let point = banks[bank * 5 + lane];
+                    let surface = terrain.surface_at(point[0], point[2]).unwrap();
+                    assert_eq!(
+                        geometry.terrain_heights[index].to_bits(),
+                        surface.height_m.to_bits()
+                    );
+                    assert!(point[1] + 1.0e-5 >= surface.height_m + BANK_MESH_CLEARANCE_M);
+                    let expected_y = surface.height_m
+                        + BANK_MESH_CLEARANCE_M
+                        + lift * (1.0 - fraction * fraction * (3.0 - 2.0 * fraction));
+                    assert!((point[1] - expected_y).abs() < 1.0e-5);
+                    assert!(
+                        (point[0] - (inner[0] + (outer[0] - inner[0]) * fraction)).abs() < 1.0e-5
+                    );
+                    assert!(
+                        (point[2] - (inner[2] + (outer[2] - inner[2]) * fraction)).abs() < 1.0e-5
+                    );
+                    let color = colors[index];
+                    assert!(
+                        color
+                            .iter()
+                            .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
+                    );
+                    assert!((color[0] + color[1] + color[2] - 1.0).abs() < 1.0e-6);
+                    assert_eq!(color[3].to_bits(), 1.0_f32.to_bits());
+                    if lane == 0 {
+                        assert_eq!(
+                            color.map(f32::to_bits),
+                            [0.0_f32, 1.0, 0.0, 1.0].map(f32::to_bits)
+                        );
+                    } else if lane == 4 {
+                        assert_eq!(color[..3], surface.material_weights.as_array());
+                        assert!(
+                            (point[1] - surface.height_m - BANK_MESH_CLEARANCE_M).abs() < 1.0e-5
+                        );
+                    } else {
+                        let blend = bank_material_blend(
+                            fraction * water.banks.shoulder_width_m,
+                            water.banks.shoulder_width_m,
+                            water.banks.blend_width_m,
+                        );
+                        let weights = surface.material_weights.as_array();
+                        assert_eq!(
+                            color.map(f32::to_bits),
+                            [
+                                weights[0] * blend,
+                                (1.0 - blend) + weights[1] * blend,
+                                weights[2] * blend,
+                                1.0
+                            ]
+                            .map(f32::to_bits)
+                        );
+                    }
+                }
+            }
+        }
+        assert_geometry_has_positive_winding(geometry);
+        for triangle in geometry.indices.as_chunks::<3>().0 {
+            // No triangle joins the opposite banks across the water surface.
+            let bank = (triangle[0] % 10) / 5;
+            assert!(triangle.iter().all(|index| (index % 10) / 5 == bank));
+        }
+    }
+
+    #[test]
+    fn bank_material_blend_is_bounded_by_the_existing_shoulder() {
+        for step in 0_u16..=20 {
+            let distance = f32::from(step) * 0.25;
+            let full = bank_material_blend(distance, 5.0, 5.0);
+            let wider_request = bank_material_blend(distance, 5.0, 9.0);
+            assert_eq!(full.to_bits(), wider_request.to_bits());
+            assert!((0.0..=1.0).contains(&full));
+        }
+        assert_eq!(
+            bank_material_blend(0.0, 5.0, 9.0).to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            bank_material_blend(5.0, 5.0, 9.0).to_bits(),
+            1.0_f32.to_bits()
+        );
+        assert_eq!(
+            bank_material_blend(4.0, 5.0, 1.0).to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            bank_material_blend(4.5, 5.0, 1.0).to_bits(),
+            0.5_f32.to_bits()
+        );
+        assert_eq!(
+            bank_material_blend(5.0, 5.0, 1.0).to_bits(),
+            1.0_f32.to_bits()
+        );
+        let stats = prepared().stats;
+        assert_eq!(
+            stats.requested_bank_blend_width_m.to_bits(),
+            9.0_f32.to_bits()
+        );
+        assert_eq!(
+            stats.applied_bank_material_blend_width_m.to_bits(),
+            5.0_f32.to_bits()
+        );
+    }
+
+    #[test]
+    fn bank_generation_is_deterministic_and_does_not_change_the_water_projection() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let mut water = embedded_visual_valley_water_document().unwrap();
+        let first = prepare_water_surface(&terrain, &water).unwrap();
+        let second = prepare_water_surface(&terrain, &water).unwrap();
+        assert_eq!(
+            first.river_bank_geometry.positions,
+            second.river_bank_geometry.positions
+        );
+        assert_eq!(
+            first.river_bank_geometry.normals,
+            second.river_bank_geometry.normals
+        );
+        assert_eq!(
+            first.river_bank_geometry.colors,
+            second.river_bank_geometry.colors
+        );
+        assert_eq!(
+            first.river_bank_geometry.uvs,
+            second.river_bank_geometry.uvs
+        );
+        assert_eq!(
+            first.river_bank_geometry.indices,
+            second.river_bank_geometry.indices
+        );
+        water.banks.shoulder_width_m = 2.5;
+        water.banks.blend_width_m = 1.0;
+        let narrower = prepare_water_surface(&terrain, &water).unwrap();
+        assert_eq!(
+            first.water_geometry.positions,
+            narrower.water_geometry.positions
+        );
+        assert_eq!(
+            first.water_geometry.normals,
+            narrower.water_geometry.normals
+        );
+        assert_eq!(first.water_geometry.colors, narrower.water_geometry.colors);
+        assert_eq!(first.water_geometry.uvs, narrower.water_geometry.uvs);
+        assert_eq!(
+            first.water_geometry.indices,
+            narrower.water_geometry.indices
+        );
+        assert_eq!(
+            first.stats.terrain_source_hash,
+            narrower.stats.terrain_source_hash
+        );
+        assert_eq!(
+            first.stats.downstream_monotone_lifts,
+            narrower.stats.downstream_monotone_lifts
+        );
+        assert_eq!(
+            first.stats.terrain_projection_lifts,
+            narrower.stats.terrain_projection_lifts
+        );
+    }
+
+    #[test]
     fn projected_lanes_are_monotone_and_every_triangle_has_positive_winding() {
         let prepared = prepared();
         assert!(prepared.stats.authored_centerline_monotone_downstream);
@@ -2126,6 +2397,15 @@ mod tests {
             checked_mesh_counts(usize::MAX),
             Err(WaterAdapterError::ArithmeticOverflow(_))
         ));
+        assert!(matches!(
+            checked_bank_mesh_counts(usize::MAX),
+            Err(WaterAdapterError::ArithmeticOverflow(_))
+        ));
+        let banks = checked_bank_mesh_counts(137).unwrap();
+        assert_eq!(
+            (banks.vertices, banks.triangles, banks.indices),
+            (1370, 2176, 6528)
+        );
     }
 
     #[test]
@@ -2156,15 +2436,45 @@ mod tests {
             prepared.water_material.base.thickness.to_bits(),
             3.2_f32.to_bits()
         );
-        assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
-        let bank = prepared.river_bank_material.base_color.to_linear();
-        assert_eq!(bank.red.to_bits(), 0.24_f32.to_bits());
-        assert_eq!(bank.green.to_bits(), 0.105_f32.to_bits());
-        assert_eq!(bank.blue.to_bits(), 0.035_f32.to_bits());
-        assert_eq!(bank.alpha.to_bits(), 1.0_f32.to_bits());
+        assert_eq!(
+            prepared.river_bank_material.base.alpha_mode,
+            AlphaMode::Opaque
+        );
+        assert_eq!(prepared.river_bank_material.base.base_color, Color::WHITE);
+        assert_eq!(
+            prepared
+                .river_bank_material
+                .base
+                .perceptual_roughness
+                .to_bits(),
+            1.0_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.river_bank_material.base.metallic.to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.river_bank_material.base.opaque_render_method,
+            OpaqueRendererMethod::Auto
+        );
+        let expected_bank = procedural_terrain_material().extension;
+        let bank = &prepared.river_bank_material.extension;
+        assert_eq!(
+            bank.grass_color_roughness,
+            expected_bank.grass_color_roughness
+        );
+        assert_eq!(
+            bank.earth_color_roughness,
+            expected_bank.earth_color_roughness
+        );
+        assert_eq!(
+            bank.rock_color_roughness,
+            expected_bank.rock_color_roughness
+        );
+        assert_eq!(bank.wetness_parameters, expected_bank.wetness_parameters);
         assert_eq!(
             prepared.stats.bank_material_status,
-            "opaque_forward_matches_terrain_earth_palette"
+            "shared_terrain_pbr_with_earth_to_canonical_weights_blend"
         );
         assert_eq!(prepared.stats.applied_surface_tint_strength, None);
         assert_eq!(prepared.stats.applied_material_reflectance, Some(0.72));
@@ -2210,7 +2520,7 @@ mod tests {
         );
         assert_eq!(
             prepared.stats.bank_shoulder_status,
-            "procedural_outer_strip_projected_from_shoulder_width"
+            "five_transverse_samples_per_bank_with_fixed_water_edge_and_projected_outer_edge"
         );
         assert_eq!(
             prepared.stats.bank_erosion_status,
@@ -2385,7 +2695,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
-        app.init_asset::<StandardMaterial>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
         let camera = app
             .world_mut()
             .spawn((
@@ -2424,6 +2734,17 @@ mod tests {
         let transmission = app.world().get::<ScreenSpaceTransmission>(camera).unwrap();
         assert_eq!(transmission.steps, 1);
         assert_eq!(transmission.quality, ScreenSpaceTransmissionQuality::High);
+        assert_eq!(
+            app.world()
+                .resource::<Assets<VisualValleyTerrainMaterial>>()
+                .len(),
+            1
+        );
+        let mut banks = app.world_mut().query_filtered::<
+            &MeshMaterial3d<VisualValleyTerrainMaterial>,
+            With<VisualValleyRiverBankSurface>,
+        >();
+        assert_eq!(banks.iter(app.world()).count(), 1);
     }
 
     #[test]
@@ -2476,7 +2797,7 @@ mod tests {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
-        app.init_asset::<StandardMaterial>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
         let camera = app
             .world_mut()
             .spawn((
@@ -2537,7 +2858,10 @@ mod tests {
                     .all(|color| color[3].to_bits() == 1.0_f32.to_bits())
             );
         }
-        assert!(prepared.river_bank_geometry.colors.is_none());
+        assert_eq!(
+            prepared.river_bank_geometry.colors.as_ref().unwrap().len(),
+            prepared.stats.river_bank_vertices
+        );
     }
 
     #[test]

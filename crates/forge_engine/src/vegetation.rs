@@ -511,16 +511,21 @@ pub struct VegetationLodRanges {
 impl VegetationLodRanges {
     #[must_use]
     pub fn from_profile(profile: VegetationPresentationProfile) -> Self {
-        let near_to_medium = centered_lod_crossfade(
+        Self::from_distances(
             profile.near_lod_distance_m,
             profile.medium_lod_distance_m,
-            MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M,
-        );
-        let medium_to_hlod = centered_lod_crossfade(
-            profile.medium_lod_distance_m,
             profile.hlod_distance_m,
-            MAX_MEDIUM_HLOD_CROSSFADE_WIDTH_M,
-        );
+            profile.cull_distance_m,
+        )
+    }
+
+    /// Derives the same transition bands for procedural vegetation and CC0 replacements.
+    #[must_use]
+    pub fn from_distances(near: f32, medium: f32, hlod: f32, cull: f32) -> Self {
+        let near_to_medium =
+            centered_lod_crossfade(near, medium, MAX_NEAR_MEDIUM_CROSSFADE_WIDTH_M);
+        let medium_to_hlod =
+            centered_lod_crossfade(medium, hlod, MAX_MEDIUM_HLOD_CROSSFADE_WIDTH_M);
         Self {
             near: VisibilityRange {
                 start_margin: 0.0..0.0,
@@ -544,7 +549,7 @@ impl VegetationLodRanges {
             },
             hlod: VisibilityRange {
                 start_margin: medium_to_hlod,
-                end_margin: profile.cull_distance_m..profile.cull_distance_m,
+                end_margin: cull..cull,
                 use_aabb: false,
             },
         }
@@ -1361,7 +1366,11 @@ impl Plugin for VisualValleyVegetationPlugin {
             .init_resource::<VegetationVisibilityAuditCadence>()
             .add_plugins(MaterialPlugin::<VisualValleyVegetationMaterial>::default())
             .add_systems(Startup, spawn_vegetation_projection)
-            .add_systems(Update, update_vegetation_interaction_uniform)
+            .add_systems(
+                PostUpdate,
+                update_vegetation_interaction_uniform
+                    .after(crate::quality::VisualValleyQualitySet::Apply),
+            )
             .add_systems(
                 PostUpdate,
                 observe_vegetation_visibility.after(VisibilitySystems::CheckVisibility),
