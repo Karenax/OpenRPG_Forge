@@ -1025,12 +1025,27 @@ aperçu pré-validation terrain/matériaux/exclusions n'est revendiqué. Aucun a
 Cadle ni changement de schéma. **Gate 2 atteint 18/43 et reste ouverte.**
 [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_DENSITY_REALTIME_PREVIEW.md).
 
+Le candidat `0e36579` qualifie **R2-020** sur preuves fonctionnelles automatisées. Une instance
+générée est résolue déterministement, promue en source persistante avec provenance immuable, puis
+retouchable en position/rotation/échelle. Les commandes sont atomiques, chacune produit une seule
+révision et traverse undo/redo, sauvegarde et réouverture. Les promotions orphelines restent
+matérialisées une fois, réservent leur ID de couche et comptent dans le plafond Grass réel ; un
+chevauchement déjà promu est prioritaire et refusé sans doublon. Le cache conserve 64/64, 63/64 ou
+62/64 handles selon promotion initiale, retouche locale ou changement de chunk. Le workspace reste
+v3 ; végétation v2 migre explicitement v1 et le hash v1 de Visual Valley reste intact. **305 tests
+ciblés PASS**, Clippy natif/WASM strict, check WASM et Trunk debug PASS. La passe élargie a été
+arrêtée avant tests à 474,4 Mio libres pendant la reconstruction de `forge_assets`, inchangé :
+`NOT COMPLETED`, sans faux PASS. UI native, Release, GPU, latence, CI distante et PresentMon restent
+`NOT RUN`. Aucun asset, dépendance, manifest Cargo ou contenu Cadle. **Gate 2 atteint 19/43 ; R2-C
+est complet et R2-021 devient la prochaine route.**
+[Preuves, manifeste et limites](../evidence/gate2/VEGETATION_PROMOTION_AND_RETOUCH.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
 - [x] `R2-018` seed stable — replay bit-identique, IDs/survivants stables et divergence d'une autre seed qualifiés.
 - [x] `R2-019` aperçu temps réel — densité pré-validée uniquement, latest-wins/cadence bornée et retour au cache canonique ; contrôle natif groupé reporté.
-- [ ] `R2-020` promotion et retouche.
+- [x] `R2-020` promotion et retouche — source persistante, provenance, historique, réouverture et cache qualifiés ; contrôle natif groupé reporté.
 
 ## R2-D — Splines
 

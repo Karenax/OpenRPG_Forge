@@ -1,0 +1,140 @@
+{
+  "schema": "forge.gate2.vegetation-promotion-retouch-evidence",
+  "schema_version": 1,
+  "source_commit": "0e365796ca7782ee16b441bfd553c980a35fb060",
+  "source_tree": "d30e72ab9859c1c37fab0f3c2234f04f08636dc6",
+  "base_commit": "725057a2c081beed2b5c8150a2f467485475aeb9",
+  "routes": [
+    {
+      "id": "R2-020",
+      "status": "PASS",
+      "basis": "automated functional qualification of persistent vegetation promotion and explicit transform retouch; native UI interaction not run by owner request"
+    }
+  ],
+  "scope": "Promote the nearest generated vegetation instance into bounded authored source, preserve immutable provenance, retouch its transform, persist one history revision per command, reopen exactly and refresh only derived chunks; no generic picking, gizmo, demotion, native UI, GPU, latency or performance qualification",
+  "automated_validation": {
+    "targeted_tests_status": "PASS",
+    "targeted_tests_passed": 305,
+    "targeted_tests_failed": 0,
+    "targeted_tests_ignored": 0,
+    "targeted_suite_counts": {
+      "forge_project_lib": 103,
+      "forge_studio_lib": 103,
+      "forge_studio_native_bin": 6,
+      "forge_world_lib": 93
+    },
+    "expanded_workspace_status": "NOT COMPLETED",
+    "expanded_workspace_reason": "operator stopped before test execution at 474.4 MiB free while unchanged forge_assets was compiling; no expanded PASS or test failure claimed",
+    "expanded_workspace_excluded_unchanged_package": "forge_runtime",
+    "native_relevant_clippy_strict": "PASS",
+    "wasm_studio_clippy_strict": "PASS",
+    "wasm_studio_check": "PASS",
+    "trunk_debug_build": "PASS",
+    "trunk_release_build": "NOT RUN",
+    "native_release_build": "NOT RUN",
+    "format_and_diff_check": "PASS",
+    "wasm_advisory": "transitive future-incompatibility advisory for proc-macro-error2 2.0.1"
+  },
+  "functional_contract": {
+    "workspace_schema_version": 3,
+    "vegetation_schema_version_previous": 1,
+    "vegetation_schema_version_current": 2,
+    "schema_migration": "v1 remains readable and bit-exact when serialized as v1; explicit in-memory migration to v2 adds an empty promoted_instances collection",
+    "visual_valley_v1_hash": "664df33ffe5ea42ae8e6dc9b30e496abe62f054583f483f8019f9abb6f8d00f7",
+    "generation_algorithm": "forge_scatter_v1",
+    "maximum_promoted_instances": 1024,
+    "selection_order": ["horizontal_distance_squared", "already_promoted_first", "stable_entity_id"],
+    "selection_scope": "one selected vegetation layer and a maximum horizontal distance between 0 and 64 metres",
+    "initial_authored_transform_matches_generated_bits": true,
+    "immutable_provenance": [
+      "workspace_revision",
+      "generation_algorithm",
+      "terrain_document_hash",
+      "vegetation_document_hash",
+      "vegetation_density_document_hash",
+      "layer_id",
+      "kind",
+      "generated_transform",
+      "wind_phase_radians",
+      "wind_response",
+      "slope_gradient_squared",
+      "material_weight"
+    ],
+    "retouch_fields": ["position_m", "yaw_radians", "uniform_scale"],
+    "accepted_history_entries_per_command": 1,
+    "undo_redo_exact": true,
+    "save_reopen_exact": true,
+    "orphan_promotions_materialized_once": true,
+    "orphan_layer_ids_reserved_by_studio": true,
+    "overlapping_promoted_instance_returns_already_promoted": true,
+    "grass_budget_includes_orphan_promotions": true,
+    "grass_budget_failure_keeps_cache_atomic": true,
+    "cache_retained_chunks_initial_promotion": 64,
+    "cache_retained_chunks_same_chunk_retouch": 63,
+    "cache_retained_chunks_cross_chunk_retouch": 62,
+    "generic_picking": false,
+    "generic_gizmo": false,
+    "demotion_or_deletion": false,
+    "live_retouch_preview": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and fewer repeated interface checks.",
+    "follow_up": "Review accumulated Gate 2 world-editor interactions in one later grouped native pass."
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "next_route": "R2-021",
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_files": 15,
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "dependencies_changed": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/cargo-test-targeted.log",
+      "bytes": 29906,
+      "sha256": "55e39321c4ec78d51a8b3914a1522c7372e9b47d21b7631a018cb2b8ca26831b"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/cargo-test-workspace-excluding-unchanged-runtime.log",
+      "bytes": 609,
+      "sha256": "9bbffc776098d5e6670bd1d4bd56831c8d7062c1fb01682909556b8a7c5376dc"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/cargo-clippy-relevant-native.log",
+      "bytes": 273,
+      "sha256": "aff3ba69cf0d693dfca295432129940eebb08d7e98f84568aa9bf48ba4aaac96"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/cargo-clippy-studio-wasm.log",
+      "bytes": 511,
+      "sha256": "c4ab2c2e1f7343420391837ef1c2ce7b36c2efaff8626884a36c8c7d06822ed3"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/cargo-check-studio-wasm.log",
+      "bytes": 477,
+      "sha256": "88b5fd69d7d5b406849c3746cd46c94e3cfd27c4c851fde40d6e3c27a58fcc9c"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/trunk-build-debug.log",
+      "bytes": 739,
+      "sha256": "865a0f63e42b8cd2e567505fbc56038d7cdb2d3400f5b330b6da4dd943eb9f54"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-promotion-retouch-2026-09-05/format-and-diff-check.log",
+      "bytes": 64,
+      "sha256": "58d76f27595cc6fc246706a5f7f67c8be083a8817f2b872ba484fecc4928ab8a"
+    }
+  ]
+}

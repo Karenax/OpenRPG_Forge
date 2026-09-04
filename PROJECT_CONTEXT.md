@@ -171,6 +171,27 @@ pré-validation terrain/matériaux/exclusions, asset, dépendance, contenu Cadle
 n'est revendiqué. [Preuves et limites](docs/evidence/gate2/VEGETATION_DENSITY_REALTIME_PREVIEW.md).
 **Gate 2 atteint 18/43 et reste ouverte ; R2-020 est la prochaine tranche fonctionnelle.**
 
+### Promotion et retouche de végétation — douzième incrément qualifié
+
+Le code `0e36579` qualifie **R2-020** sur preuves fonctionnelles automatisées. Une brosse choisit
+déterministement l'instance générée la plus proche dans la couche et la distance demandées, puis la
+convertit en source persistante. Sa provenance générée reste immuable ; position, rotation Y et
+échelle deviennent retouchables. Chaque commande produit une seule révision, traverse undo/redo,
+sauvegarde et réouverture, et ne remplace que les chunks dérivés nécessaires. Une promotion initiale
+conserve 64/64 handles, une retouche locale 63/64 et un déplacement inter-chunk 62/64.
+
+Le document de végétation v2 migre explicitement le v1 avec une collection vide ; le workspace reste
+v3 et le fixture Visual Valley v1 conserve son hash. Les promotions orphelines restent matérialisées
+une fois, leurs IDs de couche sont réservés et leur coût Grass est inclus dans le plafond réel. Un
+chevauchement déjà promu est prioritaire et rejeté sans doublon. **305 tests ciblés PASS**, Clippy
+natif/WASM strict, check WASM et build Trunk debug PASS. La passe workspace élargie a été arrêtée
+avant tests à 474,4 Mio libres pendant la reconstruction de `forge_assets`, inchangé : `NOT
+COMPLETED`, aucun PASS élargi inventé. [Preuves et limites](docs/evidence/gate2/VEGETATION_PROMOTION_AND_RETOUCH.md).
+
+UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`. Aucun asset,
+dépendance, manifest Cargo ni contenu Cadle n'est modifié. **Gate 2 atteint 19/43 et reste ouverte ;
+R2-C est complet et R2-021 création/édition de chemin devient la prochaine tranche fonctionnelle.**
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2391,10 +2412,11 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 18/43 après R2-019, qualifiée pour l'aperçu pré-validation de densité uniquement.
-Poursuivre R2-C par une promotion/retouche persistante pour R2-020, sans anticiper le picking ou le
-gizmo génériques. Le contrôle UI natif groupé de la densité, du catalogue et des exclusions reste
-noté pour plus tard.
+Gate 2 est à 19/43 après R2-020 ; R2-C biomes/végétation est complet sur preuves fonctionnelles
+automatisées. Poursuivre R2-D par la création/édition persistante de chemin pour R2-021, sans
+anticiper les profils de route, le carving de rivière, le picking ou le gizmo génériques. Le contrôle
+UI natif groupé de la densité, du catalogue, des exclusions et des promotions reste noté pour plus
+tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.
