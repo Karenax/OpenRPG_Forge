@@ -1,0 +1,106 @@
+{
+  "schema": "forge.gate2.vegetation-density-stable-seed-evidence",
+  "schema_version": 1,
+  "source_commit": "d8dd10c4f9ef2c2e270955ff23fc08a8d90ff24e",
+  "source_tree": "a12c29477efb9ab775ee7d709a7469da159fcf7a",
+  "base_commit": "4a69a43f9641bbf89007b56266c39a36f56f8fc7",
+  "routes": [
+    {
+      "id": "R2-015",
+      "status": "PASS",
+      "basis": "automated functional qualification; native UI interaction deferred"
+    },
+    {
+      "id": "R2-018",
+      "status": "PASS",
+      "basis": "automated deterministic replay qualification; native UI interaction deferred"
+    }
+  ],
+  "scope": "Persistent vegetation density painting and deterministic stable-seed replay through Forge sources, history, cache and chunk-batched viewport; no species catalog, exclusion editor, pre-commit realtime preview, promotion, GPU or performance qualification",
+  "automated_validation": {
+    "status": "PASS",
+    "workspace_test_targets": 13,
+    "workspace_tests_passed": 519,
+    "workspace_tests_failed": 0,
+    "workspace_tests_ignored": 0,
+    "native_clippy_strict": "PASS",
+    "wasm_clippy_strict": "PASS",
+    "trunk_release": "PASS",
+    "tauri_release": "PASS"
+  },
+  "functional_contract": {
+    "workspace_schema_version": 3,
+    "density_schema_version": 1,
+    "density_quantization": "u8",
+    "new_area_default_density": 0,
+    "maximum_stamps_per_command": 64,
+    "cache_chunk_count": 64,
+    "local_change_rebuilt_chunks": 1,
+    "local_change_retained_chunks": 63,
+    "renderer_entity_policy": "at most one batched vegetation entity per populated chunk",
+    "seed_replay": "bit-identical generated chunks, stable IDs and stable surviving attempts",
+    "different_seed": "different generated hash and instance IDs"
+  },
+  "native_launch": {
+    "status": "PASS",
+    "executable": "artifacts/gate-2/vegetation-density-seed-2026-09-04/bin/forge-studio-d8dd10c.exe",
+    "process_started": true,
+    "process_responding": true,
+    "process_stopped_after_check": true
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "Native application control is unavailable in the current CUA surface; the owner requested fewer repeated interface checks.",
+    "follow_up": "One grouped paint, undo, redo, save and reopen check remains available for later human qualification."
+  },
+  "open_routes": ["R2-016", "R2-017", "R2-019", "R2-020"],
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing"
+  },
+  "presentmon": {
+    "status": "NOT RUN",
+    "reason": "Performance and GPU qualification are outside R2-015 and R2-018 and remain deferred by ADR-0010."
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/workspace-tests.log",
+      "bytes": 50998,
+      "sha256": "23fda6d564fb42773e8b244a48867dfc2e957fc1fc15eced0a0a6f2d2b2ad4fd"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/clippy-native.log",
+      "bytes": 681,
+      "sha256": "3fc42525afef4c059397d99bef419695d8cc36f9050f7f12edc7eae9352e6f68"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/clippy-wasm.log",
+      "bytes": 738,
+      "sha256": "80d43406080ab5e7965b367857a3ecdfc8a1fd1200bec639f32118ef3ce1d8a8"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/trunk-release.log",
+      "bytes": 731,
+      "sha256": "4ae5898d9963dcecab0eb81fa992561ce62868d3e238e20b840b6b6b75edfe0a"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/tauri-release.log",
+      "bytes": 990,
+      "sha256": "3cca9262dc96aaea22fd17616027e5e3eeb1f3c66ecdd436ab6636b710ff0daf"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/native-launch.json",
+      "bytes": 580,
+      "sha256": "48efb2c650721af007eb2504d7fe9e4c88cc134b704408ee6b5455012be57afe"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/bin/forge_studio-d8dd10c.wasm",
+      "bytes": 40396107,
+      "sha256": "4cf7d117de9862caccf4f9d34334ce8b31101412fa8469596f9df4bdad1a6f5b"
+    },
+    {
+      "path": "artifacts/gate-2/vegetation-density-seed-2026-09-04/bin/forge-studio-d8dd10c.exe",
+      "bytes": 34517504,
+      "sha256": "136f04cf097f103c715932ec9a32c488e20f817af8790bbb0a7eb554fc011309"
+    }
+  ]
+}

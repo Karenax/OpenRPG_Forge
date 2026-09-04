@@ -991,10 +991,19 @@ La CI distante reste `NOT RUN — infrastructure billing` et aucun verdict Prese
 
 ## R2-C — Biomes et végétation
 
-- [ ] `R2-015` pinceau densité.
+Le candidat `d8dd10c` qualifie **R2-015** et **R2-018** sur preuves fonctionnelles automatisées et
+porte Gate 2 à **15/43**. Le workspace v3, le masque sparse quantifié, la brosse par couche, le
+dry-run, l'historique, la sauvegarde/réouverture, la génération déterministe, le cache 1/63 et le
+renderer groupé par chunk sont couverts par **519 tests**, Clippy natif/WASM strict et builds
+Release. Le paquet Tauri démarre et répond ; l'interaction UI native groupée est explicitement
+reportée, conformément à la demande de ne plus multiplier les inspections d'interface. Elle ne
+ferme donc pas la condition de capture globale de Gate 2. [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_DENSITY_AND_STABLE_SEED.md).
+CI distante `NOT RUN — infrastructure billing`, PresentMon `NOT RUN`, aucun asset Cadle.
+
+- [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [ ] `R2-016` catalogues d’espèces.
 - [ ] `R2-017` exclusions.
-- [ ] `R2-018` seed stable.
+- [x] `R2-018` seed stable — replay bit-identique, IDs/survivants stables et divergence d'une autre seed qualifiés.
 - [ ] `R2-019` aperçu temps réel.
 - [ ] `R2-020` promotion et retouche.
 

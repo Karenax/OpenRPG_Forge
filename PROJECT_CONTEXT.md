@@ -113,6 +113,24 @@ affichés ne sont pas un benchmark. La tranche fonctionnelle suivante est R2-C :
 seed de végétation stable. CI distante `NOT RUN — infrastructure billing`, PresentMon suspendu et
 aucun asset Cadle.
 
+### Densité de végétation et seed stable — neuvième incrément qualifié
+
+Le code `d8dd10c` qualifie **R2-015 et R2-018** sur preuves fonctionnelles automatisées. Le workspace
+v3 porte une recette Forge et un masque de densité sparse quantifié par couche ; la brosse pure,
+l'IPC, les traits, le dry-run, l'historique et la persistance utilisent une seule source canonique.
+La génération conserve les IDs des tentatives survivantes et rejoue bit-identiquement à seed égale ;
+une seed différente diverge. Le cache complet conserve 63/64 handles lors d'une peinture locale et
+le renderer groupe les instances par chunk sans une entité ECS par brin. Les migrations v1/v2
+préservent aussi les anciens IDs de matériau herbe. **519 tests PASS**, Clippy natif/WASM strict et
+builds Trunk/Tauri Release PASS. [Preuves et limites](docs/evidence/gate2/VEGETATION_DENSITY_AND_STABLE_SEED.md).
+
+Le paquet Windows autonome a démarré, répondu puis été fermé. La surface CUA courante ne contrôlant
+pas les applications natives et le propriétaire ayant demandé de ne plus multiplier les inspections
+d'interface, le parcours UI groupé peinture/undo/redo/sauvegarde/réouverture est reporté sans verdict
+inventé. **Gate 2 atteint 15/43 et reste ouverte.** R2-016, R2-017, R2-019 et R2-020 restent dues ;
+notamment, l'aperçu avant relâchement n'est pas qualifié. CI distante
+`NOT RUN — infrastructure billing`, PresentMon `NOT RUN`, aucun asset ou contenu Cadle.
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2333,7 +2351,9 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Commencer le parcours nouveau projet/module/zone, puis les outils d'édition selon la roadmap.
+Gate 2 est à 15/43 après R2-015/R2-018. Poursuivre R2-C par le catalogue d'espèces et l'édition
+d'exclusions ; R2-019 ne sera cochée qu'avec un véritable aperçu avant validation et R2-020 avec une
+promotion/retouche persistante. Le contrôle UI natif groupé de la densité reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.
