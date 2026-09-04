@@ -28,6 +28,31 @@ fn source() -> WorkspaceDocument {
     source
 }
 
+#[test]
+fn continuous_stroke_is_one_revision_and_rejects_an_invalid_tail_atomically() {
+    let source = source();
+    let command = command(&source, TerrainBrushOperation::RaiseLower { delta_m: 2.0 });
+    let result = preview_terrain_stroke(&source, command, &[[8.0, 0.0], [16.0, 0.0]]).unwrap();
+    assert_eq!(
+        result.edit.document.revision.get(),
+        source.revision.get() + 1
+    );
+    assert_eq!(result.edit.receipt.inverse_snapshot.as_ref(), &source);
+    assert_eq!(result.additional_centers.len(), 2);
+    let terrain = plan(&result.edit.document);
+    for x in [0.0, 8.0, 16.0] {
+        assert!((terrain.height_at(x, 0.0).unwrap() - 2.0).abs() < 1e-6);
+    }
+    assert!(preview_terrain_stroke(&source, command, &[[8.0, 0.0], [f32::NAN, 0.0]]).is_err());
+    assert!(preview_terrain_stroke(&source, command, &[[8.0, 0.0]; 64]).is_err());
+    assert!(
+        source.project.modules[0].areas[0]
+            .terrain
+            .height_deltas
+            .is_empty()
+    );
+}
+
 fn command(source: &WorkspaceDocument, operation: TerrainBrushOperation) -> TerrainBrushCommand {
     TerrainBrushCommand {
         command_id: CommandId::deterministic("brush-command"),

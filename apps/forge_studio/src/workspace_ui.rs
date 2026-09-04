@@ -16,7 +16,7 @@ pub(crate) struct WorkspaceActions {
     set_state: WriteSignal<WorkspaceState>,
     pub(crate) pending: ReadSignal<bool>,
     set_pending: WriteSignal<bool>,
-    error: ReadSignal<Option<String>>,
+    pub(crate) error: ReadSignal<Option<String>>,
     set_error: WriteSignal<Option<String>>,
     backend_available: bool,
 }

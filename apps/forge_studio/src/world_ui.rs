@@ -22,6 +22,10 @@ use leptos::prelude::Update;
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
 
+#[path = "brush_ui.rs"]
+mod brush;
+use brush::{BrushPanel, create_brush_actions};
+
 #[derive(Clone, Copy)]
 pub(crate) struct WorldActions {
     tabs: RwSignal<AreaTabs>,
@@ -250,8 +254,9 @@ struct PointerDrag {
 }
 
 #[component]
-pub(crate) fn WorldWorkspace(actions: WorldActions) -> impl IntoView {
+pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions) -> impl IntoView {
     let drag = RwSignal::new(None::<PointerDrag>);
+    let brush = create_brush_actions(actions, workspace);
     view! {
         <section class="world-workspace" aria-label="Éditeur de zones">
             <aside class="world-area-browser">
@@ -268,6 +273,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions) -> impl IntoView {
                     }).collect_view()
                 })}
                 <p class="hint">"Les sources s’éditent dans Projets. Fermer un onglet ne supprime pas la zone."</p>
+                <BrushPanel brush=brush world=actions workspace=workspace/>
             </aside>
             <div class="world-editor">
                 <div class="world-tabs" role="tablist" aria-label="Zones ouvertes">
@@ -292,7 +298,10 @@ pub(crate) fn WorldWorkspace(actions: WorldActions) -> impl IntoView {
                 </div>
                 <div class="world-canvas-host">
                     <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
+                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" { brush.cancel(false); brush.clear_hover(actions); } }
+                        on:pointerleave=move |_| brush.clear_hover(actions)
                         on:pointerdown=move |event: web_sys::PointerEvent| {
+                            if brush.start(actions, workspace, &event) { return; }
                             if event.button() != 0 { return; }
                             if let Some(element) = event.current_target().and_then(|target| target.dyn_into::<web_sys::Element>().ok())
                                 && element.set_pointer_capture(event.pointer_id()).is_ok() {
@@ -301,6 +310,7 @@ pub(crate) fn WorldWorkspace(actions: WorldActions) -> impl IntoView {
                             }
                         }
                         on:pointermove=move |event: web_sys::PointerEvent| {
+                            brush.move_pointer(actions, &event);
                             let Some(previous) = drag.get_untracked().filter(|previous| previous.id == event.pointer_id()) else { return };
                             let delta = [pixel_delta(event.client_x() - previous.x), pixel_delta(event.client_y() - previous.y)];
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
@@ -309,8 +319,9 @@ pub(crate) fn WorldWorkspace(actions: WorldActions) -> impl IntoView {
                             }
                             drag.set(Some(PointerDrag { x: event.client_x(), y: event.client_y(), ..previous }));
                         }
-                        on:pointerup=move |_| drag.set(None) on:pointercancel=move |_| drag.set(None)
-                        on:lostpointercapture=move |_| drag.set(None)
+                        on:pointerup=move |event: web_sys::PointerEvent| { brush.finish(actions, &event); drag.set(None); }
+                        on:pointercancel=move |_| { brush.cancel(false); drag.set(None); }
+                        on:lostpointercapture=move |_| { brush.cancel(true); drag.set(None); }
                         on:wheel=move |event: web_sys::WheelEvent| {
                             event.prevent_default();
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }

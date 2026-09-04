@@ -99,6 +99,8 @@ pub struct TerrainBrushCommand {
 #[serde(deny_unknown_fields)]
 pub struct TerrainBrushResult {
     pub command: TerrainBrushCommand,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub additional_centers: Vec<[f32; 2]>,
     pub changed_samples: usize,
     pub edit: WorkspaceEditResult,
 }
@@ -187,6 +189,91 @@ pub fn preview_terrain_brush(
     TerrainGenerationPlan::from_document(target)?;
     Ok(TerrainBrushResult {
         command,
+        additional_centers: vec![],
+        changed_samples,
+        edit,
+    })
+}
+
+/// A bounded stroke is one source revision and one undo operation. Intermediate stamps are pure
+/// candidates only; they are never committed or retained as independent history entries.
+pub fn preview_terrain_stroke(
+    workspace: &WorkspaceDocument,
+    command: TerrainBrushCommand,
+    additional_centers: &[[f32; 2]],
+) -> Result<TerrainBrushResult, TerrainBrushError> {
+    if additional_centers.len() > 63 {
+        return Err(TerrainBrushError::StrokeBudgetExceeded);
+    }
+    for center in additional_centers {
+        TerrainBrush {
+            center_x_m: center[0],
+            center_z_m: center[1],
+            ..command.brush
+        }
+        .validate()?;
+    }
+    let mut candidate = workspace.clone();
+    for center in std::iter::once([command.brush.center_x_m, command.brush.center_z_m])
+        .chain(additional_centers.iter().copied())
+    {
+        let stamp = TerrainBrushCommand {
+            base_revision: candidate.revision,
+            brush: TerrainBrush {
+                center_x_m: center[0],
+                center_z_m: center[1],
+                ..command.brush
+            },
+            ..command
+        };
+        // The caller's original revision must be checked even if all stamps are no-ops.
+        if workspace.revision != command.base_revision {
+            return Err(WorkspaceError::StaleRevision.into());
+        }
+        match preview_terrain_brush(&candidate, stamp) {
+            Ok(result) => candidate = result.edit.document,
+            Err(TerrainBrushError::Workspace(WorkspaceError::NoChange)) => {}
+            Err(error) => return Err(error),
+        }
+    }
+    let original = &workspace
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    let target = &candidate
+        .area(command.module_id, command.area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?
+        .terrain;
+    let before: BTreeMap<_, _> = original
+        .height_deltas
+        .iter()
+        .map(|d| (d.sort_key(), d.delta_m.to_bits()))
+        .collect();
+    let after: BTreeMap<_, _> = target
+        .height_deltas
+        .iter()
+        .map(|d| (d.sort_key(), d.delta_m.to_bits()))
+        .collect();
+    let changed_samples = before
+        .keys()
+        .chain(after.keys())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .filter(|key| before.get(key) != after.get(key))
+        .count();
+    let edit = workspace.preview_edit(WorkspaceEdit {
+        command_id: command.command_id,
+        base_revision: command.base_revision,
+        change: WorkspaceChange::SetTerrainHeightDeltas {
+            module_id: command.module_id,
+            area_id: command.area_id,
+            expected_terrain_hash: original.content_hash().map_err(WorkspaceError::from)?,
+            height_deltas: target.height_deltas.clone(),
+        },
+    })?;
+    Ok(TerrainBrushResult {
+        command,
+        additional_centers: additional_centers.to_vec(),
         changed_samples,
         edit,
     })
@@ -269,6 +356,8 @@ fn stamp_noise(x: f32, z: f32, seed: u32) -> f64 {
 
 #[derive(Debug, Error)]
 pub enum TerrainBrushError {
+    #[error("terrain stroke is limited to 64 stamps; use a shorter stroke")]
+    StrokeBudgetExceeded,
     #[error("unsupported terrain brush version {0}")]
     UnsupportedVersion(u32),
     #[error(

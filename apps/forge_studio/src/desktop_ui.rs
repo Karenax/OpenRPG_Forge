@@ -183,7 +183,7 @@ fn ForgeDesktop() -> impl IntoView {
                     })/>
                 </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::World>
-                    <WorldWorkspace actions=controls.world/>
+                    <WorldWorkspace actions=controls.world workspace=controls.workspace/>
                 </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::Diagnostics>
                     <WorldDiagnostics actions=controls.world/>
@@ -287,9 +287,9 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                                 on:click=move |_| { controls.menu.set(None); controls.workspace.send(WorkspaceCommand::Close); }>"Fermer le projet enregistré"</button>
                         }.into_any(),
                         Menu::Edit => view! {
-                            <button class="desktop-menu-item" disabled=move || controls.layout.get().active != Some(DesktopApp::Projects) || controls.workspace.unavailable() || !controls.workspace.state.get().can_undo
+                            <button class="desktop-menu-item" disabled=move || !matches!(controls.layout.get().active, Some(DesktopApp::Projects | DesktopApp::World)) || controls.workspace.unavailable() || !controls.workspace.state.get().can_undo
                                 on:click=move |_| controls.undo(false)>"Annuler l’opération" <kbd>"Ctrl Z"</kbd></button>
-                            <button class="desktop-menu-item" disabled=move || controls.layout.get().active != Some(DesktopApp::Projects) || controls.workspace.unavailable() || !controls.workspace.state.get().can_redo
+                            <button class="desktop-menu-item" disabled=move || !matches!(controls.layout.get().active, Some(DesktopApp::Projects | DesktopApp::World)) || controls.workspace.unavailable() || !controls.workspace.state.get().can_redo
                                 on:click=move |_| controls.undo(true)>"Rétablir l’opération" <kbd>"Ctrl Maj Z"</kbd></button>
                             <p class="desktop-menu-note">"Dans un champ, Ctrl Z reste l’annulation du texte."</p>
                         }.into_any(),
@@ -499,7 +499,10 @@ fn desktop_key(controls: DesktopControls, event: &web_sys::KeyboardEvent) {
             controls.project_field("workspace-save-directory");
         }
         "z" if !editable
-            && controls.layout.get_untracked().active == Some(DesktopApp::Projects) =>
+            && matches!(
+                controls.layout.get_untracked().active,
+                Some(DesktopApp::Projects | DesktopApp::World)
+            ) =>
         {
             event.prevent_default();
             controls.undo(event.shift_key());

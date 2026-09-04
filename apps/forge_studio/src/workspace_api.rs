@@ -13,6 +13,8 @@ pub enum WorkspaceCommand {
     SculptTerrain {
         request: crate::area_preview::AreaPreviewRequest,
         brush: forge_world::TerrainBrush,
+        #[serde(default)]
+        additional_centers: Vec<[f32; 2]>,
         /// Preview computes the same candidate but leaves the session and its history intact.
         dry_run: bool,
     },

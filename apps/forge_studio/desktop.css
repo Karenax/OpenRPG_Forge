@@ -571,3 +571,13 @@
 .forge-desktop .world-diagnostics { padding: 24px; }
 .forge-desktop .world-diagnostics pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #ede5d3; padding: 16px; border-radius: 12px; font-size: 12px; }
 .forge-desktop .open-world-button { margin-top: 14px; width: 100%; }
+.forge-desktop .terrain-brush-panel { margin-top: 24px; padding-top: 18px; border-top: 1px solid #c9b998; }
+.forge-desktop .terrain-brush-panel fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; min-width: 0; }
+.forge-desktop .terrain-brush-panel label { display: grid; gap: 5px; font-size: 11px; color: #655437; }
+.forge-desktop .terrain-brush-panel input, .forge-desktop .terrain-brush-panel select { min-width: 0; width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #cfc1a9; border-radius: 8px; background: #fffaf0; color: #463b28; font: inherit; }
+.forge-desktop .terrain-brush-panel input:focus-visible, .forge-desktop .terrain-brush-panel select:focus-visible { outline: 2px solid #ae8445; outline-offset: 1px; }
+.forge-desktop .brush-position, .forge-desktop .brush-message { font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.forge-desktop .brush-position { font-variant-numeric: tabular-nums; color: #735b2d; }
+.forge-desktop .brush-history { display: flex; gap: 5px; }
+.forge-desktop .brush-history button { text-align: center; border: 1px solid #c9b998; padding: 7px 4px; }
+.forge-desktop .brush-error { color: #9b301f; font-size: 11px; line-height: 1.5; }

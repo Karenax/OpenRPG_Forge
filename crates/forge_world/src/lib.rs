@@ -13,7 +13,7 @@ mod weather;
 
 pub use terrain_brush::{
     TerrainBrush, TerrainBrushCommand, TerrainBrushError, TerrainBrushOperation,
-    TerrainBrushResult, preview_terrain_brush,
+    TerrainBrushResult, preview_terrain_brush, preview_terrain_stroke,
 };
 
 pub use environment::{

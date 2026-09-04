@@ -11,6 +11,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+#[path = "editor_brush.rs"]
+mod brush;
+pub use brush::{EditorBrushHit, EditorBrushPointer};
+
 pub struct EditorTerrainRequest {
     pub generation: u64,
     pub project_id: ProjectId,
@@ -106,6 +110,11 @@ pub struct EditorViewportStatus {
 
 #[derive(Default)]
 pub struct EditorViewportBridge {
+    pub brush_pointer: Option<EditorBrushPointer>,
+    pub brush_hit: Option<EditorBrushHit>,
+    pub brush_sample_serial: Option<u64>,
+    pub brush_start_pointer: Option<EditorBrushPointer>,
+    pub brush_start_hit: Option<EditorBrushHit>,
     pub renderer_starts: u32,
     pub desired_generation: u64,
     pub clear: bool,
@@ -125,12 +134,19 @@ impl Plugin for EditorViewportPlugin {
             .init_resource::<EditorProjection>()
             .add_plugins(MaterialPlugin::<VisualValleyTerrainMaterial>::default())
             .add_systems(Startup, setup_editor)
-            .add_systems(Update, update_editor);
+            .add_systems(Update, update_editor)
+            .add_systems(
+                PostUpdate,
+                brush::update_brush_cursor.after(bevy::transform::TransformSystems::Propagate),
+            );
     }
 }
 
 #[derive(Component)]
-struct EditorCamera;
+pub(crate) struct EditorCamera;
+
+#[derive(Component)]
+pub(crate) struct EditorTerrainChunk;
 
 #[derive(Resource, Default)]
 struct EditorProjection {
@@ -224,6 +240,11 @@ fn update_editor(world: &mut World) {
     };
     world.resource_scope(|world, mut projection: Mut<EditorProjection>| {
         if bridge.clear {
+            bridge.brush_hit = None;
+            bridge.brush_sample_serial = None;
+            bridge.brush_start_pointer = None;
+            bridge.brush_start_hit = None;
+            bridge.brush_pointer = None;
             clear_objects(world, &mut projection);
             if let Some(area) = projection.active.take() {
                 let pose = projection.pose;
@@ -265,6 +286,7 @@ fn update_editor(world: &mut World) {
             let mesh = world.resource_mut::<Assets<Mesh>>().add(mesh);
             let entity = world
                 .spawn((
+                    EditorTerrainChunk,
                     Mesh3d(mesh.clone()),
                     MeshMaterial3d(projection.material.clone()),
                     Transform::IDENTITY,

@@ -4,7 +4,7 @@ use forge_studio_frontend::workspace_api::WorkspaceCommand;
 use forge_studio_frontend::workspace_service::WorkspaceSession;
 use forge_studio_frontend::{StudioCommand, StudioResponse};
 use forge_world::embedded_gate0_proof_document;
-use std::sync::{Mutex, TryLockError};
+use std::sync::{Arc, Mutex, TryLockError};
 use tauri::Manager;
 
 const STUDIO_WINDOW_TITLE: &str = "OpenRPG Forge Studio";
@@ -21,8 +21,19 @@ const UNAVAILABLE_CLOSE_MESSAGE: &str =
 )]
 async fn execute_studio_command(
     command: StudioCommand,
-    session: tauri::State<'_, Mutex<WorkspaceSession>>,
+    session: tauri::State<'_, Arc<Mutex<WorkspaceSession>>>,
 ) -> Result<StudioResponse, String> {
+    if matches!(
+        &command,
+        StudioCommand::Workspace {
+            request: WorkspaceCommand::SculptTerrain { .. }
+        }
+    ) {
+        let session = Arc::clone(session.inner());
+        return tauri::async_runtime::spawn_blocking(move || execute_command(command, &session))
+            .await
+            .map_err(|error| format!("Brosse interrompue : {error}"));
+    }
     if let StudioCommand::AreaPreview { request } = command {
         let source = match session.lock() {
             Ok(session) => session.area_preview_source(request),
@@ -128,11 +139,11 @@ fn native_close_block_reason(session: &Mutex<WorkspaceSession>) -> Option<&'stat
 
 fn main() {
     tauri::Builder::default()
-        .manage(Mutex::new(WorkspaceSession::default()))
+        .manage(Arc::new(Mutex::new(WorkspaceSession::default())))
         .invoke_handler(tauri::generate_handler![execute_studio_command])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                let session = window.state::<Mutex<WorkspaceSession>>();
+                let session = window.state::<Arc<Mutex<WorkspaceSession>>>();
                 let title = if let Some(reason) = native_close_block_reason(&session) {
                     api.prevent_close();
                     // Native chrome remains visible on the project page and both proof scenes.

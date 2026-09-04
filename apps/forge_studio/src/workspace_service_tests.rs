@@ -131,6 +131,7 @@ fn assert_rejected_without_state_change(session: &mut WorkspaceSession, command:
 fn brush_command(state: &WorkspaceState, dry_run: bool) -> WorkspaceCommand {
     let source = document(state);
     WorkspaceCommand::SculptTerrain {
+        additional_centers: vec![],
         request: crate::area_preview::AreaPreviewRequest {
             key: crate::area_tabs::AreaKey {
                 project_id: source.project.id,
@@ -260,6 +261,69 @@ fn terrain_brush_ipc_round_trip_invalid_and_stale_requests_do_not_touch_history(
         }
         assert_rejected_without_state_change(&mut session, command);
     }
+}
+
+#[test]
+fn continuous_brush_is_one_history_entry_and_all_modes_round_trip_over_ipc() {
+    use forge_world::TerrainBrushOperation;
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    for operation in [
+        TerrainBrushOperation::Smooth,
+        TerrainBrushOperation::Flatten { height_m: 0.0 },
+        TerrainBrushOperation::Noise {
+            amplitude_m: 4.0,
+            seed: u32::MAX,
+        },
+        TerrainBrushOperation::Slope {
+            height_m: 4.0,
+            gradient_x: 0.25,
+            gradient_z: -0.5,
+        },
+    ] {
+        let mut request = brush_command(&created, false);
+        if let WorkspaceCommand::SculptTerrain { brush, .. } = &mut request {
+            brush.operation = operation;
+        }
+        assert_eq!(
+            serde_json::from_str::<WorkspaceCommand>(&serde_json::to_string(&request).unwrap())
+                .unwrap(),
+            request
+        );
+    }
+    let mut request = brush_command(&created, false);
+    if let WorkspaceCommand::SculptTerrain {
+        additional_centers, ..
+    } = &mut request
+    {
+        *additional_centers = vec![[12.0, 0.0], [24.0, 0.0]];
+    }
+    let applied = session.execute(request).unwrap();
+    assert_eq!(applied.revision, created.revision + 1);
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: applied.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .terrain
+            .height_deltas
+            .is_empty()
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .terrain
+            .height_deltas,
+        document(&applied).project.modules[0].areas[0]
+            .terrain
+            .height_deltas
+    );
 }
 
 #[test]

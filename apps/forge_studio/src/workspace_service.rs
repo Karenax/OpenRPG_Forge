@@ -48,9 +48,10 @@ impl WorkspaceSession {
             WorkspaceCommand::SculptTerrain {
                 request,
                 brush,
+                additional_centers,
                 dry_run,
             } => {
-                return self.execute_brush(request, brush, dry_run);
+                return self.execute_brush(request, brush, &additional_centers, dry_run);
             }
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
@@ -115,12 +116,13 @@ impl WorkspaceSession {
         &mut self,
         request: crate::area_preview::AreaPreviewRequest,
         brush: forge_world::TerrainBrush,
+        additional_centers: &[[f32; 2]],
         dry_run: bool,
     ) -> Result<WorkspaceState, String> {
         self.require_revision(request.base_revision)?;
         self.next_revision()?;
         let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
-        let candidate = forge_world::preview_terrain_brush(
+        let candidate = forge_world::preview_terrain_stroke(
             document,
             forge_world::TerrainBrushCommand {
                 command_id: CommandId::deterministic(workspace_store::unique_key()?),
@@ -130,6 +132,7 @@ impl WorkspaceSession {
                 area_id: request.key.area_id,
                 brush,
             },
+            additional_centers,
         )
         .map_err(|error| error.to_string())?;
         // Serialize intent, exact patch and inverse BEFORE the first mutation, including in dry-run.

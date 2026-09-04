@@ -9,6 +9,8 @@
 
 pub mod area_preview;
 pub mod area_tabs;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod brush_state;
 pub mod desktop_state;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod desktop_ui;
