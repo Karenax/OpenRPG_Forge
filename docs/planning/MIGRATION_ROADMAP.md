@@ -297,8 +297,8 @@ Statut : **OUVERTE** après le passage automatisé local de Gate 0 sous ADR-0004
 
 ## Report de performance accepté — ADR-0010
 
-[Décision et limites](../ADR/ADR-0010-gate1-strict-performance-deferral.md) : 42/55 routes cochées
-inchangées ; quatre conditions de passage satisfaites, quatre différées, deux visuelles encore
+[Décision et limites](../ADR/ADR-0010-gate1-strict-performance-deferral.md) : 43/55 routes cochées
+après le PASS GPU R1-037 du 4 septembre ; quatre conditions de passage satisfaites, quatre différées, deux visuelles encore
 ouvertes. Les routes non couvertes restent dues. Gate 2 n'est pas autorisée par ce seul report.
 
 - [ ] `G1-PERF-001` 60 FPS moyens 1080p High sur RTX 3060/RX 6600 — **DIFFÉRÉ**, `R1-041`.
@@ -729,18 +729,12 @@ qualité                   Low / Medium / High / Ultra
   fallback indisponible testé ; ne vaut ni temps GPU frame entière ni instrumentation `R1-037`.
 - [x] `R1-035` frame histogram — natif et boucle WASM Browser mesurés sur 120 frames.
 - [x] `R1-036` moyenne, p95, 1 % low — valeurs natives et Browser consignées avec leur portée.
-- [ ] `R1-037` draw calls, triangles, instances — contrat/modèle RenderDoc `dbe5eb86`, route
-  runtime/orchestrateur `140acbdd`, durcissements jusqu'à `347d782` et qualification stricte
-  `798b55d` intégrés ; 22/22 tests Python, 69/69 tests runtime, 4/4 tests du binaire de garde, 4/4
-  tests Rust RenderDoc ciblés et inventaire préflight des 72 fichiers PASS. Le préflight
-  historique refusait l'absence de couche Vulkan. Enregistrement système explicitement autorisé et
-  vérifié le 4 septembre ; build Release `d6ec361` réussi, premier lancement arrêté avant injection
-  sur la réécriture normale du profil QRenderDoc. Garde corrigé/testé et reprise du binaire épinglé
-  sans rebuild ajoutée. Reprise `2902353` : profil franchi, arrêt sur un garde runtime contradictoire
-  rejetant High appliqué ; ce garde est corrigé/testé avec le plugin qualité réel. Le binaire `0497bb4`
-  franchit ce contrôle puis révèle l'âge de l'audit dans le hash figé : seul ce compteur administratif
-  est neutralisé, les comptes de visibilité restent contrôlés. Quatre captures
-  indépendantes clear A/B + rain A/B restent à acquérir.
+- [x] `R1-037` draw calls, triangles, instances — **PASS local Windows/Vulkan le 4 septembre**,
+  runtime Release `5f6ed579`, outillage `7d2db384`. Quatre captures/replays indépendants clear A/B et
+  rain A/B, un Present par capture, compteurs et état figé identiques par météo ; garde Git finale
+  PASS. Clair : 195 draws / 195 instances soumises / 280 981 triangles ; pluie : 196 / 196 / 313 747.
+  76/76 tests runtime, 25/25 Python et Clippy runtime PASS. Aucun FPS, verdict humain ou backend
+  Browser/D3D12 qualifié ; [preuve](../evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md).
 - [x] `R1-038` VRAM estimée — sous-allocations wgpu natives observées ; aucune VRAM Browser simulée.
 - [x] `R1-039` préchauffage pipelines — 10/10 runs natifs exacts Low/Medium/High/Ultra,
   clear/rain, adaptatif et benchmark prêts avant et pendant les 120 samples.
@@ -785,7 +779,7 @@ qualité                   Low / Medium / High / Ultra
   durcissement committé `473abeaac1425f0fb991f88ba0495d3708978ea1` rejette désormais ce gap dans
   la tentative pré-signal et consomme une des trois tentatives sans élargir la borne de 250 ms ; ses
   validations légères passent, mais ce commit n'a pas été rejoué et un replay corrigé exact reste dû.
-  `R1-037` reste un bloqueur distinct de Gate 1 ;
+  `R1-037` est depuis passée le 4 septembre sur quatre captures GPU distinctes ;
   [preuve](../evidence/gate1/R1_048_GAMEPLAY_STUTTER_PRESENTMON.md).
 - [ ] `R1-049` revue des matériaux — six preuves Forge hashées dans le paquet v1, **PRÊT POUR REVUE
   HUMAINE**, verdict encore dû.

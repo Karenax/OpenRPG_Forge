@@ -24,18 +24,15 @@ suspendue jusqu'à nouvelle demande explicite. Cette décision prévaut sur les 
 de replay ci-dessous. Les preuves GPU, les revues visuelles et les autres exigences non couvertes
 restent dues : Gate 1 n'est pas passée et Gate 2 ne commence pas.
 
-Actualisation R1-037 du 4 septembre : l'utilisateur a autorisé séparément l'enregistrement système
-de la couche Vulkan RenderDoc ; l'opération signée épinglée passe (sortie 0, vérification positive).
-Le build Release exact `d6ec36107565bf26412141c84bdd20fe8d82654e` a réussi. Son premier lancement
-QRenderDoc échoue avant injection parce que la configuration est complétée au démarrage ; le garde
-est corrigé et testé, avec reprise du binaire hashé sans rebuild lorsque seuls les documents/outils
-ont changé. Cette reprise franchit le profil et révèle un garde runtime contradictoire rejetant
-`Some(High)` alors que High doit être appliqué. Ce garde est corrigé avec un test du vrai plugin
-qualité. Le binaire `0497bb4` passe le build et ce contrôle, puis révèle une empreinte de végétation
-incluant l'âge croissant de l'audit : seul cet âge est désormais neutralisé, pas les comptes réels.
-Un nouveau binaire de capture reste à qualifier. Aucune capture GPU qualifiante n'est encore acquise ; voir
-[preuve R1-037](docs/evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md). Les mentions plus anciennes
-« couche non enregistrée » décrivent désormais l'historique, pas un blocage courant.
+Actualisation du 4 septembre : **R1-037 PASS Windows/Vulkan**, après l'enregistrement système
+RenderDoc explicitement autorisé. Runtime Release `5f6ed579`, outillage `7d2db384` : quatre captures
+indépendantes et replays non dégradés, état figé et compteurs répétables, worktree/profil utilisateur
+inchangés. Clair A/B : 195 draws, 195 instances soumises, 280 981 triangles ; pluie A/B :
+196 / 196 / 313 747. **76/76 tests runtime, 25/25 tests Python et Clippy runtime PASS.**
+[Preuve R1-037](docs/evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md). Gate 1 compte désormais **43/55
+routes cochées**, 12 ouvertes. Aucun FPS ni verdict humain n'est déduit de cette acquisition.
+Les preuves précises eau/wetness/post-traitement et les revues humaines restent dues ; Gate 2 reste
+interdite. Les mentions anciennes de couche absente/captures NOT RUN sont des états historiques.
 
 La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
 avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
@@ -1615,7 +1612,8 @@ glTF et qualifie le workspace complet. `41b49f66` ajoute des diagnostics retard�
 Low/High et `534ce4fa` acquiert la matrice Browser Low/High, mais `R1-023`, `R1-025` et `R1-026`
 restent ouvertes faute d'attribution au matériau eau, de preuve de consommation shader de la wetness,
 d'identité de frame exacte et de revue humaine. Restent également dus : profils non couverts,
-autorisation de couche Vulkan puis quatre captures RenderDoc. La CI distante reste
+les preuves GPU par matériau et les revues humaines. R1-037 est depuis passée le 4 septembre, avec
+quatre captures RenderDoc qualifiantes (`5f6ed579` / `7d2db384`). La CI distante reste
 `NOT RUN — infrastructure billing` sous ADR-0006 et n'est pas un PASS.
 Aucun asset Cadle n'a été introduit. Voir
 `docs/reports/GATE_1_REPORT.md`.
@@ -2201,9 +2199,10 @@ GPU précise, humaine ou de route n'est revendiquée.
 L'optique d'eau `e7e7d419`, durcie par `e2d924b`, est validée automatiquement et réacquise à
 `125ba0b`, sans qualification GPU/humaine. Le contrat/chemin de capture RenderDoc
 `dbe5eb86`/`140acbdd`, durci jusqu'à `798b55d`, passe ses validations hors GPU ; son préflight réel
-recoupe le bundle complet puis s'arrête sans mutation sur la couche Vulkan non enregistrée. Quatre
-captures Vulkan restent `NOT RUN`. Restent également dus : replay schema 12 PASS de `R1-048`, GPU
-cible `R1-041`, preuves GPU Browser précises et revue humaine.
+recoupait le bundle complet puis s'arrêtait sans mutation sur la couche Vulkan non enregistrée.
+Depuis le 4 septembre, R1-037 est PASS : runtime `5f6ed579`, outillage `7d2db384`, quatre captures
+Vulkan répétables et garde Git propre. Les critères de cadence R1-048 et le benchmark cible R1-041
+restent différés sous ADR-0010 ; preuves GPU par matériau/Browser et revue humaine restent dues.
 Le protocole R1-051 exact `73db7839`/`466cb51b`, SHA-256 `cc6d4918…6baeb4d`, est intégré au paquet
 humain avec trois liens Grassworks externes et quatre vues Forge. Le paquet reste
 `gate1_transition_authorized=false`, `gate1_routes_closed=0` et `human_review_performed=false` ;

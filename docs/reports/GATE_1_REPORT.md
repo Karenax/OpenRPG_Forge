@@ -1,6 +1,6 @@
 # Rapport Gate 1 — Visual Valley
 
-Date de consolidation : **2026-09-03**
+Date de consolidation : **2026-09-04**
 
 Verdict : **POURSUIVRE GATE 1 HORS AUDITS DE CADENCE — PERFORMANCE DIFFÉRÉE ADR-0010, GATE 1 OUVERTE**
 
@@ -12,7 +12,20 @@ Le propriétaire accepte explicitement le report des critères stricts de perfor
 [ADR-0010](../ADR/ADR-0010-gate1-strict-performance-deferral.md). Les quatre conditions
 FPS/p95/1 % low/stutter et le benchmark cible `R1-041` sont différés, non bloquants administrativement
 pour Gate 1, mais jamais déclarés PASS. Le volet cadence de `R1-048` est différé ; les revues humaines,
-la vidéo et les preuves d'exécution GPU restent dues. Les 42/55 routes cochées sont inchangées.
+la vidéo et les preuves GPU par matériau restent dues. **43/55 routes sont cochées**, après le PASS
+local Windows/Vulkan de R1-037 le 4 septembre ; Gate 1 reste ouverte.
+
+### Résultat nouveau : R1-037 PASS
+
+Runtime Release `5f6ed579`, outillage `7d2db384`, RX 7800 XT/Vulkan 26.8.1, High 1080p : quatre
+captures et replays indépendants, état figé et compteurs identiques par météo, un Present par capture,
+garde Git finale et profil utilisateur inchangés. Clair A/B : 195 draws, 195 instances soumises,
+280 981 triangles ; pluie A/B : 196 / 196 / 313 747. **76/76 tests runtime, 25/25 tests Python et
+Clippy runtime strict PASS**. La qualification porte sur les compteurs soumis de la frame native,
+pas sur les FPS, le Browser WebGPU ou une validation humaine. Aucun asset Cadle n'a été copié.
+[Preuve et reçu versionné](../evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md).
+Les échecs de mise au point restent conservés ; les mentions plus anciennes de captures absentes
+dans ce rapport décrivent l'historique.
 
 Le dernier replay exact `61713887` / `7fbcae7b` franchit l'acquisition et produit un **FAIL schema 13** :
 26,1661 FPS affichés, p95 131,956 ms, 1 % low 3,4183 FPS, fenêtre stable et ETW 0/0. Voir la
@@ -184,11 +197,9 @@ Au commit intégré `347d78264e52363c769e2f2807303d84c65ea946`, arbre
 enregistrée sans créer de build, profil jetable, runtime ou capture. Son reçu de FAIL de sécurité
 porte le SHA-256 `E99FEA9E92DE493D0C85A3BB1F57D066B29428333509A702B3FA658076EB3B26`.
 
-Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` reste ouverte : son contrat, son
-workload runtime et son chemin d'acquisition sont intégrés et testés, mais l'exécution QRenderDoc et
-les captures finales restent `NOT RUN` ;
-`R1-041`, `R1-048`, le GPU
-cible RTX 3060/RX 6600, la revue humaine et la CI distante restent dus. Gate 1 reste ouverte ; ce
+Le verdict `R1-055` reste **poursuivre Gate 1**. La route `R1-037` est passée le 4 septembre sur les
+quatre captures/replays documentés ci-dessus. `R1-041` et le volet cadence de `R1-048` sont différés,
+sans PASS technique ; les preuves GPU par matériau, la revue humaine et la CI distante restent dues. Gate 1 reste ouverte ; ce
 rapport ne constitue ni un passage administratif de Gate 1, ni une autorisation implicite de commencer
 Gate 2.
 
@@ -898,10 +909,10 @@ Nouvelles cases fermées par les preuves consolidées :
 - `R1-033` comme **N/A conditionnel**, faute d'asset joueur animé gouverné dans le snapshot courant ;
 - `R1-055` par le présent rapport, avec verdict « poursuivre Gate 1 ».
 
-Restent explicitement ouvertes, soit **13 routes** :
+Restent explicitement ouvertes, soit **12 routes** :
 
 - `R1-014`, `R1-023`, `R1-025` et `R1-026` ;
-- `R1-037`, `R1-041` et `R1-048` ;
+- `R1-041` et `R1-048` (cadence différée sous ADR-0010, revue humaine conservée) ;
 - `R1-046`, `R1-047` et `R1-049` à `R1-052`.
 
 ### Paquet de revue humaine fail-closed
@@ -950,17 +961,16 @@ synthétiques et ses dix-neuf refus attendus passent, soit vingt-et-un cas au to
 - protocole A/B Forge/Cadle aligné acquis et validé ; verdict humain versionné encore requis :
   `R1-052`.
 
-`R1-037` et `R1-041` restent volontairement hors du reçu humain : la première attend la couche Vulkan
-RenderDoc et quatre captures indépendantes ; la seconde attend le GPU cible. Le guide
+`R1-037` et `R1-041` restent volontairement hors du reçu humain : la première est passée par la
+qualification GPU RenderDoc du 4 septembre ; la seconde attend le GPU cible, sous report ADR-0010. Le guide
 [`GATE1_HUMAN_REVIEW_PACKET.md`](../evidence/gate1/GATE1_HUMAN_REVIEW_PACKET.md) décrit le contrôle et
 le reçu séparé. Même accepté humainement, ce reçu ne peut ni muter les ledgers machine, ni autoriser la
 transition Gate 1.
 
-`R1-023` et `R1-037` ont désormais du code intégré et des validations ciblées dans la chaîne courante,
-sans changer leur état : la matrice Browser Low/High `534ce4fa` est PASS automatisé, mais n'est pas une
-attribution GPU au matériau eau ; la consommation shader de la wetness n'est pas prouvée, la revue
-humaine de l'eau reste due et les quatre captures RenderDoc finales ne sont pas acquises. Une route ouverte avec une implémentation
-validée seulement sous une portée plus étroite reste une route ouverte.
+`R1-023` reste ouverte : la matrice Browser Low/High `534ce4fa` est PASS automatisé, mais ne prouve
+pas l'attribution GPU au matériau eau ou la consommation shader de la wetness ; la revue humaine
+reste due. Les quatre captures finales R1-037 sont acquises, mais leurs compteurs globaux ne ferment
+pas ces routes matériau. Une preuve d'une portée plus étroite ne qualifie pas les exigences restantes.
 
 Les fichiers `R1-046` à `R1-048` sont réacquis au commit exact `125ba0b`. Le principal défaut
 depth-only reste corrigé, les vues eau ciblées sont inspectables et la vidéo exerce le contrôleur
@@ -1176,10 +1186,11 @@ Travail restant non couvert par le report :
 
 1. qualifier les effets eau/wetness/post-traitement déjà intégrés, avec les preuves d'exécution GPU
    encore absentes, puis traiter les défauts fonctionnels ou visuels constatés ;
-2. obtenir les quatre captures RenderDoc d'ADR-0009, après autorisation explicite séparée de la mutation
-   hôte ; aucune modification de registre n'est autorisée par le report de performance ;
-3. recueillir les revues humaines des vues corrigées, du déplacement et des comparaisons visuelles ;
-4. décider du passage de Gate 1 avec distinction entre preuves acquises et dettes différées.
+2. recueillir les revues humaines des vues corrigées, du déplacement et des comparaisons visuelles ;
+3. décider du passage de Gate 1 avec distinction entre preuves acquises et dettes différées.
+
+Les quatre captures RenderDoc d'ADR-0009 sont acquises et R1-037 est passée le 4 septembre,
+après autorisation distincte de la mutation hôte. Le report de performance n'a pas servi d'autorisation.
 
 Le benchmark cible et les seuils stricts de cadence restent dans `G1-PERF-001` à `004`, sans campagne
 active ni relance automatique. Aucun seuil, test ou ledger n'est assoupli. Le présent lot documentaire

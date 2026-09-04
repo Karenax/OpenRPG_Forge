@@ -7,8 +7,62 @@
 - Arbre de base : `4bfb863255dd865432093c5e7291287b8e78dc43`
 - Intégration durcie : `347d78264e52363c769e2f2807303d84c65ea946`
 - Arbre intégré : `4d6121f3dbc85fb090c1663c8257bee47c64300a`
-- Statut R1-037 : **OUVERTE — COUCHE VULKAN ENREGISTRÉE, BUILD PASS, PREMIER LANCEMENT ARRÊTÉ AVANT INJECTION**
+- Statut R1-037 : **PASS LOCAL WINDOWS/VULKAN — 4 CAPTURES, 4 REPLAYS, RÉPÉTABILITÉ ET GARDE GIT PASS**
 - Gate 1 : **OUVERTE**
+
+## Résultat qualifiant du 4 septembre 2026
+
+La matrice finale `E:\OpenRPG_Forge\.gate1-tools\evidence\rd-final-20260904T071600Z` termine avec
+`Gate 1 RenderDoc R1-037 PASS`. Runtime Release source
+`5f6ed5798fd93613200e0e8fbb4f9251f77e0e43`, outillage exact
+`7d2db38414f560ff7c544fc553ee68661f4a4f7d`, GPU RX 7800 XT/Vulkan, pilote 26.8.1 (LLPC),
+High 1920 x 1080. Le binaire réutilisé est inchangé, SHA-256
+`9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815`.
+
+| Météo / répétitions indépendantes | Draws | Instances soumises | Triangles | Present par capture |
+|---|---:|---:|---:|---:|
+| Clair A et B | 195 | 195 | 280 981 | 1 |
+| Pluie A et B | 196 | 196 | 313 747 | 1 |
+
+Les instances sont cumulées sur les appels soumis, pas des objets ECS uniques. Les quatre replays
+sont `Supported`, Vulkan, non dégradés. Les états figés et compteurs sont identiques par météo ;
+les quatre PID et nonces sont distincts. Le worktree est resté propre, le profil utilisateur
+QRenderDoc reste absent et les profils/mirroirs jetables sont supprimés. Les variables de couche sont
+locales à la capture ; l'enregistrement système autorisé antérieur reste distinct du champ
+`host_configuration_modified=false` de cette acquisition.
+
+[Reçu textuel versionné](r1-037-renderdoc-20260904.validation.json) : contenu JSON équivalent au reçu
+externe, dont le SHA-256 brut est
+`c0d9d5d98f53a6928203dbdf07845522564e55713f3c90baaaff66daaaac9251`.
+Le reçu lie tous les artefacts externes par SHA-256, y compris les quatre `.rdc` ; aucun binaire ni
+média brut n'entre dans Git. La preuve d'enregistrement séparée a le SHA-256
+`0c7f490123ce0cf741cf4c3acee56cf1c56b2ccec5e025d82d7ca60eb7abb5ec`.
+
+Validation logicielle : **76/76 tests runtime, 25/25 tests Python, Clippy runtime strict et formatage
+PASS**. `R1-037` est fermée selon ADR-0009 ; Gate 1 passe à **43/55 routes cochées**. Aucun FPS,
+benchmark cible, verdict humain ou qualification Browser WebGPU/D3D12 n'est déduit de RenderDoc.
+Les preuves précises des matériaux eau/wetness/post-traitement et les revues humaines restent dues.
+ADR-0010 reste en vigueur, sans relance PresentMon ni copie d'asset Cadle.
+
+Contrôle final indépendant : **28/28 tailles de liaison de fichiers par SHA-256 vérifiées** (captures,
+reçus prêts, ledgers runtime, actions, analyses, reçus adaptateur et profils finaux) ; **4/4 analyses
+recalculées à l'identique** avec le modèle Python hors GPU. Le reçu versionné est JSON-équivalent à
+l'original externe ; le décompte réel de roadmap est 43 cochées / 12 ouvertes. `git diff --check` PASS.
+
+Commande de la matrice qualifiante (depuis le worktree Rust propre, sortie neuve) :
+
+```powershell
+& .\scripts\Invoke-Gate1RenderDoc.ps1 `
+  -RepoRoot E:\OpenRPG_Forge\.gate1-qualification-055cd36a `
+  -OutputRoot E:\OpenRPG_Forge\.gate1-tools\evidence\rd-final-20260904T071600Z `
+  -CargoTargetDirectory E:\OpenRPG_Forge\.gate1-tools\cargo-target\r1-037-renderdoc-d6ec361-20260904T060000Z `
+  -RenderDocRoot E:\OpenRPG_Forge\.gate1-tools\renderdoc\v1.46\official-win64-acq-001\extract\RenderDoc_1.46_64 `
+  -Repetitions 2 `
+  -ReuseRuntimeSourceCommit 5f6ed5798fd93613200e0e8fbb4f9251f77e0e43 `
+  -ReuseRuntimeSha256 9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815
+```
+
+Ne pas réutiliser ce dossier de sortie pour un nouveau run ; le script refuserait de l'écraser.
 
 ## Actualisation du 4 septembre 2026
 
@@ -322,7 +376,7 @@ Ce FAIL est un arrêt de sécurité reproductible et non un résultat GPU. L'enr
 Vulkan est une mutation hôte distincte qui exige une autorisation explicite ; l'orchestrateur refuse
 de l'effectuer implicitement.
 
-## Limites et travail encore dû
+## État historique au préflight du 3 septembre (supplanté par le résultat ci-dessus)
 
 | Élément | État |
 |---|---|
@@ -339,7 +393,7 @@ de l'effectuer implicitement.
 | égalité inter-répétitions | **NOT RUN** |
 | R1-037 | **OUVERTE** |
 
-La prochaine étape exige une autorisation séparée pour enregistrer/corriger la couche Vulkan
+À cette date, la prochaine étape exigeait une autorisation séparée pour enregistrer/corriger la couche Vulkan
 RenderDoc sur l'hôte, puis un nouveau run exact-commit. Quatre captures indépendantes, leurs reçus,
-hashes, replays et analyses restent indispensables. Ce document n'altère ni les verdicts PresentMon,
-ni le verdict global Gate 1, ni la roadmap.
+hashes, replays et analyses restaient indispensables. Ils sont acquis le 4 septembre dans le résultat
+ci-dessus. Les verdicts PresentMon et le statut global Gate 1 restent inchangés.

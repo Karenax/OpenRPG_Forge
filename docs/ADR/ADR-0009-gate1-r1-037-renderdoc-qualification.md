@@ -1,7 +1,7 @@
 # ADR-0009 — Qualification RenderDoc bornée de R1-037
 
 Date : 2026-09-03
-Statut : **accepté pour le protocole ; acquisition GPU encore incomplète**
+Statut : **accepté ; qualification locale Windows/Vulkan R1-037 PASS le 4 septembre 2026**
 Amendement du 4 septembre 2026 : couche Vulkan autorisée et enregistrée ; reprise sans rebuild et
 contrôle du profil QRenderDoc chargé corrigés après le premier lancement réel.
 Portée : branche `Rust`, Gate 1, route `R1-037`, Windows x64/Vulkan
@@ -230,6 +230,9 @@ textuelle nécessaire à l'audit.
 ## Conséquences
 
 ADR-0004 n'est pas étendue : l'overlay Gate 0 continue d'afficher le compteur global indisponible.
-R1-037 dispose désormais d'une définition reproductible et testable sans modifier le renderer, mais
-son verdict demeure **OUVERT / CAPTURES NOT RUN**. Gate 1 reste ouverte et Gate 2 n'est pas autorisée
-par cette décision.
+R1-037 passe le 4 septembre avec le runtime `5f6ed579` et l'outillage `7d2db384` : quatre captures et
+replays indépendants, compteurs identiques par météo, garde Git finale et profils utilisateur inchangés.
+Clair : 195 draws / 195 instances soumises / 280 981 triangles ; pluie : 196 / 196 / 313 747.
+[Preuve et frontières](../evidence/gate1/R1_037_RENDERDOC_GPU_WORK.md).
+Gate 1 reste ouverte ; aucun FPS, verdict humain, D3D12 ou Browser WebGPU n'est qualifié ici.
+Gate 2 n'est pas autorisée par cette seule décision.

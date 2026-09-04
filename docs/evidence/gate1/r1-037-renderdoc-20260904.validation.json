@@ -1,0 +1,312 @@
+{
+  "schema": "forge-gate1-renderdoc-validation/v1",
+  "status": "PASS",
+  "source_commit": "5f6ed5798fd93613200e0e8fbb4f9251f77e0e43",
+  "capture_tooling_commit": "7d2db38414f560ff7c544fc553ee68661f4a4f7d",
+  "backend": "Vulkan",
+  "weather_matrix": [
+    "clear",
+    "rain"
+  ],
+  "repetitions_per_weather": 2,
+  "tools": {
+    "renderdoc_version": "1.46",
+    "renderdoc_commit": "e4bd23b671d3d5a747ff5221dbe08a63eb6ca200",
+    "qrenderdoc_sha256": "c5e9d3f254d80a7649fbd9eae1c67618cb19278c603710370c220de469397277",
+    "renderdoccmd_sha256": "400cb013ea52b9baa818d69dc0a6341776d2a9560edad5bcc6e200fe8c03806d",
+    "renderdoc_dll_sha256": "809da38e3867d9fd09cc5c30dd5310500dee75e999166d7a14ad1ef6e9eca65d",
+    "qt5core_sha256": "8d2ff4ce9096ddccc4f4cd62c2e41fc854cfd1b0d6e8d296645a7f5fd4ae565a",
+    "qt_core_file_version": "5.15.2.0",
+    "adapter_sha256": "e6e5f6826e305c5f79e301d7bd8000d27593ee969251a831180309d1e5e6b519",
+    "model_sha256": "e6f93ae809ad5f5815b35cce52a094592f6ac3525d546967ea5fefadd49c9d56",
+    "manifest_sha256": "c14bad9189db3656c70ceaafc21de3d5c8fb5c819bd0e473b5f63b64572ca447",
+    "cargo_version": "cargo 1.98.0 (797e8a9bc 2026-08-05)"
+  },
+  "vulkan_layer": {
+    "check": "renderdoccmd vulkanlayer explain",
+    "expected_sentence_observed": true,
+    "host_configuration_modified": false,
+    "process_implicit_layer_path": "E:\\OpenRPG_Forge\\.gate1-tools\\evidence\\rd-final-20260904T071600Z\\.qrenderdoc-execution-dc25fcb1db694c448889103450a9ae8c",
+    "process_layer_discovery": "VK_IMPLICIT_LAYER_PATH_execution_mirror_only",
+    "other_implicit_layers_excluded_for_capture": true,
+    "elevated": false
+  },
+  "qrenderdoc_profile": {
+    "strategy": "full_bundle_mirror_unique_executable_basename",
+    "real_profile_fingerprint_before": "absent",
+    "real_profile_fingerprint_after": "absent",
+    "real_profile_unchanged": true,
+    "transient_profiles_removed": true,
+    "execution_view_removed": true,
+    "host_profile_write_scope": "disposable_nonce_profile_only"
+  },
+  "build": {
+    "mode": "reused_exact_binary_no_build",
+    "source_commit": "5f6ed5798fd93613200e0e8fbb4f9251f77e0e43",
+    "compiled_inputs_unchanged": true,
+    "profile": "release",
+    "locked": true,
+    "jobs": 1,
+    "external_target_directory": "E:\\OpenRPG_Forge\\.gate1-tools\\cargo-target\\r1-037-renderdoc-d6ec361-20260904T060000Z",
+    "runtime_sha256": "9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815",
+    "cadle_assets_copied": false
+  },
+  "stability": {
+    "runtime_binary_stable": true,
+    "gpu_identity_stable": true,
+    "source_hashes_stable": true,
+    "frozen_state_stable_per_weather": true,
+    "renderdoc_metrics_stable_per_weather": true
+  },
+  "results": [
+    {
+      "run": "clear-01",
+      "weather": "clear",
+      "repetition": 1,
+      "nonce": "6997e33270384e5e9c5ed3df51dbcc09",
+      "capture_id": "gate1-renderdoc-clear-01",
+      "process_id": 24636,
+      "gpu": {
+        "backend": "Vulkan",
+        "device": 29822,
+        "device_type": "DiscreteGpu",
+        "driver": "AMD proprietary driver",
+        "driver_info": "26.8.1 (LLPC)",
+        "max_bind_groups": 8,
+        "max_storage_buffer_binding_size": 2147483644,
+        "max_texture_dimension_2d": 16384,
+        "max_uniform_buffer_binding_size": 2147483647,
+        "name": "AMD Radeon RX 7800 XT",
+        "vendor": 4098
+      },
+      "frozen_state_sha256": "ec12627154480b1918757e1e2e3c3d3caa9170b8de61d3b7402caf52dde556f8",
+      "source_hashes": {
+        "cadle_assets_used": false,
+        "environment": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+        "quality": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+        "terrain": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+        "vegetation": "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8",
+        "water": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+        "weather": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e"
+      },
+      "runtime_sha256": "9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815",
+      "capture_file": "clear-01/gate1-renderdoc-frame_frame144.rdc",
+      "capture_sha256": "6a9e124ce0b215a49025e254524cca8be6b127eb683da2b09b5869350cee81b9",
+      "ready_sha256": "cabd33c10138896875af3cc37971d8fdabe7a9a9cfc6e35dd940167929ef8539",
+      "ledger_sha256": "7e01929a910566f094242b93ea125e1a10b80426df9b53328826257799414a18",
+      "actions_sha256": "cb15816f476f3882a092309d7bce68927b56f1c6ec4b3665018ec471670a6999",
+      "analysis_sha256": "b1d1c6224315c0f0f3c7507ff30235fcfddf743a21e244c7d1335195a784910c",
+      "adapter_sha256": "e831c4f9d1ec9ad3b5c6e5f15513bbca4510d7605110d4b2627180f06115cfd8",
+      "qrenderdoc_profile": {
+        "application_name": "forge-gate1-qrenderdoc-6997e33270384e5e9c5ed3df51dbcc09",
+        "seed_sha256": "c640a72a3f02a639ccc5ef2ad8bbdf8bdbffc6e767fcd094e6ec342560255719",
+        "final_config_file": "clear-01/qrenderdoc-profile-final.UI.config",
+        "final_config_sha256": "0a11d58b7aa9177751347a3f301d8d4a88554a1fa37ac0646713039c76f372ed",
+        "transient_profile_removed": true
+      },
+      "metrics": {
+        "actions_visited": 670,
+        "draws": 195,
+        "draws_by_topology": {
+          "LineList": 0,
+          "PointList": 0,
+          "TriangleList": 195
+        },
+        "instances": 195,
+        "lines": 0,
+        "points": 0,
+        "present_actions": 1,
+        "triangles": 280981
+      }
+    },
+    {
+      "run": "clear-02",
+      "weather": "clear",
+      "repetition": 2,
+      "nonce": "03c0c3178ee5446192beda0e3ad9bb09",
+      "capture_id": "gate1-renderdoc-clear-02",
+      "process_id": 3612,
+      "gpu": {
+        "backend": "Vulkan",
+        "device": 29822,
+        "device_type": "DiscreteGpu",
+        "driver": "AMD proprietary driver",
+        "driver_info": "26.8.1 (LLPC)",
+        "max_bind_groups": 8,
+        "max_storage_buffer_binding_size": 2147483644,
+        "max_texture_dimension_2d": 16384,
+        "max_uniform_buffer_binding_size": 2147483647,
+        "name": "AMD Radeon RX 7800 XT",
+        "vendor": 4098
+      },
+      "frozen_state_sha256": "ec12627154480b1918757e1e2e3c3d3caa9170b8de61d3b7402caf52dde556f8",
+      "source_hashes": {
+        "cadle_assets_used": false,
+        "environment": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+        "quality": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+        "terrain": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+        "vegetation": "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8",
+        "water": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+        "weather": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e"
+      },
+      "runtime_sha256": "9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815",
+      "capture_file": "clear-02/gate1-renderdoc-frame_frame150.rdc",
+      "capture_sha256": "bc6e2b7f193c55e9f28aa6740af0abe945823b28d8606222c0e168ba043219a0",
+      "ready_sha256": "4e0d7383f351271713685c8e36a176d2f3fb0178aebd0808cf3ef6e5344583e1",
+      "ledger_sha256": "6a1ca586805b9c8467f1816e21e360f8f98a749ae410bab5c1c4983566e73c4e",
+      "actions_sha256": "93e99618a0061255e15d14bda43f6efea04fb0c52cbcf2c5a4b32d768845535c",
+      "analysis_sha256": "b1d1c6224315c0f0f3c7507ff30235fcfddf743a21e244c7d1335195a784910c",
+      "adapter_sha256": "2fc5265c002a9b86c03caf7488e843c7d1ec4b269a97d4ef495cd7112eb13b35",
+      "qrenderdoc_profile": {
+        "application_name": "forge-gate1-qrenderdoc-03c0c3178ee5446192beda0e3ad9bb09",
+        "seed_sha256": "c640a72a3f02a639ccc5ef2ad8bbdf8bdbffc6e767fcd094e6ec342560255719",
+        "final_config_file": "clear-02/qrenderdoc-profile-final.UI.config",
+        "final_config_sha256": "8f74b247930ddb41c350012d5a212b33785786092b021803c2510a7e3867aaea",
+        "transient_profile_removed": true
+      },
+      "metrics": {
+        "actions_visited": 670,
+        "draws": 195,
+        "draws_by_topology": {
+          "LineList": 0,
+          "PointList": 0,
+          "TriangleList": 195
+        },
+        "instances": 195,
+        "lines": 0,
+        "points": 0,
+        "present_actions": 1,
+        "triangles": 280981
+      }
+    },
+    {
+      "run": "rain-01",
+      "weather": "rain",
+      "repetition": 1,
+      "nonce": "1141d6dedf0441c289f35cf63d9dee11",
+      "capture_id": "gate1-renderdoc-rain-01",
+      "process_id": 24800,
+      "gpu": {
+        "backend": "Vulkan",
+        "device": 29822,
+        "device_type": "DiscreteGpu",
+        "driver": "AMD proprietary driver",
+        "driver_info": "26.8.1 (LLPC)",
+        "max_bind_groups": 8,
+        "max_storage_buffer_binding_size": 2147483644,
+        "max_texture_dimension_2d": 16384,
+        "max_uniform_buffer_binding_size": 2147483647,
+        "name": "AMD Radeon RX 7800 XT",
+        "vendor": 4098
+      },
+      "frozen_state_sha256": "1e108adeab8be941b8116c3c41e4cd884ccd029cd8e8967e7d6d477ef6d41ae7",
+      "source_hashes": {
+        "cadle_assets_used": false,
+        "environment": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+        "quality": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+        "terrain": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+        "vegetation": "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8",
+        "water": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+        "weather": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e"
+      },
+      "runtime_sha256": "9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815",
+      "capture_file": "rain-01/gate1-renderdoc-frame_frame147.rdc",
+      "capture_sha256": "d2ad4b7bd02a258fe900910e1ec26a155a3e500bdef752a1cc7146244c28da3a",
+      "ready_sha256": "a91ef690a170dfaf924492c9b71a52d151ab45ee60c4e91c40dbbfeb69a1d137",
+      "ledger_sha256": "4b6072141a90b004dc4850d2bf6b715d3db8cd4f3d1a13b92ffb0c78348b0181",
+      "actions_sha256": "7ef7975d97e21164753a27e2d0326c50c14cfc6b3843270ffcb6bab04c211c74",
+      "analysis_sha256": "585d38a5381abbd3e019cf664720815158cb4123bcd84329bd1ae5f846be9e60",
+      "adapter_sha256": "e67c18cfb8bed536a4293898e6a839c63bafac31d0db10ab9d9a58573ea4c590",
+      "qrenderdoc_profile": {
+        "application_name": "forge-gate1-qrenderdoc-1141d6dedf0441c289f35cf63d9dee11",
+        "seed_sha256": "c640a72a3f02a639ccc5ef2ad8bbdf8bdbffc6e767fcd094e6ec342560255719",
+        "final_config_file": "rain-01/qrenderdoc-profile-final.UI.config",
+        "final_config_sha256": "2095524a58f598af884a1a25cb2990aaa94e0dffb051b9ecfe689c4a31f1a5b1",
+        "transient_profile_removed": true
+      },
+      "metrics": {
+        "actions_visited": 688,
+        "draws": 196,
+        "draws_by_topology": {
+          "LineList": 0,
+          "PointList": 0,
+          "TriangleList": 196
+        },
+        "instances": 196,
+        "lines": 0,
+        "points": 0,
+        "present_actions": 1,
+        "triangles": 313747
+      }
+    },
+    {
+      "run": "rain-02",
+      "weather": "rain",
+      "repetition": 2,
+      "nonce": "efb521bd34934282a70cb1d477aea753",
+      "capture_id": "gate1-renderdoc-rain-02",
+      "process_id": 22328,
+      "gpu": {
+        "backend": "Vulkan",
+        "device": 29822,
+        "device_type": "DiscreteGpu",
+        "driver": "AMD proprietary driver",
+        "driver_info": "26.8.1 (LLPC)",
+        "max_bind_groups": 8,
+        "max_storage_buffer_binding_size": 2147483644,
+        "max_texture_dimension_2d": 16384,
+        "max_uniform_buffer_binding_size": 2147483647,
+        "name": "AMD Radeon RX 7800 XT",
+        "vendor": 4098
+      },
+      "frozen_state_sha256": "1e108adeab8be941b8116c3c41e4cd884ccd029cd8e8967e7d6d477ef6d41ae7",
+      "source_hashes": {
+        "cadle_assets_used": false,
+        "environment": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+        "quality": "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2",
+        "terrain": "9f16780a1de1e9dd4b65931624a8b45281713829434292bada320a578420b2ef",
+        "vegetation": "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8",
+        "water": "c581e9ef65ca1bc34d5f94908d5f43df77794da4ad5b97e1b3c4f8c0d025ebce",
+        "weather": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e"
+      },
+      "runtime_sha256": "9ec24448e0a77849d952a8df1cd2c0ba45a2eeeedf92706e3067f2351e166815",
+      "capture_file": "rain-02/gate1-renderdoc-frame_frame149.rdc",
+      "capture_sha256": "015b74e019feb1d3fea1e985591afa0b93a9765752629e56157534ed2219dde8",
+      "ready_sha256": "e01c6b3cce1709aa9f16c259e0f3cab87bd9a71d89da963b4eacee3eee96be83",
+      "ledger_sha256": "cce1aa69c0e8ab0105b332d87d70437a066eb1ef2147dd57f579735e93846d37",
+      "actions_sha256": "82e6dd00687ad6466494b3eff17d6da61a337feda40840871505995c7749e2dc",
+      "analysis_sha256": "585d38a5381abbd3e019cf664720815158cb4123bcd84329bd1ae5f846be9e60",
+      "adapter_sha256": "aacbf0058b1f7687084c2d2485f6c037c91cc24a42e7fb8979a07ed87b1522be",
+      "qrenderdoc_profile": {
+        "application_name": "forge-gate1-qrenderdoc-efb521bd34934282a70cb1d477aea753",
+        "seed_sha256": "c640a72a3f02a639ccc5ef2ad8bbdf8bdbffc6e767fcd094e6ec342560255719",
+        "final_config_file": "rain-02/qrenderdoc-profile-final.UI.config",
+        "final_config_sha256": "8a18109d250e6806d5c95102422ec75263ce310a7519849f280f6016b3ba8169",
+        "transient_profile_removed": true
+      },
+      "metrics": {
+        "actions_visited": 688,
+        "draws": 196,
+        "draws_by_topology": {
+          "LineList": 0,
+          "PointList": 0,
+          "TriangleList": 196
+        },
+        "instances": 196,
+        "lines": 0,
+        "points": 0,
+        "present_actions": 1,
+        "triangles": 313747
+      }
+    }
+  ],
+  "qualification": {
+    "r1_037_local_vulkan_renderdoc_qualified": true,
+    "draw_calls_observed": true,
+    "triangles_observed": true,
+    "instances_observed": true,
+    "renderdoc_metrics_are_fps_evidence": false,
+    "d3d12_qualified": false,
+    "webgpu_qualified": false
+  }
+}
