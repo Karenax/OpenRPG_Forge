@@ -38,6 +38,7 @@ async fn execute_studio_command(
                 | WorkspaceCommand::RedrawPath { .. }
                 | WorkspaceCommand::UpsertRoad { .. }
                 | WorkspaceCommand::UpsertRiver { .. }
+                | WorkspaceCommand::UpsertWall { .. }
         }
     ) {
         let session = Arc::clone(session.inner());
@@ -400,6 +401,18 @@ mod tests {
         assert_eq!(
             projection.rivers.river_document_hash,
             source.area.rivers.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.walls.terrain_document_hash,
+            projection.rivers.effective_terrain_document_hash
+        );
+        assert_eq!(
+            projection.walls.path_document_hash,
+            source.area.paths.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.walls.wall_document_hash,
+            source.area.walls.content_hash().unwrap()
         );
         assert_eq!(session.execute(WorkspaceCommand::Current).unwrap(), before);
     }

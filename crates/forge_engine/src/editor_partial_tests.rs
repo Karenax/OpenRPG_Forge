@@ -31,6 +31,7 @@ fn fixture() -> (World, EditorViewport, TerrainDocument, GeneratedTerrain) {
             paths: None,
             roads: None,
             rivers: None,
+            walls: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: None,
         });
@@ -69,6 +70,7 @@ fn partial(
             paths: None,
             roads: None,
             rivers: None,
+            walls: None,
             spawn: [1.0, 3.0, 0.0],
             base_source_hash: Some(terrain.source_document_hash),
         },

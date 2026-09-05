@@ -10,12 +10,13 @@ use bevy::{asset::embedded_asset, prelude::*};
 use forge_core::{AreaId, ContentHash, ProjectId};
 use forge_project::{
     PathDocument, PathId, RiverDocument, RoadDocument, TerrainDocument, VegetationKind,
+    WallDocument,
 };
 use forge_world::{
     GeneratedPaths, GeneratedRiver, GeneratedRivers, GeneratedRoad, GeneratedRoads,
-    GeneratedTerrain, GeneratedVegetation, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNKS_PER_AXIS,
-    TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M, TerrainChunkCoordinate, TerrainChunkMesh,
-    VegetationChunk, VegetationInstance, VegetationKindCounts,
+    GeneratedTerrain, GeneratedVegetation, GeneratedWall, GeneratedWalls, TERRAIN_CHUNK_COUNT,
+    TERRAIN_CHUNKS_PER_AXIS, TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M, TerrainChunkCoordinate,
+    TerrainChunkMesh, VegetationChunk, VegetationInstance, VegetationKindCounts,
 };
 use serde::Serialize;
 use std::{
@@ -37,6 +38,9 @@ mod road;
 #[path = "editor_river.rs"]
 mod river;
 
+#[path = "editor_wall.rs"]
+mod wall;
+
 pub struct EditorTerrainRequest {
     pub generation: u64,
     pub project_id: ProjectId,
@@ -52,6 +56,8 @@ pub struct EditorTerrainRequest {
     pub roads: Option<EditorRoadRequest>,
     /// Complete non-persistent carved terrain and water meshes bound to all canonical sources.
     pub rivers: Option<EditorRiverRequest>,
+    /// Complete procedural wall meshes bound to the effective terrain and authored paths.
+    pub walls: Option<EditorWallRequest>,
     pub spawn: [f32; 3],
     /// A partial payload is valid only against the currently presented source hash.
     pub base_source_hash: Option<ContentHash>,
@@ -82,6 +88,12 @@ pub struct EditorRiverRequest {
     pub source_terrain: TerrainDocument,
     /// Canonical river source used to prove the generated river set is complete and current.
     pub source_rivers: RiverDocument,
+}
+
+pub struct EditorWallRequest {
+    pub generated: GeneratedWalls,
+    /// Canonical wall source used to prove the generated wall set is complete and current.
+    pub source_walls: WallDocument,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
@@ -196,6 +208,13 @@ pub struct EditorViewportStatus {
     pub river_rebuilt_meshes: usize,
     pub river_retained_meshes: usize,
     pub river_mesh_uploads: u64,
+    pub wall_source_hash: String,
+    pub wall_count: usize,
+    pub wall_vertices: usize,
+    pub wall_triangles: usize,
+    pub wall_rebuilt_meshes: usize,
+    pub wall_retained_meshes: usize,
+    pub wall_mesh_uploads: u64,
     pub update_kind: String,
 }
 
@@ -253,6 +272,9 @@ pub(crate) struct EditorRoadMesh;
 #[derive(Component)]
 pub(crate) struct EditorRiverMesh;
 
+#[derive(Component)]
+pub(crate) struct EditorWallMesh;
+
 struct PresentedVegetationChunk {
     source: VegetationChunk,
     object: Option<(Entity, Handle<Mesh>)>,
@@ -268,6 +290,11 @@ struct PresentedRiver {
     object: (Entity, Handle<Mesh>),
 }
 
+struct PresentedWall {
+    source: GeneratedWall,
+    object: (Entity, Handle<Mesh>),
+}
+
 #[derive(Resource, Default)]
 struct EditorProjection {
     project: Option<ProjectId>,
@@ -278,16 +305,19 @@ struct EditorProjection {
     vegetation: BTreeMap<TerrainChunkCoordinate, PresentedVegetationChunk>,
     roads: BTreeMap<PathId, PresentedRoad>,
     rivers: BTreeMap<PathId, PresentedRiver>,
+    walls: BTreeMap<PathId, PresentedWall>,
     marker: Option<(Entity, Handle<Mesh>)>,
     pending: Option<PendingProjection>,
     mesh_uploads: u64,
     vegetation_mesh_uploads: u64,
     road_mesh_uploads: u64,
     river_mesh_uploads: u64,
+    wall_mesh_uploads: u64,
     material: Handle<VisualValleyTerrainMaterial>,
     marker_material: Handle<StandardMaterial>,
     vegetation_material: Handle<StandardMaterial>,
     river_material: Handle<StandardMaterial>,
+    wall_material: Handle<StandardMaterial>,
 }
 
 struct PendingProjection {
@@ -307,6 +337,10 @@ struct PendingProjection {
     staged_rivers: BTreeMap<PathId, PresentedRiver>,
     expected_river_ids: BTreeSet<PathId>,
     river_replacement: ProjectionReplacement,
+    wall_meshes: std::vec::IntoIter<GeneratedWall>,
+    staged_walls: BTreeMap<PathId, PresentedWall>,
+    expected_wall_ids: BTreeSet<PathId>,
+    wall_replacement: ProjectionReplacement,
     spawn: [f32; 3],
 }
 
@@ -355,11 +389,15 @@ fn setup_editor(world: &mut World) {
     let river_material = world
         .resource_mut::<Assets<StandardMaterial>>()
         .add(river::procedural_editor_river_material());
+    let wall_material = world
+        .resource_mut::<Assets<StandardMaterial>>()
+        .add(wall::procedural_editor_wall_material());
     let mut projection = world.resource_mut::<EditorProjection>();
     projection.material = material;
     projection.marker_material = marker;
     projection.vegetation_material = vegetation_material;
     projection.river_material = river_material;
+    projection.wall_material = wall_material;
     world.spawn((
         EditorCamera,
         Camera3d::default(),
@@ -400,6 +438,7 @@ fn clear_objects(world: &mut World, projection: &mut EditorProjection) {
     clear_vegetation_objects(world, projection);
     clear_road_objects(world, projection);
     clear_river_objects(world, projection);
+    clear_wall_objects(world, projection);
     if let Some((entity, mesh)) = projection.marker.take() {
         world.despawn(entity);
         world.resource_mut::<Assets<Mesh>>().remove(mesh.id());
@@ -436,6 +475,15 @@ fn clear_river_objects(world: &mut World, projection: &mut EditorProjection) {
     }
 }
 
+fn clear_wall_objects(world: &mut World, projection: &mut EditorProjection) {
+    for (_, presented) in std::mem::take(&mut projection.walls) {
+        world.despawn(presented.object.0);
+        world
+            .resource_mut::<Assets<Mesh>>()
+            .remove(presented.object.1.id());
+    }
+}
+
 fn clear_pending(world: &mut World, projection: &mut EditorProjection) {
     if let Some(pending) = projection.pending.take() {
         for (_, (entity, mesh)) in pending.staged {
@@ -455,6 +503,12 @@ fn clear_pending(world: &mut World, projection: &mut EditorProjection) {
                 .remove(presented.object.1.id());
         }
         for (_, presented) in pending.staged_rivers {
+            world.despawn(presented.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(presented.object.1.id());
+        }
+        for (_, presented) in pending.staged_walls {
             world.despawn(presented.object.0);
             world
                 .resource_mut::<Assets<Mesh>>()
@@ -641,6 +695,7 @@ fn refresh_pending_count(projection: &EditorProjection, bridge: &mut EditorViewp
             + pending.vegetation_chunks.len()
             + pending.road_meshes.len()
             + pending.river_meshes.len()
+            + pending.wall_meshes.len()
     });
 }
 
@@ -765,6 +820,35 @@ fn stage_river_mesh(world: &mut World, projection: &mut EditorProjection, river:
         );
 }
 
+fn stage_wall_mesh(world: &mut World, projection: &mut EditorProjection, wall: GeneratedWall) {
+    let mesh = world
+        .resource_mut::<Assets<Mesh>>()
+        .add(wall::build_editor_wall_mesh(&wall));
+    let entity = world
+        .spawn((
+            Name::new(format!("Mur éditeur {}", wall.path_id)),
+            EditorWallMesh,
+            Mesh3d(mesh.clone()),
+            MeshMaterial3d(projection.wall_material.clone()),
+            Transform::IDENTITY,
+            Visibility::Hidden,
+        ))
+        .id();
+    projection.wall_mesh_uploads += 1;
+    projection
+        .pending
+        .as_mut()
+        .expect("a staged wall belongs to a pending projection")
+        .staged_walls
+        .insert(
+            wall.path_id,
+            PresentedWall {
+                source: wall,
+                object: (entity, mesh),
+            },
+        );
+}
+
 fn stage_next_projection_mesh(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -801,6 +885,14 @@ fn stage_next_projection_mesh(
         stage_river_mesh(world, projection, river);
         return Ok(true);
     }
+    if let Some(wall) = projection
+        .pending
+        .as_mut()
+        .and_then(|pending| pending.wall_meshes.next())
+    {
+        stage_wall_mesh(world, projection, wall);
+        return Ok(true);
+    }
     Ok(false)
 }
 
@@ -822,6 +914,7 @@ fn update_camera_and_status(
     bridge.status.vegetation_mesh_uploads = projection.vegetation_mesh_uploads;
     bridge.status.road_mesh_uploads = projection.road_mesh_uploads;
     bridge.status.river_mesh_uploads = projection.river_mesh_uploads;
+    bridge.status.wall_mesh_uploads = projection.wall_mesh_uploads;
     if bridge.status.chunks == TERRAIN_CHUNK_COUNT {
         bridge.status.frames += 1;
     }
@@ -862,7 +955,7 @@ fn update_editor(world: &mut World) {
             return;
         }
         // Two derived meshes per update; the UI and render loop remain schedulable while complete
-        // vegetation, road and river sources are transported atomically with their terrain
+        // vegetation, road, river and wall sources are transported atomically with their terrain
         // projection.
         for _ in 0..2 {
             match stage_next_projection_mesh(world, &mut projection) {
@@ -882,6 +975,7 @@ fn update_editor(world: &mut World) {
                 && pending.vegetation_chunks.len() == 0
                 && pending.road_meshes.len() == 0
                 && pending.river_meshes.len() == 0
+                && pending.wall_meshes.len() == 0
         }) {
             finish_projection(world, &mut projection, &mut bridge);
         }
@@ -1210,6 +1304,95 @@ fn prepare_river_changes(
     })
 }
 
+struct PreparedWallChanges {
+    source_hash: String,
+    count: usize,
+    vertices: usize,
+    triangles: usize,
+    rebuilt_meshes: usize,
+    retained_meshes: usize,
+    meshes: Vec<GeneratedWall>,
+    expected_ids: BTreeSet<PathId>,
+    replace: bool,
+}
+
+fn prepare_wall_changes(
+    projection: &EditorProjection,
+    status: &EditorViewportStatus,
+    request: Option<EditorWallRequest>,
+    partial: bool,
+) -> Result<PreparedWallChanges, String> {
+    let Some(request) = request else {
+        if partial && !projection.walls.is_empty() {
+            return Err(
+                "Une projection terrain partielle doit transporter les murs courants.".into(),
+            );
+        }
+        return Ok(PreparedWallChanges {
+            source_hash: if partial {
+                status.wall_source_hash.clone()
+            } else {
+                String::new()
+            },
+            count: if partial { status.wall_count } else { 0 },
+            vertices: if partial { status.wall_vertices } else { 0 },
+            triangles: if partial { status.wall_triangles } else { 0 },
+            rebuilt_meshes: 0,
+            retained_meshes: if partial { projection.walls.len() } else { 0 },
+            meshes: vec![],
+            expected_ids: BTreeSet::new(),
+            replace: !partial,
+        });
+    };
+
+    let source_hash = request.generated.wall_document_hash.to_string();
+    let count = request.generated.walls.len();
+    let vertices = request
+        .generated
+        .walls
+        .iter()
+        .try_fold(0_usize, |total, wall| {
+            total.checked_add(wall.positions_m.len())
+        })
+        .ok_or_else(|| "Trop de sommets de murs.".to_owned())?;
+    let index_count = request
+        .generated
+        .walls
+        .iter()
+        .try_fold(0_usize, |total, wall| total.checked_add(wall.indices.len()))
+        .ok_or_else(|| "Trop d’indices de murs.".to_owned())?;
+    let triangles = index_count / 3;
+    let expected_ids = request
+        .generated
+        .walls
+        .iter()
+        .map(|wall| wall.path_id)
+        .collect::<BTreeSet<_>>();
+    let meshes = request
+        .generated
+        .walls
+        .into_iter()
+        .filter(|wall| {
+            projection
+                .walls
+                .get(&wall.path_id)
+                .is_none_or(|presented| presented.source != *wall)
+        })
+        .collect::<Vec<_>>();
+    let rebuilt_meshes = meshes.len();
+    Ok(PreparedWallChanges {
+        source_hash,
+        count,
+        vertices,
+        triangles,
+        rebuilt_meshes,
+        retained_meshes: count - rebuilt_meshes,
+        meshes,
+        expected_ids,
+        replace: true,
+    })
+}
+
 fn select_request_target(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -1309,8 +1492,88 @@ fn validate_request_payload(request: &EditorTerrainRequest) -> Result<(), String
             &rivers.source_rivers,
         )?;
     }
+    if let Some(walls) = &request.walls {
+        if walls.source_walls.project_id != request.project_id
+            || walls.source_walls.area_id != request.area_id
+        {
+            return Err("Source canonique de murs étrangère à la projection.".into());
+        }
+        let paths = request
+            .paths
+            .as_ref()
+            .ok_or_else(|| "Une projection de murs exige ses chemins générés.".to_owned())?;
+        wall::validate_generated_walls(
+            &request.terrain,
+            &paths.generated,
+            &walls.generated,
+            &paths.source_terrain,
+            &paths.source_paths,
+            &walls.source_walls,
+        )?;
+    }
+    validate_wall_path_role_exclusivity(request)?;
     if !request.spawn.iter().all(|value| value.is_finite()) {
         return Err("Départ de projection non fini.".into());
+    }
+    Ok(())
+}
+
+fn validate_wall_path_role_exclusivity(request: &EditorTerrainRequest) -> Result<(), String> {
+    let Some(walls) = &request.walls else {
+        return Ok(());
+    };
+    let source_wall_ids = walls
+        .source_walls
+        .walls
+        .iter()
+        .map(|wall| wall.path_id)
+        .collect::<BTreeSet<_>>();
+    let generated_wall_ids = walls
+        .generated
+        .walls
+        .iter()
+        .map(|wall| wall.path_id)
+        .collect::<BTreeSet<_>>();
+
+    if let Some(path_id) = request.roads.as_ref().and_then(|roads| {
+        roads
+            .source_roads
+            .roads
+            .iter()
+            .map(|road| road.path_id)
+            .find(|path_id| source_wall_ids.contains(path_id))
+            .or_else(|| {
+                roads
+                    .generated
+                    .roads
+                    .iter()
+                    .map(|road| road.path_id)
+                    .find(|path_id| generated_wall_ids.contains(path_id))
+            })
+    }) {
+        return Err(format!(
+            "Le chemin {path_id} ne peut pas porter à la fois un mur et une route."
+        ));
+    }
+    if let Some(path_id) = request.rivers.as_ref().and_then(|rivers| {
+        rivers
+            .source_rivers
+            .rivers
+            .iter()
+            .map(|river| river.path_id)
+            .find(|path_id| source_wall_ids.contains(path_id))
+            .or_else(|| {
+                rivers
+                    .generated
+                    .rivers
+                    .iter()
+                    .map(|river| river.path_id)
+                    .find(|path_id| generated_wall_ids.contains(path_id))
+            })
+    }) {
+        return Err(format!(
+            "Le chemin {path_id} ne peut pas porter à la fois un mur et une rivière."
+        ));
     }
     Ok(())
 }
@@ -1330,6 +1593,7 @@ fn install_request(
     let roads = prepare_road_changes(projection, &bridge.status, request.roads, partial)?;
     let rivers =
         prepare_river_changes(projection, request.rivers, partial, effective_terrain_hash)?;
+    let walls = prepare_wall_changes(projection, &bridge.status, request.walls, partial)?;
     let rebuilt_chunks = request.terrain.chunks.len();
     let status = EditorViewportStatus {
         generation: request.generation,
@@ -1366,6 +1630,12 @@ fn install_request(
         river_triangles: rivers.triangles,
         river_rebuilt_meshes: rivers.rebuilt_meshes,
         river_retained_meshes: rivers.retained_meshes,
+        wall_source_hash: walls.source_hash,
+        wall_count: walls.count,
+        wall_vertices: walls.vertices,
+        wall_triangles: walls.triangles,
+        wall_rebuilt_meshes: walls.rebuilt_meshes,
+        wall_retained_meshes: walls.retained_meshes,
         update_kind: if partial { "partial" } else { "full" }.into(),
         frames: bridge.status.frames,
         ..default()
@@ -1377,8 +1647,11 @@ fn install_request(
         };
     }
     bridge.status.error = None;
-    bridge.status.pending_chunks =
-        rebuilt_chunks + vegetation.chunks.len() + roads.meshes.len() + rivers.meshes.len();
+    bridge.status.pending_chunks = rebuilt_chunks
+        + vegetation.chunks.len()
+        + roads.meshes.len()
+        + rivers.meshes.len()
+        + walls.meshes.len();
     projection.pending = Some(PendingProjection {
         status,
         chunks: request.terrain.chunks.into_iter(),
@@ -1396,6 +1669,10 @@ fn install_request(
         staged_rivers: BTreeMap::new(),
         expected_river_ids: rivers.expected_ids,
         river_replacement: ProjectionReplacement::from_replace(rivers.replace),
+        wall_meshes: walls.meshes.into_iter(),
+        staged_walls: BTreeMap::new(),
+        expected_wall_ids: walls.expected_ids,
+        wall_replacement: ProjectionReplacement::from_replace(walls.replace),
         spawn: request.spawn,
     });
     Ok(())
@@ -1475,6 +1752,43 @@ fn publish_river_replacement(
     }
 }
 
+fn publish_wall_replacement(
+    world: &mut World,
+    projection: &mut EditorProjection,
+    replacement: ProjectionReplacement,
+    expected_ids: &BTreeSet<PathId>,
+    staged: BTreeMap<PathId, PresentedWall>,
+) {
+    if !replacement.replaces() {
+        return;
+    }
+    let removed_ids = projection
+        .walls
+        .keys()
+        .filter(|path_id| !expected_ids.contains(path_id))
+        .copied()
+        .collect::<Vec<_>>();
+    for path_id in removed_ids {
+        if let Some(old) = projection.walls.remove(&path_id) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
+    for (path_id, presented) in staged {
+        world
+            .entity_mut(presented.object.0)
+            .insert(Visibility::Visible);
+        if let Some(old) = projection.walls.insert(path_id, presented) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
+}
+
 fn finish_projection(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -1530,6 +1844,13 @@ fn finish_projection(
         &pending.expected_river_ids,
         pending.staged_rivers,
     );
+    publish_wall_replacement(
+        world,
+        projection,
+        pending.wall_replacement,
+        &pending.expected_wall_ids,
+        pending.staged_walls,
+    );
     let transform = Transform::from_translation(Vec3::from_array(pending.spawn));
     if let Some((entity, _)) = &projection.marker {
         world.entity_mut(*entity).insert(transform);
@@ -1560,6 +1881,10 @@ mod partial_tests;
 mod river_tests;
 
 #[cfg(test)]
+#[path = "editor_wall_tests.rs"]
+mod wall_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use bevy::mesh::VertexAttributeValues;
@@ -1583,6 +1908,7 @@ mod tests {
             paths: None,
             roads: None,
             rivers: None,
+            walls: None,
             terrain: forge_world::TerrainGenerationPlan::from_document(&document)
                 .unwrap()
                 .generate()
@@ -1695,6 +2021,7 @@ mod tests {
             }),
             roads: None,
             rivers: None,
+            walls: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: None,
         }
@@ -1788,6 +2115,7 @@ mod tests {
                 source_roads: road_document,
             }),
             rivers: None,
+            walls: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash,
         }
@@ -2187,6 +2515,7 @@ mod tests {
                 paths: None,
                 roads: None,
                 rivers: None,
+                walls: None,
                 spawn: [0.0, 2.0, 0.0],
                 base_source_hash: (!full).then_some(self.terrain.source_document_hash),
             };
@@ -2408,6 +2737,7 @@ mod tests {
             paths: None,
             roads: None,
             rivers: None,
+            walls: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: Some(fixture.terrain.source_document_hash),
         };

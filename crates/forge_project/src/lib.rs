@@ -12,6 +12,7 @@ mod terrain;
 mod vegetation;
 mod vegetation_catalog;
 mod vegetation_density;
+mod wall;
 mod water;
 mod weather;
 mod workspace;
@@ -71,6 +72,12 @@ pub use road::{
     MAX_ROAD_DOCUMENT_JSON_BYTES, MAX_ROAD_WIDTH_M, MAX_ROADS_PER_DOCUMENT,
     MAX_TOTAL_ROAD_LENGTH_M, MIN_ROAD_WIDTH_M, ROAD_DOCUMENT_SCHEMA, ROAD_DOCUMENT_SCHEMA_VERSION,
     RoadDocument, RoadDocumentError, RoadProfile, RoadProfileAlgorithm, RoadSurface,
+};
+pub use wall::{
+    AuthoredWall, MAX_TOTAL_WALL_LENGTH_M, MAX_WALL_DOCUMENT_JSON_BYTES, MAX_WALL_HEIGHT_M,
+    MAX_WALL_THICKNESS_M, MAX_WALLS_PER_DOCUMENT, MIN_WALL_HEIGHT_M, MIN_WALL_THICKNESS_M,
+    WALL_DOCUMENT_SCHEMA, WALL_DOCUMENT_SCHEMA_VERSION, WallDocument, WallDocumentError,
+    WallProfile, WallProfileAlgorithm, WallSurface,
 };
 
 pub use terrain::{

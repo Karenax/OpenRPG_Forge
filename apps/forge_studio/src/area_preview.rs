@@ -4,8 +4,9 @@ use forge_core::{ContentHash, Vec3};
 use forge_project::{TerrainDocument, WorkspaceArea};
 use forge_world::{
     GeneratedPaths, GeneratedRivers, GeneratedRoads, GeneratedTerrain, GeneratedVegetation,
-    PathGenerationPlan, RiverGenerationPlan, RoadGenerationPlan, TerrainGenerationPlan,
-    TerrainPartialUpdate, TerrainPartialUpdateError, VegetationRuntimeCache,
+    GeneratedWalls, PathGenerationPlan, RiverGenerationPlan, RoadGenerationPlan,
+    TerrainGenerationPlan, TerrainPartialUpdate, TerrainPartialUpdateError, VegetationRuntimeCache,
+    WallGenerationPlan,
 };
 use serde::{Deserialize, Serialize};
 
@@ -38,6 +39,8 @@ pub struct AreaPreview {
     pub roads: GeneratedRoads,
     /// Complete water meshes plus canonical/effective terrain source binding.
     pub rivers: GeneratedRivers,
+    /// Complete procedural walls projected on the effective terrain.
+    pub walls: GeneratedWalls,
     pub spawn: Vec3,
     /// Some means that terrain.chunks contains only replacements against this exact cache.
     pub base_source_hash: Option<ContentHash>,
@@ -118,6 +121,11 @@ impl AreaPreviewCache {
                 .map_err(|error| error.to_string())?
                 .generate()
                 .map_err(|error| error.to_string())?;
+        let walls =
+            WallGenerationPlan::from_documents(&effective_area.terrain, &area.paths, &area.walls)
+                .map_err(|error| error.to_string())?
+                .generate()
+                .map_err(|error| error.to_string())?;
         let partial_update = self.prepare_partial_terrain(&effective_area, base_source_hash)?;
         let terrain = match &partial_update {
             Some(update) => {
@@ -146,6 +154,7 @@ impl AreaPreviewCache {
             paths,
             roads,
             rivers,
+            walls,
             spawn: area.spawn,
             base_source_hash: partial_update.as_ref().map(|_| {
                 base_source_hash.expect("a partial update requires an exact base source hash")
@@ -227,6 +236,7 @@ fn validate_preview_source(
         area.paths.revision.get(),
         area.roads.revision.get(),
         area.rivers.revision.get(),
+        area.walls.revision.get(),
     ];
     if revisions
         .into_iter()
@@ -252,6 +262,7 @@ fn validate_vegetation_density_candidate_source(
         || area.paths.revision.get() > request.base_revision
         || area.roads.revision.get() > request.base_revision
         || area.rivers.revision.get() > request.base_revision
+        || area.walls.revision.get() > request.base_revision
     {
         return Err("Source candidate incohérente avec la demande d’aperçu.".into());
     }
@@ -277,6 +288,8 @@ fn validate_preview_identity(
         || area.roads.area_id != area_id
         || area.rivers.project_id != project_id
         || area.rivers.area_id != area_id
+        || area.walls.project_id != project_id
+        || area.walls.area_id != area_id
         || ![area.spawn.x, area.spawn.y, area.spawn.z]
             .iter()
             .all(|value| value.is_finite())

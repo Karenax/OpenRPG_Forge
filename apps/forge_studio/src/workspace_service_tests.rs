@@ -6,10 +6,11 @@ use crate::workspace_api::{
     WorkspaceCommand, WorkspaceState,
 };
 use forge_project::{
-    AuthoredRiver, AuthoredRoad, MAX_WORKSPACE_JSON_BYTES, PathId, RiverChannelProfile,
-    RiverChannelProfileAlgorithm, RiverSurface, RoadProfile, RoadProfileAlgorithm, RoadSurface,
-    VegetationExclusion, VegetationExclusionId, VegetationLayerId, VegetationSpeciesPreset,
-    WORKSPACE_SCHEMA_VERSION, WorkspaceDocument,
+    AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_WORKSPACE_JSON_BYTES, PathId,
+    RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface, RoadProfile,
+    RoadProfileAlgorithm, RoadSurface, VegetationExclusion, VegetationExclusionId,
+    VegetationLayerId, VegetationSpeciesPreset, WORKSPACE_SCHEMA_VERSION, WallProfile,
+    WallProfileAlgorithm, WallSurface, WorkspaceDocument,
 };
 use serde_json::{Value, json};
 use std::{
@@ -203,6 +204,30 @@ fn authored_river(
             bank_blend_width_m,
         },
         surface: RiverSurface::ForgeWaterV1,
+    }
+}
+
+fn upsert_wall_command(
+    state: &WorkspaceState,
+    path_id: PathId,
+    height_m: f32,
+    thickness_m: f32,
+) -> WorkspaceCommand {
+    WorkspaceCommand::UpsertWall {
+        request: area_request(state, 0, 0),
+        wall: authored_wall(path_id, height_m, thickness_m),
+    }
+}
+
+fn authored_wall(path_id: PathId, height_m: f32, thickness_m: f32) -> AuthoredWall {
+    AuthoredWall {
+        path_id,
+        profile: WallProfile {
+            algorithm: WallProfileAlgorithm::TerrainDrapedSolidV1,
+            height_m,
+            thickness_m,
+        },
+        surface: WallSurface::ForgeStoneV1,
     }
 }
 
@@ -856,6 +881,7 @@ fn vegetation_density_history_and_reopen_preserve_exact_sources() {
     expected_other_area.paths.revision = redone_document.revision;
     expected_other_area.roads.revision = redone_document.revision;
     expected_other_area.rivers.revision = redone_document.revision;
+    expected_other_area.walls.revision = redone_document.revision;
     assert_eq!(
         redone_document.project.modules[0].areas[1],
         expected_other_area
@@ -3368,6 +3394,320 @@ fn river_profile_rejections_are_atomic() {
 }
 
 #[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one wall lifecycle proves revision, history, redraw, generation and persistence together"
+)]
+fn wall_profile_is_one_revision_and_survives_redraw_history_and_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-24.0, -8.0], [0.0, 4.0], [24.0, -8.0]],
+        ))
+        .unwrap();
+    let before = document(&with_path);
+    let area_before = &before.project.modules[0].areas[0];
+    let path = area_before.paths.paths[0].clone();
+    let terrain_hash = area_before.terrain.content_hash().unwrap();
+    let path_hash = area_before.paths.content_hash().unwrap();
+    let road_hash = area_before.roads.content_hash().unwrap();
+    let river_hash = area_before.rivers.content_hash().unwrap();
+    let history_before = session.undo.len();
+
+    let with_wall = session
+        .execute(upsert_wall_command(&with_path, path.id, 1.5, 0.3))
+        .unwrap();
+    assert_eq!(with_wall.revision, with_path.revision + 1);
+    assert_eq!(session.undo.len(), history_before + 1);
+    let wall_document = document(&with_wall);
+    let area = &wall_document.project.modules[0].areas[0];
+    assert_eq!(area.terrain.content_hash().unwrap(), terrain_hash);
+    assert_eq!(area.paths.content_hash().unwrap(), path_hash);
+    assert_eq!(area.roads.content_hash().unwrap(), road_hash);
+    assert_eq!(area.rivers.content_hash().unwrap(), river_hash);
+    assert_eq!(area.paths.paths[0], path);
+    assert_eq!(area.walls.walls, vec![authored_wall(path.id, 1.5, 0.3)]);
+    assert_eq!(area.walls.revision.get(), with_wall.revision);
+    assert_eq!(
+        receipt(&with_wall)["command"]["wall"]["path_id"],
+        json!(path.id)
+    );
+    let river_projection = forge_world::RiverGenerationPlan::from_documents(
+        &area.terrain,
+        &area.paths,
+        &area.roads,
+        &area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap();
+    let generated = forge_world::WallGenerationPlan::from_documents(
+        &river_projection.effective_terrain,
+        &area.paths,
+        &area.walls,
+    )
+    .unwrap()
+    .generate()
+    .unwrap();
+    assert_eq!(generated.walls.len(), 1);
+    assert!(generated.vertex_count() > 0);
+
+    let updated = session
+        .execute(upsert_wall_command(&with_wall, path.id, 2.0, 0.4))
+        .unwrap();
+    assert_eq!(updated.revision, with_wall.revision + 1);
+    assert_eq!(
+        document(&updated).project.modules[0].areas[0].walls.walls,
+        vec![authored_wall(path.id, 2.0, 0.4)]
+    );
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: updated.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&undone).project.modules[0].areas[0].walls.walls,
+        vec![authored_wall(path.id, 1.5, 0.3)]
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0].walls.walls,
+        vec![authored_wall(path.id, 2.0, 0.4)]
+    );
+
+    let redrawn = session
+        .execute(redraw_path_command(
+            &redone,
+            path.id,
+            vec![[-20.0, -12.0], [0.0, 8.0], [20.0, -12.0]],
+        ))
+        .unwrap();
+    let redrawn_document = document(&redrawn);
+    let redrawn_area = &redrawn_document.project.modules[0].areas[0];
+    assert_eq!(
+        redrawn_area.walls.walls,
+        vec![authored_wall(path.id, 2.0, 0.4)]
+    );
+    let effective = forge_world::RiverGenerationPlan::from_documents(
+        &redrawn_area.terrain,
+        &redrawn_area.paths,
+        &redrawn_area.roads,
+        &redrawn_area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .effective_terrain;
+    forge_world::WallGenerationPlan::from_documents(
+        &effective,
+        &redrawn_area.paths,
+        &redrawn_area.walls,
+    )
+    .unwrap()
+    .generate()
+    .unwrap();
+
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+    assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one atomic rejection matrix covers wall validation and all same-path conflicts"
+)]
+fn wall_profile_and_same_path_conflict_rejections_are_atomic() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let road_path_state = session
+        .execute(create_path_command(
+            &created,
+            vec![[-24.0, -24.0], [24.0, -24.0]],
+        ))
+        .unwrap();
+    let road_path_id = document(&road_path_state).project.modules[0].areas[0]
+        .paths
+        .paths[0]
+        .id;
+    let with_road = session
+        .execute(upsert_road_command(
+            &road_path_state,
+            road_path_id,
+            4.0,
+            0.08,
+        ))
+        .unwrap();
+    let river_path_state = session
+        .execute(create_path_command(
+            &with_road,
+            vec![[-24.0, 0.0], [24.0, 0.0]],
+        ))
+        .unwrap();
+    let river_path_id = document(&river_path_state).project.modules[0].areas[0]
+        .paths
+        .paths
+        .iter()
+        .find(|path| path.id != road_path_id)
+        .unwrap()
+        .id;
+    let with_river = session
+        .execute(upsert_river_command(
+            &river_path_state,
+            river_path_id,
+            8.0,
+            1.5,
+            4.0,
+        ))
+        .unwrap();
+    let wall_path_state = session
+        .execute(create_path_command(
+            &with_river,
+            vec![[-24.0, 24.0], [24.0, 24.0]],
+        ))
+        .unwrap();
+    let source = document(&wall_path_state);
+    let wall_path_id = source.project.modules[0].areas[0]
+        .paths
+        .paths
+        .iter()
+        .find(|path| path.id != road_path_id && path.id != river_path_id)
+        .unwrap()
+        .id;
+    let with_wall = session
+        .execute(upsert_wall_command(
+            &wall_path_state,
+            wall_path_id,
+            1.5,
+            0.3,
+        ))
+        .unwrap();
+    let saved = save(&mut session, &directory);
+    let files_before = directory.files();
+    let valid_request = area_request(&saved, 0, 0);
+    let mut stale_request = valid_request;
+    stale_request.base_revision -= 1;
+    let mut wrong_project_request = valid_request;
+    wrong_project_request.key.project_id =
+        forge_core::ProjectId::deterministic("wrong-wall-project");
+
+    for command in [
+        WorkspaceCommand::UpsertWall {
+            request: stale_request,
+            wall: authored_wall(wall_path_id, 2.0, 0.4),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: wrong_project_request,
+            wall: authored_wall(wall_path_id, 2.0, 0.4),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: valid_request,
+            wall: authored_wall(PathId::deterministic("missing-wall-path"), 1.5, 0.3),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: valid_request,
+            wall: authored_wall(wall_path_id, 0.1, 0.3),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: valid_request,
+            wall: authored_wall(wall_path_id, 1.5, 0.05),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: valid_request,
+            wall: authored_wall(road_path_id, 1.5, 0.3),
+        },
+        WorkspaceCommand::UpsertWall {
+            request: valid_request,
+            wall: authored_wall(river_path_id, 1.5, 0.3),
+        },
+        WorkspaceCommand::UpsertRoad {
+            request: valid_request,
+            road: authored_road(wall_path_id, 4.0, 0.08),
+        },
+        WorkspaceCommand::UpsertRiver {
+            request: valid_request,
+            river: authored_river(wall_path_id, 8.0, 1.5, 4.0),
+        },
+        upsert_wall_command(&with_wall, wall_path_id, 1.5, 0.3),
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), files_before);
+    }
+}
+
+#[test]
+fn wall_and_road_on_distinct_crossing_paths_are_accepted_without_auto_junction() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_road_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-24.0, 0.0], [24.0, 0.0]],
+        ))
+        .unwrap();
+    let road_path_id = document(&with_road_path).project.modules[0].areas[0]
+        .paths
+        .paths[0]
+        .id;
+    let with_road = session
+        .execute(upsert_road_command(
+            &with_road_path,
+            road_path_id,
+            4.0,
+            0.08,
+        ))
+        .unwrap();
+    let with_wall_path = session
+        .execute(create_path_command(
+            &with_road,
+            vec![[0.0, -24.0], [0.0, 24.0]],
+        ))
+        .unwrap();
+    let wall_path_id = document(&with_wall_path).project.modules[0].areas[0]
+        .paths
+        .paths
+        .iter()
+        .find(|path| path.id != road_path_id)
+        .unwrap()
+        .id;
+    let crossed = session
+        .execute(upsert_wall_command(&with_wall_path, wall_path_id, 1.5, 0.3))
+        .unwrap();
+    let source = document(&crossed);
+    let area = &source.project.modules[0].areas[0];
+    assert_eq!(area.roads.roads[0].path_id, road_path_id);
+    assert_eq!(area.walls.walls[0].path_id, wall_path_id);
+    let effective = forge_world::RiverGenerationPlan::from_documents(
+        &area.terrain,
+        &area.paths,
+        &area.roads,
+        &area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .effective_terrain;
+    let generated =
+        forge_world::WallGenerationPlan::from_documents(&effective, &area.paths, &area.walls)
+            .unwrap()
+            .generate()
+            .unwrap();
+    assert_eq!(generated.walls.len(), 1);
+}
+
+#[test]
 fn path_identity_and_default_name_are_deterministic_after_undo() {
     let mut session = WorkspaceSession::default();
     let created = session.execute(create_command()).unwrap();
@@ -3408,6 +3748,7 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     area.as_object_mut().unwrap().remove("paths");
     area.as_object_mut().unwrap().remove("roads");
     area.as_object_mut().unwrap().remove("rivers");
+    area.as_object_mut().unwrap().remove("walls");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     legacy["project"].as_object_mut().unwrap().remove("modules");
@@ -3440,13 +3781,13 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
 }
 
 #[test]
-fn opening_v2_v3_v4_and_v5_adds_new_area_documents_without_rewriting_legacy_snapshots() {
+fn opening_v2_through_v6_adds_new_area_documents_without_rewriting_legacy_snapshots() {
     let source = document(
         &WorkspaceSession::default()
             .execute(create_command())
             .unwrap(),
     );
-    for version in [2_u32, 3_u32, 4_u32, 5_u32] {
+    for version in [2_u32, 3_u32, 4_u32, 5_u32, 6_u32] {
         let directory = TestDirectory::new();
         let mut legacy = serde_json::to_value(&source).unwrap();
         legacy["schema_version"] = json!(version);
@@ -3454,7 +3795,10 @@ fn opening_v2_v3_v4_and_v5_adds_new_area_documents_without_rewriting_legacy_snap
             .as_array_mut()
             .unwrap()
         {
-            area.as_object_mut().unwrap().remove("rivers");
+            area.as_object_mut().unwrap().remove("walls");
+            if version <= 5 {
+                area.as_object_mut().unwrap().remove("rivers");
+            }
             if version <= 4 {
                 area.as_object_mut().unwrap().remove("roads");
             }

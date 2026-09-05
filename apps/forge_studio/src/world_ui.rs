@@ -17,6 +17,7 @@ use bevy::{
 use forge_engine::editor_viewport::{
     EditorPathRequest, EditorRiverRequest, EditorRoadRequest, EditorTerrainRequest,
     EditorVegetationRequest, EditorViewport, EditorViewportPlugin, EditorViewportStatus,
+    EditorWallRequest,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -87,6 +88,10 @@ impl WorldActions {
             .flatten()
     }
 
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one atomic publication validates and transports every correlated projection source"
+    )]
     fn publish_density_preview(
         self,
         generation: u64,
@@ -123,10 +128,15 @@ impl WorldActions {
             .rivers
             .content_hash()
             .map_err(|error| error.to_string())?;
+        let wall_hash = area
+            .walls
+            .content_hash()
+            .map_err(|error| error.to_string())?;
         let source_terrain = area.terrain.clone();
         let source_paths = area.paths.clone();
         let source_roads = area.roads.clone();
         let source_rivers = area.rivers.clone();
+        let source_walls = area.walls.clone();
         let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
         let preview_effective_terrain_hash = preview
             .effective_terrain
@@ -148,8 +158,12 @@ impl WorldActions {
             || preview.roads.path_document_hash != path_hash
             || preview.roads.road_document_hash != road_hash
             || preview.rivers.road_document_hash != preview.roads.road_document_hash
+            || preview.walls.terrain_document_hash != effective_terrain_hash
+            || preview.walls.path_document_hash != path_hash
+            || preview.walls.wall_document_hash != wall_hash
+            || preview.walls.path_document_hash != preview.paths.path_document_hash
         {
-            return Err("Terrain, routes ou rivières de l’aperçu de densité incohérents : projection ignorée.".into());
+            return Err("Terrain, routes, rivières ou murs de l’aperçu de densité incohérents : projection ignorée.".into());
         }
         let viewport = self.viewport.get_value();
         let mut bridge = viewport
@@ -182,6 +196,10 @@ impl WorldActions {
                 generated: preview.rivers,
                 source_terrain,
                 source_rivers,
+            }),
+            walls: Some(EditorWallRequest {
+                generated: preview.walls,
+                source_walls,
             }),
             spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
             base_source_hash: preview.base_source_hash,
@@ -225,7 +243,7 @@ impl WorldActions {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
         format!(
-            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · routes {} / {} sommets · rivières {} / {} sommets · boucle {:.1} ms",
+            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · routes {} / {} sommets · rivières {} / {} sommets · murs {} / {} sommets · boucle {:.1} ms",
             status.revision,
             status.rebuilt_chunks,
             status.retained_chunks,
@@ -238,6 +256,8 @@ impl WorldActions {
             status.road_vertices,
             status.river_count,
             status.river_vertices,
+            status.wall_count,
+            status.wall_vertices,
             status.frame_ms
         )
     }
@@ -293,17 +313,19 @@ struct AreaPreviewTarget {
     path_hash: forge_core::ContentHash,
     road_hash: forge_core::ContentHash,
     river_hash: forge_core::ContentHash,
+    wall_hash: forge_core::ContentHash,
 }
 
 fn current_projection_sources(
     actions: WorldActions,
-    target: AreaPreviewTarget,
+    target: &AreaPreviewTarget,
 ) -> Result<
     (
         forge_project::TerrainDocument,
         forge_project::PathDocument,
         forge_project::RoadDocument,
         forge_project::RiverDocument,
+        forge_project::WallDocument,
     ),
     String,
 > {
@@ -342,9 +364,14 @@ fn current_projection_sources(
             .content_hash()
             .map_err(|error| error.to_string())?
             != target.river_hash
+        || area
+            .walls
+            .content_hash()
+            .map_err(|error| error.to_string())?
+            != target.wall_hash
     {
         return Err(
-            "Sources terrain/chemin/route/rivière modifiées pendant la génération de l’aperçu."
+            "Sources terrain/chemin/route/rivière/mur modifiées pendant la génération de l’aperçu."
                 .into(),
         );
     }
@@ -353,6 +380,7 @@ fn current_projection_sources(
         area.paths.clone(),
         area.roads.clone(),
         area.rivers.clone(),
+        area.walls.clone(),
     ))
 }
 
@@ -375,6 +403,7 @@ fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>>
             path_hash: area.paths.content_hash().ok()?,
             road_hash: area.roads.content_hash().ok()?,
             river_hash: area.rivers.content_hash().ok()?,
+            wall_hash: area.walls.content_hash().ok()?,
         })
     })
 }
@@ -412,13 +441,19 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                 }
             });
         wasm_bindgen_futures::spawn_local(async move {
-            let result = fetch_preview(target, base_source_hash).await;
+            let result = fetch_preview(&target, base_source_hash).await;
             if actions.generation.get_untracked() == generation
                 && actions.canonical_refresh.get_untracked() == refresh
             {
                 match result {
-                    Ok(preview) => match current_projection_sources(actions, target) {
-                        Ok((source_terrain, source_paths, source_roads, source_rivers)) => {
+                    Ok(preview) => match current_projection_sources(actions, &target) {
+                        Ok((
+                            source_terrain,
+                            source_paths,
+                            source_roads,
+                            source_rivers,
+                            source_walls,
+                        )) => {
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
                                 bridge.pending = Some(EditorTerrainRequest {
                                     generation,
@@ -443,6 +478,10 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                                         generated: preview.rivers,
                                         source_terrain,
                                         source_rivers,
+                                    }),
+                                    walls: Some(EditorWallRequest {
+                                        generated: preview.walls,
+                                        source_walls,
                                     }),
                                     spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
                                     base_source_hash: preview.base_source_hash,
@@ -482,7 +521,7 @@ fn install_status_poll(actions: WorldActions) {
 }
 
 async fn fetch_preview(
-    target: AreaPreviewTarget,
+    target: &AreaPreviewTarget,
     base_source_hash: Option<forge_core::ContentHash>,
 ) -> Result<crate::area_preview::AreaPreview, String> {
     let request = target.request;
@@ -518,6 +557,10 @@ async fn fetch_preview(
                 || preview.roads.path_document_hash != target.path_hash
                 || preview.roads.road_document_hash != target.road_hash
                 || preview.rivers.road_document_hash != preview.roads.road_document_hash
+                || preview.walls.terrain_document_hash != effective_terrain_hash
+                || preview.walls.path_document_hash != target.path_hash
+                || preview.walls.wall_document_hash != target.wall_hash
+                || preview.walls.path_document_hash != preview.paths.path_document_hash
                 || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)

@@ -1,12 +1,12 @@
 use super::*;
 use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
 use forge_project::{
-    AuthoredPath, AuthoredRiver, AuthoredRoad, NewProjectCommand, PathControlPoint, PathId,
-    PathInterpolation, RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, AuthoredWall, NewProjectCommand, PathControlPoint,
+    PathId, PathInterpolation, RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface,
     RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainHeightDelta, TerrainMaterialLayerId,
     VegetationDensityOverride, VegetationExclusion, VegetationExclusionId, VegetationKind,
-    VegetationLayer, VegetationSpeciesPreset, WorkspaceArea, WorkspaceChange, WorkspaceDocument,
-    WorkspaceEdit,
+    VegetationLayer, VegetationSpeciesPreset, WallProfile, WallProfileAlgorithm, WallSurface,
+    WorkspaceArea, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
 };
 use forge_world::VegetationGenerationPlan;
 
@@ -135,6 +135,7 @@ fn request(area: &WorkspaceArea) -> AreaPreviewRequest {
         area.paths.revision.get(),
         area.roads.revision.get(),
         area.rivers.revision.get(),
+        area.walls.revision.get(),
     ]
     .into_iter()
     .max()
@@ -189,6 +190,10 @@ fn assert_baseline_handle_reuse(
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "one parity helper keeps every effective-terrain dependent source binding together"
+)]
 fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
     let effective_terrain = forge_world::RiverGenerationPlan::from_documents(
         &area.terrain,
@@ -286,6 +291,15 @@ fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
     assert_eq!(
         preview.rivers.effective_terrain_document_hash,
         effective_terrain_hash
+    );
+    assert_eq!(preview.walls.terrain_document_hash, effective_terrain_hash);
+    assert_eq!(
+        preview.walls.path_document_hash,
+        area.paths.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.walls.wall_document_hash,
+        area.walls.content_hash().unwrap()
     );
 }
 
@@ -880,6 +894,104 @@ fn road_only_edit_reuses_terrain_vegetation_and_path_projection() {
 }
 
 #[test]
+fn wall_only_edit_reuses_every_non_wall_projection_and_zero_terrain_chunks() {
+    let source = workspace();
+    let source_area = &source.project.modules[0].areas[0];
+    let path_id = PathId::deterministic("area-preview/wall-path");
+    let with_path = source
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/wall-path-source"),
+            base_revision: source.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: source.project.modules[0].id,
+                area_id: source_area.id,
+                expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: path_id,
+                    name: "Mur du cache".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(-24.0, 0.0, -8.0)),
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, 8.0)),
+                        PathControlPoint::new(Vec3::new(24.0, 0.0, -8.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let with_path_area = &with_path.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(with_path_area), with_path_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let terrain_hash = initial.terrain.source_document_hash;
+    let vegetation_pointers = cached_vegetation_pointers(&cache);
+    assert!(initial.walls.walls.is_empty());
+
+    let changed = with_path
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/wall-only"),
+            base_revision: with_path.revision,
+            change: WorkspaceChange::UpsertWall {
+                module_id: with_path.project.modules[0].id,
+                area_id: with_path_area.id,
+                expected_terrain_document_hash: with_path_area.terrain.content_hash().unwrap(),
+                expected_path_document_hash: with_path_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: with_path_area.roads.content_hash().unwrap(),
+                expected_river_document_hash: with_path_area.rivers.content_hash().unwrap(),
+                expected_wall_document_hash: with_path_area.walls.content_hash().unwrap(),
+                wall: AuthoredWall {
+                    path_id,
+                    profile: WallProfile {
+                        algorithm: WallProfileAlgorithm::TerrainDrapedSolidV1,
+                        height_m: 1.5,
+                        thickness_m: 0.3,
+                    },
+                    surface: WallSurface::ForgeStoneV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let changed_area = &changed.project.modules[0].areas[0];
+    let preview = read_area_preview(
+        &cache
+            .prepare(request(changed_area), changed_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(preview.base_source_hash, Some(terrain_hash));
+    assert!(preview.terrain.chunks.is_empty());
+    assert_eq!(preview.effective_terrain, initial.effective_terrain);
+    assert!(!preview.vegetation_regenerated);
+    assert_eq!(preview.vegetation_changed_chunks, 0);
+    assert_eq!(preview.vegetation_retained_chunks, 64);
+    assert_eq!(preview.vegetation, initial.vegetation);
+    assert_eq!(preview.paths, initial.paths);
+    assert_eq!(preview.roads, initial.roads);
+    assert_eq!(preview.rivers, initial.rivers);
+    assert_ne!(
+        preview.walls.wall_document_hash,
+        initial.walls.wall_document_hash
+    );
+    assert_eq!(preview.walls.walls.len(), 1);
+    assert_eq!(preview.walls.walls[0].path_id, path_id);
+    assert!(!preview.walls.walls[0].positions_m.is_empty());
+    assert_eq!(preview.walls.terrain_document_hash, terrain_hash);
+    assert_eq!(
+        preview.walls.wall_document_hash,
+        changed_area.walls.content_hash().unwrap()
+    );
+    assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+}
+
+#[test]
 #[allow(
     clippy::too_many_lines,
     reason = "one cache scenario proves ford creation, retouch and every effective-terrain correlation"
@@ -1261,6 +1373,162 @@ fn river_only_edit_partially_refreshes_the_effective_terrain_and_dependents() {
     assert_eq!(
         preview.roads.terrain_document_hash,
         preview.rivers.effective_terrain_document_hash
+    );
+    assert_full_vegetation_parity(changed_area, &preview);
+    assert_cached_vegetation_is_bit_exact(changed_area, &cache);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one cache transition proves the river terrain change rebuilds wall bases atomically"
+)]
+fn river_edit_rebuilds_wall_bases_against_the_new_effective_terrain() {
+    let source = workspace();
+    let source_area = &source.project.modules[0].areas[0];
+    let wall_path_id = PathId::deterministic("area-preview/wall-over-river");
+    let river_path_id = PathId::deterministic("area-preview/river-under-wall");
+    let with_wall_path = source
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/wall-crossing-path"),
+            base_revision: source.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: source.project.modules[0].id,
+                area_id: source_area.id,
+                expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: wall_path_id,
+                    name: "Mur traversant".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(-40.0, 0.0, 0.0)),
+                        PathControlPoint::new(Vec3::new(40.0, 0.0, 0.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let wall_path_area = &with_wall_path.project.modules[0].areas[0];
+    let with_paths = with_wall_path
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/river-crossing-path"),
+            base_revision: with_wall_path.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: with_wall_path.project.modules[0].id,
+                area_id: wall_path_area.id,
+                expected_path_document_hash: wall_path_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: river_path_id,
+                    name: "Rivière sous le mur".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, -40.0)),
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, 40.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let paths_area = &with_paths.project.modules[0].areas[0];
+    let with_wall = with_paths
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/wall-before-river"),
+            base_revision: with_paths.revision,
+            change: WorkspaceChange::UpsertWall {
+                module_id: with_paths.project.modules[0].id,
+                area_id: paths_area.id,
+                expected_terrain_document_hash: paths_area.terrain.content_hash().unwrap(),
+                expected_path_document_hash: paths_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: paths_area.roads.content_hash().unwrap(),
+                expected_river_document_hash: paths_area.rivers.content_hash().unwrap(),
+                expected_wall_document_hash: paths_area.walls.content_hash().unwrap(),
+                wall: AuthoredWall {
+                    path_id: wall_path_id,
+                    profile: WallProfile {
+                        algorithm: WallProfileAlgorithm::TerrainDrapedSolidV1,
+                        height_m: 1.5,
+                        thickness_m: 0.3,
+                    },
+                    surface: WallSurface::ForgeStoneV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let with_wall_area = &with_wall.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(with_wall_area), with_wall_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let initial_effective_hash = initial.terrain.source_document_hash;
+    let initial_wall_hash = initial.walls.wall_document_hash;
+    let initial_wall = initial.walls.walls[0].clone();
+
+    let changed = with_wall
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/river-changes-wall-base"),
+            base_revision: with_wall.revision,
+            change: WorkspaceChange::UpsertRiver {
+                module_id: with_wall.project.modules[0].id,
+                area_id: with_wall_area.id,
+                expected_terrain_document_hash: with_wall_area.terrain.content_hash().unwrap(),
+                expected_path_document_hash: with_wall_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: with_wall_area.roads.content_hash().unwrap(),
+                expected_river_document_hash: with_wall_area.rivers.content_hash().unwrap(),
+                river: AuthoredRiver {
+                    path_id: river_path_id,
+                    channel: RiverChannelProfile {
+                        algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                        surface_width_m: 8.0,
+                        bed_depth_m: 1.5,
+                        bank_blend_width_m: 4.0,
+                    },
+                    surface: RiverSurface::ForgeWaterV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let changed_area = &changed.project.modules[0].areas[0];
+    let preview = read_area_preview(
+        &cache
+            .prepare(
+                request(changed_area),
+                changed_area,
+                Some(initial_effective_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(preview.base_source_hash, Some(initial_effective_hash));
+    assert!(!preview.terrain.chunks.is_empty());
+    assert!(preview.terrain.chunks.len() < 64);
+    assert_ne!(
+        preview.rivers.effective_terrain_document_hash,
+        initial_effective_hash
+    );
+    assert_eq!(
+        preview.walls.terrain_document_hash,
+        preview.rivers.effective_terrain_document_hash
+    );
+    assert_eq!(preview.walls.wall_document_hash, initial_wall_hash);
+    assert_eq!(
+        preview.walls.path_document_hash,
+        initial.walls.path_document_hash
+    );
+    assert_eq!(preview.walls.walls.len(), 1);
+    assert_ne!(preview.walls.walls[0].positions_m, initial_wall.positions_m);
+    assert_eq!(
+        preview.walls.wall_document_hash,
+        changed_area.walls.content_hash().unwrap()
     );
     assert_full_vegetation_parity(changed_area, &preview);
     assert_cached_vegetation_is_bit_exact(changed_area, &cache);

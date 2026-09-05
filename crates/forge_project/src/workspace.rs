@@ -5,13 +5,14 @@
 
 use crate::{
     HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TOTAL_RIVER_LENGTH_M,
-    MAX_TOTAL_ROAD_LENGTH_M, PATH_DOCUMENT_SCHEMA_VERSION, PathDocument, PathDocumentError,
-    RIVER_DOCUMENT_SCHEMA_VERSION, ROAD_DOCUMENT_SCHEMA_VERSION, RiverDocument, RiverDocumentError,
-    RoadDocument, RoadDocumentError, TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument,
-    TerrainDocumentError, TerrainExtent, TerrainMaterialLayer, TerrainMaterialLayerId,
-    VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument, VegetationDensityError,
-    VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
-    VegetationPresentationProfile, VegetationSpeciesPreset,
+    MAX_TOTAL_ROAD_LENGTH_M, MAX_TOTAL_WALL_LENGTH_M, PATH_DOCUMENT_SCHEMA_VERSION, PathDocument,
+    PathDocumentError, RIVER_DOCUMENT_SCHEMA_VERSION, ROAD_DOCUMENT_SCHEMA_VERSION, RiverDocument,
+    RiverDocumentError, RoadDocument, RoadDocumentError, TERRAIN_DOCUMENT_SCHEMA_VERSION,
+    TerrainDocument, TerrainDocumentError, TerrainExtent, TerrainMaterialLayer,
+    TerrainMaterialLayerId, VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument,
+    VegetationDensityError, VegetationDensityLayer, VegetationDocument, VegetationDocumentError,
+    VegetationExtent, VegetationPresentationProfile, VegetationSpeciesPreset,
+    WALL_DOCUMENT_SCHEMA_VERSION, WallDocument, WallDocumentError,
 };
 use forge_core::{
     AreaId, CanonicalJsonError, CommandId, ContentHash, EntityId, ModuleId, ProjectId, Revision,
@@ -21,7 +22,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub const WORKSPACE_SCHEMA: &str = "forge.workspace";
-pub const WORKSPACE_SCHEMA_VERSION: u32 = 6;
+pub const WORKSPACE_SCHEMA_VERSION: u32 = 7;
 pub const MAX_WORKSPACE_MODULES: usize = 64;
 pub const MAX_WORKSPACE_AREAS: usize = 256;
 pub const MAX_WORKSPACE_JSON_BYTES: usize = 1_048_576;
@@ -45,7 +46,7 @@ pub struct NewProjectCommand {
     pub spawn: Vec3,
 }
 
-/// Canonical v6 model. Use `from_json` for explicit v1/v2/v3/v4/v5 import.
+/// Canonical v7 model. Use `from_json` for explicit v1 through v6 import.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceDocument {
@@ -85,6 +86,7 @@ pub struct WorkspaceArea {
     pub paths: PathDocument,
     pub roads: RoadDocument,
     pub rivers: RiverDocument,
+    pub walls: WallDocument,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -152,7 +154,7 @@ impl WorkspaceDocument {
             new_revision: document.revision,
             before_hash: None,
             after_hash,
-            summary: "Création : 1 projet, 1 module, 1 zone extérieure, terrain, végétation, chemins, routes et rivières source."
+            summary: "Création : 1 projet, 1 module, 1 zone extérieure, terrain, végétation, chemins, routes, rivières et murs source."
                 .to_owned(),
             inverse: WorkspaceCreationInverse::DiscardDraft {
                 expected_after_hash: after_hash,
@@ -303,7 +305,8 @@ fn validate_area(
     }
     validate_paths(project_id, workspace_revision, area)?;
     validate_roads(project_id, workspace_revision, area)?;
-    validate_rivers(project_id, workspace_revision, area)
+    validate_rivers(project_id, workspace_revision, area)?;
+    validate_walls(project_id, workspace_revision, area)
 }
 
 fn validate_paths(
@@ -413,6 +416,62 @@ fn validate_rivers(
     Ok(())
 }
 
+fn validate_walls(
+    project_id: ProjectId,
+    workspace_revision: Revision,
+    area: &WorkspaceArea,
+) -> Result<(), WorkspaceError> {
+    let walls = &area.walls;
+    walls.validate()?;
+    if walls.project_id != project_id || walls.area_id != area.id {
+        return Err(WorkspaceError::WallOwnershipMismatch);
+    }
+    if walls.revision.get() == 0 || walls.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("walls"));
+    }
+    if walls.schema_version != WALL_DOCUMENT_SCHEMA_VERSION {
+        return Err(WorkspaceError::UnsupportedWallShape);
+    }
+
+    let mut total_length_m = 0.0_f64;
+    for wall in &walls.walls {
+        let path = area
+            .paths
+            .paths
+            .binary_search_by_key(&wall.path_id, |path| path.id)
+            .ok()
+            .map(|index| &area.paths.paths[index])
+            .ok_or(WorkspaceError::MissingWallPath(wall.path_id))?;
+        if path.closed {
+            return Err(WorkspaceError::ClosedWallPath(wall.path_id));
+        }
+        if area
+            .roads
+            .roads
+            .binary_search_by_key(&wall.path_id, |road| road.path_id)
+            .is_ok()
+        {
+            return Err(WorkspaceError::WallRoadConflict(wall.path_id));
+        }
+        if area
+            .rivers
+            .rivers
+            .binary_search_by_key(&wall.path_id, |river| river.path_id)
+            .is_ok()
+        {
+            return Err(WorkspaceError::WallRiverConflict(wall.path_id));
+        }
+        total_length_m += path.validate()?;
+        if !total_length_m.is_finite() || total_length_m > MAX_TOTAL_WALL_LENGTH_M {
+            return Err(WorkspaceError::TotalWallLengthExceeded {
+                length_m: total_length_m,
+                maximum_m: MAX_TOTAL_WALL_LENGTH_M,
+            });
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn new_exterior_area(
     project_id: ProjectId,
     area_id: AreaId,
@@ -460,6 +519,7 @@ pub(crate) fn new_exterior_area(
     let paths = PathDocument::new(project_id, area_id, revision, name.clone(), vec![]);
     let roads = RoadDocument::new(project_id, area_id, revision, name.clone(), vec![]);
     let rivers = RiverDocument::new(project_id, area_id, revision, name.clone(), vec![]);
+    let walls = WallDocument::new(project_id, area_id, revision, name.clone(), vec![]);
     WorkspaceArea {
         id: area_id,
         name,
@@ -471,6 +531,7 @@ pub(crate) fn new_exterior_area(
         paths,
         roads,
         rivers,
+        walls,
     }
 }
 
@@ -593,6 +654,8 @@ pub enum WorkspaceError {
     RoadOwnershipMismatch,
     #[error("river project/area identities do not match their workspace owners")]
     RiverOwnershipMismatch,
+    #[error("wall project/area identities do not match their workspace owners")]
+    WallOwnershipMismatch,
     #[error(
         "workspace requires a current terrain schema, 512 m square, 2 m samples and three material layers"
     )]
@@ -607,6 +670,8 @@ pub enum WorkspaceError {
     UnsupportedRoadShape,
     #[error("workspace requires the current authored river document shape")]
     UnsupportedRiverShape,
+    #[error("workspace requires the current authored wall document shape")]
+    UnsupportedWallShape,
     #[error("road references missing path {0}")]
     MissingRoadPath(crate::PathId),
     #[error("road path {0} must be open in road document version 1")]
@@ -621,6 +686,16 @@ pub enum WorkspaceError {
     RiverRoadConflict(crate::PathId),
     #[error("total river length {length_m} m exceeds {maximum_m} m")]
     TotalRiverLengthExceeded { length_m: f64, maximum_m: f64 },
+    #[error("wall references missing path {0}")]
+    MissingWallPath(crate::PathId),
+    #[error("wall path {0} must be open in wall document version 1")]
+    ClosedWallPath(crate::PathId),
+    #[error("path {0} cannot be assigned to both a wall and a road")]
+    WallRoadConflict(crate::PathId),
+    #[error("path {0} cannot be assigned to both a wall and a river")]
+    WallRiverConflict(crate::PathId),
+    #[error("total wall length {length_m} m exceeds {maximum_m} m")]
+    TotalWallLengthExceeded { length_m: f64, maximum_m: f64 },
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
     #[error("workspace collection limit exceeded or no module: {0}")]
@@ -655,6 +730,8 @@ pub enum WorkspaceError {
     Road(#[from] RoadDocumentError),
     #[error("invalid workspace rivers: {0}")]
     River(#[from] RiverDocumentError),
+    #[error("invalid workspace walls: {0}")]
+    Wall(#[from] WallDocumentError),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -766,6 +843,12 @@ mod tests {
         assert_eq!(area.rivers.schema_version, RIVER_DOCUMENT_SCHEMA_VERSION);
         assert_eq!(area.rivers.name, input.area_name);
         assert!(area.rivers.rivers.is_empty());
+        assert_eq!(area.walls.project_id, input.project_id);
+        assert_eq!(area.walls.area_id, input.area_id);
+        assert_eq!(area.walls.revision, Revision::INITIAL);
+        assert_eq!(area.walls.schema_version, WALL_DOCUMENT_SCHEMA_VERSION);
+        assert_eq!(area.walls.name, input.area_name);
+        assert!(area.walls.walls.is_empty());
         assert_ne!(
             terrain.project_id,
             ProjectId::deterministic("visual-valley-project")
@@ -799,6 +882,7 @@ mod tests {
         assert!(json.contains("\"paths\":[]"));
         assert!(json.contains("\"roads\":[]"));
         assert!(json.contains("\"rivers\":[]"));
+        assert!(json.contains("\"walls\":[]"));
     }
 
     #[test]
@@ -1166,6 +1250,31 @@ mod tests {
     }
 
     #[test]
+    fn walls_must_share_workspace_ownership_and_revision() {
+        let mut changed = document();
+        changed.project.modules[0].areas[0].walls.project_id =
+            ProjectId::deterministic("other-project");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::WallOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].walls.area_id = AreaId::deterministic("other-area");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::WallOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].walls.revision = Revision::new(2);
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::InvalidRevision("walls"))
+        ));
+    }
+
+    #[test]
     fn schemas_unknown_fields_and_future_area_kinds_fail_closed() {
         let mut value = serde_json::to_value(document()).unwrap();
         value["schema"] = json!("other.workspace");
@@ -1190,6 +1299,7 @@ mod tests {
             "/project/modules/0/areas/0/paths",
             "/project/modules/0/areas/0/roads",
             "/project/modules/0/areas/0/rivers",
+            "/project/modules/0/areas/0/walls",
         ] {
             let mut value = serde_json::to_value(document()).unwrap();
             value.pointer_mut(pointer).unwrap()["unknown_field"] = json!(true);
@@ -1277,6 +1387,7 @@ mod tests {
                 area.paths.area_id = area.id;
                 area.roads.area_id = area.id;
                 area.rivers.area_id = area.id;
+                area.walls.area_id = area.id;
                 area
             })
             .collect();

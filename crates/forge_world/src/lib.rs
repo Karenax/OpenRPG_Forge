@@ -14,6 +14,7 @@ mod vegetation;
 mod vegetation_cache;
 mod vegetation_density_brush;
 mod vegetation_promotion;
+mod wall;
 mod water;
 mod weather;
 
@@ -98,6 +99,14 @@ pub use vegetation_promotion::{
     VegetationPromotionResult, VegetationPromotionTarget, VegetationRetouchCommand,
     VegetationRetouchResult, preview_promote_generated_vegetation_instance,
     preview_retouch_promoted_vegetation_instance, resolve_nearest_generated_vegetation_instance,
+};
+pub use wall::{
+    GeneratedWall, GeneratedWalls, MAX_GENERATED_WALL_INDICES,
+    MAX_GENERATED_WALL_LONGITUDINAL_SAMPLES, MAX_GENERATED_WALL_VERTICES, WALL_BASE_EMBED_M,
+    WALL_CAP_INDEX_COUNT, WALL_CAP_VERTEX_COUNT, WALL_GENERATION_VERSION,
+    WALL_INDICES_PER_LONGITUDINAL_INTERVAL, WALL_VERTICES_PER_ROW, WallCommandError,
+    WallGenerationError, WallGenerationPlan, WallUpsertCommand, WallUpsertResult,
+    preview_upsert_wall, validate_generated_walls,
 };
 pub use water::{
     RiverCenterlineSample, VISUAL_VALLEY_WATER_JSON, VISUAL_VALLEY_WATER_SEED,

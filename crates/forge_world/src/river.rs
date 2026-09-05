@@ -2270,7 +2270,13 @@ pub fn preview_upsert_river(
             river: command.river,
         },
     })?;
-    validate_candidate_rivers(&edit, command.module_id, command.area_id)?;
+    let river_projection = validate_candidate_rivers(&edit, command.module_id, command.area_id)?;
+    crate::wall::validate_candidate_walls_with_river_projection(
+        &edit,
+        command.module_id,
+        command.area_id,
+        &river_projection,
+    )?;
     Ok(RiverUpsertResult {
         river: command.river,
         command,
@@ -2283,14 +2289,13 @@ pub(crate) fn validate_candidate_rivers(
     edit: &WorkspaceEditResult,
     module_id: ModuleId,
     area_id: AreaId,
-) -> Result<(), RiverGenerationError> {
+) -> Result<RiverGenerationResult, RiverGenerationError> {
     let area = edit
         .document
         .area(module_id, area_id)
         .ok_or(RiverGenerationError::MissingArea)?;
     RiverGenerationPlan::from_documents(&area.terrain, &area.paths, &area.roads, &area.rivers)?
-        .generate()?;
-    Ok(())
+        .generate()
 }
 
 fn validate_command_context(
@@ -2481,6 +2486,8 @@ pub enum RiverCommandError {
     Workspace(#[from] WorkspaceError),
     #[error("generated river candidate is invalid: {0}")]
     Generation(#[from] RiverGenerationError),
+    #[error("wall projection affected by the river edit is invalid: {0}")]
+    WallGeneration(#[from] crate::wall::WallGenerationError),
 }
 
 #[cfg(test)]

@@ -7,9 +7,10 @@ use crate::{
 };
 use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer, EditorPathDraft};
 use forge_project::{
-    AuthoredRiver, AuthoredRoad, PathDocument, PathId, RiverChannelProfile,
+    AuthoredRiver, AuthoredRoad, AuthoredWall, PathDocument, PathId, RiverChannelProfile,
     RiverChannelProfileAlgorithm, RiverDocument, RiverSurface, RoadDocument, RoadProfile,
-    RoadProfileAlgorithm, RoadSurface,
+    RoadProfileAlgorithm, RoadSurface, WallDocument, WallProfile, WallProfileAlgorithm,
+    WallSurface,
 };
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
@@ -21,6 +22,8 @@ const DEFAULT_ROAD_CROWN_HEIGHT_M: f32 = 0.08;
 const DEFAULT_RIVER_SURFACE_WIDTH_M: f32 = 8.0;
 const DEFAULT_RIVER_BED_DEPTH_M: f32 = 1.5;
 const DEFAULT_RIVER_BANK_BLEND_WIDTH_M: f32 = 4.0;
+const DEFAULT_WALL_HEIGHT_M: f32 = 1.5;
+const DEFAULT_WALL_THICKNESS_M: f32 = 0.3;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PathIntentKind {
@@ -381,6 +384,7 @@ fn active_paths(
     PathDocument,
     RoadDocument,
     RiverDocument,
+    WallDocument,
 )> {
     let key = world.tabs.get().active?;
     let document = world.document.get()?;
@@ -388,6 +392,7 @@ fn active_paths(
     let paths = area.paths.clone();
     let roads = area.roads.clone();
     let rivers = area.rivers.clone();
+    let walls = area.walls.clone();
     Some((
         AreaPreviewRequest {
             key,
@@ -396,6 +401,7 @@ fn active_paths(
         paths,
         roads,
         rivers,
+        walls,
     ))
 }
 
@@ -593,6 +599,88 @@ fn RiverProfileForm(
     }
 }
 
+#[component]
+fn WallProfileForm(
+    path_id: PathId,
+    current: Option<AuthoredWall>,
+    request: AreaPreviewRequest,
+    paths: PathActions,
+    brush: BrushActions,
+    world: WorldActions,
+    workspace: WorkspaceActions,
+) -> impl IntoView {
+    let height = RwSignal::new(
+        current
+            .map_or(DEFAULT_WALL_HEIGHT_M, |wall| wall.profile.height_m)
+            .to_string(),
+    );
+    let thickness = RwSignal::new(
+        current
+            .map_or(DEFAULT_WALL_THICKNESS_M, |wall| wall.profile.thickness_m)
+            .to_string(),
+    );
+    let action_label = if current.is_some() {
+        "Mettre à jour le mur"
+    } else {
+        "Créer le mur"
+    };
+
+    view! {
+        <form class="vegetation-add-form" on:submit=move |event| {
+            event.prevent_default();
+            let result = (|| {
+                let profile = WallProfile {
+                    algorithm: WallProfileAlgorithm::TerrainDrapedSolidV1,
+                    height_m: parse_profile_number(&height.get_untracked(), "La hauteur")?,
+                    thickness_m: parse_profile_number(
+                        &thickness.get_untracked(),
+                        "L’épaisseur",
+                    )?,
+                };
+                profile.validate().map_err(|error| error.to_string())?;
+                let wall = AuthoredWall {
+                    path_id,
+                    profile,
+                    surface: WallSurface::ForgeStoneV1,
+                };
+                if current == Some(wall) {
+                    return Err("Le profil de mur est déjà identique.".to_owned());
+                }
+                Ok(wall)
+            })();
+            match result {
+                Ok(wall) => {
+                    paths.error.set(None);
+                    workspace.send(WorkspaceCommand::UpsertWall { request, wall });
+                }
+                Err(error) => paths.error.set(Some(error)),
+            }
+        }>
+            <h3>"Mur procédural"</h3>
+            <fieldset disabled=move || workspace.unavailable()
+                || paths.intent.get().is_some()
+                || world.busy.get()
+                || world.density_preview_busy.get()
+                || brush.interaction_active()>
+                <legend class="project-sr-only">"Profil de mur procédural en pierre"</legend>
+                <label>"Hauteur (m)"
+                    <input type="number" min="0.25" max="8" step="0.05"
+                        aria-label="Hauteur du mur en mètres"
+                        prop:value=move || height.get()
+                        on:input=move |event| height.set(event_target_value(&event))/>
+                </label>
+                <label>"Épaisseur (m)"
+                    <input type="number" min="0.1" max="2" step="0.05"
+                        aria-label="Épaisseur du mur en mètres"
+                        prop:value=move || thickness.get()
+                        on:input=move |event| thickness.set(event_target_value(&event))/>
+                </label>
+                <button type="submit">{action_label}</button>
+            </fieldset>
+        </form>
+    }
+}
+
 fn publish_path_draft(world: WorldActions, draft: &PathDraft) {
     if let Ok(mut bridge) = world.viewport.get_value().0.lock() {
         bridge.path_draft = Some(EditorPathDraft {
@@ -665,6 +753,10 @@ pub(super) fn create_path_actions(
 }
 
 #[component]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one direct-authoring panel keeps the mutually exclusive path profiles visibly together"
+)]
 pub(super) fn PathPanel(
     paths: PathActions,
     brush: BrushActions,
@@ -695,8 +787,11 @@ pub(super) fn PathPanel(
                 Some(PathIntentKind::Redraw(_)) => "Glissez sur le terrain puis relâchez pour remplacer le tracé choisi.",
                 None => "Un geste crée une seule modification annulable. Alt + glisser conserve la navigation.",
             }}</p>
+            <p class="hint">
+                "Les contacts entre objets portés par des chemins distincts sont autorisés : géométrie superposée déterministe, sans ouverture ni jonction automatique."
+            </p>
             <ul class="vegetation-list">
-                {move || active_paths(world).map(|(request, document, roads, rivers)| {
+                {move || active_paths(world).map(|(request, document, roads, rivers, walls)| {
                     if document.paths.is_empty() {
                         return view! { <li class="vegetation-empty">"Aucun chemin"</li> }.into_any();
                     }
@@ -705,19 +800,27 @@ pub(super) fn PathPanel(
                         let closed = path.closed;
                         let road = roads.roads.iter().find(|road| road.path_id == path_id).copied();
                         let river = rivers.rivers.iter().find(|river| river.path_id == path_id).copied();
-                        let description = match (road, river) {
-                            (Some(road), None) => format!(
+                        let wall = walls.walls.iter().find(|wall| wall.path_id == path_id).copied();
+                        let description = match (road, river, wall) {
+                            (Some(road), None, None) => format!(
                                 "{} · {} points · route terre {:.1} m",
                                 path.name,
                                 path.control_points.len(),
                                 road.profile.width_m,
                             ),
-                            (None, Some(river)) => format!(
+                            (None, Some(river), None) => format!(
                                 "{} · {} points · rivière {:.1} m × {:.1} m",
                                 path.name,
                                 path.control_points.len(),
                                 river.channel.surface_width_m,
                                 river.channel.bed_depth_m,
+                            ),
+                            (None, None, Some(wall)) => format!(
+                                "{} · {} points · mur pierre {:.1} m × {:.1} m",
+                                path.name,
+                                path.control_points.len(),
+                                wall.profile.height_m,
+                                wall.profile.thickness_m,
                             ),
                             _ => format!("{} · {} points", path.name, path.control_points.len()),
                         };
@@ -737,20 +840,32 @@ pub(super) fn PathPanel(
                                         PathIntentKind::Redraw(path_id),
                                 )>"Redessiner"</button>
                                 {if closed {
-                                    view! { <p class="hint">"Route et rivière indisponibles : ce chemin est fermé."</p> }.into_any()
+                                    view! { <p class="hint">"Route, rivière et mur indisponibles : ce chemin est fermé."</p> }.into_any()
                                 } else {
                                     view! {
                                         <div>
                                             {if river.is_some() {
                                                 view! { <p class="hint">"Route indisponible : ce chemin porte une rivière."</p> }.into_any()
+                                            } else if wall.is_some() {
+                                                view! { <p class="hint">"Route indisponible : ce chemin porte un mur."</p> }.into_any()
                                             } else {
                                                 view! { <RoadProfileForm path_id=path_id current=road request=request
                                                     paths=paths brush=brush world=world workspace=workspace/> }.into_any()
                                             }}
                                             {if road.is_some() {
                                                 view! { <p class="hint">"Rivière indisponible : ce chemin porte une route."</p> }.into_any()
+                                            } else if wall.is_some() {
+                                                view! { <p class="hint">"Rivière indisponible : ce chemin porte un mur."</p> }.into_any()
                                             } else {
                                                 view! { <RiverProfileForm path_id=path_id current=river request=request
+                                                    paths=paths brush=brush world=world workspace=workspace/> }.into_any()
+                                            }}
+                                            {if road.is_some() {
+                                                view! { <p class="hint">"Mur indisponible : ce chemin porte une route."</p> }.into_any()
+                                            } else if river.is_some() {
+                                                view! { <p class="hint">"Mur indisponible : ce chemin porte une rivière."</p> }.into_any()
+                                            } else {
+                                                view! { <WallProfileForm path_id=path_id current=wall request=request
                                                     paths=paths brush=brush world=world workspace=workspace/> }.into_any()
                                             }}
                                         </div>

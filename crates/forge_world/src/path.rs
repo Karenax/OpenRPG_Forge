@@ -453,7 +453,13 @@ fn validate_candidate_paths(
         .ok_or(WorkspaceError::MissingTarget("area"))?;
     PathGenerationPlan::from_documents(&area.terrain, &area.paths)?.generate()?;
     crate::road::validate_candidate_roads(edit, module_id, area_id)?;
-    crate::river::validate_candidate_rivers(edit, module_id, area_id)?;
+    let river_projection = crate::river::validate_candidate_rivers(edit, module_id, area_id)?;
+    crate::wall::validate_candidate_walls_with_river_projection(
+        edit,
+        module_id,
+        area_id,
+        &river_projection,
+    )?;
     Ok(())
 }
 
@@ -633,6 +639,8 @@ pub enum PathCommandError {
     RoadGeneration(#[from] crate::road::RoadGenerationError),
     #[error("river projection affected by the path edit is invalid: {0}")]
     RiverGeneration(#[from] crate::river::RiverGenerationError),
+    #[error("wall projection affected by the path edit is invalid: {0}")]
+    WallGeneration(#[from] crate::wall::WallGenerationError),
 }
 
 #[cfg(test)]

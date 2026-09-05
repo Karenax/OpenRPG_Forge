@@ -3,10 +3,10 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    AuthoredPath, AuthoredRiver, AuthoredRoad, PromotedVegetationInstance, TerrainHeightDelta,
-    TerrainMaterialWeightOverride, VegetationDensityLayer, VegetationDensityOverride,
-    VegetationExclusion, VegetationLayer, VegetationLayerId, WorkspaceDocument, WorkspaceError,
-    WorkspaceModule,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, AuthoredWall, PromotedVegetationInstance,
+    TerrainHeightDelta, TerrainMaterialWeightOverride, VegetationDensityLayer,
+    VegetationDensityOverride, VegetationExclusion, VegetationLayer, VegetationLayerId,
+    WorkspaceDocument, WorkspaceError, WorkspaceModule,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
@@ -91,6 +91,18 @@ pub enum WorkspaceChange {
         expected_road_document_hash: ContentHash,
         expected_river_document_hash: ContentHash,
         river: AuthoredRiver,
+    },
+    /// Creates or replaces one terrain-draped wall assigned to an existing open path that is not
+    /// already assigned to a road or river.
+    UpsertWall {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_terrain_document_hash: ContentHash,
+        expected_path_document_hash: ContentHash,
+        expected_road_document_hash: ContentHash,
+        expected_river_document_hash: ContentHash,
+        expected_wall_document_hash: ContentHash,
+        wall: AuthoredWall,
     },
     AddModule {
         module_id: ModuleId,
@@ -314,6 +326,27 @@ impl WorkspaceDocument {
                 river,
                 next,
             )?,
+            WorkspaceChange::UpsertWall {
+                module_id,
+                area_id,
+                expected_terrain_document_hash,
+                expected_path_document_hash,
+                expected_road_document_hash,
+                expected_river_document_hash,
+                expected_wall_document_hash,
+                wall,
+            } => upsert_wall(
+                document,
+                *module_id,
+                *area_id,
+                *expected_terrain_document_hash,
+                *expected_path_document_hash,
+                *expected_road_document_hash,
+                *expected_river_document_hash,
+                *expected_wall_document_hash,
+                wall,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -402,6 +435,8 @@ fn update_area_metadata(
     area.roads.revision = revision;
     name.clone_into(&mut area.rivers.name);
     area.rivers.revision = revision;
+    name.clone_into(&mut area.walls.name);
+    area.walls.revision = revision;
     Ok(())
 }
 
@@ -567,6 +602,86 @@ fn upsert_river(
     replacement.revision = revision;
     replacement.validate()?;
     area.rivers = replacement;
+    Ok(())
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the wall edit is deliberately bound to every source document it consumes"
+)]
+fn upsert_wall(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_terrain_hash: ContentHash,
+    expected_path_hash: ContentHash,
+    expected_road_hash: ContentHash,
+    expected_river_hash: ContentHash,
+    expected_wall_hash: ContentHash,
+    wall: &AuthoredWall,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.terrain.content_hash()? != expected_terrain_hash
+        || area.paths.content_hash()? != expected_path_hash
+        || area.roads.content_hash()? != expected_road_hash
+        || area.rivers.content_hash()? != expected_river_hash
+        || area.walls.content_hash()? != expected_wall_hash
+    {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    let path = area
+        .paths
+        .paths
+        .binary_search_by_key(&wall.path_id, |path| path.id)
+        .ok()
+        .map(|index| &area.paths.paths[index])
+        .ok_or(WorkspaceError::MissingWallPath(wall.path_id))?;
+    if path.closed {
+        return Err(WorkspaceError::ClosedWallPath(wall.path_id));
+    }
+    if area
+        .roads
+        .roads
+        .binary_search_by_key(&wall.path_id, |road| road.path_id)
+        .is_ok()
+    {
+        return Err(WorkspaceError::WallRoadConflict(wall.path_id));
+    }
+    if area
+        .rivers
+        .rivers
+        .binary_search_by_key(&wall.path_id, |river| river.path_id)
+        .is_ok()
+    {
+        return Err(WorkspaceError::WallRiverConflict(wall.path_id));
+    }
+
+    let mut replacement = area.walls.clone();
+    match replacement
+        .walls
+        .binary_search_by_key(&wall.path_id, |candidate| candidate.path_id)
+    {
+        Ok(index) => {
+            if replacement.walls[index] == *wall {
+                return Err(WorkspaceError::NoChange);
+            }
+            replacement.walls[index] = *wall;
+        }
+        Err(index) => replacement.walls.insert(index, *wall),
+    }
+    replacement.revision = revision;
+    replacement.validate()?;
+    area.walls = replacement;
     Ok(())
 }
 

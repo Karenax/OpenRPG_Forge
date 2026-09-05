@@ -2,8 +2,8 @@
 
 use forge_core::{AreaId, EntityId, ModuleId};
 use forge_project::{
-    AuthoredRiver, AuthoredRoad, PathId, VegetationExclusionId, VegetationInstanceTransform,
-    VegetationLayerId, VegetationSpeciesPreset,
+    AuthoredRiver, AuthoredRoad, AuthoredWall, PathId, VegetationExclusionId,
+    VegetationInstanceTransform, VegetationLayerId, VegetationSpeciesPreset,
 };
 use serde::{Deserialize, Serialize};
 
@@ -132,6 +132,10 @@ pub enum WorkspaceCommand {
     UpsertRiver {
         request: crate::area_preview::AreaPreviewRequest,
         river: AuthoredRiver,
+    },
+    UpsertWall {
+        request: crate::area_preview::AreaPreviewRequest,
+        wall: AuthoredWall,
     },
     Current,
     Create {
@@ -316,6 +320,18 @@ mod tests {
                     surface: forge_project::RiverSurface::ForgeWaterV1,
                 },
             },
+            WorkspaceCommand::UpsertWall {
+                request,
+                wall: AuthoredWall {
+                    path_id: PathId::deterministic("ipc-wall-path"),
+                    profile: forge_project::WallProfile {
+                        algorithm: forge_project::WallProfileAlgorithm::TerrainDrapedSolidV1,
+                        height_m: 1.5,
+                        thickness_m: 0.3,
+                    },
+                    surface: forge_project::WallSurface::ForgeStoneV1,
+                },
+            },
             WorkspaceCommand::Undo { base_revision: 1 },
             WorkspaceCommand::Redo { base_revision: 2 },
             WorkspaceCommand::Close,
@@ -429,6 +445,22 @@ mod tests {
         .unwrap();
         river["river"]["channel"]["unexpected"] = serde_json::json!(true);
         assert!(serde_json::from_value::<WorkspaceCommand>(river).is_err());
+
+        let mut wall = serde_json::to_value(WorkspaceCommand::UpsertWall {
+            request,
+            wall: AuthoredWall {
+                path_id: PathId::deterministic("strict-ipc-wall"),
+                profile: forge_project::WallProfile {
+                    algorithm: forge_project::WallProfileAlgorithm::TerrainDrapedSolidV1,
+                    height_m: 1.5,
+                    thickness_m: 0.3,
+                },
+                surface: forge_project::WallSurface::ForgeStoneV1,
+            },
+        })
+        .unwrap();
+        wall["wall"]["profile"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(wall).is_err());
     }
 
     #[test]

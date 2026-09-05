@@ -11,7 +11,7 @@ use forge_world::{
 
 const RIVER_KEYS: [&str; 2] = ["north", "south"];
 
-fn request_with_rivers(
+pub(super) fn request_with_rivers(
     generation: u64,
     widths_m: [Option<f32>; 2],
     full: bool,
@@ -20,7 +20,7 @@ fn request_with_rivers(
     request_with_rivers_and_optional_ford(generation, widths_m, full, previous_effective, false)
 }
 
-fn request_with_fords(
+pub(super) fn request_with_fords(
     generation: u64,
     widths_m: [Option<f32>; 2],
     full: bool,
@@ -188,6 +188,7 @@ fn request_with_rivers_and_optional_ford(
                 source_terrain: terrain_document,
                 source_rivers: river_document,
             }),
+            walls: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash,
         },
