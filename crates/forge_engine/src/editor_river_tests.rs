@@ -1,8 +1,9 @@
 use super::*;
 use forge_core::{Revision, Vec3};
 use forge_project::{
-    AuthoredPath, AuthoredRiver, PathControlPoint, PathDocument, PathId, PathInterpolation,
-    RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocument, RiverSurface, RoadDocument,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, PathControlPoint, PathDocument, PathId,
+    PathInterpolation, RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocument,
+    RiverSurface, RoadDocument, RoadProfile, RoadProfileAlgorithm, RoadSurface,
 };
 use forge_world::{
     RiverGenerationPlan, RoadGenerationPlan, TerrainChunkCoordinate, TerrainGenerationPlan,
@@ -10,15 +11,34 @@ use forge_world::{
 
 const RIVER_KEYS: [&str; 2] = ["north", "south"];
 
-#[allow(
-    clippy::too_many_lines,
-    reason = "the fixture assembles every canonical and derived river source in one readable place"
-)]
 fn request_with_rivers(
     generation: u64,
     widths_m: [Option<f32>; 2],
     full: bool,
     previous_effective: Option<&GeneratedTerrain>,
+) -> (EditorTerrainRequest, GeneratedTerrain) {
+    request_with_rivers_and_optional_ford(generation, widths_m, full, previous_effective, false)
+}
+
+fn request_with_fords(
+    generation: u64,
+    widths_m: [Option<f32>; 2],
+    full: bool,
+    previous_effective: Option<&GeneratedTerrain>,
+) -> (EditorTerrainRequest, GeneratedTerrain) {
+    request_with_rivers_and_optional_ford(generation, widths_m, full, previous_effective, true)
+}
+
+#[allow(
+    clippy::too_many_lines,
+    reason = "the fixture assembles every canonical and derived river source in one readable place"
+)]
+fn request_with_rivers_and_optional_ford(
+    generation: u64,
+    widths_m: [Option<f32>; 2],
+    full: bool,
+    previous_effective: Option<&GeneratedTerrain>,
+    include_ford_road: bool,
 ) -> (EditorTerrainRequest, GeneratedTerrain) {
     let terrain_document = forge_world::embedded_visual_valley_terrain_document().unwrap();
     let mut definitions = RIVER_KEYS
@@ -38,6 +58,19 @@ fn request_with_rivers(
             }
         })
         .collect::<Vec<_>>();
+    let road_path_id = PathId::deterministic("editor-river-viewport/ford-road");
+    if include_ford_road {
+        definitions.push(AuthoredPath {
+            id: road_path_id,
+            name: "Route des gués".into(),
+            closed: false,
+            interpolation: PathInterpolation::CentripetalCatmullRomV1,
+            control_points: vec![
+                PathControlPoint::new(Vec3::new(0.0, 0.0, -90.0)),
+                PathControlPoint::new(Vec3::new(0.0, 0.0, 90.0)),
+            ],
+        });
+    }
     definitions.sort_by_key(|path| path.id);
     let path_document = PathDocument::new(
         terrain_document.project_id,
@@ -51,7 +84,18 @@ fn request_with_rivers(
         terrain_document.area_id,
         Revision::new(generation),
         "Routes",
-        vec![],
+        include_ford_road
+            .then_some(AuthoredRoad {
+                path_id: road_path_id,
+                profile: RoadProfile {
+                    algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                    width_m: 4.0,
+                    crown_height_m: 0.08,
+                },
+                surface: RoadSurface::CompactedEarthV1,
+            })
+            .into_iter()
+            .collect(),
     );
     let mut authored_rivers = RIVER_KEYS
         .into_iter()
@@ -104,6 +148,7 @@ fn request_with_rivers(
         .unwrap()
         .generate()
         .unwrap();
+    let effective_terrain_document = result.effective_terrain.clone();
     let full_effective = terrain.clone();
     if !full {
         let previous =
@@ -129,10 +174,19 @@ fn request_with_rivers(
             revision: generation,
             terrain,
             vegetation: None,
-            paths: Some(EditorPathRequest { generated: paths }),
-            roads: Some(EditorRoadRequest { generated: roads }),
+            paths: Some(EditorPathRequest {
+                generated: paths,
+                source_terrain: effective_terrain_document,
+                source_paths: path_document,
+            }),
+            roads: Some(EditorRoadRequest {
+                generated: roads,
+                source_roads: road_document,
+            }),
             rivers: Some(EditorRiverRequest {
                 generated: result.generated,
+                source_terrain: terrain_document,
+                source_rivers: river_document,
             }),
             spawn: [0.0, 2.0, 0.0],
             base_source_hash,
@@ -184,8 +238,255 @@ fn river_bindings(world: &World) -> BTreeMap<PathId, (Entity, Handle<Mesh>)> {
         .collect()
 }
 
+fn road_bindings(world: &World) -> BTreeMap<PathId, (Entity, Handle<Mesh>)> {
+    world
+        .resource::<EditorProjection>()
+        .roads
+        .iter()
+        .map(|(path_id, presented)| (*path_id, presented.object.clone()))
+        .collect()
+}
+
 fn terrain_bindings(world: &World) -> BTreeMap<TerrainChunkCoordinate, (Entity, Handle<Mesh>)> {
     world.resource::<EditorProjection>().objects.clone()
+}
+
+struct PresentedRiverSceneSnapshot {
+    terrain: BTreeMap<TerrainChunkCoordinate, (Entity, Handle<Mesh>)>,
+    paths: Option<GeneratedPaths>,
+    roads: BTreeMap<PathId, (Entity, Handle<Mesh>)>,
+    rivers: BTreeMap<PathId, (Entity, Handle<Mesh>)>,
+    mesh_assets: usize,
+    marker: Option<(Entity, Handle<Mesh>)>,
+    status: EditorViewportStatus,
+}
+
+impl PresentedRiverSceneSnapshot {
+    fn capture(world: &World, viewport: &EditorViewport) -> Self {
+        Self {
+            terrain: terrain_bindings(world),
+            paths: world
+                .resource::<path::EditorPathOverlay>()
+                .canonical
+                .clone(),
+            roads: road_bindings(world),
+            rivers: river_bindings(world),
+            mesh_assets: world.resource::<Assets<Mesh>>().len(),
+            marker: world.resource::<EditorProjection>().marker.clone(),
+            status: viewport.0.lock().unwrap().status.clone(),
+        }
+    }
+
+    fn assert_rejected(
+        &self,
+        world: &World,
+        viewport: &EditorViewport,
+        expected_error: Option<&str>,
+    ) {
+        assert_eq!(terrain_bindings(world), self.terrain);
+        assert_eq!(
+            world.resource::<path::EditorPathOverlay>().canonical,
+            self.paths
+        );
+        assert_eq!(road_bindings(world), self.roads);
+        assert_eq!(river_bindings(world), self.rivers);
+        assert_eq!(world.resource::<Assets<Mesh>>().len(), self.mesh_assets);
+        let projection = world.resource::<EditorProjection>();
+        assert!(projection.pending.is_none());
+        assert_eq!(projection.marker, self.marker);
+        let status = &viewport.0.lock().unwrap().status;
+        assert!(status.error.is_some());
+        if let Some(expected_error) = expected_error {
+            assert!(
+                status
+                    .error
+                    .as_deref()
+                    .is_some_and(|error| error.contains(expected_error))
+            );
+        }
+        assert_eq!(status.generation, self.status.generation);
+        assert_eq!(status.source_hash, self.status.source_hash);
+        assert_eq!(status.path_source_hash, self.status.path_source_hash);
+        assert_eq!(status.road_source_hash, self.status.road_source_hash);
+        assert_eq!(status.river_source_hash, self.status.river_source_hash);
+        assert_eq!(
+            status.canonical_terrain_source_hash,
+            self.status.canonical_terrain_source_hash
+        );
+        assert_eq!(
+            status.effective_terrain_source_hash,
+            self.status.effective_terrain_source_hash
+        );
+    }
+}
+
+fn submit_rejected_river_request(
+    world: &mut World,
+    viewport: &EditorViewport,
+    stable: &PresentedRiverSceneSnapshot,
+    request: EditorTerrainRequest,
+    expected_error: Option<&str>,
+) {
+    submit(viewport, request);
+    update_editor(world);
+    stable.assert_rejected(world, viewport, expected_error);
+}
+
+fn assert_forged_or_omitted_fords_are_rejected(
+    world: &mut World,
+    viewport: &EditorViewport,
+    stable: &PresentedRiverSceneSnapshot,
+    first_effective: &GeneratedTerrain,
+) {
+    let (mut forged_position, _) =
+        request_with_fords(2, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    forged_position
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .road_river_intersections[0]
+        .position_xz_m[0] += 1.0;
+    submit_rejected_river_request(world, viewport, stable, forged_position, None);
+
+    let (mut omitted, _) =
+        request_with_fords(3, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    omitted
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .road_river_intersections
+        .clear();
+    submit_rejected_river_request(world, viewport, stable, omitted, None);
+
+    let (mut omitted_river_and_ford, _) =
+        request_with_fords(4, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    let omitted_river_id = omitted_river_and_ford
+        .rivers
+        .as_ref()
+        .unwrap()
+        .generated
+        .road_river_intersections[0]
+        .river_path_id;
+    let rivers = &mut omitted_river_and_ford.rivers.as_mut().unwrap().generated;
+    rivers
+        .rivers
+        .retain(|river| river.path_id != omitted_river_id);
+    rivers
+        .road_river_intersections
+        .retain(|ford| ford.river_path_id != omitted_river_id);
+    submit_rejected_river_request(world, viewport, stable, omitted_river_and_ford, None);
+
+    let (mut omitted_road_and_fords, _) =
+        request_with_fords(5, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    omitted_road_and_fords
+        .roads
+        .as_mut()
+        .unwrap()
+        .generated
+        .roads
+        .clear();
+    omitted_road_and_fords
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .road_river_intersections
+        .clear();
+    submit_rejected_river_request(world, viewport, stable, omitted_road_and_fords, None);
+}
+
+fn assert_noncanonical_paths_are_rejected(
+    world: &mut World,
+    viewport: &EditorViewport,
+    stable: &PresentedRiverSceneSnapshot,
+    first_effective: &GeneratedTerrain,
+) {
+    let (mut omitted_unassigned_path, _) =
+        request_with_rivers(6, [Some(7.0), None], false, Some(first_effective));
+    let retained_river_id = omitted_unassigned_path
+        .rivers
+        .as_ref()
+        .unwrap()
+        .generated
+        .rivers[0]
+        .path_id;
+    omitted_unassigned_path
+        .paths
+        .as_mut()
+        .unwrap()
+        .generated
+        .paths
+        .retain(|path| path.id == retained_river_id);
+    submit_rejected_river_request(
+        world,
+        viewport,
+        stable,
+        omitted_unassigned_path,
+        Some("Chemins générés différents"),
+    );
+
+    let (mut forged_path_and_river, _) =
+        request_with_rivers(7, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    let forged_path_id = forged_path_and_river
+        .rivers
+        .as_ref()
+        .unwrap()
+        .generated
+        .rivers[0]
+        .path_id;
+    let path = forged_path_and_river
+        .paths
+        .as_mut()
+        .unwrap()
+        .generated
+        .paths
+        .iter_mut()
+        .find(|path| path.id == forged_path_id)
+        .unwrap();
+    for control in &mut path.control_points {
+        control.x += 0.25;
+    }
+    for sample in &mut path.samples {
+        sample.position_m.x += 0.25;
+    }
+    let river = forged_path_and_river
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .rivers
+        .iter_mut()
+        .find(|river| river.path_id == forged_path_id)
+        .unwrap();
+    for position in &mut river.positions_m {
+        position[0] += 0.25;
+    }
+    submit_rejected_river_request(
+        world,
+        viewport,
+        stable,
+        forged_path_and_river,
+        Some("Chemins générés différents"),
+    );
+}
+
+fn assert_stale_ford_source_is_rejected(
+    world: &mut World,
+    viewport: &EditorViewport,
+    stable: &PresentedRiverSceneSnapshot,
+    first_effective: &GeneratedTerrain,
+) {
+    let (mut request, _) =
+        request_with_fords(8, [Some(7.0), Some(8.0)], false, Some(first_effective));
+    request
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .road_document_hash = forge_core::ContentHash::from_bytes([0x44; 32]);
+    submit_rejected_river_request(world, viewport, stable, request, None);
 }
 
 #[test]
@@ -310,6 +611,48 @@ fn river_removal_and_rejection_release_only_owned_objects_without_leaks() {
     assert!(status.error.is_some());
     assert_eq!(status.generation, stable_status.generation);
     assert_eq!(status.river_source_hash, stable_status.river_source_hash);
+}
+
+#[test]
+fn forged_canonical_terrain_hash_is_rejected_with_the_presented_scene_intact() {
+    let (mut world, viewport) = river_test_world();
+    let (first, first_effective) = request_with_rivers(1, [Some(6.0), Some(8.0)], true, None);
+    submit(&viewport, first);
+    drain(&mut world);
+    let stable = PresentedRiverSceneSnapshot::capture(&world, &viewport);
+
+    let (mut forged, _) =
+        request_with_rivers(2, [Some(7.0), Some(8.0)], false, Some(&first_effective));
+    forged
+        .rivers
+        .as_mut()
+        .unwrap()
+        .generated
+        .terrain_document_hash = forge_core::ContentHash::from_bytes([0x66; 32]);
+    submit_rejected_river_request(&mut world, &viewport, &stable, forged, None);
+}
+
+#[test]
+fn forged_omitted_or_stale_ford_payload_preserves_the_presented_scene() {
+    let (mut world, viewport) = river_test_world();
+    let (first, first_effective) = request_with_fords(1, [Some(6.0), Some(8.0)], true, None);
+    assert_eq!(
+        first
+            .rivers
+            .as_ref()
+            .unwrap()
+            .generated
+            .road_river_intersections
+            .len(),
+        2
+    );
+    submit(&viewport, first);
+    drain(&mut world);
+
+    let stable = PresentedRiverSceneSnapshot::capture(&world, &viewport);
+    assert_forged_or_omitted_fords_are_rejected(&mut world, &viewport, &stable, &first_effective);
+    assert_noncanonical_paths_are_rejected(&mut world, &viewport, &stable, &first_effective);
+    assert_stale_ford_source_is_rejected(&mut world, &viewport, &stable, &first_effective);
 }
 
 #[test]

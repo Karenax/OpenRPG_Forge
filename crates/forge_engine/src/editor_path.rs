@@ -2,9 +2,13 @@
 use crate::editor_viewport::{EditorViewport, EditorViewportStatus};
 use bevy::prelude::*;
 use forge_project::{
-    MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT, MAX_TOTAL_PATH_CONTROL_POINTS,
+    MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT, MAX_TOTAL_PATH_CONTROL_POINTS, PathDocument,
+    TerrainDocument,
 };
-use forge_world::{GeneratedPaths, GeneratedTerrain, TERRAIN_CHUNK_COUNT, TERRAIN_HALF_EXTENT_M};
+use forge_world::{
+    GeneratedPaths, GeneratedTerrain, TERRAIN_CHUNK_COUNT, TERRAIN_HALF_EXTENT_M,
+    validate_generated_path_centrelines,
+};
 use std::collections::BTreeSet;
 
 // ceil(total 32,768 m / 2 m) + one rounding interval per control segment + one first sample/path.
@@ -27,7 +31,12 @@ pub(crate) struct EditorPathOverlay {
 pub(crate) fn validate_generated_paths(
     terrain: &GeneratedTerrain,
     generated: &GeneratedPaths,
+    source_terrain: &TerrainDocument,
+    source_paths: &PathDocument,
 ) -> Result<(), String> {
+    validate_generated_path_centrelines(source_terrain, source_paths, generated).map_err(
+        |error| format!("Chemins générés différents de leurs sources canoniques : {error}"),
+    )?;
     if generated.terrain_document_hash != terrain.source_document_hash
         || generated.paths.len() > MAX_PATHS_PER_DOCUMENT
     {

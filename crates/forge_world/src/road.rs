@@ -396,12 +396,12 @@ fn validate_command_context(
 }
 
 #[derive(Clone, Copy)]
-struct CenterlineRow {
-    xz_m: [f64; 2],
+pub(crate) struct CenterlineRow {
+    pub(crate) xz_m: [f64; 2],
     distance_m: f64,
 }
 
-fn adaptive_centerline(
+pub(crate) fn adaptive_centerline(
     path: &GeneratedPath,
     maximum_samples: usize,
 ) -> Result<Vec<CenterlineRow>, RoadGenerationError> {

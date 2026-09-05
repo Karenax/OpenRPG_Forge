@@ -3,7 +3,7 @@
 use bevy::{
     asset::RenderAssetUsages, mesh::Indices, prelude::*, render::render_resource::PrimitiveTopology,
 };
-use forge_project::{AuthoredRoad, MAX_ROADS_PER_DOCUMENT, RoadSurface};
+use forge_project::{AuthoredRoad, MAX_ROADS_PER_DOCUMENT, RoadDocument, RoadSurface};
 use forge_world::{
     GeneratedPaths, GeneratedRoad, GeneratedRoads, GeneratedTerrain, MAX_GENERATED_ROAD_INDICES,
     MAX_GENERATED_ROAD_VERTICES, ROAD_CROSS_SECTION_VERTEX_COUNT, ROAD_GENERATION_VERSION,
@@ -20,11 +20,30 @@ pub(crate) fn validate_generated_roads(
     terrain: &GeneratedTerrain,
     paths: &GeneratedPaths,
     generated: &GeneratedRoads,
+    source_roads: &RoadDocument,
 ) -> Result<(), String> {
+    source_roads
+        .validate()
+        .map_err(|error| format!("Document canonique de routes invalide : {error}"))?;
+    let source_road_hash = source_roads
+        .content_hash()
+        .map_err(|error| format!("Hash canonique des routes indisponible : {error}"))?;
+    let exact_roads = source_roads.roads.len() == generated.roads.len()
+        && source_roads
+            .roads
+            .iter()
+            .zip(&generated.roads)
+            .all(|(source, derived)| {
+                source.path_id == derived.path_id
+                    && source.profile == derived.profile
+                    && source.surface == derived.surface
+            });
     if generated.generation_version != ROAD_GENERATION_VERSION
         || generated.terrain_document_hash != terrain.source_document_hash
         || generated.path_document_hash != paths.path_document_hash
+        || generated.road_document_hash != source_road_hash
         || generated.roads.len() > MAX_ROADS_PER_DOCUMENT
+        || !exact_roads
     {
         return Err("Sources, version ou nombre de routes incohérents.".into());
     }
@@ -244,7 +263,14 @@ mod tests {
     };
     use forge_world::{PathGenerationPlan, RoadGenerationPlan, TerrainGenerationPlan};
 
-    fn generated_fixture(count: usize) -> (GeneratedTerrain, GeneratedPaths, GeneratedRoads) {
+    fn generated_fixture(
+        count: usize,
+    ) -> (
+        GeneratedTerrain,
+        GeneratedPaths,
+        GeneratedRoads,
+        RoadDocument,
+    ) {
         let terrain_document = forge_world::embedded_visual_valley_terrain_document().unwrap();
         let mut paths = (0..count)
             .map(|index| {
@@ -302,13 +328,13 @@ mod tests {
                 .unwrap()
                 .generate()
                 .unwrap();
-        (terrain, paths, roads)
+        (terrain, paths, roads, road_document)
     }
 
     #[test]
     fn valid_roads_build_the_existing_terrain_material_vertex_contract() {
-        let (terrain, paths, roads) = generated_fixture(2);
-        validate_generated_roads(&terrain, &paths, &roads).unwrap();
+        let (terrain, paths, roads, source_roads) = generated_fixture(2);
+        validate_generated_roads(&terrain, &paths, &roads, &source_roads).unwrap();
         let road = &roads.roads[0];
         let mesh = build_editor_road_mesh(road);
         assert_eq!(mesh.count_vertices(), road.positions_m.len());
@@ -323,69 +349,78 @@ mod tests {
 
     #[test]
     fn validation_rejects_wrong_sources_order_profile_and_mesh_shape() {
-        let (terrain, paths, roads) = generated_fixture(2);
+        let (terrain, paths, roads, source_roads) = generated_fixture(2);
+        let rejects = |invalid: &GeneratedRoads| {
+            validate_generated_roads(&terrain, &paths, invalid, &source_roads).is_err()
+        };
         let mut invalid = roads.clone();
         invalid.generation_version += 1;
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = roads.clone();
         invalid.terrain_document_hash = forge_core::ContentHash::from_bytes([0x11; 32]);
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads.clone();
         invalid.path_document_hash = forge_core::ContentHash::from_bytes([0x22; 32]);
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = roads.clone();
         invalid.roads.reverse();
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads.clone();
         invalid.roads[0].profile.width_m = 0.5;
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = roads.clone();
         invalid.roads[0].positions_m.pop();
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads.clone();
         invalid.roads[0].indices[0] = u32::MAX;
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads.clone();
         invalid.roads[0].normals[0] = [0.0; 3];
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads.clone();
         invalid.roads[0].uvs[0][0] = f32::NAN;
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = roads;
         invalid.roads[0].positions_m[0][0] = TERRAIN_HALF_EXTENT_M;
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
     }
 
     #[test]
     fn aggregate_vertex_and_index_budgets_fail_before_mesh_adaptation() {
-        let (terrain, paths, roads) = generated_fixture(1);
+        let (terrain, paths, roads, source_roads) = generated_fixture(1);
+        let rejects = |invalid: &GeneratedRoads| {
+            validate_generated_roads(&terrain, &paths, invalid, &source_roads).is_err()
+        };
         let mut invalid = roads.clone();
         invalid.roads[0]
             .positions_m
             .resize(MAX_GENERATED_ROAD_VERTICES + 1, [0.0; 3]);
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = roads;
         invalid.roads[0]
             .indices
             .resize(MAX_GENERATED_ROAD_INDICES + 1, 0);
-        assert!(validate_generated_roads(&terrain, &paths, &invalid).is_err());
+        assert!(rejects(&invalid));
     }
 
     #[test]
     fn validation_rejects_reversed_cross_sections_and_degenerate_triangles() {
-        let (terrain, paths, roads) = generated_fixture(1);
+        let (terrain, paths, roads, source_roads) = generated_fixture(1);
+        let rejects = |invalid: &GeneratedRoads| {
+            validate_generated_roads(&terrain, &paths, invalid, &source_roads).is_err()
+        };
         let mut reversed = roads.clone();
         for row in reversed.roads[0].positions_m.as_chunks_mut::<3>().0 {
             row.swap(0, 2);
         }
-        assert!(validate_generated_roads(&terrain, &paths, &reversed).is_err());
+        assert!(rejects(&reversed));
 
         let mut degenerate = roads;
         degenerate.roads[0].positions_m[3] = degenerate.roads[0].positions_m[0];
-        assert!(validate_generated_roads(&terrain, &paths, &degenerate).is_err());
+        assert!(rejects(&degenerate));
     }
 }

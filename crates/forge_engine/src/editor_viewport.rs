@@ -8,7 +8,9 @@ use crate::visual_valley::{
 };
 use bevy::{asset::embedded_asset, prelude::*};
 use forge_core::{AreaId, ContentHash, ProjectId};
-use forge_project::{PathId, VegetationKind};
+use forge_project::{
+    PathDocument, PathId, RiverDocument, RoadDocument, TerrainDocument, VegetationKind,
+};
 use forge_world::{
     GeneratedPaths, GeneratedRiver, GeneratedRivers, GeneratedRoad, GeneratedRoads,
     GeneratedTerrain, GeneratedVegetation, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNKS_PER_AXIS,
@@ -62,14 +64,24 @@ pub struct EditorVegetationRequest {
 
 pub struct EditorPathRequest {
     pub generated: GeneratedPaths,
+    /// Complete effective terrain recipe used to derive every path sample height.
+    pub source_terrain: TerrainDocument,
+    /// Canonical authored paths used to derive the complete path projection.
+    pub source_paths: PathDocument,
 }
 
 pub struct EditorRoadRequest {
     pub generated: GeneratedRoads,
+    /// Canonical authored roads used to derive the complete road projection.
+    pub source_roads: RoadDocument,
 }
 
 pub struct EditorRiverRequest {
     pub generated: GeneratedRivers,
+    /// Canonical, uncarved terrain recipe bound to `GeneratedRivers::terrain_document_hash`.
+    pub source_terrain: TerrainDocument,
+    /// Canonical river source used to prove the generated river set is complete and current.
+    pub source_rivers: RiverDocument,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
@@ -1147,7 +1159,7 @@ fn prepare_river_changes(
         });
     };
 
-    let EditorRiverRequest { generated } = request;
+    let EditorRiverRequest { generated, .. } = request;
     let canonical_terrain_source_hash = generated.terrain_document_hash.to_string();
     let effective_terrain_source_hash = effective_terrain_hash.to_string();
     let source_hash = generated.river_document_hash.to_string();
@@ -1237,16 +1249,49 @@ fn validate_request_payload(request: &EditorTerrainRequest) -> Result<(), String
         validate_vegetation(&request.terrain, &vegetation.generated)?;
     }
     if let Some(paths) = &request.paths {
-        path::validate_generated_paths(&request.terrain, &paths.generated)?;
+        if paths.source_terrain.project_id != request.project_id
+            || paths.source_terrain.area_id != request.area_id
+            || paths.source_paths.project_id != request.project_id
+            || paths.source_paths.area_id != request.area_id
+        {
+            return Err(
+                "Sources canoniques de terrain ou chemins étrangères à la projection.".into(),
+            );
+        }
+        path::validate_generated_paths(
+            &request.terrain,
+            &paths.generated,
+            &paths.source_terrain,
+            &paths.source_paths,
+        )?;
     }
     if let Some(roads) = &request.roads {
         let paths = request
             .paths
             .as_ref()
             .ok_or_else(|| "Une projection de routes exige ses chemins générés.".to_owned())?;
-        road::validate_generated_roads(&request.terrain, &paths.generated, &roads.generated)?;
+        if roads.source_roads.project_id != request.project_id
+            || roads.source_roads.area_id != request.area_id
+        {
+            return Err("Source canonique de routes étrangère à la projection.".into());
+        }
+        road::validate_generated_roads(
+            &request.terrain,
+            &paths.generated,
+            &roads.generated,
+            &roads.source_roads,
+        )?;
     }
     if let Some(rivers) = &request.rivers {
+        if rivers.source_terrain.project_id != request.project_id
+            || rivers.source_terrain.area_id != request.area_id
+            || rivers.source_rivers.project_id != request.project_id
+            || rivers.source_rivers.area_id != request.area_id
+        {
+            return Err(
+                "Sources canoniques de terrain ou rivières étrangères à la projection.".into(),
+            );
+        }
         let paths = request
             .paths
             .as_ref()
@@ -1260,6 +1305,8 @@ fn validate_request_payload(request: &EditorTerrainRequest) -> Result<(), String
             &paths.generated,
             &roads.generated,
             &rivers.generated,
+            &rivers.source_terrain,
+            &rivers.source_rivers,
         )?;
     }
     if !request.spawn.iter().all(|value| value.is_finite()) {
@@ -1643,6 +1690,8 @@ mod tests {
             vegetation: None,
             paths: Some(EditorPathRequest {
                 generated: generated_paths,
+                source_terrain: document,
+                source_paths: paths,
             }),
             roads: None,
             rivers: None,
@@ -1729,8 +1778,15 @@ mod tests {
             revision: generation,
             terrain,
             vegetation: None,
-            paths: Some(EditorPathRequest { generated: paths }),
-            roads: Some(EditorRoadRequest { generated: roads }),
+            paths: Some(EditorPathRequest {
+                generated: paths,
+                source_terrain: terrain_document,
+                source_paths: path_document,
+            }),
+            roads: Some(EditorRoadRequest {
+                generated: roads,
+                source_roads: road_document,
+            }),
             rivers: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash,
@@ -1924,6 +1980,25 @@ mod tests {
             world.resource::<EditorProjection>().road_mesh_uploads,
             before_uploads + 2
         );
+        {
+            let status = &viewport.0.lock().unwrap().status;
+            assert!(status.error.is_some());
+            assert_eq!(status.road_source_hash, before_hash);
+        }
+
+        let mut forged_source = request_with_roads(5, &[4.0, 7.0, 6.0], false);
+        forged_source.roads.as_mut().unwrap().generated.roads[0]
+            .profile
+            .width_m += 0.25;
+        submit_editor_request(&viewport, forged_source);
+        update_editor(&mut world);
+
+        assert_eq!(road_bindings(&world), before);
+        assert_eq!(world.resource::<Assets<Mesh>>().len(), before_asset_count);
+        assert_eq!(
+            world.resource::<EditorProjection>().road_mesh_uploads,
+            before_uploads + 2
+        );
         let status = &viewport.0.lock().unwrap().status;
         assert!(status.error.is_some());
         assert_eq!(status.road_source_hash, before_hash);
@@ -2039,12 +2114,9 @@ mod tests {
             .unwrap();
 
         let mut invalid = request_with_path(2, 32.0);
-        invalid
-            .paths
-            .as_mut()
-            .unwrap()
-            .generated
-            .terrain_document_hash = ContentHash::from_bytes([0x55; 32]);
+        invalid.paths.as_mut().unwrap().generated.paths[0].samples[1]
+            .position_m
+            .y += 0.25;
         {
             let mut bridge = viewport.0.lock().unwrap();
             bridge.path_draft = Some(EditorPathDraft {
@@ -2058,6 +2130,24 @@ mod tests {
         let bridge = viewport.0.lock().unwrap();
         assert!(bridge.status.error.is_some());
         assert!(bridge.path_draft.is_none());
+        drop(bridge);
+        assert_eq!(
+            world
+                .resource::<path::EditorPathOverlay>()
+                .canonical
+                .as_ref(),
+            Some(&before)
+        );
+        let mut forged_source = request_with_path(3, 32.0);
+        forged_source.paths.as_mut().unwrap().source_paths.paths[0].name = "Chemin forgé".into();
+        {
+            let mut bridge = viewport.0.lock().unwrap();
+            bridge.desired_generation = 3;
+            bridge.pending = Some(forged_source);
+        }
+        update_editor(&mut world);
+        let bridge = viewport.0.lock().unwrap();
+        assert!(bridge.status.error.is_some());
         drop(bridge);
         assert_eq!(
             world

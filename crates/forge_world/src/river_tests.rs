@@ -142,6 +142,119 @@ fn generate(workspace: &WorkspaceDocument) -> RiverGenerationResult {
         .unwrap()
 }
 
+fn generate_effective_paths_and_roads(
+    workspace: &WorkspaceDocument,
+    effective_terrain: &TerrainDocument,
+) -> (GeneratedPaths, GeneratedRoads) {
+    let area = workspace.area(module_id(), area_id()).unwrap();
+    let paths = PathGenerationPlan::from_documents(effective_terrain, &area.paths)
+        .unwrap()
+        .generate()
+        .unwrap();
+    let roads = RoadGenerationPlan::from_documents(effective_terrain, &area.paths, &area.roads)
+        .unwrap()
+        .generate()
+        .unwrap();
+    (paths, roads)
+}
+
+fn generate_flat_ford_payload() -> (GeneratedPaths, GeneratedRoads, GeneratedRivers) {
+    let river_id = path_id("canonical-centreline-river");
+    let road_id = path_id("canonical-centreline-road");
+    let mut source = workspace();
+    source = add_path(
+        &source,
+        river_id,
+        "Rivière canonique",
+        vec![[-30.0, 0.0], [30.0, 0.0]],
+    );
+    source = add_path(
+        &source,
+        road_id,
+        "Route canonique",
+        vec![[0.0, -30.0], [0.0, 30.0]],
+    );
+    let with_road = preview_upsert_road(
+        &source,
+        road_command(&source, road(road_id, 4.0), "canonical-centreline-road"),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let final_workspace = preview_upsert_river(
+        &with_road,
+        river_command(
+            &with_road,
+            river(river_id, 4.0, 1.0, 2.0),
+            "canonical-centreline-river",
+        ),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let result = generate(&final_workspace);
+    let (paths, roads) =
+        generate_effective_paths_and_roads(&final_workspace, &result.effective_terrain);
+    assert_eq!(result.generated.road_river_intersections.len(), 1);
+    (paths, roads, result.generated)
+}
+
+fn assert_valid_visible_ford(
+    final_workspace: &WorkspaceDocument,
+    canonical_terrain: &TerrainDocument,
+    canonical_hash: ContentHash,
+    river_id: PathId,
+    road_id: PathId,
+) -> GeneratedRoadRiverIntersection {
+    let area = final_workspace.area(module_id(), area_id()).unwrap();
+    assert_eq!(&area.terrain, canonical_terrain);
+    assert_eq!(area.terrain.content_hash().unwrap(), canonical_hash);
+    let first = generate(final_workspace);
+    let second = generate(final_workspace);
+    assert_eq!(first, second);
+    assert_eq!(first.generated.road_river_intersections.len(), 1);
+    let ford = first.generated.road_river_intersections[0];
+    assert_eq!(ford.river_path_id, river_id);
+    assert_eq!(ford.road_path_id, road_id);
+    assert_eq!(ford.kind, RoadRiverIntersectionKind::TerrainFordV1);
+    assert!((ford.position_xz_m[0] - 0.7).abs() < 0.000_1);
+    assert!((ford.position_xz_m[1] - 0.35).abs() < 0.000_1);
+    assert!((ford.crossing_angle_degrees - 90.0).abs() < 0.000_1);
+
+    let effective_plan = TerrainGenerationPlan::from_document(&first.effective_terrain).unwrap();
+    let bed_height_m = effective_plan
+        .height_at(ford.position_xz_m[0], ford.position_xz_m[1])
+        .unwrap();
+    assert!(bed_height_m < ford.road_surface_height_m);
+    assert!(ford.road_surface_height_m < ford.water_surface_height_m);
+    assert!(
+        ford.water_surface_height_m - ford.road_surface_height_m >= MIN_TERRAIN_FORD_WATER_DEPTH_M
+    );
+
+    let (paths, roads) =
+        generate_effective_paths_and_roads(final_workspace, &first.effective_terrain);
+    validate_generated_road_river_intersections(&paths, &roads, &first.generated).unwrap();
+    let road_mesh = roads
+        .roads
+        .binary_search_by_key(&road_id, |road| road.path_id)
+        .ok()
+        .map(|index| &roads.roads[index])
+        .unwrap();
+    let (road_rows, remainder) = road_mesh.positions_m.as_chunks::<3>();
+    assert!(remainder.is_empty());
+    assert!(road_rows.iter().all(|row| {
+        (row[1][0] - ford.position_xz_m[0]).hypot(row[1][2] - ford.position_xz_m[1]) > 0.001
+    }));
+
+    let mut omitted = first.generated.clone();
+    omitted.road_river_intersections.clear();
+    assert!(validate_generated_road_river_intersections(&paths, &roads, &omitted).is_err());
+    let mut displaced = first.generated;
+    displaced.road_river_intersections[0].road_surface_height_m += 0.001;
+    assert!(validate_generated_road_river_intersections(&paths, &roads, &displaced).is_err());
+    ford
+}
+
 fn assert_water_mesh_contract(mesh: &GeneratedRiver) {
     assert_eq!(mesh.positions_m.len(), mesh.normals.len());
     assert_eq!(mesh.positions_m.len(), mesh.uvs.len());
@@ -438,10 +551,9 @@ fn upsert_noop_context_invalid_and_missing_rejections_are_atomic() {
 }
 
 #[test]
-fn river_river_and_river_road_overlaps_fail_atomically_in_both_edit_directions() {
+fn river_river_and_same_path_conflicts_remain_atomic() {
     let first_id = path_id("overlap-river-a");
     let second_id = path_id("overlap-river-b");
-    let road_id = path_id("overlap-road");
     let mut source = workspace();
     source = add_path(
         &source,
@@ -454,12 +566,6 @@ fn river_river_and_river_road_overlaps_fail_atomically_in_both_edit_directions()
         second_id,
         "Rivière B",
         vec![[-20.0, 5.0], [20.0, 5.0]],
-    );
-    source = add_path(
-        &source,
-        road_id,
-        "Route transverse",
-        vec![[0.0, -20.0], [0.0, 20.0]],
     );
     let with_first = preview_upsert_river(
         &source,
@@ -485,17 +591,17 @@ fn river_river_and_river_road_overlaps_fail_atomically_in_both_edit_directions()
     assert!(matches!(
         preview_upsert_road(
             &with_first,
-            road_command(&with_first, road(road_id, 4.0), "road-after-river")
+            road_command(&with_first, road(first_id, 4.0), "same-path-road")
         ),
-        Err(RoadCommandError::RiverGeneration(
-            RiverGenerationError::RiverRoadOverlap { .. }
-        ))
+        Err(RoadCommandError::Workspace(
+            WorkspaceError::RiverRoadConflict(found)
+        )) if found == first_id
     ));
     assert_eq!(with_first.content_hash().unwrap(), first_hash);
 
     let with_road = preview_upsert_road(
         &source,
-        road_command(&source, road(road_id, 4.0), "road-first"),
+        road_command(&source, road(first_id, 4.0), "same-path-road-first"),
     )
     .unwrap()
     .edit
@@ -507,14 +613,250 @@ fn river_river_and_river_road_overlaps_fail_atomically_in_both_edit_directions()
             river_command(
                 &with_road,
                 river(first_id, 4.0, 1.0, 2.0),
-                "river-after-road"
+                "same-path-river"
+            )
+        ),
+        Err(RiverCommandError::Workspace(
+            WorkspaceError::RiverRoadConflict(found)
+        )) if found == first_id
+    ));
+    assert_eq!(with_road.content_hash().unwrap(), road_hash);
+}
+
+#[test]
+fn terrain_ford_is_deterministic_visible_and_created_in_both_orders() {
+    let river_id = path_id("ford-river");
+    let road_id = path_id("ford-road");
+    let mut source = workspace();
+    source.project.modules[0].areas[0].terrain.height_deltas = vec![
+        TerrainHeightDelta::new(128, 128, 4.0),
+        TerrainHeightDelta::new(129, 128, -2.0),
+        TerrainHeightDelta::new(128, 129, 1.0),
+        TerrainHeightDelta::new(129, 129, 3.0),
+    ];
+    source.validate().unwrap();
+    source = add_path(
+        &source,
+        river_id,
+        "Rivière du gué",
+        vec![[-30.3, 0.35], [30.7, 0.35]],
+    );
+    source = add_path(
+        &source,
+        road_id,
+        "Route du gué",
+        vec![[0.7, -23.3], [0.7, 24.2]],
+    );
+    let canonical_terrain = source.area(module_id(), area_id()).unwrap().terrain.clone();
+    let canonical_hash = canonical_terrain.content_hash().unwrap();
+    let canonical_plan = TerrainGenerationPlan::from_document(&canonical_terrain).unwrap();
+    assert!(
+        (canonical_plan.height_at(0.0, 0.0).unwrap() - canonical_plan.height_at(2.0, 0.0).unwrap())
+            .abs()
+            > 1.0,
+        "the between-row crossing must exercise a visibly non-flat source terrain"
+    );
+
+    let with_river = preview_upsert_river(
+        &source,
+        river_command(&source, river(river_id, 4.0, 1.0, 2.0), "ford-river-first"),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let river_then_road = preview_upsert_road(
+        &with_river,
+        road_command(&with_river, road(road_id, 4.0), "ford-road-second"),
+    )
+    .unwrap()
+    .edit
+    .document;
+
+    let with_road = preview_upsert_road(
+        &source,
+        road_command(&source, road(road_id, 4.0), "ford-road-first"),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let road_then_river = preview_upsert_river(
+        &with_road,
+        river_command(
+            &with_road,
+            river(river_id, 4.0, 1.0, 2.0),
+            "ford-river-second",
+        ),
+    )
+    .unwrap()
+    .edit
+    .document;
+
+    let river_first_ford = assert_valid_visible_ford(
+        &river_then_road,
+        &canonical_terrain,
+        canonical_hash,
+        river_id,
+        road_id,
+    );
+    let road_first_ford = assert_valid_visible_ford(
+        &road_then_river,
+        &canonical_terrain,
+        canonical_hash,
+        river_id,
+        road_id,
+    );
+    assert_eq!(
+        river_first_ford, road_first_ford,
+        "edit order must not alter derived ford metadata"
+    );
+}
+
+#[test]
+fn generated_river_centreline_cannot_move_with_its_ford_metadata() {
+    let (paths, roads, mut rivers) = generate_flat_ford_payload();
+    for position in &mut rivers.rivers[0].positions_m {
+        position[2] += 0.25;
+    }
+    rivers.road_river_intersections[0].position_xz_m[1] += 0.25;
+
+    assert!(validate_generated_road_river_intersections(&paths, &roads, &rivers).is_err());
+}
+
+#[test]
+fn generated_road_centreline_cannot_move_away_from_its_path() {
+    let (paths, mut roads, rivers) = generate_flat_ford_payload();
+    for position in &mut roads.roads[0].positions_m {
+        position[2] += 0.25;
+    }
+
+    assert!(validate_generated_road_river_intersections(&paths, &roads, &rivers).is_err());
+}
+
+#[test]
+fn unsupported_road_river_contacts_are_rejected_atomically() {
+    let cases = [
+        (
+            "tangent",
+            vec![[-30.0, 0.0], [30.0, 0.0]],
+            vec![[-20.0, 10.0], [0.0, 0.0], [20.0, 10.0]],
+            "tangent",
+        ),
+        (
+            "collinear",
+            vec![[-30.0, 0.0], [30.0, 0.0]],
+            vec![[-20.0, 0.0], [20.0, 0.0]],
+            "overlap",
+        ),
+        (
+            "multiple",
+            vec![[-30.0, 0.0], [30.0, 0.0]],
+            vec![[-10.0, -20.0], [-10.0, 20.0], [10.0, 20.0], [10.0, -20.0]],
+            "multiple",
+        ),
+        (
+            "near-endpoint",
+            vec![[-30.0, 0.0], [30.0, 0.0]],
+            vec![[28.0, -30.0], [28.0, 30.0]],
+            "endpoint",
+        ),
+        (
+            "shallow-angle",
+            vec![[-50.0, 0.0], [50.0, 0.0]],
+            vec![[-40.0, -14.56], [40.0, 14.56]],
+            "angle",
+        ),
+    ];
+    for (key, river_trace, road_trace, expected_error) in cases {
+        let river_id = path_id(&format!("reject-{key}-river"));
+        let road_id = path_id(&format!("reject-{key}-road"));
+        let mut source = workspace();
+        source = add_path(&source, river_id, "Rivière rejetée", river_trace);
+        source = add_path(&source, road_id, "Route rejetée", road_trace);
+        let with_road = preview_upsert_road(
+            &source,
+            road_command(&source, road(road_id, 4.0), &format!("reject-{key}-road")),
+        )
+        .unwrap()
+        .edit
+        .document;
+        let before_hash = with_road.content_hash().unwrap();
+        let error = preview_upsert_river(
+            &with_road,
+            river_command(
+                &with_road,
+                river(river_id, 4.0, 1.0, 2.0),
+                &format!("reject-{key}-river"),
+            ),
+        )
+        .unwrap_err();
+        assert_eq!(with_road.content_hash().unwrap(), before_hash);
+        assert!(matches!(
+            (expected_error, error),
+            (
+                "tangent",
+                RiverCommandError::Generation(
+                    RiverGenerationError::TangentialRiverRoadIntersection { .. },
+                ),
+            ) | (
+                "overlap",
+                RiverCommandError::Generation(RiverGenerationError::RiverRoadOverlap { .. }),
+            ) | (
+                "multiple",
+                RiverCommandError::Generation(
+                    RiverGenerationError::MultipleRiverRoadIntersections { .. },
+                ),
+            ) | (
+                "endpoint",
+                RiverCommandError::Generation(RiverGenerationError::TerrainFordNearEndpoint { .. }),
+            ) | (
+                "angle",
+                RiverCommandError::Generation(RiverGenerationError::ShallowTerrainFordAngle { .. }),
+            )
+        ));
+    }
+}
+
+#[test]
+fn ford_with_insufficient_residual_water_depth_is_atomic() {
+    let river_id = path_id("reject-depth-river");
+    let road_id = path_id("reject-depth-road");
+    let mut source = workspace();
+    source = add_path(
+        &source,
+        river_id,
+        "Rivière peu profonde",
+        vec![[-30.0, 0.0], [30.0, 0.0]],
+    );
+    source = add_path(
+        &source,
+        road_id,
+        "Route haute",
+        vec![[0.0, -30.0], [0.0, 30.0]],
+    );
+    let mut high_road = road(road_id, 4.0);
+    high_road.profile.crown_height_m = 0.15;
+    let with_road = preview_upsert_road(
+        &source,
+        road_command(&source, high_road, "reject-depth-road"),
+    )
+    .unwrap()
+    .edit
+    .document;
+    let before_hash = with_road.content_hash().unwrap();
+    assert!(matches!(
+        preview_upsert_river(
+            &with_road,
+            river_command(
+                &with_road,
+                river(river_id, 4.0, 0.15, 2.0),
+                "reject-depth-river"
             )
         ),
         Err(RiverCommandError::Generation(
-            RiverGenerationError::RiverRoadOverlap { .. }
+            RiverGenerationError::InsufficientTerrainFordWaterDepth { .. }
         ))
     ));
-    assert_eq!(with_road.content_hash().unwrap(), road_hash);
+    assert_eq!(with_road.content_hash().unwrap(), before_hash);
 }
 
 #[test]

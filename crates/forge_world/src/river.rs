@@ -1,7 +1,8 @@
 //! Deterministic, non-destructive river carving and water-mesh projection.
 
 use crate::{
-    GeneratedPath, PathGenerationError, PathGenerationPlan, RoadGenerationError,
+    GeneratedPath, GeneratedPaths, GeneratedRoads, MAX_GENERATED_ROAD_LONGITUDINAL_SAMPLES,
+    PathGenerationError, PathGenerationPlan, ROAD_CROSS_SECTION_VERTEX_COUNT, RoadGenerationError,
     RoadGenerationPlan, TERRAIN_GLOBAL_INTERVALS_PER_AXIS, TERRAIN_GLOBAL_VERTICES_PER_AXIS,
     TERRAIN_HALF_EXTENT_M, TERRAIN_SAMPLE_SPACING_M, TerrainGenerationError, TerrainGenerationPlan,
 };
@@ -10,7 +11,7 @@ use forge_core::{
     canonical_json_sha256,
 };
 use forge_project::{
-    AuthoredRiver, MAX_TERRAIN_HEIGHT_DELTAS, MAX_TERRAIN_MATERIAL_WEIGHT_OVERRIDES,
+    AuthoredRiver, AuthoredRoad, MAX_TERRAIN_HEIGHT_DELTAS, MAX_TERRAIN_MATERIAL_WEIGHT_OVERRIDES,
     MAX_TOTAL_RIVER_LENGTH_M, PathDocument, PathId, RiverChannelProfileAlgorithm, RiverDocument,
     RiverDocumentError, RiverSurface, RoadDocument, TerrainDocument, TerrainHeightDelta,
     TerrainMaterialWeightOverride, WorkspaceArea, WorkspaceChange, WorkspaceDocument,
@@ -20,7 +21,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use thiserror::Error;
 
-pub const RIVER_GENERATION_VERSION: u32 = 1;
+pub const RIVER_GENERATION_VERSION: u32 = 2;
 pub const RIVER_SURFACE_CLEARANCE_M: f32 = 0.04;
 pub const RIVER_MESH_MAX_LONGITUDINAL_CHORD_M: f64 = 2.0;
 pub const RIVER_CROSS_SECTION_VERTEX_COUNT: usize = 3;
@@ -30,12 +31,19 @@ pub const MAX_GENERATED_RIVER_VERTICES: usize =
 pub const MAX_GENERATED_RIVER_INDICES: usize = MAX_GENERATED_RIVER_LONGITUDINAL_SAMPLES * 12;
 pub const MAX_EFFECTIVE_RIVER_TERRAIN_SAMPLES: usize = 65_536;
 pub const MAX_RIVER_OVERLAP_COMPARISONS: usize = 4_000_000;
+pub const MAX_GENERATED_ROAD_RIVER_INTERSECTIONS: usize = 64;
+pub const MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES: f32 = 30.0;
+pub const MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES: f32 = 90.0;
+pub const MIN_TERRAIN_FORD_WATER_DEPTH_M: f32 = 0.05;
 
 const RIVER_INDICES_PER_LONGITUDINAL_INTERVAL: usize = 12;
 const RIVER_RESAMPLE_TARGET_CHORD_M: f64 = 1.99;
 const MIN_HORIZONTAL_DELTA_SQUARED: f64 = 1.0e-12;
 const MIN_TRIANGLE_NORMAL_SQUARED: f64 = 1.0e-18;
 const SEGMENT_INTERSECTION_EPSILON: f64 = 1.0e-10;
+const TERRAIN_FORD_POINT_MERGE_DISTANCE_M: f64 = 1.0e-4;
+const TERRAIN_FORD_TOPOLOGY_PROBE_DISTANCE_M: f64 = 0.25;
+const TERRAIN_FORD_SAMPLE_GUARD_M: f64 = 2.0;
 
 /// One complete, engine-neutral water ribbon derived from an authored river assignment.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -67,6 +75,29 @@ impl GeneratedRiver {
     }
 }
 
+/// Versioned interpretation of a supported crossing between one road and one river.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RoadRiverIntersectionKind {
+    TerrainFordV1,
+}
+
+/// One bounded, renderer-independent ford derived from two distinct authored paths.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct GeneratedRoadRiverIntersection {
+    pub river_path_id: PathId,
+    pub road_path_id: PathId,
+    pub kind: RoadRiverIntersectionKind,
+    pub position_xz_m: [f32; 2],
+    /// Acute horizontal angle, in the inclusive range 30..=90 degrees.
+    pub crossing_angle_degrees: f32,
+    /// Highest road centreline point at the crossing, including crown and mesh clearance.
+    pub road_surface_height_m: f32,
+    /// Water mesh height at the crossing, including mesh clearance.
+    pub water_surface_height_m: f32,
+}
+
 /// Complete derived river payload bound to every canonical input and the effective terrain.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -79,6 +110,8 @@ pub struct GeneratedRivers {
     pub effective_terrain_document_hash: ContentHash,
     /// Strictly sorted by `path_id` like the canonical river document.
     pub rivers: Vec<GeneratedRiver>,
+    /// Strictly sorted and unique by `(river_path_id, road_path_id)`.
+    pub road_river_intersections: Vec<GeneratedRoadRiverIntersection>,
 }
 
 impl GeneratedRivers {
@@ -95,6 +128,244 @@ impl GeneratedRivers {
     pub fn content_hash(&self) -> Result<ContentHash, CanonicalJsonError> {
         canonical_json_sha256(self)
     }
+}
+
+/// Recomputes the complete bounded ford set from canonical path resampling and validates it.
+///
+/// This is intentionally shared with renderer adapters so omission, insertion and mutation of
+/// derived intersection metadata are rejected without duplicating the geometric classifier.
+pub fn validate_generated_road_river_intersections(
+    paths: &GeneratedPaths,
+    roads: &GeneratedRoads,
+    generated: &GeneratedRivers,
+) -> Result<(), RiverGenerationError> {
+    validate_generated_intersection_sources(paths, roads, generated)?;
+    validate_generated_centrelines(paths, roads, generated)?;
+    if generated.road_river_intersections.len() > MAX_GENERATED_ROAD_RIVER_INTERSECTIONS {
+        return Err(RiverGenerationError::TooManyRoadRiverIntersections {
+            found: generated.road_river_intersections.len(),
+            maximum: MAX_GENERATED_ROAD_RIVER_INTERSECTIONS,
+        });
+    }
+    if generated.road_river_intersections.windows(2).any(|pair| {
+        (pair[0].river_path_id, pair[0].road_path_id)
+            >= (pair[1].river_path_id, pair[1].road_path_id)
+    }) {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "metadata are not strictly sorted and unique",
+            ),
+        );
+    }
+
+    let mut comparisons = 0_usize;
+    let mut expected = Vec::new();
+    for river in &generated.rivers {
+        let river_points = generated_centerline_points(river.path_id, &river.positions_m)?;
+        let river_radius_m = f64::from(river.channel.surface_width_m) * 0.5
+            + f64::from(river.channel.bank_blend_width_m);
+        if !river_radius_m.is_finite() || river_radius_m <= 0.0 {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "river footprint is invalid",
+                ),
+            );
+        }
+        for road in &roads.roads {
+            if road.path_id == river.path_id {
+                return Err(RiverGenerationError::RiverRoadConflict(river.path_id));
+            }
+            let path = paths
+                .paths
+                .binary_search_by_key(&road.path_id, |path| path.id)
+                .ok()
+                .map(|index| &paths.paths[index])
+                .ok_or(RiverGenerationError::MissingRoadPath(road.path_id))?;
+            let road_points = generated_path_points(path)?;
+            let road_radius_m = f64::from(road.profile.width_m) * 0.5;
+            if !road_radius_m.is_finite() || road_radius_m <= 0.0 {
+                return Err(
+                    RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                        "road footprint is invalid",
+                    ),
+                );
+            }
+            if !polylines_overlap(
+                &river_points,
+                river_radius_m,
+                &road_points,
+                road_radius_m,
+                &mut comparisons,
+            )? {
+                continue;
+            }
+            expected.push(prepare_terrain_ford(
+                river.path_id,
+                river_radius_m,
+                &river_points,
+                &AuthoredRoad {
+                    path_id: road.path_id,
+                    profile: road.profile,
+                    surface: road.surface,
+                },
+                &road_points,
+                &mut comparisons,
+            )?);
+            if expected.len() > MAX_GENERATED_ROAD_RIVER_INTERSECTIONS {
+                return Err(RiverGenerationError::TooManyRoadRiverIntersections {
+                    found: expected.len(),
+                    maximum: MAX_GENERATED_ROAD_RIVER_INTERSECTIONS,
+                });
+            }
+        }
+    }
+    expected.sort_by_key(|intersection| (intersection.river_path_id, intersection.road_path_id));
+    if expected.len() != generated.road_river_intersections.len() {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "metadata are not exhaustive",
+            ),
+        );
+    }
+    for (expected, actual) in expected.iter().zip(&generated.road_river_intersections) {
+        validate_generated_terrain_ford(expected, actual, roads, generated)?;
+    }
+    Ok(())
+}
+
+fn validate_generated_intersection_sources(
+    paths: &GeneratedPaths,
+    roads: &GeneratedRoads,
+    generated: &GeneratedRivers,
+) -> Result<(), RiverGenerationError> {
+    if generated.generation_version != RIVER_GENERATION_VERSION
+        || generated.path_document_hash != paths.path_document_hash
+        || generated.path_document_hash != roads.path_document_hash
+        || generated.road_document_hash != roads.road_document_hash
+        || generated.effective_terrain_document_hash != paths.terrain_document_hash
+        || generated.effective_terrain_document_hash != roads.terrain_document_hash
+    {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "source hashes or generation version differ",
+            ),
+        );
+    }
+    Ok(())
+}
+
+fn validate_generated_centrelines(
+    paths: &GeneratedPaths,
+    roads: &GeneratedRoads,
+    generated: &GeneratedRivers,
+) -> Result<(), RiverGenerationError> {
+    validate_generated_river_centrelines(paths, generated)?;
+    validate_generated_road_centrelines(paths, roads)
+}
+
+fn validate_generated_river_centrelines(
+    paths: &GeneratedPaths,
+    generated: &GeneratedRivers,
+) -> Result<(), RiverGenerationError> {
+    let mut remaining_rows = MAX_GENERATED_RIVER_LONGITUDINAL_SAMPLES;
+    let mut previous_path_id = None;
+    for river in &generated.rivers {
+        if previous_path_id.is_some_and(|previous| previous >= river.path_id) {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "generated rivers are not strictly sorted and unique",
+                ),
+            );
+        }
+        previous_path_id = Some(river.path_id);
+        let path = paths
+            .paths
+            .binary_search_by_key(&river.path_id, |path| path.id)
+            .ok()
+            .map(|index| &paths.paths[index])
+            .ok_or(RiverGenerationError::MissingPath(river.path_id))?;
+        let expected_rows = adaptive_centerline(path, remaining_rows)?;
+        let (actual_rows, remainder) = river
+            .positions_m
+            .as_chunks::<RIVER_CROSS_SECTION_VERTEX_COUNT>();
+        if !remainder.is_empty() || actual_rows.len() != expected_rows.len() {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "river centreline row count differs from deterministic path resampling",
+                ),
+            );
+        }
+        for (actual, expected) in actual_rows.iter().zip(&expected_rows) {
+            let expected_xz_m = [
+                f32_from_derived(expected.xz_m[0], river.path_id, "canonical river X")?,
+                f32_from_derived(expected.xz_m[1], river.path_id, "canonical river Z")?,
+            ];
+            if [actual[1][0].to_bits(), actual[1][2].to_bits()] != expected_xz_m.map(f32::to_bits) {
+                return Err(
+                    RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                        "river centreline differs from deterministic path resampling",
+                    ),
+                );
+            }
+        }
+        remaining_rows = remaining_rows
+            .checked_sub(expected_rows.len())
+            .ok_or(RiverGenerationError::ArithmeticOverflow)?;
+    }
+    Ok(())
+}
+
+fn validate_generated_road_centrelines(
+    paths: &GeneratedPaths,
+    roads: &GeneratedRoads,
+) -> Result<(), RiverGenerationError> {
+    let mut remaining_samples = MAX_GENERATED_ROAD_LONGITUDINAL_SAMPLES;
+    let mut previous_path_id = None;
+    for road in &roads.roads {
+        if previous_path_id.is_some_and(|previous| previous >= road.path_id) {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "generated roads are not strictly sorted and unique",
+                ),
+            );
+        }
+        previous_path_id = Some(road.path_id);
+        let path = paths
+            .paths
+            .binary_search_by_key(&road.path_id, |path| path.id)
+            .ok()
+            .map(|index| &paths.paths[index])
+            .ok_or(RiverGenerationError::MissingRoadPath(road.path_id))?;
+        let expected_rows = crate::road::adaptive_centerline(path, remaining_samples)?;
+        let (actual_rows, remainder) = road
+            .positions_m
+            .as_chunks::<ROAD_CROSS_SECTION_VERTEX_COUNT>();
+        if !remainder.is_empty() || actual_rows.len() != expected_rows.len() {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "road centreline row count differs from deterministic path resampling",
+                ),
+            );
+        }
+        for (actual, expected) in actual_rows.iter().zip(&expected_rows) {
+            #[allow(clippy::cast_possible_truncation)]
+            let expected_xz_m = [expected.xz_m[0] as f32, expected.xz_m[1] as f32];
+            if expected_xz_m.iter().any(|value| !value.is_finite())
+                || [actual[1][0].to_bits(), actual[1][2].to_bits()]
+                    != expected_xz_m.map(f32::to_bits)
+            {
+                return Err(
+                    RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                        "road centreline differs from deterministic path resampling",
+                    ),
+                );
+            }
+        }
+        remaining_samples = remaining_samples
+            .checked_sub(expected_rows.len())
+            .ok_or(RiverGenerationError::ArithmeticOverflow)?;
+    }
+    Ok(())
 }
 
 /// One deterministic generation result. `effective_terrain` is derived and must never be persisted.
@@ -209,10 +480,6 @@ impl RiverGenerationPlan {
             prepared.push(candidate);
         }
 
-        validate_geometric_separation(&prepared, &self.roads, &generated_paths.paths)?;
-        let effective_terrain = carve_effective_terrain(&self.terrain, &terrain_plan, &prepared)?;
-        let effective_terrain_hash = effective_terrain.content_hash()?;
-
         let mut rivers = Vec::new();
         rivers
             .try_reserve_exact(prepared.len())
@@ -220,6 +487,19 @@ impl RiverGenerationPlan {
         for river in &prepared {
             rivers.push(river.generate_mesh()?);
         }
+
+        let prepared_intersections =
+            validate_geometric_separation(&prepared, &self.roads, &generated_paths.paths)?;
+        let effective_terrain = carve_effective_terrain(&self.terrain, &terrain_plan, &prepared)?;
+        let effective_terrain_hash = effective_terrain.content_hash()?;
+        let road_river_intersections = if prepared_intersections.is_empty() {
+            Vec::new()
+        } else {
+            let effective_roads =
+                RoadGenerationPlan::from_documents(&effective_terrain, &self.paths, &self.roads)?
+                    .generate()?;
+            materialize_terrain_fords(&prepared_intersections, &rivers, &effective_roads)?
+        };
 
         let total_vertices = rivers.iter().try_fold(0_usize, |total, river| {
             total.checked_add(river.positions_m.len())
@@ -249,6 +529,7 @@ impl RiverGenerationPlan {
                 river_document_hash: self.river_hash,
                 effective_terrain_document_hash: effective_terrain_hash,
                 rivers,
+                road_river_intersections,
             },
         })
     }
@@ -266,6 +547,23 @@ struct RiverRow {
 struct PreparedRiver {
     authored: AuthoredRiver,
     rows: Vec<RiverRow>,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct PreparedRoadRiverIntersection {
+    river_path_id: PathId,
+    road_path_id: PathId,
+    position_xz_m: [f64; 2],
+    crossing_angle_degrees: f64,
+    river_distance_m: f64,
+    road_distance_m: f64,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct PolylineCrossing {
+    point_xz: [f64; 2],
+    first_distance_m: f64,
+    second_distance_m: f64,
 }
 
 impl PreparedRiver {
@@ -390,6 +688,256 @@ impl PreparedRiver {
             indices,
         })
     }
+}
+
+fn materialize_terrain_fords(
+    prepared: &[PreparedRoadRiverIntersection],
+    rivers: &[GeneratedRiver],
+    roads: &GeneratedRoads,
+) -> Result<Vec<GeneratedRoadRiverIntersection>, RiverGenerationError> {
+    let mut generated = Vec::new();
+    generated
+        .try_reserve_exact(prepared.len())
+        .map_err(|_| RiverGenerationError::AllocationFailed("generated terrain fords"))?;
+    for intersection in prepared {
+        let river = rivers
+            .binary_search_by_key(&intersection.river_path_id, |river| river.path_id)
+            .ok()
+            .map(|index| &rivers[index])
+            .ok_or(RiverGenerationError::MissingPath(
+                intersection.river_path_id,
+            ))?;
+        let road = roads
+            .roads
+            .binary_search_by_key(&intersection.road_path_id, |road| road.path_id)
+            .ok()
+            .map(|index| &roads.roads[index])
+            .ok_or(RiverGenerationError::MissingRoadPath(
+                intersection.road_path_id,
+            ))?;
+        let x_m = f32_from_derived(
+            intersection.position_xz_m[0],
+            intersection.river_path_id,
+            "ford X",
+        )?;
+        let z_m = f32_from_derived(
+            intersection.position_xz_m[1],
+            intersection.river_path_id,
+            "ford Z",
+        )?;
+        let road_surface_height_m = generated_surface_height_at_distance(
+            road.path_id,
+            &road.positions_m,
+            intersection.road_distance_m,
+            "ford road surface",
+        )?;
+        let water_surface_height_m = generated_surface_height_at_distance(
+            river.path_id,
+            &river.positions_m,
+            intersection.river_distance_m,
+            "ford water surface",
+        )?;
+        let water_depth_m = water_surface_height_m - road_surface_height_m;
+        if !road_surface_height_m.is_finite()
+            || !water_depth_m.is_finite()
+            || water_depth_m < MIN_TERRAIN_FORD_WATER_DEPTH_M
+        {
+            return Err(RiverGenerationError::InsufficientTerrainFordWaterDepth {
+                river_path_id: intersection.river_path_id,
+                road_path_id: intersection.road_path_id,
+                depth_m: water_depth_m,
+                minimum_m: MIN_TERRAIN_FORD_WATER_DEPTH_M,
+            });
+        }
+        generated.push(GeneratedRoadRiverIntersection {
+            river_path_id: intersection.river_path_id,
+            road_path_id: intersection.road_path_id,
+            kind: RoadRiverIntersectionKind::TerrainFordV1,
+            position_xz_m: [x_m, z_m],
+            crossing_angle_degrees: f32_from_derived(
+                intersection.crossing_angle_degrees,
+                intersection.river_path_id,
+                "ford crossing angle",
+            )?,
+            road_surface_height_m: canonicalize_zero(road_surface_height_m),
+            water_surface_height_m,
+        });
+    }
+    Ok(generated)
+}
+
+fn generated_surface_height_at_distance(
+    path_id: PathId,
+    positions_m: &[[f32; 3]],
+    distance_m: f64,
+    field: &'static str,
+) -> Result<f32, RiverGenerationError> {
+    let (rows, remainder) = positions_m.as_chunks::<RIVER_CROSS_SECTION_VERTEX_COUNT>();
+    if !remainder.is_empty() || rows.len() < 2 || !distance_m.is_finite() || distance_m < 0.0 {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "surface centreline is incomplete",
+            ),
+        );
+    }
+    let mut row_distance_m = 0.0_f64;
+    for pair in rows.windows(2) {
+        let first = pair[0][1];
+        let second = pair[1][1];
+        let segment_distance_m =
+            f64::from(second[0] - first[0]).hypot(f64::from(second[2] - first[2]));
+        if !segment_distance_m.is_finite() || segment_distance_m <= 0.0 {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "surface centreline is degenerate",
+                ),
+            );
+        }
+        let next_distance_m = row_distance_m + segment_distance_m;
+        if distance_m <= next_distance_m + TERRAIN_FORD_POINT_MERGE_DISTANCE_M {
+            let fraction = ((distance_m - row_distance_m) / segment_distance_m).clamp(0.0, 1.0);
+            return f32_from_derived(
+                linear_interpolate_f64(f64::from(first[1]), f64::from(second[1]), fraction),
+                path_id,
+                field,
+            );
+        }
+        row_distance_m = next_distance_m;
+    }
+    Err(
+        RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+            "intersection lies outside its surface centreline",
+        ),
+    )
+}
+
+fn generated_centerline_points(
+    path_id: PathId,
+    positions_m: &[[f32; 3]],
+) -> Result<Vec<[f64; 2]>, RiverGenerationError> {
+    let (rows, remainder) = positions_m.as_chunks::<RIVER_CROSS_SECTION_VERTEX_COUNT>();
+    if !remainder.is_empty() || rows.len() < 2 {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "surface centreline is incomplete",
+            ),
+        );
+    }
+    let mut points = Vec::new();
+    points
+        .try_reserve_exact(rows.len())
+        .map_err(|_| RiverGenerationError::AllocationFailed("generated centreline"))?;
+    for row in rows {
+        let centre = row[1];
+        if !centre.iter().all(|value| value.is_finite())
+            || !inside_river_extent([f64::from(centre[0]), f64::from(centre[2])])
+        {
+            return Err(RiverGenerationError::InvalidDerivedValue {
+                path_id,
+                field: "generated centreline",
+            });
+        }
+        points.push([f64::from(centre[0]), f64::from(centre[2])]);
+    }
+    polyline_distances(&points)?;
+    Ok(points)
+}
+
+fn generated_path_points(path: &GeneratedPath) -> Result<Vec<[f64; 2]>, RiverGenerationError> {
+    if path.samples.len() < 2 {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    let mut points = Vec::new();
+    points
+        .try_reserve_exact(path.samples.len())
+        .map_err(|_| RiverGenerationError::AllocationFailed("generated path centreline"))?;
+    for sample in &path.samples {
+        if !sample.position_m.is_finite() {
+            return Err(
+                RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                    "road path contains a non-finite sample",
+                ),
+            );
+        }
+        points.push([
+            f64::from(sample.position_m.x),
+            f64::from(sample.position_m.z),
+        ]);
+    }
+    polyline_distances(&points)?;
+    Ok(points)
+}
+
+fn validate_generated_terrain_ford(
+    expected: &PreparedRoadRiverIntersection,
+    actual: &GeneratedRoadRiverIntersection,
+    roads: &GeneratedRoads,
+    rivers: &GeneratedRivers,
+) -> Result<(), RiverGenerationError> {
+    if actual.river_path_id != expected.river_path_id
+        || actual.road_path_id != expected.road_path_id
+        || actual.kind != RoadRiverIntersectionKind::TerrainFordV1
+    {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "metadata identity or kind differs from derived geometry",
+            ),
+        );
+    }
+    let expected_position_xz_m = [
+        f32_from_derived(expected.position_xz_m[0], expected.river_path_id, "ford X")?,
+        f32_from_derived(expected.position_xz_m[1], expected.river_path_id, "ford Z")?,
+    ];
+    let expected_angle_degrees = f32_from_derived(
+        expected.crossing_angle_degrees,
+        expected.river_path_id,
+        "ford crossing angle",
+    )?;
+    let road = roads
+        .roads
+        .binary_search_by_key(&expected.road_path_id, |road| road.path_id)
+        .ok()
+        .map(|index| &roads.roads[index])
+        .ok_or(RiverGenerationError::MissingRoadPath(expected.road_path_id))?;
+    let river = rivers
+        .rivers
+        .binary_search_by_key(&expected.river_path_id, |river| river.path_id)
+        .ok()
+        .map(|index| &rivers.rivers[index])
+        .ok_or(RiverGenerationError::MissingPath(expected.river_path_id))?;
+    let expected_road_height_m = generated_surface_height_at_distance(
+        road.path_id,
+        &road.positions_m,
+        expected.road_distance_m,
+        "ford road surface",
+    )?;
+    let expected_water_height_m = generated_surface_height_at_distance(
+        river.path_id,
+        &river.positions_m,
+        expected.river_distance_m,
+        "ford water surface",
+    )?;
+    let exact_values_match = actual.position_xz_m.map(f32::to_bits)
+        == expected_position_xz_m.map(f32::to_bits)
+        && actual.crossing_angle_degrees.to_bits() == expected_angle_degrees.to_bits()
+        && actual.road_surface_height_m.to_bits() == expected_road_height_m.to_bits()
+        && actual.water_surface_height_m.to_bits() == expected_water_height_m.to_bits();
+    let residual_depth_m = actual.water_surface_height_m - actual.road_surface_height_m;
+    if !exact_values_match
+        || !actual.position_xz_m.iter().all(|value| value.is_finite())
+        || !actual.crossing_angle_degrees.is_finite()
+        || !(MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES..=MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES)
+            .contains(&actual.crossing_angle_degrees)
+        || !residual_depth_m.is_finite()
+        || residual_depth_m < MIN_TERRAIN_FORD_WATER_DEPTH_M
+    {
+        return Err(
+            RiverGenerationError::InvalidGeneratedRoadRiverIntersections(
+                "metadata values differ from visible generated surfaces",
+            ),
+        );
+    }
+    Ok(())
 }
 
 #[derive(Clone, Copy)]
@@ -765,7 +1313,7 @@ fn validate_geometric_separation(
     rivers: &[PreparedRiver],
     roads: &RoadDocument,
     paths: &[GeneratedPath],
-) -> Result<(), RiverGenerationError> {
+) -> Result<Vec<PreparedRoadRiverIntersection>, RiverGenerationError> {
     let mut comparisons = 0_usize;
     let mut river_points = Vec::new();
     river_points
@@ -776,7 +1324,20 @@ fn validate_geometric_separation(
         points
             .try_reserve_exact(river.rows.len())
             .map_err(|_| RiverGenerationError::AllocationFailed("river overlap polyline"))?;
-        points.extend(river.rows.iter().map(|row| row.xz_m));
+        for row in &river.rows {
+            points.push([
+                f64::from(f32_from_derived(
+                    row.xz_m[0],
+                    river.authored.path_id,
+                    "ford X",
+                )?),
+                f64::from(f32_from_derived(
+                    row.xz_m[1],
+                    river.authored.path_id,
+                    "ford Z",
+                )?),
+            ]);
+        }
         river_points.push(points);
     }
     for first_index in 0..rivers.len() {
@@ -796,6 +1357,10 @@ fn validate_geometric_separation(
             }
         }
     }
+    let mut intersections = Vec::new();
+    intersections
+        .try_reserve_exact(rivers.len().min(MAX_GENERATED_ROAD_RIVER_INTERSECTIONS))
+        .map_err(|_| RiverGenerationError::AllocationFailed("road-river intersections"))?;
     for (river_index, river) in rivers.iter().enumerate() {
         for road in &roads.roads {
             let path = paths
@@ -813,21 +1378,458 @@ fn validate_geometric_separation(
                     f64::from(sample.position_m.z),
                 ]
             }));
-            if polylines_overlap(
+            if !polylines_overlap(
                 &river_points[river_index],
                 river.footprint_radius_m(),
                 &road_points,
                 f64::from(road.profile.width_m) * 0.5,
                 &mut comparisons,
             )? {
-                return Err(RiverGenerationError::RiverRoadOverlap {
-                    river_path_id: river.authored.path_id,
-                    road_path_id: road.path_id,
+                continue;
+            }
+            intersections.push(prepare_terrain_ford(
+                river.authored.path_id,
+                river.footprint_radius_m(),
+                &river_points[river_index],
+                road,
+                &road_points,
+                &mut comparisons,
+            )?);
+            if intersections.len() > MAX_GENERATED_ROAD_RIVER_INTERSECTIONS {
+                return Err(RiverGenerationError::TooManyRoadRiverIntersections {
+                    found: intersections.len(),
+                    maximum: MAX_GENERATED_ROAD_RIVER_INTERSECTIONS,
                 });
             }
         }
     }
+    intersections
+        .sort_by_key(|intersection| (intersection.river_path_id, intersection.road_path_id));
+    if intersections.windows(2).any(|pair| {
+        pair[0].river_path_id == pair[1].river_path_id
+            && pair[0].road_path_id == pair[1].road_path_id
+    }) {
+        return Err(RiverGenerationError::ArithmeticOverflow);
+    }
+    Ok(intersections)
+}
+
+fn prepare_terrain_ford(
+    river_path_id: PathId,
+    river_radius_m: f64,
+    river_points: &[[f64; 2]],
+    road: &AuthoredRoad,
+    road_points: &[[f64; 2]],
+    comparisons: &mut usize,
+) -> Result<PreparedRoadRiverIntersection, RiverGenerationError> {
+    let crossings = polyline_intersections(river_points, road_points, comparisons)?;
+    let [crossing] = crossings.as_slice() else {
+        return if crossings.is_empty() {
+            Err(RiverGenerationError::RiverRoadOverlap {
+                river_path_id,
+                road_path_id: road.path_id,
+            })
+        } else {
+            Err(RiverGenerationError::MultipleRiverRoadIntersections {
+                river_path_id,
+                road_path_id: road.path_id,
+                found: crossings.len(),
+            })
+        };
+    };
+
+    let river_distances = polyline_distances(river_points)?;
+    let road_distances = polyline_distances(road_points)?;
+    let river_total_distance_m = *river_distances
+        .last()
+        .ok_or(RiverGenerationError::InvalidOverlapPolyline)?;
+    let road_total_distance_m = *road_distances
+        .last()
+        .ok_or(RiverGenerationError::InvalidOverlapPolyline)?;
+    let endpoint_distances = [
+        (crossing.first_distance_m, river_total_distance_m, "river"),
+        (crossing.second_distance_m, road_total_distance_m, "road"),
+    ];
+    ensure_ford_endpoint_clearance(
+        river_path_id,
+        road.path_id,
+        endpoint_distances,
+        TERRAIN_FORD_TOPOLOGY_PROBE_DISTANCE_M,
+        true,
+    )?;
+    let river_probe = crossing_probe(river_points, &river_distances, crossing.first_distance_m)?;
+    let road_probe = crossing_probe(road_points, &road_distances, crossing.second_distance_m)?;
+    let crossing_angle_degrees =
+        validate_ford_crossing_angle(river_path_id, road.path_id, river_probe, road_probe)?;
+
+    let crossing_sine = crossing_angle_degrees.to_radians().sin();
+    if !crossing_sine.is_finite() || crossing_sine <= 0.0 {
+        return Err(RiverGenerationError::TangentialRiverRoadIntersection {
+            river_path_id,
+            road_path_id: road.path_id,
+        });
+    }
+    let combined_radius_m = river_radius_m + f64::from(road.profile.width_m) * 0.5;
+    let local_radius_m = combined_radius_m / crossing_sine + TERRAIN_FORD_SAMPLE_GUARD_M;
+    ensure_ford_endpoint_clearance(
+        river_path_id,
+        road.path_id,
+        endpoint_distances,
+        local_radius_m,
+        false,
+    )?;
+    if !overlap_is_local_to_crossing(
+        river_points,
+        river_radius_m,
+        road_points,
+        f64::from(road.profile.width_m) * 0.5,
+        crossing.point_xz,
+        local_radius_m,
+        comparisons,
+    )? {
+        return Err(RiverGenerationError::ExtendedRiverRoadOverlap {
+            river_path_id,
+            road_path_id: road.path_id,
+        });
+    }
+
+    Ok(PreparedRoadRiverIntersection {
+        river_path_id,
+        road_path_id: road.path_id,
+        position_xz_m: crossing.point_xz,
+        crossing_angle_degrees,
+        river_distance_m: crossing.first_distance_m,
+        road_distance_m: crossing.second_distance_m,
+    })
+}
+
+fn ensure_ford_endpoint_clearance(
+    river_path_id: PathId,
+    road_path_id: PathId,
+    distances: [(f64, f64, &'static str); 2],
+    required_clearance_m: f64,
+    reject_equal: bool,
+) -> Result<(), RiverGenerationError> {
+    for (distance_m, total_distance_m, role) in distances {
+        let upstream_m = distance_m;
+        let downstream_m = total_distance_m - distance_m;
+        let too_close = if reject_equal {
+            upstream_m <= required_clearance_m || downstream_m <= required_clearance_m
+        } else {
+            upstream_m < required_clearance_m || downstream_m < required_clearance_m
+        };
+        if too_close {
+            return Err(RiverGenerationError::TerrainFordNearEndpoint {
+                river_path_id,
+                road_path_id,
+                role,
+                required_clearance_m: f32_from_derived(
+                    required_clearance_m,
+                    river_path_id,
+                    "ford endpoint clearance",
+                )?,
+            });
+        }
+    }
     Ok(())
+}
+
+fn validate_ford_crossing_angle(
+    river_path_id: PathId,
+    road_path_id: PathId,
+    river_probe: [[f64; 2]; 2],
+    road_probe: [[f64; 2]; 2],
+) -> Result<f64, RiverGenerationError> {
+    if !crosses_line(river_probe, road_probe) || !crosses_line(road_probe, river_probe) {
+        return Err(RiverGenerationError::TangentialRiverRoadIntersection {
+            river_path_id,
+            road_path_id,
+        });
+    }
+    let river_tangent = subtract(river_probe[1], river_probe[0]);
+    let road_tangent = subtract(road_probe[1], road_probe[0]);
+    let angle_degrees = acute_angle_degrees(river_tangent, road_tangent)?;
+    if angle_degrees < f64::from(MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES) {
+        return Err(RiverGenerationError::ShallowTerrainFordAngle {
+            river_path_id,
+            road_path_id,
+            angle_degrees: f32_from_derived(angle_degrees, river_path_id, "ford crossing angle")?,
+            minimum_degrees: MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES,
+        });
+    }
+    Ok(angle_degrees)
+}
+
+fn polyline_intersections(
+    first: &[[f64; 2]],
+    second: &[[f64; 2]],
+    comparisons: &mut usize,
+) -> Result<Vec<PolylineCrossing>, RiverGenerationError> {
+    let first_distances = polyline_distances(first)?;
+    let second_distances = polyline_distances(second)?;
+    let mut intersections = Vec::<PolylineCrossing>::new();
+    for (first_index, first_segment) in first.windows(2).enumerate() {
+        let first_bounds = expanded_segment_bounds(first_segment[0], first_segment[1], 0.0);
+        for (second_index, second_segment) in second.windows(2).enumerate() {
+            let second_bounds = expanded_segment_bounds(second_segment[0], second_segment[1], 0.0);
+            if !bounds_overlap(first_bounds, second_bounds) {
+                continue;
+            }
+            consume_overlap_comparison(comparisons)?;
+            let Some((first_fraction, second_fraction, position_xz_m)) =
+                segment_intersection_parameters(
+                    first_segment[0],
+                    first_segment[1],
+                    second_segment[0],
+                    second_segment[1],
+                )
+            else {
+                continue;
+            };
+            let first_distance_m = first_distances[first_index]
+                + segment_length(first_segment[0], first_segment[1])? * first_fraction;
+            let second_distance_m = second_distances[second_index]
+                + segment_length(second_segment[0], second_segment[1])? * second_fraction;
+            let candidate = PolylineCrossing {
+                point_xz: position_xz_m,
+                first_distance_m,
+                second_distance_m,
+            };
+            let merge_distance_squared = TERRAIN_FORD_POINT_MERGE_DISTANCE_M.powi(2);
+            if intersections.iter().any(|existing| {
+                squared_distance(existing.point_xz, candidate.point_xz) <= merge_distance_squared
+                    && (existing.first_distance_m - candidate.first_distance_m).abs()
+                        <= TERRAIN_FORD_POINT_MERGE_DISTANCE_M
+                    && (existing.second_distance_m - candidate.second_distance_m).abs()
+                        <= TERRAIN_FORD_POINT_MERGE_DISTANCE_M
+            }) {
+                continue;
+            }
+            intersections
+                .try_reserve(1)
+                .map_err(|_| RiverGenerationError::AllocationFailed("polyline intersections"))?;
+            intersections.push(candidate);
+            if intersections.len() == 2 {
+                return Ok(intersections);
+            }
+        }
+    }
+    Ok(intersections)
+}
+
+fn polyline_distances(points: &[[f64; 2]]) -> Result<Vec<f64>, RiverGenerationError> {
+    if points.len() < 2 {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    let mut distances = Vec::new();
+    distances
+        .try_reserve_exact(points.len())
+        .map_err(|_| RiverGenerationError::AllocationFailed("polyline distances"))?;
+    distances.push(0.0);
+    for segment in points.windows(2) {
+        let distance = distances
+            .last()
+            .copied()
+            .ok_or(RiverGenerationError::ArithmeticOverflow)?
+            + segment_length(segment[0], segment[1])?;
+        if !distance.is_finite() {
+            return Err(RiverGenerationError::InvalidOverlapPolyline);
+        }
+        distances.push(distance);
+    }
+    Ok(distances)
+}
+
+fn crossing_probe(
+    points: &[[f64; 2]],
+    distances: &[f64],
+    crossing_distance_m: f64,
+) -> Result<[[f64; 2]; 2], RiverGenerationError> {
+    let total_distance_m = *distances
+        .last()
+        .ok_or(RiverGenerationError::InvalidOverlapPolyline)?;
+    let before_distance_m = crossing_distance_m - TERRAIN_FORD_TOPOLOGY_PROBE_DISTANCE_M;
+    let after_distance_m = crossing_distance_m + TERRAIN_FORD_TOPOLOGY_PROBE_DISTANCE_M;
+    if before_distance_m <= 0.0 || after_distance_m >= total_distance_m {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    Ok([
+        sample_polyline_at_distance(points, distances, before_distance_m)?,
+        sample_polyline_at_distance(points, distances, after_distance_m)?,
+    ])
+}
+
+fn sample_polyline_at_distance(
+    points: &[[f64; 2]],
+    distances: &[f64],
+    distance_m: f64,
+) -> Result<[f64; 2], RiverGenerationError> {
+    if points.len() != distances.len() || !distance_m.is_finite() {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    for (index, interval) in distances.windows(2).enumerate() {
+        if distance_m <= interval[1] {
+            let span = interval[1] - interval[0];
+            if !span.is_finite() || span <= 0.0 {
+                return Err(RiverGenerationError::InvalidOverlapPolyline);
+            }
+            let fraction = ((distance_m - interval[0]) / span).clamp(0.0, 1.0);
+            return Ok([
+                linear_interpolate_f64(points[index][0], points[index + 1][0], fraction),
+                linear_interpolate_f64(points[index][1], points[index + 1][1], fraction),
+            ]);
+        }
+    }
+    points
+        .last()
+        .copied()
+        .ok_or(RiverGenerationError::InvalidOverlapPolyline)
+}
+
+fn crosses_line(first: [[f64; 2]; 2], second: [[f64; 2]; 2]) -> bool {
+    opposite_sides(
+        orientation(second[0], second[1], first[0]),
+        orientation(second[0], second[1], first[1]),
+    )
+}
+
+fn acute_angle_degrees(first: [f64; 2], second: [f64; 2]) -> Result<f64, RiverGenerationError> {
+    let first_length = first[0].hypot(first[1]);
+    let second_length = second[0].hypot(second[1]);
+    if !first_length.is_finite()
+        || !second_length.is_finite()
+        || first_length <= 0.0
+        || second_length <= 0.0
+    {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    let cross = (first[0] * second[1] - first[1] * second[0]).abs();
+    let dot = (first[0] * second[0] + first[1] * second[1]).abs();
+    let angle = cross.atan2(dot).to_degrees();
+    if !angle.is_finite()
+        || angle < 0.0
+        || angle > f64::from(MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES)
+    {
+        return Err(RiverGenerationError::InvalidOverlapPolyline);
+    }
+    Ok(angle)
+}
+
+fn overlap_is_local_to_crossing(
+    first: &[[f64; 2]],
+    first_radius_m: f64,
+    second: &[[f64; 2]],
+    second_radius_m: f64,
+    crossing_xz_m: [f64; 2],
+    local_radius_m: f64,
+    comparisons: &mut usize,
+) -> Result<bool, RiverGenerationError> {
+    let maximum_distance_squared_m = (first_radius_m + second_radius_m).powi(2);
+    let local_radius_squared_m = local_radius_m.powi(2);
+    for first_segment in first.windows(2) {
+        let first_bounds =
+            expanded_segment_bounds(first_segment[0], first_segment[1], first_radius_m);
+        for second_segment in second.windows(2) {
+            let second_bounds =
+                expanded_segment_bounds(second_segment[0], second_segment[1], second_radius_m);
+            if !bounds_overlap(first_bounds, second_bounds) {
+                continue;
+            }
+            consume_overlap_comparison(comparisons)?;
+            if segment_distance_squared(
+                first_segment[0],
+                first_segment[1],
+                second_segment[0],
+                second_segment[1],
+            ) > maximum_distance_squared_m
+            {
+                continue;
+            }
+            if point_segment_distance_squared(crossing_xz_m, first_segment[0], first_segment[1]).0
+                > local_radius_squared_m
+                || point_segment_distance_squared(
+                    crossing_xz_m,
+                    second_segment[0],
+                    second_segment[1],
+                )
+                .0 > local_radius_squared_m
+            {
+                return Ok(false);
+            }
+        }
+    }
+    Ok(true)
+}
+
+fn segment_intersection_parameters(
+    first_start: [f64; 2],
+    first_end: [f64; 2],
+    second_start: [f64; 2],
+    second_end: [f64; 2],
+) -> Option<(f64, f64, [f64; 2])> {
+    let first_delta = subtract(first_end, first_start);
+    let second_delta = subtract(second_end, second_start);
+    let denominator = cross_2d(first_delta, second_delta);
+    if !denominator.is_finite() || denominator.abs() <= SEGMENT_INTERSECTION_EPSILON {
+        return None;
+    }
+    let separation = subtract(second_start, first_start);
+    let first_fraction = cross_2d(separation, second_delta) / denominator;
+    let second_fraction = cross_2d(separation, first_delta) / denominator;
+    let inclusive = -SEGMENT_INTERSECTION_EPSILON..=1.0 + SEGMENT_INTERSECTION_EPSILON;
+    if !first_fraction.is_finite()
+        || !second_fraction.is_finite()
+        || !inclusive.contains(&first_fraction)
+        || !inclusive.contains(&second_fraction)
+    {
+        return None;
+    }
+    let first_fraction = first_fraction.clamp(0.0, 1.0);
+    let second_fraction = second_fraction.clamp(0.0, 1.0);
+    Some((
+        first_fraction,
+        second_fraction,
+        [
+            first_start[0] + first_delta[0] * first_fraction,
+            first_start[1] + first_delta[1] * first_fraction,
+        ],
+    ))
+}
+
+fn segment_length(start: [f64; 2], end: [f64; 2]) -> Result<f64, RiverGenerationError> {
+    let delta = subtract(end, start);
+    let length = delta[0].hypot(delta[1]);
+    if !length.is_finite() || length <= 0.0 {
+        Err(RiverGenerationError::InvalidOverlapPolyline)
+    } else {
+        Ok(length)
+    }
+}
+
+fn subtract(first: [f64; 2], second: [f64; 2]) -> [f64; 2] {
+    [first[0] - second[0], first[1] - second[1]]
+}
+
+fn cross_2d(first: [f64; 2], second: [f64; 2]) -> f64 {
+    first[0] * second[1] - first[1] * second[0]
+}
+
+fn squared_distance(first: [f64; 2], second: [f64; 2]) -> f64 {
+    let delta = subtract(first, second);
+    delta[0] * delta[0] + delta[1] * delta[1]
+}
+
+fn consume_overlap_comparison(comparisons: &mut usize) -> Result<(), RiverGenerationError> {
+    *comparisons = comparisons
+        .checked_add(1)
+        .ok_or(RiverGenerationError::ArithmeticOverflow)?;
+    if *comparisons > MAX_RIVER_OVERLAP_COMPARISONS {
+        Err(RiverGenerationError::OverlapComparisonBudgetExceeded {
+            maximum: MAX_RIVER_OVERLAP_COMPARISONS,
+        })
+    } else {
+        Ok(())
+    }
 }
 
 fn polylines_overlap(
@@ -857,14 +1859,7 @@ fn polylines_overlap(
             if !bounds_overlap(first_bounds, second_bounds) {
                 continue;
             }
-            *comparisons = comparisons
-                .checked_add(1)
-                .ok_or(RiverGenerationError::ArithmeticOverflow)?;
-            if *comparisons > MAX_RIVER_OVERLAP_COMPARISONS {
-                return Err(RiverGenerationError::OverlapComparisonBudgetExceeded {
-                    maximum: MAX_RIVER_OVERLAP_COMPARISONS,
-                });
-            }
+            consume_overlap_comparison(comparisons)?;
             if segment_distance_squared(
                 first_segment[0],
                 first_segment[1],
@@ -1341,13 +2336,13 @@ pub enum RiverGenerationError {
     MissingPath(PathId),
     #[error("river path {0} must be open")]
     ClosedPath(PathId),
-    #[error("path {0} cannot be both a road and a river before R2-024")]
+    #[error("path {0} cannot be both a road and a river")]
     RiverRoadConflict(PathId),
     #[error("road overlap validation references missing path {0}")]
     MissingRoadPath(PathId),
     #[error("river total path length {length_m} m exceeds {maximum_m} m")]
     TotalLengthExceeded { length_m: f64, maximum_m: f64 },
-    #[error("river generation v1 only supports TerrainCarvedChannelV1")]
+    #[error("river generation only supports TerrainCarvedChannelV1")]
     UnsupportedAlgorithm,
     #[error("river path {path_id} has an invalid tangent at sample {sample_index}")]
     InvalidTangent {
@@ -1383,16 +2378,69 @@ pub enum RiverGenerationError {
     InvalidEffectiveTerrainSample { sample_x: u16, sample_z: u16 },
     #[error("river terrain material blend is invalid")]
     InvalidMaterialBlend,
-    #[error("river paths {first_path_id} and {second_path_id} overlap before R2-024")]
+    #[error("river paths {first_path_id} and {second_path_id} overlap")]
     RiverOverlap {
         first_path_id: PathId,
         second_path_id: PathId,
     },
-    #[error("river path {river_path_id} overlaps road path {road_path_id} before R2-024")]
+    #[error(
+        "river path {river_path_id} and road path {road_path_id} do not form one isolated transversal ford"
+    )]
     RiverRoadOverlap {
         river_path_id: PathId,
         road_path_id: PathId,
     },
+    #[error(
+        "river path {river_path_id} and road path {road_path_id} intersect at least {found} times; exactly one crossing is supported"
+    )]
+    MultipleRiverRoadIntersections {
+        river_path_id: PathId,
+        road_path_id: PathId,
+        found: usize,
+    },
+    #[error("river path {river_path_id} is tangent to road path {road_path_id}")]
+    TangentialRiverRoadIntersection {
+        river_path_id: PathId,
+        road_path_id: PathId,
+    },
+    #[error(
+        "river path {river_path_id} crosses road path {road_path_id} at {angle_degrees} degrees; minimum is {minimum_degrees} degrees"
+    )]
+    ShallowTerrainFordAngle {
+        river_path_id: PathId,
+        road_path_id: PathId,
+        angle_degrees: f32,
+        minimum_degrees: f32,
+    },
+    #[error(
+        "river path {river_path_id} and road path {road_path_id} cross too near the {role} endpoint; required clearance is {required_clearance_m} m"
+    )]
+    TerrainFordNearEndpoint {
+        river_path_id: PathId,
+        road_path_id: PathId,
+        role: &'static str,
+        required_clearance_m: f32,
+    },
+    #[error(
+        "river path {river_path_id} and road path {road_path_id} have non-local footprint overlap"
+    )]
+    ExtendedRiverRoadOverlap {
+        river_path_id: PathId,
+        road_path_id: PathId,
+    },
+    #[error(
+        "terrain ford between river path {river_path_id} and road path {road_path_id} has {depth_m} m residual water depth; minimum is {minimum_m} m"
+    )]
+    InsufficientTerrainFordWaterDepth {
+        river_path_id: PathId,
+        road_path_id: PathId,
+        depth_m: f32,
+        minimum_m: f32,
+    },
+    #[error("generated road-river intersection count {found} exceeds {maximum}")]
+    TooManyRoadRiverIntersections { found: usize, maximum: usize },
+    #[error("generated road-river intersections are invalid: {0}")]
+    InvalidGeneratedRoadRiverIntersections(&'static str),
     #[error("river overlap comparison budget exceeds {maximum}")]
     OverlapComparisonBudgetExceeded { maximum: usize },
     #[error("river overlap polyline is incomplete")]

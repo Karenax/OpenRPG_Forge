@@ -123,18 +123,31 @@ impl WorldActions {
             .rivers
             .content_hash()
             .map_err(|error| error.to_string())?;
+        let source_terrain = area.terrain.clone();
+        let source_paths = area.paths.clone();
+        let source_roads = area.roads.clone();
+        let source_rivers = area.rivers.clone();
         let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
+        let preview_effective_terrain_hash = preview
+            .effective_terrain
+            .content_hash()
+            .map_err(|error| error.to_string())?;
         if preview.rivers.terrain_document_hash != terrain_hash
             || preview.rivers.path_document_hash != path_hash
             || preview.rivers.road_document_hash != road_hash
             || preview.rivers.river_document_hash != river_hash
             || preview.terrain.source_document_hash != effective_terrain_hash
+            || preview.rivers.effective_terrain_document_hash
+                != preview.terrain.source_document_hash
+            || preview_effective_terrain_hash != effective_terrain_hash
             || preview.vegetation.terrain_document_hash != effective_terrain_hash
             || preview.paths.terrain_document_hash != effective_terrain_hash
             || preview.paths.path_document_hash != path_hash
+            || preview.rivers.path_document_hash != preview.paths.path_document_hash
             || preview.roads.terrain_document_hash != effective_terrain_hash
             || preview.roads.path_document_hash != path_hash
             || preview.roads.road_document_hash != road_hash
+            || preview.rivers.road_document_hash != preview.roads.road_document_hash
         {
             return Err("Terrain, routes ou rivières de l’aperçu de densité incohérents : projection ignorée.".into());
         }
@@ -158,12 +171,17 @@ impl WorldActions {
             }),
             paths: Some(EditorPathRequest {
                 generated: preview.paths,
+                source_terrain: preview.effective_terrain,
+                source_paths,
             }),
             roads: Some(EditorRoadRequest {
                 generated: preview.roads,
+                source_roads,
             }),
             rivers: Some(EditorRiverRequest {
                 generated: preview.rivers,
+                source_terrain,
+                source_rivers,
             }),
             spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
             base_source_hash: preview.base_source_hash,
@@ -277,6 +295,67 @@ struct AreaPreviewTarget {
     river_hash: forge_core::ContentHash,
 }
 
+fn current_projection_sources(
+    actions: WorldActions,
+    target: AreaPreviewTarget,
+) -> Result<
+    (
+        forge_project::TerrainDocument,
+        forge_project::PathDocument,
+        forge_project::RoadDocument,
+        forge_project::RiverDocument,
+    ),
+    String,
+> {
+    let document = actions
+        .document
+        .get_untracked()
+        .ok_or("Projet absent après la génération de l’aperçu.")?;
+    if document.revision.get() != target.request.base_revision
+        || actions.tabs.get_untracked().active != Some(target.request.key)
+        || !target.request.key.exists(&document)
+    {
+        return Err(
+            "Cible modifiée pendant la génération de l’aperçu : projection ignorée.".into(),
+        );
+    }
+    let area = document
+        .area(target.request.key.module_id, target.request.key.area_id)
+        .ok_or("Zone absente après la génération de l’aperçu.")?;
+    if area
+        .terrain
+        .content_hash()
+        .map_err(|error| error.to_string())?
+        != target.terrain_hash
+        || area
+            .paths
+            .content_hash()
+            .map_err(|error| error.to_string())?
+            != target.path_hash
+        || area
+            .roads
+            .content_hash()
+            .map_err(|error| error.to_string())?
+            != target.road_hash
+        || area
+            .rivers
+            .content_hash()
+            .map_err(|error| error.to_string())?
+            != target.river_hash
+    {
+        return Err(
+            "Sources terrain/chemin/route/rivière modifiées pendant la génération de l’aperçu."
+                .into(),
+        );
+    }
+    Ok((
+        area.terrain.clone(),
+        area.paths.clone(),
+        area.roads.clone(),
+        area.rivers.clone(),
+    ))
+}
+
 fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>> {
     Memo::new(move |_| {
         let key = actions.tabs.get().active?;
@@ -338,33 +417,41 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                 && actions.canonical_refresh.get_untracked() == refresh
             {
                 match result {
-                    Ok(preview) => {
-                        if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
-                            bridge.pending = Some(EditorTerrainRequest {
-                                generation,
-                                project_id: target.request.key.project_id,
-                                area_id: target.request.key.area_id,
-                                revision: target.request.base_revision,
-                                terrain: preview.terrain,
-                                vegetation: Some(EditorVegetationRequest {
-                                    generated: preview.vegetation,
-                                    density_source_hash: preview.vegetation_density_source_hash,
-                                }),
-                                paths: Some(EditorPathRequest {
-                                    generated: preview.paths,
-                                }),
-                                roads: Some(EditorRoadRequest {
-                                    generated: preview.roads,
-                                }),
-                                rivers: Some(EditorRiverRequest {
-                                    generated: preview.rivers,
-                                }),
-                                spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
-                                base_source_hash: preview.base_source_hash,
-                            });
+                    Ok(preview) => match current_projection_sources(actions, target) {
+                        Ok((source_terrain, source_paths, source_roads, source_rivers)) => {
+                            if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
+                                bridge.pending = Some(EditorTerrainRequest {
+                                    generation,
+                                    project_id: target.request.key.project_id,
+                                    area_id: target.request.key.area_id,
+                                    revision: target.request.base_revision,
+                                    terrain: preview.terrain,
+                                    vegetation: Some(EditorVegetationRequest {
+                                        generated: preview.vegetation,
+                                        density_source_hash: preview.vegetation_density_source_hash,
+                                    }),
+                                    paths: Some(EditorPathRequest {
+                                        generated: preview.paths,
+                                        source_terrain: preview.effective_terrain,
+                                        source_paths,
+                                    }),
+                                    roads: Some(EditorRoadRequest {
+                                        generated: preview.roads,
+                                        source_roads,
+                                    }),
+                                    rivers: Some(EditorRiverRequest {
+                                        generated: preview.rivers,
+                                        source_terrain,
+                                        source_rivers,
+                                    }),
+                                    spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
+                                    base_source_hash: preview.base_source_hash,
+                                });
+                            }
+                            start_once(actions);
                         }
-                        start_once(actions);
-                    }
+                        Err(error) => actions.error.set(Some(error)),
+                    },
                     Err(error) => actions.error.set(Some(error)),
                 }
                 completed.set(Some((generation, refresh)));
@@ -408,20 +495,29 @@ async fn fetch_preview(
         StudioResponse::AreaPreview { preview_json } => {
             let preview = read_area_preview(&preview_json)?;
             let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
+            let preview_effective_terrain_hash = preview
+                .effective_terrain
+                .content_hash()
+                .map_err(|error| error.to_string())?;
             if preview.request != request
                 || preview.rivers.terrain_document_hash != target.terrain_hash
                 || preview.rivers.path_document_hash != target.path_hash
                 || preview.rivers.road_document_hash != target.road_hash
                 || preview.rivers.river_document_hash != target.river_hash
                 || preview.terrain.source_document_hash != effective_terrain_hash
+                || preview.rivers.effective_terrain_document_hash
+                    != preview.terrain.source_document_hash
+                || preview_effective_terrain_hash != effective_terrain_hash
                 || preview.vegetation.terrain_document_hash != effective_terrain_hash
                 || preview.vegetation.vegetation_document_hash != target.vegetation_hash
                 || preview.vegetation_density_source_hash != target.vegetation_density_hash
                 || preview.paths.terrain_document_hash != effective_terrain_hash
                 || preview.paths.path_document_hash != target.path_hash
+                || preview.rivers.path_document_hash != preview.paths.path_document_hash
                 || preview.roads.terrain_document_hash != effective_terrain_hash
                 || preview.roads.path_document_hash != target.path_hash
                 || preview.roads.road_document_hash != target.road_hash
+                || preview.rivers.road_document_hash != preview.roads.road_document_hash
                 || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)

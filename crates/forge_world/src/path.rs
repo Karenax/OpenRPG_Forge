@@ -54,6 +54,96 @@ impl GeneratedPaths {
     }
 }
 
+#[derive(Clone, Copy)]
+struct PlanViewPathSample {
+    position_xz_m: [f32; 2],
+    source_segment_index: u16,
+    segment_fraction: f32,
+}
+
+/// Validates that a derived path payload is the exact bounded projection of its canonical sources.
+///
+/// The validated terrain plan is sampled directly for every bounded path sample. This avoids a
+/// second terrain mesh generation while binding X/Y/Z and all sampling markers bit-for-bit.
+pub fn validate_generated_path_centrelines(
+    source_terrain: &TerrainDocument,
+    source_paths: &PathDocument,
+    generated: &GeneratedPaths,
+) -> Result<(), PathGenerationError> {
+    let terrain = TerrainGenerationPlan::from_document(source_terrain)?;
+    source_paths.validate()?;
+    if terrain.document().project_id != source_paths.project_id {
+        return Err(PathGenerationError::ProjectIdentityMismatch);
+    }
+    if terrain.document().area_id != source_paths.area_id {
+        return Err(PathGenerationError::AreaIdentityMismatch);
+    }
+    let source_hash = source_paths.content_hash().map_err(|_| {
+        PathGenerationError::InvalidGeneratedPaths("canonical path hash is unavailable")
+    })?;
+    if terrain.document_hash() != generated.terrain_document_hash
+        || source_hash != generated.path_document_hash
+        || source_paths.paths.len() != generated.paths.len()
+    {
+        return Err(PathGenerationError::InvalidGeneratedPaths(
+            "terrain/path source hash or path count differs",
+        ));
+    }
+
+    for (authored, actual) in source_paths.paths.iter().zip(&generated.paths) {
+        let exact_controls = authored.control_points.len() == actual.control_points.len()
+            && authored
+                .control_points
+                .iter()
+                .zip(&actual.control_points)
+                .all(|(source, generated)| same_vec3_bits(source.position_m, *generated));
+        if authored.id != actual.id
+            || authored.name != actual.name
+            || authored.closed != actual.closed
+            || !exact_controls
+        {
+            return Err(PathGenerationError::InvalidGeneratedPaths(
+                "generated path identity or controls differ from canonical source",
+            ));
+        }
+
+        let expected_samples = plan_view_samples(authored);
+        if expected_samples.len() != actual.samples.len() {
+            return Err(PathGenerationError::InvalidGeneratedPaths(
+                "generated path sample count differs from canonical sampling",
+            ));
+        }
+        for (expected, actual) in expected_samples.iter().zip(&actual.samples) {
+            if !inside_path_extent(expected.position_xz_m[0], expected.position_xz_m[1]) {
+                return Err(PathGenerationError::CurveSampleOutOfBounds {
+                    x_m: expected.position_xz_m[0],
+                    z_m: expected.position_xz_m[1],
+                });
+            }
+            let expected_height_m = terrain
+                .surface_at(expected.position_xz_m[0], expected.position_xz_m[1])?
+                .height_m;
+            if expected.source_segment_index != actual.source_segment_index
+                || expected.segment_fraction.to_bits() != actual.segment_fraction.to_bits()
+                || [
+                    expected.position_xz_m[0].to_bits(),
+                    expected_height_m.to_bits(),
+                    expected.position_xz_m[1].to_bits(),
+                ] != [
+                    actual.position_m.x.to_bits(),
+                    actual.position_m.y.to_bits(),
+                    actual.position_m.z.to_bits(),
+                ]
+            {
+                return Err(PathGenerationError::InvalidGeneratedPaths(
+                    "generated path samples differ from canonical terrain sampling",
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Validated interpretation of one terrain/path source pair.
 #[derive(Clone, Debug)]
 pub struct PathGenerationPlan {
@@ -120,75 +210,15 @@ impl PathGenerationPlan {
         &self,
         path: &AuthoredPath,
     ) -> Result<GeneratedPath, PathGenerationError> {
-        let is_two_point_line = match path.interpolation {
-            PathInterpolation::CentripetalCatmullRomV1 => path.control_points.len() == 2,
-        };
-        let mut samples = Vec::new();
-        let first = path.control_points[0].position_m;
-        samples.push(PathSample {
-            position_m: self.project_to_terrain(first.x, first.z)?,
-            source_segment_index: 0,
-            segment_fraction: 0.0,
-        });
-
-        let segment_count = if path.closed {
-            path.control_points.len()
-        } else {
-            path.control_points.len() - 1
-        };
-        for segment_index in 0..segment_count {
-            let start = path.control_points[segment_index].position_m;
-            let end =
-                path.control_points[(segment_index + 1) % path.control_points.len()].position_m;
-            let delta_x = end.x - start.x;
-            let delta_z = end.z - start.z;
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let interval_count = (delta_x.hypot(delta_z) / PATH_SAMPLE_SPACING_M).ceil() as u32;
-
-            for interval_index in 1..=interval_count {
-                #[allow(clippy::cast_precision_loss)]
-                let segment_fraction = interval_index as f32 / interval_count as f32;
-                let position_m = if interval_index == interval_count {
-                    self.project_to_terrain(end.x, end.z)?
-                } else if is_two_point_line {
-                    self.project_to_terrain(
-                        linear_interpolate(start.x, end.x, segment_fraction),
-                        linear_interpolate(start.z, end.z, segment_fraction),
-                    )?
-                } else {
-                    let previous = if path.closed {
-                        path.control_points[(segment_index + path.control_points.len() - 1)
-                            % path.control_points.len()]
-                        .position_m
-                    } else if segment_index == 0 {
-                        extrapolate_before(start, end)
-                    } else {
-                        path.control_points[segment_index - 1].position_m
-                    };
-                    let next = if path.closed {
-                        path.control_points[(segment_index + 2) % path.control_points.len()]
-                            .position_m
-                    } else if segment_index + 2 == path.control_points.len() {
-                        extrapolate_after(start, end)
-                    } else {
-                        path.control_points[segment_index + 2].position_m
-                    };
-                    let curved = centripetal_catmull_rom_plan_view(
-                        previous,
-                        start,
-                        end,
-                        next,
-                        segment_fraction,
-                    );
-                    self.project_to_terrain(curved[0], curved[1])?
-                };
-                samples.push(PathSample {
-                    position_m,
-                    #[allow(clippy::cast_possible_truncation)]
-                    source_segment_index: segment_index as u16,
-                    segment_fraction,
-                });
-            }
+        let plan_view_samples = plan_view_samples(path);
+        let mut samples = Vec::with_capacity(plan_view_samples.len());
+        for sample in plan_view_samples {
+            samples.push(PathSample {
+                position_m: self
+                    .project_to_terrain(sample.position_xz_m[0], sample.position_xz_m[1])?,
+                source_segment_index: sample.source_segment_index,
+                segment_fraction: sample.segment_fraction,
+            });
         }
 
         Ok(GeneratedPath {
@@ -211,6 +241,73 @@ impl PathGenerationPlan {
         let surface = self.terrain.surface_at(x_m, z_m)?;
         Ok(Vec3::new(x_m, surface.height_m, z_m))
     }
+}
+
+fn plan_view_samples(path: &AuthoredPath) -> Vec<PlanViewPathSample> {
+    let is_two_point_line = match path.interpolation {
+        PathInterpolation::CentripetalCatmullRomV1 => path.control_points.len() == 2,
+    };
+    let first = path.control_points[0].position_m;
+    let mut samples = vec![PlanViewPathSample {
+        position_xz_m: [first.x, first.z],
+        source_segment_index: 0,
+        segment_fraction: 0.0,
+    }];
+    let segment_count = if path.closed {
+        path.control_points.len()
+    } else {
+        path.control_points.len() - 1
+    };
+    for segment_index in 0..segment_count {
+        let start = path.control_points[segment_index].position_m;
+        let end = path.control_points[(segment_index + 1) % path.control_points.len()].position_m;
+        let delta_x = end.x - start.x;
+        let delta_z = end.z - start.z;
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let interval_count = (delta_x.hypot(delta_z) / PATH_SAMPLE_SPACING_M).ceil() as u32;
+        for interval_index in 1..=interval_count {
+            #[allow(clippy::cast_precision_loss)]
+            let segment_fraction = interval_index as f32 / interval_count as f32;
+            let position_xz_m = if interval_index == interval_count {
+                [end.x, end.z]
+            } else if is_two_point_line {
+                [
+                    linear_interpolate(start.x, end.x, segment_fraction),
+                    linear_interpolate(start.z, end.z, segment_fraction),
+                ]
+            } else {
+                let previous = if path.closed {
+                    path.control_points[(segment_index + path.control_points.len() - 1)
+                        % path.control_points.len()]
+                    .position_m
+                } else if segment_index == 0 {
+                    extrapolate_before(start, end)
+                } else {
+                    path.control_points[segment_index - 1].position_m
+                };
+                let next = if path.closed {
+                    path.control_points[(segment_index + 2) % path.control_points.len()].position_m
+                } else if segment_index + 2 == path.control_points.len() {
+                    extrapolate_after(start, end)
+                } else {
+                    path.control_points[segment_index + 2].position_m
+                };
+                centripetal_catmull_rom_plan_view(previous, start, end, next, segment_fraction)
+            };
+            samples.push(PlanViewPathSample {
+                position_xz_m,
+                #[allow(clippy::cast_possible_truncation)]
+                source_segment_index: segment_index as u16,
+                segment_fraction,
+            });
+        }
+    }
+    samples
+}
+
+fn same_vec3_bits(first: Vec3, second: Vec3) -> bool {
+    [first.x.to_bits(), first.y.to_bits(), first.z.to_bits()]
+        == [second.x.to_bits(), second.y.to_bits(), second.z.to_bits()]
 }
 
 /// Revision-bound request to create one open path from a bounded plan-view trace.
@@ -501,6 +598,8 @@ pub enum PathGenerationError {
     AreaIdentityMismatch,
     #[error("authored path {0} does not exist")]
     MissingPath(PathId),
+    #[error("generated paths are invalid: {0}")]
+    InvalidGeneratedPaths(&'static str),
     #[error("derived path curve sample ({x_m}, {z_m}) is outside [-256,256) metres")]
     CurveSampleOutOfBounds { x_m: f32, z_m: f32 },
 }
@@ -705,6 +804,52 @@ mod tests {
             first.content_hash().unwrap().to_string(),
             "2ed0df0fb5f050022c84bde5817962b7b71c87a1ed5d88659e672e68d1d9112a"
         );
+    }
+
+    #[test]
+    fn generated_path_centrelines_are_bound_to_the_exact_canonical_source() {
+        let workspace = workspace_with_path(curved_trace());
+        let area = workspace.area(module_id(), area_id()).unwrap();
+        let generated = PathGenerationPlan::from_documents(&area.terrain, &area.paths)
+            .unwrap()
+            .generate()
+            .unwrap();
+        validate_generated_path_centrelines(&area.terrain, &area.paths, &generated).unwrap();
+
+        let mut forged_sample = generated.clone();
+        forged_sample.paths[0].samples[1].position_m.x += 0.25;
+        assert!(matches!(
+            validate_generated_path_centrelines(&area.terrain, &area.paths, &forged_sample),
+            Err(PathGenerationError::InvalidGeneratedPaths(_))
+        ));
+
+        let mut forged_height = generated.clone();
+        forged_height.paths[0].samples[1].position_m.y += 0.25;
+        assert!(matches!(
+            validate_generated_path_centrelines(&area.terrain, &area.paths, &forged_height),
+            Err(PathGenerationError::InvalidGeneratedPaths(_))
+        ));
+
+        let mut forged_control = generated.clone();
+        forged_control.paths[0].control_points[0].z += 0.25;
+        assert!(matches!(
+            validate_generated_path_centrelines(&area.terrain, &area.paths, &forged_control),
+            Err(PathGenerationError::InvalidGeneratedPaths(_))
+        ));
+
+        let mut omitted = generated.clone();
+        omitted.paths.clear();
+        assert!(matches!(
+            validate_generated_path_centrelines(&area.terrain, &area.paths, &omitted),
+            Err(PathGenerationError::InvalidGeneratedPaths(_))
+        ));
+
+        let mut duplicated = generated;
+        duplicated.paths.push(duplicated.paths[0].clone());
+        assert!(matches!(
+            validate_generated_path_centrelines(&area.terrain, &area.paths, &duplicated),
+            Err(PathGenerationError::InvalidGeneratedPaths(_))
+        ));
     }
 
     #[test]

@@ -3,11 +3,13 @@
 use bevy::{
     asset::RenderAssetUsages, mesh::Indices, prelude::*, render::render_resource::PrimitiveTopology,
 };
-use forge_project::{AuthoredRiver, MAX_RIVERS_PER_DOCUMENT, RiverSurface};
+use forge_project::{
+    AuthoredRiver, MAX_RIVERS_PER_DOCUMENT, RiverDocument, RiverSurface, TerrainDocument,
+};
 use forge_world::{
     GeneratedPaths, GeneratedRiver, GeneratedRivers, GeneratedRoads, GeneratedTerrain,
     MAX_GENERATED_RIVER_INDICES, MAX_GENERATED_RIVER_VERTICES, RIVER_CROSS_SECTION_VERTEX_COUNT,
-    RIVER_GENERATION_VERSION, TERRAIN_HALF_EXTENT_M,
+    RIVER_GENERATION_VERSION, TERRAIN_HALF_EXTENT_M, validate_generated_road_river_intersections,
 };
 
 const RIVER_POSITION_Y_LIMIT_M: f32 = 10_001.0;
@@ -21,18 +23,17 @@ pub(crate) fn validate_generated_rivers(
     paths: &GeneratedPaths,
     roads: &GeneratedRoads,
     generated: &GeneratedRivers,
+    source_terrain: &TerrainDocument,
+    source_rivers: &RiverDocument,
 ) -> Result<(), String> {
-    if generated.generation_version != RIVER_GENERATION_VERSION
-        || generated.effective_terrain_document_hash != effective_terrain.source_document_hash
-        || paths.terrain_document_hash != effective_terrain.source_document_hash
-        || roads.terrain_document_hash != effective_terrain.source_document_hash
-        || roads.path_document_hash != paths.path_document_hash
-        || generated.path_document_hash != paths.path_document_hash
-        || generated.road_document_hash != roads.road_document_hash
-        || generated.rivers.len() > MAX_RIVERS_PER_DOCUMENT
-    {
-        return Err("Sources, version ou nombre de rivières incohérents.".into());
-    }
+    validate_generated_river_sources(
+        effective_terrain,
+        paths,
+        roads,
+        generated,
+        source_terrain,
+        source_rivers,
+    )?;
 
     let (total_vertices, total_indices) = generated
         .rivers
@@ -79,6 +80,59 @@ pub(crate) fn validate_generated_rivers(
         .validate()
         .map_err(|error| error.to_string())?;
         validate_river_mesh(river)?;
+    }
+    validate_generated_road_river_intersections(paths, roads, generated)
+        .map_err(|error| format!("Métadonnées de gué invalides : {error}"))
+}
+
+fn validate_generated_river_sources(
+    effective_terrain: &GeneratedTerrain,
+    paths: &GeneratedPaths,
+    roads: &GeneratedRoads,
+    generated: &GeneratedRivers,
+    source_terrain: &TerrainDocument,
+    source_rivers: &RiverDocument,
+) -> Result<(), String> {
+    source_terrain
+        .validate()
+        .map_err(|error| format!("Document canonique de terrain invalide : {error}"))?;
+    source_rivers
+        .validate()
+        .map_err(|error| format!("Document canonique de rivières invalide : {error}"))?;
+    let source_terrain_hash = source_terrain
+        .content_hash()
+        .map_err(|error| format!("Hash canonique du terrain indisponible : {error}"))?;
+    let source_river_hash = source_rivers
+        .content_hash()
+        .map_err(|error| format!("Hash canonique des rivières indisponible : {error}"))?;
+    if generated.generation_version != RIVER_GENERATION_VERSION
+        || generated.terrain_document_hash != source_terrain_hash
+        || generated.effective_terrain_document_hash != effective_terrain.source_document_hash
+        || paths.terrain_document_hash != effective_terrain.source_document_hash
+        || roads.terrain_document_hash != effective_terrain.source_document_hash
+        || roads.path_document_hash != paths.path_document_hash
+        || generated.path_document_hash != paths.path_document_hash
+        || generated.road_document_hash != roads.road_document_hash
+        || source_river_hash != generated.river_document_hash
+        || source_terrain.project_id != source_rivers.project_id
+        || source_terrain.area_id != source_rivers.area_id
+        || generated.rivers.len() > MAX_RIVERS_PER_DOCUMENT
+    {
+        return Err("Sources, version ou nombre de rivières incohérents.".into());
+    }
+
+    let exact_rivers = source_rivers.rivers.len() == generated.rivers.len()
+        && source_rivers
+            .rivers
+            .iter()
+            .zip(&generated.rivers)
+            .all(|(source, derived)| {
+                source.path_id == derived.path_id
+                    && source.channel == derived.channel
+                    && source.surface == derived.surface
+            });
+    if !exact_rivers {
+        return Err("Projection de rivières incomplète ou différente de sa source.".into());
     }
     Ok(())
 }
@@ -303,25 +357,28 @@ mod tests {
     use bevy::mesh::VertexAttributeValues;
     use forge_core::{ContentHash, Revision, Vec3};
     use forge_project::{
-        AuthoredPath, PathControlPoint, PathDocument, PathId, PathInterpolation,
+        AuthoredPath, AuthoredRoad, PathControlPoint, PathDocument, PathId, PathInterpolation,
         RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocument, RoadDocument,
+        RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainDocument,
     };
-    use forge_world::{PathGenerationPlan, RiverGenerationPlan, RoadGenerationPlan};
+    use forge_world::{
+        MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES, MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES,
+        PathGenerationPlan, RiverGenerationPlan, RoadGenerationPlan,
+    };
 
     fn generated_fixture() -> (
         GeneratedTerrain,
         GeneratedPaths,
         GeneratedRoads,
         GeneratedRivers,
+        TerrainDocument,
+        RiverDocument,
     ) {
         let terrain_document = forge_world::embedded_visual_valley_terrain_document().unwrap();
         let path_id = PathId::deterministic("editor-river-adapter/path");
-        let path_document = PathDocument::new(
-            terrain_document.project_id,
-            terrain_document.area_id,
-            Revision::INITIAL,
-            "Chemins de rivière",
-            vec![AuthoredPath {
+        let road_path_id = PathId::deterministic("editor-river-adapter/road-path");
+        let mut authored_paths = vec![
+            AuthoredPath {
                 id: path_id,
                 name: "Cours d’eau".into(),
                 closed: false,
@@ -330,14 +387,40 @@ mod tests {
                     PathControlPoint::new(Vec3::new(-24.0, 0.0, -12.0)),
                     PathControlPoint::new(Vec3::new(24.0, 0.0, 12.0)),
                 ],
-            }],
+            },
+            AuthoredPath {
+                id: road_path_id,
+                name: "Route du gué".into(),
+                closed: false,
+                interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                control_points: vec![
+                    PathControlPoint::new(Vec3::new(-24.0, 0.0, 12.0)),
+                    PathControlPoint::new(Vec3::new(24.0, 0.0, -12.0)),
+                ],
+            },
+        ];
+        authored_paths.sort_by_key(|path| path.id);
+        let path_document = PathDocument::new(
+            terrain_document.project_id,
+            terrain_document.area_id,
+            Revision::INITIAL,
+            "Chemins de rivière",
+            authored_paths,
         );
         let road_document = RoadDocument::new(
             terrain_document.project_id,
             terrain_document.area_id,
             Revision::INITIAL,
             "Routes",
-            vec![],
+            vec![AuthoredRoad {
+                path_id: road_path_id,
+                profile: RoadProfile {
+                    algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                    width_m: 4.0,
+                    crown_height_m: 0.1,
+                },
+                surface: RoadSurface::CompactedEarthV1,
+            }],
         );
         let river_document = RiverDocument::new(
             terrain_document.project_id,
@@ -381,13 +464,28 @@ mod tests {
                 .unwrap()
                 .generate()
                 .unwrap();
-        (effective_terrain, paths, roads, result.generated)
+        (
+            effective_terrain,
+            paths,
+            roads,
+            result.generated,
+            terrain_document,
+            river_document,
+        )
     }
 
     #[test]
     fn valid_river_builds_a_bounded_external_asset_free_water_mesh() {
-        let (effective, paths, roads, rivers) = generated_fixture();
-        validate_generated_rivers(&effective, &paths, &roads, &rivers).unwrap();
+        let (effective, paths, roads, rivers, source_terrain, source_rivers) = generated_fixture();
+        validate_generated_rivers(
+            &effective,
+            &paths,
+            &roads,
+            &rivers,
+            &source_terrain,
+            &source_rivers,
+        )
+        .unwrap();
         let generated = &rivers.rivers[0];
         let mesh = build_editor_river_mesh(generated);
         assert_eq!(mesh.count_vertices(), generated.positions_m.len());
@@ -402,59 +500,150 @@ mod tests {
         assert!(material.base_color_texture.is_none());
         assert!(material.normal_map_texture.is_none());
         assert!(material.metallic_roughness_texture.is_none());
+        assert_eq!(rivers.road_river_intersections.len(), 1);
+    }
+
+    #[test]
+    fn validation_rejects_forged_or_noncanonical_ford_metadata() {
+        let (effective, paths, roads, rivers, source_terrain, source_rivers) = generated_fixture();
+        let ford = rivers.road_river_intersections[0];
+        let rejects = |invalid: &GeneratedRivers| {
+            validate_generated_rivers(
+                &effective,
+                &paths,
+                &roads,
+                invalid,
+                &source_terrain,
+                &source_rivers,
+            )
+            .is_err()
+        };
+
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections.clear();
+        assert!(rejects(&invalid));
+
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections.push(ford);
+        assert!(rejects(&invalid));
+
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections[0].road_path_id = ford.river_path_id;
+        assert!(rejects(&invalid));
+
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections[0].road_path_id =
+            PathId::deterministic("editor-river-adapter/missing-road");
+        assert!(rejects(&invalid));
+
+        for position_xz_m in [
+            [f32::NAN, 0.0],
+            [200.0, 200.0],
+            [TERRAIN_HALF_EXTENT_M, 0.0],
+        ] {
+            let mut invalid = rivers.clone();
+            invalid.road_river_intersections[0].position_xz_m = position_xz_m;
+            assert!(rejects(&invalid));
+        }
+        for crossing_angle_degrees in [
+            f32::NAN,
+            MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES - 0.01,
+            MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES + 0.01,
+            ford.crossing_angle_degrees + 1.0,
+        ] {
+            let mut invalid = rivers.clone();
+            invalid.road_river_intersections[0].crossing_angle_degrees = crossing_angle_degrees;
+            assert!(rejects(&invalid));
+        }
+
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections[0].road_surface_height_m = f32::INFINITY;
+        assert!(rejects(&invalid));
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections[0].water_surface_height_m =
+            invalid.road_river_intersections[0].road_surface_height_m;
+        assert!(rejects(&invalid));
+        let mut invalid = rivers.clone();
+        invalid.road_river_intersections[0].road_surface_height_m += 0.01;
+        assert!(rejects(&invalid));
+        let mut invalid = rivers;
+        invalid.road_river_intersections[0].water_surface_height_m += 0.25;
+        assert!(rejects(&invalid));
     }
 
     #[test]
     fn validation_rejects_wrong_sources_order_and_malformed_geometry() {
-        let (effective, paths, roads, rivers) = generated_fixture();
+        let (effective, paths, roads, rivers, source_terrain, source_rivers) = generated_fixture();
+        let rejects = |invalid: &GeneratedRivers| {
+            validate_generated_rivers(
+                &effective,
+                &paths,
+                &roads,
+                invalid,
+                &source_terrain,
+                &source_rivers,
+            )
+            .is_err()
+        };
 
         let mut invalid = rivers.clone();
         invalid.generation_version += 1;
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.effective_terrain_document_hash = ContentHash::from_bytes([0x22; 32]);
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.path_document_hash = ContentHash::from_bytes([0x33; 32]);
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.road_document_hash = ContentHash::from_bytes([0x44; 32]);
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = rivers.clone();
         invalid.rivers.push(invalid.rivers[0].clone());
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.rivers[0].positions_m.pop();
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.rivers[0].indices[0] = u32::MAX;
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers.clone();
         invalid.rivers[0].uvs[0][0] = f32::NAN;
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
         let mut invalid = rivers;
         let final_row = invalid.rivers[0].positions_m.len() - RIVER_CROSS_SECTION_VERTEX_COUNT;
         let raised = invalid.rivers[0].positions_m[0][1] + 1.0;
         for position in &mut invalid.rivers[0].positions_m[final_row..] {
             position[1] = raised;
         }
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
     }
 
     #[test]
     fn aggregate_budgets_fail_before_mesh_adaptation() {
-        let (effective, paths, roads, rivers) = generated_fixture();
+        let (effective, paths, roads, rivers, source_terrain, source_rivers) = generated_fixture();
+        let rejects = |invalid: &GeneratedRivers| {
+            validate_generated_rivers(
+                &effective,
+                &paths,
+                &roads,
+                invalid,
+                &source_terrain,
+                &source_rivers,
+            )
+            .is_err()
+        };
         let mut invalid = rivers.clone();
         invalid.rivers[0]
             .positions_m
             .resize(MAX_GENERATED_RIVER_VERTICES + 1, [0.0; 3]);
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
 
         let mut invalid = rivers;
         invalid.rivers[0]
             .indices
             .resize(MAX_GENERATED_RIVER_INDICES + 1, 0);
-        assert!(validate_generated_rivers(&effective, &paths, &roads, &invalid).is_err());
+        assert!(rejects(&invalid));
     }
 }

@@ -201,6 +201,7 @@ fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
     .unwrap()
     .effective_terrain;
     let effective_terrain_hash = effective_terrain.content_hash().unwrap();
+    assert_eq!(preview.effective_terrain, effective_terrain);
     let full = VegetationGenerationPlan::from_documents_with_density(
         &effective_terrain,
         &area.vegetation,
@@ -881,6 +882,272 @@ fn road_only_edit_reuses_terrain_vegetation_and_path_projection() {
 #[test]
 #[allow(
     clippy::too_many_lines,
+    reason = "one cache scenario proves ford creation, retouch and every effective-terrain correlation"
+)]
+fn road_only_ford_creation_and_retouch_reuse_effective_terrain_vegetation_paths_and_water() {
+    let source = workspace();
+    let source_area = &source.project.modules[0].areas[0];
+    let river_path_id = PathId::deterministic("area-preview/ford-river");
+    let road_path_id = PathId::deterministic("area-preview/ford-road");
+    let with_river_path = source
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/ford-river-path"),
+            base_revision: source.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: source.project.modules[0].id,
+                area_id: source_area.id,
+                expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: river_path_id,
+                    name: "Rivière du gué".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, -80.0)),
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, 80.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let river_path_area = &with_river_path.project.modules[0].areas[0];
+    let with_paths = with_river_path
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/ford-road-path"),
+            base_revision: with_river_path.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: with_river_path.project.modules[0].id,
+                area_id: river_path_area.id,
+                expected_path_document_hash: river_path_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: road_path_id,
+                    name: "Route du gué".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(-80.0, 0.0, 0.0)),
+                        PathControlPoint::new(Vec3::new(80.0, 0.0, 0.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let paths_area = &with_paths.project.modules[0].areas[0];
+    let with_river = with_paths
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/ford-river-profile"),
+            base_revision: with_paths.revision,
+            change: WorkspaceChange::UpsertRiver {
+                module_id: with_paths.project.modules[0].id,
+                area_id: paths_area.id,
+                expected_terrain_document_hash: paths_area.terrain.content_hash().unwrap(),
+                expected_path_document_hash: paths_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: paths_area.roads.content_hash().unwrap(),
+                expected_river_document_hash: paths_area.rivers.content_hash().unwrap(),
+                river: AuthoredRiver {
+                    path_id: river_path_id,
+                    channel: RiverChannelProfile {
+                        algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                        surface_width_m: 8.0,
+                        bed_depth_m: 1.5,
+                        bank_blend_width_m: 4.0,
+                    },
+                    surface: RiverSurface::ForgeWaterV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let river_area = &with_river.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(river_area), river_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    assert_eq!(initial.rivers.rivers.len(), 1);
+    assert!(initial.rivers.road_river_intersections.is_empty());
+    let effective_terrain_hash = initial.terrain.source_document_hash;
+    let vegetation_pointers = cached_vegetation_pointers(&cache);
+    let water_mesh = initial.rivers.rivers[0].clone();
+
+    let with_road = with_river
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/ford-road-profile"),
+            base_revision: with_river.revision,
+            change: WorkspaceChange::UpsertRoad {
+                module_id: with_river.project.modules[0].id,
+                area_id: river_area.id,
+                expected_path_document_hash: river_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: river_area.roads.content_hash().unwrap(),
+                road: AuthoredRoad {
+                    path_id: road_path_id,
+                    profile: RoadProfile {
+                        algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                        width_m: 4.0,
+                        crown_height_m: 0.05,
+                    },
+                    surface: RoadSurface::CompactedEarthV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let road_area = &with_road.project.modules[0].areas[0];
+    let ford_created = read_area_preview(
+        &cache
+            .prepare(request(road_area), road_area, Some(effective_terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(ford_created.base_source_hash, Some(effective_terrain_hash));
+    assert!(ford_created.terrain.chunks.is_empty());
+    assert_eq!(ford_created.effective_terrain, initial.effective_terrain);
+    assert_eq!(
+        ford_created.effective_terrain.content_hash().unwrap(),
+        effective_terrain_hash
+    );
+    assert!(!ford_created.vegetation_regenerated);
+    assert_eq!(ford_created.vegetation_changed_chunks, 0);
+    assert_eq!(ford_created.vegetation_retained_chunks, 64);
+    assert_eq!(ford_created.paths, initial.paths);
+    assert_eq!(ford_created.rivers.rivers, vec![water_mesh.clone()]);
+    let [created_road] = ford_created.roads.roads.as_slice() else {
+        panic!("adding the road profile must rebuild exactly one road");
+    };
+    assert_eq!(created_road.path_id, road_path_id);
+    let road_mesh = created_road.clone();
+    let [first_ford] = ford_created.rivers.road_river_intersections.as_slice() else {
+        panic!("adding the orthogonal road must derive exactly one ford");
+    };
+    assert_eq!(first_ford.river_path_id, river_path_id);
+    assert_eq!(first_ford.road_path_id, road_path_id);
+    assert_eq!(
+        first_ford.kind,
+        forge_world::RoadRiverIntersectionKind::TerrainFordV1
+    );
+    assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+    assert_eq!(
+        ford_created.rivers.effective_terrain_document_hash,
+        effective_terrain_hash
+    );
+    assert_eq!(
+        ford_created.rivers.path_document_hash,
+        ford_created.paths.path_document_hash
+    );
+    assert_eq!(
+        ford_created.rivers.road_document_hash,
+        ford_created.roads.road_document_hash
+    );
+    assert_eq!(
+        ford_created.rivers.river_document_hash,
+        road_area.rivers.content_hash().unwrap()
+    );
+
+    let retouched = with_road
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/ford-road-retouch"),
+            base_revision: with_road.revision,
+            change: WorkspaceChange::UpsertRoad {
+                module_id: with_road.project.modules[0].id,
+                area_id: road_area.id,
+                expected_path_document_hash: road_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: road_area.roads.content_hash().unwrap(),
+                road: AuthoredRoad {
+                    path_id: road_path_id,
+                    profile: RoadProfile {
+                        algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                        width_m: 6.0,
+                        crown_height_m: 0.15,
+                    },
+                    surface: RoadSurface::CompactedEarthV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let retouched_area = &retouched.project.modules[0].areas[0];
+    let ford_retouched = read_area_preview(
+        &cache
+            .prepare(
+                request(retouched_area),
+                retouched_area,
+                Some(effective_terrain_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(
+        ford_retouched.base_source_hash,
+        Some(effective_terrain_hash)
+    );
+    assert!(ford_retouched.terrain.chunks.is_empty());
+    assert_eq!(ford_retouched.effective_terrain, initial.effective_terrain);
+    assert_eq!(
+        ford_retouched.effective_terrain.content_hash().unwrap(),
+        effective_terrain_hash
+    );
+    assert!(!ford_retouched.vegetation_regenerated);
+    assert_eq!(ford_retouched.vegetation_changed_chunks, 0);
+    assert_eq!(ford_retouched.vegetation_retained_chunks, 64);
+    assert_eq!(ford_retouched.paths, initial.paths);
+    assert_eq!(ford_retouched.rivers.rivers, vec![water_mesh]);
+    let [retouched_road] = ford_retouched.roads.roads.as_slice() else {
+        panic!("retouching the road profile must rebuild exactly one road");
+    };
+    assert_eq!(retouched_road.path_id, road_path_id);
+    assert_ne!(retouched_road, &road_mesh);
+    assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+    let [updated_ford] = ford_retouched.rivers.road_river_intersections.as_slice() else {
+        panic!("retouching the crossing road must preserve exactly one ford");
+    };
+    assert_eq!(updated_ford.river_path_id, first_ford.river_path_id);
+    assert_eq!(updated_ford.road_path_id, first_ford.road_path_id);
+    assert_eq!(updated_ford.kind, first_ford.kind);
+    assert_eq!(
+        updated_ford.position_xz_m.map(f32::to_bits),
+        first_ford.position_xz_m.map(f32::to_bits)
+    );
+    assert_eq!(
+        updated_ford.crossing_angle_degrees.to_bits(),
+        first_ford.crossing_angle_degrees.to_bits()
+    );
+    assert_eq!(
+        updated_ford.water_surface_height_m.to_bits(),
+        first_ford.water_surface_height_m.to_bits()
+    );
+    assert_ne!(
+        updated_ford.road_surface_height_m.to_bits(),
+        first_ford.road_surface_height_m.to_bits()
+    );
+    assert_eq!(
+        ford_retouched.rivers.effective_terrain_document_hash,
+        effective_terrain_hash
+    );
+    assert_eq!(
+        ford_retouched.rivers.path_document_hash,
+        ford_retouched.paths.path_document_hash
+    );
+    assert_eq!(
+        ford_retouched.rivers.road_document_hash,
+        ford_retouched.roads.road_document_hash
+    );
+    assert_eq!(
+        ford_retouched.rivers.river_document_hash,
+        retouched_area.rivers.content_hash().unwrap()
+    );
+    assert_full_vegetation_parity(retouched_area, &ford_retouched);
+    assert_cached_vegetation_is_bit_exact(retouched_area, &cache);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
     reason = "one cache transition proves all effective-terrain dependents remain hash-correlated"
 )]
 fn river_only_edit_partially_refreshes_the_effective_terrain_and_dependents() {
@@ -981,6 +1248,10 @@ fn river_only_edit_partially_refreshes_the_effective_terrain_and_dependents() {
     );
     assert_eq!(
         preview.terrain.source_document_hash,
+        preview.rivers.effective_terrain_document_hash
+    );
+    assert_eq!(
+        preview.effective_terrain.content_hash().unwrap(),
         preview.rivers.effective_terrain_document_hash
     );
     assert_eq!(

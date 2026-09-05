@@ -206,6 +206,20 @@ fn authored_river(
     }
 }
 
+fn river_projection(state: &WorkspaceState) -> forge_world::RiverGenerationResult {
+    let source = document(state);
+    let area = &source.project.modules[0].areas[0];
+    forge_world::RiverGenerationPlan::from_documents(
+        &area.terrain,
+        &area.paths,
+        &area.roads,
+        &area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+}
+
 fn first_vegetation_promotion_target(
     state: &WorkspaceState,
 ) -> forge_world::VegetationPromotionTarget {
@@ -2903,6 +2917,272 @@ fn river_profile_is_one_revision_and_survives_redraw_history_and_reopen() {
         .unwrap();
     assert_eq!(reopened.document_json, saved.document_json);
     assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "both authoring orders share one complete revision and persistence contract"
+)]
+fn terrain_ford_creation_is_order_independent_and_reopens_with_the_same_derived_hash() {
+    for road_first in [true, false] {
+        let directory = TestDirectory::new();
+        let mut session = WorkspaceSession::default();
+        let created = session.execute(create_command()).unwrap();
+        let first_trace = if road_first {
+            vec![[-80.0, 0.0], [80.0, 0.0]]
+        } else {
+            vec![[0.0, -80.0], [0.0, 80.0]]
+        };
+        let second_trace = if road_first {
+            vec![[0.0, -80.0], [0.0, 80.0]]
+        } else {
+            vec![[-80.0, 0.0], [80.0, 0.0]]
+        };
+
+        let first_path_state = session
+            .execute(create_path_command(&created, first_trace))
+            .unwrap();
+        assert_eq!(first_path_state.revision, created.revision + 1);
+        let first_path_id = document(&first_path_state).project.modules[0].areas[0]
+            .paths
+            .paths[0]
+            .id;
+        let history_before_first_profile = session.undo.len();
+        let first_profile_state = if road_first {
+            session
+                .execute(upsert_road_command(
+                    &first_path_state,
+                    first_path_id,
+                    4.0,
+                    0.08,
+                ))
+                .unwrap()
+        } else {
+            session
+                .execute(upsert_river_command(
+                    &first_path_state,
+                    first_path_id,
+                    8.0,
+                    1.5,
+                    4.0,
+                ))
+                .unwrap()
+        };
+        assert_eq!(first_profile_state.revision, first_path_state.revision + 1);
+        assert_eq!(session.undo.len(), history_before_first_profile + 1);
+
+        let second_path_state = session
+            .execute(create_path_command(&first_profile_state, second_trace))
+            .unwrap();
+        assert_eq!(second_path_state.revision, first_profile_state.revision + 1);
+        let second_path_id = document(&second_path_state).project.modules[0].areas[0]
+            .paths
+            .paths
+            .iter()
+            .find(|path| path.id != first_path_id)
+            .unwrap()
+            .id;
+        let history_before_second_profile = session.undo.len();
+        let crossed = if road_first {
+            session
+                .execute(upsert_river_command(
+                    &second_path_state,
+                    second_path_id,
+                    8.0,
+                    1.5,
+                    4.0,
+                ))
+                .unwrap()
+        } else {
+            session
+                .execute(upsert_road_command(
+                    &second_path_state,
+                    second_path_id,
+                    4.0,
+                    0.08,
+                ))
+                .unwrap()
+        };
+        assert_eq!(crossed.revision, second_path_state.revision + 1);
+        assert_eq!(session.undo.len(), history_before_second_profile + 1);
+
+        let (road_path_id, river_path_id) = if road_first {
+            (first_path_id, second_path_id)
+        } else {
+            (second_path_id, first_path_id)
+        };
+        let projection = river_projection(&crossed);
+        let [ford] = projection.generated.road_river_intersections.as_slice() else {
+            panic!("one orthogonal road/river crossing must derive one ford");
+        };
+        assert_eq!(ford.road_path_id, road_path_id);
+        assert_eq!(ford.river_path_id, river_path_id);
+        assert_eq!(
+            ford.kind,
+            forge_world::RoadRiverIntersectionKind::TerrainFordV1
+        );
+        assert!((ford.crossing_angle_degrees - 90.0).abs() < 0.001);
+        assert!(ford.water_surface_height_m - ford.road_surface_height_m >= 0.05);
+        let source = document(&crossed);
+        let area = &source.project.modules[0].areas[0];
+        assert_eq!(
+            projection.generated.terrain_document_hash,
+            area.terrain.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.generated.path_document_hash,
+            area.paths.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.generated.road_document_hash,
+            area.roads.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.generated.river_document_hash,
+            area.rivers.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.generated.effective_terrain_document_hash,
+            projection.effective_terrain.content_hash().unwrap()
+        );
+        let derived_hash = projection.generated.content_hash().unwrap();
+
+        let saved = save(&mut session, &directory);
+        let reopened = WorkspaceSession::default()
+            .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+            .unwrap();
+        assert_eq!(reopened.document_json, saved.document_json);
+        assert_eq!(
+            river_projection(&reopened)
+                .generated
+                .content_hash()
+                .unwrap(),
+            derived_hash
+        );
+        assert_eq!(
+            river_projection(&reopened)
+                .generated
+                .road_river_intersections,
+            projection.generated.road_river_intersections
+        );
+    }
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one redraw scenario proves the complete separate/crossed undo-redo transition"
+)]
+fn terrain_ford_redraw_from_separate_to_crossed_is_one_revision_and_undo_redo_exact() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_road_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-80.0, 40.0], [80.0, 40.0]],
+        ))
+        .unwrap();
+    let road_path_id = document(&with_road_path).project.modules[0].areas[0]
+        .paths
+        .paths[0]
+        .id;
+    let with_road = session
+        .execute(upsert_road_command(
+            &with_road_path,
+            road_path_id,
+            4.0,
+            0.08,
+        ))
+        .unwrap();
+    let with_river_path = session
+        .execute(create_path_command(
+            &with_road,
+            vec![[-80.0, -40.0], [80.0, -40.0]],
+        ))
+        .unwrap();
+    let river_path_id = document(&with_river_path).project.modules[0].areas[0]
+        .paths
+        .paths
+        .iter()
+        .find(|path| path.id != road_path_id)
+        .unwrap()
+        .id;
+    let separate = session
+        .execute(upsert_river_command(
+            &with_river_path,
+            river_path_id,
+            8.0,
+            1.5,
+            4.0,
+        ))
+        .unwrap();
+    assert!(
+        river_projection(&separate)
+            .generated
+            .road_river_intersections
+            .is_empty()
+    );
+
+    let history_before_redraw = session.undo.len();
+    let crossed = session
+        .execute(redraw_path_command(
+            &separate,
+            road_path_id,
+            vec![[0.0, -80.0], [0.0, 80.0]],
+        ))
+        .unwrap();
+    assert_eq!(crossed.revision, separate.revision + 1);
+    assert_eq!(session.undo.len(), history_before_redraw + 1);
+    let crossed_intersections = river_projection(&crossed)
+        .generated
+        .road_river_intersections;
+    let [crossed_ford] = crossed_intersections.as_slice() else {
+        panic!("the redraw must derive exactly one ford");
+    };
+    assert_eq!(crossed_ford.road_path_id, road_path_id);
+    assert_eq!(crossed_ford.river_path_id, river_path_id);
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: crossed.revision,
+        })
+        .unwrap();
+    assert_eq!(undone.revision, crossed.revision + 1);
+    assert_eq!(session.undo.len(), history_before_redraw);
+    assert!(
+        river_projection(&undone)
+            .generated
+            .road_river_intersections
+            .is_empty()
+    );
+
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(redone.revision, undone.revision + 1);
+    assert_eq!(session.undo.len(), history_before_redraw + 1);
+    assert_eq!(
+        river_projection(&redone).generated.road_river_intersections,
+        crossed_intersections
+    );
+    let redone_document = document(&redone);
+    let redone_road_path = redone_document.project.modules[0].areas[0]
+        .paths
+        .paths
+        .iter()
+        .find(|path| path.id == road_path_id)
+        .unwrap();
+    assert_eq!(
+        redone_road_path
+            .control_points
+            .iter()
+            .map(|point| [point.position_m.x, point.position_m.z])
+            .collect::<Vec<_>>(),
+        vec![[0.0, -80.0], [0.0, 80.0]]
+    );
 }
 
 #[test]

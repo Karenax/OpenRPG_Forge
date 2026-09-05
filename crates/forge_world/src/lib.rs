@@ -32,7 +32,7 @@ pub use path::{
     GeneratedPath, GeneratedPaths, MAX_PATH_TRACE_POINTS, MIN_PATH_TRACE_POINT_DISTANCE_M,
     MIN_PATH_TRACE_POINTS, PATH_SAMPLE_SPACING_M, PathCommandError, PathCreateCommand,
     PathCreateResult, PathGenerationError, PathGenerationPlan, PathRedrawCommand, PathRedrawResult,
-    PathSample, preview_create_path, preview_redraw_path,
+    PathSample, preview_create_path, preview_redraw_path, validate_generated_path_centrelines,
 };
 
 pub use road::{
@@ -44,12 +44,16 @@ pub use road::{
 };
 
 pub use river::{
-    GeneratedRiver, GeneratedRivers, MAX_EFFECTIVE_RIVER_TERRAIN_SAMPLES,
-    MAX_GENERATED_RIVER_INDICES, MAX_GENERATED_RIVER_LONGITUDINAL_SAMPLES,
-    MAX_GENERATED_RIVER_VERTICES, MAX_RIVER_OVERLAP_COMPARISONS, RIVER_CROSS_SECTION_VERTEX_COUNT,
-    RIVER_GENERATION_VERSION, RIVER_MESH_MAX_LONGITUDINAL_CHORD_M, RIVER_SURFACE_CLEARANCE_M,
-    RiverCommandError, RiverGenerationError, RiverGenerationPlan, RiverGenerationResult,
-    RiverUpsertCommand, RiverUpsertResult, preview_upsert_river,
+    GeneratedRiver, GeneratedRivers, GeneratedRoadRiverIntersection,
+    MAX_EFFECTIVE_RIVER_TERRAIN_SAMPLES, MAX_GENERATED_RIVER_INDICES,
+    MAX_GENERATED_RIVER_LONGITUDINAL_SAMPLES, MAX_GENERATED_RIVER_VERTICES,
+    MAX_GENERATED_ROAD_RIVER_INTERSECTIONS, MAX_RIVER_OVERLAP_COMPARISONS,
+    MAX_TERRAIN_FORD_CROSSING_ANGLE_DEGREES, MIN_TERRAIN_FORD_CROSSING_ANGLE_DEGREES,
+    MIN_TERRAIN_FORD_WATER_DEPTH_M, RIVER_CROSS_SECTION_VERTEX_COUNT, RIVER_GENERATION_VERSION,
+    RIVER_MESH_MAX_LONGITUDINAL_CHORD_M, RIVER_SURFACE_CLEARANCE_M, RiverCommandError,
+    RiverGenerationError, RiverGenerationPlan, RiverGenerationResult, RiverUpsertCommand,
+    RiverUpsertResult, RoadRiverIntersectionKind, preview_upsert_river,
+    validate_generated_road_river_intersections,
 };
 
 pub use player::{

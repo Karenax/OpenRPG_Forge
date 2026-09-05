@@ -23,6 +23,8 @@ pub struct AreaPreviewRequest {
 pub struct AreaPreview {
     pub request: AreaPreviewRequest,
     pub terrain: GeneratedTerrain,
+    /// Complete effective terrain recipe behind `terrain`, including when its mesh payload is partial.
+    pub effective_terrain: TerrainDocument,
     /// Always complete: consumers never need an earlier vegetation payload to reconstruct it.
     pub vegetation: GeneratedVegetation,
     /// Density is not part of `GeneratedVegetation`, so its exact source hash travels separately.
@@ -135,6 +137,7 @@ impl AreaPreviewCache {
         let preview = AreaPreview {
             request,
             terrain,
+            effective_terrain: effective_area.terrain.clone(),
             vegetation,
             vegetation_density_source_hash,
             vegetation_regenerated,
@@ -345,9 +348,10 @@ mod tests {
         let preview = read_area_preview(&json).unwrap();
         assert_eq!(preview.request, request);
         assert_eq!(preview.spawn, area.spawn);
+        assert_eq!(preview.effective_terrain, accepted_area.terrain);
         assert_eq!(
             preview.terrain.source_document_hash,
-            accepted_area.terrain.content_hash().unwrap()
+            preview.effective_terrain.content_hash().unwrap()
         );
         assert_eq!(preview.terrain.chunks.len(), 64);
         assert_eq!(preview.terrain.vertex_count(), 69_696);
