@@ -1180,6 +1180,23 @@ racine mutable et racine packagée restent Gate 4. **Gate 2 atteint 26/43 et res
 picking devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/ASSET_PLACEMENT.md).
 
+Le candidat `79ea370` qualifie ensuite **R2-028** sur preuves fonctionnelles automatisées. Le picking
+Bevy vise le premier mesh visible et ne résout qu’un descendant borné d’une racine privée active.
+Génération, serial, projet, zone et révision placements doivent correspondre exactement ; requête et
+résultat sont invalidés lors d’une nouvelle projection. Le Studio distingue clic/orbite/pan par un
+seuil 4 px avec buffer/rattrapage et position finale de `pointerup`. Hit, miss, stale, suppression,
+fermeture, undo/redo et réouverture sont couverts sans commande ni persistance de sélection.
+
+**375 tests de bibliothèque PASS** (`forge_engine` 220, `forge_studio` 155), avec filtres ciblés
+Engine 18/18 et Studio 9/9 ; Clippy natif strict Engine/Studio, check et Clippy Studio WASM, Trunk
+debug locked/offline, formatage et diff-check PASS. Le pré-build `NO_COLOR=1` rejeté a été corrigé par
+retrait de la variable ; deux builds réels passent, dont le second sur le candidat final. UI native/visuelle, Release, GPU, performance,
+PresentMon et CI distante restent `NOT RUN`. Exactement cinq fichiers Rust, aucun
+asset/Cadle/Cargo/lock/schéma/persistance. Sans caméra/viewport logique, une requête peut rester
+pending sans mutation : risque non bloquant. **Gate 2 atteint 27/43 et reste ouverte ; R2-029 gizmo
+translation/rotation/échelle devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/ASSET_PICKING.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1199,7 +1216,7 @@ picking devient la prochaine tranche.**
 
 - [x] `R2-026` navigateur d’assets — snapshot vérifié non persistant, scanner natif borné, provenance, IPC et cache single-flight qualifiés ; contrôle natif groupé reporté.
 - [x] `R2-027` drag/drop — source v1, commande, historique, réouverture et projection Bevy atomique qualifiés ; contrôle natif/visuel groupé reporté.
-- [ ] `R2-028` picking.
+- [x] `R2-028` picking — premier mesh visible, scope exact/latest-wins et sélection transitoire sans mutation qualifiés ; contrôle natif/visuel groupé reporté.
 - [ ] `R2-029` gizmo translation/rotation/échelle.
 - [ ] `R2-030` duplication et suppression.
 - [ ] `R2-031` snap surface/grille.

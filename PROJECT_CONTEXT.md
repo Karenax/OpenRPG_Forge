@@ -332,6 +332,28 @@ la frontière TOCTOU hostile et la racine packagée sont différées à Gate 4.
 [Preuves et limites](docs/evidence/gate2/ASSET_PLACEMENT.md). **Gate 2 atteint 26/43 et reste ouverte ;
 R2-028 picking devient la prochaine tranche fonctionnelle.**
 
+### Picking corrélé des placements — dix-neuvième incrément qualifié
+
+Le code `79ea370` qualifie **R2-028** sur preuves fonctionnelles automatisées. Bevy raycast le premier
+mesh visible depuis l’unique caméra éditeur et n’accepte qu’un descendant borné d’une racine privée
+de la projection active. Requêtes et résultats sont latest-wins et corrélés par génération, serial,
+projet, zone et révision placements ; un miss exact désélectionne, un résultat stale ne peut rien
+changer. Le Studio sépare clic, orbite et pan avec seuil 4 px, buffer/rattrapage des deltas et position
+finale de `pointerup`. La sélection et son inspecteur restent transitoires : aucune commande, révision,
+hash, JSON ou persistance n’est modifié ; suppression/fermeture effacent et redo/réouverture ne
+resélectionnent pas automatiquement.
+
+**375 tests de bibliothèque PASS** (`forge_engine` 220, `forge_studio` 155), dont les filtres ciblés
+Engine `editor_placement` **18/18** et Studio `world_selection` **9/9**. Clippy natif strict
+all-targets/all-features Engine et Studio, check/Clippy Studio WASM, Trunk debug locked/offline,
+formatage et diff-check sont PASS. L’invocation Trunk initiale `NO_COLOR=1` a été rejetée avant build ;
+la variable retirée, deux builds réels passent, dont le second sur le candidat final. UI native/visuelle, Release, GPU, performance, PresentMon et
+CI distante restent `NOT RUN`. Le lot touche exactement cinq fichiers Rust, sans asset/Cadle,
+`Cargo.toml`, `Cargo.lock`, schéma ou persistance. Risque non bloquant : sans caméra/viewport logique,
+une requête peut rester pending sans mutation jusqu’à résolution, remplacement ou invalidation.
+[Preuves et limites](docs/evidence/gate2/ASSET_PICKING.md). **Gate 2 atteint 27/43 et reste ouverte ;
+R2-029 gizmo translation/rotation/échelle devient la prochaine tranche fonctionnelle.**
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2552,11 +2574,11 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 26/43 après R2-027 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+Gate 2 est à 27/43 après R2-028 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
 leurs profils de route, les rivières avec carving non destructif, le gué terrain route-rivière borné,
 puis les murs procéduraux persistants sur terrain effectif. R2-E dispose maintenant du navigateur
-d’assets vérifiés et du placement gouverné persistant ; poursuivre par R2-028 picking, sans anticiper
-le gizmo, la duplication/suppression, le snap ou les
+d’assets vérifiés, du placement gouverné persistant et du picking corrélé transitoire ; poursuivre par
+R2-029 gizmo translation/rotation/échelle, sans anticiper la duplication/suppression, le snap ou les
 intersections génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.

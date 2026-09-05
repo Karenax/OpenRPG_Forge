@@ -1,0 +1,216 @@
+{
+  "schema": "forge.gate2.asset-picking-evidence",
+  "schema_version": 1,
+  "source_commit": "79ea370e87da7bbc3ec19d7abd07889d781264c4",
+  "source_tree": "16dd740f967fdf4500bb5b9a980d40b05a82c424",
+  "base_commit": "83616dbdbe1ae6b6a215364a28c54b4955ec4904",
+  "routes": [
+    {
+      "id": "R2-028",
+      "status": "PASS",
+      "basis": "automated local functional qualification of read-only, exact-scope placement picking and transient Studio selection; native and visual UI were not run"
+    }
+  ],
+  "scope": "Pick the first visible active placement through the Bevy projection, correlate the latest result exactly to Studio scope and inspect it without workspace mutation or persistence",
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "locked_engine_studio_library_tests_passed": 375,
+    "library_test_counts": {
+      "forge_engine": 220,
+      "forge_studio": 155
+    },
+    "targeted_test_counts": {
+      "forge_engine_editor_placement": 18,
+      "forge_studio_world_selection": 9,
+      "included_in_locked_library_total": true
+    },
+    "trunk_debug_prebuild": {
+      "prebuild_rejections": 1,
+      "environment_value": "NO_COLOR=1",
+      "outcome": "REJECTED BEFORE BUILD",
+      "correction": "NO_COLOR removed",
+      "actual_build_attempts": 2,
+      "actual_build_outcome": "PASS",
+      "raw_log": "NOT CAPTURED"
+    },
+    "receipts": [
+      {
+        "id": "engine_studio_locked_library_tests",
+        "command": "cargo test -p forge_engine -p forge_studio --lib --locked -j1",
+        "status": "PASS",
+        "passed": 375,
+        "failed": 0
+      },
+      {
+        "id": "forge_engine_editor_placement_targeted_tests",
+        "command": "cargo test -p forge_engine editor_placement --locked",
+        "status": "PASS",
+        "passed": 18,
+        "failed": 0,
+        "included_in_locked_library_total": true
+      },
+      {
+        "id": "forge_studio_world_selection_targeted_tests",
+        "command": "cargo test -p forge_studio world_selection::tests --lib --locked -j1",
+        "status": "PASS",
+        "passed": 9,
+        "failed": 0,
+        "included_in_locked_library_total": true
+      },
+      {
+        "id": "forge_engine_clippy_native_locked",
+        "command": "cargo clippy -p forge_engine --all-targets --locked -- -D warnings",
+        "status": "PASS",
+        "executor": "qualification agent"
+      },
+      {
+        "id": "forge_studio_clippy_native_locked",
+        "command": "cargo clippy -p forge_studio --all-targets --all-features --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_check_wasm_web_locked",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm_web_locked",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_trunk_debug_locked_offline",
+        "command": "trunk build --locked --offline",
+        "working_directory": "apps/forge_studio",
+        "profile": "debug",
+        "status": "PASS",
+        "prebuild_rejections": 1,
+        "rejected_environment_value": "NO_COLOR=1",
+        "correction": "NO_COLOR removed",
+        "actual_build_attempts": 2
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ]
+  },
+  "picking_contract": {
+    "pointer_coordinates": "normalized logical canvas coordinates, top-left [0,0], bottom-right [1,1]",
+    "projection_must_be_current": true,
+    "exact_generation_required": true,
+    "strictly_increasing_serial_required": true,
+    "result_correlates_project_area_and_placement_revision": true,
+    "studio_uses_placement_document_revision_not_workspace_revision": true,
+    "unrelated_workspace_revision_invalidates_pick": false,
+    "placement_revision_mismatch_is_stale": true,
+    "stale_or_superseded_result_can_clear_selection": false,
+    "exact_miss_clears_selection": true,
+    "unknown_placement_replaces_selection": false,
+    "first_visible_mesh_occludes_hits_behind_it": true,
+    "hidden_staging_is_pickable": false,
+    "maximum_placement_ancestor_edges": 64,
+    "active_entity_and_private_root_scope_must_match": true,
+    "retained_root_scope_refreshed_on_commit": true,
+    "submit_and_clear_invalidate_pointer_and_sample": true,
+    "pick_system_schedule": "PostUpdate after transform propagation and visibility checks",
+    "picking_mesh_uploads": 0,
+    "picking_geometry_cache_rebuilds": 0
+  },
+  "gesture_contract": {
+    "click_travel_threshold_px": 4,
+    "threshold_comparison": "strictly greater than four pixels is a drag",
+    "subthreshold_camera_delta": 0,
+    "first_drag_delta_catches_up_from_origin": true,
+    "later_drag_deltas_are_incremental": true,
+    "pointerup_position_is_applied_before_pick_decision": true,
+    "wrong_pointer_consumes_gesture": false,
+    "shift_drag_mode": "pan",
+    "default_drag_mode": "orbit"
+  },
+  "selection_contract": {
+    "state_is_transient": true,
+    "workspace_command_emitted": false,
+    "project_json_changed": false,
+    "project_content_hash_changed": false,
+    "workspace_revision_changed": false,
+    "selection_details_resolved_from_canonical_ledger": true,
+    "escape_and_button_clear_local_selection": true,
+    "existing_id_retained_across_refresh": true,
+    "removed_id_cleared": true,
+    "redo_or_reopen_reselects_automatically": false
+  },
+  "review_corrections": [
+    {
+      "id": "P1_REVISION_DOMAIN",
+      "status": "FIXED IN QUALIFIED SOURCE",
+      "original_defect": "Studio used WorkspaceDocument.revision while the renderer sampled PlacementDocument.revision, causing false stale results after unrelated edits",
+      "correction": "Studio scope and sample application use area.placements.revision",
+      "regression_test": "unrelated_workspace_revision_does_not_invalidate_the_exact_placement_projection"
+    },
+    {
+      "id": "P2_CLICK_DRAG_EXCLUSIVITY",
+      "status": "FIXED IN QUALIFIED SOURCE",
+      "original_defect": "subthreshold motion moved the camera while still producing a click, and final pointerup travel was omitted",
+      "correction": "zero-delta buffering, exact catch-up, final pointerup move_to and non-consuming wrong-pointer handling",
+      "regression_test": "camera_motion_is_buffered_until_drag_threshold_then_catches_up_exactly"
+    }
+  ],
+  "known_non_blocking_risks": [
+    {
+      "id": "PENDING_WITHOUT_CAMERA_OR_VIEWPORT",
+      "impact": "selection feedback can remain pending while the editor camera is absent/non-unique or has no logical viewport",
+      "safety": "no miss, workspace mutation or persistence occurs; later renderer state, a newer pick, submit or clear can resolve or invalidate it",
+      "timeout_or_dedicated_diagnostic": false
+    }
+  ],
+  "native_ui_qualification": {
+    "status": "NOT RUN"
+  },
+  "visual_qualification": {
+    "status": "NOT RUN"
+  },
+  "release_qualification": {
+    "standalone_native_build": "NOT RUN",
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "gpu_qualification": {
+    "status": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "source_change_boundary": {
+    "changed_file_count": 5,
+    "changed_files": [
+      "apps/forge_studio/src/lib.rs",
+      "apps/forge_studio/src/world_selection.rs",
+      "apps/forge_studio/src/world_ui.rs",
+      "crates/forge_engine/src/editor_placement.rs",
+      "crates/forge_engine/src/lib.rs"
+    ],
+    "cargo_manifests_changed": 0,
+    "cargo_lock_changed": false,
+    "new_third_party_packages_or_versions": 0,
+    "workspace_or_persistent_schema_changed": false,
+    "persistent_source_files_changed": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "next_route": "R2-029",
+  "artifacts": []
+}
