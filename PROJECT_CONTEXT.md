@@ -304,6 +304,34 @@ métadonnées Cargo activent des arêtes workspace déjà épinglées, sans nouv
 [Preuves et limites](docs/evidence/gate2/ASSET_BROWSER.md). **Gate 2 atteint 25/43 et reste ouverte ;
 R2-027 drag/drop devient la prochaine tranche fonctionnelle.**
 
+### Placement gouverné d’assets — dix-huitième incrément qualifié
+
+Le code `c5ccc87` qualifie **R2-027** sur preuves fonctionnelles automatisées. Le workspace v8 ajoute
+un document `forge.placement` v1 moteur-neutre : pins de provenance immuables et instances à ID
+stable, bornés, triés et persistants. Le glisser-déposer relie directement Assets au canvas Monde,
+mais seule une surface corrélée exactement par génération, serial, projet, zone et révision peut
+produire la commande partagée. Le natif résout de nouveau le snapshot vérifié, recalcule Y sur le
+terrain effectif et applique une seule révision ; undo/redo, sauvegarde et réouverture conservent les
+identités et refusent un Asset repinné.
+
+La projection Bevy charge `Scene(0)` par chemin gouverné, valide hashes et budgets, attend la scène
+et toutes ses dépendances récursives dans un staging caché, puis swap atomiquement. Elle est
+latest-wins, conserve handle et `Entity` inchangés, garde l’ancienne projection en cas d’échec dans
+la même zone et ne laisse jamais l’ancien scope visible pendant le chargement d’une autre zone.
+`clear(generation)` efface actif, staging et scope ; une révision placement-only produit zéro upload
+terrain et zéro reconstruction des caches géométriques.
+
+**678 tests de bibliothèque PASS** (`forge_assets` 21, `forge_project` 161, `forge_world` 139,
+`forge_engine` 211, `forge_studio` 146), plus **6/6** tests du binaire Studio. Formatage, diff-check,
+Clippy natif strict séparé pour Assets/Project/World, Engine `--lib` et Studio, check et Clippy Studio
+WASM web stricts `--locked`, puis Trunk debug `--locked --offline` sont PASS. UI native/visuelle, Release,
+GPU, performance, PresentMon et CI distante restent `NOT RUN`. Le lot touche 29 fichiers source ;
+`Cargo.lock`, les packages, assets et Cadle restent intacts. Seul `apps/forge_studio/Cargo.toml`
+active `web-sys/DragEvent`, déjà épinglé. La racine checkout reste supposée stable pendant le scan ;
+la frontière TOCTOU hostile et la racine packagée sont différées à Gate 4.
+[Preuves et limites](docs/evidence/gate2/ASSET_PLACEMENT.md). **Gate 2 atteint 26/43 et reste ouverte ;
+R2-028 picking devient la prochaine tranche fonctionnelle.**
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2524,10 +2552,11 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 25/43 après R2-026 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+Gate 2 est à 26/43 après R2-027 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
 leurs profils de route, les rivières avec carving non destructif, le gué terrain route-rivière borné,
 puis les murs procéduraux persistants sur terrain effectif. R2-E dispose maintenant du navigateur
-d’assets vérifiés ; poursuivre par R2-027 drag/drop, sans anticiper le picking, le gizmo ou les
+d’assets vérifiés et du placement gouverné persistant ; poursuivre par R2-028 picking, sans anticiper
+le gizmo, la duplication/suppression, le snap ou les
 intersections génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.

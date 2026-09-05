@@ -1159,6 +1159,27 @@ activent seulement trois arêtes workspace existantes. **Gate 2 atteint 25/43 et
 R2-027 drag/drop devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/ASSET_BROWSER.md).
 
+Le candidat `c5ccc87` qualifie ensuite **R2-027** sur preuves fonctionnelles automatisées. Le
+workspace v8 porte un document `forge.placement` v1 borné, moteur-neutre et persistant, avec pins de
+provenance immuables et instances à ID stable. Assets fournit un payload interne lié au snapshot ;
+Monde n’accepte qu’un hit terrain exact par génération, serial, projet, zone et révision. Le natif
+résout de nouveau l’Asset gouverné, recalcule Y sur le terrain effectif et applique la commande
+partagée en une révision. Undo/redo, sauvegarde/réouverture et refus d’un repin sont qualifiés.
+
+La projection Bevy stage `Scene(0)` cachée jusqu’au chargement de toutes ses dépendances récursives,
+swap atomiquement, est latest-wins, conserve handle et `Entity` inchangés et ne laisse pas un ancien
+scope visible pendant le chargement du nouveau. Placement-only reconstruit zéro chunk terrain ou
+végétation, effectue zéro upload terrain et zéro rebuild de cache géométrique. **678 tests de
+bibliothèque PASS** (`forge_assets` 21, `forge_project` 161, `forge_world` 139, `forge_engine` 211,
+`forge_studio` 146), plus 6 tests du binaire Studio ; formatage, diff-check, Clippy natif strict
+séparé pour Assets/Project/World, Engine `--lib` et Studio, check/Clippy WASM web stricts et Trunk
+debug locked/offline PASS. UI native/visuelle,
+Release, GPU, performance, PresentMon et CI distante restent `NOT RUN`. Exactement 29 fichiers source,
+aucun lockfile/package/asset/Cadle ; seul le manifeste Studio active `web-sys/DragEvent`. TOCTOU de
+racine mutable et racine packagée restent Gate 4. **Gate 2 atteint 26/43 et reste ouverte ; R2-028
+picking devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/ASSET_PLACEMENT.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1177,7 +1198,7 @@ R2-027 drag/drop devient la prochaine tranche.**
 ## R2-E — Placements et bâtiments
 
 - [x] `R2-026` navigateur d’assets — snapshot vérifié non persistant, scanner natif borné, provenance, IPC et cache single-flight qualifiés ; contrôle natif groupé reporté.
-- [ ] `R2-027` drag/drop.
+- [x] `R2-027` drag/drop — source v1, commande, historique, réouverture et projection Bevy atomique qualifiés ; contrôle natif/visuel groupé reporté.
 - [ ] `R2-028` picking.
 - [ ] `R2-029` gizmo translation/rotation/échelle.
 - [ ] `R2-030` duplication et suppression.

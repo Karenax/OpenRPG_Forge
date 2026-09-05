@@ -1,0 +1,213 @@
+{
+  "schema": "forge.gate2.asset-placement-evidence",
+  "schema_version": 1,
+  "source_commit": "c5ccc8742be18513cd3f117215fa57e5c6b46553",
+  "source_tree": "479c5484de5c903a41f17f3350dd96fccba8e036",
+  "base_commit": "cc03751adfbbbfd79ffab58b2b38a5b2a621b2c3",
+  "routes": [
+    {
+      "id": "R2-027",
+      "status": "PASS",
+      "basis": "automated local functional qualification of direct governed asset drop, persistent placement and atomic Bevy projection; native and visual UI were not run"
+    }
+  ],
+  "scope": "Drag one verified browser asset directly onto the active world, persist its immutable governed pin and authored transform through the shared command path, and project Scene(0) atomically without rebuilding terrain geometry",
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "locked_library_suite_tests_passed": 678,
+    "library_test_counts": {
+      "forge_assets": 21,
+      "forge_project": 161,
+      "forge_world": 139,
+      "forge_engine": 211,
+      "forge_studio": 146
+    },
+    "studio_binary_tests_passed_separately": 6,
+    "receipts": [
+      {
+        "id": "locked_integrated_library_tests",
+        "command": "cargo test -p forge_assets -p forge_project -p forge_world -p forge_engine -p forge_studio --lib --locked",
+        "status": "PASS",
+        "passed": 678,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_bin",
+        "command": "cargo test -p forge_studio --bin forge-studio --locked",
+        "status": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "excluded_from_locked_library_total": true
+      },
+      {
+        "id": "assets_project_world_clippy_native_locked",
+        "command": "cargo clippy -p forge_assets -p forge_project -p forge_world --all-targets --all-features --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_native_lib_locked",
+        "command": "cargo clippy -p forge_engine --lib --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_native_locked",
+        "command": "cargo clippy -p forge_studio --all-targets --all-features --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_check_wasm_web_locked",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm_web_locked",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_trunk_debug_locked_offline",
+        "command": "trunk build --locked --offline",
+        "working_directory": "apps/forge_studio",
+        "profile": "debug",
+        "status": "PASS"
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ]
+  },
+  "persistent_contract": {
+    "workspace_schema_version": 8,
+    "placement_schema": "forge.placement",
+    "placement_schema_version": 1,
+    "maximum_asset_pins": 256,
+    "maximum_authored_placements": 1024,
+    "maximum_placement_json_bytes": 524288,
+    "asset_pin_is_immutable_and_provenance_complete": true,
+    "bevy_entity_handle_or_transform_persisted": false,
+    "placements_sorted_by_persistent_entity_id": true,
+    "placement_id_derived_from_command_id": true,
+    "base_scale_applied_once": true,
+    "migration_v1_through_v7_is_in_memory": true,
+    "legacy_snapshot_rewritten_by_migration": false
+  },
+  "drop_contract": {
+    "browser_asset_is_directly_draggable_to_world_canvas": true,
+    "payload_contains_asset_id_and_snapshot_hash_only": true,
+    "surface_coordinates": "normalized canvas client rectangle, top-left [0,0], bottom-right [1,1]",
+    "exact_generation_serial_project_area_revision_required": true,
+    "missing_stale_or_non_finite_surface_mutates_workspace": false,
+    "frontend_supplies_y": false,
+    "native_recomputes_y_from_effective_post_river_terrain": true,
+    "native_resolves_asset_from_exact_validated_snapshot": true,
+    "placement_during_catalog_refresh_allowed": false,
+    "one_workspace_revision_and_history_entry": true,
+    "undo_redo_preserve_identity": true,
+    "save_and_fresh_session_reopen_exact": true,
+    "reopen_requires_assets_window_first": false,
+    "repinned_persistent_asset_accepted": false
+  },
+  "renderer_contract": {
+    "loads_gltf_scene_label": "Scene(0)",
+    "relative_governed_scene_paths_only": true,
+    "maximum_renderer_placements": 4096,
+    "maximum_unique_scenes": 512,
+    "maximum_unique_tracked_bytes": 1073741824,
+    "tracked_bytes_counted_once_per_unique_scene_path_and_hash": true,
+    "root_and_recursive_dependencies_must_be_loaded": true,
+    "staging_hidden_until_complete": true,
+    "latest_generation_wins": true,
+    "same_scope_failure_preserves_previous_projection": true,
+    "cross_scope_staging_leaves_previous_scope_visible": false,
+    "atomic_swap": true,
+    "unchanged_handle_and_entity_retained": true,
+    "clear_removes_active_staging_and_scope": true,
+    "placement_only_terrain_mesh_uploads": 0,
+    "placement_only_geometry_cache_rebuilds": 0,
+    "placement_only_studio_terrain_chunks_rebuilt": 0,
+    "placement_only_studio_vegetation_chunks_rebuilt": 0
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN"
+  },
+  "visual_qualification": {
+    "status": "NOT RUN"
+  },
+  "release_qualification": {
+    "standalone_native_build": "NOT RUN",
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "gpu_qualification": {
+    "status": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "asset_root_boundary": {
+    "compiled_checkout_root_assumed_stable_during_scan": true,
+    "hostile_concurrent_mutation_boundary_claimed": false,
+    "packaged_runtime_root_deferred_to_gate": 4
+  },
+  "source_change_boundary": {
+    "changed_file_count": 29,
+    "changed_files": [
+      "apps/forge_studio/Cargo.toml",
+      "apps/forge_studio/src/area_preview.rs",
+      "apps/forge_studio/src/area_preview_cache_tests.rs",
+      "apps/forge_studio/src/asset_browser.rs",
+      "apps/forge_studio/src/asset_browser_service.rs",
+      "apps/forge_studio/src/asset_browser_service_tests.rs",
+      "apps/forge_studio/src/asset_drag.rs",
+      "apps/forge_studio/src/desktop_ui.rs",
+      "apps/forge_studio/src/lib.rs",
+      "apps/forge_studio/src/main.rs",
+      "apps/forge_studio/src/workspace_api.rs",
+      "apps/forge_studio/src/workspace_service.rs",
+      "apps/forge_studio/src/workspace_service_tests.rs",
+      "apps/forge_studio/src/world_ui.rs",
+      "crates/forge_assets/src/browser.rs",
+      "crates/forge_engine/src/editor_brush.rs",
+      "crates/forge_engine/src/editor_placement.rs",
+      "crates/forge_engine/src/editor_viewport.rs",
+      "crates/forge_engine/src/lib.rs",
+      "crates/forge_project/src/lib.rs",
+      "crates/forge_project/src/placement.rs",
+      "crates/forge_project/src/workspace.rs",
+      "crates/forge_project/src/workspace_edit.rs",
+      "crates/forge_project/src/workspace_edit_tests.rs",
+      "crates/forge_project/src/workspace_legacy.rs",
+      "crates/forge_world/src/lib.rs",
+      "crates/forge_world/src/placement.rs",
+      "crates/forge_world/src/placement_tests.rs",
+      "crates/forge_world/src/terrain_brush_tests.rs"
+    ],
+    "cargo_metadata_files_changed": 1,
+    "cargo_metadata_files": [
+      "apps/forge_studio/Cargo.toml"
+    ],
+    "cargo_lock_changed": false,
+    "web_sys_features_added": [
+      "DragEvent"
+    ],
+    "new_third_party_packages_or_versions": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "next_route": "R2-028",
+  "artifacts": []
+}
