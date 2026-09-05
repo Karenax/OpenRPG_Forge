@@ -3377,6 +3377,8 @@ version = "0.1.0"
 dependencies = [
  "forge_core",
  "serde",
+ "serde_json",
+ "sha2 0.11.0",
  "thiserror 2.0.20",
 ]
 
@@ -3449,6 +3451,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "console_error_panic_hook",
+ "forge_assets",
  "forge_core",
  "forge_engine",
  "forge_project",

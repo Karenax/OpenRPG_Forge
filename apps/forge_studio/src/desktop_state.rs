@@ -4,6 +4,7 @@
 pub enum DesktopApp {
     Projects,
     World,
+    Assets,
     Diagnostics,
 }
 
@@ -26,7 +27,7 @@ pub struct WindowState {
 
 #[derive(Clone, Copy, Debug)]
 pub struct DesktopState {
-    windows: [WindowState; 3],
+    windows: [WindowState; 4],
     pub active: Option<DesktopApp>,
     width: f64,
     height: f64,
@@ -67,7 +68,7 @@ impl DesktopState {
             ..project
         };
         Self {
-            windows: [project, diagnostics, diagnostics],
+            windows: [project, diagnostics, diagnostics, diagnostics],
             active: Some(DesktopApp::Projects),
             width,
             height,
@@ -112,6 +113,7 @@ impl DesktopState {
         self.active = [
             DesktopApp::Projects,
             DesktopApp::World,
+            DesktopApp::Assets,
             DesktopApp::Diagnostics,
         ]
         .into_iter()
@@ -196,7 +198,8 @@ const fn index(app: DesktopApp) -> usize {
     match app {
         DesktopApp::Projects => 0,
         DesktopApp::World => 1,
-        DesktopApp::Diagnostics => 2,
+        DesktopApp::Assets => 2,
+        DesktopApp::Diagnostics => 3,
     }
 }
 fn positive_or(value: f64, fallback: f64) -> f64 {
@@ -221,12 +224,14 @@ fn constrain(rect: WindowRect, width: f64, height: f64) -> WindowRect {
 mod tests {
     use super::*;
     const PROJECTS: DesktopApp = DesktopApp::Projects;
+    const ASSETS: DesktopApp = DesktopApp::Assets;
     const DIAGNOSTICS: DesktopApp = DesktopApp::Diagnostics;
 
     #[test]
     fn initially_only_projects_is_open() {
         let state = DesktopState::new(1600.0, 756.0);
         assert!(state.window(PROJECTS).open);
+        assert!(!state.window(ASSETS).open);
         assert!(!state.window(DIAGNOSTICS).open);
         assert_eq!(state.active, Some(PROJECTS));
     }
@@ -271,7 +276,7 @@ mod tests {
         state.toggle_maximize(DIAGNOSTICS);
         state.resize_desktop(500.0, 220.0);
         state.toggle_maximize(DIAGNOSTICS);
-        for app in [PROJECTS, DIAGNOSTICS] {
+        for app in [PROJECTS, DesktopApp::World, ASSETS, DIAGNOSTICS] {
             let rect = state.window(app).rect;
             assert!(rect.x >= 0.0 && rect.y >= 0.0);
             assert!(rect.width > 0.0 && rect.height > 0.0);
@@ -314,5 +319,22 @@ mod tests {
         assert_eq!(state.active, None);
         state.open(DesktopApp::World);
         assert_eq!(state.window(DesktopApp::World).rect, rect);
+    }
+
+    #[test]
+    fn assets_is_a_real_independent_fourth_window() {
+        let mut state = DesktopState::new(1600.0, 756.0);
+        let projects = state.window(PROJECTS);
+        state.open(ASSETS);
+        state.move_window(ASSETS, 120.0, 84.0);
+        state.resize_window(ASSETS, 880.0, 540.0);
+        let assets = state.window(ASSETS);
+        assert_eq!(state.active, Some(ASSETS));
+        assert_ne!(assets.rect, projects.rect);
+        assert_eq!(state.window(PROJECTS), projects);
+        state.minimize(ASSETS);
+        assert_eq!(state.active, Some(PROJECTS));
+        state.open(ASSETS);
+        assert_eq!(state.window(ASSETS).rect, assets.rect);
     }
 }

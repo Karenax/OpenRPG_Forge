@@ -2,6 +2,8 @@
 
 //! Asset metadata and provenance validation without rendering or filesystem coupling.
 
+pub mod browser;
+
 use forge_core::{AssetId, CanonicalJsonError, ContentHash, canonical_json_sha256};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};

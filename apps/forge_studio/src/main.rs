@@ -1,5 +1,8 @@
 #![deny(unsafe_code)]
 
+use forge_studio_frontend::asset_browser_service::{
+    AssetBrowserService, BrowseAssetsWork, scan_compiled_assets,
+};
 use forge_studio_frontend::workspace_api::WorkspaceCommand;
 use forge_studio_frontend::workspace_service::WorkspaceSession;
 use forge_studio_frontend::{StudioCommand, StudioResponse};
@@ -26,7 +29,11 @@ async fn execute_studio_command(
         '_,
         Arc<Mutex<forge_studio_frontend::area_preview::AreaPreviewCache>>,
     >,
+    asset_browser: tauri::State<'_, Arc<Mutex<AssetBrowserService>>>,
 ) -> Result<StudioResponse, String> {
+    if let StudioCommand::BrowseAssets { request } = &command {
+        return Ok(execute_browse_assets(*request, Arc::clone(asset_browser.inner())).await);
+    }
     if matches!(
         &command,
         StudioCommand::Workspace {
@@ -110,6 +117,37 @@ async fn execute_studio_command(
         );
     }
     Ok(execute_command(command, &session))
+}
+
+async fn execute_browse_assets(
+    request: forge_studio_frontend::asset_browser::BrowseAssetsRequest,
+    service: Arc<Mutex<AssetBrowserService>>,
+) -> StudioResponse {
+    let work = match service.lock() {
+        Ok(mut service) => service.begin(request),
+        Err(_) => Err("Navigateur d’assets indisponible après une erreur interne.".into()),
+    };
+    let work = match work {
+        Ok(work) => work,
+        Err(reason) => return StudioResponse::Rejected { reason },
+    };
+    let ticket = match work {
+        BrowseAssetsWork::Ready(catalog) => return StudioResponse::AssetCatalog { catalog },
+        BrowseAssetsWork::Scan(ticket) => ticket,
+    };
+    let outcome = match tauri::async_runtime::spawn_blocking(scan_compiled_assets).await {
+        Ok(outcome) => outcome,
+        Err(error) => Err(format!("Scan Assets interrompu : {error}")),
+    };
+    match service.lock() {
+        Ok(mut service) => match service.finish(ticket, outcome) {
+            Ok(catalog) => StudioResponse::AssetCatalog { catalog },
+            Err(reason) => StudioResponse::Rejected { reason },
+        },
+        Err(_) => StudioResponse::Rejected {
+            reason: "Navigateur d’assets indisponible après une erreur interne.".into(),
+        },
+    }
 }
 
 fn prepare_vegetation_density_preview(
@@ -238,6 +276,7 @@ fn execute_command(command: StudioCommand, session: &Mutex<WorkspaceSession>) ->
             entity_count: document.entities.len(),
         },
         StudioCommand::Workspace { .. }
+        | StudioCommand::BrowseAssets { .. }
         | StudioCommand::AreaPreview { .. }
         | StudioCommand::VegetationDensityStrokePreview { .. } => StudioResponse::Rejected {
             reason: "Commande projet déjà traitée.".into(),
@@ -264,6 +303,7 @@ fn main() {
         .manage(Arc::new(Mutex::new(
             forge_studio_frontend::area_preview::AreaPreviewCache::default(),
         )))
+        .manage(Arc::new(Mutex::new(AssetBrowserService::default())))
         .invoke_handler(tauri::generate_handler![execute_studio_command])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

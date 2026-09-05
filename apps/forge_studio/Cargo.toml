@@ -33,6 +33,7 @@ web = [
 ]
 
 [dependencies]
+forge_assets.workspace = true
 forge_core.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true

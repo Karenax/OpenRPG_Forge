@@ -1,6 +1,7 @@
 //! Presentation-only desktop. Windows retain their components; all source operations still use
 //! `WorkspaceActions` and the native `WorkspaceSession`. No layout state enters the project document.
 
+use crate::asset_browser::AssetBrowserPanel;
 use crate::desktop_state::{DesktopApp, DesktopState, WindowRect};
 use crate::workspace_api::WorkspaceCommand;
 use crate::workspace_ui::{ProjectWorkspace, WorkspaceActions, create_workspace_actions};
@@ -185,6 +186,12 @@ fn ForgeDesktop() -> impl IntoView {
                 <DesktopWindow controls app=DesktopApp::World>
                     <WorldWorkspace actions=controls.world workspace=controls.workspace/>
                 </DesktopWindow>
+                <DesktopWindow controls app=DesktopApp::Assets>
+                    <AssetBrowserPanel visible=Signal::derive(move || {
+                        let window = controls.layout.get().window(DesktopApp::Assets);
+                        window.open && !window.minimized
+                    })/>
+                </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::Diagnostics>
                     <WorldDiagnostics actions=controls.world/>
                 </DesktopWindow>
@@ -193,7 +200,7 @@ fn ForgeDesktop() -> impl IntoView {
             <nav class="desktop-dock" aria-label="Applications Forge">
                 <DockButton controls app=DesktopApp::Projects/>
                 <DockButton controls app=DesktopApp::World/>
-                <FutureApp label="Assets" kind="assets"/>
+                <DockButton controls app=DesktopApp::Assets/>
                 <FutureApp label="Personnages" kind="characters"/>
                 <FutureApp label="Narration" kind="narration"/>
                 <FutureApp label="Playtest" kind="playtest"/>
@@ -208,7 +215,7 @@ fn ForgeDesktop() -> impl IntoView {
                         "x": state.rect.x, "y": state.rect.y, "width": state.rect.width, "height": state.rect.height })
                 };
                 serde_json::json!({ "projects": describe(DesktopApp::Projects), "diagnostics": describe(DesktopApp::Diagnostics),
-                    "world": describe(DesktopApp::World), "active": layout.active.map(app_key) }).to_string()
+                    "world": describe(DesktopApp::World), "assets": describe(DesktopApp::Assets), "active": layout.active.map(app_key) }).to_string()
             }}</output>
         </main>
     }
@@ -246,7 +253,7 @@ fn DesktopWindow(controls: DesktopControls, app: DesktopApp, children: Children)
                     on:lostpointercapture=move |_| controls.drag.set(None)
                     on:dblclick=move |_| controls.layout.update(|layout| layout.toggle_maximize(app))
                     on:keydown=move |event| geometry_key(controls, app, false, &event)>{app_title(app)}</button>
-                <span class="window-caption">{match app { DesktopApp::Projects => "Sources du projet", DesktopApp::World => "Terrain du projet", DesktopApp::Diagnostics => "Projection courante" }}</span>
+                <span class="window-caption">{match app { DesktopApp::Projects => "Sources du projet", DesktopApp::World => "Terrain du projet", DesktopApp::Assets => "Bibliothèque vérifiée", DesktopApp::Diagnostics => "Projection courante" }}</span>
             </header>
             <div class="window-content">{children()}</div>
             <button class="window-resize-handle" type="button" aria-label=format!("Redimensionner {} avec les flèches", app_title(app))
@@ -272,6 +279,7 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                         Menu::Forge => view! {
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Projects)>"Projets"</button>
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::World)>"Monde"</button>
+                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Assets)>"Assets"</button>
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Diagnostics)>"Diagnostics du monde"</button>
                             <p class="desktop-menu-note">"Un seul Studio, une seule session de projet."</p>
                         }.into_any(),
@@ -296,6 +304,7 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                         Menu::Window => view! {
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Projects)>"Afficher Projets"</button>
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::World)>"Afficher Monde"</button>
+                            <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Assets)>"Afficher Assets"</button>
                             <button class="desktop-menu-item" on:click=move |_| controls.open(DesktopApp::Diagnostics)>"Afficher Diagnostics"</button>
                             <hr class="desktop-menu-separator"/>
                             <button class="desktop-menu-item" disabled=move || controls.layout.get().active.is_none() on:click=move |_| {
@@ -307,8 +316,8 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                             }>"Agrandir / restaurer"</button>
                         }.into_any(),
                         Menu::Help => view! {
-                            <p class="desktop-menu-note">"Projets édite les sources. Monde affiche le terrain de vos zones. Diagnostics observe ce même viewport."</p>
-                            <p class="desktop-menu-note">"Assets, Personnages, Narration et Playtest ne sont pas encore disponibles."</p>
+                            <p class="desktop-menu-note">"Projets édite les sources. Monde affiche le terrain. Assets consulte la bibliothèque locale vérifiée. Diagnostics observe le viewport."</p>
+                            <p class="desktop-menu-note">"Le placement d’Assets arrive en R2-027. Personnages, Narration et Playtest restent à venir."</p>
                             <p class="desktop-menu-note">"Les fenêtres conservent les saisies pendant cette session. Enregistrez le projet avant de quitter le Studio."</p>
                         }.into_any(),
                     }}
@@ -359,6 +368,7 @@ fn app_title(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "Projets",
         DesktopApp::World => "Monde",
+        DesktopApp::Assets => "Assets",
         DesktopApp::Diagnostics => "Diagnostics",
     }
 }
@@ -366,6 +376,7 @@ fn app_key(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "projects",
         DesktopApp::World => "world",
+        DesktopApp::Assets => "assets",
         DesktopApp::Diagnostics => "diagnostics",
     }
 }
@@ -373,6 +384,7 @@ fn title_id(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "window-title-projects",
         DesktopApp::World => "window-title-world",
+        DesktopApp::Assets => "window-title-assets",
         DesktopApp::Diagnostics => "window-title-diagnostics",
     }
 }
@@ -380,6 +392,7 @@ fn dock_id(app: DesktopApp) -> &'static str {
     match app {
         DesktopApp::Projects => "dock-projects",
         DesktopApp::World => "dock-world",
+        DesktopApp::Assets => "dock-assets",
         DesktopApp::Diagnostics => "dock-diagnostics",
     }
 }

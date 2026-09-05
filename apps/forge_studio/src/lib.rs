@@ -9,6 +9,9 @@
 
 pub mod area_preview;
 pub mod area_tabs;
+pub mod asset_browser;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod asset_browser_service;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod brush_state;
 pub mod desktop_state;
@@ -1247,6 +1250,9 @@ mod telemetry;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
+    BrowseAssets {
+        request: asset_browser::BrowseAssetsRequest,
+    },
     AreaPreview {
         request: area_preview::AreaPreviewRequest,
         #[serde(default)]
@@ -1264,9 +1270,12 @@ pub enum StudioCommand {
     },
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    AssetCatalog {
+        catalog: asset_browser::AssetCatalog,
+    },
     AreaPreview {
         preview_json: String,
     },
@@ -1307,6 +1316,7 @@ fn validate_selection_response(
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
         }
         StudioResponse::Workspace { .. }
+        | StudioResponse::AssetCatalog { .. }
         | StudioResponse::AreaPreview { .. }
         | StudioResponse::VegetationDensityStrokePreview { .. } => {
             Err("Réponse Tauri inattendue : projet reçu pour une sélection".to_owned())
