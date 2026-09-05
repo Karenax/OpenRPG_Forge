@@ -192,6 +192,25 @@ UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`. A
 dépendance, manifest Cargo ni contenu Cadle n'est modifié. **Gate 2 atteint 19/43 et reste ouverte ;
 R2-C est complet et R2-021 création/édition de chemin devient la prochaine tranche fonctionnelle.**
 
+### Chemins et profils de route — treizième et quatorzième incréments qualifiés
+
+Après le chemin persistant R2-021 (`91be10b`), le code `e117d83` qualifie **R2-022** sur preuves
+fonctionnelles automatisées. Le workspace v5 ajoute un document `forge.road` v1 : un profil terre
+compactée borné par chemin ouvert, persistant sur une seule révision et traversant undo/redo,
+sauvegarde, réouverture et redessin. Le plafond de 8 192 m porte sur les polylignes de contrôle
+routières, pas sur la longueur d'arc. La projection terrain dérivée borne chaque corde horizontale à
+2 m, conserve l'ancien affichage pendant son staging, swap atomiquement et n'upload aucun mesh
+terrain lors d'une édition road-only.
+
+**533 tests de bibliothèque PASS** (`forge_project` 126, `forge_world` 110, `forge_engine` 184,
+`forge_studio` 113), plus **6/6** tests du binaire Studio. Check Studio WASM, Clippy Studio
+natif/WASM strict, Clippy Engine natif/WASM `--lib` strict, Trunk debug offline, formatage et
+diff-check PASS. UI native, Release, GPU, performance, CI distante et PresentMon restent `NOT RUN` ;
+la revue visuelle est regroupée pour plus tard. Aucun asset ni contenu Cadle, aucune dépendance
+runtime ; `serde_json` est ajouté uniquement comme dev-dependency de `forge_world`.
+[Preuves et limites](docs/evidence/gate2/ROAD_PROFILE_AUTHORING.md). **Gate 2 atteint 21/43 et reste
+ouverte ; R2-023 rivière et carving devient la prochaine tranche fonctionnelle.**
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2412,11 +2431,10 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 19/43 après R2-020 ; R2-C biomes/végétation est complet sur preuves fonctionnelles
-automatisées. Poursuivre R2-D par la création/édition persistante de chemin pour R2-021, sans
-anticiper les profils de route, le carving de rivière, le picking ou le gizmo génériques. Le contrôle
-UI natif groupé de la densité, du catalogue, des exclusions et des promotions reste noté pour plus
-tard.
+Gate 2 est à 21/43 après R2-022 ; R2-C biomes/végétation est complet et R2-D a livré les chemins
+persistants puis leurs profils de route sur preuves fonctionnelles automatisées. Poursuivre R2-D par
+R2-023 rivière et carving, sans anticiper les intersections, le picking ou le gizmo génériques. Le
+contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
 Décision prioritaire ADR-0010 : critères stricts FPS/p95/1 % low/stutter et benchmark cible différés.

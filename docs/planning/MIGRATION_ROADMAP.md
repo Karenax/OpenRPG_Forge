@@ -1056,6 +1056,25 @@ Aucun asset, dépendance, manifest Cargo ou contenu Cadle. **Gate 2 atteint 20/4
 R2-022 route avec profil devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/PATH_CREATION_AND_EDITING.md).
 
+Le candidat `e117d83` qualifie **R2-022** sur preuves fonctionnelles automatisées. Le workspace v5
+porte un document `forge.road` v1 borné : un profil terre compactée par chemin ouvert, largeur de 1 à
+16 m, bombé de 0 à 0,30 m et au plus 5 % de la largeur. Le plafond de 8 192 m porte sur la longueur
+cumulée des polylignes de contrôle routières, pas sur la longueur d’arc. La projection dérivée suit
+le terrain, produit trois sommets par rangée et quatre triangles par intervalle, avec des cordes
+horizontales au plus égales à 2 m, sans revendiquer cette borne pour la longueur d’arc. Création et
+retouche produisent une seule révision et traversent undo/redo, sauvegarde et réouverture ; no-op,
+stale, hashes incohérents et empreinte invalide échouent atomiquement. Le viewport valide puis stage
+les meshes par `PathId`, conserve l’ancien affichage jusqu’au swap, réutilise les handles inchangés
+et n’upload aucun mesh terrain sur une édition road-only. **533 tests de bibliothèque PASS**
+(`forge_project` 126, `forge_world` 110, `forge_engine` 184, `forge_studio` 113), plus 6 tests du
+binaire Studio ; check Studio WASM, Clippy Studio natif/WASM strict, Clippy Engine natif/WASM
+`--lib` strict, Trunk debug offline, formatage et diff-check PASS. UI native, Release, GPU,
+performance, CI distante et PresentMon restent `NOT RUN` ; la revue visuelle est regroupée pour plus
+tard. Aucun asset ni contenu Cadle, aucune dépendance runtime ; `serde_json` est ajouté uniquement
+comme dev-dependency de `forge_world`. **Gate 2 atteint 21/43 et reste ouverte ; R2-023 rivière et
+carving devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/ROAD_PROFILE_AUTHORING.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1066,7 +1085,7 @@ R2-022 route avec profil devient la prochaine tranche.**
 ## R2-D — Splines
 
 - [x] `R2-021` création/édition persistante de chemin — source v1, génération terrain, historique et overlay atomique qualifiés ; contrôle natif groupé reporté.
-- [ ] `R2-022` route avec profil.
+- [x] `R2-022` route avec profil — source v1, projection terrain, persistance et swap atomique qualifiés ; contrôle natif groupé reporté.
 - [ ] `R2-023` rivière et carving.
 - [ ] `R2-024` intersections.
 - [ ] `R2-025` clôture ou mur de preuve.

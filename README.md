@@ -50,8 +50,10 @@ Les preuves locales reproductibles et le rapport sont dans
 
 La gate active est **Gate 2 — Éditeur de monde**, autorisée sous
 [ADR-0011](docs/ADR/ADR-0011-gate2-entry-with-gate1-reservations.md). Gate 1 est acceptée comme
-prototype avec réserves, pas entièrement qualifiée (43/55). Les revues visuelles humaines de Gate 0 restent
-explicitement différées par ADR-0005. La CI GitHub distante est `NOT RUN` à cause du blocage de
+prototype avec réserves, pas entièrement qualifiée (43/55). Gate 2 atteint **21/43** après le profil
+de route persistant R2-022 ; la prochaine tranche est **R2-023, rivière et carving**. Les revues
+visuelles humaines de Gate 0 restent explicitement différées par ADR-0005. La CI GitHub distante est
+`NOT RUN` à cause du blocage de
 facturation du compte ; ADR-0006 autorise jusqu’à Gate 4 le passage sur preuves locales sans jamais
 présenter cette CI comme verte. Cadle reste une référence locale : aucun de ses assets n’est copié ou
 publié dans Forge.
