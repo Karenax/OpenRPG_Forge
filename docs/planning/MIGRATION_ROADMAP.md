@@ -1094,6 +1094,24 @@ lockfile ou dépendance. Les overlaps rivière/rivière et rivière/route sont r
 **Gate 2 atteint 22/43 et reste ouverte ; R2-024 intersections devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/RIVER_CARVING.md).
 
+Le candidat `5b05553` qualifie **R2-024** sur preuves fonctionnelles automatisées. La génération
+rivière v2 dérive au plus 64 gués `TerrainFordV1` pour les croisements route-rivière uniques,
+transversaux, locaux et éloignés des extrémités : angle aigu de 30 à 90 degrés et profondeur d’eau
+résiduelle d’au moins 0,05 m. Les métadonnées sont triées, uniques, exhaustives, liées bit à bit aux
+surfaces visibles et aux lignes centrales redérivées depuis les sources canoniques. Les autres
+contacts, les overlaps rivière-rivière et l’affectation route+rivière au même chemin restent refusés.
+Les deux ordres de création, une révision par commande, undo/redo, redessin et réouverture sont
+qualifiés. Une édition road-only conserve terrain effectif, végétation, chemins et eau, n’envoie
+aucun chunk terrain et reconstruit seulement la route. Le viewport, frontière interne du worker
+natif, revalide les sources canoniques et les gués sans rejouer intégralement `RiverGenerationPlan`.
+**576 tests de bibliothèque PASS** (`forge_project` 137, `forge_world` 126, `forge_engine` 193,
+`forge_studio` 120), plus 6 tests du binaire Studio ; checks et Clippy natif/WASM dans les portées
+déclarées, Trunk debug offline après récupération d’un manque d’espace, formatage et diff-check PASS.
+UI native, Release, GPU, performance, CI distante et PresentMon restent `NOT RUN`. Aucun asset,
+contenu Cadle, manifeste Cargo, lockfile, dépendance ou schéma persistant n’est modifié. **Gate 2
+atteint 23/43 et reste ouverte ; R2-025 clôture ou mur de preuve devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/ROAD_RIVER_INTERSECTIONS.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1106,7 +1124,7 @@ lockfile ou dépendance. Les overlaps rivière/rivière et rivière/route sont r
 - [x] `R2-021` création/édition persistante de chemin — source v1, génération terrain, historique et overlay atomique qualifiés ; contrôle natif groupé reporté.
 - [x] `R2-022` route avec profil — source v1, projection terrain, persistance et swap atomique qualifiés ; contrôle natif groupé reporté.
 - [x] `R2-023` rivière et carving — source v1, terrain effectif non destructif, promotion et swap terrain-eau qualifiés ; contrôle natif groupé reporté.
-- [ ] `R2-024` intersections.
+- [x] `R2-024` intersections — gué terrain route-rivière dérivé, borné, déterministe et validé fail-closed ; contrôle natif groupé reporté.
 - [ ] `R2-025` clôture ou mur de preuve.
 
 ## R2-E — Placements et bâtiments

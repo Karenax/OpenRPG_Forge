@@ -192,7 +192,7 @@ UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`. A
 dépendance, manifest Cargo ni contenu Cadle n'est modifié. **Gate 2 atteint 19/43 et reste ouverte ;
 R2-C est complet et R2-021 création/édition de chemin devient la prochaine tranche fonctionnelle.**
 
-### Chemins, routes et rivières — treizième à quinzième incréments qualifiés
+### Chemins, routes et rivières — treizième à seizième incréments qualifiés
 
 Après le chemin persistant R2-021 (`91be10b`), le code `e117d83` qualifie **R2-022** sur preuves
 fonctionnelles automatisées. Le workspace v5 ajoute un document `forge.road` v1 : un profil terre
@@ -228,6 +228,30 @@ diff-check PASS. UI native, Release, GPU, performance, CI distante et PresentMon
 la revue visuelle est regroupée pour plus tard. Aucun asset, contenu Cadle, manifeste Cargo,
 lockfile ou dépendance. [Preuves et limites](docs/evidence/gate2/RIVER_CARVING.md). **Gate 2 atteint
 22/43 et reste ouverte ; R2-024 intersections devient la prochaine tranche fonctionnelle.**
+
+Le code `5b05553` qualifie ensuite **R2-024** sur preuves fonctionnelles automatisées. La génération
+rivière v2 dérive un `TerrainFordV1` pour chaque croisement route-rivière supporté : une seule
+traversée transversale et locale, éloignée des extrémités, avec angle aigu de 30 à 90 degrés et au
+moins 0,05 m d’eau au-dessus de la route. La liste, bornée à 64, est triée, unique, exhaustive et
+liée bit à bit aux surfaces visibles et aux lignes centrales redérivées. Les contacts tangents,
+multiples ou prolongés, les overlaps rivière-rivière et route+rivière sur le même chemin restent
+refusés atomiquement.
+
+Studio qualifie les deux ordres de création, une révision par commande, undo/redo, redessin
+séparé→croisé et sauvegarde/réouverture sans document de gué persistant. Le cache road-only conserve
+terrain effectif, végétation, chemins et eau, envoie zéro chunk terrain et ne reconstruit que la
+route. Le viewport est une frontière de confiance du worker natif interne : il relie terrain,
+chemins, routes et rivières aux documents canoniques courants et redérive les gués, mais ne rejoue
+pas intégralement `RiverGenerationPlan`.
+
+**576 tests de bibliothèque PASS** (`forge_project` 137, `forge_world` 126, `forge_engine` 193,
+`forge_studio` 120), plus **6/6** tests du binaire Studio. Checks et Clippy natif/WASM dans les
+portées déclarées, Trunk debug offline après récupération d’un manque d’espace, formatage et
+diff-check PASS. UI native, Release, GPU, performance, CI distante et PresentMon restent `NOT RUN` ;
+la revue visuelle est regroupée pour plus tard. Aucun asset, contenu Cadle, manifeste Cargo,
+lockfile, dépendance ou schéma persistant. [Preuves et limites](docs/evidence/gate2/ROAD_RIVER_INTERSECTIONS.md).
+**Gate 2 atteint 23/43 et reste ouverte ; R2-025 clôture ou mur de preuve devient la prochaine
+tranche fonctionnelle.**
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
@@ -2449,10 +2473,10 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 22/43 après R2-023 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
-leurs profils de route puis les rivières avec carving non destructif sur preuves fonctionnelles
-automatisées. Poursuivre R2-D par R2-024 intersections, sans anticiper le picking ou le gizmo
-génériques. Le
+Gate 2 est à 23/43 après R2-024 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+leurs profils de route, les rivières avec carving non destructif puis le gué terrain route-rivière
+borné sur preuves fonctionnelles automatisées. Poursuivre R2-D par R2-025 clôture ou mur de preuve,
+sans anticiper le picking, le gizmo ou les intersections génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.

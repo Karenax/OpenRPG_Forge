@@ -1,0 +1,217 @@
+{
+  "schema": "forge.gate2.road-river-intersections-evidence",
+  "schema_version": 1,
+  "source_commit": "5b05553e374ec59afd115f30335cb8039ef19452",
+  "source_tree": "6e733362bb3ed888b08f45409be7522f0a4744c7",
+  "base_commit": "2717f0c1a5997e3662c9a6d5063e4bcbbdd342f0",
+  "routes": [
+    {
+      "id": "R2-024",
+      "status": "PASS",
+      "basis": "automated local functional qualification of one bounded, derived TerrainFordV1 road-river crossing; native visual interaction not run"
+    }
+  ],
+  "scope": "Derive, validate, persist through existing commands and atomically present one isolated transversal TerrainFordV1 for each supported road-river pair without adding a persistent intersection document or replaying the complete RiverGenerationPlan in the internal native viewport worker",
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "full_library_suite_tests_passed": 576,
+    "studio_binary_tests_passed_separately": 6,
+    "trunk_debug_recovery": {
+      "first_attempt": "FAIL — no space left on device",
+      "recovery_command": "cargo clean -p forge_studio --target wasm32-unknown-unknown",
+      "reclaimed_gib": 4.5,
+      "second_attempt": "PASS",
+      "raw_log": "NOT CAPTURED"
+    },
+    "receipts": [
+      {
+        "id": "forge_project_tests",
+        "command": "cargo test -p forge_project --lib",
+        "status": "PASS",
+        "passed": 137,
+        "failed": 0
+      },
+      {
+        "id": "forge_world_tests",
+        "command": "cargo test -p forge_world --lib",
+        "status": "PASS",
+        "passed": 126,
+        "failed": 0
+      },
+      {
+        "id": "forge_engine_tests_lib",
+        "command": "cargo test -p forge_engine --lib",
+        "status": "PASS",
+        "passed": 193,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_lib",
+        "command": "cargo test -p forge_studio --lib",
+        "status": "PASS",
+        "passed": 120,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_bin",
+        "command": "cargo test -p forge_studio --bin forge-studio",
+        "status": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "excluded_from_full_library_suite_total": true
+      },
+      {
+        "id": "forge_studio_check_wasm",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_native",
+        "command": "cargo clippy -p forge_studio --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_native",
+        "command": "cargo clippy -p forge_engine --all-targets --all-features -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_wasm_lib",
+        "command": "cargo clippy -p forge_engine --lib --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS",
+        "scope_note": "product library only; no all-targets WASM verdict is claimed"
+      },
+      {
+        "id": "forge_project_world_clippy_native",
+        "command": "cargo clippy -p forge_project -p forge_world --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_project_world_clippy_wasm_lib",
+        "command": "cargo clippy -p forge_project -p forge_world --lib --target wasm32-unknown-unknown -- -D warnings",
+        "status": "PASS",
+        "scope_note": "product libraries only; no all-targets WASM verdict is claimed"
+      },
+      {
+        "id": "forge_studio_trunk_debug",
+        "command": "$env:NO_COLOR='true'; trunk build --locked --offline",
+        "working_directory": "apps/forge_studio",
+        "profile": "debug",
+        "status": "PASS",
+        "attempts": 2,
+        "first_attempt_environment_failure": "no space left on device",
+        "recovery_command": "cargo clean -p forge_studio --target wasm32-unknown-unknown",
+        "reclaimed_gib": 4.5
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ]
+  },
+  "functional_contract": {
+    "workspace_schema_version": 6,
+    "persistent_schema_changed": false,
+    "new_authoring_command_added": false,
+    "ford_metadata_persisted": false,
+    "river_generation_version": 2,
+    "intersection_kind": "terrain_ford_v1",
+    "maximum_generated_road_river_intersections": 64,
+    "minimum_crossing_angle_degrees": 30.0,
+    "maximum_crossing_angle_degrees": 90.0,
+    "minimum_residual_water_depth_m": 0.05,
+    "requires_distinct_road_and_river_paths": true,
+    "requires_exactly_one_isolated_transversal_crossing": true,
+    "requires_endpoint_clearance": true,
+    "requires_local_footprint_overlap": true,
+    "river_river_overlaps_remain_rejected": true,
+    "same_path_road_river_conflict_remains_rejected": true,
+    "unsupported_road_river_contacts_rejected_atomically": true,
+    "intersection_metadata_sorted_unique_and_exhaustive": true,
+    "intersection_values_match_visible_surfaces_bit_exactly": true,
+    "generated_source_hashes_and_version_correlated": true,
+    "generated_river_centrelines_match_path_resampling_bit_exactly": true,
+    "generated_road_centrelines_match_path_resampling_bit_exactly": true,
+    "maximum_generated_river_longitudinal_samples": 16384,
+    "maximum_generated_road_longitudinal_samples": 16384,
+    "canonical_terrain_persisted_unchanged": true,
+    "effective_terrain_is_derived_and_not_persisted": true,
+    "creation_is_deterministic_in_both_authoring_orders": true,
+    "accepted_history_entries_per_command": 1,
+    "undo_redo_exact": true,
+    "save_reopen_derived_hash_exact": true,
+    "road_only_effective_terrain_chunks_sent": 0,
+    "road_only_terrain_mesh_rebuilt": false,
+    "road_only_vegetation_paths_and_water_reused": true,
+    "road_only_road_mesh_rebuilt": true,
+    "studio_rereads_current_sources_before_pending": true,
+    "density_preview_uses_validated_current_area_sources": true,
+    "viewport_validates_canonical_terrain_path_road_river_sources": true,
+    "viewport_replays_complete_river_generation_plan": false,
+    "viewport_internal_native_worker_trust_boundary": true,
+    "stale_forged_or_omitted_payload_preserves_presented_scene": true,
+    "uses_external_assets": false,
+    "native_visual_review_performed": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and a later grouped visual review.",
+    "follow_up": "Review accumulated Gate 2 editor interactions in one later native pass."
+  },
+  "release_qualification": {
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "gpu_qualification": {
+    "status": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "next_route": "R2-025",
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_file_count": 14,
+    "changed_files": [
+      "apps/forge_studio/src/area_preview.rs",
+      "apps/forge_studio/src/area_preview_cache_tests.rs",
+      "apps/forge_studio/src/workspace_service_tests.rs",
+      "apps/forge_studio/src/world_ui.rs",
+      "crates/forge_engine/src/editor_path.rs",
+      "crates/forge_engine/src/editor_river.rs",
+      "crates/forge_engine/src/editor_river_tests.rs",
+      "crates/forge_engine/src/editor_road.rs",
+      "crates/forge_engine/src/editor_viewport.rs",
+      "crates/forge_world/src/lib.rs",
+      "crates/forge_world/src/path.rs",
+      "crates/forge_world/src/river.rs",
+      "crates/forge_world/src/river_tests.rs",
+      "crates/forge_world/src/road.rs"
+    ],
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "runtime_dependencies_changed": 0,
+    "dev_dependencies_changed": 0,
+    "new_third_party_packages_or_versions": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0,
+    "persistent_schema_files_changed": 0
+  },
+  "artifacts": []
+}
