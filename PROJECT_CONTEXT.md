@@ -192,7 +192,7 @@ UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`. A
 dépendance, manifest Cargo ni contenu Cadle n'est modifié. **Gate 2 atteint 19/43 et reste ouverte ;
 R2-C est complet et R2-021 création/édition de chemin devient la prochaine tranche fonctionnelle.**
 
-### Chemins et profils de route — treizième et quatorzième incréments qualifiés
+### Chemins, routes et rivières — treizième à quinzième incréments qualifiés
 
 Après le chemin persistant R2-021 (`91be10b`), le code `e117d83` qualifie **R2-022** sur preuves
 fonctionnelles automatisées. Le workspace v5 ajoute un document `forge.road` v1 : un profil terre
@@ -210,6 +210,24 @@ la revue visuelle est regroupée pour plus tard. Aucun asset ni contenu Cadle, a
 runtime ; `serde_json` est ajouté uniquement comme dev-dependency de `forge_world`.
 [Preuves et limites](docs/evidence/gate2/ROAD_PROFILE_AUTHORING.md). **Gate 2 atteint 21/43 et reste
 ouverte ; R2-023 rivière et carving devient la prochaine tranche fonctionnelle.**
+
+Le code `7316e55` qualifie ensuite **R2-023** sur preuves fonctionnelles automatisées. Le workspace
+v6 ajoute un document `forge.river` v1 : une rivière bornée par chemin ouvert, persistante sur une
+seule révision et traversant undo/redo, sauvegarde, réouverture et redessin. La génération dérive un
+terrain effectif non persisté dont aucun échantillon n’est relevé, raccorde lit et berges vers la
+terre procédurale, puis produit un ruban d’eau monotone. L’aperçu, la végétation, les chemins, les
+routes et le résolveur de promotion sont corrélés à ce même terrain visible. Le viewport stage puis
+échange atomiquement terrain et eau, conserve les handles inchangés et abandonne proprement les
+relèves obsolètes. Les commandes de génération concernées sont déportées sur le worker bloquant
+Tauri. Les overlaps restent refusés jusqu’à R2-024 ; aucune intersection n’est revendiquée.
+
+**564 tests de bibliothèque PASS** (`forge_project` 137, `forge_world` 120, `forge_engine` 190,
+`forge_studio` 117), plus **6/6** tests du binaire Studio. Check Studio WASM, Clippy Studio,
+Engine et Project/World natif/WASM dans les portées déclarées, Trunk debug offline, formatage et
+diff-check PASS. UI native, Release, GPU, performance, CI distante et PresentMon restent `NOT RUN` ;
+la revue visuelle est regroupée pour plus tard. Aucun asset, contenu Cadle, manifeste Cargo,
+lockfile ou dépendance. [Preuves et limites](docs/evidence/gate2/RIVER_CARVING.md). **Gate 2 atteint
+22/43 et reste ouverte ; R2-024 intersections devient la prochaine tranche fonctionnelle.**
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
@@ -2431,9 +2449,10 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 21/43 après R2-022 ; R2-C biomes/végétation est complet et R2-D a livré les chemins
-persistants puis leurs profils de route sur preuves fonctionnelles automatisées. Poursuivre R2-D par
-R2-023 rivière et carving, sans anticiper les intersections, le picking ou le gizmo génériques. Le
+Gate 2 est à 22/43 après R2-023 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+leurs profils de route puis les rivières avec carving non destructif sur preuves fonctionnelles
+automatisées. Poursuivre R2-D par R2-024 intersections, sans anticiper le picking ou le gizmo
+génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.
