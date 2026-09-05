@@ -3,10 +3,10 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    AuthoredPath, AuthoredRiver, AuthoredRoad, AuthoredWall, PromotedVegetationInstance,
-    TerrainHeightDelta, TerrainMaterialWeightOverride, VegetationDensityLayer,
-    VegetationDensityOverride, VegetationExclusion, VegetationLayer, VegetationLayerId,
-    WorkspaceDocument, WorkspaceError, WorkspaceModule,
+    AssetPin, AuthoredPath, AuthoredPlacement, AuthoredRiver, AuthoredRoad, AuthoredWall,
+    PromotedVegetationInstance, TerrainHeightDelta, TerrainMaterialWeightOverride,
+    VegetationDensityLayer, VegetationDensityOverride, VegetationExclusion, VegetationLayer,
+    VegetationLayerId, WorkspaceDocument, WorkspaceError, WorkspaceModule,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
@@ -103,6 +103,18 @@ pub enum WorkspaceChange {
         expected_river_document_hash: ContentHash,
         expected_wall_document_hash: ContentHash,
         wall: AuthoredWall,
+    },
+    /// Adds one persistent instance and its immutable governed source pin.
+    PlaceAsset {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_terrain_document_hash: ContentHash,
+        expected_path_document_hash: ContentHash,
+        expected_road_document_hash: ContentHash,
+        expected_river_document_hash: ContentHash,
+        expected_placement_document_hash: ContentHash,
+        asset_pin: Box<AssetPin>,
+        placement: AuthoredPlacement,
     },
     AddModule {
         module_id: ModuleId,
@@ -347,6 +359,29 @@ impl WorkspaceDocument {
                 wall,
                 next,
             )?,
+            WorkspaceChange::PlaceAsset {
+                module_id,
+                area_id,
+                expected_terrain_document_hash,
+                expected_path_document_hash,
+                expected_road_document_hash,
+                expected_river_document_hash,
+                expected_placement_document_hash,
+                asset_pin,
+                placement,
+            } => place_asset(
+                document,
+                *module_id,
+                *area_id,
+                *expected_terrain_document_hash,
+                *expected_path_document_hash,
+                *expected_road_document_hash,
+                *expected_river_document_hash,
+                *expected_placement_document_hash,
+                asset_pin,
+                *placement,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -437,6 +472,76 @@ fn update_area_metadata(
     area.rivers.revision = revision;
     name.clone_into(&mut area.walls.name);
     area.walls.revision = revision;
+    name.clone_into(&mut area.placements.name);
+    area.placements.revision = revision;
+    Ok(())
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "asset placement is deliberately bound to every source document used for its terrain projection"
+)]
+fn place_asset(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_terrain_hash: ContentHash,
+    expected_path_hash: ContentHash,
+    expected_road_hash: ContentHash,
+    expected_river_hash: ContentHash,
+    expected_placement_hash: ContentHash,
+    asset_pin: &AssetPin,
+    placement: AuthoredPlacement,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.terrain.content_hash()? != expected_terrain_hash
+        || area.paths.content_hash()? != expected_path_hash
+        || area.roads.content_hash()? != expected_road_hash
+        || area.rivers.content_hash()? != expected_river_hash
+        || area.placements.content_hash()? != expected_placement_hash
+    {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    asset_pin.validate()?;
+    placement.validate()?;
+    if placement.asset_id != asset_pin.asset_id {
+        return Err(WorkspaceError::PlacementAssetMismatch(placement.id));
+    }
+
+    let mut replacement = area.placements.clone();
+    match replacement
+        .asset_pins
+        .binary_search_by_key(&asset_pin.asset_id, |candidate| candidate.asset_id)
+    {
+        Ok(index) if replacement.asset_pins[index] != *asset_pin => {
+            return Err(WorkspaceError::AssetPinChanged(asset_pin.asset_id));
+        }
+        Ok(_) => {}
+        Err(index) => replacement.asset_pins.insert(index, asset_pin.clone()),
+    }
+    match replacement
+        .placements
+        .binary_search_by_key(&placement.id, |candidate| candidate.id)
+    {
+        Ok(index) if replacement.placements[index] == placement => {
+            return Err(WorkspaceError::NoChange);
+        }
+        Ok(_) => return Err(WorkspaceError::PlacementIdentityConflict(placement.id)),
+        Err(index) => replacement.placements.insert(index, placement),
+    }
+    replacement.revision = revision;
+    replacement.validate()?;
+    area.placements = replacement;
     Ok(())
 }
 

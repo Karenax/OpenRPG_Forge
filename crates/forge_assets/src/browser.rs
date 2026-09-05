@@ -1468,6 +1468,11 @@ mod native {
         if value.contains('\\') {
             return Err(unsafe_path("backslashes are forbidden"));
         }
+        if value.contains(['%', '?', '#']) {
+            return Err(unsafe_path(
+                "encoded, query and fragment path characters are forbidden",
+            ));
+        }
         if Path::new(value).is_absolute()
             || value.starts_with('/')
             || value.as_bytes().get(1) == Some(&b':')
@@ -2009,6 +2014,9 @@ mod native {
                 "../License.txt",
                 "./License.txt",
                 "folder\\License.txt",
+                "folder/scene#variant.gltf",
+                "folder/scene?variant.gltf",
+                "folder/scene%23variant.gltf",
             ] {
                 let root = TestRoot::new();
                 let path = root.write_valid_subset("pack", "fixture-pack");

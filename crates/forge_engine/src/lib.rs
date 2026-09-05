@@ -2,6 +2,7 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+mod editor_placement;
 pub mod editor_viewport;
 mod environment;
 mod gpu_performance;
@@ -20,6 +21,12 @@ mod visual_valley;
 mod water;
 mod weather;
 
+pub use editor_placement::{
+    EditorPlacementAssetBudget, EditorPlacementProjectionBridge, EditorPlacementProjectionError,
+    EditorPlacementProjectionPhase, EditorPlacementProjectionPlugin,
+    EditorPlacementProjectionStatus, EditorPlacementRoot, MAX_EDITOR_PLACEMENT_SCENES,
+    MAX_EDITOR_PLACEMENT_TRACKED_BYTES, MAX_EDITOR_PLACEMENTS,
+};
 pub use environment::{
     EnvironmentDistanceFogStats, EnvironmentProjectionStats, EnvironmentProjectionStatus,
     EnvironmentSkyStats, EnvironmentSunStats, EnvironmentVolumetricStats,

@@ -118,6 +118,7 @@ fn incompatible_request_versions_are_rejected_without_starting_a_scan() {
 #[test]
 fn invalid_refresh_snapshot_cannot_replace_the_valid_cached_snapshot() {
     let snapshot = scan_compiled_assets().unwrap();
+    let asset_id = snapshot.assets[0].id;
     let mut service = AssetBrowserService::default();
     let BrowseAssetsWork::Scan(initial) = service.begin(request(1, false)).unwrap() else {
         panic!("empty cache must scan");
@@ -133,6 +134,11 @@ fn invalid_refresh_snapshot_cannot_replace_the_valid_cached_snapshot() {
     assert_eq!(
         service.cache.as_ref().map(|cached| cached.snapshot_hash),
         Some(snapshot.snapshot_hash)
+    );
+    assert!(
+        service
+            .resolve_asset(snapshot.snapshot_hash, asset_id)
+            .is_err()
     );
 
     let BrowseAssetsWork::Scan(retry) = service.begin(request(3, true)).unwrap() else {
@@ -182,8 +188,166 @@ fn scan_failure_releases_only_its_exact_ticket_and_allows_retry() {
         panic!("a failed refresh must preserve the prior valid cache");
     };
     assert_eq!(hit.snapshot.snapshot_hash, catalog.snapshot.snapshot_hash);
+    assert!(
+        service
+            .resolve_asset(
+                catalog.snapshot.snapshot_hash,
+                catalog.snapshot.assets[0].id
+            )
+            .is_err()
+    );
     assert!(matches!(
         service.begin(request(4, true)).unwrap(),
         BrowseAssetsWork::Scan(_)
     ));
+}
+
+#[test]
+fn placement_resolution_is_bound_to_the_exact_cached_snapshot_and_native_provenance() {
+    let snapshot = scan_compiled_assets().unwrap();
+    let expected = snapshot.assets.first().unwrap().clone();
+    let expected_subset = snapshot
+        .manifests
+        .iter()
+        .find(|subset| subset.subset_id == expected.provenance.subset_id)
+        .unwrap();
+    let expected_bytes = expected_subset
+        .files
+        .iter()
+        .map(|file| file.bytes)
+        .sum::<u64>();
+    let mut service = AssetBrowserService::default();
+    let BrowseAssetsWork::Scan(ticket) = service.begin(request(1, false)).unwrap() else {
+        panic!("empty cache must scan");
+    };
+    service.finish(ticket, Ok(snapshot.clone())).unwrap();
+
+    let resolved = service
+        .resolve_asset(snapshot.snapshot_hash, expected.id)
+        .unwrap();
+    assert_eq!(resolved.entry, expected);
+    assert_eq!(
+        resolved.license_evidence_hash,
+        expected_subset.license.evidence_hash
+    );
+    assert_eq!(resolved.tracked_bytes, expected_bytes);
+    let pin = resolved.asset_pin().unwrap();
+    assert_eq!(pin.asset_id, expected.id);
+    assert_eq!(pin.stable_key, expected.stable_key);
+    assert_eq!(pin.scene_path, expected.scene_path);
+    assert_eq!(
+        pin.license_evidence_hash,
+        expected_subset.license.evidence_hash
+    );
+
+    assert!(
+        service
+            .resolve_asset(forge_core::ContentHash::from_bytes([9; 32]), expected.id)
+            .is_err()
+    );
+    assert!(
+        service
+            .resolve_asset(
+                snapshot.snapshot_hash,
+                forge_core::AssetId::deterministic("asset-browser/absent")
+            )
+            .is_err()
+    );
+}
+
+#[test]
+fn placement_resolution_requires_a_loaded_catalog() {
+    assert!(
+        AssetBrowserService::default()
+            .resolve_asset(
+                forge_core::ContentHash::from_bytes([1; 32]),
+                forge_core::AssetId::deterministic("asset-browser/unloaded")
+            )
+            .is_err()
+    );
+}
+
+#[test]
+fn placement_resolution_never_uses_a_cache_while_refresh_is_in_flight() {
+    let snapshot = scan_compiled_assets().unwrap();
+    let asset_id = snapshot.assets[0].id;
+    let mut service = AssetBrowserService::default();
+    let BrowseAssetsWork::Scan(initial) = service.begin(request(1, false)).unwrap() else {
+        panic!("empty cache must scan");
+    };
+    service.finish(initial, Ok(snapshot.clone())).unwrap();
+    let BrowseAssetsWork::Scan(refresh) = service.begin(request(2, true)).unwrap() else {
+        panic!("refresh must enter flight");
+    };
+    assert!(
+        service
+            .resolve_asset(snapshot.snapshot_hash, asset_id)
+            .is_err()
+    );
+    service.finish(refresh, Ok(snapshot.clone())).unwrap();
+    assert!(
+        service
+            .resolve_asset(snapshot.snapshot_hash, asset_id)
+            .is_ok()
+    );
+}
+
+#[test]
+fn persistent_placement_reopens_without_opening_assets_and_rejects_a_repinned_source() {
+    let snapshot = scan_compiled_assets().unwrap();
+    let asset_id = snapshot.assets.first().unwrap().id;
+    let mut loaded = AssetBrowserService::default();
+    let BrowseAssetsWork::Scan(ticket) = loaded.begin(request(1, false)).unwrap() else {
+        panic!("empty cache must scan");
+    };
+    loaded.finish(ticket, Ok(snapshot)).unwrap();
+    let pin = loaded
+        .resolve_asset(loaded.cache.as_ref().unwrap().snapshot_hash, asset_id)
+        .unwrap()
+        .asset_pin()
+        .unwrap();
+    let project_id = forge_core::ProjectId::deterministic("placement-resolution/project");
+    let area_id = forge_core::AreaId::deterministic("placement-resolution/area");
+    let placement = forge_project::AuthoredPlacement {
+        id: forge_core::EntityId::deterministic("placement-resolution/tree"),
+        asset_id: pin.asset_id,
+        transform: forge_core::Transform {
+            translation_m: forge_core::Vec3::new(1.0, 2.0, 3.0),
+            rotation: forge_core::UnitQuaternion::IDENTITY,
+            scale: forge_core::Vec3::new(pin.base_scale, pin.base_scale, pin.base_scale),
+        },
+    };
+    let document = forge_project::PlacementDocument::new(
+        project_id,
+        area_id,
+        forge_core::Revision::INITIAL,
+        "Placements",
+        vec![pin.clone()],
+        vec![placement],
+    );
+
+    let mut unopened = AssetBrowserService::default();
+    let resolved = unopened.resolve_placement_document(&document).unwrap();
+    assert_eq!(resolved.len(), 1);
+    assert_eq!(resolved[0].entry.id, pin.asset_id);
+    let binding = unopened.placement_projection_binding(&document).unwrap();
+    assert_eq!(binding.source_hash, document.content_hash().unwrap());
+    assert_eq!(binding.asset_budgets.len(), 1);
+    assert_eq!(binding.asset_budgets[0].asset_id, pin.asset_id);
+    assert_eq!(
+        binding.asset_budgets[0].tracked_bytes,
+        resolved[0].tracked_bytes
+    );
+    let refreshed_snapshot = unopened.cache.as_ref().unwrap().clone();
+    let BrowseAssetsWork::Scan(refresh) = unopened.begin(request(7, true)).unwrap() else {
+        panic!("refresh must enter flight");
+    };
+    let concurrent_reopen = unopened.placement_projection_binding(&document).unwrap();
+    assert_eq!(concurrent_reopen, binding);
+    unopened.finish(refresh, Ok(refreshed_snapshot)).unwrap();
+
+    let mut repinned = document;
+    repinned.asset_pins[0].scene_content_hash = forge_core::ContentHash::from_bytes([0xB4; 32]);
+    assert!(repinned.validate().is_ok());
+    assert!(unopened.resolve_placement_document(&repinned).is_err());
 }

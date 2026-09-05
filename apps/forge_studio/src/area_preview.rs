@@ -237,6 +237,7 @@ fn validate_preview_source(
         area.roads.revision.get(),
         area.rivers.revision.get(),
         area.walls.revision.get(),
+        area.placements.revision.get(),
     ];
     if revisions
         .into_iter()
@@ -263,6 +264,7 @@ fn validate_vegetation_density_candidate_source(
         || area.roads.revision.get() > request.base_revision
         || area.rivers.revision.get() > request.base_revision
         || area.walls.revision.get() > request.base_revision
+        || area.placements.revision.get() > request.base_revision
     {
         return Err("Source candidate incohérente avec la demande d’aperçu.".into());
     }
@@ -290,6 +292,8 @@ fn validate_preview_identity(
         || area.rivers.area_id != area_id
         || area.walls.project_id != project_id
         || area.walls.area_id != area_id
+        || area.placements.project_id != project_id
+        || area.placements.area_id != area_id
         || ![area.spawn.x, area.spawn.y, area.spawn.z]
             .iter()
             .all(|value| value.is_finite())

@@ -28,6 +28,30 @@ pub struct EditorBrushHit {
     pub point: [f32; 3],
 }
 
+/// One Studio canvas sample used to resolve a placement drop against the presented terrain.
+///
+/// `viewport_uv` is normalized against the canvas client rectangle: top-left is `[0, 0]` and
+/// bottom-right is `[1, 1]`. The caller must match both `generation` and `serial` on the returned
+/// [`EditorSurfaceHit`] before requesting a persistent mutation.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct EditorSurfacePointer {
+    pub generation: u64,
+    pub serial: u64,
+    pub viewport_uv: [f32; 2],
+}
+
+/// Read-only placement bridge result. The native command path remains responsible for sampling
+/// the canonical terrain again before persisting Y.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub struct EditorSurfaceHit {
+    pub generation: u64,
+    pub serial: u64,
+    pub project_id: forge_core::ProjectId,
+    pub area_id: forge_core::AreaId,
+    pub revision: u64,
+    pub world: [f32; 3],
+}
+
 #[derive(Default)]
 pub(crate) struct CursorCache {
     key: Option<(EditorBrushPointer, Mat4, Vec2)>,
@@ -143,6 +167,70 @@ pub(crate) fn update_brush_cursor(
         cache.segments.push(ring);
     }
     draw_cursor(&cache, pointer.strength, &mut gizmos);
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters are injected by value"
+)]
+pub(crate) fn update_surface_pointer(
+    viewport: Res<EditorViewport>,
+    cameras: Query<(&Camera, &GlobalTransform), With<EditorCamera>>,
+    terrain: Query<(), With<EditorTerrainChunk>>,
+    mut ray_cast: MeshRayCast,
+) {
+    let Ok(mut bridge) = viewport.0.lock() else {
+        return;
+    };
+    bridge.surface_hit = None;
+    bridge.surface_sample_serial = None;
+    let Some(pointer) = bridge.surface_pointer else {
+        return;
+    };
+    let Some((project_id, area_id)) = valid_surface_pointer(pointer, &bridge) else {
+        return;
+    };
+    let Ok((camera, transform)) = cameras.single() else {
+        return;
+    };
+    let Some(rect) = camera.logical_viewport_rect() else {
+        return;
+    };
+    bridge.surface_sample_serial = Some(pointer.serial);
+    let position = rect.min + Vec2::from_array(pointer.viewport_uv) * rect.size();
+    let Ok(ray) = camera.viewport_to_world(transform, position) else {
+        return;
+    };
+    let filter = |entity| terrain.contains(entity);
+    let settings = terrain_ray_settings(&filter);
+    let Some((_, hit)) = ray_cast.cast_ray(ray, &settings).first() else {
+        return;
+    };
+    bridge.surface_hit = Some(EditorSurfaceHit {
+        generation: pointer.generation,
+        serial: pointer.serial,
+        project_id,
+        area_id,
+        revision: bridge.status.revision,
+        world: hit.point.to_array(),
+    });
+}
+
+fn valid_surface_pointer(
+    pointer: EditorSurfacePointer,
+    bridge: &crate::editor_viewport::EditorViewportBridge,
+) -> Option<(forge_core::ProjectId, forge_core::AreaId)> {
+    if pointer.generation != bridge.status.generation
+        || pointer.generation != bridge.desired_generation
+        || bridge.status.chunks != 64
+        || !pointer
+            .viewport_uv
+            .iter()
+            .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
+    {
+        return None;
+    }
+    Some((bridge.status.project_id?, bridge.status.area_id?))
 }
 
 fn draw_cursor(cache: &CursorCache, strength: f32, gizmos: &mut Gizmos) {
@@ -300,5 +388,48 @@ mod tests {
             8,
             64
         ));
+    }
+
+    #[test]
+    fn placement_surface_pointer_requires_exact_presented_generation_and_scope() {
+        let pointer = EditorSurfacePointer {
+            generation: 8,
+            serial: 21,
+            viewport_uv: [0.25, 0.75],
+        };
+        let project_id = forge_core::ProjectId::deterministic("surface/project");
+        let area_id = forge_core::AreaId::deterministic("surface/area");
+        let mut bridge = crate::editor_viewport::EditorViewportBridge {
+            desired_generation: 8,
+            status: crate::editor_viewport::EditorViewportStatus {
+                generation: 8,
+                project_id: Some(project_id),
+                area_id: Some(area_id),
+                chunks: 64,
+                ..default()
+            },
+            ..default()
+        };
+
+        assert_eq!(
+            valid_surface_pointer(pointer, &bridge),
+            Some((project_id, area_id))
+        );
+        bridge.desired_generation = 9;
+        assert_eq!(valid_surface_pointer(pointer, &bridge), None);
+        bridge.desired_generation = 8;
+        bridge.status.project_id = None;
+        assert_eq!(valid_surface_pointer(pointer, &bridge), None);
+        bridge.status.project_id = Some(project_id);
+        assert_eq!(
+            valid_surface_pointer(
+                EditorSurfacePointer {
+                    viewport_uv: [f32::NAN, 0.5],
+                    ..pointer
+                },
+                &bridge,
+            ),
+            None
+        );
     }
 }

@@ -1,19 +1,20 @@
 use super::*;
 use crate::{
-    AuthoredPath, AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_PATH_CONTROL_POINTS,
-    MAX_PATHS_PER_DOCUMENT, MAX_PROMOTED_VEGETATION_INSTANCES, MAX_RIVERS_PER_DOCUMENT,
-    MAX_ROADS_PER_DOCUMENT, MAX_TOTAL_RIVER_LENGTH_M, MAX_TOTAL_ROAD_LENGTH_M,
-    MAX_TOTAL_WALL_LENGTH_M, MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES,
-    NewProjectCommand, PathControlPoint, PathDocumentError, PathId, PathInterpolation,
-    PromotedVegetationInstance, RiverChannelProfile, RiverChannelProfileAlgorithm,
-    RiverDocumentError, RiverSurface, RoadProfile, RoadProfileAlgorithm, RoadSurface,
-    TerrainMaterialLayerId, TerrainMaterialRole, TerrainMaterialWeightOverride,
-    VegetationDensityError, VegetationDensityOverride, VegetationDocumentError,
-    VegetationExclusion, VegetationExclusionId, VegetationGenerationAlgorithm,
-    VegetationInstanceTransform, VegetationPromotionSource, VegetationSpeciesPreset,
-    WallDocumentError, WallProfile, WallProfileAlgorithm, WallSurface,
+    AssetPin, AuthoredPath, AuthoredPlacement, AuthoredRiver, AuthoredRoad, AuthoredWall,
+    MAX_ASSET_PINS_PER_DOCUMENT, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
+    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_RIVERS_PER_DOCUMENT, MAX_ROADS_PER_DOCUMENT,
+    MAX_TOTAL_RIVER_LENGTH_M, MAX_TOTAL_ROAD_LENGTH_M, MAX_TOTAL_WALL_LENGTH_M,
+    MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand,
+    PathControlPoint, PathDocumentError, PathId, PathInterpolation, PromotedVegetationInstance,
+    RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocumentError, RiverSurface,
+    RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainMaterialLayerId, TerrainMaterialRole,
+    TerrainMaterialWeightOverride, VegetationDensityError, VegetationDensityOverride,
+    VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
+    VegetationGenerationAlgorithm, VegetationInstanceTransform, VegetationPromotionSource,
+    VegetationSpeciesPreset, WallDocumentError, WallProfile, WallProfileAlgorithm, WallSurface,
+    asset_id_from_stable_key,
 };
-use forge_core::{ContentHash, EntityId, ProjectId, Vec3};
+use forge_core::{ContentHash, EntityId, ProjectId, Transform, UnitQuaternion, Vec3};
 use serde_json::json;
 
 fn source() -> WorkspaceDocument {
@@ -211,6 +212,57 @@ fn wall_change(document: &WorkspaceDocument, wall: AuthoredWall) -> WorkspaceCha
     }
 }
 
+fn asset_pin(key: &str) -> AssetPin {
+    let stable_key = format!("pack/{key}");
+    AssetPin {
+        asset_id: asset_id_from_stable_key(&stable_key),
+        stable_key,
+        subset_id: "subset-1".to_owned(),
+        pack_id: "pack".to_owned(),
+        source_version: "1.0".to_owned(),
+        author: "Author".to_owned(),
+        source_path: format!("gltf/{key}.gltf"),
+        scene_path: format!("governed/{key}.gltf"),
+        scene_content_hash: ContentHash::from_bytes([1; 32]),
+        manifest_hash: ContentHash::from_bytes([2; 32]),
+        license_spdx: "CC0-1.0".to_owned(),
+        license_evidence_hash: ContentHash::from_bytes([3; 32]),
+        base_scale: 1.0,
+    }
+}
+
+fn authored_placement(key: &str, pin: &AssetPin) -> AuthoredPlacement {
+    AuthoredPlacement {
+        id: EntityId::deterministic(format!("workspace-placement/{key}")),
+        asset_id: pin.asset_id,
+        transform: Transform {
+            translation_m: Vec3::new(8.0, 3.0, -4.0),
+            rotation: UnitQuaternion::IDENTITY,
+            scale: Vec3::ONE,
+        },
+    }
+}
+
+fn placement_change(
+    document: &WorkspaceDocument,
+    pin: AssetPin,
+    placement: AuthoredPlacement,
+) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    WorkspaceChange::PlaceAsset {
+        module_id: module.id,
+        area_id: area.id,
+        expected_terrain_document_hash: area.terrain.content_hash().unwrap(),
+        expected_path_document_hash: area.paths.content_hash().unwrap(),
+        expected_road_document_hash: area.roads.content_hash().unwrap(),
+        expected_river_document_hash: area.rivers.content_hash().unwrap(),
+        expected_placement_document_hash: area.placements.content_hash().unwrap(),
+        asset_pin: Box::new(pin),
+        placement,
+    }
+}
+
 fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut value = serde_json::to_value(document).unwrap();
     value["schema_version"] = json!(1);
@@ -222,6 +274,7 @@ fn legacy_json(document: &WorkspaceDocument) -> String {
     area.as_object_mut().unwrap().remove("roads");
     area.as_object_mut().unwrap().remove("rivers");
     area.as_object_mut().unwrap().remove("walls");
+    area.as_object_mut().unwrap().remove("placements");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     value["project"].as_object_mut().unwrap().remove("modules");
@@ -240,6 +293,7 @@ fn legacy_v2_json(document: &WorkspaceDocument) -> String {
             area.as_object_mut().unwrap().remove("roads");
             area.as_object_mut().unwrap().remove("rivers");
             area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
         }
     }
     value.to_string()
@@ -254,6 +308,7 @@ fn legacy_v3_json(document: &WorkspaceDocument) -> String {
             area.as_object_mut().unwrap().remove("roads");
             area.as_object_mut().unwrap().remove("rivers");
             area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
         }
     }
     value.to_string()
@@ -267,6 +322,7 @@ fn legacy_v4_json(document: &WorkspaceDocument) -> String {
             area.as_object_mut().unwrap().remove("roads");
             area.as_object_mut().unwrap().remove("rivers");
             area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
         }
     }
     value.to_string()
@@ -279,6 +335,7 @@ fn legacy_v5_json(document: &WorkspaceDocument) -> String {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("rivers");
             area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
         }
     }
     value.to_string()
@@ -290,10 +347,23 @@ fn legacy_v6_json(document: &WorkspaceDocument) -> String {
     for module in value["project"]["modules"].as_array_mut().unwrap() {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
         }
     }
     value.to_string()
 }
+
+fn legacy_v7_json(document: &WorkspaceDocument) -> String {
+    let mut value = serde_json::to_value(document).unwrap();
+    value["schema_version"] = json!(7);
+    for module in value["project"]["modules"].as_array_mut().unwrap() {
+        for area in module["areas"].as_array_mut().unwrap() {
+            area.as_object_mut().unwrap().remove("placements");
+        }
+    }
+    value.to_string()
+}
+
 #[test]
 fn legacy_migration_preserves_every_known_field_without_mutating_input() {
     let document = source();
@@ -682,6 +752,60 @@ fn workspace_v6_migration_adds_only_empty_walls_and_preserves_embedded_hashes() 
 }
 
 #[test]
+fn workspace_v7_migration_preserves_sources_and_adds_only_empty_placements() {
+    let source = source();
+    let source_area = &source.project.modules[0].areas[0];
+    let source_hashes = (
+        source_area.terrain.content_hash().unwrap(),
+        source_area.paths.content_hash().unwrap(),
+        source_area.roads.content_hash().unwrap(),
+        source_area.rivers.content_hash().unwrap(),
+        source_area.walls.content_hash().unwrap(),
+    );
+    let json = legacy_v7_json(&source);
+    let untouched = json.clone();
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    let area = &migrated.project.modules[0].areas[0];
+
+    assert_eq!(json, untouched);
+    assert_eq!(migrated.schema_version, crate::WORKSPACE_SCHEMA_VERSION);
+    assert_eq!(area.terrain.content_hash().unwrap(), source_hashes.0);
+    assert_eq!(area.paths.content_hash().unwrap(), source_hashes.1);
+    assert_eq!(area.roads.content_hash().unwrap(), source_hashes.2);
+    assert_eq!(area.rivers.content_hash().unwrap(), source_hashes.3);
+    assert_eq!(area.walls.content_hash().unwrap(), source_hashes.4);
+    assert!(area.placements.asset_pins.is_empty());
+    assert!(area.placements.placements.is_empty());
+    assert_eq!(area.placements.project_id, migrated.project.id);
+    assert_eq!(area.placements.area_id, area.id);
+    assert_eq!(area.placements.name, area.name);
+    assert_eq!(area.placements.revision, area.walls.revision);
+    assert_eq!(legacy_v7_json(&migrated), json);
+}
+
+#[test]
+fn every_legacy_workspace_version_synthesizes_an_empty_placement_document() {
+    for serialize_legacy in [
+        legacy_json as fn(&WorkspaceDocument) -> String,
+        legacy_v2_json,
+        legacy_v3_json,
+        legacy_v4_json,
+        legacy_v5_json,
+        legacy_v6_json,
+        legacy_v7_json,
+    ] {
+        let source = source();
+        let migrated = WorkspaceDocument::from_json(&serialize_legacy(&source)).unwrap();
+        let area = &migrated.project.modules[0].areas[0];
+        assert!(area.placements.asset_pins.is_empty());
+        assert!(area.placements.placements.is_empty());
+        assert_eq!(area.placements.project_id, migrated.project.id);
+        assert_eq!(area.placements.area_id, area.id);
+        assert_eq!(area.placements.name, area.name);
+    }
+}
+
+#[test]
 fn legacy_migration_binds_the_default_recipe_to_the_preserved_grass_material_id() {
     for serialize_legacy in [
         legacy_json as fn(&WorkspaceDocument) -> String,
@@ -757,6 +881,11 @@ fn migration_rejects_unknown_duplicate_and_mixed_shape_fields() {
     mixed_v6["project"]["modules"][0]["areas"][0]["walls"] =
         serde_json::to_value(&current.project.modules[0].areas[0].walls).unwrap();
     assert!(WorkspaceDocument::from_json(&mixed_v6.to_string()).is_err());
+
+    let mut mixed_v7: serde_json::Value = serde_json::from_str(&legacy_v7_json(&current)).unwrap();
+    mixed_v7["project"]["modules"][0]["areas"][0]["placements"] =
+        serde_json::to_value(&current.project.modules[0].areas[0].placements).unwrap();
+    assert!(WorkspaceDocument::from_json(&mixed_v7.to_string()).is_err());
 }
 
 #[test]
@@ -2018,6 +2147,9 @@ fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     assert!(area.rivers.rivers.is_empty());
     assert_eq!(area.walls.revision, next.revision);
     assert!(area.walls.walls.is_empty());
+    assert_eq!(area.placements.revision, next.revision);
+    assert!(area.placements.asset_pins.is_empty());
+    assert!(area.placements.placements.is_empty());
     assert!(
         area.vegetation_density
             .layers
@@ -2056,6 +2188,7 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.name, area.roads.name);
     assert_eq!(area.name, area.rivers.name);
     assert_eq!(area.name, area.walls.name);
+    assert_eq!(area.name, area.placements.name);
     assert_eq!(area.terrain.revision, result.revision);
     assert_eq!(area.vegetation.revision, result.revision);
     assert_eq!(area.vegetation_density.revision, result.revision);
@@ -2063,6 +2196,7 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.roads.revision, result.revision);
     assert_eq!(area.rivers.revision, result.revision);
     assert_eq!(area.walls.revision, result.revision);
+    assert_eq!(area.placements.revision, result.revision);
     assert_eq!(area.terrain.height_sampling, old.terrain.height_sampling);
     assert_eq!(area.terrain.seed, old.terrain.seed);
     assert_eq!(area.vegetation.seed, old.vegetation.seed);
@@ -2075,6 +2209,8 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.roads.roads, old.roads.roads);
     assert_eq!(area.rivers.rivers, old.rivers.rivers);
     assert_eq!(area.walls.walls, old.walls.walls);
+    assert_eq!(area.placements.asset_pins, old.placements.asset_pins);
+    assert_eq!(area.placements.placements, old.placements.placements);
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
@@ -3110,6 +3246,160 @@ fn oversized_material_patch_is_rejected_before_the_source_or_receipt_can_change(
 }
 
 #[test]
+fn place_asset_is_sorted_revisioned_reopenable_and_replayable_from_inverse() {
+    let source = source();
+    let source_hash = source.content_hash().unwrap();
+    let first_pin = asset_pin("tree");
+    let first_placement = authored_placement("tree", &first_pin);
+    let first_command = edit(
+        &source,
+        placement_change(&source, first_pin.clone(), first_placement),
+    );
+    let first = source.preview_edit(first_command.clone()).unwrap();
+
+    assert_eq!(source.content_hash().unwrap(), source_hash);
+    assert_eq!(first.document.revision, source.revision.next().unwrap());
+    let first_area = &first.document.project.modules[0].areas[0];
+    assert_eq!(first_area.placements.revision, first.document.revision);
+    assert_eq!(first_area.placements.asset_pins, vec![first_pin]);
+    assert_eq!(first_area.placements.placements, vec![first_placement]);
+    assert_eq!(*first.receipt.inverse_snapshot, source);
+    assert_eq!(source.preview_edit(first_command).unwrap(), first);
+
+    let second_pin = asset_pin("rock");
+    let second_placement = authored_placement("rock", &second_pin);
+    let second = first
+        .document
+        .preview_edit(edit(
+            &first.document,
+            placement_change(&first.document, second_pin, second_placement),
+        ))
+        .unwrap();
+    let placements = &second.document.project.modules[0].areas[0].placements;
+    assert!(
+        placements
+            .asset_pins
+            .windows(2)
+            .all(|pair| pair[0].asset_id < pair[1].asset_id)
+    );
+    assert!(
+        placements
+            .placements
+            .windows(2)
+            .all(|pair| pair[0].id < pair[1].id)
+    );
+    let reopened =
+        WorkspaceDocument::from_json(&second.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, second.document);
+    assert_eq!(reopened.content_hash().unwrap(), second.receipt.after_hash);
+}
+
+#[test]
+fn place_asset_rejects_five_stale_sources_atomically() {
+    let source = source();
+    let before_hash = source.content_hash().unwrap();
+    let pin = asset_pin("tree");
+    let placement = authored_placement("tree", &pin);
+    for field in 0..5 {
+        let mut change = placement_change(&source, pin.clone(), placement);
+        let WorkspaceChange::PlaceAsset {
+            expected_terrain_document_hash,
+            expected_path_document_hash,
+            expected_road_document_hash,
+            expected_river_document_hash,
+            expected_placement_document_hash,
+            ..
+        } = &mut change
+        else {
+            unreachable!();
+        };
+        let forged = ContentHash::from_bytes([99; 32]);
+        match field {
+            0 => *expected_terrain_document_hash = forged,
+            1 => *expected_path_document_hash = forged,
+            2 => *expected_road_document_hash = forged,
+            3 => *expected_river_document_hash = forged,
+            _ => *expected_placement_document_hash = forged,
+        }
+        assert!(matches!(
+            source.preview_edit(edit(&source, change)),
+            Err(WorkspaceError::StaleRevision)
+        ));
+        assert_eq!(source.content_hash().unwrap(), before_hash);
+    }
+}
+
+#[test]
+fn place_asset_rejects_noop_identity_conflicts_and_pin_rebinding_atomically() {
+    let source = source();
+    let pin = asset_pin("tree");
+    let placement = authored_placement("tree", &pin);
+    let placed = source
+        .preview_edit(edit(
+            &source,
+            placement_change(&source, pin.clone(), placement),
+        ))
+        .unwrap()
+        .document;
+    let placed_hash = placed.content_hash().unwrap();
+
+    assert!(matches!(
+        placed.preview_edit(edit(
+            &placed,
+            placement_change(&placed, pin.clone(), placement)
+        )),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let mut conflicting = placement;
+    conflicting.transform.translation_m.x += 1.0;
+    assert!(matches!(
+        placed.preview_edit(edit(
+            &placed,
+            placement_change(&placed, pin.clone(), conflicting)
+        )),
+        Err(WorkspaceError::PlacementIdentityConflict(id)) if id == placement.id
+    ));
+
+    let mut rebound = pin.clone();
+    rebound.author = "Other author".to_owned();
+    let other = authored_placement("other", &rebound);
+    assert!(matches!(
+        placed.preview_edit(edit(
+            &placed,
+            placement_change(&placed, rebound, other)
+        )),
+        Err(WorkspaceError::AssetPinChanged(id)) if id == pin.asset_id
+    ));
+    assert_eq!(placed.content_hash().unwrap(), placed_hash);
+}
+
+#[test]
+fn place_asset_pin_limit_overflow_is_atomic() {
+    let mut full = source();
+    let area = &mut full.project.modules[0].areas[0];
+    area.placements.asset_pins = (0..MAX_ASSET_PINS_PER_DOCUMENT)
+        .map(|index| asset_pin(&format!("limit-{index:03}")))
+        .collect();
+    area.placements.asset_pins.sort_by_key(|pin| pin.asset_id);
+    full.validate().unwrap();
+    let before_hash = full.content_hash().unwrap();
+    let overflow = asset_pin("overflow");
+    let placement = authored_placement("overflow", &overflow);
+
+    assert!(matches!(
+        full.preview_edit(edit(
+            &full,
+            placement_change(&full, overflow, placement)
+        )),
+        Err(WorkspaceError::Placement(
+            crate::PlacementDocumentError::TooManyAssetPins(count)
+        )) if count == MAX_ASSET_PINS_PER_DOCUMENT + 1
+    ));
+    assert_eq!(full.content_hash().unwrap(), before_hash);
+}
+
+#[test]
 fn invalid_edits_are_rejected_without_changing_source() {
     let source = source();
     let hash = source.content_hash().unwrap();
@@ -3204,6 +3494,7 @@ fn collection_budgets_and_global_area_identity_are_validated() {
             area.roads.area_id = area.id;
             area.rivers.area_id = area.id;
             area.walls.area_id = area.id;
+            area.placements.area_id = area.id;
             area
         })
         .collect();

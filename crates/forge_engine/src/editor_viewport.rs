@@ -26,7 +26,7 @@ use std::{
 
 #[path = "editor_brush.rs"]
 mod brush;
-pub use brush::{EditorBrushHit, EditorBrushPointer};
+pub use brush::{EditorBrushHit, EditorBrushPointer, EditorSurfaceHit, EditorSurfacePointer};
 
 #[path = "editor_path.rs"]
 mod path;
@@ -220,6 +220,9 @@ pub struct EditorViewportStatus {
 
 #[derive(Default)]
 pub struct EditorViewportBridge {
+    pub surface_pointer: Option<EditorSurfacePointer>,
+    pub surface_hit: Option<EditorSurfaceHit>,
+    pub surface_sample_serial: Option<u64>,
     pub brush_pointer: Option<EditorBrushPointer>,
     pub brush_hit: Option<EditorBrushHit>,
     pub brush_sample_serial: Option<u64>,
@@ -253,6 +256,12 @@ impl Plugin for EditorViewportPlugin {
                     .after(bevy::transform::TransformSystems::Propagate)
                     .after(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
             );
+        app.add_systems(
+            PostUpdate,
+            brush::update_surface_pointer
+                .after(bevy::transform::TransformSystems::Propagate)
+                .after(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
+        );
         app.add_systems(PostUpdate, path::draw_editor_paths);
     }
 }

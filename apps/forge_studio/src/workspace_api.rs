@@ -1,6 +1,6 @@
 //! Small shared IPC boundary for the first project authoring workflow.
 
-use forge_core::{AreaId, EntityId, ModuleId};
+use forge_core::{AreaId, AssetId, ContentHash, EntityId, ModuleId};
 use forge_project::{
     AuthoredRiver, AuthoredRoad, AuthoredWall, PathId, VegetationExclusionId,
     VegetationInstanceTransform, VegetationLayerId, VegetationSpeciesPreset,
@@ -10,6 +10,22 @@ use serde::{Deserialize, Serialize};
 /// Largest revision representable exactly by the JavaScript number used by the IPC bridge.
 /// The domain keeps its full `u64`; the native session rejects larger revisions before mutation.
 pub const MAX_WORKSPACE_IPC_REVISION: u64 = (1_u64 << 53) - 1;
+
+/// Native-verified byte budget paired with a persistent asset pin for renderer staging.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlacementAssetBudget {
+    pub asset_id: AssetId,
+    pub tracked_bytes: u64,
+}
+
+/// Exact persistent placement source accepted alongside one canonical area preview.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlacementProjectionBinding {
+    pub source_hash: ContentHash,
+    pub asset_budgets: Vec<PlacementAssetBudget>,
+}
 
 /// One disposable density-stroke request. It is never stored in the workspace.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -60,6 +76,17 @@ pub enum VegetationExclusionDraft {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
 pub enum WorkspaceCommand {
+    /// Browser identity plus renderer-derived X/Z only. Native code resolves the immutable pin
+    /// from the exact cached snapshot and recomputes Y from the canonical effective terrain.
+    PlaceAsset {
+        request: crate::area_preview::AreaPreviewRequest,
+        asset_id: AssetId,
+        snapshot_hash: ContentHash,
+        drop_x_m: f32,
+        drop_z_m: f32,
+        surface_generation: u64,
+        surface_serial: u64,
+    },
     SculptTerrain {
         request: crate::area_preview::AreaPreviewRequest,
         brush: forge_world::TerrainBrush,
@@ -229,6 +256,15 @@ mod tests {
         };
         for command in [
             WorkspaceCommand::Current,
+            WorkspaceCommand::PlaceAsset {
+                request,
+                asset_id: AssetId::deterministic("ipc-asset"),
+                snapshot_hash: ContentHash::from_bytes([0xA7; 32]),
+                drop_x_m: 12.5,
+                drop_z_m: -7.0,
+                surface_generation: 3,
+                surface_serial: 11,
+            },
             WorkspaceCommand::AddVegetationSpecies {
                 request,
                 preset: VegetationSpeciesPreset::Fern,
@@ -381,6 +417,19 @@ mod tests {
         .unwrap();
         promotion["target"]["unexpected"] = serde_json::json!(true);
         assert!(serde_json::from_value::<WorkspaceCommand>(promotion).is_err());
+
+        let mut placement = serde_json::to_value(WorkspaceCommand::PlaceAsset {
+            request,
+            asset_id: AssetId::deterministic("strict-ipc-asset"),
+            snapshot_hash: ContentHash::from_bytes([0xA7; 32]),
+            drop_x_m: 0.0,
+            drop_z_m: 0.0,
+            surface_generation: 1,
+            surface_serial: 1,
+        })
+        .unwrap();
+        placement["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(placement).is_err());
 
         let mut retouch =
             serde_json::to_value(WorkspaceCommand::RetouchPromotedVegetationInstance {

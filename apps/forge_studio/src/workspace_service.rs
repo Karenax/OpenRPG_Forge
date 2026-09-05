@@ -9,10 +9,11 @@ use crate::{
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
 use forge_project::{
-    AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS,
-    MAX_VEGETATION_LAYERS, NewProjectCommand, PathId, TerrainMaterialRole, VegetationExclusion,
-    VegetationExclusionId, VegetationLayer, VegetationLayerId, WorkspaceArea, WorkspaceChange,
-    WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit, WorkspaceError,
+    AssetPin, AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_PATHS_PER_DOCUMENT,
+    MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand, PathId,
+    TerrainMaterialRole, VegetationExclusion, VegetationExclusionId, VegetationLayer,
+    VegetationLayerId, WorkspaceArea, WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument,
+    WorkspaceEdit, WorkspaceError,
 };
 use std::path::{Path, PathBuf};
 
@@ -84,6 +85,82 @@ pub struct WorkspaceSession {
 }
 
 impl WorkspaceSession {
+    /// Applies one native-resolved governed asset pin. Browser-originated paths or provenance never
+    /// enter this boundary; only the renderer-derived X/Z coordinates remain client input.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "surface correlation stays explicit beside the canonical placement request"
+    )]
+    pub fn execute_place_asset(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        asset_pin: AssetPin,
+        world_x_m: f32,
+        world_depth_m: f32,
+        surface_generation: u64,
+        surface_serial: u64,
+    ) -> Result<WorkspaceState, String> {
+        ensure_ipc_revision(surface_generation)?;
+        ensure_ipc_revision(surface_serial)?;
+        if surface_generation == 0 || surface_serial == 0 {
+            return Err("Le ciblage du terrain doit être corrélé à une projection active.".into());
+        }
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        if !request.key.exists(document) {
+            return Err("La zone demandée n’appartient pas au projet courant.".into());
+        }
+        let area = document
+            .area(request.key.module_id, request.key.area_id)
+            .ok_or("Zone introuvable.")?;
+        let command = forge_world::PlaceAssetCommand {
+            command_id: CommandId::deterministic(workspace_store::unique_key()?),
+            base_revision: Revision::new(request.base_revision),
+            project_id: request.key.project_id,
+            module_id: request.key.module_id,
+            area_id: request.key.area_id,
+            expected_terrain_document_hash: area
+                .terrain
+                .content_hash()
+                .map_err(|error| error.to_string())?,
+            expected_path_document_hash: area
+                .paths
+                .content_hash()
+                .map_err(|error| error.to_string())?,
+            expected_road_document_hash: area
+                .roads
+                .content_hash()
+                .map_err(|error| error.to_string())?,
+            expected_river_document_hash: area
+                .rivers
+                .content_hash()
+                .map_err(|error| error.to_string())?,
+            expected_placement_document_hash: area
+                .placements
+                .content_hash()
+                .map_err(|error| error.to_string())?,
+            asset_pin,
+            drop_x_m: world_x_m,
+            drop_z_m: world_depth_m,
+        };
+        let candidate = forge_world::preview_place_asset(document, &command)
+            .map_err(|error| error.to_string())?;
+        let placement_id = candidate.placement.id;
+        let receipt = serde_json::to_string(&serde_json::json!({
+            "schema": "forge.studio-place-asset-receipt",
+            "schema_version": 1,
+            "surface_generation": surface_generation,
+            "surface_serial": surface_serial,
+            "result": &candidate,
+        }))
+        .map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state(format!(
+            "Asset placé sous l’identifiant {placement_id}. Annulation disponible."
+        ))
+    }
+
     /// Copies only the accepted source. Generation never holds the session lock.
     pub fn area_preview_source(
         &self,
@@ -120,6 +197,11 @@ impl WorkspaceSession {
     pub fn execute(&mut self, command: WorkspaceCommand) -> Result<WorkspaceState, String> {
         let message = match command {
             WorkspaceCommand::Current => "Projet courant".into(),
+            WorkspaceCommand::PlaceAsset { .. } => {
+                return Err(
+                    "Le placement doit être résolu par le service Assets natif vérifié.".into(),
+                );
+            }
             command @ WorkspaceCommand::Create { .. } => self.execute_creation(command)?,
             WorkspaceCommand::SculptTerrain {
                 request,
@@ -174,50 +256,52 @@ impl WorkspaceSession {
             command @ (WorkspaceCommand::Undo { .. } | WorkspaceCommand::Redo { .. }) => {
                 self.execute_history(&command)?
             }
-            WorkspaceCommand::Close => {
-                if self.is_dirty()? {
-                    return Err(
-                        "Enregistrer ou annuler le brouillon avant de fermer le projet.".into(),
-                    );
-                }
-                *self = Self::default();
-                "Projet fermé. Aucun fichier supprimé.".into()
-            }
+            WorkspaceCommand::Close => self.close_workspace()?,
             WorkspaceCommand::Save {
                 directory,
                 base_revision,
-            } => {
-                self.require_revision(base_revision)?;
-                let document = self
-                    .document
-                    .as_ref()
-                    .ok_or("Aucun projet à enregistrer.")?;
-                let hash = document.content_hash().map_err(|e| e.to_string())?;
-                let path = workspace_store::save_snapshot(document, Path::new(&directory))?;
-                self.saved_hash = Some(hash);
-                self.saved_path = Some(path);
-                "Snapshot enregistré. Les fichiers précédents restent intacts.".into()
-            }
-            WorkspaceCommand::Open { path } => {
-                if self.is_dirty()? {
-                    return Err(
-                        "Enregistrer ou annuler le brouillon avant d'ouvrir un projet.".into(),
-                    );
-                }
-                let (document, path) = workspace_store::open_snapshot(Path::new(&path))?;
-                ensure_ipc_revision(document.revision.get())?;
-                let hash = document.content_hash().map_err(|e| e.to_string())?;
-                self.last_revision = document.revision.get();
-                self.document = Some(document);
-                self.saved_hash = Some(hash);
-                self.saved_path = Some(path);
-                self.undo.clear();
-                self.redo.clear();
-                self.receipt = None;
-                "Projet rouvert depuis le snapshot vérifié.".into()
-            }
+            } => self.save_workspace(&directory, base_revision)?,
+            WorkspaceCommand::Open { path } => self.open_workspace(&path)?,
         };
         self.state(message)
+    }
+
+    fn close_workspace(&mut self) -> Result<String, String> {
+        if self.is_dirty()? {
+            return Err("Enregistrer ou annuler le brouillon avant de fermer le projet.".into());
+        }
+        *self = Self::default();
+        Ok("Projet fermé. Aucun fichier supprimé.".into())
+    }
+
+    fn save_workspace(&mut self, directory: &str, base_revision: u64) -> Result<String, String> {
+        self.require_revision(base_revision)?;
+        let document = self
+            .document
+            .as_ref()
+            .ok_or("Aucun projet à enregistrer.")?;
+        let hash = document.content_hash().map_err(|error| error.to_string())?;
+        let path = workspace_store::save_snapshot(document, Path::new(directory))?;
+        self.saved_hash = Some(hash);
+        self.saved_path = Some(path);
+        Ok("Snapshot enregistré. Les fichiers précédents restent intacts.".into())
+    }
+
+    fn open_workspace(&mut self, path: &str) -> Result<String, String> {
+        if self.is_dirty()? {
+            return Err("Enregistrer ou annuler le brouillon avant d'ouvrir un projet.".into());
+        }
+        let (document, path) = workspace_store::open_snapshot(Path::new(path))?;
+        ensure_ipc_revision(document.revision.get())?;
+        let hash = document.content_hash().map_err(|error| error.to_string())?;
+        self.last_revision = document.revision.get();
+        self.document = Some(document);
+        self.saved_hash = Some(hash);
+        self.saved_path = Some(path);
+        self.undo.clear();
+        self.redo.clear();
+        self.receipt = None;
+        Ok("Projet rouvert depuis le snapshot vérifié.".into())
     }
 
     fn execute_brush(
@@ -1231,6 +1315,7 @@ fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
             area.roads.revision = document.revision;
             area.rivers.revision = document.revision;
             area.walls.revision = document.revision;
+            area.placements.revision = document.revision;
         }
     }
 }

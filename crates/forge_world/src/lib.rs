@@ -4,6 +4,7 @@
 
 mod environment;
 mod path;
+mod placement;
 mod player;
 mod river;
 mod road;
@@ -34,6 +35,9 @@ pub use path::{
     MIN_PATH_TRACE_POINTS, PATH_SAMPLE_SPACING_M, PathCommandError, PathCreateCommand,
     PathCreateResult, PathGenerationError, PathGenerationPlan, PathRedrawCommand, PathRedrawResult,
     PathSample, preview_create_path, preview_redraw_path, validate_generated_path_centrelines,
+};
+pub use placement::{
+    PlaceAssetCommand, PlaceAssetError, PlaceAssetResult, placement_entity_id, preview_place_asset,
 };
 
 pub use road::{

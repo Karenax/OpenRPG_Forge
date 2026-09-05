@@ -3,6 +3,8 @@ use crate::{
     StudioCommand, StudioResponse,
     area_preview::{AreaPreviewRequest, read_area_preview},
     area_tabs::{AreaKey, AreaTabs},
+    asset_drag::{AssetDragState, AssetDropScope, AssetSurfaceHit},
+    workspace_api::WorkspaceCommand,
     workspace_ui::{WorkspaceActions, invoke_studio},
 };
 use bevy::{
@@ -15,9 +17,13 @@ use bevy::{
     window::{PresentMode, WindowResolution},
 };
 use forge_engine::editor_viewport::{
-    EditorPathRequest, EditorRiverRequest, EditorRoadRequest, EditorTerrainRequest,
-    EditorVegetationRequest, EditorViewport, EditorViewportPlugin, EditorViewportStatus,
-    EditorWallRequest,
+    EditorPathRequest, EditorRiverRequest, EditorRoadRequest, EditorSurfacePointer,
+    EditorTerrainRequest, EditorVegetationRequest, EditorViewport, EditorViewportPlugin,
+    EditorViewportStatus, EditorWallRequest,
+};
+use forge_engine::{
+    EditorPlacementAssetBudget, EditorPlacementProjectionBridge, EditorPlacementProjectionPlugin,
+    EditorPlacementProjectionStatus,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -36,7 +42,9 @@ pub(crate) struct WorldActions {
     tabs: RwSignal<AreaTabs>,
     document: Memo<Option<WorkspaceDocument>>,
     viewport: StoredValue<EditorViewport>,
+    placement_viewport: StoredValue<EditorPlacementProjectionBridge>,
     status: RwSignal<EditorViewportStatus>,
+    placement_status: RwSignal<EditorPlacementProjectionStatus>,
     started: RwSignal<bool>,
     observed_starts: RwSignal<u32>,
     busy: RwSignal<bool>,
@@ -49,6 +57,7 @@ pub(crate) struct WorldActions {
 impl WorldActions {
     fn invalidate_projection(self, target: Option<AreaKey>) {
         self.generation.update(|generation| *generation += 1);
+        let generation = self.generation.get_untracked();
         self.error.set(None);
         if let Ok(mut bridge) = self.viewport.get_value().0.lock() {
             bridge.desired_generation = self.generation.get_untracked();
@@ -59,6 +68,15 @@ impl WorldActions {
             });
             bridge.pending = None;
             bridge.path_draft = None;
+            bridge.surface_pointer = None;
+            bridge.surface_hit = None;
+            bridge.surface_sample_serial = None;
+        }
+        if target.is_none()
+            && let Err(error) = self.placement_viewport.get_value().clear(generation)
+        {
+            self.error
+                .set(Some(format!("Effacement des Assets refusé : {error}")));
         }
     }
 
@@ -69,6 +87,7 @@ impl WorldActions {
     }
 
     fn request_canonical_projection(self) {
+        self.invalidate_projection(self.tabs.get_untracked().active);
         self.canonical_refresh.update(|serial| *serial += 1);
     }
 
@@ -228,7 +247,12 @@ impl WorldActions {
     }
 
     fn status_text(self) -> String {
-        if let Some(error) = self.error.get().or(self.status.get().error) {
+        if let Some(error) = self
+            .error
+            .get()
+            .or(self.status.get().error)
+            .or(self.placement_status.get().error)
+        {
             return error;
         }
         if self.tabs.get().active.is_none() {
@@ -239,17 +263,25 @@ impl WorldActions {
                 .into();
         }
         let status = self.status.get();
+        let placements = self.placement_status.get();
         if status.generation != self.generation.get() || status.chunks < 64 {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
+        if placements.presented_generation != self.generation.get() {
+            return format!(
+                "Chargement atomique des Assets · {} prêts / {} en attente",
+                placements.retained_placements, placements.staged_placements
+            );
+        }
         format!(
-            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · routes {} / {} sommets · rivières {} / {} sommets · murs {} / {} sommets · boucle {:.1} ms",
+            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · assets {} placés · chemins {} / {} points · routes {} / {} sommets · rivières {} / {} sommets · murs {} / {} sommets · boucle {:.1} ms",
             status.revision,
             status.rebuilt_chunks,
             status.retained_chunks,
             status.vegetation_instances,
             status.vegetation_rebuilt_chunks,
             status.vegetation_retained_chunks,
+            placements.presented_placements,
             status.path_count,
             status.path_samples,
             status.road_count,
@@ -276,7 +308,9 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         tabs: RwSignal::new(AreaTabs::default()),
         document,
         viewport: StoredValue::new(EditorViewport::default()),
+        placement_viewport: StoredValue::new(EditorPlacementProjectionBridge::default()),
         status: RwSignal::new(EditorViewportStatus::default()),
+        placement_status: RwSignal::new(EditorPlacementProjectionStatus::default()),
         started: RwSignal::new(false),
         observed_starts: RwSignal::new(0),
         busy: RwSignal::new(false),
@@ -314,6 +348,7 @@ struct AreaPreviewTarget {
     road_hash: forge_core::ContentHash,
     river_hash: forge_core::ContentHash,
     wall_hash: forge_core::ContentHash,
+    placement_hash: forge_core::ContentHash,
 }
 
 fn current_projection_sources(
@@ -326,6 +361,7 @@ fn current_projection_sources(
         forge_project::RoadDocument,
         forge_project::RiverDocument,
         forge_project::WallDocument,
+        forge_project::PlacementDocument,
     ),
     String,
 > {
@@ -369,6 +405,11 @@ fn current_projection_sources(
             .content_hash()
             .map_err(|error| error.to_string())?
             != target.wall_hash
+        || area
+            .placements
+            .content_hash()
+            .map_err(|error| error.to_string())?
+            != target.placement_hash
     {
         return Err(
             "Sources terrain/chemin/route/rivière/mur modifiées pendant la génération de l’aperçu."
@@ -381,6 +422,7 @@ fn current_projection_sources(
         area.roads.clone(),
         area.rivers.clone(),
         area.walls.clone(),
+        area.placements.clone(),
     ))
 }
 
@@ -404,8 +446,38 @@ fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>>
             road_hash: area.roads.content_hash().ok()?,
             river_hash: area.rivers.content_hash().ok()?,
             wall_hash: area.walls.content_hash().ok()?,
+            placement_hash: area.placements.content_hash().ok()?,
         })
     })
+}
+
+fn current_base_source_hash(actions: WorldActions) -> Option<forge_core::ContentHash> {
+    actions
+        .viewport
+        .get_value()
+        .0
+        .lock()
+        .ok()
+        .and_then(|bridge| {
+            if !bridge.clear && bridge.status.chunks == 64 {
+                bridge.status.source_hash.parse().ok()
+            } else {
+                None
+            }
+        })
+}
+
+fn placement_asset_budgets(
+    binding: &crate::workspace_api::PlacementProjectionBinding,
+) -> Vec<EditorPlacementAssetBudget> {
+    binding
+        .asset_budgets
+        .iter()
+        .map(|budget| EditorPlacementAssetBudget {
+            asset_id: budget.asset_id,
+            tracked_bytes: budget.tracked_bytes,
+        })
+        .collect()
 }
 
 fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPreviewTarget>>) {
@@ -427,70 +499,74 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
             return;
         };
         actions.busy.set(true);
-        let base_source_hash = actions
-            .viewport
-            .get_value()
-            .0
-            .lock()
-            .ok()
-            .and_then(|bridge| {
-                if !bridge.clear && bridge.status.chunks == 64 {
-                    bridge.status.source_hash.parse().ok()
-                } else {
-                    None
-                }
-            });
+        let base_source_hash = current_base_source_hash(actions);
         wasm_bindgen_futures::spawn_local(async move {
             let result = fetch_preview(&target, base_source_hash).await;
             if actions.generation.get_untracked() == generation
                 && actions.canonical_refresh.get_untracked() == refresh
             {
                 match result {
-                    Ok(preview) => match current_projection_sources(actions, &target) {
-                        Ok((
-                            source_terrain,
-                            source_paths,
-                            source_roads,
-                            source_rivers,
-                            source_walls,
-                        )) => {
-                            if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
-                                bridge.pending = Some(EditorTerrainRequest {
-                                    generation,
-                                    project_id: target.request.key.project_id,
-                                    area_id: target.request.key.area_id,
-                                    revision: target.request.base_revision,
-                                    terrain: preview.terrain,
-                                    vegetation: Some(EditorVegetationRequest {
-                                        generated: preview.vegetation,
-                                        density_source_hash: preview.vegetation_density_source_hash,
-                                    }),
-                                    paths: Some(EditorPathRequest {
-                                        generated: preview.paths,
-                                        source_terrain: preview.effective_terrain,
-                                        source_paths,
-                                    }),
-                                    roads: Some(EditorRoadRequest {
-                                        generated: preview.roads,
-                                        source_roads,
-                                    }),
-                                    rivers: Some(EditorRiverRequest {
-                                        generated: preview.rivers,
-                                        source_terrain,
-                                        source_rivers,
-                                    }),
-                                    walls: Some(EditorWallRequest {
-                                        generated: preview.walls,
-                                        source_walls,
-                                    }),
-                                    spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
-                                    base_source_hash: preview.base_source_hash,
-                                });
+                    Ok((preview, placement_binding)) => {
+                        match current_projection_sources(actions, &target) {
+                            Ok((
+                                source_terrain,
+                                source_paths,
+                                source_roads,
+                                source_rivers,
+                                source_walls,
+                                source_placements,
+                            )) => {
+                                let asset_budgets = placement_asset_budgets(&placement_binding);
+                                if let Err(error) = actions
+                                    .placement_viewport
+                                    .get_value()
+                                    .submit_document(generation, &source_placements, &asset_budgets)
+                                {
+                                    actions.error.set(Some(format!(
+                                        "Projection des Assets refusée : {error}"
+                                    )));
+                                    actions.busy.set(false);
+                                    return;
+                                }
+                                if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
+                                    bridge.pending = Some(EditorTerrainRequest {
+                                        generation,
+                                        project_id: target.request.key.project_id,
+                                        area_id: target.request.key.area_id,
+                                        revision: target.request.base_revision,
+                                        terrain: preview.terrain,
+                                        vegetation: Some(EditorVegetationRequest {
+                                            generated: preview.vegetation,
+                                            density_source_hash: preview
+                                                .vegetation_density_source_hash,
+                                        }),
+                                        paths: Some(EditorPathRequest {
+                                            generated: preview.paths,
+                                            source_terrain: preview.effective_terrain,
+                                            source_paths,
+                                        }),
+                                        roads: Some(EditorRoadRequest {
+                                            generated: preview.roads,
+                                            source_roads,
+                                        }),
+                                        rivers: Some(EditorRiverRequest {
+                                            generated: preview.rivers,
+                                            source_terrain,
+                                            source_rivers,
+                                        }),
+                                        walls: Some(EditorWallRequest {
+                                            generated: preview.walls,
+                                            source_walls,
+                                        }),
+                                        spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
+                                        base_source_hash: preview.base_source_hash,
+                                    });
+                                }
+                                start_once(actions);
                             }
-                            start_once(actions);
+                            Err(error) => actions.error.set(Some(error)),
                         }
-                        Err(error) => actions.error.set(Some(error)),
-                    },
+                    }
                     Err(error) => actions.error.set(Some(error)),
                 }
                 completed.set(Some((generation, refresh)));
@@ -506,6 +582,9 @@ fn install_status_poll(actions: WorldActions) {
             actions.status.set(bridge.status.clone());
             actions.observed_starts.set(bridge.renderer_starts);
         }
+        actions
+            .placement_status
+            .set(actions.placement_viewport.get_value().status());
     });
     if let Some(window) = web_sys::window() {
         match window.set_interval_with_callback_and_timeout_and_arguments_0(
@@ -523,7 +602,13 @@ fn install_status_poll(actions: WorldActions) {
 async fn fetch_preview(
     target: &AreaPreviewTarget,
     base_source_hash: Option<forge_core::ContentHash>,
-) -> Result<crate::area_preview::AreaPreview, String> {
+) -> Result<
+    (
+        crate::area_preview::AreaPreview,
+        crate::workspace_api::PlacementProjectionBinding,
+    ),
+    String,
+> {
     let request = target.request;
     match invoke_studio(StudioCommand::AreaPreview {
         request,
@@ -531,7 +616,10 @@ async fn fetch_preview(
     })
     .await?
     {
-        StudioResponse::AreaPreview { preview_json } => {
+        StudioResponse::AreaPreview {
+            preview_json,
+            placement,
+        } => {
             let preview = read_area_preview(&preview_json)?;
             let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
             let preview_effective_terrain_hash = preview
@@ -562,12 +650,13 @@ async fn fetch_preview(
                 || preview.walls.wall_document_hash != target.wall_hash
                 || preview.walls.path_document_hash != preview.paths.path_document_hash
                 || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
+                || placement.source_hash != target.placement_hash
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)
             {
                 return Err("Aperçu périmé ou incohérent : aucune projection acceptée.".into());
             }
-            Ok(preview)
+            Ok((preview, placement))
         }
         StudioResponse::Rejected { reason } => Err(reason),
         _ => Err("Réponse inattendue pour l’aperçu.".into()),
@@ -609,6 +698,9 @@ fn start_once(actions: WorldActions) {
                         ..default()
                     }),
             )
+            .add_plugins(EditorPlacementProjectionPlugin(
+                actions.placement_viewport.get_value(),
+            ))
             .add_plugins(EditorViewportPlugin(actions.viewport.get_value()))
             .run();
     });
@@ -630,7 +722,26 @@ struct PointerDrag {
 }
 
 #[component]
-pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions) -> impl IntoView {
+fn WorldToolbar(actions: WorldActions) -> impl IntoView {
+    view! {
+        <div class="world-toolbar">
+            <button type="button" on:click=move |_| { if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.reset = true; } }>"Vue d’ensemble"</button>
+            <button type="button" disabled=move || actions.tabs.get().active.is_none() on:click=move |_| {
+                let Some(key) = actions.tabs.get_untracked().active else { return };
+                if let Some(spawn) = actions.document.get_untracked().and_then(|doc| doc.area(key.module_id, key.area_id).map(|area| area.spawn))
+                    && let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.focus = Some([spawn.x, spawn.y, spawn.z]); }
+            }>"Voir le départ"</button>
+            <span>"Glisser : orbite · Maj + glisser : déplacement · molette : zoom"</span>
+        </div>
+    }
+}
+
+#[component]
+pub(crate) fn WorldWorkspace(
+    actions: WorldActions,
+    workspace: WorkspaceActions,
+    asset_drag: RwSignal<AssetDragState>,
+) -> impl IntoView {
     let drag = RwSignal::new(None::<PointerDrag>);
     let brush = create_brush_actions(actions, workspace);
     let paths = create_path_actions(actions, workspace, brush);
@@ -666,20 +777,13 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                         </span> }
                     }).collect_view()}
                 </div>
-                <div class="world-toolbar">
-                    <button type="button" on:click=move |_| { if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.reset = true; } }>"Vue d’ensemble"</button>
-                    <button type="button" disabled=move || actions.tabs.get().active.is_none() on:click=move |_| {
-                        let Some(key) = actions.tabs.get_untracked().active else { return };
-                        if let Some(spawn) = actions.document.get_untracked().and_then(|doc| doc.area(key.module_id, key.area_id).map(|area| area.spawn))
-                            && let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.focus = Some([spawn.x, spawn.y, spawn.z]); }
-                    }>"Voir le départ"</button>
-                    <span>"Glisser : orbite · Maj + glisser : déplacement · molette : zoom"</span>
-                </div>
+                <WorldToolbar actions/>
                 <div class="world-canvas-host">
                     <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
                         on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" {
                             paths.cancel(actions, false); paths.clear_hover(actions);
                             brush.cancel(actions, false); brush.clear_hover(actions);
+                            cancel_asset_drag(actions, asset_drag);
                         } }
                         on:pointerleave=move |_| { paths.clear_hover(actions); brush.clear_hover(actions); }
                         on:pointerdown=move |event: web_sys::PointerEvent| {
@@ -711,15 +815,210 @@ pub(crate) fn WorldWorkspace(actions: WorldActions, workspace: WorkspaceActions)
                         on:wheel=move |event: web_sys::WheelEvent| {
                             event.prevent_default();
                             if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }
+                        }
+                        on:dragover=move |event: web_sys::DragEvent| {
+                            if request_asset_surface(actions, asset_drag, &event) {
+                                event.prevent_default();
+                            }
+                        }
+                        on:dragleave=move |_| clear_asset_surface(actions)
+                        on:drop=move |event: web_sys::DragEvent| {
+                            event.prevent_default();
+                            schedule_asset_drop(actions, workspace, asset_drag);
                         }/>
                     <Show when=move || actions.tabs.get().active.is_none()>
                         <div class="world-empty"><h2>"Un monde à ouvrir"</h2><p>"Choisissez une zone à gauche, ou créez-la dans Projets."</p></div>
                     </Show>
                 </div>
-                <footer class="world-status" role="status">{move || actions.status_text()}</footer>
+                <footer class="world-status" role="status">{move || {
+                    workspace.error.get().unwrap_or_else(|| actions.status_text())
+                }}</footer>
             </div>
         </section>
     }
+}
+
+fn request_asset_surface(
+    actions: WorldActions,
+    asset_drag: RwSignal<AssetDragState>,
+    event: &web_sys::DragEvent,
+) -> bool {
+    if asset_drag.get_untracked().payload().is_none() {
+        return false;
+    }
+    let Some(key) = actions.tabs.get_untracked().active else {
+        return false;
+    };
+    let Some(document) = actions.document.get_untracked() else {
+        return false;
+    };
+    if !key.exists(&document) {
+        return false;
+    }
+    let Some(element) = event
+        .current_target()
+        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+    else {
+        return false;
+    };
+    let (width, height) = (element.client_width(), element.client_height());
+    if width <= 0 || height <= 0 {
+        return false;
+    }
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "Normalized finite canvas coordinates"
+    )]
+    let viewport_uv = [
+        (f64::from(event.offset_x()) / f64::from(width)) as f32,
+        (f64::from(event.offset_y()) / f64::from(height)) as f32,
+    ];
+    if !viewport_uv
+        .iter()
+        .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
+    {
+        return false;
+    }
+    let mut state = asset_drag.get_untracked();
+    let Ok(serial) = state.request_surface() else {
+        return false;
+    };
+    asset_drag.set(state);
+    let generation = actions.generation.get_untracked();
+    let viewport = actions.viewport.get_value();
+    let Ok(mut bridge) = viewport.0.lock() else {
+        return false;
+    };
+    bridge.surface_pointer = Some(EditorSurfacePointer {
+        generation,
+        serial,
+        viewport_uv,
+    });
+    true
+}
+
+fn schedule_asset_drop(
+    actions: WorldActions,
+    workspace: WorkspaceActions,
+    asset_drag: RwSignal<AssetDragState>,
+) {
+    let drop_state = asset_drag.get_untracked();
+    asset_drag.update(AssetDragState::clear);
+    let Some(window) = web_sys::window() else {
+        clear_asset_surface(actions);
+        actions
+            .error
+            .set(Some("Fenêtre indisponible pendant le dépôt Asset.".into()));
+        return;
+    };
+    // A final dragover can publish a new serial immediately before drop. Two bounded animation
+    // frames let Bevy acknowledge that exact sample; dragend may clear the live signal meanwhile,
+    // so this immutable state snapshot remains the sole correlation source.
+    let first_frame = Closure::once_into_js(move || {
+        let Some(window) = web_sys::window() else {
+            clear_asset_surface(actions);
+            actions
+                .error
+                .set(Some("Fenêtre indisponible pendant le dépôt Asset.".into()));
+            return;
+        };
+        let second_frame = Closure::once_into_js(move || {
+            finish_asset_drop(actions, workspace, drop_state);
+        });
+        if let Err(error) = window.request_animation_frame(second_frame.unchecked_ref()) {
+            clear_asset_surface(actions);
+            actions.error.set(Some(format!(
+                "Échantillonnage final du terrain impossible : {error:?}"
+            )));
+        }
+    });
+    if let Err(error) = window.request_animation_frame(first_frame.unchecked_ref()) {
+        clear_asset_surface(actions);
+        actions.error.set(Some(format!(
+            "Échantillonnage du terrain impossible : {error:?}"
+        )));
+    }
+}
+
+fn finish_asset_drop(
+    actions: WorldActions,
+    workspace: WorkspaceActions,
+    drop_state: AssetDragState,
+) {
+    let result = (|| {
+        if workspace.unavailable() {
+            return Err(
+                "Le projet est indisponible ou une autre opération est encore en cours.".to_owned(),
+            );
+        }
+        let key = actions
+            .tabs
+            .get_untracked()
+            .active
+            .ok_or("Ouvrez une zone avant de déposer un Asset.")?;
+        let document = actions
+            .document
+            .get_untracked()
+            .ok_or("Aucun projet ouvert pour recevoir cet Asset.")?;
+        if !key.exists(&document) {
+            return Err("La zone de dépôt n’appartient plus au projet courant.".to_owned());
+        }
+        let generation = actions.generation.get_untracked();
+        let hit = actions
+            .viewport
+            .get_value()
+            .0
+            .lock()
+            .map_err(|_| "Viewport indisponible pendant le dépôt.".to_owned())?
+            .surface_hit
+            .map(|hit| AssetSurfaceHit {
+                generation: hit.generation,
+                serial: hit.serial,
+                project_id: hit.project_id,
+                area_id: hit.area_id,
+                revision: hit.revision,
+                world: hit.world,
+            });
+        drop_state
+            .resolve_drop(
+                AssetDropScope {
+                    key,
+                    revision: document.revision.get(),
+                    generation,
+                },
+                hit,
+            )
+            .map_err(|error| error.to_string())
+    })();
+    clear_asset_surface(actions);
+    match result {
+        Ok(intent) => workspace.send(WorkspaceCommand::PlaceAsset {
+            request: AreaPreviewRequest {
+                key: intent.key,
+                base_revision: intent.revision,
+            },
+            asset_id: intent.payload.asset_id,
+            snapshot_hash: intent.payload.snapshot_hash,
+            drop_x_m: intent.drop_xz_m[0],
+            drop_z_m: intent.drop_xz_m[1],
+            surface_generation: intent.surface_generation,
+            surface_serial: intent.surface_serial,
+        }),
+        Err(error) => actions.error.set(Some(error)),
+    }
+}
+
+fn clear_asset_surface(actions: WorldActions) {
+    if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
+        bridge.surface_pointer = None;
+        bridge.surface_hit = None;
+        bridge.surface_sample_serial = None;
+    }
+}
+
+fn cancel_asset_drag(actions: WorldActions, asset_drag: RwSignal<AssetDragState>) {
+    clear_asset_surface(actions);
+    asset_drag.update(AssetDragState::clear);
 }
 
 #[allow(
@@ -751,7 +1050,7 @@ pub(crate) fn WorldDiagnostics(actions: WorldActions) -> impl IntoView {
         <p>"Le cube doré représente le départ saisi, sans personnage ni recalage automatique au sol."</p>
         <pre id="world-viewport-ledger">{move || serde_json::json!({
             "renderer_starts": actions.observed_starts.get(), "renderer_start_requests": u8::from(actions.started.get()), "desired_generation": actions.generation.get(),
-            "busy": actions.busy.get(), "projection": actions.status.get(), "error": actions.error.get(),
+            "busy": actions.busy.get(), "projection": actions.status.get(), "asset_projection": actions.placement_status.get(), "error": actions.error.get(),
             "gpu_presentation": "not_observed", "gpu_timestamps": "unavailable",
         }).to_string()}</pre>
     </section> }

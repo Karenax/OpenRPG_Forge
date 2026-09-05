@@ -2,6 +2,7 @@
 //! `WorkspaceActions` and the native `WorkspaceSession`. No layout state enters the project document.
 
 use crate::asset_browser::AssetBrowserPanel;
+use crate::asset_drag::AssetDragState;
 use crate::desktop_state::{DesktopApp, DesktopState, WindowRect};
 use crate::workspace_api::WorkspaceCommand;
 use crate::workspace_ui::{ProjectWorkspace, WorkspaceActions, create_workspace_actions};
@@ -152,7 +153,9 @@ fn ForgeDesktop() -> impl IntoView {
         message: RwSignal::new("Vos outils, dans un même atelier.".into()),
         workspace,
     };
-    install_desktop_listeners(controls);
+    let asset_drag = RwSignal::new(AssetDragState::default());
+    let open_world_for_asset = Callback::new(move |()| controls.open(DesktopApp::World));
+    install_desktop_listeners(&controls);
     view! {
         <main class="forge-desktop" data-forge-mode="desktop" on:pointermove=move |event| controls.drag_to(&event)
             on:pointerup=move |_| controls.drag.set(None) on:pointercancel=move |_| controls.drag.set(None)>
@@ -184,13 +187,13 @@ fn ForgeDesktop() -> impl IntoView {
                     })/>
                 </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::World>
-                    <WorldWorkspace actions=controls.world workspace=controls.workspace/>
+                    <WorldWorkspace actions=controls.world workspace=controls.workspace asset_drag/>
                 </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::Assets>
                     <AssetBrowserPanel visible=Signal::derive(move || {
                         let window = controls.layout.get().window(DesktopApp::Assets);
                         window.open && !window.minimized
-                    })/>
+                    }) asset_drag on_asset_drag=open_world_for_asset/>
                 </DesktopWindow>
                 <DesktopWindow controls app=DesktopApp::Diagnostics>
                     <WorldDiagnostics actions=controls.world/>
@@ -252,7 +255,7 @@ fn DesktopWindow(controls: DesktopControls, app: DesktopApp, children: Children)
                     on:pointerdown=move |event| controls.begin_drag(app, false, &event)
                     on:lostpointercapture=move |_| controls.drag.set(None)
                     on:dblclick=move |_| controls.layout.update(|layout| layout.toggle_maximize(app))
-                    on:keydown=move |event| geometry_key(controls, app, false, &event)>{app_title(app)}</button>
+                    on:keydown=move |event| geometry_key(&controls, app, false, &event)>{app_title(app)}</button>
                 <span class="window-caption">{match app { DesktopApp::Projects => "Sources du projet", DesktopApp::World => "Terrain du projet", DesktopApp::Assets => "Bibliothèque vérifiée", DesktopApp::Diagnostics => "Projection courante" }}</span>
             </header>
             <div class="window-content">{children()}</div>
@@ -261,7 +264,7 @@ fn DesktopWindow(controls: DesktopControls, app: DesktopApp, children: Children)
                 disabled=move || controls.layout.get().window(app).maximized
                 on:pointerdown=move |event| controls.begin_drag(app, true, &event)
                 on:lostpointercapture=move |_| controls.drag.set(None)
-                on:keydown=move |event| geometry_key(controls, app, true, &event)>"◢"</button>
+                on:keydown=move |event| geometry_key(&controls, app, true, &event)>"◢"</button>
         </section>
     }
 }
@@ -317,7 +320,7 @@ fn DesktopMenu(controls: DesktopControls, menu: Menu, label: &'static str) -> im
                         }.into_any(),
                         Menu::Help => view! {
                             <p class="desktop-menu-note">"Projets édite les sources. Monde affiche le terrain. Assets consulte la bibliothèque locale vérifiée. Diagnostics observe le viewport."</p>
-                            <p class="desktop-menu-note">"Le placement d’Assets arrive en R2-027. Personnages, Narration et Playtest restent à venir."</p>
+                            <p class="desktop-menu-note">"Glissez un élément vérifié d’Assets vers le terrain de Monde pour le placer. Personnages, Narration et Playtest restent à venir."</p>
                             <p class="desktop-menu-note">"Les fenêtres conservent les saisies pendant cette session. Enregistrez le projet avant de quitter le Studio."</p>
                         }.into_any(),
                     }}
@@ -417,11 +420,12 @@ fn desktop_size() -> (f64, f64) {
     )
 }
 
-fn install_desktop_listeners(controls: DesktopControls) {
+fn install_desktop_listeners(controls: &DesktopControls) {
+    let resize_controls = *controls;
     let listener = Closure::<dyn FnMut()>::new(move || {
         let (width, height) = desktop_size();
-        controls.drag.set(None);
-        controls
+        resize_controls.drag.set(None);
+        resize_controls
             .layout
             .update(|layout| layout.resize_desktop(width, height));
     });
@@ -435,8 +439,9 @@ fn install_desktop_listeners(controls: DesktopControls) {
     }
     // A completed command may disable its submit button and leave focus on the document body.
     // Listen on the window, not just the desktop element, so shortcuts still work in that state.
+    let keyboard_controls = *controls;
     let keyboard = Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
-        desktop_key(controls, &event);
+        desktop_key(&keyboard_controls, &event);
     });
     if let Some(window) = web_sys::window()
         && window
@@ -463,7 +468,7 @@ fn focus_element(id: &'static str) {
 }
 
 fn geometry_key(
-    controls: DesktopControls,
+    controls: &DesktopControls,
     app: DesktopApp,
     resize: bool,
     event: &web_sys::KeyboardEvent,
@@ -487,7 +492,7 @@ fn geometry_key(
     });
 }
 
-fn desktop_key(controls: DesktopControls, event: &web_sys::KeyboardEvent) {
+fn desktop_key(controls: &DesktopControls, event: &web_sys::KeyboardEvent) {
     if event.key() == "Escape" {
         controls.menu.set(None);
         controls.drag.set(None);

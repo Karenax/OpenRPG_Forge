@@ -61,6 +61,7 @@ const fn category_key(category: AssetCategory) -> &'static str {
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod web {
     use super::{AssetCatalog, BROWSE_ASSETS_REQUEST_SCHEMA_VERSION, BrowseAssetsRequest};
+    use crate::asset_drag::{AssetDragPayload, AssetDragState};
     use crate::workspace_ui::invoke_studio;
     use crate::{StudioCommand, StudioResponse};
     use forge_assets::browser::AssetCategory;
@@ -123,7 +124,11 @@ mod web {
     }
 
     #[component]
-    pub(crate) fn AssetBrowserPanel(visible: Signal<bool>) -> impl IntoView {
+    pub(crate) fn AssetBrowserPanel(
+        visible: Signal<bool>,
+        asset_drag: RwSignal<AssetDragState>,
+        on_asset_drag: Callback<()>,
+    ) -> impl IntoView {
         let backend_available = tauri_backend_available();
         let actions = AssetBrowserActions {
             catalog: RwSignal::new(None),
@@ -165,8 +170,8 @@ mod web {
                 {move || actions.error.get().map(|reason| view! {
                     <div class="asset-browser-error" role="alert" id="asset-browser-error">{reason}</div>
                 })}
-                <AssetBrowserContent actions query category selected/>
-                <AssetBrowserLedger actions query category selected/>
+                <AssetBrowserContent actions query category selected asset_drag on_asset_drag/>
+                <AssetBrowserLedger actions query category selected asset_drag/>
             </main>
         }
     }
@@ -228,6 +233,8 @@ mod web {
         query: RwSignal<String>,
         category: RwSignal<String>,
         selected: RwSignal<Option<String>>,
+        asset_drag: RwSignal<AssetDragState>,
+        on_asset_drag: Callback<()>,
     ) -> impl IntoView {
         view! {
             <div class="asset-browser-layout">
@@ -235,9 +242,10 @@ mod web {
                     <ul>{move || actions.catalog.get().map(|catalog| {
                         let query_value = query.get();
                         let category_value = category.get();
+                        let snapshot_hash = catalog.snapshot.snapshot_hash;
                         catalog.snapshot.assets.into_iter()
                             .filter(|asset| super::matches_filter(asset, &query_value, &category_value))
-                            .map(|asset| asset_row(asset, selected)).collect_view()
+                            .map(|asset| asset_row(asset, snapshot_hash, selected, asset_drag, on_asset_drag)).collect_view()
                     })}</ul>
                     <Show when=move || actions.catalog.get().is_some() && filtered_count(actions.catalog.get().as_ref(), &query.get(), &category.get()) == 0>
                         <p class="asset-browser-empty">"Aucun asset ne correspond à ce filtre."</p>
@@ -250,14 +258,23 @@ mod web {
 
     fn asset_row(
         asset: forge_assets::browser::AssetBrowserEntry,
+        snapshot_hash: forge_core::ContentHash,
         selected: RwSignal<Option<String>>,
+        asset_drag: RwSignal<AssetDragState>,
+        on_asset_drag: Callback<()>,
     ) -> impl IntoView {
+        let asset_id = asset.id;
         let key = asset.stable_key.clone();
         let button_key = key.clone();
         let selected_key = key.clone();
         view! {
-            <li><button type="button" class:is-selected=move || selected.get().as_deref() == Some(selected_key.as_str())
+            <li><button type="button" draggable="true" class:is-selected=move || selected.get().as_deref() == Some(selected_key.as_str())
                 aria-pressed=move || (selected.get().as_deref() == Some(key.as_str())).to_string()
+                on:dragstart=move |_| {
+                    asset_drag.update(|state| state.begin(AssetDragPayload { asset_id, snapshot_hash }));
+                    on_asset_drag.run(());
+                }
+                on:dragend=move |_| asset_drag.update(AssetDragState::clear)
                 on:click=move |_| selected.set(Some(button_key.clone()))>
                 <strong>{asset.model_id}</strong><span>{category_label(asset.category)}</span>
                 <small>{asset.provenance.pack_id}</small>
@@ -301,8 +318,7 @@ mod web {
                             <dt>"Hash manifeste"</dt><dd class="asset-browser-code">{asset.provenance.manifest_hash.to_string()}</dd>
                             <dt>"Hash snapshot"</dt><dd class="asset-browser-code">{actions.catalog.get().map(|catalog| catalog.snapshot.snapshot_hash.to_string()).unwrap_or_default()}</dd>
                         </dl>
-                        <button type="button" disabled title="La pose dans une zone arrive avec R2-027">"Placer dans Monde · R2-027"</button>
-                        <p class="asset-browser-placement-note">"Cette tranche consulte et sélectionne seulement. Le placement transactionnel dans Monde est prévu pour R2-027."</p>
+                        <p class="asset-browser-placement-note">"Glissez cet asset depuis la liste vers le terrain de Monde. Forge vérifiera de nouveau son snapshot et calculera sa hauteur depuis le terrain canonique."</p>
                     }.into_any(),
                 )}
             </aside>
@@ -315,6 +331,7 @@ mod web {
         query: RwSignal<String>,
         category: RwSignal<String>,
         selected: RwSignal<Option<String>>,
+        asset_drag: RwSignal<AssetDragState>,
     ) -> impl IntoView {
         view! {
             <output id="asset-browser-ledger" hidden>{move || {
@@ -328,7 +345,8 @@ mod web {
                     "asset_count": catalog.as_ref().map_or(0, |catalog| catalog.snapshot.assets.len()),
                     "filtered_count": filtered_count(catalog.as_ref(), &query.get(), &category.get()),
                     "query": query.get(), "category": category.get(), "selected": selected.get(),
-                    "placement": "r2_027",
+                    "drag_asset_id": asset_drag.get().payload().map(|payload| payload.asset_id.to_string()),
+                    "placement": "drag_drop_enabled",
                 }).to_string()
             }}</output>
         }

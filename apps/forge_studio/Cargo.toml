@@ -52,7 +52,7 @@ leptos = { workspace = true, optional = true }
 serde-wasm-bindgen = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }
-web-sys = { workspace = true, features = ["console", "CustomEvent", "CustomEventInit", "Document", "Element", "EventTarget", "HtmlElement", "KeyboardEvent", "PointerEvent", "WheelEvent", "Location", "Navigator", "Node", "Performance", "Window"], optional = true }
+web-sys = { workspace = true, features = ["console", "CustomEvent", "CustomEventInit", "Document", "DragEvent", "Element", "EventTarget", "HtmlElement", "KeyboardEvent", "PointerEvent", "WheelEvent", "Location", "Navigator", "Node", "Performance", "Window"], optional = true }
 
 [build-dependencies]
 tauri-build = "=2.6.3"

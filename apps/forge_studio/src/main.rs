@@ -34,20 +34,18 @@ async fn execute_studio_command(
     if let StudioCommand::BrowseAssets { request } = &command {
         return Ok(execute_browse_assets(*request, Arc::clone(asset_browser.inner())).await);
     }
-    if matches!(
-        &command,
-        StudioCommand::Workspace {
-            request: WorkspaceCommand::SculptTerrain { .. }
-                | WorkspaceCommand::PaintTerrainMaterial { .. }
-                | WorkspaceCommand::PaintVegetationDensity { .. }
-                | WorkspaceCommand::PromoteVegetationInstance { .. }
-                | WorkspaceCommand::CreatePath { .. }
-                | WorkspaceCommand::RedrawPath { .. }
-                | WorkspaceCommand::UpsertRoad { .. }
-                | WorkspaceCommand::UpsertRiver { .. }
-                | WorkspaceCommand::UpsertWall { .. }
-        }
-    ) {
+    if let StudioCommand::Workspace {
+        request: request @ WorkspaceCommand::PlaceAsset { .. },
+    } = &command
+    {
+        return execute_asset_placement(
+            request,
+            Arc::clone(session.inner()),
+            Arc::clone(asset_browser.inner()),
+        )
+        .await;
+    }
+    if needs_blocking_workspace_execution(&command) {
         let session = Arc::clone(session.inner());
         return tauri::async_runtime::spawn_blocking(move || execute_command(command, &session))
             .await
@@ -98,17 +96,28 @@ async fn execute_studio_command(
         };
         let permit = PreviewPermit::acquire()?;
         let preview_cache = Arc::clone(preview_cache.inner());
+        let asset_browser = Arc::clone(asset_browser.inner());
         return Ok(
             match tauri::async_runtime::spawn_blocking(move || {
                 let _permit = permit;
-                preview_cache
+                let placement = {
+                    let mut service = asset_browser
+                        .lock()
+                        .map_err(|_| "Navigateur d’assets indisponible.".to_owned())?;
+                    service.placement_projection_binding(&area.placements)?
+                };
+                let preview_json = preview_cache
                     .lock()
                     .map_err(|_| "Cache d’aperçu indisponible.".to_owned())?
-                    .prepare(request, &area, base_source_hash)
+                    .prepare(request, &area, base_source_hash)?;
+                Ok::<_, String>((preview_json, placement))
             })
             .await
             {
-                Ok(Ok(preview_json)) => StudioResponse::AreaPreview { preview_json },
+                Ok(Ok((preview_json, placement))) => StudioResponse::AreaPreview {
+                    preview_json,
+                    placement,
+                },
                 Ok(Err(reason)) => StudioResponse::Rejected { reason },
                 Err(error) => StudioResponse::Rejected {
                     reason: format!("Génération interrompue : {error}"),
@@ -117,6 +126,73 @@ async fn execute_studio_command(
         );
     }
     Ok(execute_command(command, &session))
+}
+
+async fn execute_asset_placement(
+    command: &WorkspaceCommand,
+    session: Arc<Mutex<WorkspaceSession>>,
+    asset_browser: Arc<Mutex<AssetBrowserService>>,
+) -> Result<StudioResponse, String> {
+    let WorkspaceCommand::PlaceAsset {
+        request,
+        asset_id,
+        snapshot_hash,
+        drop_x_m,
+        drop_z_m,
+        surface_generation,
+        surface_serial,
+    } = command
+    else {
+        return Err("Commande de placement Asset attendue.".into());
+    };
+    let request = *request;
+    let asset_id = *asset_id;
+    let snapshot_hash = *snapshot_hash;
+    let world_x_m = *drop_x_m;
+    let world_depth_m = *drop_z_m;
+    let surface_generation = *surface_generation;
+    let surface_serial = *surface_serial;
+    tauri::async_runtime::spawn_blocking(move || {
+        let asset_pin = {
+            let service = asset_browser.lock().map_err(|_| {
+                "Navigateur d’assets indisponible après une erreur interne.".to_owned()
+            })?;
+            service
+                .resolve_asset(snapshot_hash, asset_id)?
+                .asset_pin()?
+        };
+        let state = session
+            .lock()
+            .map_err(|_| "Session projet indisponible après une erreur interne.".to_owned())?
+            .execute_place_asset(
+                request,
+                asset_pin,
+                world_x_m,
+                world_depth_m,
+                surface_generation,
+                surface_serial,
+            )?;
+        Ok(StudioResponse::Workspace { state })
+    })
+    .await
+    .map_err(|error| format!("Placement Asset interrompu : {error}"))?
+}
+
+fn needs_blocking_workspace_execution(command: &StudioCommand) -> bool {
+    matches!(
+        command,
+        StudioCommand::Workspace {
+            request: WorkspaceCommand::SculptTerrain { .. }
+                | WorkspaceCommand::PaintTerrainMaterial { .. }
+                | WorkspaceCommand::PaintVegetationDensity { .. }
+                | WorkspaceCommand::PromoteVegetationInstance { .. }
+                | WorkspaceCommand::CreatePath { .. }
+                | WorkspaceCommand::RedrawPath { .. }
+                | WorkspaceCommand::UpsertRoad { .. }
+                | WorkspaceCommand::UpsertRiver { .. }
+                | WorkspaceCommand::UpsertWall { .. }
+        }
+    )
 }
 
 async fn execute_browse_assets(

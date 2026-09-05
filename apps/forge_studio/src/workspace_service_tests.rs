@@ -6,11 +6,11 @@ use crate::workspace_api::{
     WorkspaceCommand, WorkspaceState,
 };
 use forge_project::{
-    AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_WORKSPACE_JSON_BYTES, PathId,
+    AssetPin, AuthoredRiver, AuthoredRoad, AuthoredWall, MAX_WORKSPACE_JSON_BYTES, PathId,
     RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface, RoadProfile,
     RoadProfileAlgorithm, RoadSurface, VegetationExclusion, VegetationExclusionId,
     VegetationLayerId, VegetationSpeciesPreset, WORKSPACE_SCHEMA_VERSION, WallProfile,
-    WallProfileAlgorithm, WallSurface, WorkspaceDocument,
+    WallProfileAlgorithm, WallSurface, WorkspaceDocument, asset_id_from_stable_key,
 };
 use serde_json::{Value, json};
 use std::{
@@ -112,6 +112,25 @@ fn receipt(state: &WorkspaceState) -> Value {
 
 fn current(session: &mut WorkspaceSession) -> WorkspaceState {
     session.execute(WorkspaceCommand::Current).unwrap()
+}
+
+fn governed_asset_pin() -> AssetPin {
+    let stable_key = "test-pack/tree".to_owned();
+    AssetPin {
+        asset_id: asset_id_from_stable_key(&stable_key),
+        stable_key,
+        subset_id: "test-subset".into(),
+        pack_id: "test-pack".into(),
+        source_version: "1.0".into(),
+        author: "Forge test".into(),
+        source_path: "source/tree.gltf".into(),
+        scene_path: "governed/tree.gltf".into(),
+        scene_content_hash: forge_core::ContentHash::from_bytes([1; 32]),
+        manifest_hash: forge_core::ContentHash::from_bytes([2; 32]),
+        license_spdx: "CC0-1.0".into(),
+        license_evidence_hash: forge_core::ContentHash::from_bytes([3; 32]),
+        base_scale: 1.25,
+    }
 }
 
 fn area_request(
@@ -882,6 +901,7 @@ fn vegetation_density_history_and_reopen_preserve_exact_sources() {
     expected_other_area.roads.revision = redone_document.revision;
     expected_other_area.rivers.revision = redone_document.revision;
     expected_other_area.walls.revision = redone_document.revision;
+    expected_other_area.placements.revision = redone_document.revision;
     assert_eq!(
         redone_document.project.modules[0].areas[1],
         expected_other_area
@@ -1114,6 +1134,115 @@ fn continuous_brush_is_one_history_entry_and_all_modes_round_trip_over_ipc() {
             .terrain
             .height_deltas
     );
+}
+
+#[test]
+fn governed_asset_drop_is_one_revision_and_history_entry_and_survives_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let request = area_request(&created, 0, 0);
+    let pin = governed_asset_pin();
+    let placed = session
+        .execute_place_asset(request, pin.clone(), 17.25, -9.5, 4, 23)
+        .unwrap();
+    assert_eq!(placed.revision, created.revision + 1);
+    let placed_document = document(&placed);
+    let area = &placed_document.project.modules[0].areas[0];
+    assert_eq!(area.placements.revision.get(), placed.revision);
+    assert_eq!(area.placements.asset_pins, vec![pin.clone()]);
+    assert_eq!(area.placements.placements.len(), 1);
+    let instance = area.placements.placements[0];
+    assert_eq!(instance.asset_id, pin.asset_id);
+    assert!((instance.transform.translation_m.x - 17.25).abs() < f32::EPSILON);
+    assert!((instance.transform.translation_m.z + 9.5).abs() < f32::EPSILON);
+    assert!(instance.transform.translation_m.y.is_finite());
+    assert!((instance.transform.scale.x - pin.base_scale).abs() < f32::EPSILON);
+    assert_eq!(receipt(&placed)["surface_generation"], 4);
+    assert_eq!(receipt(&placed)["surface_serial"], 23);
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: placed.revision,
+        })
+        .unwrap();
+    assert!(
+        document(&undone).project.modules[0].areas[0]
+            .placements
+            .placements
+            .is_empty()
+    );
+    assert_eq!(
+        document(&undone).project.modules[0].areas[0]
+            .placements
+            .revision
+            .get(),
+        undone.revision
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .placements
+            .placements[0]
+            .id,
+        instance.id
+    );
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .placements
+            .revision
+            .get(),
+        redone.revision
+    );
+
+    let saved = save(&mut session, &directory);
+    let saved_path = saved.saved_path.as_ref().unwrap().clone();
+    let mut reopened = WorkspaceSession::default();
+    let reopened = reopened
+        .execute(WorkspaceCommand::Open { path: saved_path })
+        .unwrap();
+    assert_eq!(
+        document(&reopened).project.modules[0].areas[0].placements,
+        document(&saved).project.modules[0].areas[0].placements
+    );
+}
+
+#[test]
+fn asset_drop_rejects_stale_or_uncorrelated_input_without_changing_the_session() {
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let request = area_request(&created, 0, 0);
+    let before = current(&mut session);
+    for (candidate, generation, serial) in [
+        (
+            crate::area_preview::AreaPreviewRequest {
+                base_revision: 0,
+                ..request
+            },
+            1,
+            1,
+        ),
+        (request, 0, 1),
+        (request, 1, 0),
+    ] {
+        assert!(
+            session
+                .execute_place_asset(
+                    candidate,
+                    governed_asset_pin(),
+                    0.0,
+                    0.0,
+                    generation,
+                    serial
+                )
+                .is_err()
+        );
+        assert_eq!(current(&mut session), before);
+    }
 }
 
 #[test]
@@ -3749,6 +3878,7 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     area.as_object_mut().unwrap().remove("roads");
     area.as_object_mut().unwrap().remove("rivers");
     area.as_object_mut().unwrap().remove("walls");
+    area.as_object_mut().unwrap().remove("placements");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     legacy["project"].as_object_mut().unwrap().remove("modules");
@@ -3781,13 +3911,13 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
 }
 
 #[test]
-fn opening_v2_through_v6_adds_new_area_documents_without_rewriting_legacy_snapshots() {
+fn opening_v2_through_v7_adds_new_area_documents_without_rewriting_legacy_snapshots() {
     let source = document(
         &WorkspaceSession::default()
             .execute(create_command())
             .unwrap(),
     );
-    for version in [2_u32, 3_u32, 4_u32, 5_u32, 6_u32] {
+    for version in [2_u32, 3_u32, 4_u32, 5_u32, 6_u32, 7_u32] {
         let directory = TestDirectory::new();
         let mut legacy = serde_json::to_value(&source).unwrap();
         legacy["schema_version"] = json!(version);
@@ -3795,7 +3925,10 @@ fn opening_v2_through_v6_adds_new_area_documents_without_rewriting_legacy_snapsh
             .as_array_mut()
             .unwrap()
         {
-            area.as_object_mut().unwrap().remove("walls");
+            area.as_object_mut().unwrap().remove("placements");
+            if version <= 6 {
+                area.as_object_mut().unwrap().remove("walls");
+            }
             if version <= 5 {
                 area.as_object_mut().unwrap().remove("rivers");
             }

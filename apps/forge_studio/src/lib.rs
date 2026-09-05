@@ -12,6 +12,7 @@ pub mod area_tabs;
 pub mod asset_browser;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod asset_browser_service;
+pub mod asset_drag;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod brush_state;
 pub mod desktop_state;
@@ -1278,6 +1279,7 @@ pub enum StudioResponse {
     },
     AreaPreview {
         preview_json: String,
+        placement: workspace_api::PlacementProjectionBinding,
     },
     VegetationDensityStrokePreview {
         preview: workspace_api::VegetationDensityStrokePreviewResponse,

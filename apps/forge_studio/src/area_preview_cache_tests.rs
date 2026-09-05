@@ -1,12 +1,16 @@
 use super::*;
-use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
+use forge_core::{
+    AreaId, CommandId, ContentHash, EntityId, ModuleId, ProjectId, Revision, Transform,
+    UnitQuaternion, Vec3,
+};
 use forge_project::{
-    AuthoredPath, AuthoredRiver, AuthoredRoad, AuthoredWall, NewProjectCommand, PathControlPoint,
-    PathId, PathInterpolation, RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface,
-    RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainHeightDelta, TerrainMaterialLayerId,
-    VegetationDensityOverride, VegetationExclusion, VegetationExclusionId, VegetationKind,
-    VegetationLayer, VegetationSpeciesPreset, WallProfile, WallProfileAlgorithm, WallSurface,
-    WorkspaceArea, WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
+    AssetPin, AuthoredPath, AuthoredPlacement, AuthoredRiver, AuthoredRoad, AuthoredWall,
+    NewProjectCommand, PathControlPoint, PathId, PathInterpolation, RiverChannelProfile,
+    RiverChannelProfileAlgorithm, RiverSurface, RoadProfile, RoadProfileAlgorithm, RoadSurface,
+    TerrainHeightDelta, TerrainMaterialLayerId, VegetationDensityOverride, VegetationExclusion,
+    VegetationExclusionId, VegetationKind, VegetationLayer, VegetationSpeciesPreset, WallProfile,
+    WallProfileAlgorithm, WallSurface, WorkspaceArea, WorkspaceChange, WorkspaceDocument,
+    WorkspaceEdit, asset_id_from_stable_key,
 };
 use forge_world::VegetationGenerationPlan;
 
@@ -28,6 +32,39 @@ fn workspace() -> WorkspaceDocument {
 
 fn area() -> WorkspaceArea {
     workspace().project.modules.remove(0).areas.remove(0)
+}
+
+fn add_test_placement(area: &WorkspaceArea) -> WorkspaceArea {
+    let mut area = area.clone();
+    let stable_key = "preview-pack/tree".to_owned();
+    let pin = AssetPin {
+        asset_id: asset_id_from_stable_key(&stable_key),
+        stable_key,
+        subset_id: "preview-subset".into(),
+        pack_id: "preview-pack".into(),
+        source_version: "1.0".into(),
+        author: "Forge test".into(),
+        source_path: "source/tree.gltf".into(),
+        scene_path: "governed/tree.gltf".into(),
+        scene_content_hash: ContentHash::from_bytes([1; 32]),
+        manifest_hash: ContentHash::from_bytes([2; 32]),
+        license_spdx: "CC0-1.0".into(),
+        license_evidence_hash: ContentHash::from_bytes([3; 32]),
+        base_scale: 1.0,
+    };
+    area.placements.revision = Revision::new(2);
+    area.placements.asset_pins = vec![pin.clone()];
+    area.placements.placements = vec![AuthoredPlacement {
+        id: EntityId::deterministic("area-preview/placed-tree"),
+        asset_id: pin.asset_id,
+        transform: Transform {
+            translation_m: Vec3::new(4.0, 2.0, -3.0),
+            rotation: UnitQuaternion::IDENTITY,
+            scale: Vec3::ONE,
+        },
+    }];
+    area.placements.validate().unwrap();
+    area
 }
 
 fn paint_grass_cells(
@@ -136,6 +173,7 @@ fn request(area: &WorkspaceArea) -> AreaPreviewRequest {
         area.roads.revision.get(),
         area.rivers.revision.get(),
         area.walls.revision.get(),
+        area.placements.revision.get(),
     ]
     .into_iter()
     .max()
@@ -362,6 +400,40 @@ fn initial_zero_density_preview_is_complete_reconstructible_and_bounded() {
     assert_full_vegetation_parity(&area, &preview);
     assert!(json.len() < MAX_PREVIEW_JSON_BYTES);
     assert_eq!(area, before);
+}
+
+#[test]
+fn placement_only_revision_reuses_all_cached_terrain_and_vegetation_projection() {
+    let source = area();
+    let mut cache = AreaPreviewCache::default();
+    let initial =
+        read_area_preview(&cache.prepare(request(&source), &source, None).unwrap()).unwrap();
+    let terrain_hash = initial.terrain.source_document_hash;
+    let terrain_chunks = cache.cached.as_ref().unwrap().terrain.chunks.clone();
+    let vegetation_pointers = cached_vegetation_pointers(&cache);
+    let placed = add_test_placement(&source);
+
+    let preview = read_area_preview(
+        &cache
+            .prepare(request(&placed), &placed, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(preview.base_source_hash, Some(terrain_hash));
+    assert!(preview.terrain.chunks.is_empty());
+    assert!(!preview.vegetation_regenerated);
+    assert_eq!(preview.vegetation_changed_chunks, 0);
+    assert_eq!(preview.vegetation_retained_chunks, 64);
+    assert_eq!(
+        cache.cached.as_ref().unwrap().terrain.chunks,
+        terrain_chunks
+    );
+    assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+    assert_eq!(preview.paths, initial.paths);
+    assert_eq!(preview.roads, initial.roads);
+    assert_eq!(preview.rivers, initial.rivers);
+    assert_eq!(preview.walls, initial.walls);
 }
 
 #[test]

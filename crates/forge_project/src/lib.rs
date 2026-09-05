@@ -4,6 +4,7 @@
 
 mod environment;
 mod path;
+mod placement;
 mod player;
 mod quality;
 mod river;
@@ -43,6 +44,14 @@ pub use path::{
     MAX_PATHS_PER_DOCUMENT, MAX_TOTAL_PATH_CONTROL_POINTS, MAX_TOTAL_PATH_LENGTH_M,
     PATH_DOCUMENT_SCHEMA, PATH_DOCUMENT_SCHEMA_VERSION, PathControlPoint, PathDocument,
     PathDocumentError, PathId, PathInterpolation,
+};
+
+pub use placement::{
+    AssetPin, AuthoredPlacement, MAX_ASSET_BASE_SCALE, MAX_ASSET_PINS_PER_DOCUMENT,
+    MAX_AUTHORED_PLACEMENTS_PER_DOCUMENT, MAX_PLACEMENT_DOCUMENT_JSON_BYTES, MIN_ASSET_BASE_SCALE,
+    PLACEMENT_DOCUMENT_SCHEMA, PLACEMENT_DOCUMENT_SCHEMA_VERSION,
+    PLACEMENT_HORIZONTAL_HALF_EXTENT_M, PlacementDocument, PlacementDocumentError,
+    asset_id_from_stable_key,
 };
 
 pub use player::{
