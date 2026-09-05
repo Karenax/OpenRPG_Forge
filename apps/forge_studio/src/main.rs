@@ -121,20 +121,28 @@ fn prepare_vegetation_density_preview(
         )?
     };
     let projection = forge_studio_frontend::area_preview::read_area_preview(&projection_json)?;
+    let terrain_hash = source
+        .area
+        .terrain
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let path_hash = source
+        .area
+        .paths
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let road_hash = source
+        .area
+        .roads
+        .content_hash()
+        .map_err(|error| error.to_string())?;
     if projection.request != preview.request
         || projection.vegetation_density_source_hash != source.candidate_density_source_hash
-        || projection.paths.terrain_document_hash
-            != source
-                .area
-                .terrain
-                .content_hash()
-                .map_err(|error| error.to_string())?
-        || projection.paths.path_document_hash
-            != source
-                .area
-                .paths
-                .content_hash()
-                .map_err(|error| error.to_string())?
+        || projection.paths.terrain_document_hash != terrain_hash
+        || projection.paths.path_document_hash != path_hash
+        || projection.roads.terrain_document_hash != terrain_hash
+        || projection.roads.path_document_hash != path_hash
+        || projection.roads.road_document_hash != road_hash
     {
         return Err("Projection de densité incohérente avec son candidat.".into());
     }
@@ -349,6 +357,18 @@ mod tests {
         assert_eq!(
             response.candidate_density_source_hash,
             projection.vegetation_density_source_hash
+        );
+        assert_eq!(
+            projection.roads.terrain_document_hash,
+            source.area.terrain.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.roads.path_document_hash,
+            source.area.paths.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.roads.road_document_hash,
+            source.area.roads.content_hash().unwrap()
         );
         assert_eq!(session.execute(WorkspaceCommand::Current).unwrap(), before);
     }

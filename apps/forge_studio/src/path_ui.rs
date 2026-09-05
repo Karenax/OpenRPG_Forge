@@ -6,12 +6,17 @@ use crate::{
     workspace_ui::WorkspaceActions,
 };
 use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer, EditorPathDraft};
-use forge_project::{PathDocument, PathId};
+use forge_project::{
+    AuthoredRoad, PathDocument, PathId, RoadDocument, RoadProfile, RoadProfileAlgorithm,
+    RoadSurface,
+};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
 
 const PATH_POINTER_RADIUS_M: f32 = 2.0;
 const MAX_PATH_COORDINATE_M: f32 = 255.999_98;
+const DEFAULT_ROAD_WIDTH_M: f32 = 4.0;
+const DEFAULT_ROAD_CROWN_HEIGHT_M: f32 = 0.08;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PathIntentKind {
@@ -365,17 +370,111 @@ fn active_request_untracked(world: WorldActions) -> Option<AreaPreviewRequest> {
     })
 }
 
-fn active_paths(world: WorldActions) -> Option<(AreaPreviewRequest, PathDocument)> {
+fn active_paths(world: WorldActions) -> Option<(AreaPreviewRequest, PathDocument, RoadDocument)> {
     let key = world.tabs.get().active?;
     let document = world.document.get()?;
-    let paths = document.area(key.module_id, key.area_id)?.paths.clone();
+    let area = document.area(key.module_id, key.area_id)?;
+    let paths = area.paths.clone();
+    let roads = area.roads.clone();
     Some((
         AreaPreviewRequest {
             key,
             base_revision: document.revision.get(),
         },
         paths,
+        roads,
     ))
+}
+
+fn parse_road_number(value: &str, label: &str) -> Result<f32, String> {
+    let parsed = value
+        .trim()
+        .parse::<f32>()
+        .map_err(|_| format!("{label} doit être un nombre fini."))?;
+    if !parsed.is_finite() {
+        return Err(format!("{label} doit être un nombre fini."));
+    }
+    Ok(parsed)
+}
+
+#[component]
+fn RoadProfileForm(
+    path_id: PathId,
+    current: Option<AuthoredRoad>,
+    request: AreaPreviewRequest,
+    paths: PathActions,
+    brush: BrushActions,
+    world: WorldActions,
+    workspace: WorkspaceActions,
+) -> impl IntoView {
+    let width = RwSignal::new(
+        current
+            .map_or(DEFAULT_ROAD_WIDTH_M, |road| road.profile.width_m)
+            .to_string(),
+    );
+    let crown = RwSignal::new(
+        current
+            .map_or(DEFAULT_ROAD_CROWN_HEIGHT_M, |road| {
+                road.profile.crown_height_m
+            })
+            .to_string(),
+    );
+    let action_label = if current.is_some() {
+        "Mettre à jour le profil"
+    } else {
+        "Créer la route"
+    };
+
+    view! {
+        <form class="vegetation-add-form" on:submit=move |event| {
+            event.prevent_default();
+            let result = (|| {
+                let profile = RoadProfile {
+                    algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                    width_m: parse_road_number(&width.get_untracked(), "La largeur")?,
+                    crown_height_m: parse_road_number(&crown.get_untracked(), "Le bombé")?,
+                };
+                profile.validate().map_err(|error| error.to_string())?;
+                let road = AuthoredRoad {
+                    path_id,
+                    profile,
+                    surface: RoadSurface::CompactedEarthV1,
+                };
+                if current == Some(road) {
+                    return Err("Le profil de route est déjà identique.".to_owned());
+                }
+                Ok(road)
+            })();
+            match result {
+                Ok(road) => {
+                    paths.error.set(None);
+                    workspace.send(WorkspaceCommand::UpsertRoad { request, road });
+                }
+                Err(error) => paths.error.set(Some(error)),
+            }
+        }>
+            <fieldset disabled=move || workspace.unavailable()
+                || paths.intent.get().is_some()
+                || world.busy.get()
+                || world.density_preview_busy.get()
+                || brush.interaction_active()>
+                <legend class="project-sr-only">"Profil de route en terre"</legend>
+                <label>"Largeur (m)"
+                    <input type="number" min="1" max="16" step="0.1"
+                        aria-label="Largeur de route en mètres"
+                        prop:value=move || width.get()
+                        on:input=move |event| width.set(event_target_value(&event))/>
+                </label>
+                <label>"Bombé (m)"
+                    <input type="number" min="0" max="0.3" step="0.01"
+                        aria-label="Bombé de route en mètres"
+                        prop:value=move || crown.get()
+                        on:input=move |event| crown.set(event_target_value(&event))/>
+                </label>
+                <button type="submit">{action_label}</button>
+            </fieldset>
+        </form>
+    }
 }
 
 fn publish_path_draft(world: WorldActions, draft: &PathDraft) {
@@ -481,13 +580,23 @@ pub(super) fn PathPanel(
                 None => "Un geste crée une seule modification annulable. Alt + glisser conserve la navigation.",
             }}</p>
             <ul class="vegetation-list">
-                {move || active_paths(world).map(|(_, document)| {
+                {move || active_paths(world).map(|(request, document, roads)| {
                     if document.paths.is_empty() {
                         return view! { <li class="vegetation-empty">"Aucun chemin"</li> }.into_any();
                     }
                     document.paths.into_iter().map(|path| {
                         let path_id = path.id;
-                        let description = format!("{} · {} points", path.name, path.control_points.len());
+                        let closed = path.closed;
+                        let road = roads.roads.iter().find(|road| road.path_id == path_id).copied();
+                        let description = road.map_or_else(
+                            || format!("{} · {} points", path.name, path.control_points.len()),
+                            |road| format!(
+                                "{} · {} points · route terre {:.1} m",
+                                path.name,
+                                path.control_points.len(),
+                                road.profile.width_m,
+                            ),
+                        );
                         view! {
                             <li class="vegetation-row">
                                 <span class="vegetation-exclusion-description">{description}</span>
@@ -503,6 +612,12 @@ pub(super) fn PathPanel(
                                         brush,
                                         PathIntentKind::Redraw(path_id),
                                     )>"Redessiner"</button>
+                                {if closed {
+                                    view! { <p class="hint">"Route indisponible : ce chemin est fermé."</p> }.into_any()
+                                } else {
+                                    view! { <RoadProfileForm path_id=path_id current=road request=request
+                                        paths=paths brush=brush world=world workspace=workspace/> }.into_any()
+                                }}
                             </li>
                         }
                     }).collect_view().into_any()

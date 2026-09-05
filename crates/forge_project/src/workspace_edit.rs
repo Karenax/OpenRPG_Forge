@@ -3,9 +3,10 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    AuthoredPath, PromotedVegetationInstance, TerrainHeightDelta, TerrainMaterialWeightOverride,
-    VegetationDensityLayer, VegetationDensityOverride, VegetationExclusion, VegetationLayer,
-    VegetationLayerId, WorkspaceDocument, WorkspaceError, WorkspaceModule,
+    AuthoredPath, AuthoredRoad, PromotedVegetationInstance, TerrainHeightDelta,
+    TerrainMaterialWeightOverride, VegetationDensityLayer, VegetationDensityOverride,
+    VegetationExclusion, VegetationLayer, VegetationLayerId, WorkspaceDocument, WorkspaceError,
+    WorkspaceModule,
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, Revision, Vec3};
 use serde::{Deserialize, Serialize};
@@ -72,6 +73,14 @@ pub enum WorkspaceChange {
         area_id: AreaId,
         expected_path_document_hash: ContentHash,
         path: AuthoredPath,
+    },
+    /// Creates or replaces one road profile assigned to an existing open generic path.
+    UpsertRoad {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_path_document_hash: ContentHash,
+        expected_road_document_hash: ContentHash,
+        road: AuthoredRoad,
     },
     AddModule {
         module_id: ModuleId,
@@ -261,6 +270,21 @@ impl WorkspaceDocument {
                 path,
                 next,
             )?,
+            WorkspaceChange::UpsertRoad {
+                module_id,
+                area_id,
+                expected_path_document_hash,
+                expected_road_document_hash,
+                road,
+            } => upsert_road(
+                document,
+                *module_id,
+                *area_id,
+                *expected_path_document_hash,
+                *expected_road_document_hash,
+                road,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -345,6 +369,8 @@ fn update_area_metadata(
     area.vegetation_density.revision = revision;
     name.clone_into(&mut area.paths.name);
     area.paths.revision = revision;
+    name.clone_into(&mut area.roads.name);
+    area.roads.revision = revision;
     Ok(())
 }
 
@@ -386,6 +412,60 @@ fn upsert_path(
     replacement.revision = revision;
     replacement.validate()?;
     area.paths = replacement;
+    Ok(())
+}
+
+fn upsert_road(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_path_hash: ContentHash,
+    expected_road_hash: ContentHash,
+    road: &AuthoredRoad,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.paths.content_hash()? != expected_path_hash
+        || area.roads.content_hash()? != expected_road_hash
+    {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    let path = area
+        .paths
+        .paths
+        .binary_search_by_key(&road.path_id, |path| path.id)
+        .ok()
+        .map(|index| &area.paths.paths[index])
+        .ok_or(WorkspaceError::MissingRoadPath(road.path_id))?;
+    if path.closed {
+        return Err(WorkspaceError::ClosedRoadPath(road.path_id));
+    }
+
+    let mut replacement = area.roads.clone();
+    match replacement
+        .roads
+        .binary_search_by_key(&road.path_id, |candidate| candidate.path_id)
+    {
+        Ok(index) => {
+            if replacement.roads[index] == *road {
+                return Err(WorkspaceError::NoChange);
+            }
+            replacement.roads[index] = *road;
+        }
+        Err(index) => replacement.roads.insert(index, *road),
+    }
+    replacement.revision = revision;
+    replacement.validate()?;
+    area.roads = replacement;
     Ok(())
 }
 

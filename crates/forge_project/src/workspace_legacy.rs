@@ -2,7 +2,7 @@
 //! preserved. Older areas gain deterministic Forge-owned empty documents, so reopening a snapshot
 //! does not add visible authored content.
 use crate::{
-    PathDocument, TerrainDocument, VegetationDensityDocument, VegetationDocument,
+    PathDocument, RoadDocument, TerrainDocument, VegetationDensityDocument, VegetationDocument,
     WORKSPACE_SCHEMA_VERSION, WorkspaceArea, WorkspaceAreaKind, WorkspaceDocument, WorkspaceError,
     WorkspaceModule, WorkspaceProject,
 };
@@ -113,6 +113,45 @@ struct AreaV3 {
     vegetation_density: VegetationDensityDocument,
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct V4 {
+    schema: String,
+    schema_version: u32,
+    revision: Revision,
+    project: ProjectV4,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ProjectV4 {
+    id: ProjectId,
+    name: String,
+    modules: Vec<ModuleV4>,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ModuleV4 {
+    id: ModuleId,
+    name: String,
+    areas: Vec<AreaV4>,
+}
+
+/// Exact pre-v5 area shape. It intentionally cannot accept the new `roads` member.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct AreaV4 {
+    id: AreaId,
+    name: String,
+    kind: WorkspaceAreaKind,
+    spawn: Vec3,
+    terrain: TerrainDocument,
+    vegetation: VegetationDocument,
+    vegetation_density: VegetationDensityDocument,
+    paths: PathDocument,
+}
+
 pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
     // Inspect only the version, then deserialize the original bytes strictly. Parsing through
     // Value would discard duplicate keys before the actual schema had a chance to reject them.
@@ -120,6 +159,7 @@ pub(super) fn read(json: &str) -> Result<WorkspaceDocument, WorkspaceError> {
         1 => migrate_v1(serde_json::from_str(json)?),
         2 => migrate_v2(serde_json::from_str(json)?),
         3 => migrate_v3(serde_json::from_str(json)?),
+        4 => migrate_v4(serde_json::from_str(json)?),
         WORKSPACE_SCHEMA_VERSION => migrate_embedded_documents(serde_json::from_str(json)?),
         version => Err(WorkspaceError::UnsupportedVersion(version)),
     }
@@ -206,6 +246,37 @@ fn migrate_v3(old: V3) -> Result<WorkspaceDocument, WorkspaceError> {
     })
 }
 
+fn migrate_v4(old: V4) -> Result<WorkspaceDocument, WorkspaceError> {
+    debug_assert_eq!(old.schema_version, 4);
+    let project_id = old.project.id;
+    let modules = old
+        .project
+        .modules
+        .into_iter()
+        .map(|module| {
+            Ok(WorkspaceModule {
+                id: module.id,
+                name: module.name,
+                areas: module
+                    .areas
+                    .into_iter()
+                    .map(|area| migrate_area_v4(project_id, area))
+                    .collect::<Result<Vec<_>, WorkspaceError>>()?,
+            })
+        })
+        .collect::<Result<Vec<_>, WorkspaceError>>()?;
+    Ok(WorkspaceDocument {
+        schema: old.schema,
+        schema_version: WORKSPACE_SCHEMA_VERSION,
+        revision: old.revision,
+        project: WorkspaceProject {
+            id: project_id,
+            name: old.project.name,
+            modules,
+        },
+    })
+}
+
 fn migrate_area(project_id: ProjectId, old: AreaV1V2) -> Result<WorkspaceArea, WorkspaceError> {
     let terrain = old.terrain.migrate_to_latest()?;
     let mut area = super::workspace::new_exterior_area(
@@ -238,6 +309,7 @@ fn migrate_area_v3(project_id: ProjectId, old: AreaV3) -> Result<WorkspaceArea, 
         .max(vegetation.revision)
         .max(old.vegetation_density.revision);
     let paths = PathDocument::new(project_id, old.id, paths_revision, old.name.clone(), vec![]);
+    let roads = RoadDocument::new(project_id, old.id, paths_revision, old.name.clone(), vec![]);
     Ok(WorkspaceArea {
         id: old.id,
         name: old.name,
@@ -247,6 +319,29 @@ fn migrate_area_v3(project_id: ProjectId, old: AreaV3) -> Result<WorkspaceArea, 
         vegetation,
         vegetation_density: old.vegetation_density,
         paths,
+        roads,
+    })
+}
+
+fn migrate_area_v4(project_id: ProjectId, old: AreaV4) -> Result<WorkspaceArea, WorkspaceError> {
+    let terrain = old.terrain.migrate_to_latest()?;
+    let vegetation = old.vegetation.migrate_to_latest()?;
+    let road_revision = terrain
+        .revision
+        .max(vegetation.revision)
+        .max(old.vegetation_density.revision)
+        .max(old.paths.revision);
+    let roads = RoadDocument::new(project_id, old.id, road_revision, old.name.clone(), vec![]);
+    Ok(WorkspaceArea {
+        id: old.id,
+        name: old.name,
+        kind: old.kind,
+        spawn: old.spawn,
+        terrain,
+        vegetation,
+        vegetation_density: old.vegetation_density,
+        paths: old.paths,
+        roads,
     })
 }
 

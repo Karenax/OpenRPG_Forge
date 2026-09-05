@@ -2,7 +2,7 @@
 
 use forge_core::{AreaId, EntityId, ModuleId};
 use forge_project::{
-    PathId, VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId,
+    AuthoredRoad, PathId, VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId,
     VegetationSpeciesPreset,
 };
 use serde::{Deserialize, Serialize};
@@ -124,6 +124,10 @@ pub enum WorkspaceCommand {
         request: crate::area_preview::AreaPreviewRequest,
         path_id: PathId,
         trace_xz_m: Vec<[f32; 2]>,
+    },
+    UpsertRoad {
+        request: crate::area_preview::AreaPreviewRequest,
+        road: AuthoredRoad,
     },
     Current,
     Create {
@@ -282,6 +286,18 @@ mod tests {
                 path_id: PathId::deterministic("ipc-path"),
                 trace_xz_m: vec![[-4.0, -8.0], [4.0, 8.0]],
             },
+            WorkspaceCommand::UpsertRoad {
+                request,
+                road: AuthoredRoad {
+                    path_id: PathId::deterministic("ipc-road-path"),
+                    profile: forge_project::RoadProfile {
+                        algorithm: forge_project::RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                        width_m: 4.0,
+                        crown_height_m: 0.08,
+                    },
+                    surface: forge_project::RoadSurface::CompactedEarthV1,
+                },
+            },
             WorkspaceCommand::Undo { base_revision: 1 },
             WorkspaceCommand::Redo { base_revision: 2 },
             WorkspaceCommand::Close,
@@ -362,6 +378,22 @@ mod tests {
         .unwrap();
         nested_path["request"]["unexpected"] = serde_json::json!(true);
         assert!(serde_json::from_value::<WorkspaceCommand>(nested_path).is_err());
+
+        let mut road = serde_json::to_value(WorkspaceCommand::UpsertRoad {
+            request,
+            road: AuthoredRoad {
+                path_id: PathId::deterministic("strict-ipc-road"),
+                profile: forge_project::RoadProfile {
+                    algorithm: forge_project::RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                    width_m: 4.0,
+                    crown_height_m: 0.08,
+                },
+                surface: forge_project::RoadSurface::CompactedEarthV1,
+            },
+        })
+        .unwrap();
+        road["road"]["profile"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(road).is_err());
     }
 
     #[test]

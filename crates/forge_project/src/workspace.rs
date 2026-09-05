@@ -4,9 +4,10 @@
 //! persistence and any actual player placement belong to explicit consumers.
 
 use crate::{
-    HeightSamplingAlgorithm, HeightSamplingParameters, PATH_DOCUMENT_SCHEMA_VERSION, PathDocument,
-    PathDocumentError, TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainDocumentError,
-    TerrainExtent, TerrainMaterialLayer, TerrainMaterialLayerId,
+    HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TOTAL_ROAD_LENGTH_M,
+    PATH_DOCUMENT_SCHEMA_VERSION, PathDocument, PathDocumentError, ROAD_DOCUMENT_SCHEMA_VERSION,
+    RoadDocument, RoadDocumentError, TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument,
+    TerrainDocumentError, TerrainExtent, TerrainMaterialLayer, TerrainMaterialLayerId,
     VEGETATION_DOCUMENT_SCHEMA_VERSION, VegetationDensityDocument, VegetationDensityError,
     VegetationDensityLayer, VegetationDocument, VegetationDocumentError, VegetationExtent,
     VegetationPresentationProfile, VegetationSpeciesPreset,
@@ -19,7 +20,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub const WORKSPACE_SCHEMA: &str = "forge.workspace";
-pub const WORKSPACE_SCHEMA_VERSION: u32 = 4;
+pub const WORKSPACE_SCHEMA_VERSION: u32 = 5;
 pub const MAX_WORKSPACE_MODULES: usize = 64;
 pub const MAX_WORKSPACE_AREAS: usize = 256;
 pub const MAX_WORKSPACE_JSON_BYTES: usize = 1_048_576;
@@ -43,7 +44,7 @@ pub struct NewProjectCommand {
     pub spawn: Vec3,
 }
 
-/// Canonical v4 model. Use `from_json` for explicit v1/v2/v3 import.
+/// Canonical v5 model. Use `from_json` for explicit v1/v2/v3/v4 import.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceDocument {
@@ -81,6 +82,7 @@ pub struct WorkspaceArea {
     pub vegetation: VegetationDocument,
     pub vegetation_density: VegetationDensityDocument,
     pub paths: PathDocument,
+    pub roads: RoadDocument,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -148,7 +150,7 @@ impl WorkspaceDocument {
             new_revision: document.revision,
             before_hash: None,
             after_hash,
-            summary: "Création : 1 projet, 1 module, 1 zone extérieure, terrain, végétation et chemins source."
+            summary: "Création : 1 projet, 1 module, 1 zone extérieure, terrain, végétation, chemins et routes source."
                 .to_owned(),
             inverse: WorkspaceCreationInverse::DiscardDraft {
                 expected_after_hash: after_hash,
@@ -207,67 +209,7 @@ impl WorkspaceDocument {
                 if area_ids.len() > MAX_WORKSPACE_AREAS {
                     return Err(WorkspaceError::CollectionLimit("areas"));
                 }
-                validate_name("area_name", &area.name)?;
-                validate_spawn(area.spawn)?;
-                let terrain = &area.terrain;
-                terrain.validate()?;
-                if terrain.project_id != self.project.id || terrain.area_id != area.id {
-                    return Err(WorkspaceError::TerrainOwnershipMismatch);
-                }
-                if terrain.revision.get() == 0 || terrain.revision > self.revision {
-                    return Err(WorkspaceError::InvalidRevision("terrain"));
-                }
-                if terrain.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
-                    || terrain.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
-                    || terrain.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
-                    || terrain.height_sampling.sample_spacing_m.to_bits()
-                        != SAMPLE_SPACING_M.to_bits()
-                    || terrain.material_layers.len() != 3
-                {
-                    return Err(WorkspaceError::UnsupportedTerrainShape);
-                }
-                let vegetation = &area.vegetation;
-                vegetation.validate()?;
-                if vegetation.project_id != self.project.id || vegetation.area_id != area.id {
-                    return Err(WorkspaceError::VegetationOwnershipMismatch);
-                }
-                if vegetation.revision.get() == 0 || vegetation.revision > self.revision {
-                    return Err(WorkspaceError::InvalidRevision("vegetation"));
-                }
-                if vegetation.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION
-                    || vegetation.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
-                    || vegetation.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
-                {
-                    return Err(WorkspaceError::UnsupportedVegetationShape);
-                }
-                if vegetation
-                    .promoted_instances
-                    .iter()
-                    .any(|promoted| promoted.source.workspace_revision > self.revision)
-                {
-                    return Err(WorkspaceError::InvalidRevision(
-                        "vegetation promotion source",
-                    ));
-                }
-                let density = &area.vegetation_density;
-                density.validate()?;
-                if density.project_id != self.project.id || density.area_id != area.id {
-                    return Err(WorkspaceError::VegetationDensityOwnershipMismatch);
-                }
-                if density.revision.get() == 0 || density.revision > self.revision {
-                    return Err(WorkspaceError::InvalidRevision("vegetation_density"));
-                }
-                if density.cells_per_chunk_axis != vegetation.cells_per_chunk_axis
-                    || density.layers.len() != vegetation.layers.len()
-                    || !density
-                        .layers
-                        .iter()
-                        .zip(&vegetation.layers)
-                        .all(|(density, recipe)| density.layer_id == recipe.id)
-                {
-                    return Err(WorkspaceError::VegetationDensityRecipeMismatch);
-                }
-                validate_paths(self.project.id, self.revision, area)?;
+                validate_area(self.project.id, self.revision, area)?;
             }
         }
         ensure_json_budget(serde_json::to_string_pretty(self)?.len())
@@ -293,6 +235,74 @@ impl WorkspaceDocument {
     }
 }
 
+fn validate_area(
+    project_id: ProjectId,
+    workspace_revision: Revision,
+    area: &WorkspaceArea,
+) -> Result<(), WorkspaceError> {
+    validate_name("area_name", &area.name)?;
+    validate_spawn(area.spawn)?;
+    let terrain = &area.terrain;
+    terrain.validate()?;
+    if terrain.project_id != project_id || terrain.area_id != area.id {
+        return Err(WorkspaceError::TerrainOwnershipMismatch);
+    }
+    if terrain.revision.get() == 0 || terrain.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("terrain"));
+    }
+    if terrain.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
+        || terrain.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
+        || terrain.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
+        || terrain.height_sampling.sample_spacing_m.to_bits() != SAMPLE_SPACING_M.to_bits()
+        || terrain.material_layers.len() != 3
+    {
+        return Err(WorkspaceError::UnsupportedTerrainShape);
+    }
+    let vegetation = &area.vegetation;
+    vegetation.validate()?;
+    if vegetation.project_id != project_id || vegetation.area_id != area.id {
+        return Err(WorkspaceError::VegetationOwnershipMismatch);
+    }
+    if vegetation.revision.get() == 0 || vegetation.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("vegetation"));
+    }
+    if vegetation.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION
+        || vegetation.extent_m.size_x_m.to_bits() != AREA_SIZE_M.to_bits()
+        || vegetation.extent_m.size_z_m.to_bits() != AREA_SIZE_M.to_bits()
+    {
+        return Err(WorkspaceError::UnsupportedVegetationShape);
+    }
+    if vegetation
+        .promoted_instances
+        .iter()
+        .any(|promoted| promoted.source.workspace_revision > workspace_revision)
+    {
+        return Err(WorkspaceError::InvalidRevision(
+            "vegetation promotion source",
+        ));
+    }
+    let density = &area.vegetation_density;
+    density.validate()?;
+    if density.project_id != project_id || density.area_id != area.id {
+        return Err(WorkspaceError::VegetationDensityOwnershipMismatch);
+    }
+    if density.revision.get() == 0 || density.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("vegetation_density"));
+    }
+    if density.cells_per_chunk_axis != vegetation.cells_per_chunk_axis
+        || density.layers.len() != vegetation.layers.len()
+        || !density
+            .layers
+            .iter()
+            .zip(&vegetation.layers)
+            .all(|(density, recipe)| density.layer_id == recipe.id)
+    {
+        return Err(WorkspaceError::VegetationDensityRecipeMismatch);
+    }
+    validate_paths(project_id, workspace_revision, area)?;
+    validate_roads(project_id, workspace_revision, area)
+}
+
 fn validate_paths(
     project_id: ProjectId,
     workspace_revision: Revision,
@@ -308,6 +318,46 @@ fn validate_paths(
     }
     if paths.schema_version != PATH_DOCUMENT_SCHEMA_VERSION {
         return Err(WorkspaceError::UnsupportedPathShape);
+    }
+    Ok(())
+}
+
+fn validate_roads(
+    project_id: ProjectId,
+    workspace_revision: Revision,
+    area: &WorkspaceArea,
+) -> Result<(), WorkspaceError> {
+    let roads = &area.roads;
+    roads.validate()?;
+    if roads.project_id != project_id || roads.area_id != area.id {
+        return Err(WorkspaceError::RoadOwnershipMismatch);
+    }
+    if roads.revision.get() == 0 || roads.revision > workspace_revision {
+        return Err(WorkspaceError::InvalidRevision("roads"));
+    }
+    if roads.schema_version != ROAD_DOCUMENT_SCHEMA_VERSION {
+        return Err(WorkspaceError::UnsupportedRoadShape);
+    }
+
+    let mut total_length_m = 0.0_f64;
+    for road in &roads.roads {
+        let path = area
+            .paths
+            .paths
+            .binary_search_by_key(&road.path_id, |path| path.id)
+            .ok()
+            .map(|index| &area.paths.paths[index])
+            .ok_or(WorkspaceError::MissingRoadPath(road.path_id))?;
+        if path.closed {
+            return Err(WorkspaceError::ClosedRoadPath(road.path_id));
+        }
+        total_length_m += path.validate()?;
+        if !total_length_m.is_finite() || total_length_m > MAX_TOTAL_ROAD_LENGTH_M {
+            return Err(WorkspaceError::TotalRoadLengthExceeded {
+                length_m: total_length_m,
+                maximum_m: MAX_TOTAL_ROAD_LENGTH_M,
+            });
+        }
     }
     Ok(())
 }
@@ -357,6 +407,7 @@ pub(crate) fn new_exterior_area(
             .collect(),
     );
     let paths = PathDocument::new(project_id, area_id, revision, name.clone(), vec![]);
+    let roads = RoadDocument::new(project_id, area_id, revision, name.clone(), vec![]);
     WorkspaceArea {
         id: area_id,
         name,
@@ -366,6 +417,7 @@ pub(crate) fn new_exterior_area(
         vegetation,
         vegetation_density,
         paths,
+        roads,
     }
 }
 
@@ -484,6 +536,8 @@ pub enum WorkspaceError {
     VegetationDensityOwnershipMismatch,
     #[error("path project/area identities do not match their workspace owners")]
     PathOwnershipMismatch,
+    #[error("road project/area identities do not match their workspace owners")]
+    RoadOwnershipMismatch,
     #[error(
         "workspace requires a current terrain schema, 512 m square, 2 m samples and three material layers"
     )]
@@ -494,6 +548,14 @@ pub enum WorkspaceError {
     VegetationDensityRecipeMismatch,
     #[error("workspace requires the current authored path document shape")]
     UnsupportedPathShape,
+    #[error("workspace requires the current authored road document shape")]
+    UnsupportedRoadShape,
+    #[error("road references missing path {0}")]
+    MissingRoadPath(crate::PathId),
+    #[error("road path {0} must be open in road document version 1")]
+    ClosedRoadPath(crate::PathId),
+    #[error("total road length {length_m} m exceeds {maximum_m} m")]
+    TotalRoadLengthExceeded { length_m: f64, maximum_m: f64 },
     #[error("workspace JSON contains {bytes} bytes; maximum is {maximum}")]
     JsonBudgetExceeded { bytes: usize, maximum: usize },
     #[error("workspace collection limit exceeded or no module: {0}")]
@@ -524,6 +586,8 @@ pub enum WorkspaceError {
     VegetationDensity(#[from] VegetationDensityError),
     #[error("invalid workspace paths: {0}")]
     Path(#[from] PathDocumentError),
+    #[error("invalid workspace roads: {0}")]
+    Road(#[from] RoadDocumentError),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -623,6 +687,12 @@ mod tests {
         assert_eq!(area.paths.schema_version, PATH_DOCUMENT_SCHEMA_VERSION);
         assert_eq!(area.paths.name, input.area_name);
         assert!(area.paths.paths.is_empty());
+        assert_eq!(area.roads.project_id, input.project_id);
+        assert_eq!(area.roads.area_id, input.area_id);
+        assert_eq!(area.roads.revision, Revision::INITIAL);
+        assert_eq!(area.roads.schema_version, ROAD_DOCUMENT_SCHEMA_VERSION);
+        assert_eq!(area.roads.name, input.area_name);
+        assert!(area.roads.roads.is_empty());
         assert_ne!(
             terrain.project_id,
             ProjectId::deterministic("visual-valley-project")
@@ -654,6 +724,7 @@ mod tests {
         );
         assert!(json.contains("discard_draft"));
         assert!(json.contains("\"paths\":[]"));
+        assert!(json.contains("\"roads\":[]"));
     }
 
     #[test]
@@ -971,6 +1042,31 @@ mod tests {
     }
 
     #[test]
+    fn roads_must_share_workspace_ownership_and_revision() {
+        let mut changed = document();
+        changed.project.modules[0].areas[0].roads.project_id =
+            ProjectId::deterministic("other-project");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::RoadOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].roads.area_id = AreaId::deterministic("other-area");
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::RoadOwnershipMismatch)
+        ));
+
+        let mut changed = document();
+        changed.project.modules[0].areas[0].roads.revision = Revision::new(2);
+        assert!(matches!(
+            changed.validate(),
+            Err(WorkspaceError::InvalidRevision("roads"))
+        ));
+    }
+
+    #[test]
     fn schemas_unknown_fields_and_future_area_kinds_fail_closed() {
         let mut value = serde_json::to_value(document()).unwrap();
         value["schema"] = json!("other.workspace");
@@ -993,6 +1089,7 @@ mod tests {
             "/project/modules/0/areas/0/vegetation",
             "/project/modules/0/areas/0/vegetation_density",
             "/project/modules/0/areas/0/paths",
+            "/project/modules/0/areas/0/roads",
         ] {
             let mut value = serde_json::to_value(document()).unwrap();
             value.pointer_mut(pointer).unwrap()["unknown_field"] = json!(true);
@@ -1078,6 +1175,7 @@ mod tests {
                 area.vegetation.area_id = area.id;
                 area.vegetation_density.area_id = area.id;
                 area.paths.area_id = area.id;
+                area.roads.area_id = area.id;
                 area
             })
             .collect();

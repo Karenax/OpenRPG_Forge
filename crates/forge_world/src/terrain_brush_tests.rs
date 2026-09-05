@@ -631,6 +631,7 @@ fn workspace_revision_can_advance_independently_of_terrain_and_other_areas_stay_
     other.vegetation.area_id = other.id;
     other.vegetation_density.area_id = other.id;
     other.paths.area_id = other.id;
+    other.roads.area_id = other.id;
     source.project.modules[0].areas.push(other.clone());
     source.revision = Revision::new(9);
     let result = preview_terrain_brush(

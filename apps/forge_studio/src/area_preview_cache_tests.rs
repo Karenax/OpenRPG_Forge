@@ -1,10 +1,11 @@
 use super::*;
 use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
 use forge_project::{
-    AuthoredPath, NewProjectCommand, PathControlPoint, PathId, PathInterpolation,
-    TerrainHeightDelta, TerrainMaterialLayerId, VegetationDensityOverride, VegetationExclusion,
-    VegetationExclusionId, VegetationKind, VegetationLayer, VegetationSpeciesPreset, WorkspaceArea,
-    WorkspaceChange, WorkspaceDocument, WorkspaceEdit,
+    AuthoredPath, AuthoredRoad, NewProjectCommand, PathControlPoint, PathId, PathInterpolation,
+    RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainHeightDelta, TerrainMaterialLayerId,
+    VegetationDensityOverride, VegetationExclusion, VegetationExclusionId, VegetationKind,
+    VegetationLayer, VegetationSpeciesPreset, WorkspaceArea, WorkspaceChange, WorkspaceDocument,
+    WorkspaceEdit,
 };
 use forge_world::VegetationGenerationPlan;
 
@@ -131,6 +132,7 @@ fn request(area: &WorkspaceArea) -> AreaPreviewRequest {
         area.vegetation.revision.get(),
         area.vegetation_density.revision.get(),
         area.paths.revision.get(),
+        area.roads.revision.get(),
     ]
     .into_iter()
     .max()
@@ -244,6 +246,18 @@ fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
     assert_eq!(
         preview.paths.path_document_hash,
         area.paths.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.roads.terrain_document_hash,
+        area.terrain.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.roads.path_document_hash,
+        area.paths.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.roads.road_document_hash,
+        area.roads.content_hash().unwrap()
     );
 }
 
@@ -738,6 +752,91 @@ fn path_only_edit_reuses_all_terrain_and_vegetation_chunks_and_replaces_paths() 
     assert_eq!(
         preview.paths.path_document_hash,
         changed_area.paths.content_hash().unwrap()
+    );
+    assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+}
+
+#[test]
+fn road_only_edit_reuses_terrain_vegetation_and_path_projection() {
+    let source = workspace();
+    let source_area = &source.project.modules[0].areas[0];
+    let path_id = PathId::deterministic("area-preview/road-path");
+    let with_path = source
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/road-path-source"),
+            base_revision: source.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: source.project.modules[0].id,
+                area_id: source_area.id,
+                expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: path_id,
+                    name: "Route du cache".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(-24.0, 0.0, -8.0)),
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, 8.0)),
+                        PathControlPoint::new(Vec3::new(24.0, 0.0, -8.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let with_path_area = &with_path.project.modules[0].areas[0];
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(with_path_area), with_path_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let terrain_hash = initial.terrain.source_document_hash;
+    let vegetation_pointers = cached_vegetation_pointers(&cache);
+    assert!(initial.roads.roads.is_empty());
+
+    let changed = with_path
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/road-only"),
+            base_revision: with_path.revision,
+            change: WorkspaceChange::UpsertRoad {
+                module_id: with_path.project.modules[0].id,
+                area_id: with_path_area.id,
+                expected_path_document_hash: with_path_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: with_path_area.roads.content_hash().unwrap(),
+                road: AuthoredRoad {
+                    path_id,
+                    profile: RoadProfile {
+                        algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+                        width_m: 5.0,
+                        crown_height_m: 0.1,
+                    },
+                    surface: RoadSurface::CompactedEarthV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let changed_area = &changed.project.modules[0].areas[0];
+    let preview = read_area_preview(
+        &cache
+            .prepare(request(changed_area), changed_area, Some(terrain_hash))
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(preview.base_source_hash, Some(terrain_hash));
+    assert!(preview.terrain.chunks.is_empty());
+    assert!(!preview.vegetation_regenerated);
+    assert_eq!(preview.vegetation_changed_chunks, 0);
+    assert_eq!(preview.vegetation_retained_chunks, 64);
+    assert_eq!(preview.paths, initial.paths);
+    assert_eq!(preview.roads.roads.len(), 1);
+    assert_eq!(preview.roads.roads[0].path_id, path_id);
+    assert_eq!(
+        preview.roads.road_document_hash,
+        changed_area.roads.content_hash().unwrap()
     );
     assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
 }

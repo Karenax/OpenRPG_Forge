@@ -6,8 +6,9 @@ use crate::workspace_api::{
     WorkspaceCommand, WorkspaceState,
 };
 use forge_project::{
-    MAX_WORKSPACE_JSON_BYTES, PathId, VegetationExclusion, VegetationExclusionId,
-    VegetationLayerId, VegetationSpeciesPreset, WORKSPACE_SCHEMA_VERSION, WorkspaceDocument,
+    AuthoredRoad, MAX_WORKSPACE_JSON_BYTES, PathId, RoadProfile, RoadProfileAlgorithm, RoadSurface,
+    VegetationExclusion, VegetationExclusionId, VegetationLayerId, VegetationSpeciesPreset,
+    WORKSPACE_SCHEMA_VERSION, WorkspaceDocument,
 };
 use serde_json::{Value, json};
 use std::{
@@ -146,6 +147,30 @@ fn redraw_path_command(
         request: area_request(state, 0, 0),
         path_id,
         trace_xz_m,
+    }
+}
+
+fn upsert_road_command(
+    state: &WorkspaceState,
+    path_id: PathId,
+    width_m: f32,
+    crown_height_m: f32,
+) -> WorkspaceCommand {
+    WorkspaceCommand::UpsertRoad {
+        request: area_request(state, 0, 0),
+        road: authored_road(path_id, width_m, crown_height_m),
+    }
+}
+
+fn authored_road(path_id: PathId, width_m: f32, crown_height_m: f32) -> AuthoredRoad {
+    AuthoredRoad {
+        path_id,
+        profile: RoadProfile {
+            algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+            width_m,
+            crown_height_m,
+        },
+        surface: RoadSurface::CompactedEarthV1,
     }
 }
 
@@ -356,6 +381,13 @@ fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
             base_revision: applied.revision,
         })
         .unwrap();
+    assert_eq!(
+        document(&undone).project.modules[0].areas[0]
+            .roads
+            .revision
+            .get(),
+        undone.revision
+    );
     assert!(
         document(&undone).project.modules[0].areas[0]
             .terrain
@@ -367,6 +399,13 @@ fn terrain_brush_dry_run_apply_history_and_reopen_preserve_exact_sources() {
             base_revision: undone.revision,
         })
         .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0]
+            .roads
+            .revision
+            .get(),
+        redone.revision
+    );
     assert_eq!(
         document(&redone).project.modules[0].areas[0]
             .terrain
@@ -759,6 +798,7 @@ fn vegetation_density_history_and_reopen_preserve_exact_sources() {
     expected_other_area.vegetation.revision = redone_document.revision;
     expected_other_area.vegetation_density.revision = redone_document.revision;
     expected_other_area.paths.revision = redone_document.revision;
+    expected_other_area.roads.revision = redone_document.revision;
     assert_eq!(
         redone_document.project.modules[0].areas[1],
         expected_other_area
@@ -2563,6 +2603,151 @@ fn path_create_and_redraw_rejections_are_atomic() {
 }
 
 #[test]
+fn road_profile_is_one_revision_and_survives_redraw_history_and_reopen() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-24.0, -8.0], [0.0, 4.0], [24.0, -8.0]],
+        ))
+        .unwrap();
+    let before = document(&with_path);
+    let path = before.project.modules[0].areas[0].paths.paths[0].clone();
+    let path_hash = before.project.modules[0].areas[0]
+        .paths
+        .content_hash()
+        .unwrap();
+    let history_before = session.undo.len();
+
+    let with_road = session
+        .execute(upsert_road_command(&with_path, path.id, 4.5, 0.09))
+        .unwrap();
+    assert_eq!(with_road.revision, with_path.revision + 1);
+    assert_eq!(session.undo.len(), history_before + 1);
+    let road_document = document(&with_road);
+    let area = &road_document.project.modules[0].areas[0];
+    assert_eq!(area.paths.content_hash().unwrap(), path_hash);
+    assert_eq!(area.paths.paths[0], path);
+    assert_eq!(area.roads.roads, vec![authored_road(path.id, 4.5, 0.09)]);
+    assert_eq!(area.roads.revision.get(), with_road.revision);
+    assert_eq!(
+        receipt(&with_road)["command"]["road"]["path_id"],
+        json!(path.id)
+    );
+
+    let updated = session
+        .execute(upsert_road_command(&with_road, path.id, 6.0, 0.12))
+        .unwrap();
+    assert_eq!(updated.revision, with_road.revision + 1);
+    assert_eq!(
+        document(&updated).project.modules[0].areas[0].roads.roads,
+        vec![authored_road(path.id, 6.0, 0.12)]
+    );
+
+    let undone = session
+        .execute(WorkspaceCommand::Undo {
+            base_revision: updated.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&undone).project.modules[0].areas[0].roads.roads,
+        vec![authored_road(path.id, 4.5, 0.09)]
+    );
+    let redone = session
+        .execute(WorkspaceCommand::Redo {
+            base_revision: undone.revision,
+        })
+        .unwrap();
+    assert_eq!(
+        document(&redone).project.modules[0].areas[0].roads.roads,
+        vec![authored_road(path.id, 6.0, 0.12)]
+    );
+
+    let redrawn = session
+        .execute(redraw_path_command(
+            &redone,
+            path.id,
+            vec![[-20.0, -12.0], [0.0, 8.0], [20.0, -12.0]],
+        ))
+        .unwrap();
+    let redrawn_document = document(&redrawn);
+    let redrawn_area = &redrawn_document.project.modules[0].areas[0];
+    assert_eq!(
+        redrawn_area.roads.roads,
+        vec![authored_road(path.id, 6.0, 0.12)]
+    );
+    forge_world::RoadGenerationPlan::from_documents(
+        &redrawn_area.terrain,
+        &redrawn_area.paths,
+        &redrawn_area.roads,
+    )
+    .unwrap()
+    .generate()
+    .unwrap();
+
+    let saved = save(&mut session, &directory);
+    let reopened = WorkspaceSession::default()
+        .execute(open_command(Path::new(saved.saved_path.as_ref().unwrap())))
+        .unwrap();
+    assert_eq!(reopened.document_json, saved.document_json);
+    assert!(!reopened.dirty && !reopened.can_undo && !reopened.can_redo);
+}
+
+#[test]
+fn road_profile_rejections_are_atomic() {
+    let directory = TestDirectory::new();
+    let mut session = WorkspaceSession::default();
+    let created = session.execute(create_command()).unwrap();
+    let with_path = session
+        .execute(create_path_command(
+            &created,
+            vec![[-16.0, 0.0], [16.0, 0.0]],
+        ))
+        .unwrap();
+    let path_id = document(&with_path).project.modules[0].areas[0].paths.paths[0].id;
+    let with_road = session
+        .execute(upsert_road_command(&with_path, path_id, 4.0, 0.08))
+        .unwrap();
+    let saved = save(&mut session, &directory);
+    let files_before = directory.files();
+    let valid_request = area_request(&saved, 0, 0);
+    let mut stale_request = valid_request;
+    stale_request.base_revision -= 1;
+    let mut wrong_project_request = valid_request;
+    wrong_project_request.key.project_id =
+        forge_core::ProjectId::deterministic("wrong-road-project");
+
+    for command in [
+        WorkspaceCommand::UpsertRoad {
+            request: stale_request,
+            road: authored_road(path_id, 5.0, 0.10),
+        },
+        WorkspaceCommand::UpsertRoad {
+            request: wrong_project_request,
+            road: authored_road(path_id, 5.0, 0.10),
+        },
+        WorkspaceCommand::UpsertRoad {
+            request: valid_request,
+            road: authored_road(PathId::deterministic("missing-road-path"), 4.0, 0.08),
+        },
+        WorkspaceCommand::UpsertRoad {
+            request: valid_request,
+            road: authored_road(path_id, 0.5, 0.08),
+        },
+        WorkspaceCommand::UpsertRoad {
+            request: valid_request,
+            road: authored_road(path_id, 4.0, 0.25),
+        },
+        upsert_road_command(&with_road, path_id, 4.0, 0.08),
+    ] {
+        assert_rejected_without_state_change(&mut session, command);
+        assert_eq!(directory.files(), files_before);
+    }
+}
+
+#[test]
 fn path_identity_and_default_name_are_deterministic_after_undo() {
     let mut session = WorkspaceSession::default();
     let created = session.execute(create_command()).unwrap();
@@ -2601,6 +2786,7 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
     area.as_object_mut().unwrap().remove("vegetation");
     area.as_object_mut().unwrap().remove("vegetation_density");
     area.as_object_mut().unwrap().remove("paths");
+    area.as_object_mut().unwrap().remove("roads");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     legacy["project"].as_object_mut().unwrap().remove("modules");
@@ -2633,13 +2819,13 @@ fn opening_v1_migrates_in_memory_and_never_rewrites_the_old_snapshot() {
 }
 
 #[test]
-fn opening_v2_and_v3_adds_empty_paths_in_memory_without_rewriting_legacy_snapshots() {
+fn opening_v2_v3_and_v4_adds_new_area_documents_without_rewriting_legacy_snapshots() {
     let source = document(
         &WorkspaceSession::default()
             .execute(create_command())
             .unwrap(),
     );
-    for version in [2_u32, 3_u32] {
+    for version in [2_u32, 3_u32, 4_u32] {
         let directory = TestDirectory::new();
         let mut legacy = serde_json::to_value(&source).unwrap();
         legacy["schema_version"] = json!(version);
@@ -2647,7 +2833,10 @@ fn opening_v2_and_v3_adds_empty_paths_in_memory_without_rewriting_legacy_snapsho
             .as_array_mut()
             .unwrap()
         {
-            area.as_object_mut().unwrap().remove("paths");
+            area.as_object_mut().unwrap().remove("roads");
+            if version <= 3 {
+                area.as_object_mut().unwrap().remove("paths");
+            }
             if version == 2 {
                 area.as_object_mut().unwrap().remove("vegetation");
                 area.as_object_mut().unwrap().remove("vegetation_density");

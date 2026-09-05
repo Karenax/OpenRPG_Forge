@@ -355,6 +355,7 @@ fn validate_candidate_paths(
         .area(module_id, area_id)
         .ok_or(WorkspaceError::MissingTarget("area"))?;
     PathGenerationPlan::from_documents(&area.terrain, &area.paths)?.generate()?;
+    crate::road::validate_candidate_roads(edit, module_id, area_id)?;
     Ok(())
 }
 
@@ -528,6 +529,8 @@ pub enum PathCommandError {
     Terrain(#[from] TerrainGenerationError),
     #[error("generated path candidate is invalid: {0}")]
     Generation(#[from] PathGenerationError),
+    #[error("road projection affected by the path edit is invalid: {0}")]
+    RoadGeneration(#[from] crate::road::RoadGenerationError),
 }
 
 #[cfg(test)]

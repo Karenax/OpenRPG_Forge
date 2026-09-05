@@ -1072,6 +1072,10 @@ fn validate_density_preview(
         .paths
         .content_hash()
         .map_err(|error| error.to_string())?;
+    let road_hash = area
+        .roads
+        .content_hash()
+        .map_err(|error| error.to_string())?;
     let projection = crate::area_preview::read_area_preview(&response.preview_json)?;
     if projection.request != ticket.request
         || projection.terrain.source_document_hash != terrain_hash
@@ -1080,6 +1084,9 @@ fn validate_density_preview(
         || projection.vegetation_density_source_hash != response.candidate_density_source_hash
         || projection.paths.terrain_document_hash != terrain_hash
         || projection.paths.path_document_hash != path_hash
+        || projection.roads.terrain_document_hash != terrain_hash
+        || projection.roads.path_document_hash != path_hash
+        || projection.roads.road_document_hash != road_hash
         || projection
             .vegetation_changed_chunks
             .checked_add(projection.vegetation_retained_chunks)

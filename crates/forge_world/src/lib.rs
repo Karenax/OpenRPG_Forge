@@ -5,6 +5,7 @@
 mod environment;
 mod path;
 mod player;
+mod road;
 mod terrain;
 mod terrain_brush;
 mod terrain_generation;
@@ -31,6 +32,14 @@ pub use path::{
     MIN_PATH_TRACE_POINTS, PATH_SAMPLE_SPACING_M, PathCommandError, PathCreateCommand,
     PathCreateResult, PathGenerationError, PathGenerationPlan, PathRedrawCommand, PathRedrawResult,
     PathSample, preview_create_path, preview_redraw_path,
+};
+
+pub use road::{
+    GeneratedRoad, GeneratedRoads, MAX_GENERATED_ROAD_INDICES,
+    MAX_GENERATED_ROAD_LONGITUDINAL_SAMPLES, MAX_GENERATED_ROAD_VERTICES,
+    ROAD_CROSS_SECTION_VERTEX_COUNT, ROAD_GENERATION_VERSION, ROAD_MESH_CLEARANCE_M,
+    ROAD_MESH_MAX_LONGITUDINAL_CHORD_M, RoadCommandError, RoadGenerationError, RoadGenerationPlan,
+    RoadUpsertCommand, RoadUpsertResult, preview_upsert_road,
 };
 
 pub use player::{

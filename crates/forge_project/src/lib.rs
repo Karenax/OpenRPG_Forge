@@ -6,6 +6,7 @@ mod environment;
 mod path;
 mod player;
 mod quality;
+mod road;
 mod terrain;
 mod vegetation;
 mod vegetation_catalog;
@@ -55,6 +56,12 @@ pub use quality::{
     VISUAL_VALLEY_QUALITY_PROFILE_SCHEMA_VERSION, VegetationQualitySettings, VisualQualityPreset,
     VisualQualityPresets, VisualQualityTier, VisualValleyQualityProfileDocument,
     VisualValleyQualityProfileError, WaterQualitySettings,
+};
+pub use road::{
+    AuthoredRoad, MAX_ROAD_CROWN_HEIGHT_M, MAX_ROAD_CROWN_TO_WIDTH_RATIO,
+    MAX_ROAD_DOCUMENT_JSON_BYTES, MAX_ROAD_WIDTH_M, MAX_ROADS_PER_DOCUMENT,
+    MAX_TOTAL_ROAD_LENGTH_M, MIN_ROAD_WIDTH_M, ROAD_DOCUMENT_SCHEMA, ROAD_DOCUMENT_SCHEMA_VERSION,
+    RoadDocument, RoadDocumentError, RoadProfile, RoadProfileAlgorithm, RoadSurface,
 };
 
 pub use terrain::{

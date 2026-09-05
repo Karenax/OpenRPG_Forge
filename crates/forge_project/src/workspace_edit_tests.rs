@@ -1,9 +1,10 @@
 use super::*;
 use crate::{
-    AuthoredPath, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
-    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS,
-    MAX_WORKSPACE_MODULES, NewProjectCommand, PathControlPoint, PathDocumentError, PathId,
-    PathInterpolation, PromotedVegetationInstance, TerrainMaterialLayerId, TerrainMaterialRole,
+    AuthoredPath, AuthoredRoad, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
+    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_ROADS_PER_DOCUMENT, MAX_TOTAL_ROAD_LENGTH_M,
+    MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand,
+    PathControlPoint, PathDocumentError, PathId, PathInterpolation, PromotedVegetationInstance,
+    RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainMaterialLayerId, TerrainMaterialRole,
     TerrainMaterialWeightOverride, VegetationDensityError, VegetationDensityOverride,
     VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
     VegetationGenerationAlgorithm, VegetationInstanceTransform, VegetationPromotionSource,
@@ -119,6 +120,30 @@ fn path_change(document: &WorkspaceDocument, path: AuthoredPath) -> WorkspaceCha
     }
 }
 
+fn authored_road(path_id: PathId, width_m: f32) -> AuthoredRoad {
+    AuthoredRoad {
+        path_id,
+        profile: RoadProfile {
+            algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
+            width_m,
+            crown_height_m: width_m * 0.02,
+        },
+        surface: RoadSurface::CompactedEarthV1,
+    }
+}
+
+fn road_change(document: &WorkspaceDocument, road: AuthoredRoad) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    WorkspaceChange::UpsertRoad {
+        module_id: module.id,
+        area_id: area.id,
+        expected_path_document_hash: area.paths.content_hash().unwrap(),
+        expected_road_document_hash: area.roads.content_hash().unwrap(),
+        road,
+    }
+}
+
 fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut value = serde_json::to_value(document).unwrap();
     value["schema_version"] = json!(1);
@@ -127,6 +152,7 @@ fn legacy_json(document: &WorkspaceDocument) -> String {
     area.as_object_mut().unwrap().remove("vegetation");
     area.as_object_mut().unwrap().remove("vegetation_density");
     area.as_object_mut().unwrap().remove("paths");
+    area.as_object_mut().unwrap().remove("roads");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     value["project"].as_object_mut().unwrap().remove("modules");
@@ -142,6 +168,7 @@ fn legacy_v2_json(document: &WorkspaceDocument) -> String {
             area.as_object_mut().unwrap().remove("vegetation");
             area.as_object_mut().unwrap().remove("vegetation_density");
             area.as_object_mut().unwrap().remove("paths");
+            area.as_object_mut().unwrap().remove("roads");
         }
     }
     value.to_string()
@@ -153,6 +180,18 @@ fn legacy_v3_json(document: &WorkspaceDocument) -> String {
     for module in value["project"]["modules"].as_array_mut().unwrap() {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("paths");
+            area.as_object_mut().unwrap().remove("roads");
+        }
+    }
+    value.to_string()
+}
+
+fn legacy_v4_json(document: &WorkspaceDocument) -> String {
+    let mut value = serde_json::to_value(document).unwrap();
+    value["schema_version"] = json!(4);
+    for module in value["project"]["modules"].as_array_mut().unwrap() {
+        for area in module["areas"].as_array_mut().unwrap() {
+            area.as_object_mut().unwrap().remove("roads");
         }
     }
     value.to_string()
@@ -281,13 +320,18 @@ fn workspace_v3_migration_adds_only_empty_paths_and_migrates_embedded_sources() 
     assert_eq!(migrated.schema_version, crate::WORKSPACE_SCHEMA_VERSION);
     let area = &migrated.project.modules[0].areas[0];
     assert!(area.paths.paths.is_empty());
+    assert!(area.roads.roads.is_empty());
     assert_eq!(area.paths.project_id, migrated.project.id);
     assert_eq!(area.paths.area_id, area.id);
     assert_eq!(area.paths.name, area.name);
+    assert_eq!(area.roads.project_id, migrated.project.id);
+    assert_eq!(area.roads.area_id, area.id);
+    assert_eq!(area.roads.name, area.name);
     assert_eq!(
         area.paths.revision,
         revisions.1.max(revisions.2).max(revisions.3)
     );
+    assert_eq!(area.roads.revision, area.paths.revision);
     assert_eq!(
         area.terrain.height_deltas,
         vec![crate::TerrainHeightDelta::new(128, 128, 3.5)]
@@ -337,7 +381,49 @@ fn workspace_v3_migration_preserves_current_embedded_hashes_but_has_a_new_worksp
         embedded_hashes.2
     );
     assert!(area.paths.paths.is_empty());
+    assert!(area.roads.roads.is_empty());
     assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
+}
+
+#[test]
+fn workspace_v4_migration_adds_only_empty_roads_and_preserves_embedded_hashes() {
+    let source = source();
+    let path = authored_path("v4-road-source", 0.0);
+    let with_path = source
+        .preview_edit(edit(&source, path_change(&source, path.clone())))
+        .unwrap()
+        .document;
+    let source_area = &with_path.project.modules[0].areas[0];
+    let embedded_hashes = (
+        source_area.terrain.content_hash().unwrap(),
+        source_area.vegetation.content_hash().unwrap(),
+        source_area.vegetation_density.content_hash().unwrap(),
+        source_area.paths.content_hash().unwrap(),
+    );
+    let json = legacy_v4_json(&with_path);
+    let untouched = json.clone();
+    let legacy_value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let legacy_workspace_hash = forge_core::canonical_json_sha256(&legacy_value).unwrap();
+
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    assert_eq!(json, untouched);
+    assert_eq!(migrated.schema_version, crate::WORKSPACE_SCHEMA_VERSION);
+    let area = &migrated.project.modules[0].areas[0];
+    assert_eq!(area.paths.paths, vec![path]);
+    assert!(area.roads.roads.is_empty());
+    assert_eq!(area.roads.project_id, migrated.project.id);
+    assert_eq!(area.roads.area_id, area.id);
+    assert_eq!(area.roads.name, area.name);
+    assert_eq!(area.roads.revision, area.paths.revision);
+    assert_eq!(area.terrain.content_hash().unwrap(), embedded_hashes.0);
+    assert_eq!(area.vegetation.content_hash().unwrap(), embedded_hashes.1);
+    assert_eq!(
+        area.vegetation_density.content_hash().unwrap(),
+        embedded_hashes.2
+    );
+    assert_eq!(area.paths.content_hash().unwrap(), embedded_hashes.3);
+    assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
+    assert_eq!(legacy_v4_json(&migrated), json);
 }
 
 #[test]
@@ -401,6 +487,11 @@ fn migration_rejects_unknown_duplicate_and_mixed_shape_fields() {
     mixed_v3["project"]["modules"][0]["areas"][0]["paths"] =
         serde_json::to_value(&current.project.modules[0].areas[0].paths).unwrap();
     assert!(WorkspaceDocument::from_json(&mixed_v3.to_string()).is_err());
+
+    let mut mixed_v4: serde_json::Value = serde_json::from_str(&legacy_v4_json(&current)).unwrap();
+    mixed_v4["project"]["modules"][0]["areas"][0]["roads"] =
+        serde_json::to_value(&current.project.modules[0].areas[0].roads).unwrap();
+    assert!(WorkspaceDocument::from_json(&mixed_v4.to_string()).is_err());
 }
 
 #[test]
@@ -568,6 +659,324 @@ fn upsert_path_rejects_noop_stale_missing_and_invalid_inputs_atomically() {
 }
 
 #[test]
+fn upsert_road_creates_edits_sorts_reopens_and_replays_from_its_inverse() {
+    let source = source();
+    let first_path = authored_path("road-first", -12.0);
+    let second_path = authored_path("road-second", 12.0);
+    let with_first = source
+        .preview_edit(edit(&source, path_change(&source, first_path.clone())))
+        .unwrap()
+        .document;
+    let with_paths = with_first
+        .preview_edit(edit(
+            &with_first,
+            path_change(&with_first, second_path.clone()),
+        ))
+        .unwrap()
+        .document;
+    let module_id = with_paths.project.modules[0].id;
+    let area_id = with_paths.project.modules[0].areas[0].id;
+    let source_area = with_paths.area(module_id, area_id).unwrap().clone();
+    let path_ids = source_area
+        .paths
+        .paths
+        .iter()
+        .map(|path| path.id)
+        .collect::<Vec<_>>();
+    let later_road = authored_road(path_ids[1], 5.0);
+
+    let first = with_paths
+        .preview_edit(edit(&with_paths, road_change(&with_paths, later_road)))
+        .unwrap();
+    let first_area = first.document.area(module_id, area_id).unwrap();
+    assert_eq!(first.document.revision, with_paths.revision.next().unwrap());
+    assert_eq!(first_area.roads.revision, first.document.revision);
+    assert_eq!(first_area.roads.roads, vec![later_road]);
+    assert_eq!(first_area.paths, source_area.paths);
+    assert_eq!(first_area.terrain, source_area.terrain);
+    assert_eq!(first_area.vegetation, source_area.vegetation);
+    assert_eq!(
+        first_area.vegetation_density,
+        source_area.vegetation_density
+    );
+    assert_eq!(*first.receipt.inverse_snapshot, with_paths);
+
+    let earlier_road = authored_road(path_ids[0], 3.0);
+    let second_command = edit(&first.document, road_change(&first.document, earlier_road));
+    let second = first.document.preview_edit(second_command.clone()).unwrap();
+    let roads = &second
+        .document
+        .area(module_id, area_id)
+        .unwrap()
+        .roads
+        .roads;
+    assert_eq!(roads, &vec![earlier_road, later_road]);
+    assert!(
+        roads
+            .windows(2)
+            .all(|pair| pair[0].path_id < pair[1].path_id)
+    );
+
+    let reopened =
+        WorkspaceDocument::from_json(&second.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, second.document);
+    let undone = *second.receipt.inverse_snapshot.clone();
+    assert_eq!(undone, first.document);
+    let replayed = undone.preview_edit(second_command).unwrap();
+    assert_eq!(replayed.document, second.document);
+    assert_eq!(replayed.receipt.after_hash, second.receipt.after_hash);
+
+    let edited = authored_road(path_ids[0], 7.0);
+    let third = second
+        .document
+        .preview_edit(edit(
+            &second.document,
+            road_change(&second.document, edited),
+        ))
+        .unwrap();
+    let roads = &third.document.area(module_id, area_id).unwrap().roads.roads;
+    assert_eq!(roads, &vec![edited, later_road]);
+    assert_eq!(
+        third.document.revision,
+        second.document.revision.next().unwrap()
+    );
+}
+
+#[test]
+fn upsert_road_rejects_noop_stale_hashes_missing_closed_and_invalid_atomically() {
+    let source = source();
+    let path = authored_path("road-atomic", 0.0);
+    let with_path = source
+        .preview_edit(edit(&source, path_change(&source, path.clone())))
+        .unwrap()
+        .document;
+    let road = authored_road(path.id, 4.0);
+    let created = with_path
+        .preview_edit(edit(&with_path, road_change(&with_path, road)))
+        .unwrap()
+        .document;
+    let module_id = created.project.modules[0].id;
+    let area_id = created.project.modules[0].areas[0].id;
+    let created_hash = created.content_hash().unwrap();
+
+    assert!(matches!(
+        created.preview_edit(edit(&created, road_change(&created, road))),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let mut stale_base = edit(&created, road_change(&created, authored_road(path.id, 5.0)));
+    stale_base.base_revision = with_path.revision;
+    assert!(matches!(
+        created.preview_edit(stale_base),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let mut stale_path_hash = road_change(&created, authored_road(path.id, 5.0));
+    if let WorkspaceChange::UpsertRoad {
+        expected_path_document_hash,
+        ..
+    } = &mut stale_path_hash
+    {
+        *expected_path_document_hash = ContentHash::from_bytes([0xA5; 32]);
+    }
+    assert!(matches!(
+        created.preview_edit(edit(&created, stale_path_hash)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let mut stale_road_hash = road_change(&created, authored_road(path.id, 5.0));
+    if let WorkspaceChange::UpsertRoad {
+        expected_road_document_hash,
+        ..
+    } = &mut stale_road_hash
+    {
+        *expected_road_document_hash = ContentHash::from_bytes([0x5A; 32]);
+    }
+    assert!(matches!(
+        created.preview_edit(edit(&created, stale_road_hash)),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    let missing = authored_road(PathId::deterministic("missing-road-path"), 4.0);
+    assert!(matches!(
+        created.preview_edit(edit(&created, road_change(&created, missing))),
+        Err(WorkspaceError::MissingRoadPath(id)) if id == missing.path_id
+    ));
+
+    let mut assigned_path_closed = path.clone();
+    assigned_path_closed.closed = true;
+    assert!(matches!(
+        created.preview_edit(edit(
+            &created,
+            path_change(&created, assigned_path_closed)
+        )),
+        Err(WorkspaceError::ClosedRoadPath(id)) if id == path.id
+    ));
+
+    let mut invalid = authored_road(path.id, 4.0);
+    invalid.profile.crown_height_m = 0.25;
+    assert!(matches!(
+        created.preview_edit(edit(&created, road_change(&created, invalid))),
+        Err(WorkspaceError::Road(
+            crate::RoadDocumentError::InvalidProfileRelation(_)
+        ))
+    ));
+
+    assert_eq!(created.content_hash().unwrap(), created_hash);
+    assert_eq!(
+        created.area(module_id, area_id).unwrap().roads.roads,
+        vec![road]
+    );
+}
+
+#[test]
+fn upsert_road_rejects_missing_or_closed_targets_without_mutation() {
+    let source = source();
+    let path = authored_path("road-target", 0.0);
+    let with_path = source
+        .preview_edit(edit(&source, path_change(&source, path.clone())))
+        .unwrap()
+        .document;
+    let road = authored_road(path.id, 4.0);
+    let created = with_path
+        .preview_edit(edit(&with_path, road_change(&with_path, road)))
+        .unwrap()
+        .document;
+    let module_id = created.project.modules[0].id;
+    let area_id = created.project.modules[0].areas[0].id;
+    let created_hash = created.content_hash().unwrap();
+
+    let mut closed_path = authored_path("road-closed", 24.0);
+    closed_path.closed = true;
+    let with_closed = created
+        .preview_edit(edit(&created, path_change(&created, closed_path.clone())))
+        .unwrap()
+        .document;
+    let closed_road = authored_road(closed_path.id, 4.0);
+    assert!(matches!(
+        with_closed.preview_edit(edit(
+            &with_closed,
+            road_change(&with_closed, closed_road)
+        )),
+        Err(WorkspaceError::ClosedRoadPath(id)) if id == closed_path.id
+    ));
+
+    for change in [
+        WorkspaceChange::UpsertRoad {
+            module_id: ModuleId::deterministic("missing-road-module"),
+            area_id,
+            expected_path_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .paths
+                .content_hash()
+                .unwrap(),
+            expected_road_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .roads
+                .content_hash()
+                .unwrap(),
+            road: authored_road(path.id, 6.0),
+        },
+        WorkspaceChange::UpsertRoad {
+            module_id,
+            area_id: AreaId::deterministic("missing-road-area"),
+            expected_path_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .paths
+                .content_hash()
+                .unwrap(),
+            expected_road_document_hash: created
+                .area(module_id, area_id)
+                .unwrap()
+                .roads
+                .content_hash()
+                .unwrap(),
+            road: authored_road(path.id, 6.0),
+        },
+    ] {
+        assert!(matches!(
+            created.preview_edit(edit(&created, change)),
+            Err(WorkspaceError::MissingTarget(_))
+        ));
+    }
+
+    assert_eq!(created.content_hash().unwrap(), created_hash);
+    assert_eq!(
+        created.area(module_id, area_id).unwrap().roads.roads,
+        vec![road]
+    );
+}
+
+#[test]
+fn road_assignments_respect_collection_and_total_length_limits() {
+    let mut full = source();
+    let module_id = full.project.modules[0].id;
+    let area_id = full.project.modules[0].areas[0].id;
+    let mut paths = (0..MAX_ROADS_PER_DOCUMENT)
+        .map(|index| {
+            let offset_m = f32::from(u16::try_from(index).unwrap()) * 0.1;
+            authored_path(&format!("road-capacity-{index:02}"), offset_m)
+        })
+        .collect::<Vec<_>>();
+    paths.sort_by_key(|path| path.id);
+    full.project.modules[0].areas[0].paths.paths = paths.clone();
+    full.validate().unwrap();
+    for path in paths {
+        let road = authored_road(path.id, 2.0);
+        full = full
+            .preview_edit(edit(&full, road_change(&full, road)))
+            .unwrap()
+            .document;
+    }
+    assert_eq!(
+        full.area(module_id, area_id).unwrap().roads.roads.len(),
+        MAX_ROADS_PER_DOCUMENT
+    );
+
+    let long_path = |key: &str, z_m: f32| AuthoredPath {
+        id: PathId::deterministic(key),
+        name: key.to_owned(),
+        closed: false,
+        interpolation: PathInterpolation::CentripetalCatmullRomV1,
+        control_points: (0..17)
+            .map(|index| {
+                let x_m = if index % 2 == 0 { -250.0 } else { 250.0 };
+                PathControlPoint::new(Vec3::new(x_m, 0.0, z_m))
+            })
+            .collect(),
+    };
+    let mut length_limited = source();
+    let first_path = long_path("long-road-a", -20.0);
+    let second_path = long_path("long-road-b", 20.0);
+    let mut long_paths = vec![first_path.clone(), second_path.clone()];
+    long_paths.sort_by_key(|path| path.id);
+    length_limited.project.modules[0].areas[0].paths.paths = long_paths;
+    length_limited.validate().unwrap();
+    let first = length_limited
+        .preview_edit(edit(
+            &length_limited,
+            road_change(&length_limited, authored_road(first_path.id, 2.0)),
+        ))
+        .unwrap()
+        .document;
+    let before_hash = first.content_hash().unwrap();
+    assert!(matches!(
+        first.preview_edit(edit(
+            &first,
+            road_change(&first, authored_road(second_path.id, 2.0))
+        )),
+        Err(WorkspaceError::TotalRoadLengthExceeded {
+            length_m,
+            maximum_m
+        }) if length_m > MAX_TOTAL_ROAD_LENGTH_M && maximum_m == MAX_TOTAL_ROAD_LENGTH_M
+    ));
+    assert_eq!(first.content_hash().unwrap(), before_hash);
+}
+
+#[test]
 fn upsert_path_enforces_document_and_per_path_limits_before_commit() {
     let mut full = source();
     let mut paths = (0..MAX_PATHS_PER_DOCUMENT)
@@ -643,6 +1052,8 @@ fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     assert_eq!(area.vegetation_density.revision, next.revision);
     assert_eq!(area.paths.revision, next.revision);
     assert!(area.paths.paths.is_empty());
+    assert_eq!(area.roads.revision, next.revision);
+    assert!(area.roads.roads.is_empty());
     assert!(
         area.vegetation_density
             .layers
@@ -678,10 +1089,12 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.name, area.vegetation.name);
     assert_eq!(area.name, area.vegetation_density.name);
     assert_eq!(area.name, area.paths.name);
+    assert_eq!(area.name, area.roads.name);
     assert_eq!(area.terrain.revision, result.revision);
     assert_eq!(area.vegetation.revision, result.revision);
     assert_eq!(area.vegetation_density.revision, result.revision);
     assert_eq!(area.paths.revision, result.revision);
+    assert_eq!(area.roads.revision, result.revision);
     assert_eq!(area.terrain.height_sampling, old.terrain.height_sampling);
     assert_eq!(area.terrain.seed, old.terrain.seed);
     assert_eq!(area.vegetation.seed, old.vegetation.seed);
@@ -691,6 +1104,7 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
         old.vegetation_density.layers
     );
     assert_eq!(area.paths.paths, old.paths.paths);
+    assert_eq!(area.roads.roads, old.roads.roads);
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
@@ -1817,6 +2231,7 @@ fn collection_budgets_and_global_area_identity_are_validated() {
             area.vegetation.area_id = area.id;
             area.vegetation_density.area_id = area.id;
             area.paths.area_id = area.id;
+            area.roads.area_id = area.id;
             area
         })
         .collect();

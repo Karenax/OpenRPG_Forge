@@ -9,10 +9,10 @@ use crate::{
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
 use forge_project::{
-    MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS, NewProjectCommand,
-    PathId, TerrainMaterialRole, VegetationExclusion, VegetationExclusionId, VegetationLayer,
-    VegetationLayerId, WorkspaceArea, WorkspaceChange, WorkspaceCreationInverse, WorkspaceDocument,
-    WorkspaceEdit, WorkspaceError,
+    AuthoredRoad, MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS,
+    NewProjectCommand, PathId, TerrainMaterialRole, VegetationExclusion, VegetationExclusionId,
+    VegetationLayer, VegetationLayerId, WorkspaceArea, WorkspaceChange, WorkspaceCreationInverse,
+    WorkspaceDocument, WorkspaceEdit, WorkspaceError,
 };
 use std::path::{Path, PathBuf};
 
@@ -155,7 +155,8 @@ impl WorkspaceSession {
                 return self.execute_vegetation_instance_edit(command);
             }
             command @ (WorkspaceCommand::CreatePath { .. }
-            | WorkspaceCommand::RedrawPath { .. }) => return self.execute_path_edit(command),
+            | WorkspaceCommand::RedrawPath { .. }
+            | WorkspaceCommand::UpsertRoad { .. }) => return self.execute_path_edit(command),
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -464,8 +465,36 @@ impl WorkspaceSession {
                 path_id,
                 trace_xz_m,
             } => self.execute_path_redraw(request, path_id, trace_xz_m),
-            _ => Err("Commande de chemin attendue.".into()),
+            WorkspaceCommand::UpsertRoad { request, road } => {
+                self.execute_road_upsert(request, road)
+            }
+            _ => Err("Commande de chemin ou de route attendue.".into()),
         }
+    }
+
+    fn execute_road_upsert(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        road: AuthoredRoad,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_upsert_road(
+            document,
+            forge_world::RoadUpsertCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                road,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state("Profil de route appliqué. Annulation disponible.".into())
     }
 
     fn execute_path_redraw(
@@ -1141,6 +1170,7 @@ fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
             area.vegetation.revision = document.revision;
             area.vegetation_density.revision = document.revision;
             area.paths.revision = document.revision;
+            area.roads.revision = document.revision;
         }
     }
 }

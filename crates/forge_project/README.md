@@ -6,8 +6,9 @@ Définit les documents JSON persistants et moteur-neutres de Forge :
 - `forge.terrain` versions 1 à 3 pour les terrains ; la fixture Visual Valley garde sa v1 intacte,
   la v2 accepte les deltas de hauteur authorés et la v3 ajoute les poids de matériaux authorés ;
 - `forge.path` version 1 pour les chemins génériques persistants, sans profil de route ni rivière ;
-- `forge.workspace` version 4 pour les projets multi-modules et multi-zones, avec lecture/migration
-  stricte des versions 1 à 3, métadonnées, point de départ et documents source par zone ;
+- `forge.road` version 1 pour les profils routiers affectés à des chemins existants ;
+- `forge.workspace` version 5 pour les projets multi-modules et multi-zones, avec lecture/migration
+  stricte des versions 1 à 4, métadonnées, point de départ et documents source par zone ;
 - `forge.visual-valley-quality-profile` version 1 pour les presets Low/Medium/High/Ultra, le mode
   benchmark High fixe et la politique d'adaptation bornée.
 
@@ -50,8 +51,8 @@ La source suit `WorkspaceDocument.project.modules[].areas[].terrain`, accessible
 512 × 512 m, pas de 2 m,
 trois matériaux logiques herbe/terre/roche et un relief procédural d'amplitude 12 m. Les identités
 projet/zone du terrain doivent correspondre à leurs propriétaires ; sa révision est positive et ne
-dépasse pas celle du workspace. Chaque nouvelle zone possède aussi un `PathDocument` v1 vide. Aucun
-asset ni chemin de fichier libre n'entre dans ce contrat.
+dépasse pas celle du workspace. Chaque nouvelle zone possède aussi un `PathDocument` v1 et un
+`RoadDocument` v1 vides. Aucun asset ni chemin de fichier libre n'entre dans ce contrat.
 
 Le reçu expose la commande, l'absence d'état/révision antérieure, la nouvelle révision, le hash
 résultant et un résumé borné. L'inverse `DiscardDraft { expected_after_hash }` autorise uniquement
@@ -66,20 +67,20 @@ inconnus et versions non prises en charge sont refusés. Les tests de contrat co
 cohérence des identités, noms, seed, spawn, round-trip/hash, reçu et limites de format. Leur présence
 ne vaut pas preuve d'une sauvegarde native ou d'un parcours Studio fonctionnel.
 
-## Modules, zones et migration v4
+## Modules, zones et migration v5
 
 Le projet contient 1 à 64 modules ; un nouveau module peut être vide. Le total des zones est limité
 à 256, avec des IDs de modules uniques et des IDs de zones uniques dans tout le projet. Les noms ne
 servent pas d'identités. La limite JSON formaté reste de 1 Mio pour le workspace complet.
 
 `from_json` inspecte la version puis relit les octets d'origine avec le schéma strict correspondant :
-aucun champ inconnu, doublon de clé ou mélange de formes v1/v2/v3/v4 n'est supprimé silencieusement.
+aucun champ inconnu, doublon de clé ou mélange de formes v1/v2/v3/v4/v5 n'est supprimé silencieusement.
 Les migrations v1/v2 reconstruisent leurs collections et documents absents ; la migration v3 ajoute
-uniquement un `PathDocument` vide à chaque zone. Les migrations embarquées du terrain et de la
-végétation restent appliquées. IDs, révisions, seed, hauteurs, matériaux, végétation et spawn restent
-inchangés. La lecture n'écrit aucun fichier.
+un `PathDocument` vide et la migration v4 ajoute uniquement un `RoadDocument` vide à chaque zone. Les
+migrations embarquées du terrain et de la végétation restent appliquées. IDs, révisions, seed,
+hauteurs, matériaux, végétation, chemins et spawn restent inchangés. La lecture n'écrit aucun fichier.
 Les consommateurs doivent comparer les hashes canoniques après migration, pas prétendre que les
-octets ou le hash historique sont ceux de la représentation v4.
+octets ou le hash historique sont ceux de la représentation v5.
 
 `preview_edit(WorkspaceEdit)` est pur et partagé : ajout de module, ajout de zone extérieure,
 renommage projet/module, édition du nom et du départ d'une zone. Chaque demande porte CommandId,
@@ -103,8 +104,8 @@ projet.
 
 `PathDocument` conserve une collection canonique de `AuthoredPath` triés par `PathId`. Un chemin
 porte uniquement son nom, son caractère ouvert ou fermé, l'interpolation
-`centripetal_catmull_rom_v1` et ses points `Vec3` ordonnés en mètres Y-up. Largeur, profil,
-matériau, berges, carving, intersections, maillage et pas d'échantillonnage restent hors de R2-021.
+`centripetal_catmull_rom_v1` et ses points `Vec3` ordonnés en mètres Y-up. Une éventuelle route est
+référencée séparément par `PathId` : le chemin générique ne porte ni profil, ni matériau, ni maillage.
 
 Le document accepte au plus 64 chemins, 64 points par chemin et 2 048 points au total. Un chemin
 ouvert exige deux points et un chemin fermé trois. X/Z appartiennent à `[-256, 256[`, Y à
@@ -116,3 +117,22 @@ fermeture suit la même règle. La longueur du polygone de contrôle est limité
 absent crée le chemin, un ID présent le remplace entièrement, puis la collection est retriée. Un
 succès avance une seule fois les révisions workspace/chemins et conserve le snapshot inverse commun.
 Cette commande ne peut pas supprimer implicitement un autre chemin.
+
+## Profils routiers persistants
+
+`RoadDocument` conserve au plus 64 `AuthoredRoad`, strictement triés et uniques par `PathId`. Un
+`PathId` est l'identité de la route : un chemin ne reçoit donc qu'un profil routier. Le workspace
+refuse une référence absente ou un chemin fermé ; la version 1 cible uniquement les chemins ouverts
+créés par le Studio. La longueur cumulée des polygones de contrôle affectés à une route est limitée à
+8 192 m et le JSON routier à 64 Kio.
+
+Le profil `terrain_draped_crown_v1` contient une largeur finie de 1 à 16 m et une hauteur de couronne
+de 0 à 0,30 m, sans dépasser 5 % de la largeur. La seule surface v1 est
+`compacted_earth_v1`. Ces valeurs sont des sources moteur-neutres ; échantillons terrain, mesh,
+normales, UV, poids matériau et handles renderer restent dérivés hors de `forge_project`.
+
+`UpsertRoad` porte la révision du workspace ainsi que les hashes exacts des documents chemin et route.
+Il ajoute ou remplace seulement l'affectation ciblée, conserve l'ordre canonique, avance une fois les
+révisions workspace/route et fournit le snapshot inverse commun. No-op, hash périmé, profil invalide,
+chemin absent/fermé et dépassement de limite échouent avant d'exposer le candidat. R2-022 ne fournit
+aucune suppression implicite, opération terrain, rivière, carving ou intersection.
