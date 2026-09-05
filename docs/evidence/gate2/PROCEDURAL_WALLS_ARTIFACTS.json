@@ -1,0 +1,257 @@
+{
+  "schema": "forge.gate2.procedural-walls-evidence",
+  "schema_version": 1,
+  "source_commit": "e31f822faa5fbe612017ff1efcf206a76a86038b",
+  "source_tree": "2416fec8684dd08fb4bc86824cf75a219b08ff8b",
+  "base_commit": "c6024e5045d4faa846834454aa8c08eee8a20d29",
+  "routes": [
+    {
+      "id": "R2-025",
+      "status": "PASS",
+      "basis": "automated local functional qualification of persistent bounded procedural walls on effective terrain; native visual interaction not run"
+    }
+  ],
+  "scope": "Persist and edit one bounded TerrainDrapedSolidV1 ForgeStoneV1 wall per existing open PathId, deterministically derive an exact four-band and two-cap solid on effective terrain, and atomically cache and present it without external assets or automatic junctions",
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "full_library_suite_tests_passed": 608,
+    "studio_binary_tests_passed_separately": 6,
+    "trunk_debug_recovery": {
+      "prebuild_rejections": 2,
+      "prebuild_environment_value": "NO_COLOR=1",
+      "prebuild_outcome": "REJECTED BEFORE BUILD",
+      "actual_build_attempts": 2,
+      "first_build_attempt": "FAIL — no space left on device",
+      "recovery_command": "cargo clean -p forge_studio --target wasm32-unknown-unknown",
+      "removed_files": 1259,
+      "reclaimed_gib": 3.4,
+      "second_build_attempt": "PASS",
+      "raw_log": "NOT CAPTURED"
+    },
+    "receipts": [
+      {
+        "id": "forge_project_tests",
+        "command": "cargo test -p forge_project --lib",
+        "status": "PASS",
+        "passed": 149,
+        "failed": 0
+      },
+      {
+        "id": "forge_world_tests",
+        "command": "cargo test -p forge_world --lib",
+        "status": "PASS",
+        "passed": 133,
+        "failed": 0
+      },
+      {
+        "id": "forge_engine_tests_lib",
+        "command": "cargo test -p forge_engine --lib",
+        "status": "PASS",
+        "passed": 201,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_lib",
+        "command": "cargo test -p forge_studio --lib",
+        "status": "PASS",
+        "passed": 125,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_bin",
+        "command": "cargo test -p forge_studio --bin forge-studio",
+        "status": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "excluded_from_full_library_suite_total": true
+      },
+      {
+        "id": "forge_studio_check_wasm",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_native",
+        "command": "cargo clippy -p forge_studio --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_native",
+        "command": "cargo clippy -p forge_engine --all-targets --all-features -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_wasm_lib",
+        "command": "cargo clippy -p forge_engine --lib --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS",
+        "scope_note": "product library only; no all-targets WASM verdict is claimed"
+      },
+      {
+        "id": "forge_project_clippy_native",
+        "command": "cargo clippy -p forge_project --all-targets -- -D warnings",
+        "status": "PASS",
+        "scope_note": "acquired before the final forge_world-only correction; forge_project sources remained unchanged afterward"
+      },
+      {
+        "id": "forge_world_clippy_native",
+        "command": "cargo clippy -p forge_world --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_project_world_clippy_wasm_lib",
+        "command": "cargo clippy -p forge_project -p forge_world --lib --target wasm32-unknown-unknown -- -D warnings",
+        "status": "PASS",
+        "scope_note": "product libraries only; no all-targets WASM verdict is claimed"
+      },
+      {
+        "id": "forge_studio_trunk_debug",
+        "command": "cmd /d /c \"set NO_COLOR=true&&trunk build --locked --offline\"",
+        "working_directory": "apps/forge_studio",
+        "profile": "debug",
+        "status": "PASS",
+        "prebuild_rejections": 2,
+        "actual_build_attempts": 2,
+        "first_build_attempt_environment_failure": "no space left on device",
+        "recovery_command": "cargo clean -p forge_studio --target wasm32-unknown-unknown",
+        "removed_files": 1259,
+        "reclaimed_gib": 3.4
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ]
+  },
+  "functional_contract": {
+    "workspace_schema_version_previous": 6,
+    "workspace_schema_version_current": 7,
+    "wall_schema": "forge.wall",
+    "wall_schema_version": 1,
+    "maximum_walls_per_document": 64,
+    "maximum_wall_document_json_bytes": 65536,
+    "maximum_total_control_polyline_length_m": 8192.0,
+    "control_polyline_length_budget_is_arc_length": false,
+    "minimum_wall_height_m": 0.25,
+    "maximum_wall_height_m": 8.0,
+    "minimum_wall_thickness_m": 0.1,
+    "maximum_wall_thickness_m": 2.0,
+    "wall_profile_algorithm": "terrain_draped_solid_v1",
+    "wall_surface": "forge_stone_v1",
+    "wall_generation_version": 1,
+    "requires_existing_open_path": true,
+    "same_path_wall_road_conflict_rejected": true,
+    "same_path_wall_river_conflict_rejected": true,
+    "distinct_path_wall_road_river_contacts_allowed": true,
+    "automatic_intersections_or_openings_created": false,
+    "wall_base_embed_m": 0.02,
+    "vertices_per_path_sample": 8,
+    "cap_vertices_per_wall": 8,
+    "longitudinal_bands": 4,
+    "indices_per_longitudinal_interval": 24,
+    "cap_indices_per_wall": 12,
+    "maximum_generated_longitudinal_samples": 16384,
+    "maximum_generated_vertices": 131584,
+    "maximum_generated_indices": 393204,
+    "generated_output_hashes": [
+      "terrain_document_hash",
+      "path_document_hash",
+      "wall_document_hash"
+    ],
+    "generated_walls_sorted_and_exhaustive": true,
+    "exact_source_replay_validation": true,
+    "positions_and_normals_bit_exact": true,
+    "bases_sample_effective_terrain": true,
+    "path_redraw_revalidates_walls": true,
+    "river_upsert_revalidates_walls": true,
+    "path_and_river_commands_reuse_river_generation_result": true,
+    "empty_wall_validation_skips_wall_river_projection": true,
+    "accepted_history_entries_per_command": 1,
+    "undo_redo_exact": true,
+    "save_reopen_exact": true,
+    "legacy_v1_through_v6_snapshots_rewritten": false,
+    "legacy_embedded_document_hashes_preserved": true,
+    "migrated_workspace_hash_changes_intentionally": true,
+    "wall_only_effective_terrain_chunks_sent": 0,
+    "wall_only_non_wall_projections_reused": true,
+    "unchanged_wall_mesh_handles_reused": true,
+    "river_edit_rebuilds_wall_bases_on_effective_terrain": true,
+    "viewport_validates_effective_terrain_and_canonical_path_wall_sources": true,
+    "viewport_replays_exact_world_wall_validation": true,
+    "stale_forged_or_conflicting_payload_preserves_presented_scene": true,
+    "blocking_wall_command_offloaded_from_async_executor": true,
+    "wall_material_uses_external_texture_or_uv": false,
+    "uses_external_assets": false,
+    "native_visual_review_performed": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and a later grouped visual review.",
+    "follow_up": "Review accumulated Gate 2 editor interactions in one later native pass."
+  },
+  "release_qualification": {
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "gpu_qualification": {
+    "status": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "next_route": "R2-026",
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_file_count": 25,
+    "changed_files": [
+      "apps/forge_studio/src/area_preview.rs",
+      "apps/forge_studio/src/area_preview_cache_tests.rs",
+      "apps/forge_studio/src/main.rs",
+      "apps/forge_studio/src/path_ui.rs",
+      "apps/forge_studio/src/workspace_api.rs",
+      "apps/forge_studio/src/workspace_service.rs",
+      "apps/forge_studio/src/workspace_service_tests.rs",
+      "apps/forge_studio/src/world_ui.rs",
+      "crates/forge_engine/src/editor_partial_tests.rs",
+      "crates/forge_engine/src/editor_river_tests.rs",
+      "crates/forge_engine/src/editor_viewport.rs",
+      "crates/forge_engine/src/editor_wall.rs",
+      "crates/forge_engine/src/editor_wall_tests.rs",
+      "crates/forge_project/src/lib.rs",
+      "crates/forge_project/src/wall.rs",
+      "crates/forge_project/src/workspace.rs",
+      "crates/forge_project/src/workspace_edit.rs",
+      "crates/forge_project/src/workspace_edit_tests.rs",
+      "crates/forge_project/src/workspace_legacy.rs",
+      "crates/forge_world/src/lib.rs",
+      "crates/forge_world/src/path.rs",
+      "crates/forge_world/src/river.rs",
+      "crates/forge_world/src/terrain_brush_tests.rs",
+      "crates/forge_world/src/wall.rs",
+      "crates/forge_world/src/wall_tests.rs"
+    ],
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "runtime_dependencies_changed": 0,
+    "dev_dependencies_changed": 0,
+    "new_third_party_packages_or_versions": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "artifacts": []
+}

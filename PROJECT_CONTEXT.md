@@ -192,7 +192,7 @@ UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`. A
 dépendance, manifest Cargo ni contenu Cadle n'est modifié. **Gate 2 atteint 19/43 et reste ouverte ;
 R2-C est complet et R2-021 création/édition de chemin devient la prochaine tranche fonctionnelle.**
 
-### Chemins, routes et rivières — treizième à seizième incréments qualifiés
+### Chemins, routes, rivières et murs — treizième à dix-septième incréments qualifiés
 
 Après le chemin persistant R2-021 (`91be10b`), le code `e117d83` qualifie **R2-022** sur preuves
 fonctionnelles automatisées. Le workspace v5 ajoute un document `forge.road` v1 : un profil terre
@@ -252,6 +252,32 @@ la revue visuelle est regroupée pour plus tard. Aucun asset, contenu Cadle, man
 lockfile, dépendance ou schéma persistant. [Preuves et limites](docs/evidence/gate2/ROAD_RIVER_INTERSECTIONS.md).
 **Gate 2 atteint 23/43 et reste ouverte ; R2-025 clôture ou mur de preuve devient la prochaine
 tranche fonctionnelle.**
+
+Le code `e31f822` qualifie ensuite **R2-025** sur preuves fonctionnelles automatisées. Le workspace
+v7 ajoute un document `forge.wall` v1 persistant : au plus 64 murs strictement triés sur des chemins
+ouverts, avec hauteur de 0,25 à 8 m, épaisseur de 0,10 à 2 m, budget JSON de 64 Kio et budget de
+8 192 m sur les polylignes de contrôle. `TerrainDrapedSolidV1` dérive un solide `ForgeStoneV1` sans
+asset : huit sommets par échantillon de chemin, quatre bandes, deux embouts, bases échantillonnées
+sur le terrain effectif puis enfoncées de 0,02 m. Les plafonds sont 16 384 rangées, 131 584 sommets
+et 393 204 indices.
+
+La validation régénère exactement le lot depuis les sources canoniques et lie bit à bit positions,
+normales, topologie, ordre et hashes. Les commandes chemin et rivière réutilisent leur projection
+rivière déjà calculée pour revalider les murs, et une zone sans mur sort immédiatement. Les contacts
+sur des chemins distincts restent autorisés sans ouverture ni jonction automatique ; un même chemin
+ne peut porter mur+route ou mur+rivière. Studio qualifie une révision par commande, undo/redo,
+redessin, sauvegarde/réouverture, migration v1 à v6, cache wall-only à zéro chunk terrain,
+réutilisation des handles et recalage des bases après carving rivière. Le viewport revalide les
+sources et la géométrie exacte avant un swap atomique et conserve la scène après un rejet.
+
+**608 tests de bibliothèque PASS** (`forge_project` 149, `forge_world` 133, `forge_engine` 201,
+`forge_studio` 125), plus **6/6** tests du binaire Studio. Checks et Clippy natif/WASM dans les
+portées déclarées, Trunk debug offline après deux rejets avant build dus à `NO_COLOR=1`, puis un
+manque d’espace récupéré par nettoyage ciblé, formatage et diff-check PASS. UI native, Release, GPU,
+performance, CI distante et PresentMon restent `NOT RUN` ; la revue visuelle est regroupée pour
+plus tard. Aucun manifeste Cargo, lockfile, asset, contenu Cadle ou dépendance n’est modifié.
+[Preuves et limites](docs/evidence/gate2/PROCEDURAL_WALLS.md). **Gate 2 atteint 24/43 et reste
+ouverte ; R2-026 navigateur d’assets devient la prochaine tranche fonctionnelle.**
 
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
@@ -2473,10 +2499,10 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 23/43 après R2-024 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
-leurs profils de route, les rivières avec carving non destructif puis le gué terrain route-rivière
-borné sur preuves fonctionnelles automatisées. Poursuivre R2-D par R2-025 clôture ou mur de preuve,
-sans anticiper le picking, le gizmo ou les intersections génériques. Le
+Gate 2 est à 24/43 après R2-025 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+leurs profils de route, les rivières avec carving non destructif, le gué terrain route-rivière borné,
+puis les murs procéduraux persistants sur terrain effectif. Poursuivre R2-E par R2-026 navigateur
+d’assets, sans anticiper le drag/drop, le picking, le gizmo ou les intersections génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.

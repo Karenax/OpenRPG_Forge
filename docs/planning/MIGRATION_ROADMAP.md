@@ -1112,6 +1112,26 @@ contenu Cadle, manifeste Cargo, lockfile, dépendance ou schéma persistant n’
 atteint 23/43 et reste ouverte ; R2-025 clôture ou mur de preuve devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/ROAD_RIVER_INTERSECTIONS.md).
 
+Le candidat `e31f822` qualifie **R2-025** sur preuves fonctionnelles automatisées. Le workspace v7
+ajoute un document `forge.wall` v1 borné à 64 profils et 64 Kio : hauteur de 0,25 à 8 m, épaisseur
+de 0,10 à 2 m et budget de 8 192 m sur les polylignes de contrôle des chemins ouverts. Chaque mur
+`TerrainDrapedSolidV1` échantillonne ses deux bases sur le terrain effectif, les enfonce de 0,02 m et
+produit un solide `ForgeStoneV1` à quatre bandes et deux embouts. Les plafonds agrégés sont 16 384
+rangées, 131 584 sommets et 393 204 indices ; le validateur régénère puis compare exhaustivement
+hashes, ordre, profils, positions, normales, topologie et indices. Les contacts entre chemins
+distincts sont autorisés sans jonction automatique, tandis que mur+route ou mur+rivière sur le même
+chemin sont refusés. Commande, une révision, undo/redo, redessin, sauvegarde/réouverture et migration
+v1 à v6 sont qualifiés. Le cache wall-only envoie zéro chunk terrain, conserve les projections non
+murales et réutilise les handles inchangés ; une modification rivière recalcule les bases sur le
+nouveau terrain effectif. **608 tests de bibliothèque PASS** (`forge_project` 149, `forge_world` 133,
+`forge_engine` 201, `forge_studio` 125), plus 6 tests du binaire Studio ; checks et Clippy
+natif/WASM dans les portées déclarées, Trunk debug offline après deux rejets pré-build
+`NO_COLOR=1` puis récupération d’un manque d’espace, formatage et diff-check PASS. UI native,
+Release, GPU, performance, CI distante et PresentMon restent `NOT RUN`. Aucun manifeste Cargo,
+lockfile, asset, contenu Cadle ou dépendance n’est modifié. **Gate 2 atteint 24/43 et reste ouverte ;
+R2-026 navigateur d’assets devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/PROCEDURAL_WALLS.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1125,7 +1145,7 @@ atteint 23/43 et reste ouverte ; R2-025 clôture ou mur de preuve devient la pro
 - [x] `R2-022` route avec profil — source v1, projection terrain, persistance et swap atomique qualifiés ; contrôle natif groupé reporté.
 - [x] `R2-023` rivière et carving — source v1, terrain effectif non destructif, promotion et swap terrain-eau qualifiés ; contrôle natif groupé reporté.
 - [x] `R2-024` intersections — gué terrain route-rivière dérivé, borné, déterministe et validé fail-closed ; contrôle natif groupé reporté.
-- [ ] `R2-025` clôture ou mur de preuve.
+- [x] `R2-025` clôture ou mur de preuve — source v1, solide procédural sur terrain effectif, historique, cache et viewport qualifiés ; contrôle natif groupé reporté.
 
 ## R2-E — Placements et bâtiments
 
