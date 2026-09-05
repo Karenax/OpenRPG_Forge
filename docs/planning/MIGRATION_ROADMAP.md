@@ -1,6 +1,6 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : 2026-09-04
+Dernière mise à jour : 2026-09-05
 Branche : `Rust`  
 État global : **Gate C qualifiée sous l’exception bornée ADR-0003 ; Gate 0 passée sur preuves
 automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 prototype avec réserves,
@@ -1132,6 +1132,33 @@ lockfile, asset, contenu Cadle ou dépendance n’est modifié. **Gate 2 atteint
 R2-026 navigateur d’assets devient la prochaine tranche.**
 [Preuves, manifeste et limites](../evidence/gate2/PROCEDURAL_WALLS.md).
 
+Le candidat `7dafbe2` qualifie **R2-026** sur preuves fonctionnelles automatisées. Le module public
+`forge_assets::browser` dérive sans persistance un snapshot `forge.asset-browser-snapshot` v1 depuis
+le seul `subset.manifest.json` gouverné : pin Forge indépendant, inventaire exact, tailles, SHA-256,
+licence, provenance et scènes glTF locales sont vérifiés avant publication. La racine courante prouve
+1 manifeste, 9 modèles et 27 fichiers déclarés, soit 26 contenus plus une preuve de licence
+`CC0-1.0`. Les identités stables dérivent de `lowercase(source.pack_id/model.id)` et les entrées sont
+triées par `AssetId`.
+
+Le scan natif/offline est borné avant tri à 6 niveaux, 256 répertoires, 32 manifestes, 512 modèles,
+4 096 fichiers et aux budgets byte/URI déclarés. Il refuse échappement de chemin, lien/reparse,
+Cadle, doublon, manifeste non épinglé, inventaire inexact, URI glTF externe/non déclarée et GLB. Le
+Studio expose une quatrième fenêtre Assets avec recherche, filtre, sélection et détail. Le scan ne
+part qu’à la première visibilité ; l’IPC strict n’accepte aucune racine utilisateur et le cache
+atomique conserve un snapshot valide avec exactement un scan requis en vol et un ticket serveur
+opaque.
+
+**640 tests de bibliothèque PASS** dans une campagne `--locked` unique (`forge_assets` 21,
+`forge_project` 149, `forge_world` 133, `forge_engine` 201, `forge_studio` 136), plus 6 tests du
+binaire Studio ; checks et Clippy natif/WASM dans les portées déclarées, Trunk debug locked/offline,
+formatage et diff-check PASS. UI native, build natif autonome/Release, GPU, performance, CI distante
+et PresentMon restent `NOT RUN`. La racine checkout est supposée stable pendant le scan et la racine
+packagée est différée à Gate 4. Aucun asset/Cadle n’est modifié ou copié ; aucun placement, import ou
+thumbnail n’est livré. Les trois métadonnées Cargo modifiées n’ajoutent aucun package/version et
+activent seulement trois arêtes workspace existantes. **Gate 2 atteint 25/43 et reste ouverte ;
+R2-027 drag/drop devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/ASSET_BROWSER.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1149,7 +1176,7 @@ R2-026 navigateur d’assets devient la prochaine tranche.**
 
 ## R2-E — Placements et bâtiments
 
-- [ ] `R2-026` navigateur d’assets.
+- [x] `R2-026` navigateur d’assets — snapshot vérifié non persistant, scanner natif borné, provenance, IPC et cache single-flight qualifiés ; contrôle natif groupé reporté.
 - [ ] `R2-027` drag/drop.
 - [ ] `R2-028` picking.
 - [ ] `R2-029` gizmo translation/rotation/échelle.

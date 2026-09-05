@@ -279,6 +279,31 @@ plus tard. Aucun manifeste Cargo, lockfile, asset, contenu Cadle ou dépendance 
 [Preuves et limites](docs/evidence/gate2/PROCEDURAL_WALLS.md). **Gate 2 atteint 24/43 et reste
 ouverte ; R2-026 navigateur d’assets devient la prochaine tranche fonctionnelle.**
 
+Le code `7dafbe2` qualifie ensuite **R2-026** sur preuves fonctionnelles automatisées.
+`forge_assets::browser` dérive un snapshot `forge.asset-browser-snapshot` v1 non persistant depuis
+le seul manifeste de sous-ensemble gouverné. Le pin Forge indépendant lie identifiants, manifeste,
+archive, métadonnées normalisées et licence `CC0-1.0`. L’inventaire réel vérifié compte 1 manifeste,
+9 modèles, 26 fichiers de contenu et une preuve de licence, soit 27 fichiers déclarés. Les identités
+stables dérivent de `lowercase(source.pack_id/model.id)` et les résultats sont triés par `AssetId`.
+
+Le scanner natif et hors ligne borne la collecte avant tri ainsi que profondeur, répertoires,
+manifestes, modèles, fichiers, octets et URI glTF. Il refuse notamment chemins absolus/parents/dot,
+antislashs, liens/reparse points, Cadle, doublons, inventaires ou pins incohérents, URI glTF externes
+ou non déclarées et GLB. Le Studio ajoute Assets comme quatrième fenêtre avec recherche, filtre,
+sélection et provenance. Le premier scan attend sa visibilité ; l’IPC strict n’expose aucune racine
+utilisateur et le cache single-flight utilise un ticket serveur opaque, conserve le dernier snapshot
+valide sur échec et accepte le numéro client uniquement comme corrélation positive.
+
+**640 tests de bibliothèque PASS** dans une campagne `--locked` unique (`forge_assets` 21,
+`forge_project` 149, `forge_world` 133, `forge_engine` 201, `forge_studio` 136), plus **6/6** tests du
+binaire Studio. Checks et Clippy natif/WASM dans les portées déclarées, Trunk debug locked/offline,
+formatage et diff-check PASS. UI native, build natif autonome/Release, GPU, performance, CI distante
+et PresentMon restent `NOT RUN`. Le scanner suppose la racine compilée du checkout stable pendant
+l’appel ; la racine packagée reste Gate 4. Aucun asset/Cadle, placement, import ni thumbnail. Trois
+métadonnées Cargo activent des arêtes workspace déjà épinglées, sans nouveau package ou version.
+[Preuves et limites](docs/evidence/gate2/ASSET_BROWSER.md). **Gate 2 atteint 25/43 et reste ouverte ;
+R2-027 drag/drop devient la prochaine tranche fonctionnelle.**
+
 ## Historique Gate 1 conservé — antérieur à ADR-0011
 
 Les interdictions de Gate 2 et prochaines actions ci-dessous décrivent leur état historique ;
@@ -2499,10 +2524,11 @@ attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le prod
 TRAVAIL ACTIF
 ADR-0011 : Gate 2 est maintenant active par accord explicite du propriétaire le 4 septembre.
 Gate 1 est acceptée comme prototype avec réserves, techniquement incomplète à 43/55.
-Gate 2 est à 24/43 après R2-025 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
+Gate 2 est à 25/43 après R2-026 ; R2-C biomes/végétation est complet et R2-D a livré les chemins,
 leurs profils de route, les rivières avec carving non destructif, le gué terrain route-rivière borné,
-puis les murs procéduraux persistants sur terrain effectif. Poursuivre R2-E par R2-026 navigateur
-d’assets, sans anticiper le drag/drop, le picking, le gizmo ou les intersections génériques. Le
+puis les murs procéduraux persistants sur terrain effectif. R2-E dispose maintenant du navigateur
+d’assets vérifiés ; poursuivre par R2-027 drag/drop, sans anticiper le picking, le gizmo ou les
+intersections génériques. Le
 contrôle UI natif groupé des interactions Gate 2 reste noté pour plus tard.
 Herbe en zones, sol texturé et validations visuelles/mouvement/comparatives restent dus.
 Les paragraphes suivants conservent l'historique des acquisitions Gate 1, pas le travail suivant.

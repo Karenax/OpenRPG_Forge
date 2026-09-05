@@ -1,0 +1,247 @@
+{
+  "schema": "forge.gate2.asset-browser-evidence",
+  "schema_version": 1,
+  "source_commit": "7dafbe2dd13f2bc40516fab4e891a063b285aa88",
+  "source_tree": "f201b89d20222f4e725a0f746fc99ce54ad79060",
+  "base_commit": "1997d838a2b342ed08f15ce6a3018fc9cd80185f",
+  "routes": [
+    {
+      "id": "R2-026",
+      "status": "PASS",
+      "basis": "automated local functional qualification of a bounded offline verified-asset browser and atomic native cache; native UI was not run"
+    }
+  ],
+  "scope": "Derive a non-persistent v1 catalog from the single Forge-pinned asset subset, reject ungoverned or unsafe filesystem and glTF inputs, and expose browse, filter, selection and provenance through strict Studio IPC without placement, import or thumbnails",
+  "governed_subset": {
+    "manifest_path": "assets/visual_valley/scenery/quaternius/stylized-nature-megakit-standard-1.0/subset.manifest.json",
+    "manifest_schema": "forge.asset-subset-manifest",
+    "manifest_schema_version": 1,
+    "manifest_sha256": "c86c4454b3b0ae4ca0bb546d22b29f3e79a0bfd8107ef63b8af1f0ebbffd6677",
+    "subset_id": "visual-valley-quaternius-stylized-nature-standard-1.0",
+    "pack_id": "quaternius:stylized-nature-megakit-standard-1.0",
+    "archive_sha256": "298f6732b872e4cf7b30e6e7abf9641c7f6dc6b326df37ac089533ed7e3d58c9",
+    "normalized_metadata_sha256": "e3286b81f3a6171eb844a83528eac55b2727b2ef8e3f96d1d4e29faddf5b458d",
+    "license_spdx": "CC0-1.0",
+    "license_verified": true,
+    "attribution_required": false,
+    "license_evidence_path": "License_Standard.txt",
+    "license_evidence_sha256": "120710e542c3ebaf83856c4eb55b4a1e680593b39302eba7fdc5d942dfe78c58",
+    "manifest_count": 1,
+    "model_count": 9,
+    "content_file_count": 26,
+    "license_evidence_file_count": 1,
+    "declared_file_count": 27
+  },
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "locked_library_suite_tests_passed": 640,
+    "library_test_counts": {
+      "forge_assets": 21,
+      "forge_project": 149,
+      "forge_world": 133,
+      "forge_engine": 201,
+      "forge_studio": 136
+    },
+    "studio_binary_tests_passed_separately": 6,
+    "asset_browser_unit_tests_passed_after_cross_platform_fixture": 3,
+    "receipts": [
+      {
+        "id": "locked_integrated_library_tests",
+        "command": "cargo test -p forge_assets -p forge_project -p forge_world -p forge_engine -p forge_studio --lib --locked",
+        "status": "PASS",
+        "passed": 640,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_bin",
+        "command": "cargo test -p forge_studio --bin forge-studio --locked",
+        "status": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "excluded_from_locked_library_total": true
+      },
+      {
+        "id": "assets_studio_clippy_native_locked",
+        "command": "cargo clippy -p forge_assets -p forge_studio --all-targets --locked -- -D warnings",
+        "status": "PASS",
+        "scope_note": "acquired after the final forge_assets changes and before three later native-only Studio cache/service corrections"
+      },
+      {
+        "id": "forge_studio_clippy_native_final",
+        "command": "cargo clippy -p forge_studio --all-targets --all-features -- -D warnings",
+        "status": "PASS",
+        "scope_note": "final Studio native source after the cache/service corrections"
+      },
+      {
+        "id": "forge_studio_check_wasm_web_locked",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_assets_clippy_wasm_locked",
+        "command": "cargo clippy -p forge_assets --target wasm32-unknown-unknown --locked -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm_web_locked",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked -- -D warnings",
+        "status": "PASS",
+        "scope_note": "the later service/main corrections are native-only; the standard WASM check was rerun afterward"
+      },
+      {
+        "id": "forge_studio_trunk_debug",
+        "command": "cmd /d /c \"set NO_COLOR=true&&trunk build --locked --offline\"",
+        "working_directory": "apps/forge_studio",
+        "profile": "debug",
+        "status": "PASS"
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ],
+    "disk_space_recovery": {
+      "initial_integrated_test_attempt": "FAIL — LNK1318: Erreur PDB inattendue; LIMIT (12)",
+      "initial_integrated_test_free_space_mib": 33,
+      "initial_integrated_test_disk_space_is_confirmed_cause": false,
+      "initial_trunk_build_attempt": "FAIL — no space left on device",
+      "forge_studio_clean_reclaimed_gib": 3.1,
+      "workspace_package_cleans_reclaimed_gib": 16.9,
+      "removed_only_regenerable_build_artifacts": true,
+      "source_or_asset_files_removed": false,
+      "final_integrated_test": "PASS",
+      "final_trunk_debug_build": "PASS",
+      "raw_log": "NOT CAPTURED"
+    },
+    "additional_wasm_tests_diagnostic": {
+      "status": "BLOCKED BY PRE-EXISTING NATIVE IMPORT",
+      "scope": "cargo check of the forge_studio WASM test harnesses",
+      "blocker": "area_preview imports native-only workspace_service",
+      "route_failure": false,
+      "full_wasm_test_harness_pass_claimed": false,
+      "standard_wasm_product_check_rerun": "PASS"
+    }
+  },
+  "functional_contract": {
+    "snapshot_schema": "forge.asset-browser-snapshot",
+    "snapshot_schema_version": 1,
+    "snapshot_is_derived": true,
+    "snapshot_is_persistent_project_state": false,
+    "dto_available_on_native_and_wasm": true,
+    "filesystem_scanner_native_only": true,
+    "network_access_performed": false,
+    "accepted_manifest_filename": "subset.manifest.json",
+    "missing_manifest_is_error": true,
+    "maximum_scan_depth": 6,
+    "maximum_scan_directories": 256,
+    "maximum_manifests": 32,
+    "maximum_models": 512,
+    "maximum_files": 4096,
+    "maximum_global_scan_entries": 4384,
+    "maximum_manifest_bytes": 262144,
+    "maximum_manifest_total_bytes": 4194304,
+    "maximum_file_bytes": 134217728,
+    "maximum_file_total_bytes": 536870912,
+    "maximum_portable_path_bytes": 256,
+    "maximum_gltf_json_bytes": 8388608,
+    "maximum_gltf_json_total_bytes": 33554432,
+    "maximum_gltf_uris_per_scene": 512,
+    "maximum_gltf_uris_total": 4096,
+    "directory_collection_bounded_before_sort": true,
+    "manifest_must_match_independent_forge_pin": true,
+    "inventory_sizes_hashes_and_license_verified": true,
+    "stable_id_key": "lowercase(source.pack_id/model.id)",
+    "stable_id_depends_on_subset_id": false,
+    "entries_sorted_by_asset_id": true,
+    "absolute_parent_dot_backslash_paths_rejected": true,
+    "symlink_and_reparse_points_rejected": true,
+    "cadle_components_rejected": true,
+    "duplicate_or_undeclared_files_rejected": true,
+    "gltf_buffers_and_images_must_resolve_to_local_declared_paths": true,
+    "gltf_file_http_https_data_uri_schemes_rejected": true,
+    "glb_supported": false,
+    "compiled_checkout_root_assumed_stable_during_scan": true,
+    "hostile_concurrent_mutation_boundary_claimed": false,
+    "packaged_runtime_root_deferred_to_gate": 4,
+    "assets_window_is_fourth_desktop_app": true,
+    "scan_waits_for_first_visible_assets_window": true,
+    "plain_browser_invents_catalog": false,
+    "plain_browser_filesystem_access": false,
+    "browse_request_schema_version": 1,
+    "browse_request_allows_user_root": false,
+    "request_serial_must_be_positive": true,
+    "request_serial_requires_server_monotonicity": false,
+    "exactly_one_required_scan_in_flight": true,
+    "scan_runs_via_spawn_blocking": true,
+    "cache_survives_failed_refresh": true,
+    "stale_server_ticket_can_release_or_replace_current_scan": false,
+    "gate0_procedural_contract_semantically_changed": false,
+    "placement_import_thumbnail_or_new_asset_delivered": false,
+    "next_placement_route": "R2-027"
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "Function-first delivery; no repeated native visual inspection was requested for this route."
+  },
+  "release_qualification": {
+    "standalone_native_build": "NOT RUN",
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "gpu_qualification": {
+    "status": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "next_route": "R2-027",
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_file_count": 14,
+    "changed_files": [
+      "Cargo.lock",
+      "apps/forge_studio/Cargo.toml",
+      "apps/forge_studio/desktop.css",
+      "apps/forge_studio/src/asset_browser.rs",
+      "apps/forge_studio/src/asset_browser_service.rs",
+      "apps/forge_studio/src/asset_browser_service_tests.rs",
+      "apps/forge_studio/src/desktop_state.rs",
+      "apps/forge_studio/src/desktop_ui.rs",
+      "apps/forge_studio/src/lib.rs",
+      "apps/forge_studio/src/main.rs",
+      "crates/forge_assets/Cargo.toml",
+      "crates/forge_assets/README.md",
+      "crates/forge_assets/src/browser.rs",
+      "crates/forge_assets/src/lib.rs"
+    ],
+    "cargo_metadata_files_changed": 3,
+    "cargo_metadata_files": [
+      "Cargo.lock",
+      "apps/forge_studio/Cargo.toml",
+      "crates/forge_assets/Cargo.toml"
+    ],
+    "workspace_dependency_edges_activated": 3,
+    "workspace_dependency_edges": [
+      "forge_studio -> forge_assets",
+      "forge_assets(native) -> serde_json",
+      "forge_assets(native) -> sha2"
+    ],
+    "new_third_party_packages_or_versions": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0,
+    "persistent_project_schemas_changed": 0
+  },
+  "artifacts": []
+}
