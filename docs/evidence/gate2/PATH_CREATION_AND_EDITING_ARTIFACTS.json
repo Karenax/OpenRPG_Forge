@@ -1,0 +1,279 @@
+{
+  "schema": "forge.gate2.path-creation-editing-evidence",
+  "schema_version": 1,
+  "source_commit": "91be10b84898fab1623ef7f7d67ef4fe2dd4ea17",
+  "source_tree": "a44593d4affc3f6bea588f0d7570d40c10da9efd",
+  "base_commit": "168e95da4a80d6ef7e9b2736980463fd1053d8cb",
+  "routes": [
+    {
+      "id": "R2-021",
+      "status": "PASS",
+      "basis": "automated functional qualification of persistent generic path creation and redraw; native visual interaction not run"
+    }
+  ],
+  "scope": "Create one open authored path or redraw only an existing path's ordered control points, project deterministic line or centripetal Catmull-Rom samples onto terrain, persist one history revision, and replace the bounded viewport overlay atomically; no road profile, river carving, intersection, generic picking or gizmo",
+  "automated_validation": {
+    "raw_log_bundle": "NOT CAPTURED",
+    "full_library_suite_tests_passed": 504,
+    "targeted_subsuite_counts_are_not_additive": true,
+    "receipts": [
+      {
+        "id": "forge_project_tests",
+        "command": "cargo test -p forge_project",
+        "status": "PASS",
+        "passed": 115,
+        "failed": 0
+      },
+      {
+        "id": "forge_project_clippy_native",
+        "command": "cargo clippy -p forge_project --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_project_check_wasm",
+        "command": "cargo check -p forge_project --target wasm32-unknown-unknown",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_project_clippy_wasm",
+        "command": "cargo clippy -p forge_project --target wasm32-unknown-unknown --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_world_tests",
+        "command": "cargo test -p forge_world",
+        "status": "PASS",
+        "passed": 103,
+        "failed": 0
+      },
+      {
+        "id": "forge_world_clippy_native",
+        "command": "cargo clippy -p forge_world --all-targets --all-features -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_world_clippy_wasm",
+        "command": "cargo clippy -p forge_world --target wasm32-unknown-unknown --all-targets --all-features -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_tests_full",
+        "command": "cargo test -p forge_engine --lib",
+        "status": "PASS",
+        "passed": 176,
+        "failed": 0
+      },
+      {
+        "id": "forge_engine_tests_editor_viewport",
+        "command": "cargo test -p forge_engine editor_viewport --lib",
+        "status": "PASS",
+        "passed": 18,
+        "failed": 0,
+        "subset_of": "forge_engine_tests_full"
+      },
+      {
+        "id": "forge_engine_clippy_native",
+        "command": "cargo clippy -p forge_engine --all-targets --all-features -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_wasm_lib",
+        "command": "cargo clippy -p forge_engine --lib --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_engine_clippy_wasm_all_targets",
+        "command": "cargo clippy -p forge_engine --target wasm32-unknown-unknown --no-default-features --features web --all-targets -- -D warnings",
+        "status": "FAIL — PRE-EXISTING TEST-ONLY",
+        "diagnostic": "crates/forge_engine/src/lib.rs:3435 mixes std::time::Instant with Bevy/web_time Instant in a pre-existing test helper; the product library Clippy receipt is separate and PASS",
+        "r2_021_regression": false
+      },
+      {
+        "id": "forge_studio_check_tests",
+        "command": "cargo check -p forge_studio --tests",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_check_wasm",
+        "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_tests_lib",
+        "command": "cargo test -p forge_studio --lib",
+        "status": "PASS",
+        "passed": 110,
+        "failed": 0
+      },
+      {
+        "id": "forge_studio_tests_bin",
+        "command": "cargo test -p forge_studio --bin forge-studio",
+        "status": "PASS",
+        "passed": 6,
+        "failed": 0,
+        "excluded_from_full_library_suite_total": true
+      },
+      {
+        "id": "forge_studio_tests_path_service",
+        "command": "cargo test -p forge_studio --lib path_create_and_redraw",
+        "status": "PASS",
+        "passed": 2,
+        "failed": 0,
+        "subset_of": "forge_studio_tests_lib"
+      },
+      {
+        "id": "forge_studio_tests_path_trace",
+        "command": "cargo test -p forge_studio --lib authored_path_trace",
+        "status": "PASS",
+        "passed": 2,
+        "failed": 0,
+        "subset_of": "forge_studio_tests_lib"
+      },
+      {
+        "id": "forge_studio_tests_path_cache",
+        "command": "cargo test -p forge_studio --lib path_only_edit",
+        "status": "PASS",
+        "passed": 1,
+        "failed": 0,
+        "subset_of": "forge_studio_tests_lib"
+      },
+      {
+        "id": "forge_studio_clippy_native",
+        "command": "cargo clippy -p forge_studio --all-targets -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_clippy_wasm",
+        "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web -- -D warnings",
+        "status": "PASS"
+      },
+      {
+        "id": "forge_studio_trunk_debug",
+        "command": "$env:NO_COLOR='true'; trunk build --locked --offline",
+        "working_directory": "apps/forge_studio",
+        "status": "PASS",
+        "preflight_issue": "An earlier invocation exited immediately because inherited NO_COLOR=1 is invalid for this Trunk version; the explicit true rerun is the qualifying receipt",
+        "advisory": "unchanged transitive future-incompatibility advisory for proc-macro-error2 2.0.1"
+      },
+      {
+        "id": "cargo_fmt",
+        "command": "cargo fmt --all -- --check",
+        "status": "PASS"
+      },
+      {
+        "id": "git_diff_check",
+        "command": "git diff --check",
+        "status": "PASS"
+      }
+    ]
+  },
+  "functional_contract": {
+    "workspace_schema_version_previous": 3,
+    "workspace_schema_version_current": 4,
+    "path_schema": "forge.path",
+    "path_schema_version": 1,
+    "coordinate_system": "metres_y_up_right_handed",
+    "maximum_paths_per_document": 64,
+    "maximum_control_points_per_path": 64,
+    "maximum_total_control_points": 2048,
+    "maximum_path_length_m": 8192,
+    "maximum_total_path_length_m": 32768,
+    "maximum_path_document_json_bytes": 524288,
+    "trace_minimum_points": 2,
+    "trace_maximum_points": 64,
+    "world_minimum_consecutive_point_distance_m": 0.5,
+    "studio_minimum_trace_spacing_m": 4.0,
+    "editable_extent_m": "[-256,256) on X and Z",
+    "persistent_y_resolved_from_terrain": true,
+    "two_point_interpolation": "line",
+    "three_or_more_point_interpolation": "centripetal_catmull_rom_v1",
+    "control_chord_subdivision_target_m": 2.0,
+    "local_curve_arc_spacing_strictly_bounded": false,
+    "exact_endpoints": true,
+    "generated_output_hashes": [
+      "terrain_document_hash",
+      "path_document_hash"
+    ],
+    "generated_output_hash_for_curved_fixture": "2ed0df0fb5f050022c84bde5817962b7b71c87a1ed5d88659e672e68d1d9112a",
+    "curve_out_of_bounds_is_rejected_without_clamp": true,
+    "entire_candidate_document_is_generated_before_edit_exposure": true,
+    "create_is_open": true,
+    "redraw_preserves_id_name_closed_and_interpolation": true,
+    "accepted_history_entries_per_command": 1,
+    "undo_redo_exact": true,
+    "save_reopen_exact": true,
+    "legacy_v1_v2_v3_snapshots_rewritten": false,
+    "legacy_embedded_terrain_vegetation_density_hashes_preserved": true,
+    "migrated_workspace_hash_changes_intentionally": true,
+    "separate_path_cache": false,
+    "path_only_terrain_chunks_rebuilt": 0,
+    "path_only_vegetation_chunks_rebuilt": 0,
+    "path_only_vegetation_chunks_retained": 64,
+    "maximum_presented_path_samples": 18496,
+    "viewport_replacement_atomic": true,
+    "one_command_on_pointer_release": true,
+    "drag_draft_persisted": false,
+    "drag_draft_invalidated_on_cancel_area_generation_or_error": true,
+    "native_spline_preview_during_drag": false,
+    "rename_path": false,
+    "delete_path": false,
+    "generic_picking": false,
+    "generic_gizmo": false,
+    "road_profile_r2_022": false,
+    "river_carving_r2_023": false,
+    "intersections_r2_024": false
+  },
+  "native_ui_qualification": {
+    "status": "NOT RUN",
+    "reason": "The owner requested function-first progress and fewer repeated interface checks.",
+    "follow_up": "Review accumulated Gate 2 world-editor interactions in one later grouped native pass."
+  },
+  "release_qualification": {
+    "native_release_build": "NOT RUN",
+    "trunk_release_build": "NOT RUN"
+  },
+  "performance_qualification": {
+    "status": "NOT RUN"
+  },
+  "next_route": "R2-022",
+  "remote_ci": {
+    "status": "NOT RUN — infrastructure billing",
+    "decision": "ADR-0006"
+  },
+  "presentmon": {
+    "status": "NOT RUN"
+  },
+  "source_change_boundary": {
+    "changed_file_count": 23,
+    "changed_files": [
+      "apps/forge_studio/src/area_preview.rs",
+      "apps/forge_studio/src/area_preview_cache_tests.rs",
+      "apps/forge_studio/src/brush_state.rs",
+      "apps/forge_studio/src/brush_ui.rs",
+      "apps/forge_studio/src/main.rs",
+      "apps/forge_studio/src/path_ui.rs",
+      "apps/forge_studio/src/workspace_api.rs",
+      "apps/forge_studio/src/workspace_service.rs",
+      "apps/forge_studio/src/workspace_service_tests.rs",
+      "apps/forge_studio/src/world_ui.rs",
+      "crates/forge_engine/src/editor_partial_tests.rs",
+      "crates/forge_engine/src/editor_path.rs",
+      "crates/forge_engine/src/editor_viewport.rs",
+      "crates/forge_project/README.md",
+      "crates/forge_project/src/lib.rs",
+      "crates/forge_project/src/path.rs",
+      "crates/forge_project/src/workspace_edit.rs",
+      "crates/forge_project/src/workspace_edit_tests.rs",
+      "crates/forge_project/src/workspace_legacy.rs",
+      "crates/forge_project/src/workspace.rs",
+      "crates/forge_world/src/lib.rs",
+      "crates/forge_world/src/path.rs",
+      "crates/forge_world/src/terrain_brush_tests.rs"
+    ],
+    "cargo_manifests_or_lockfiles_changed": 0,
+    "dependencies_changed": 0,
+    "assets_changed": 0,
+    "cadle_paths_or_content_changed": 0
+  },
+  "artifacts": []
+}

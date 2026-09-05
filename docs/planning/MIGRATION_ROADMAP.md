@@ -1040,6 +1040,22 @@ arrêtée avant tests à 474,4 Mio libres pendant la reconstruction de `forge_as
 est complet et R2-021 devient la prochaine route.**
 [Preuves, manifeste et limites](../evidence/gate2/VEGETATION_PROMOTION_AND_RETOUCH.md).
 
+Le candidat `91be10b` qualifie **R2-021** sur preuves fonctionnelles automatisées. Le workspace v4
+porte un document `forge.path` v1 borné ; création et redessin produisent une seule révision,
+traversent undo/redo, sauvegarde et réouverture, et refusent atomiquement no-op, contexte périmé ou
+courbe non projetable. La projection déterministe conserve les endpoints, résout Y sur le terrain et
+utilise une ligne à deux points ou Catmull–Rom centripète v1 avec une cible de subdivision de 2 m sur
+les cordes de contrôle (sans garantie stricte de longueur d’arc locale). Le viewport
+valide hashes, budgets et séquence avant remplacement atomique ; une édition path-only reconstruit
+zéro chunk terrain/végétation et conserve 64/64 chunks végétation. **504 tests de bibliothèque PASS**
+(`forge_project` 115, `forge_world` 103, `forge_engine` 176, `forge_studio` 110), Clippy natif strict
+et chemins produit WASM pertinents PASS, check Studio WASM et Trunk debug PASS. L’Engine WASM
+`--all-targets` reste en échec sur un mélange d’`Instant` dans un test préexistant ; la bibliothèque
+produit WASM est PASS. UI native, Release, GPU, latence, CI distante et PresentMon restent `NOT RUN`.
+Aucun asset, dépendance, manifest Cargo ou contenu Cadle. **Gate 2 atteint 20/43 et reste ouverte ;
+R2-022 route avec profil devient la prochaine tranche.**
+[Preuves, manifeste et limites](../evidence/gate2/PATH_CREATION_AND_EDITING.md).
+
 - [x] `R2-015` pinceau densité — source/commande/UI compilée, histoire et persistance qualifiées ; contrôle natif groupé reporté.
 - [x] `R2-016` catalogues d’espèces — quatre presets procéduraux, CRUD, densité synchronisée et cache qualifiés ; assets différés à Gate 4.
 - [x] `R2-017` exclusions — cercle/passage persistants, historique, rejeu exact et recalcul local qualifiés.
@@ -1049,7 +1065,7 @@ est complet et R2-021 devient la prochaine route.**
 
 ## R2-D — Splines
 
-- [ ] `R2-021` création/édition de chemin.
+- [x] `R2-021` création/édition persistante de chemin — source v1, génération terrain, historique et overlay atomique qualifiés ; contrôle natif groupé reporté.
 - [ ] `R2-022` route avec profil.
 - [ ] `R2-023` rivière et carving.
 - [ ] `R2-024` intersections.
