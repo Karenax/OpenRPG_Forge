@@ -22,9 +22,10 @@ mod water;
 mod weather;
 
 pub use editor_placement::{
-    EditorPlacementAssetBudget, EditorPlacementProjectionBridge, EditorPlacementProjectionError,
+    EditorPlacementAssetBudget, EditorPlacementPickingError, EditorPlacementPointer,
+    EditorPlacementProjectionBridge, EditorPlacementProjectionError,
     EditorPlacementProjectionPhase, EditorPlacementProjectionPlugin,
-    EditorPlacementProjectionStatus, EditorPlacementRoot, MAX_EDITOR_PLACEMENT_SCENES,
+    EditorPlacementProjectionStatus, EditorPlacementSample, MAX_EDITOR_PLACEMENT_SCENES,
     MAX_EDITOR_PLACEMENT_TRACKED_BYTES, MAX_EDITOR_PLACEMENTS,
 };
 pub use environment::{

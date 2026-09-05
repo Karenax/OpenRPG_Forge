@@ -25,6 +25,8 @@ pub mod workspace_service;
 mod workspace_store;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod workspace_ui;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod world_selection;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod world_ui;
 

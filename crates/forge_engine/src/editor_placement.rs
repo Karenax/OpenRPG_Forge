@@ -2,8 +2,10 @@
 //!
 //! The project document remains authoritative. This adapter keeps the previously committed
 //! projection visible while replacement glTF roots and all recursive dependencies load.
+use crate::editor_viewport::EditorCamera;
 use bevy::{
     asset::{DependencyLoadState, LoadState, RecursiveDependencyLoadState},
+    ecs::system::SystemParam,
     gltf::GltfAssetLabel,
     prelude::*,
 };
@@ -20,12 +22,41 @@ pub const MAX_EDITOR_PLACEMENTS: usize = 4_096;
 pub const MAX_EDITOR_PLACEMENT_SCENES: usize = 512;
 pub const MAX_EDITOR_PLACEMENT_TRACKED_BYTES: u64 = 1_073_741_824;
 const MAX_SCENE_PATH_BYTES: usize = 512;
+const MAX_EDITOR_PLACEMENT_ANCESTOR_DEPTH: usize = 64;
 
 /// Conservative verified byte budget for one pinned asset subset.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EditorPlacementAssetBudget {
     pub asset_id: AssetId,
     pub tracked_bytes: u64,
+}
+
+/// One read-only viewport sample request for the exactly presented placement projection.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct EditorPlacementPointer {
+    pub generation: u64,
+    pub serial: u64,
+    /// Normalized canvas coordinates, top-left `[0, 0]`, bottom-right `[1, 1]`.
+    pub viewport_uv: [f32; 2],
+}
+
+/// Renderer-neutral result for the latest accepted placement picking request.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
+pub struct EditorPlacementSample {
+    pub generation: u64,
+    pub serial: u64,
+    pub project_id: ProjectId,
+    pub area_id: AreaId,
+    pub revision: u64,
+    pub placement_id: Option<EntityId>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct PlacementPickScope {
+    generation: u64,
+    project_id: ProjectId,
+    area_id: AreaId,
+    revision: u64,
 }
 
 /// Validated renderer-neutral fields required from the persistent placement ledger.
@@ -103,6 +134,9 @@ struct EditorPlacementBridgeState {
     desired_generation: u64,
     pending: Option<PreparedEditorPlacementRequest>,
     pending_clear: Option<u64>,
+    pick_pointer: Option<EditorPlacementPointer>,
+    pick_sample: Option<EditorPlacementSample>,
+    latest_pick_serial: u64,
     status: EditorPlacementProjectionStatus,
 }
 
@@ -117,6 +151,52 @@ impl EditorPlacementProjectionBridge {
             |_| EditorPlacementProjectionStatus::default(),
             |state| state.status.clone(),
         )
+    }
+
+    /// Accepts only a strictly newer pointer for the exactly presented projection.
+    pub fn request_pick(
+        &self,
+        pointer: EditorPlacementPointer,
+    ) -> Result<(), EditorPlacementPickingError> {
+        if !pointer
+            .viewport_uv
+            .iter()
+            .all(|coordinate| coordinate.is_finite() && (0.0..=1.0).contains(coordinate))
+        {
+            return Err(EditorPlacementPickingError::InvalidViewportUv);
+        }
+        let mut state = self
+            .0
+            .lock()
+            .map_err(|_| EditorPlacementPickingError::BridgePoisoned)?;
+        let scope = current_pick_scope(&state).ok_or(
+            EditorPlacementPickingError::ProjectionNotCurrent {
+                desired: state.desired_generation,
+                presented: state.status.presented_generation,
+            },
+        )?;
+        if pointer.generation != scope.generation {
+            return Err(EditorPlacementPickingError::StaleGeneration {
+                submitted: pointer.generation,
+                presented: scope.generation,
+            });
+        }
+        if pointer.serial <= state.latest_pick_serial {
+            return Err(EditorPlacementPickingError::StaleSerial {
+                submitted: pointer.serial,
+                latest: state.latest_pick_serial,
+            });
+        }
+        state.latest_pick_serial = pointer.serial;
+        state.pick_pointer = Some(pointer);
+        state.pick_sample = None;
+        Ok(())
+    }
+
+    /// Returns only the latest exact-scope sample; misses have `placement_id == None`.
+    #[must_use]
+    pub fn pick_sample(&self) -> Option<EditorPlacementSample> {
+        self.0.lock().ok().and_then(|state| state.pick_sample)
     }
 
     /// Validates and submits one complete persistent ledger projection.
@@ -143,6 +223,7 @@ impl EditorPlacementProjectionBridge {
         state.desired_generation = generation;
         state.pending = None;
         state.pending_clear = Some(generation);
+        invalidate_pick(&mut state);
         state.status.desired_generation = generation;
         Ok(())
     }
@@ -159,6 +240,7 @@ impl EditorPlacementProjectionBridge {
         reject_stale_generation(request.generation, state.desired_generation)?;
         state.desired_generation = request.generation;
         state.pending_clear = None;
+        invalidate_pick(&mut state);
         state.status.desired_generation = request.generation;
         state.pending = Some(request);
         Ok(())
@@ -171,13 +253,20 @@ impl Plugin for EditorPlacementProjectionPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.0.clone())
             .init_resource::<PlacementProjection>()
-            .add_systems(Update, update_editor_placement_projection);
+            .add_systems(Update, update_editor_placement_projection)
+            .add_systems(
+                PostUpdate,
+                update_editor_placement_pick
+                    .after(bevy::transform::TransformSystems::Propagate)
+                    .after(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
+            );
     }
 }
 
 #[derive(Component)]
-pub struct EditorPlacementRoot {
-    pub placement_id: EntityId,
+struct EditorPlacementRoot {
+    placement_id: EntityId,
+    scope: PlacementPickScope,
 }
 
 struct PresentedPlacement {
@@ -208,6 +297,161 @@ enum GovernedSceneLoadState {
 fn update_editor_placement_projection(world: &mut World) {
     accept_latest_request(world);
     observe_pending_projection(world);
+}
+
+#[derive(SystemParam)]
+struct EditorPlacementPickParams<'w, 's> {
+    bridge: Res<'w, EditorPlacementProjectionBridge>,
+    projection: Res<'w, PlacementProjection>,
+    cameras: Query<'w, 's, (&'static Camera, &'static GlobalTransform), With<EditorCamera>>,
+    parents: Query<'w, 's, &'static ChildOf>,
+    roots: Query<'w, 's, &'static EditorPlacementRoot>,
+    ray_cast: MeshRayCast<'w, 's>,
+}
+
+fn update_editor_placement_pick(params: EditorPlacementPickParams<'_, '_>) {
+    params.update();
+}
+
+impl EditorPlacementPickParams<'_, '_> {
+    fn update(mut self) {
+        let Some((pointer, scope)) = pending_pick(&self.bridge) else {
+            return;
+        };
+        let Ok((camera, camera_transform)) = self.cameras.single() else {
+            return;
+        };
+        let Some(viewport) = camera.logical_viewport_rect() else {
+            return;
+        };
+        let viewport_position =
+            viewport.min + Vec2::from_array(pointer.viewport_uv) * viewport.size();
+        let Ok(ray) = camera.viewport_to_world(camera_transform, viewport_position) else {
+            return;
+        };
+        let placement_id = first_visible_placement(
+            &mut self.ray_cast,
+            ray,
+            &self.parents,
+            &self.roots,
+            &self.projection,
+            scope,
+        );
+        publish_pick_sample(&self.bridge, pointer, scope, placement_id);
+    }
+}
+
+fn pending_pick(
+    bridge: &EditorPlacementProjectionBridge,
+) -> Option<(EditorPlacementPointer, PlacementPickScope)> {
+    let state = bridge.0.lock().ok()?;
+    let pointer = state.pick_pointer?;
+    let scope = current_pick_scope(&state)?;
+    (pointer.generation == scope.generation).then_some((pointer, scope))
+}
+
+fn publish_pick_sample(
+    bridge: &EditorPlacementProjectionBridge,
+    pointer: EditorPlacementPointer,
+    scope: PlacementPickScope,
+    placement_id: Option<EntityId>,
+) -> bool {
+    let Ok(mut state) = bridge.0.lock() else {
+        return false;
+    };
+    let Some(current_pointer) = state.pick_pointer else {
+        return false;
+    };
+    if current_pointer.generation != pointer.generation
+        || current_pointer.serial != pointer.serial
+        || current_pick_scope(&state) != Some(scope)
+    {
+        return false;
+    }
+    state.pick_pointer = None;
+    state.pick_sample = Some(EditorPlacementSample {
+        generation: pointer.generation,
+        serial: pointer.serial,
+        project_id: scope.project_id,
+        area_id: scope.area_id,
+        revision: scope.revision,
+        placement_id,
+    });
+    true
+}
+
+fn first_visible_placement(
+    ray_cast: &mut MeshRayCast<'_, '_>,
+    ray: Ray3d,
+    parents: &Query<&ChildOf>,
+    roots: &Query<&EditorPlacementRoot>,
+    projection: &PlacementProjection,
+    scope: PlacementPickScope,
+) -> Option<EntityId> {
+    let settings = MeshRayCastSettings::default().with_visibility(RayCastVisibility::Visible);
+    let hit_entity = ray_cast
+        .cast_ray(ray, &settings)
+        .first()
+        .map(|(entity, _)| *entity)?;
+    active_placement_ancestor(hit_entity, parents, roots, projection, scope)
+}
+
+fn active_placement_ancestor(
+    mut entity: Entity,
+    parents: &Query<&ChildOf>,
+    roots: &Query<&EditorPlacementRoot>,
+    projection: &PlacementProjection,
+    scope: PlacementPickScope,
+) -> Option<EntityId> {
+    for depth in 0..=MAX_EDITOR_PLACEMENT_ANCESTOR_DEPTH {
+        if let Ok(root) = roots.get(entity)
+            && root.scope == scope
+            && projection
+                .active
+                .get(&root.placement_id)
+                .is_some_and(|active| active.entity == entity)
+        {
+            return Some(root.placement_id);
+        }
+        if depth == MAX_EDITOR_PLACEMENT_ANCESTOR_DEPTH {
+            return None;
+        }
+        entity = parents.get(entity).ok()?.parent();
+    }
+    None
+}
+
+fn current_pick_scope(state: &EditorPlacementBridgeState) -> Option<PlacementPickScope> {
+    let status = &state.status;
+    if state.desired_generation != status.desired_generation
+        || status.desired_generation != status.presented_generation
+        || !matches!(
+            status.phase,
+            EditorPlacementProjectionPhase::Empty | EditorPlacementProjectionPhase::Presented
+        )
+    {
+        return None;
+    }
+    Some(PlacementPickScope {
+        generation: status.presented_generation,
+        project_id: status.project_id?,
+        area_id: status.area_id?,
+        revision: status.revision,
+    })
+}
+
+fn request_pick_scope(request: &PreparedEditorPlacementRequest) -> PlacementPickScope {
+    PlacementPickScope {
+        generation: request.generation,
+        project_id: request.project_id,
+        area_id: request.area_id,
+        revision: request.revision,
+    }
+}
+
+fn invalidate_pick(state: &mut EditorPlacementBridgeState) {
+    state.pick_pointer = None;
+    state.pick_sample = None;
 }
 
 fn accept_latest_request(world: &mut World) {
@@ -261,6 +505,7 @@ fn accept_latest_request(world: &mut World) {
                 Name::new(format!("Editor placement {}", source.id)),
                 EditorPlacementRoot {
                     placement_id: source.id,
+                    scope: request_pick_scope(&request),
                 },
                 WorldAssetRoot(handle.clone()),
                 bevy_transform(source.transform),
@@ -308,6 +553,7 @@ fn clear_projection(world: &mut World, bridge: &EditorPlacementProjectionBridge,
         world.despawn(placement.entity);
     }
     if let Ok(mut state) = bridge.0.lock() {
+        invalidate_pick(&mut state);
         state.status = EditorPlacementProjectionStatus {
             desired_generation: generation,
             presented_generation: generation,
@@ -408,6 +654,19 @@ fn commit_pending_projection(world: &mut World) {
         projection.active.extend(staged);
         projection.active.len()
     };
+    let active_roots = world
+        .resource::<PlacementProjection>()
+        .active
+        .iter()
+        .map(|(placement_id, placement)| (*placement_id, placement.entity))
+        .collect::<Vec<_>>();
+    let scope = request_pick_scope(&pending.request);
+    for (placement_id, entity) in active_roots {
+        world.entity_mut(entity).insert(EditorPlacementRoot {
+            placement_id,
+            scope,
+        });
+    }
     if let Ok(mut state) = bridge.0.lock() {
         state.status.presented_generation = pending.request.generation;
         state.status.project_id = Some(pending.request.project_id);
@@ -653,6 +912,23 @@ fn bevy_transform(source: ForgeTransform) -> Transform {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum EditorPlacementPickingError {
+    BridgePoisoned,
+    ProjectionNotCurrent { desired: u64, presented: u64 },
+    StaleGeneration { submitted: u64, presented: u64 },
+    StaleSerial { submitted: u64, latest: u64 },
+    InvalidViewportUv,
+}
+
+impl std::fmt::Display for EditorPlacementPickingError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{self:?}")
+    }
+}
+
+impl std::error::Error for EditorPlacementPickingError {}
+
 #[derive(Debug, PartialEq)]
 pub enum EditorPlacementProjectionError {
     BridgePoisoned,
@@ -687,6 +963,11 @@ impl std::error::Error for EditorPlacementProjectionError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::{
+        camera::primitives::{Aabb, MeshAabb},
+        ecs::system::SystemState,
+        tasks::{ComputeTaskPool, TaskPool},
+    };
     use forge_core::{Revision, UnitQuaternion, Vec3 as ForgeVec3};
     use forge_project::{AssetPin, AuthoredPlacement, asset_id_from_stable_key};
 
@@ -760,6 +1041,446 @@ mod tests {
             vec![pin],
             placements,
         )
+    }
+
+    fn pick_scope(generation: u64) -> PlacementPickScope {
+        request_pick_scope(&request(generation, vec![]))
+    }
+
+    fn presented_bridge(generation: u64) -> EditorPlacementProjectionBridge {
+        let bridge = EditorPlacementProjectionBridge::default();
+        let scope = pick_scope(generation);
+        {
+            let mut state = bridge.0.lock().unwrap();
+            state.desired_generation = generation;
+            state.status = EditorPlacementProjectionStatus {
+                desired_generation: generation,
+                presented_generation: generation,
+                project_id: Some(scope.project_id),
+                area_id: Some(scope.area_id),
+                revision: scope.revision,
+                source_hash: ContentHash::from_bytes([7; 32]).to_string(),
+                phase: EditorPlacementProjectionPhase::Presented,
+                presented_placements: 1,
+                ..default()
+            };
+        }
+        bridge
+    }
+
+    fn pointer(generation: u64, serial: u64, viewport_uv: [f32; 2]) -> EditorPlacementPointer {
+        EditorPlacementPointer {
+            generation,
+            serial,
+            viewport_uv,
+        }
+    }
+
+    fn mesh_world() -> (World, Handle<Mesh>, Aabb) {
+        ComputeTaskPool::get_or_init(TaskPool::default);
+        let mut world = World::new();
+        let mesh = Mesh::from(Cuboid::new(2.0, 2.0, 2.0));
+        let bounds = mesh.compute_aabb().unwrap();
+        let mut meshes = Assets::<Mesh>::default();
+        let handle = meshes.add(mesh);
+        world.insert_resource(meshes);
+        world.init_resource::<PlacementProjection>();
+        (world, handle, bounds)
+    }
+
+    fn spawn_placement_mesh(
+        world: &mut World,
+        handle: &Handle<Mesh>,
+        bounds: Aabb,
+        source: &PreparedEditorPlacement,
+        scope: PlacementPickScope,
+        height: f32,
+        visibility: InheritedVisibility,
+    ) -> Entity {
+        let root = world
+            .spawn(EditorPlacementRoot {
+                placement_id: source.id,
+                scope,
+            })
+            .id();
+        let node = world.spawn(ChildOf(root)).id();
+        world.spawn((
+            Mesh3d(handle.clone()),
+            bounds,
+            GlobalTransform::from_translation(Vec3::Y * height),
+            visibility,
+            ViewVisibility::HIDDEN,
+            ChildOf(node),
+        ));
+        root
+    }
+
+    fn raycast_placement(
+        world: &mut World,
+        ray: Ray3d,
+        scope: PlacementPickScope,
+    ) -> Option<EntityId> {
+        let mut state = SystemState::<(
+            MeshRayCast,
+            Query<&ChildOf>,
+            Query<&EditorPlacementRoot>,
+            Res<PlacementProjection>,
+        )>::new(world);
+        let (mut ray_cast, parents, roots, projection) = state.get_mut(world).unwrap();
+        first_visible_placement(&mut ray_cast, ray, &parents, &roots, &projection, scope)
+    }
+
+    fn resolve_placement_ancestor(
+        world: &mut World,
+        entity: Entity,
+        scope: PlacementPickScope,
+    ) -> Option<EntityId> {
+        let mut state = SystemState::<(
+            Query<&ChildOf>,
+            Query<&EditorPlacementRoot>,
+            Res<PlacementProjection>,
+        )>::new(world);
+        let (parents, roots, projection) = state.get_mut(world).unwrap();
+        active_placement_ancestor(entity, &parents, &roots, &projection, scope)
+    }
+
+    fn sampled_bridge(
+        generation: u64,
+        serial: u64,
+        placement_id: EntityId,
+    ) -> EditorPlacementProjectionBridge {
+        let bridge = presented_bridge(generation);
+        let pointer = pointer(generation, serial, [0.5, 0.5]);
+        bridge.request_pick(pointer).unwrap();
+        assert!(publish_pick_sample(
+            &bridge,
+            pointer,
+            pick_scope(generation),
+            Some(placement_id)
+        ));
+        bridge
+    }
+
+    #[test]
+    fn picking_resolves_a_gltf_descendant_and_rejects_an_old_scope() {
+        let (mut world, handle, bounds) = mesh_world();
+        let scope = pick_scope(2);
+        let source = placement("active-descendant");
+        let root = spawn_placement_mesh(
+            &mut world,
+            &handle,
+            bounds,
+            &source,
+            scope,
+            0.0,
+            InheritedVisibility::VISIBLE,
+        );
+        world
+            .resource_mut::<PlacementProjection>()
+            .active
+            .insert(source.id, presented(source.clone(), root));
+        let ray = Ray3d::new(Vec3::Y * 20.0, Dir3::NEG_Y);
+
+        assert_eq!(raycast_placement(&mut world, ray, scope), Some(source.id));
+        assert_eq!(raycast_placement(&mut world, ray, pick_scope(1)), None);
+    }
+
+    #[test]
+    fn placement_ancestor_walk_accepts_64_edges_and_rejects_65() {
+        let scope = pick_scope(2);
+        let source = placement("bounded-ancestor");
+        let mut world = World::new();
+        let root = world
+            .spawn(EditorPlacementRoot {
+                placement_id: source.id,
+                scope,
+            })
+            .id();
+        let mut descendant = root;
+        let mut at_limit = root;
+        for depth in 1..=MAX_EDITOR_PLACEMENT_ANCESTOR_DEPTH + 1 {
+            descendant = world.spawn(ChildOf(descendant)).id();
+            if depth == MAX_EDITOR_PLACEMENT_ANCESTOR_DEPTH {
+                at_limit = descendant;
+            }
+        }
+        world.insert_resource(PlacementProjection {
+            active: BTreeMap::from([(source.id, presented(source.clone(), root))]),
+            pending: None,
+        });
+
+        assert_eq!(
+            resolve_placement_ancestor(&mut world, at_limit, scope),
+            Some(source.id)
+        );
+        assert_eq!(
+            resolve_placement_ancestor(&mut world, descendant, scope),
+            None
+        );
+    }
+
+    #[test]
+    fn every_visible_mesh_in_front_occludes_an_active_placement() {
+        let (mut world, handle, bounds) = mesh_world();
+        let scope = pick_scope(2);
+        let source = placement("occluded");
+        let root = spawn_placement_mesh(
+            &mut world,
+            &handle,
+            bounds,
+            &source,
+            scope,
+            0.0,
+            InheritedVisibility::VISIBLE,
+        );
+        world
+            .resource_mut::<PlacementProjection>()
+            .active
+            .insert(source.id, presented(source.clone(), root));
+        let terrain = world
+            .spawn((
+                crate::editor_viewport::EditorTerrainChunk,
+                Mesh3d(handle.clone()),
+                bounds,
+                GlobalTransform::from_translation(Vec3::Y * 5.0),
+                InheritedVisibility::VISIBLE,
+                ViewVisibility::HIDDEN,
+            ))
+            .id();
+        let ray = Ray3d::new(Vec3::Y * 20.0, Dir3::NEG_Y);
+
+        assert_eq!(raycast_placement(&mut world, ray, scope), None);
+        world
+            .entity_mut(terrain)
+            .insert(InheritedVisibility::HIDDEN);
+        let generic_mesh = world
+            .spawn((
+                Mesh3d(handle),
+                bounds,
+                GlobalTransform::from_translation(Vec3::Y * 4.0),
+                InheritedVisibility::VISIBLE,
+                ViewVisibility::HIDDEN,
+            ))
+            .id();
+        assert_eq!(raycast_placement(&mut world, ray, scope), None);
+        world
+            .entity_mut(generic_mesh)
+            .insert(InheritedVisibility::HIDDEN);
+        assert_eq!(raycast_placement(&mut world, ray, scope), Some(source.id));
+    }
+
+    #[test]
+    fn hidden_staging_is_ignored_and_a_ray_miss_stays_empty() {
+        let (mut world, handle, bounds) = mesh_world();
+        let active_scope = pick_scope(2);
+        let active_source = placement("active-behind-staging");
+        let active_root = spawn_placement_mesh(
+            &mut world,
+            &handle,
+            bounds,
+            &active_source,
+            active_scope,
+            0.0,
+            InheritedVisibility::VISIBLE,
+        );
+        let staged_source = placement("hidden-staging");
+        let staged_root = spawn_placement_mesh(
+            &mut world,
+            &handle,
+            bounds,
+            &staged_source,
+            pick_scope(3),
+            5.0,
+            InheritedVisibility::HIDDEN,
+        );
+        let projection = &mut world.resource_mut::<PlacementProjection>();
+        projection.active.insert(
+            active_source.id,
+            presented(active_source.clone(), active_root),
+        );
+        projection.pending = Some(PendingPlacementProjection {
+            request: request(3, vec![staged_source.clone()]),
+            retained: BTreeSet::new(),
+            staged: BTreeMap::from([(staged_source.id, presented(staged_source, staged_root))]),
+        });
+
+        let hit_ray = Ray3d::new(Vec3::Y * 20.0, Dir3::NEG_Y);
+        assert_eq!(
+            raycast_placement(&mut world, hit_ray, active_scope),
+            Some(active_source.id)
+        );
+        let miss_ray = Ray3d::new(Vec3::new(20.0, 20.0, 0.0), Dir3::NEG_Y);
+        assert_eq!(raycast_placement(&mut world, miss_ray, active_scope), None);
+    }
+
+    #[test]
+    fn pointer_scope_validation_and_latest_serial_win_are_exact() {
+        let bridge = presented_bridge(7);
+        assert!(matches!(
+            bridge.request_pick(pointer(7, 1, [f32::NAN, 0.5])),
+            Err(EditorPlacementPickingError::InvalidViewportUv)
+        ));
+        assert!(matches!(
+            bridge.request_pick(pointer(6, 1, [0.5, 0.5])),
+            Err(EditorPlacementPickingError::StaleGeneration {
+                submitted: 6,
+                presented: 7
+            })
+        ));
+        let superseded = pointer(7, 10, [0.25, 0.75]);
+        let latest = pointer(7, 12, [0.75, 0.25]);
+        bridge.request_pick(superseded).unwrap();
+        bridge.request_pick(latest).unwrap();
+        assert!(matches!(
+            bridge.request_pick(pointer(7, 11, [0.5, 0.5])),
+            Err(EditorPlacementPickingError::StaleSerial {
+                submitted: 11,
+                latest: 12
+            })
+        ));
+        let placement_id = EntityId::deterministic("placement/latest-pick");
+        assert!(!publish_pick_sample(
+            &bridge,
+            superseded,
+            pick_scope(7),
+            Some(placement_id)
+        ));
+        assert!(publish_pick_sample(
+            &bridge,
+            latest,
+            pick_scope(7),
+            Some(placement_id)
+        ));
+        assert_eq!(
+            bridge.pick_sample(),
+            Some(EditorPlacementSample {
+                generation: 7,
+                serial: 12,
+                project_id: pick_scope(7).project_id,
+                area_id: pick_scope(7).area_id,
+                revision: 7,
+                placement_id: Some(placement_id),
+            })
+        );
+    }
+
+    #[test]
+    fn an_exact_latest_miss_is_published_as_an_empty_sample() {
+        let bridge = presented_bridge(8);
+        let pointer = pointer(8, 14, [0.125, 0.875]);
+        let scope = pick_scope(8);
+        bridge.request_pick(pointer).unwrap();
+
+        assert!(publish_pick_sample(&bridge, pointer, scope, None));
+        assert_eq!(
+            bridge.pick_sample(),
+            Some(EditorPlacementSample {
+                generation: 8,
+                serial: 14,
+                project_id: scope.project_id,
+                area_id: scope.area_id,
+                revision: scope.revision,
+                placement_id: None,
+            })
+        );
+        assert_eq!(pending_pick(&bridge), None);
+    }
+
+    #[test]
+    fn commit_refreshes_the_private_pick_scope_of_a_retained_root() {
+        let bridge = EditorPlacementProjectionBridge::default();
+        let source = placement("retained-pick-scope");
+        let mut world = World::new();
+        world.insert_resource(bridge.clone());
+        let root = world
+            .spawn(EditorPlacementRoot {
+                placement_id: source.id,
+                scope: pick_scope(1),
+            })
+            .id();
+        world.insert_resource(PlacementProjection {
+            active: BTreeMap::from([(source.id, presented(source.clone(), root))]),
+            pending: Some(PendingPlacementProjection {
+                request: request(2, vec![source.clone()]),
+                retained: BTreeSet::from([source.id]),
+                staged: BTreeMap::new(),
+            }),
+        });
+        {
+            let mut state = bridge.0.lock().unwrap();
+            state.desired_generation = 2;
+            state.status.desired_generation = 2;
+        }
+
+        commit_pending_projection(&mut world);
+
+        assert_eq!(
+            world.get::<EditorPlacementRoot>(root).unwrap().scope,
+            pick_scope(2)
+        );
+        assert_eq!(
+            resolve_placement_ancestor(&mut world, root, pick_scope(2)),
+            Some(source.id)
+        );
+        assert_eq!(
+            resolve_placement_ancestor(&mut world, root, pick_scope(1)),
+            None
+        );
+    }
+
+    #[test]
+    fn submit_and_clear_invalidate_pick_requests_samples_and_scope() {
+        let placement_id = EntityId::deterministic("placement/invalidated-pick");
+        let submitted = sampled_bridge(2, 1, placement_id);
+        submitted.submit(request(3, vec![])).unwrap();
+        assert_eq!(submitted.pick_sample(), None);
+        assert_eq!(pending_pick(&submitted), None);
+        assert!(matches!(
+            submitted.request_pick(pointer(3, 2, [0.5, 0.5])),
+            Err(EditorPlacementPickingError::ProjectionNotCurrent {
+                desired: 3,
+                presented: 2
+            })
+        ));
+
+        let cleared = sampled_bridge(4, 3, placement_id);
+        cleared.clear(5).unwrap();
+        assert_eq!(cleared.pick_sample(), None);
+        assert_eq!(pending_pick(&cleared), None);
+        let state = cleared.0.lock().unwrap();
+        assert_eq!(current_pick_scope(&state), None);
+    }
+
+    #[test]
+    fn picking_does_not_rebuild_geometry_or_upload_meshes() {
+        let bridge = presented_bridge(9);
+        let (mut world, handle, bounds) = mesh_world();
+        let scope = pick_scope(9);
+        let source = placement("read-only-pick");
+        let root = spawn_placement_mesh(
+            &mut world,
+            &handle,
+            bounds,
+            &source,
+            scope,
+            0.0,
+            InheritedVisibility::VISIBLE,
+        );
+        world
+            .resource_mut::<PlacementProjection>()
+            .active
+            .insert(source.id, presented(source.clone(), root));
+        let mesh_count = world.resource::<Assets<Mesh>>().len();
+        let pointer = pointer(9, 1, [0.5, 0.5]);
+
+        bridge.request_pick(pointer).unwrap();
+        let picked = raycast_placement(&mut world, Ray3d::new(Vec3::Y * 20.0, Dir3::NEG_Y), scope);
+        assert!(publish_pick_sample(&bridge, pointer, scope, picked));
+        assert_eq!(world.resource::<Assets<Mesh>>().len(), mesh_count);
+        let status = bridge.status();
+        assert_eq!(status.terrain_mesh_uploads, 0);
+        assert_eq!(status.geometry_cache_rebuilds, 0);
+        assert_eq!(bridge.pick_sample().unwrap().placement_id, Some(source.id));
     }
 
     #[test]
@@ -994,6 +1715,65 @@ mod tests {
         }
     }
 
+    fn assert_clear_and_restore_round_trip(
+        world: &mut World,
+        retained_source: &PreparedEditorPlacement,
+        added_source: &PreparedEditorPlacement,
+        mesh_count: usize,
+    ) {
+        let all_active = world
+            .resource::<PlacementProjection>()
+            .active
+            .keys()
+            .copied()
+            .collect::<BTreeSet<_>>();
+        world.resource_mut::<PlacementProjection>().pending = Some(PendingPlacementProjection {
+            request: request(3, vec![]),
+            retained: BTreeSet::new(),
+            staged: BTreeMap::new(),
+        });
+        commit_pending_projection(world);
+        assert!(world.resource::<PlacementProjection>().active.is_empty());
+        for id in all_active {
+            assert!(
+                world
+                    .query::<&EditorPlacementRoot>()
+                    .iter(world)
+                    .all(|root| root.placement_id != id)
+            );
+        }
+        assert_eq!(world.resource::<Assets<Mesh>>().len(), mesh_count);
+
+        let restored_retained_entity = world.spawn(Visibility::Hidden).id();
+        let restored_added_entity = world.spawn(Visibility::Hidden).id();
+        world.resource_mut::<PlacementProjection>().pending = Some(PendingPlacementProjection {
+            request: request(4, vec![retained_source.clone(), added_source.clone()]),
+            retained: BTreeSet::new(),
+            staged: BTreeMap::from([
+                (
+                    retained_source.id,
+                    presented(retained_source.clone(), restored_retained_entity),
+                ),
+                (
+                    added_source.id,
+                    presented(added_source.clone(), restored_added_entity),
+                ),
+            ]),
+        });
+        commit_pending_projection(world);
+        let projection = world.resource::<PlacementProjection>();
+        assert_eq!(projection.active.len(), 2);
+        assert_eq!(
+            projection.active.get(&retained_source.id).unwrap().entity,
+            restored_retained_entity
+        );
+        assert_eq!(
+            projection.active.get(&added_source.id).unwrap().entity,
+            restored_added_entity
+        );
+        assert_eq!(world.resource::<Assets<Mesh>>().len(), mesh_count);
+    }
+
     #[test]
     fn failure_destroys_only_staging_and_keeps_previous_projection_bit_stable() {
         let bridge = EditorPlacementProjectionBridge::default();
@@ -1093,57 +1873,11 @@ mod tests {
         assert_eq!(status.retained_placements, 1);
         assert_eq!(status.terrain_mesh_uploads, 0);
         assert_eq!(status.geometry_cache_rebuilds, 0);
-
-        let all_active = world
-            .resource::<PlacementProjection>()
-            .active
-            .keys()
-            .copied()
-            .collect::<BTreeSet<_>>();
-        world.resource_mut::<PlacementProjection>().pending = Some(PendingPlacementProjection {
-            request: request(3, vec![]),
-            retained: BTreeSet::new(),
-            staged: BTreeMap::new(),
-        });
-        commit_pending_projection(&mut world);
-        assert!(world.resource::<PlacementProjection>().active.is_empty());
-        for id in all_active {
-            assert!(
-                world
-                    .query::<&EditorPlacementRoot>()
-                    .iter(&world)
-                    .all(|root| root.placement_id != id)
-            );
-        }
-        assert_eq!(world.resource::<Assets<Mesh>>().len(), mesh_count);
-
-        let restored_retained_entity = world.spawn(Visibility::Hidden).id();
-        let restored_added_entity = world.spawn(Visibility::Hidden).id();
-        world.resource_mut::<PlacementProjection>().pending = Some(PendingPlacementProjection {
-            request: request(4, vec![retained_source.clone(), added_source.clone()]),
-            retained: BTreeSet::new(),
-            staged: BTreeMap::from([
-                (
-                    retained_source.id,
-                    presented(retained_source.clone(), restored_retained_entity),
-                ),
-                (
-                    added_source.id,
-                    presented(added_source.clone(), restored_added_entity),
-                ),
-            ]),
-        });
-        commit_pending_projection(&mut world);
-        let projection = world.resource::<PlacementProjection>();
-        assert_eq!(projection.active.len(), 2);
-        assert_eq!(
-            projection.active.get(&retained_source.id).unwrap().entity,
-            restored_retained_entity
+        assert_clear_and_restore_round_trip(
+            &mut world,
+            &retained_source,
+            &added_source,
+            mesh_count,
         );
-        assert_eq!(
-            projection.active.get(&added_source.id).unwrap().entity,
-            restored_added_entity
-        );
-        assert_eq!(world.resource::<Assets<Mesh>>().len(), mesh_count);
     }
 }

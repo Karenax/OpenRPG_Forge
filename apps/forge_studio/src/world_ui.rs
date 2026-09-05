@@ -6,6 +6,10 @@ use crate::{
     asset_drag::{AssetDragState, AssetDropScope, AssetSurfaceHit},
     workspace_api::WorkspaceCommand,
     workspace_ui::{WorkspaceActions, invoke_studio},
+    world_selection::{
+        SelectedPlacementDetails, WorldPickResolution, WorldPickSample, WorldPointerGesture,
+        WorldSelectionScope, WorldSelectionState,
+    },
 };
 use bevy::{
     asset::AssetMetaCheck,
@@ -22,8 +26,8 @@ use forge_engine::editor_viewport::{
     EditorViewportStatus, EditorWallRequest,
 };
 use forge_engine::{
-    EditorPlacementAssetBudget, EditorPlacementProjectionBridge, EditorPlacementProjectionPlugin,
-    EditorPlacementProjectionStatus,
+    EditorPlacementAssetBudget, EditorPlacementPointer, EditorPlacementProjectionBridge,
+    EditorPlacementProjectionPlugin, EditorPlacementProjectionStatus, EditorPlacementSample,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -32,10 +36,10 @@ use wasm_bindgen::{JsCast, closure::Closure};
 
 #[path = "brush_ui.rs"]
 mod brush;
-use brush::{BrushPanel, VegetationPanel, create_brush_actions};
+use brush::{BrushActions, BrushPanel, VegetationPanel, create_brush_actions};
 #[path = "path_ui.rs"]
 mod path;
-use path::{PathPanel, create_path_actions};
+use path::{PathActions, PathPanel, create_path_actions};
 
 #[derive(Clone, Copy)]
 pub(crate) struct WorldActions {
@@ -45,6 +49,7 @@ pub(crate) struct WorldActions {
     placement_viewport: StoredValue<EditorPlacementProjectionBridge>,
     status: RwSignal<EditorViewportStatus>,
     placement_status: RwSignal<EditorPlacementProjectionStatus>,
+    selection: RwSignal<WorldSelectionState>,
     started: RwSignal<bool>,
     observed_starts: RwSignal<u32>,
     busy: RwSignal<bool>,
@@ -78,6 +83,10 @@ impl WorldActions {
             self.error
                 .set(Some(format!("Effacement des Assets refusé : {error}")));
         }
+        let scope = self.selection_scope();
+        let document = self.document.get_untracked();
+        self.selection
+            .update(|selection| selection.reconcile(scope, document.as_ref()));
     }
 
     pub(crate) fn open(self, key: AreaKey) {
@@ -89,6 +98,21 @@ impl WorldActions {
     fn request_canonical_projection(self) {
         self.invalidate_projection(self.tabs.get_untracked().active);
         self.canonical_refresh.update(|serial| *serial += 1);
+    }
+
+    fn selection_scope(self) -> Option<WorldSelectionScope> {
+        let key = self.tabs.get_untracked().active?;
+        let document = self.document.get_untracked()?;
+        let placement_revision = document
+            .area(key.module_id, key.area_id)?
+            .placements
+            .revision
+            .get();
+        (document.project.id == key.project_id).then_some(WorldSelectionScope {
+            key,
+            revision: placement_revision,
+            generation: self.generation.get_untracked(),
+        })
     }
 
     fn density_preview_base_hash(
@@ -311,6 +335,7 @@ pub(crate) fn create_world_actions(workspace: WorkspaceActions) -> WorldActions 
         placement_viewport: StoredValue::new(EditorPlacementProjectionBridge::default()),
         status: RwSignal::new(EditorViewportStatus::default()),
         placement_status: RwSignal::new(EditorPlacementProjectionStatus::default()),
+        selection: RwSignal::new(WorldSelectionState::default()),
         started: RwSignal::new(false),
         observed_starts: RwSignal::new(0),
         busy: RwSignal::new(false),
@@ -335,6 +360,10 @@ fn install_tab_reconciliation(actions: WorldActions) {
         if after != before {
             actions.tabs.set(after);
         }
+        let scope = actions.selection_scope();
+        actions
+            .selection
+            .update(|selection| selection.reconcile(scope, document.as_ref()));
     });
 }
 
@@ -582,9 +611,11 @@ fn install_status_poll(actions: WorldActions) {
             actions.status.set(bridge.status.clone());
             actions.observed_starts.set(bridge.renderer_starts);
         }
-        actions
-            .placement_status
-            .set(actions.placement_viewport.get_value().status());
+        let placement = actions.placement_viewport.get_value();
+        actions.placement_status.set(placement.status());
+        if let Some(sample) = placement.pick_sample() {
+            apply_placement_sample(actions, sample);
+        }
     });
     if let Some(window) = web_sys::window() {
         match window.set_interval_with_callback_and_timeout_and_arguments_0(
@@ -595,6 +626,39 @@ fn install_status_poll(actions: WorldActions) {
             Err(error) => actions
                 .error
                 .set(Some(format!("Diagnostics indisponibles : {error:?}"))),
+        }
+    }
+}
+
+fn apply_placement_sample(actions: WorldActions, sample: EditorPlacementSample) {
+    let Some(scope) = actions.selection_scope() else {
+        actions
+            .selection
+            .update(|selection| selection.reconcile(None, None));
+        return;
+    };
+    let Some(document) = actions.document.get_untracked() else {
+        return;
+    };
+    let mapped = WorldPickSample {
+        generation: sample.generation,
+        serial: sample.serial,
+        project_id: sample.project_id,
+        area_id: sample.area_id,
+        revision: sample.revision,
+        placement_id: sample.placement_id,
+    };
+    let mut selection = actions.selection.get_untracked();
+    match selection.apply_sample(scope, mapped, &document) {
+        Ok(WorldPickResolution::IgnoredStale) => {}
+        Ok(WorldPickResolution::Cleared { .. } | WorldPickResolution::Selected(_)) => {
+            actions.selection.set(selection);
+        }
+        Err(error) => {
+            actions.selection.set(selection);
+            actions
+                .error
+                .set(Some(format!("Résultat de picking 3D refusé : {error}")));
         }
     }
 }
@@ -713,14 +777,6 @@ fn start_once(actions: WorldActions) {
     }
 }
 
-#[derive(Clone, Copy)]
-struct PointerDrag {
-    id: i32,
-    x: i32,
-    y: i32,
-    pan: bool,
-}
-
 #[component]
 fn WorldToolbar(actions: WorldActions) -> impl IntoView {
     view! {
@@ -742,7 +798,7 @@ pub(crate) fn WorldWorkspace(
     workspace: WorkspaceActions,
     asset_drag: RwSignal<AssetDragState>,
 ) -> impl IntoView {
-    let drag = RwSignal::new(None::<PointerDrag>);
+    let drag = RwSignal::new(None::<WorldPointerGesture>);
     let brush = create_brush_actions(actions, workspace);
     let paths = create_path_actions(actions, workspace, brush);
     view! {
@@ -764,6 +820,7 @@ pub(crate) fn WorldWorkspace(
                 <BrushPanel brush=brush world=actions workspace=workspace/>
                 <VegetationPanel brush=brush world=actions workspace=workspace/>
                 <PathPanel paths=paths brush=brush world=actions workspace=workspace/>
+                <WorldSelectionPanel actions/>
             </aside>
             <div class="world-editor">
                 <div class="world-tabs" role="tablist" aria-label="Zones ouvertes">
@@ -778,63 +835,197 @@ pub(crate) fn WorldWorkspace(
                     }).collect_view()}
                 </div>
                 <WorldToolbar actions/>
-                <div class="world-canvas-host">
-                    <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
-                        on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" {
-                            paths.cancel(actions, false); paths.clear_hover(actions);
-                            brush.cancel(actions, false); brush.clear_hover(actions);
-                            cancel_asset_drag(actions, asset_drag);
-                        } }
-                        on:pointerleave=move |_| { paths.clear_hover(actions); brush.clear_hover(actions); }
-                        on:pointerdown=move |event: web_sys::PointerEvent| {
-                            if paths.start(actions, workspace, brush, &event) { return; }
-                            if brush.start(actions, workspace, &event) { return; }
-                            if event.button() != 0 { return; }
-                            if let Some(element) = event.current_target().and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                                && element.set_pointer_capture(event.pointer_id()).is_ok() {
-                                event.prevent_default();
-                                drag.set(Some(PointerDrag { id: event.pointer_id(), x: event.client_x(), y: event.client_y(), pan: event.shift_key() }));
-                            }
-                        }
-                        on:pointermove=move |event: web_sys::PointerEvent| {
-                            if !paths.move_pointer(actions, &event) { brush.move_pointer(actions, &event); }
-                            let Some(previous) = drag.get_untracked().filter(|previous| previous.id == event.pointer_id()) else { return };
-                            let delta = [pixel_delta(event.client_x() - previous.x), pixel_delta(event.client_y() - previous.y)];
-                            if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
-                                let input = if previous.pan { &mut bridge.input.pan } else { &mut bridge.input.orbit };
-                                input[0] += delta[0]; input[1] += delta[1];
-                            }
-                            drag.set(Some(PointerDrag { x: event.client_x(), y: event.client_y(), ..previous }));
-                        }
-                        on:pointerup=move |event: web_sys::PointerEvent| {
-                            if !paths.finish(actions, &event) { brush.finish(actions, &event); }
-                            drag.set(None);
-                        }
-                        on:pointercancel=move |_| { paths.cancel(actions, false); brush.cancel(actions, false); drag.set(None); }
-                        on:lostpointercapture=move |_| { paths.cancel(actions, true); brush.cancel(actions, true); drag.set(None); }
-                        on:wheel=move |event: web_sys::WheelEvent| {
-                            event.prevent_default();
-                            if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }
-                        }
-                        on:dragover=move |event: web_sys::DragEvent| {
-                            if request_asset_surface(actions, asset_drag, &event) {
-                                event.prevent_default();
-                            }
-                        }
-                        on:dragleave=move |_| clear_asset_surface(actions)
-                        on:drop=move |event: web_sys::DragEvent| {
-                            event.prevent_default();
-                            schedule_asset_drop(actions, workspace, asset_drag);
-                        }/>
-                    <Show when=move || actions.tabs.get().active.is_none()>
-                        <div class="world-empty"><h2>"Un monde à ouvrir"</h2><p>"Choisissez une zone à gauche, ou créez-la dans Projets."</p></div>
-                    </Show>
-                </div>
-                <footer class="world-status" role="status">{move || {
-                    workspace.error.get().unwrap_or_else(|| actions.status_text())
-                }}</footer>
+                <WorldCanvas actions workspace asset_drag drag brush paths/>
             </div>
         </section>
+    }
+}
+
+#[component]
+fn WorldCanvas(
+    actions: WorldActions,
+    workspace: WorkspaceActions,
+    asset_drag: RwSignal<AssetDragState>,
+    drag: RwSignal<Option<WorldPointerGesture>>,
+    brush: BrushActions,
+    paths: PathActions,
+) -> impl IntoView {
+    view! {
+        <div class="world-canvas-host">
+            <canvas id="forge-world-canvas" aria-label="Terrain 3D de la zone active" tabindex="0"
+                on:keydown=move |event: web_sys::KeyboardEvent| { if event.key() == "Escape" {
+                    paths.cancel(actions, false); paths.clear_hover(actions);
+                    brush.cancel(actions, false); brush.clear_hover(actions);
+                    cancel_asset_drag(actions, asset_drag);
+                    actions.selection.update(|selection| { selection.clear(); });
+                } }
+                on:pointerleave=move |_| { paths.clear_hover(actions); brush.clear_hover(actions); }
+                on:pointerdown=move |event: web_sys::PointerEvent| {
+                    if paths.start(actions, workspace, brush, &event) { return; }
+                    if brush.start(actions, workspace, &event) { return; }
+                    if event.button() != 0 { return; }
+                    if let Some(element) = event.current_target().and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+                        && element.set_pointer_capture(event.pointer_id()).is_ok() {
+                        event.prevent_default();
+                        drag.set(Some(WorldPointerGesture::begin(
+                            event.pointer_id(),
+                            [event.client_x(), event.client_y()],
+                            event.shift_key(),
+                        )));
+                    }
+                }
+                on:pointermove=move |event: web_sys::PointerEvent| {
+                    if !paths.move_pointer(actions, &event) { brush.move_pointer(actions, &event); }
+                    let Some(mut gesture) = drag.get_untracked() else { return };
+                    let Some(pointer_delta) = gesture.move_to(
+                        event.pointer_id(),
+                        [event.client_x(), event.client_y()],
+                    ) else { return };
+                    apply_camera_gesture_delta(actions, gesture.pan, pointer_delta);
+                    drag.set(Some(gesture));
+                }
+                on:pointerup=move |event: web_sys::PointerEvent| {
+                    if !paths.finish(actions, &event) { brush.finish(actions, &event); }
+                    let Some(mut gesture) = drag.get_untracked() else { return };
+                    let Some(pointer_delta) = gesture.move_to(
+                        event.pointer_id(),
+                        [event.client_x(), event.client_y()],
+                    ) else { return };
+                    drag.set(None);
+                    apply_camera_gesture_delta(actions, gesture.pan, pointer_delta);
+                    if let Some(viewport_uv) = pointer_viewport_uv(&event)
+                        .and_then(|uv| gesture.finish(event.pointer_id(), uv))
+                    {
+                        request_placement_pick(actions, viewport_uv);
+                    }
+                }
+                on:pointercancel=move |_| { paths.cancel(actions, false); brush.cancel(actions, false); drag.set(None); }
+                on:lostpointercapture=move |_| { paths.cancel(actions, true); brush.cancel(actions, true); drag.set(None); }
+                on:wheel=move |event: web_sys::WheelEvent| {
+                    event.prevent_default();
+                    if let Ok(mut bridge) = actions.viewport.get_value().0.lock() { bridge.input.zoom += wheel_delta(event.delta_y()); }
+                }
+                on:dragover=move |event: web_sys::DragEvent| {
+                    if request_asset_surface(actions, asset_drag, &event) {
+                        event.prevent_default();
+                    }
+                }
+                on:dragleave=move |_| clear_asset_surface(actions)
+                on:drop=move |event: web_sys::DragEvent| {
+                    event.prevent_default();
+                    schedule_asset_drop(actions, workspace, asset_drag);
+                }/>
+            <Show when=move || actions.tabs.get().active.is_none()>
+                <div class="world-empty"><h2>"Un monde à ouvrir"</h2><p>"Choisissez une zone à gauche, ou créez-la dans Projets."</p></div>
+            </Show>
+        </div>
+        <footer class="world-status" role="status">{move || {
+            workspace.error.get().unwrap_or_else(|| actions.status_text())
+        }}</footer>
+    }
+}
+
+#[component]
+fn WorldSelectionPanel(actions: WorldActions) -> impl IntoView {
+    view! {
+        <section class="world-selection" aria-label="Sélection du monde">
+            <h3>"Sélection"</h3>
+            {move || selected_placement_details(actions).map_or_else(
+                || view! { <p class="hint">"Cliquez un Asset placé pour l’inspecter."</p> }.into_any(),
+                |details| view! {
+                    <dl>
+                        <dt>"Source"</dt><dd>{details.stable_key}</dd>
+                        <dt>"Identifiant"</dt><dd>{details.placement_id.to_string()}</dd>
+                        <dt>"Position"</dt><dd>{format!(
+                            "{:.2}, {:.2}, {:.2} m",
+                            details.transform.translation_m.x,
+                            details.transform.translation_m.y,
+                            details.transform.translation_m.z,
+                        )}</dd>
+                        <dt>"Échelle"</dt><dd>{format!(
+                            "{:.2}, {:.2}, {:.2}",
+                            details.transform.scale.x,
+                            details.transform.scale.y,
+                            details.transform.scale.z,
+                        )}</dd>
+                    </dl>
+                    <button type="button" on:click=move |_| {
+                        actions.selection.update(|selection| { selection.clear(); });
+                    }>"Désélectionner"</button>
+                }.into_any(),
+            )}
+        </section>
+    }
+}
+
+fn selected_placement_details(actions: WorldActions) -> Option<SelectedPlacementDetails> {
+    let document = actions.document.get()?;
+    actions.selection.get().details(&document)
+}
+
+fn request_placement_pick(actions: WorldActions, viewport_uv: [f32; 2]) {
+    let result = (|| {
+        let scope = actions
+            .selection_scope()
+            .ok_or("Aucune projection de zone active à sélectionner.")?;
+        let mut selection = actions.selection.get_untracked();
+        let request = selection
+            .request_pick(scope, viewport_uv)
+            .map_err(|error| format!("Sélection refusée : {error}"))?;
+        actions
+            .placement_viewport
+            .get_value()
+            .request_pick(EditorPlacementPointer {
+                generation: request.generation,
+                serial: request.serial,
+                viewport_uv: request.viewport_uv,
+            })
+            .map_err(|error| format!("Picking 3D refusé : {error}"))?;
+        actions.selection.set(selection);
+        Ok::<(), String>(())
+    })();
+    match result {
+        Ok(()) => actions.error.set(None),
+        Err(error) => actions.error.set(Some(error)),
+    }
+}
+
+fn pointer_viewport_uv(event: &web_sys::PointerEvent) -> Option<[f32; 2]> {
+    let element = event
+        .current_target()?
+        .dyn_into::<web_sys::Element>()
+        .ok()?;
+    let (width, height) = (element.client_width(), element.client_height());
+    if width <= 0 || height <= 0 {
+        return None;
+    }
+    #[allow(
+        clippy::cast_possible_truncation,
+        reason = "Normalized finite canvas coordinates"
+    )]
+    let viewport_uv = [
+        (f64::from(event.offset_x()) / f64::from(width)) as f32,
+        (f64::from(event.offset_y()) / f64::from(height)) as f32,
+    ];
+    viewport_uv
+        .iter()
+        .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
+        .then_some(viewport_uv)
+}
+
+fn apply_camera_gesture_delta(actions: WorldActions, pan: bool, pointer_delta: [i32; 2]) {
+    if pointer_delta == [0, 0] {
+        return;
+    }
+    let delta = [pixel_delta(pointer_delta[0]), pixel_delta(pointer_delta[1])];
+    if let Ok(mut bridge) = actions.viewport.get_value().0.lock() {
+        let input = if pan {
+            &mut bridge.input.pan
+        } else {
+            &mut bridge.input.orbit
+        };
+        input[0] += delta[0];
+        input[1] += delta[1];
     }
 }
 
@@ -1021,6 +1212,48 @@ fn cancel_asset_drag(actions: WorldActions, asset_drag: RwSignal<AssetDragState>
     asset_drag.update(AssetDragState::clear);
 }
 
+fn selection_ledger(actions: WorldActions) -> serde_json::Value {
+    let state = actions.selection.get();
+    let pending_serial = state.pending_serial();
+    selected_placement_details(actions).map_or_else(
+        || {
+            serde_json::json!({
+                "status": "none",
+                "pending_serial": pending_serial,
+            })
+        },
+        |details| {
+            serde_json::json!({
+                "status": "selected",
+                "pending_serial": pending_serial,
+                "project_id": details.key.project_id,
+                "module_id": details.key.module_id,
+                "area_id": details.key.area_id,
+                "placement_id": details.placement_id,
+                "asset_id": details.asset_id,
+                "stable_key": details.stable_key,
+                "translation_m": [
+                    details.transform.translation_m.x,
+                    details.transform.translation_m.y,
+                    details.transform.translation_m.z,
+                ],
+                "rotation": [
+                    details.transform.rotation.x,
+                    details.transform.rotation.y,
+                    details.transform.rotation.z,
+                    details.transform.rotation.w,
+                ],
+                "scale": [
+                    details.transform.scale.x,
+                    details.transform.scale.y,
+                    details.transform.scale.z,
+                ],
+                "bevy_entity_exposed": false,
+            })
+        },
+    )
+}
+
 #[allow(
     clippy::cast_possible_truncation,
     reason = "Pointer deltas are explicitly clamped before f32 conversion"
@@ -1051,6 +1284,7 @@ pub(crate) fn WorldDiagnostics(actions: WorldActions) -> impl IntoView {
         <pre id="world-viewport-ledger">{move || serde_json::json!({
             "renderer_starts": actions.observed_starts.get(), "renderer_start_requests": u8::from(actions.started.get()), "desired_generation": actions.generation.get(),
             "busy": actions.busy.get(), "projection": actions.status.get(), "asset_projection": actions.placement_status.get(), "error": actions.error.get(),
+            "selection": selection_ledger(actions),
             "gpu_presentation": "not_observed", "gpu_timestamps": "unavailable",
         }).to_string()}</pre>
     </section> }
