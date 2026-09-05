@@ -1,6 +1,9 @@
 //! Pure promotion and retouch commands for generated vegetation instances.
 
-use crate::{VegetationGenerationError, VegetationGenerationPlan, VegetationInstance};
+use crate::{
+    RiverGenerationError, RiverGenerationPlan, VegetationGenerationError, VegetationGenerationPlan,
+    VegetationInstance,
+};
 use forge_core::{AreaId, CommandId, EntityId, ModuleId, ProjectId, Revision};
 use forge_project::{
     PromotedVegetationInstance, VegetationGenerationAlgorithm, VegetationInstanceTransform,
@@ -133,8 +136,11 @@ pub fn resolve_nearest_generated_vegetation_instance(
         .vegetation_density
         .content_hash()
         .map_err(WorkspaceError::from)?;
+    let river_projection =
+        RiverGenerationPlan::from_documents(&area.terrain, &area.paths, &area.roads, &area.rivers)?
+            .generate()?;
     let generated = VegetationGenerationPlan::from_documents_with_density(
-        &area.terrain,
+        &river_projection.effective_terrain,
         &area.vegetation,
         &area.vegetation_density,
     )?
@@ -323,6 +329,8 @@ pub enum VegetationPromotionError {
     MissingPromotedInstance(EntityId),
     #[error("vegetation generation failed while resolving the target: {0}")]
     Generation(#[from] VegetationGenerationError),
+    #[error("river projection failed while resolving the visible target: {0}")]
+    River(#[from] RiverGenerationError),
     #[error("invalid vegetation promotion source or result: {0}")]
     Workspace(#[from] WorkspaceError),
 }
@@ -330,11 +338,15 @@ pub enum VegetationPromotionError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{VegetationRuntimeCache, VegetationRuntimeCacheError};
+    use crate::{
+        PathCreateCommand, RiverUpsertCommand, VegetationRuntimeCache, VegetationRuntimeCacheError,
+        preview_create_path, preview_upsert_river,
+    };
     use forge_core::Vec3;
     use forge_project::{
-        MAX_VEGETATION_EXPANDED_GRASS_BLADES, NewProjectCommand, VegetationDensityLayer,
-        VegetationDensityOverride, VegetationKind,
+        AuthoredRiver, MAX_VEGETATION_EXPANDED_GRASS_BLADES, NewProjectCommand, PathId,
+        RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocument, RiverSurface,
+        VegetationDensityLayer, VegetationDensityOverride, VegetationKind,
     };
     use std::sync::Arc;
 
@@ -400,6 +412,81 @@ mod tests {
             .clone()
     }
 
+    fn with_river(source: &WorkspaceDocument, path_id: PathId, z_m: f32) -> WorkspaceDocument {
+        let module_id = source.project.modules[0].id;
+        let area_id = source.project.modules[0].areas[0].id;
+        let with_path = preview_create_path(
+            source,
+            PathCreateCommand {
+                command_id: CommandId::deterministic(format!(
+                    "vegetation-promotion/river-path/{path_id}"
+                )),
+                base_revision: source.revision,
+                project_id: source.project.id,
+                module_id,
+                area_id,
+                path_id,
+                name: "Cours de promotion".to_owned(),
+                trace_xz_m: vec![[-96.0, z_m], [96.0, z_m]],
+            },
+        )
+        .unwrap()
+        .edit
+        .document;
+        preview_upsert_river(
+            &with_path,
+            RiverUpsertCommand {
+                command_id: CommandId::deterministic(format!(
+                    "vegetation-promotion/river-upsert/{path_id}"
+                )),
+                base_revision: with_path.revision,
+                project_id: with_path.project.id,
+                module_id,
+                area_id,
+                river: AuthoredRiver {
+                    path_id,
+                    channel: RiverChannelProfile {
+                        algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                        surface_width_m: 16.0,
+                        bed_depth_m: 3.0,
+                        bank_blend_width_m: 8.0,
+                    },
+                    surface: RiverSurface::ForgeWaterV1,
+                },
+            },
+        )
+        .unwrap()
+        .edit
+        .document
+    }
+
+    fn generated_on_effective_terrain(
+        workspace: &WorkspaceDocument,
+    ) -> (
+        crate::RiverGenerationResult,
+        Arc<crate::GeneratedVegetation>,
+    ) {
+        let area = &workspace.project.modules[0].areas[0];
+        let projection = RiverGenerationPlan::from_documents(
+            &area.terrain,
+            &area.paths,
+            &area.roads,
+            &area.rivers,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        let vegetation = VegetationGenerationPlan::from_documents_with_density(
+            &projection.effective_terrain,
+            &area.vegetation,
+            &area.vegetation_density,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        (projection, vegetation)
+    }
+
     fn promote_command(
         workspace: &WorkspaceDocument,
         instance: &VegetationInstance,
@@ -459,6 +546,125 @@ mod tests {
         let reopened =
             WorkspaceDocument::from_json(&result.edit.document.to_pretty_json().unwrap()).unwrap();
         assert_eq!(generated(&reopened).chunks, promoted_generation.chunks);
+    }
+
+    #[test]
+    fn river_visible_instance_resolution_and_promotion_are_bit_identical() {
+        let path_id = PathId::deterministic("vegetation-promotion/visible-river");
+        let source = with_river(&source(), path_id, 0.0);
+        let area = &source.project.modules[0].areas[0];
+        let canonical_hash = area.terrain.content_hash().unwrap();
+        let canonical = generated(&source);
+        let (river_projection, visible) = generated_on_effective_terrain(&source);
+        assert_ne!(
+            canonical_hash,
+            river_projection.generated.effective_terrain_document_hash
+        );
+
+        let candidate = visible
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .find(|visible_instance| {
+                canonical
+                    .chunks
+                    .iter()
+                    .flat_map(|chunk| &chunk.instances)
+                    .find(|canonical_instance| canonical_instance.id == visible_instance.id)
+                    .is_some_and(|canonical_instance| {
+                        canonical_instance.position_m.y.to_bits()
+                            != visible_instance.position_m.y.to_bits()
+                    })
+            })
+            .unwrap()
+            .clone();
+        let command = promote_command(
+            &source,
+            &candidate,
+            "vegetation-promotion/visible-river/promote",
+        );
+        let resolved = resolve_nearest_generated_vegetation_instance(&source, &command).unwrap();
+        assert_eq!(resolved.instance_id, candidate.id.as_entity_id());
+        assert_eq!(resolved.distance_squared_m.to_bits(), 0.0_f64.to_bits());
+        assert_eq!(resolved.source.transform.position_m, candidate.position_m);
+        assert_eq!(
+            resolved.source.transform.yaw_radians.to_bits(),
+            candidate.yaw_radians.to_bits()
+        );
+        assert_eq!(
+            resolved.source.transform.uniform_scale.to_bits(),
+            candidate.scale.to_bits()
+        );
+        assert_eq!(resolved.source.terrain_document_hash, canonical_hash);
+        assert_eq!(resolved.source.workspace_revision, source.revision);
+
+        let promoted = preview_promote_generated_vegetation_instance(&source, command).unwrap();
+        assert_eq!(promoted.promoted_instance.id, candidate.id.as_entity_id());
+        assert_eq!(promoted.promoted_instance.source, resolved.source);
+        assert_eq!(
+            promoted.promoted_instance.authored_transform,
+            resolved.source.transform
+        );
+        assert_eq!(promoted.edit.receipt.inverse_snapshot.as_ref(), &source);
+    }
+
+    #[test]
+    fn resolver_propagates_an_invalid_river_projection_without_mutation() {
+        let first_path_id = PathId::deterministic("vegetation-promotion/overlap-river-a");
+        let second_path_id = PathId::deterministic("vegetation-promotion/overlap-river-b");
+        let mut invalid = source();
+        for (path_id, z_m) in [(first_path_id, 0.0), (second_path_id, 5.0)] {
+            invalid = preview_create_path(
+                &invalid,
+                PathCreateCommand {
+                    command_id: CommandId::deterministic(format!(
+                        "vegetation-promotion/overlap-path/{path_id}"
+                    )),
+                    base_revision: invalid.revision,
+                    project_id: invalid.project.id,
+                    module_id: invalid.project.modules[0].id,
+                    area_id: invalid.project.modules[0].areas[0].id,
+                    path_id,
+                    name: format!("Cours {path_id}"),
+                    trace_xz_m: vec![[-40.0, z_m], [40.0, z_m]],
+                },
+            )
+            .unwrap()
+            .edit
+            .document;
+        }
+        let revision = invalid.revision;
+        let project_id = invalid.project.id;
+        let area = &mut invalid.project.modules[0].areas[0];
+        let mut rivers = [first_path_id, second_path_id]
+            .map(|path_id| AuthoredRiver {
+                path_id,
+                channel: RiverChannelProfile {
+                    algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                    surface_width_m: 4.0,
+                    bed_depth_m: 1.0,
+                    bank_blend_width_m: 2.0,
+                },
+                surface: RiverSurface::ForgeWaterV1,
+            })
+            .to_vec();
+        rivers.sort_by_key(|river| river.path_id);
+        area.rivers = RiverDocument::new(project_id, area.id, revision, "Rivières", rivers);
+        invalid.validate().unwrap();
+        let source_hash = invalid.content_hash().unwrap();
+        let instance = first_instance(&invalid);
+        let command = promote_command(
+            &invalid,
+            &instance,
+            "vegetation-promotion/overlap-river/query",
+        );
+        assert!(matches!(
+            resolve_nearest_generated_vegetation_instance(&invalid, &command),
+            Err(VegetationPromotionError::River(
+                RiverGenerationError::RiverOverlap { .. }
+            ))
+        ));
+        assert_eq!(invalid.content_hash().unwrap(), source_hash);
     }
 
     #[test]

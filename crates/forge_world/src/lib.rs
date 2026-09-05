@@ -5,6 +5,7 @@
 mod environment;
 mod path;
 mod player;
+mod river;
 mod road;
 mod terrain;
 mod terrain_brush;
@@ -40,6 +41,15 @@ pub use road::{
     ROAD_CROSS_SECTION_VERTEX_COUNT, ROAD_GENERATION_VERSION, ROAD_MESH_CLEARANCE_M,
     ROAD_MESH_MAX_LONGITUDINAL_CHORD_M, RoadCommandError, RoadGenerationError, RoadGenerationPlan,
     RoadUpsertCommand, RoadUpsertResult, preview_upsert_road,
+};
+
+pub use river::{
+    GeneratedRiver, GeneratedRivers, MAX_EFFECTIVE_RIVER_TERRAIN_SAMPLES,
+    MAX_GENERATED_RIVER_INDICES, MAX_GENERATED_RIVER_LONGITUDINAL_SAMPLES,
+    MAX_GENERATED_RIVER_VERTICES, MAX_RIVER_OVERLAP_COMPARISONS, RIVER_CROSS_SECTION_VERTEX_COUNT,
+    RIVER_GENERATION_VERSION, RIVER_MESH_MAX_LONGITUDINAL_CHORD_M, RIVER_SURFACE_CLEARANCE_M,
+    RiverCommandError, RiverGenerationError, RiverGenerationPlan, RiverGenerationResult,
+    RiverUpsertCommand, RiverUpsertResult, preview_upsert_river,
 };
 
 pub use player::{

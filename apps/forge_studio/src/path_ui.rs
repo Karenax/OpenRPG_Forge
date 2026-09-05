@@ -7,8 +7,9 @@ use crate::{
 };
 use forge_engine::editor_viewport::{EditorBrushHit, EditorBrushPointer, EditorPathDraft};
 use forge_project::{
-    AuthoredRoad, PathDocument, PathId, RoadDocument, RoadProfile, RoadProfileAlgorithm,
-    RoadSurface,
+    AuthoredRiver, AuthoredRoad, PathDocument, PathId, RiverChannelProfile,
+    RiverChannelProfileAlgorithm, RiverDocument, RiverSurface, RoadDocument, RoadProfile,
+    RoadProfileAlgorithm, RoadSurface,
 };
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, closure::Closure};
@@ -17,6 +18,9 @@ const PATH_POINTER_RADIUS_M: f32 = 2.0;
 const MAX_PATH_COORDINATE_M: f32 = 255.999_98;
 const DEFAULT_ROAD_WIDTH_M: f32 = 4.0;
 const DEFAULT_ROAD_CROWN_HEIGHT_M: f32 = 0.08;
+const DEFAULT_RIVER_SURFACE_WIDTH_M: f32 = 8.0;
+const DEFAULT_RIVER_BED_DEPTH_M: f32 = 1.5;
+const DEFAULT_RIVER_BANK_BLEND_WIDTH_M: f32 = 4.0;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PathIntentKind {
@@ -370,12 +374,20 @@ fn active_request_untracked(world: WorldActions) -> Option<AreaPreviewRequest> {
     })
 }
 
-fn active_paths(world: WorldActions) -> Option<(AreaPreviewRequest, PathDocument, RoadDocument)> {
+fn active_paths(
+    world: WorldActions,
+) -> Option<(
+    AreaPreviewRequest,
+    PathDocument,
+    RoadDocument,
+    RiverDocument,
+)> {
     let key = world.tabs.get().active?;
     let document = world.document.get()?;
     let area = document.area(key.module_id, key.area_id)?;
     let paths = area.paths.clone();
     let roads = area.roads.clone();
+    let rivers = area.rivers.clone();
     Some((
         AreaPreviewRequest {
             key,
@@ -383,10 +395,11 @@ fn active_paths(world: WorldActions) -> Option<(AreaPreviewRequest, PathDocument
         },
         paths,
         roads,
+        rivers,
     ))
 }
 
-fn parse_road_number(value: &str, label: &str) -> Result<f32, String> {
+fn parse_profile_number(value: &str, label: &str) -> Result<f32, String> {
     let parsed = value
         .trim()
         .parse::<f32>()
@@ -431,8 +444,8 @@ fn RoadProfileForm(
             let result = (|| {
                 let profile = RoadProfile {
                     algorithm: RoadProfileAlgorithm::TerrainDrapedCrownV1,
-                    width_m: parse_road_number(&width.get_untracked(), "La largeur")?,
-                    crown_height_m: parse_road_number(&crown.get_untracked(), "Le bombé")?,
+                    width_m: parse_profile_number(&width.get_untracked(), "La largeur")?,
+                    crown_height_m: parse_profile_number(&crown.get_untracked(), "Le bombé")?,
                 };
                 profile.validate().map_err(|error| error.to_string())?;
                 let road = AuthoredRoad {
@@ -470,6 +483,109 @@ fn RoadProfileForm(
                         aria-label="Bombé de route en mètres"
                         prop:value=move || crown.get()
                         on:input=move |event| crown.set(event_target_value(&event))/>
+                </label>
+                <button type="submit">{action_label}</button>
+            </fieldset>
+        </form>
+    }
+}
+
+#[component]
+fn RiverProfileForm(
+    path_id: PathId,
+    current: Option<AuthoredRiver>,
+    request: AreaPreviewRequest,
+    paths: PathActions,
+    brush: BrushActions,
+    world: WorldActions,
+    workspace: WorkspaceActions,
+) -> impl IntoView {
+    let width = RwSignal::new(
+        current
+            .map_or(DEFAULT_RIVER_SURFACE_WIDTH_M, |river| {
+                river.channel.surface_width_m
+            })
+            .to_string(),
+    );
+    let depth = RwSignal::new(
+        current
+            .map_or(DEFAULT_RIVER_BED_DEPTH_M, |river| river.channel.bed_depth_m)
+            .to_string(),
+    );
+    let bank_blend = RwSignal::new(
+        current
+            .map_or(DEFAULT_RIVER_BANK_BLEND_WIDTH_M, |river| {
+                river.channel.bank_blend_width_m
+            })
+            .to_string(),
+    );
+    let action_label = if current.is_some() {
+        "Mettre à jour la rivière"
+    } else {
+        "Créer la rivière"
+    };
+
+    view! {
+        <form class="vegetation-add-form" on:submit=move |event| {
+            event.prevent_default();
+            let result = (|| {
+                let channel = RiverChannelProfile {
+                    algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                    surface_width_m: parse_profile_number(
+                        &width.get_untracked(),
+                        "La largeur de surface",
+                    )?,
+                    bed_depth_m: parse_profile_number(
+                        &depth.get_untracked(),
+                        "La profondeur du lit",
+                    )?,
+                    bank_blend_width_m: parse_profile_number(
+                        &bank_blend.get_untracked(),
+                        "Le raccord de berge",
+                    )?,
+                };
+                channel.validate().map_err(|error| error.to_string())?;
+                let river = AuthoredRiver {
+                    path_id,
+                    channel,
+                    surface: RiverSurface::ForgeWaterV1,
+                };
+                if current == Some(river) {
+                    return Err("Le profil de rivière est déjà identique.".to_owned());
+                }
+                Ok(river)
+            })();
+            match result {
+                Ok(river) => {
+                    paths.error.set(None);
+                    workspace.send(WorkspaceCommand::UpsertRiver { request, river });
+                }
+                Err(error) => paths.error.set(Some(error)),
+            }
+        }>
+            <fieldset disabled=move || workspace.unavailable()
+                || paths.intent.get().is_some()
+                || world.busy.get()
+                || world.density_preview_busy.get()
+                || brush.interaction_active()>
+                <legend class="project-sr-only">"Profil de rivière sculptée"</legend>
+                <label>"Largeur d’eau (m)"
+                    <input type="number" min="2" max="32" step="0.1"
+                        aria-label="Largeur de surface de rivière en mètres"
+                        prop:value=move || width.get()
+                        on:input=move |event| width.set(event_target_value(&event))/>
+                </label>
+                <label>"Profondeur (m)"
+                    <input type="number" min="0.15" max="8" step="0.05"
+                        aria-label="Profondeur du lit de rivière en mètres"
+                        prop:value=move || depth.get()
+                        on:input=move |event| depth.set(event_target_value(&event))/>
+                </label>
+                <label>"Raccord de berge (m)"
+                    <input type="number" min="1" max="16" step="0.1"
+                        aria-label="Largeur du raccord de berge en mètres"
+                        prop:value=move || bank_blend.get()
+                        on:input=move |event| bank_blend.set(event_target_value(&event))/>
                 </label>
                 <button type="submit">{action_label}</button>
             </fieldset>
@@ -580,7 +696,7 @@ pub(super) fn PathPanel(
                 None => "Un geste crée une seule modification annulable. Alt + glisser conserve la navigation.",
             }}</p>
             <ul class="vegetation-list">
-                {move || active_paths(world).map(|(request, document, roads)| {
+                {move || active_paths(world).map(|(request, document, roads, rivers)| {
                     if document.paths.is_empty() {
                         return view! { <li class="vegetation-empty">"Aucun chemin"</li> }.into_any();
                     }
@@ -588,15 +704,23 @@ pub(super) fn PathPanel(
                         let path_id = path.id;
                         let closed = path.closed;
                         let road = roads.roads.iter().find(|road| road.path_id == path_id).copied();
-                        let description = road.map_or_else(
-                            || format!("{} · {} points", path.name, path.control_points.len()),
-                            |road| format!(
+                        let river = rivers.rivers.iter().find(|river| river.path_id == path_id).copied();
+                        let description = match (road, river) {
+                            (Some(road), None) => format!(
                                 "{} · {} points · route terre {:.1} m",
                                 path.name,
                                 path.control_points.len(),
                                 road.profile.width_m,
                             ),
-                        );
+                            (None, Some(river)) => format!(
+                                "{} · {} points · rivière {:.1} m × {:.1} m",
+                                path.name,
+                                path.control_points.len(),
+                                river.channel.surface_width_m,
+                                river.channel.bed_depth_m,
+                            ),
+                            _ => format!("{} · {} points", path.name, path.control_points.len()),
+                        };
                         view! {
                             <li class="vegetation-row">
                                 <span class="vegetation-exclusion-description">{description}</span>
@@ -611,12 +735,26 @@ pub(super) fn PathPanel(
                                         workspace,
                                         brush,
                                         PathIntentKind::Redraw(path_id),
-                                    )>"Redessiner"</button>
+                                )>"Redessiner"</button>
                                 {if closed {
-                                    view! { <p class="hint">"Route indisponible : ce chemin est fermé."</p> }.into_any()
+                                    view! { <p class="hint">"Route et rivière indisponibles : ce chemin est fermé."</p> }.into_any()
                                 } else {
-                                    view! { <RoadProfileForm path_id=path_id current=road request=request
-                                        paths=paths brush=brush world=world workspace=workspace/> }.into_any()
+                                    view! {
+                                        <div>
+                                            {if river.is_some() {
+                                                view! { <p class="hint">"Route indisponible : ce chemin porte une rivière."</p> }.into_any()
+                                            } else {
+                                                view! { <RoadProfileForm path_id=path_id current=road request=request
+                                                    paths=paths brush=brush world=world workspace=workspace/> }.into_any()
+                                            }}
+                                            {if road.is_some() {
+                                                view! { <p class="hint">"Rivière indisponible : ce chemin porte une route."</p> }.into_any()
+                                            } else {
+                                                view! { <RiverProfileForm path_id=path_id current=river request=request
+                                                    paths=paths brush=brush world=world workspace=workspace/> }.into_any()
+                                            }}
+                                        </div>
+                                    }.into_any()
                                 }}
                             </li>
                         }

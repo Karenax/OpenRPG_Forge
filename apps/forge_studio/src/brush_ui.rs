@@ -1076,15 +1076,24 @@ fn validate_density_preview(
         .roads
         .content_hash()
         .map_err(|error| error.to_string())?;
+    let river_hash = area
+        .rivers
+        .content_hash()
+        .map_err(|error| error.to_string())?;
     let projection = crate::area_preview::read_area_preview(&response.preview_json)?;
+    let effective_terrain_hash = projection.rivers.effective_terrain_document_hash;
     if projection.request != ticket.request
-        || projection.terrain.source_document_hash != terrain_hash
-        || projection.vegetation.terrain_document_hash != terrain_hash
+        || projection.rivers.terrain_document_hash != terrain_hash
+        || projection.rivers.path_document_hash != path_hash
+        || projection.rivers.road_document_hash != road_hash
+        || projection.rivers.river_document_hash != river_hash
+        || projection.terrain.source_document_hash != effective_terrain_hash
+        || projection.vegetation.terrain_document_hash != effective_terrain_hash
         || projection.vegetation.vegetation_document_hash != vegetation_hash
         || projection.vegetation_density_source_hash != response.candidate_density_source_hash
-        || projection.paths.terrain_document_hash != terrain_hash
+        || projection.paths.terrain_document_hash != effective_terrain_hash
         || projection.paths.path_document_hash != path_hash
-        || projection.roads.terrain_document_hash != terrain_hash
+        || projection.roads.terrain_document_hash != effective_terrain_hash
         || projection.roads.path_document_hash != path_hash
         || projection.roads.road_document_hash != road_hash
         || projection

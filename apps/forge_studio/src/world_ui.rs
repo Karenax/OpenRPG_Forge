@@ -15,8 +15,8 @@ use bevy::{
     window::{PresentMode, WindowResolution},
 };
 use forge_engine::editor_viewport::{
-    EditorPathRequest, EditorRoadRequest, EditorTerrainRequest, EditorVegetationRequest,
-    EditorViewport, EditorViewportPlugin, EditorViewportStatus,
+    EditorPathRequest, EditorRiverRequest, EditorRoadRequest, EditorTerrainRequest,
+    EditorVegetationRequest, EditorViewport, EditorViewportPlugin, EditorViewportStatus,
 };
 use forge_project::WorkspaceDocument;
 use leptos::prelude::Update;
@@ -119,11 +119,24 @@ impl WorldActions {
             .roads
             .content_hash()
             .map_err(|error| error.to_string())?;
-        if preview.roads.terrain_document_hash != terrain_hash
+        let river_hash = area
+            .rivers
+            .content_hash()
+            .map_err(|error| error.to_string())?;
+        let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
+        if preview.rivers.terrain_document_hash != terrain_hash
+            || preview.rivers.path_document_hash != path_hash
+            || preview.rivers.road_document_hash != road_hash
+            || preview.rivers.river_document_hash != river_hash
+            || preview.terrain.source_document_hash != effective_terrain_hash
+            || preview.vegetation.terrain_document_hash != effective_terrain_hash
+            || preview.paths.terrain_document_hash != effective_terrain_hash
+            || preview.paths.path_document_hash != path_hash
+            || preview.roads.terrain_document_hash != effective_terrain_hash
             || preview.roads.path_document_hash != path_hash
             || preview.roads.road_document_hash != road_hash
         {
-            return Err("Routes de l’aperçu de densité incohérentes : projection ignorée.".into());
+            return Err("Terrain, routes ou rivières de l’aperçu de densité incohérents : projection ignorée.".into());
         }
         let viewport = self.viewport.get_value();
         let mut bridge = viewport
@@ -148,6 +161,9 @@ impl WorldActions {
             }),
             roads: Some(EditorRoadRequest {
                 generated: preview.roads,
+            }),
+            rivers: Some(EditorRiverRequest {
+                generated: preview.rivers,
             }),
             spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
             base_source_hash: preview.base_source_hash,
@@ -191,7 +207,7 @@ impl WorldActions {
             return format!("Projection en cours · {}/64 chunks", status.chunks);
         }
         format!(
-            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · routes {} / {} sommets · boucle {:.1} ms",
+            "Monde du projet · r{} · terrain {} recalculés / {} conservés · végétation {} instances, {} recalculés / {} conservés · chemins {} / {} points · routes {} / {} sommets · rivières {} / {} sommets · boucle {:.1} ms",
             status.revision,
             status.rebuilt_chunks,
             status.retained_chunks,
@@ -202,6 +218,8 @@ impl WorldActions {
             status.path_samples,
             status.road_count,
             status.road_vertices,
+            status.river_count,
+            status.river_vertices,
             status.frame_ms
         )
     }
@@ -256,6 +274,7 @@ struct AreaPreviewTarget {
     vegetation_density_hash: forge_core::ContentHash,
     path_hash: forge_core::ContentHash,
     road_hash: forge_core::ContentHash,
+    river_hash: forge_core::ContentHash,
 }
 
 fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>> {
@@ -276,6 +295,7 @@ fn area_preview_target(actions: WorldActions) -> Memo<Option<AreaPreviewTarget>>
             vegetation_density_hash: area.vegetation_density.content_hash().ok()?,
             path_hash: area.paths.content_hash().ok()?,
             road_hash: area.roads.content_hash().ok()?,
+            river_hash: area.rivers.content_hash().ok()?,
         })
     })
 }
@@ -313,16 +333,7 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                 }
             });
         wasm_bindgen_futures::spawn_local(async move {
-            let result = fetch_preview(
-                target.request,
-                target.terrain_hash,
-                target.vegetation_hash,
-                target.vegetation_density_hash,
-                target.path_hash,
-                target.road_hash,
-                base_source_hash,
-            )
-            .await;
+            let result = fetch_preview(target, base_source_hash).await;
             if actions.generation.get_untracked() == generation
                 && actions.canonical_refresh.get_untracked() == refresh
             {
@@ -344,6 +355,9 @@ fn install_preview_updates(actions: WorldActions, wanted: Memo<Option<AreaPrevie
                                 }),
                                 roads: Some(EditorRoadRequest {
                                     generated: preview.roads,
+                                }),
+                                rivers: Some(EditorRiverRequest {
+                                    generated: preview.rivers,
                                 }),
                                 spawn: [preview.spawn.x, preview.spawn.y, preview.spawn.z],
                                 base_source_hash: preview.base_source_hash,
@@ -381,14 +395,10 @@ fn install_status_poll(actions: WorldActions) {
 }
 
 async fn fetch_preview(
-    request: AreaPreviewRequest,
-    terrain_hash: forge_core::ContentHash,
-    vegetation_hash: forge_core::ContentHash,
-    vegetation_density_hash: forge_core::ContentHash,
-    path_hash: forge_core::ContentHash,
-    road_hash: forge_core::ContentHash,
+    target: AreaPreviewTarget,
     base_source_hash: Option<forge_core::ContentHash>,
 ) -> Result<crate::area_preview::AreaPreview, String> {
+    let request = target.request;
     match invoke_studio(StudioCommand::AreaPreview {
         request,
         base_source_hash,
@@ -397,16 +407,21 @@ async fn fetch_preview(
     {
         StudioResponse::AreaPreview { preview_json } => {
             let preview = read_area_preview(&preview_json)?;
+            let effective_terrain_hash = preview.rivers.effective_terrain_document_hash;
             if preview.request != request
-                || preview.terrain.source_document_hash != terrain_hash
-                || preview.vegetation.terrain_document_hash != terrain_hash
-                || preview.vegetation.vegetation_document_hash != vegetation_hash
-                || preview.vegetation_density_source_hash != vegetation_density_hash
-                || preview.paths.terrain_document_hash != terrain_hash
-                || preview.paths.path_document_hash != path_hash
-                || preview.roads.terrain_document_hash != terrain_hash
-                || preview.roads.path_document_hash != path_hash
-                || preview.roads.road_document_hash != road_hash
+                || preview.rivers.terrain_document_hash != target.terrain_hash
+                || preview.rivers.path_document_hash != target.path_hash
+                || preview.rivers.road_document_hash != target.road_hash
+                || preview.rivers.river_document_hash != target.river_hash
+                || preview.terrain.source_document_hash != effective_terrain_hash
+                || preview.vegetation.terrain_document_hash != effective_terrain_hash
+                || preview.vegetation.vegetation_document_hash != target.vegetation_hash
+                || preview.vegetation_density_source_hash != target.vegetation_density_hash
+                || preview.paths.terrain_document_hash != effective_terrain_hash
+                || preview.paths.path_document_hash != target.path_hash
+                || preview.roads.terrain_document_hash != effective_terrain_hash
+                || preview.roads.path_document_hash != target.path_hash
+                || preview.roads.road_document_hash != target.road_hash
                 || preview.vegetation_changed_chunks + preview.vegetation_retained_chunks != 64
                 || (preview.base_source_hash.is_some()
                     && preview.base_source_hash != base_source_hash)

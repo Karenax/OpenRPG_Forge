@@ -33,12 +33,17 @@ async fn execute_studio_command(
             request: WorkspaceCommand::SculptTerrain { .. }
                 | WorkspaceCommand::PaintTerrainMaterial { .. }
                 | WorkspaceCommand::PaintVegetationDensity { .. }
+                | WorkspaceCommand::PromoteVegetationInstance { .. }
+                | WorkspaceCommand::CreatePath { .. }
+                | WorkspaceCommand::RedrawPath { .. }
+                | WorkspaceCommand::UpsertRoad { .. }
+                | WorkspaceCommand::UpsertRiver { .. }
         }
     ) {
         let session = Arc::clone(session.inner());
         return tauri::async_runtime::spawn_blocking(move || execute_command(command, &session))
             .await
-            .map_err(|error| format!("Brosse interrompue : {error}"));
+            .map_err(|error| format!("Commande d’édition interrompue : {error}"));
     }
     if let StudioCommand::VegetationDensityStrokePreview { preview } = command {
         let input = match session.lock() {
@@ -136,11 +141,29 @@ fn prepare_vegetation_density_preview(
         .roads
         .content_hash()
         .map_err(|error| error.to_string())?;
+    let river_hash = source
+        .area
+        .rivers
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let vegetation_hash = source
+        .area
+        .vegetation
+        .content_hash()
+        .map_err(|error| error.to_string())?;
+    let effective_terrain_hash = projection.rivers.effective_terrain_document_hash;
     if projection.request != preview.request
         || projection.vegetation_density_source_hash != source.candidate_density_source_hash
-        || projection.paths.terrain_document_hash != terrain_hash
+        || projection.rivers.terrain_document_hash != terrain_hash
+        || projection.rivers.path_document_hash != path_hash
+        || projection.rivers.road_document_hash != road_hash
+        || projection.rivers.river_document_hash != river_hash
+        || projection.terrain.source_document_hash != effective_terrain_hash
+        || projection.vegetation.terrain_document_hash != effective_terrain_hash
+        || projection.vegetation.vegetation_document_hash != vegetation_hash
+        || projection.paths.terrain_document_hash != effective_terrain_hash
         || projection.paths.path_document_hash != path_hash
-        || projection.roads.terrain_document_hash != terrain_hash
+        || projection.roads.terrain_document_hash != effective_terrain_hash
         || projection.roads.path_document_hash != path_hash
         || projection.roads.road_document_hash != road_hash
     {
@@ -360,7 +383,7 @@ mod tests {
         );
         assert_eq!(
             projection.roads.terrain_document_hash,
-            source.area.terrain.content_hash().unwrap()
+            projection.rivers.effective_terrain_document_hash
         );
         assert_eq!(
             projection.roads.path_document_hash,
@@ -369,6 +392,14 @@ mod tests {
         assert_eq!(
             projection.roads.road_document_hash,
             source.area.roads.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.rivers.terrain_document_hash,
+            source.area.terrain.content_hash().unwrap()
+        );
+        assert_eq!(
+            projection.rivers.river_document_hash,
+            source.area.rivers.content_hash().unwrap()
         );
         assert_eq!(session.execute(WorkspaceCommand::Current).unwrap(), before);
     }

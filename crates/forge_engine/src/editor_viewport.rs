@@ -10,10 +10,10 @@ use bevy::{asset::embedded_asset, prelude::*};
 use forge_core::{AreaId, ContentHash, ProjectId};
 use forge_project::{PathId, VegetationKind};
 use forge_world::{
-    GeneratedPaths, GeneratedRoad, GeneratedRoads, GeneratedTerrain, GeneratedVegetation,
-    TERRAIN_CHUNK_COUNT, TERRAIN_CHUNKS_PER_AXIS, TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M,
-    TerrainChunkCoordinate, TerrainChunkMesh, VegetationChunk, VegetationInstance,
-    VegetationKindCounts,
+    GeneratedPaths, GeneratedRiver, GeneratedRivers, GeneratedRoad, GeneratedRoads,
+    GeneratedTerrain, GeneratedVegetation, TERRAIN_CHUNK_COUNT, TERRAIN_CHUNKS_PER_AXIS,
+    TERRAIN_EXTENT_M, TERRAIN_HALF_EXTENT_M, TerrainChunkCoordinate, TerrainChunkMesh,
+    VegetationChunk, VegetationInstance, VegetationKindCounts,
 };
 use serde::Serialize;
 use std::{
@@ -32,6 +32,9 @@ pub use path::EditorPathDraft;
 #[path = "editor_road.rs"]
 mod road;
 
+#[path = "editor_river.rs"]
+mod river;
+
 pub struct EditorTerrainRequest {
     pub generation: u64,
     pub project_id: ProjectId,
@@ -45,6 +48,8 @@ pub struct EditorTerrainRequest {
     pub paths: Option<EditorPathRequest>,
     /// Complete generated road meshes for the accepted terrain and path sources.
     pub roads: Option<EditorRoadRequest>,
+    /// Complete non-persistent carved terrain and water meshes bound to all canonical sources.
+    pub rivers: Option<EditorRiverRequest>,
     pub spawn: [f32; 3],
     /// A partial payload is valid only against the currently presented source hash.
     pub base_source_hash: Option<ContentHash>,
@@ -61,6 +66,10 @@ pub struct EditorPathRequest {
 
 pub struct EditorRoadRequest {
     pub generated: GeneratedRoads,
+}
+
+pub struct EditorRiverRequest {
+    pub generated: GeneratedRivers,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
@@ -166,6 +175,15 @@ pub struct EditorViewportStatus {
     pub road_rebuilt_meshes: usize,
     pub road_retained_meshes: usize,
     pub road_mesh_uploads: u64,
+    pub canonical_terrain_source_hash: String,
+    pub effective_terrain_source_hash: String,
+    pub river_source_hash: String,
+    pub river_count: usize,
+    pub river_vertices: usize,
+    pub river_triangles: usize,
+    pub river_rebuilt_meshes: usize,
+    pub river_retained_meshes: usize,
+    pub river_mesh_uploads: u64,
     pub update_kind: String,
 }
 
@@ -220,6 +238,9 @@ pub(crate) struct EditorVegetationChunk;
 #[derive(Component)]
 pub(crate) struct EditorRoadMesh;
 
+#[derive(Component)]
+pub(crate) struct EditorRiverMesh;
+
 struct PresentedVegetationChunk {
     source: VegetationChunk,
     object: Option<(Entity, Handle<Mesh>)>,
@@ -227,6 +248,11 @@ struct PresentedVegetationChunk {
 
 struct PresentedRoad {
     source: GeneratedRoad,
+    object: (Entity, Handle<Mesh>),
+}
+
+struct PresentedRiver {
+    source: GeneratedRiver,
     object: (Entity, Handle<Mesh>),
 }
 
@@ -239,14 +265,17 @@ struct EditorProjection {
     objects: BTreeMap<TerrainChunkCoordinate, (Entity, Handle<Mesh>)>,
     vegetation: BTreeMap<TerrainChunkCoordinate, PresentedVegetationChunk>,
     roads: BTreeMap<PathId, PresentedRoad>,
+    rivers: BTreeMap<PathId, PresentedRiver>,
     marker: Option<(Entity, Handle<Mesh>)>,
     pending: Option<PendingProjection>,
     mesh_uploads: u64,
     vegetation_mesh_uploads: u64,
     road_mesh_uploads: u64,
+    river_mesh_uploads: u64,
     material: Handle<VisualValleyTerrainMaterial>,
     marker_material: Handle<StandardMaterial>,
     vegetation_material: Handle<StandardMaterial>,
+    river_material: Handle<StandardMaterial>,
 }
 
 struct PendingProjection {
@@ -255,14 +284,34 @@ struct PendingProjection {
     staged: BTreeMap<TerrainChunkCoordinate, (Entity, Handle<Mesh>)>,
     vegetation_chunks: std::vec::IntoIter<VegetationChunk>,
     staged_vegetation: BTreeMap<TerrainChunkCoordinate, PresentedVegetationChunk>,
-    clear_vegetation: bool,
+    vegetation_replacement: ProjectionReplacement,
     paths: Option<GeneratedPaths>,
-    replace_paths: bool,
+    path_replacement: ProjectionReplacement,
     road_meshes: std::vec::IntoIter<GeneratedRoad>,
     staged_roads: BTreeMap<PathId, PresentedRoad>,
     expected_road_ids: BTreeSet<PathId>,
-    replace_roads: bool,
+    road_replacement: ProjectionReplacement,
+    river_meshes: std::vec::IntoIter<GeneratedRiver>,
+    staged_rivers: BTreeMap<PathId, PresentedRiver>,
+    expected_river_ids: BTreeSet<PathId>,
+    river_replacement: ProjectionReplacement,
     spawn: [f32; 3],
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ProjectionReplacement {
+    Keep,
+    Replace,
+}
+
+impl ProjectionReplacement {
+    const fn from_replace(replace: bool) -> Self {
+        if replace { Self::Replace } else { Self::Keep }
+    }
+
+    const fn replaces(self) -> bool {
+        matches!(self, Self::Replace)
+    }
 }
 
 fn setup_editor(world: &mut World) {
@@ -291,10 +340,14 @@ fn setup_editor(world: &mut World) {
                 cull_mode: None,
                 ..default()
             });
+    let river_material = world
+        .resource_mut::<Assets<StandardMaterial>>()
+        .add(river::procedural_editor_river_material());
     let mut projection = world.resource_mut::<EditorProjection>();
     projection.material = material;
     projection.marker_material = marker;
     projection.vegetation_material = vegetation_material;
+    projection.river_material = river_material;
     world.spawn((
         EditorCamera,
         Camera3d::default(),
@@ -334,6 +387,7 @@ fn clear_objects(world: &mut World, projection: &mut EditorProjection) {
     }
     clear_vegetation_objects(world, projection);
     clear_road_objects(world, projection);
+    clear_river_objects(world, projection);
     if let Some((entity, mesh)) = projection.marker.take() {
         world.despawn(entity);
         world.resource_mut::<Assets<Mesh>>().remove(mesh.id());
@@ -361,6 +415,15 @@ fn clear_road_objects(world: &mut World, projection: &mut EditorProjection) {
     }
 }
 
+fn clear_river_objects(world: &mut World, projection: &mut EditorProjection) {
+    for (_, presented) in std::mem::take(&mut projection.rivers) {
+        world.despawn(presented.object.0);
+        world
+            .resource_mut::<Assets<Mesh>>()
+            .remove(presented.object.1.id());
+    }
+}
+
 fn clear_pending(world: &mut World, projection: &mut EditorProjection) {
     if let Some(pending) = projection.pending.take() {
         for (_, (entity, mesh)) in pending.staged {
@@ -374,6 +437,12 @@ fn clear_pending(world: &mut World, projection: &mut EditorProjection) {
             }
         }
         for (_, presented) in pending.staged_roads {
+            world.despawn(presented.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(presented.object.1.id());
+        }
+        for (_, presented) in pending.staged_rivers {
             world.despawn(presented.object.0);
             world
                 .resource_mut::<Assets<Mesh>>()
@@ -556,7 +625,10 @@ fn reset_projection_if_requested(
 
 fn refresh_pending_count(projection: &EditorProjection, bridge: &mut EditorViewportBridge) {
     bridge.status.pending_chunks = projection.pending.as_ref().map_or(0, |pending| {
-        pending.chunks.len() + pending.vegetation_chunks.len() + pending.road_meshes.len()
+        pending.chunks.len()
+            + pending.vegetation_chunks.len()
+            + pending.road_meshes.len()
+            + pending.river_meshes.len()
     });
 }
 
@@ -652,6 +724,35 @@ fn stage_road_mesh(world: &mut World, projection: &mut EditorProjection, road: G
         );
 }
 
+fn stage_river_mesh(world: &mut World, projection: &mut EditorProjection, river: GeneratedRiver) {
+    let mesh = world
+        .resource_mut::<Assets<Mesh>>()
+        .add(river::build_editor_river_mesh(&river));
+    let entity = world
+        .spawn((
+            Name::new(format!("Rivière éditeur {}", river.path_id)),
+            EditorRiverMesh,
+            Mesh3d(mesh.clone()),
+            MeshMaterial3d(projection.river_material.clone()),
+            Transform::IDENTITY,
+            Visibility::Hidden,
+        ))
+        .id();
+    projection.river_mesh_uploads += 1;
+    projection
+        .pending
+        .as_mut()
+        .expect("a staged river belongs to a pending projection")
+        .staged_rivers
+        .insert(
+            river.path_id,
+            PresentedRiver {
+                source: river,
+                object: (entity, mesh),
+            },
+        );
+}
+
 fn stage_next_projection_mesh(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -680,6 +781,14 @@ fn stage_next_projection_mesh(
         stage_road_mesh(world, projection, road);
         return Ok(true);
     }
+    if let Some(river) = projection
+        .pending
+        .as_mut()
+        .and_then(|pending| pending.river_meshes.next())
+    {
+        stage_river_mesh(world, projection, river);
+        return Ok(true);
+    }
     Ok(false)
 }
 
@@ -700,6 +809,7 @@ fn update_camera_and_status(
     bridge.status.mesh_uploads = projection.mesh_uploads;
     bridge.status.vegetation_mesh_uploads = projection.vegetation_mesh_uploads;
     bridge.status.road_mesh_uploads = projection.road_mesh_uploads;
+    bridge.status.river_mesh_uploads = projection.river_mesh_uploads;
     if bridge.status.chunks == TERRAIN_CHUNK_COUNT {
         bridge.status.frames += 1;
     }
@@ -740,7 +850,8 @@ fn update_editor(world: &mut World) {
             return;
         }
         // Two derived meshes per update; the UI and render loop remain schedulable while complete
-        // vegetation and road sources are transported atomically with their terrain projection.
+        // vegetation, road and river sources are transported atomically with their terrain
+        // projection.
         for _ in 0..2 {
             match stage_next_projection_mesh(world, &mut projection) {
                 Ok(true) => refresh_pending_count(&projection, &mut bridge),
@@ -758,6 +869,7 @@ fn update_editor(world: &mut World) {
             pending.chunks.len() == 0
                 && pending.vegetation_chunks.len() == 0
                 && pending.road_meshes.len() == 0
+                && pending.river_meshes.len() == 0
         }) {
             finish_projection(world, &mut projection, &mut bridge);
         }
@@ -994,6 +1106,98 @@ fn prepare_road_changes(
     })
 }
 
+struct PreparedRiverChanges {
+    canonical_terrain_source_hash: String,
+    effective_terrain_source_hash: String,
+    source_hash: String,
+    count: usize,
+    vertices: usize,
+    triangles: usize,
+    rebuilt_meshes: usize,
+    retained_meshes: usize,
+    meshes: Vec<GeneratedRiver>,
+    expected_ids: BTreeSet<PathId>,
+    replace: bool,
+}
+
+fn prepare_river_changes(
+    projection: &EditorProjection,
+    request: Option<EditorRiverRequest>,
+    partial: bool,
+    effective_terrain_hash: ContentHash,
+) -> Result<PreparedRiverChanges, String> {
+    let Some(request) = request else {
+        if partial && !projection.rivers.is_empty() {
+            return Err(
+                "Une projection terrain partielle doit transporter les rivières courantes.".into(),
+            );
+        }
+        return Ok(PreparedRiverChanges {
+            canonical_terrain_source_hash: effective_terrain_hash.to_string(),
+            effective_terrain_source_hash: effective_terrain_hash.to_string(),
+            source_hash: String::new(),
+            count: 0,
+            vertices: 0,
+            triangles: 0,
+            rebuilt_meshes: 0,
+            retained_meshes: 0,
+            meshes: vec![],
+            expected_ids: BTreeSet::new(),
+            replace: !partial,
+        });
+    };
+
+    let EditorRiverRequest { generated } = request;
+    let canonical_terrain_source_hash = generated.terrain_document_hash.to_string();
+    let effective_terrain_source_hash = effective_terrain_hash.to_string();
+    let source_hash = generated.river_document_hash.to_string();
+    let count = generated.rivers.len();
+    let vertices = generated
+        .rivers
+        .iter()
+        .try_fold(0_usize, |total, river| {
+            total.checked_add(river.positions_m.len())
+        })
+        .ok_or_else(|| "Trop de sommets de rivières.".to_owned())?;
+    let index_count = generated
+        .rivers
+        .iter()
+        .try_fold(0_usize, |total, river| {
+            total.checked_add(river.indices.len())
+        })
+        .ok_or_else(|| "Trop d’indices de rivières.".to_owned())?;
+    let triangles = index_count / 3;
+    let expected_ids = generated
+        .rivers
+        .iter()
+        .map(|river| river.path_id)
+        .collect::<BTreeSet<_>>();
+    let meshes = generated
+        .rivers
+        .into_iter()
+        .filter(|river| {
+            projection
+                .rivers
+                .get(&river.path_id)
+                .is_none_or(|presented| presented.source != *river)
+        })
+        .collect::<Vec<_>>();
+    let rebuilt_meshes = meshes.len();
+    Ok(PreparedRiverChanges {
+        canonical_terrain_source_hash,
+        effective_terrain_source_hash,
+        source_hash,
+        count,
+        vertices,
+        triangles,
+        rebuilt_meshes,
+        retained_meshes: count - rebuilt_meshes,
+        meshes,
+        expected_ids,
+        replace: true,
+    })
+}
+
 fn select_request_target(
     world: &mut World,
     projection: &mut EditorProjection,
@@ -1026,12 +1230,7 @@ fn select_request_target(
     Ok(partial)
 }
 
-fn install_request(
-    world: &mut World,
-    projection: &mut EditorProjection,
-    bridge: &mut EditorViewportBridge,
-    request: EditorTerrainRequest,
-) -> Result<(), String> {
+fn validate_request_payload(request: &EditorTerrainRequest) -> Result<(), String> {
     let partial = request.base_source_hash.is_some();
     validate_terrain(&request.terrain, partial)?;
     if let Some(vegetation) = &request.vegetation {
@@ -1047,21 +1246,50 @@ fn install_request(
             .ok_or_else(|| "Une projection de routes exige ses chemins générés.".to_owned())?;
         road::validate_generated_roads(&request.terrain, &paths.generated, &roads.generated)?;
     }
+    if let Some(rivers) = &request.rivers {
+        let paths = request
+            .paths
+            .as_ref()
+            .ok_or_else(|| "Une projection de rivières exige ses chemins générés.".to_owned())?;
+        let roads = request
+            .roads
+            .as_ref()
+            .ok_or_else(|| "Une projection de rivières exige ses routes générées.".to_owned())?;
+        river::validate_generated_rivers(
+            &request.terrain,
+            &paths.generated,
+            &roads.generated,
+            &rivers.generated,
+        )?;
+    }
     if !request.spawn.iter().all(|value| value.is_finite()) {
         return Err("Départ de projection non fini.".into());
     }
+    Ok(())
+}
+
+fn install_request(
+    world: &mut World,
+    projection: &mut EditorProjection,
+    bridge: &mut EditorViewportBridge,
+    request: EditorTerrainRequest,
+) -> Result<(), String> {
+    validate_request_payload(&request)?;
     let partial = select_request_target(world, projection, bridge, &request)?;
-    let rebuilt_chunks = request.terrain.chunks.len();
+    let effective_terrain_hash = request.terrain.source_document_hash;
     let vegetation =
         prepare_vegetation_changes(projection, &bridge.status, request.vegetation, partial)?;
     let paths = prepare_path_changes(world, &bridge.status, request.paths, partial)?;
     let roads = prepare_road_changes(projection, &bridge.status, request.roads, partial)?;
+    let rivers =
+        prepare_river_changes(projection, request.rivers, partial, effective_terrain_hash)?;
+    let rebuilt_chunks = request.terrain.chunks.len();
     let status = EditorViewportStatus {
         generation: request.generation,
         project_id: Some(request.project_id),
         area_id: Some(request.area_id),
         revision: request.revision,
-        source_hash: request.terrain.source_document_hash.to_string(),
+        source_hash: effective_terrain_hash.to_string(),
         chunks: TERRAIN_CHUNK_COUNT,
         rebuilt_chunks,
         retained_chunks: if partial {
@@ -1083,6 +1311,14 @@ fn install_request(
         road_triangles: roads.triangles,
         road_rebuilt_meshes: roads.rebuilt_meshes,
         road_retained_meshes: roads.retained_meshes,
+        canonical_terrain_source_hash: rivers.canonical_terrain_source_hash,
+        effective_terrain_source_hash: rivers.effective_terrain_source_hash,
+        river_source_hash: rivers.source_hash,
+        river_count: rivers.count,
+        river_vertices: rivers.vertices,
+        river_triangles: rivers.triangles,
+        river_rebuilt_meshes: rivers.rebuilt_meshes,
+        river_retained_meshes: rivers.retained_meshes,
         update_kind: if partial { "partial" } else { "full" }.into(),
         frames: bridge.status.frames,
         ..default()
@@ -1094,23 +1330,102 @@ fn install_request(
         };
     }
     bridge.status.error = None;
-    bridge.status.pending_chunks = rebuilt_chunks + vegetation.chunks.len() + roads.meshes.len();
+    bridge.status.pending_chunks =
+        rebuilt_chunks + vegetation.chunks.len() + roads.meshes.len() + rivers.meshes.len();
     projection.pending = Some(PendingProjection {
         status,
         chunks: request.terrain.chunks.into_iter(),
         staged: BTreeMap::new(),
         vegetation_chunks: vegetation.chunks.into_iter(),
         staged_vegetation: vegetation.staged,
-        clear_vegetation: vegetation.clear_existing,
+        vegetation_replacement: ProjectionReplacement::from_replace(vegetation.clear_existing),
         paths: paths.generated,
-        replace_paths: paths.replace,
+        path_replacement: ProjectionReplacement::from_replace(paths.replace),
         road_meshes: roads.meshes.into_iter(),
         staged_roads: BTreeMap::new(),
         expected_road_ids: roads.expected_ids,
-        replace_roads: roads.replace,
+        road_replacement: ProjectionReplacement::from_replace(roads.replace),
+        river_meshes: rivers.meshes.into_iter(),
+        staged_rivers: BTreeMap::new(),
+        expected_river_ids: rivers.expected_ids,
+        river_replacement: ProjectionReplacement::from_replace(rivers.replace),
         spawn: request.spawn,
     });
     Ok(())
+}
+
+fn publish_road_replacement(
+    world: &mut World,
+    projection: &mut EditorProjection,
+    replacement: ProjectionReplacement,
+    expected_ids: &BTreeSet<PathId>,
+    staged: BTreeMap<PathId, PresentedRoad>,
+) {
+    if !replacement.replaces() {
+        return;
+    }
+    let removed_ids = projection
+        .roads
+        .keys()
+        .filter(|path_id| !expected_ids.contains(path_id))
+        .copied()
+        .collect::<Vec<_>>();
+    for path_id in removed_ids {
+        if let Some(old) = projection.roads.remove(&path_id) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
+    for (path_id, presented) in staged {
+        world
+            .entity_mut(presented.object.0)
+            .insert(Visibility::Visible);
+        if let Some(old) = projection.roads.insert(path_id, presented) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
+}
+
+fn publish_river_replacement(
+    world: &mut World,
+    projection: &mut EditorProjection,
+    replacement: ProjectionReplacement,
+    expected_ids: &BTreeSet<PathId>,
+    staged: BTreeMap<PathId, PresentedRiver>,
+) {
+    if !replacement.replaces() {
+        return;
+    }
+    let removed_ids = projection
+        .rivers
+        .keys()
+        .filter(|path_id| !expected_ids.contains(path_id))
+        .copied()
+        .collect::<Vec<_>>();
+    for path_id in removed_ids {
+        if let Some(old) = projection.rivers.remove(&path_id) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
+    for (path_id, presented) in staged {
+        world
+            .entity_mut(presented.object.0)
+            .insert(Visibility::Visible);
+        if let Some(old) = projection.rivers.insert(path_id, presented) {
+            world.despawn(old.object.0);
+            world
+                .resource_mut::<Assets<Mesh>>()
+                .remove(old.object.1.id());
+        }
+    }
 }
 
 fn finish_projection(
@@ -1130,7 +1445,7 @@ fn finish_projection(
             world.resource_mut::<Assets<Mesh>>().remove(old_mesh.id());
         }
     }
-    if pending.clear_vegetation {
+    if pending.vegetation_replacement.replaces() {
         clear_vegetation_objects(world, projection);
     }
     for (coordinate, presented) in pending.staged_vegetation {
@@ -1144,7 +1459,7 @@ fn finish_projection(
             world.resource_mut::<Assets<Mesh>>().remove(old_mesh.id());
         }
     }
-    if pending.replace_paths {
+    if pending.path_replacement.replaces() {
         if let Some(mut overlay) = world.get_resource_mut::<path::EditorPathOverlay>() {
             overlay.canonical = pending.paths;
         } else if let Some(paths) = pending.paths {
@@ -1154,33 +1469,20 @@ fn finish_projection(
         }
         bridge.path_draft = None;
     }
-    if pending.replace_roads {
-        let removed_ids = projection
-            .roads
-            .keys()
-            .filter(|path_id| !pending.expected_road_ids.contains(path_id))
-            .copied()
-            .collect::<Vec<_>>();
-        for path_id in removed_ids {
-            if let Some(old) = projection.roads.remove(&path_id) {
-                world.despawn(old.object.0);
-                world
-                    .resource_mut::<Assets<Mesh>>()
-                    .remove(old.object.1.id());
-            }
-        }
-        for (path_id, presented) in pending.staged_roads {
-            world
-                .entity_mut(presented.object.0)
-                .insert(Visibility::Visible);
-            if let Some(old) = projection.roads.insert(path_id, presented) {
-                world.despawn(old.object.0);
-                world
-                    .resource_mut::<Assets<Mesh>>()
-                    .remove(old.object.1.id());
-            }
-        }
-    }
+    publish_road_replacement(
+        world,
+        projection,
+        pending.road_replacement,
+        &pending.expected_road_ids,
+        pending.staged_roads,
+    );
+    publish_river_replacement(
+        world,
+        projection,
+        pending.river_replacement,
+        &pending.expected_river_ids,
+        pending.staged_rivers,
+    );
     let transform = Transform::from_translation(Vec3::from_array(pending.spawn));
     if let Some((entity, _)) = &projection.marker {
         world.entity_mut(*entity).insert(transform);
@@ -1207,6 +1509,10 @@ fn finish_projection(
 mod partial_tests;
 
 #[cfg(test)]
+#[path = "editor_river_tests.rs"]
+mod river_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use bevy::mesh::VertexAttributeValues;
@@ -1229,6 +1535,7 @@ mod tests {
             vegetation: None,
             paths: None,
             roads: None,
+            rivers: None,
             terrain: forge_world::TerrainGenerationPlan::from_document(&document)
                 .unwrap()
                 .generate()
@@ -1338,6 +1645,7 @@ mod tests {
                 generated: generated_paths,
             }),
             roads: None,
+            rivers: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: None,
         }
@@ -1423,6 +1731,7 @@ mod tests {
             vegetation: None,
             paths: Some(EditorPathRequest { generated: paths }),
             roads: Some(EditorRoadRequest { generated: roads }),
+            rivers: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash,
         }
@@ -1787,6 +2096,7 @@ mod tests {
                 }),
                 paths: None,
                 roads: None,
+                rivers: None,
                 spawn: [0.0, 2.0, 0.0],
                 base_source_hash: (!full).then_some(self.terrain.source_document_hash),
             };
@@ -2007,6 +2317,7 @@ mod tests {
             vegetation: None,
             paths: None,
             roads: None,
+            rivers: None,
             spawn: [0.0, 2.0, 0.0],
             base_source_hash: Some(fixture.terrain.source_document_hash),
         };

@@ -1,7 +1,8 @@
 use super::*;
 use forge_core::{AreaId, CommandId, ModuleId, ProjectId, Revision};
 use forge_project::{
-    AuthoredPath, AuthoredRoad, NewProjectCommand, PathControlPoint, PathId, PathInterpolation,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, NewProjectCommand, PathControlPoint, PathId,
+    PathInterpolation, RiverChannelProfile, RiverChannelProfileAlgorithm, RiverSurface,
     RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainHeightDelta, TerrainMaterialLayerId,
     VegetationDensityOverride, VegetationExclusion, VegetationExclusionId, VegetationKind,
     VegetationLayer, VegetationSpeciesPreset, WorkspaceArea, WorkspaceChange, WorkspaceDocument,
@@ -133,6 +134,7 @@ fn request(area: &WorkspaceArea) -> AreaPreviewRequest {
         area.vegetation_density.revision.get(),
         area.paths.revision.get(),
         area.roads.revision.get(),
+        area.rivers.revision.get(),
     ]
     .into_iter()
     .max()
@@ -188,8 +190,19 @@ fn assert_baseline_handle_reuse(
 }
 
 fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
-    let full = VegetationGenerationPlan::from_documents_with_density(
+    let effective_terrain = forge_world::RiverGenerationPlan::from_documents(
         &area.terrain,
+        &area.paths,
+        &area.roads,
+        &area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .effective_terrain;
+    let effective_terrain_hash = effective_terrain.content_hash().unwrap();
+    let full = VegetationGenerationPlan::from_documents_with_density(
+        &effective_terrain,
         &area.vegetation,
         &area.vegetation_density,
     )
@@ -239,18 +252,12 @@ fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
         preview.vegetation_density_source_hash,
         area.vegetation_density.content_hash().unwrap()
     );
-    assert_eq!(
-        preview.paths.terrain_document_hash,
-        area.terrain.content_hash().unwrap()
-    );
+    assert_eq!(preview.paths.terrain_document_hash, effective_terrain_hash);
     assert_eq!(
         preview.paths.path_document_hash,
         area.paths.content_hash().unwrap()
     );
-    assert_eq!(
-        preview.roads.terrain_document_hash,
-        area.terrain.content_hash().unwrap()
-    );
+    assert_eq!(preview.roads.terrain_document_hash, effective_terrain_hash);
     assert_eq!(
         preview.roads.path_document_hash,
         area.paths.content_hash().unwrap()
@@ -259,11 +266,41 @@ fn assert_full_vegetation_parity(area: &WorkspaceArea, preview: &AreaPreview) {
         preview.roads.road_document_hash,
         area.roads.content_hash().unwrap()
     );
+    assert_eq!(
+        preview.rivers.terrain_document_hash,
+        area.terrain.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.rivers.path_document_hash,
+        area.paths.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.rivers.road_document_hash,
+        area.roads.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.rivers.river_document_hash,
+        area.rivers.content_hash().unwrap()
+    );
+    assert_eq!(
+        preview.rivers.effective_terrain_document_hash,
+        effective_terrain_hash
+    );
 }
 
 fn assert_cached_vegetation_is_bit_exact(area: &WorkspaceArea, cache: &AreaPreviewCache) {
-    let full = VegetationGenerationPlan::from_documents_with_density(
+    let effective_terrain = forge_world::RiverGenerationPlan::from_documents(
         &area.terrain,
+        &area.paths,
+        &area.roads,
+        &area.rivers,
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .effective_terrain;
+    let full = VegetationGenerationPlan::from_documents_with_density(
+        &effective_terrain,
         &area.vegetation,
         &area.vegetation_density,
     )
@@ -839,6 +876,123 @@ fn road_only_edit_reuses_terrain_vegetation_and_path_projection() {
         changed_area.roads.content_hash().unwrap()
     );
     assert_eq!(cached_vegetation_pointers(&cache), vegetation_pointers);
+}
+
+#[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "one cache transition proves all effective-terrain dependents remain hash-correlated"
+)]
+fn river_only_edit_partially_refreshes_the_effective_terrain_and_dependents() {
+    let source = workspace();
+    let source_area = &source.project.modules[0].areas[0];
+    let path_id = PathId::deterministic("area-preview/river-path");
+    let with_path = source
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/river-path-source"),
+            base_revision: source.revision,
+            change: WorkspaceChange::UpsertPath {
+                module_id: source.project.modules[0].id,
+                area_id: source_area.id,
+                expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+                path: AuthoredPath {
+                    id: path_id,
+                    name: "Rivière du cache".into(),
+                    closed: false,
+                    interpolation: PathInterpolation::CentripetalCatmullRomV1,
+                    control_points: vec![
+                        PathControlPoint::new(Vec3::new(-24.0, 0.0, -8.0)),
+                        PathControlPoint::new(Vec3::new(0.0, 0.0, 8.0)),
+                        PathControlPoint::new(Vec3::new(24.0, 0.0, -8.0)),
+                    ],
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let with_path_area = &with_path.project.modules[0].areas[0];
+    let canonical_terrain_hash = with_path_area.terrain.content_hash().unwrap();
+    let mut cache = AreaPreviewCache::default();
+    let initial = read_area_preview(
+        &cache
+            .prepare(request(with_path_area), with_path_area, None)
+            .unwrap(),
+    )
+    .unwrap();
+    let base_effective_terrain_hash = initial.terrain.source_document_hash;
+    assert_eq!(base_effective_terrain_hash, canonical_terrain_hash);
+    assert!(initial.rivers.rivers.is_empty());
+
+    let changed = with_path
+        .preview_edit(WorkspaceEdit {
+            command_id: CommandId::deterministic("area-preview/river-only"),
+            base_revision: with_path.revision,
+            change: WorkspaceChange::UpsertRiver {
+                module_id: with_path.project.modules[0].id,
+                area_id: with_path_area.id,
+                expected_terrain_document_hash: canonical_terrain_hash,
+                expected_path_document_hash: with_path_area.paths.content_hash().unwrap(),
+                expected_road_document_hash: with_path_area.roads.content_hash().unwrap(),
+                expected_river_document_hash: with_path_area.rivers.content_hash().unwrap(),
+                river: AuthoredRiver {
+                    path_id,
+                    channel: RiverChannelProfile {
+                        algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                        surface_width_m: 8.0,
+                        bed_depth_m: 1.5,
+                        bank_blend_width_m: 4.0,
+                    },
+                    surface: RiverSurface::ForgeWaterV1,
+                },
+            },
+        })
+        .unwrap()
+        .document;
+    let changed_area = &changed.project.modules[0].areas[0];
+    let preview = read_area_preview(
+        &cache
+            .prepare(
+                request(changed_area),
+                changed_area,
+                Some(base_effective_terrain_hash),
+            )
+            .unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(preview.base_source_hash, Some(base_effective_terrain_hash));
+    assert!(!preview.terrain.chunks.is_empty());
+    assert!(preview.terrain.chunks.len() < 64);
+    assert!(preview.vegetation_regenerated);
+    assert_eq!(
+        preview.vegetation_changed_chunks + preview.vegetation_retained_chunks,
+        64
+    );
+    assert_eq!(preview.rivers.rivers.len(), 1);
+    assert_eq!(preview.rivers.rivers[0].path_id, path_id);
+    assert_eq!(preview.rivers.terrain_document_hash, canonical_terrain_hash);
+    assert_eq!(
+        preview.rivers.river_document_hash,
+        changed_area.rivers.content_hash().unwrap()
+    );
+    assert_ne!(
+        preview.rivers.effective_terrain_document_hash,
+        canonical_terrain_hash
+    );
+    assert_eq!(
+        preview.terrain.source_document_hash,
+        preview.rivers.effective_terrain_document_hash
+    );
+    assert_eq!(
+        preview.paths.terrain_document_hash,
+        preview.rivers.effective_terrain_document_hash
+    );
+    assert_eq!(
+        preview.roads.terrain_document_hash,
+        preview.rivers.effective_terrain_document_hash
+    );
+    assert_full_vegetation_parity(changed_area, &preview);
+    assert_cached_vegetation_is_bit_exact(changed_area, &cache);
 }
 
 #[test]

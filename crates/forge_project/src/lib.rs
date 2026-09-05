@@ -6,6 +6,7 @@ mod environment;
 mod path;
 mod player;
 mod quality;
+mod river;
 mod road;
 mod terrain;
 mod vegetation;
@@ -56,6 +57,14 @@ pub use quality::{
     VISUAL_VALLEY_QUALITY_PROFILE_SCHEMA_VERSION, VegetationQualitySettings, VisualQualityPreset,
     VisualQualityPresets, VisualQualityTier, VisualValleyQualityProfileDocument,
     VisualValleyQualityProfileError, WaterQualitySettings,
+};
+pub use river::{
+    AuthoredRiver, MAX_RIVER_BANK_BLEND_WIDTH_M, MAX_RIVER_BED_DEPTH_M,
+    MAX_RIVER_DOCUMENT_JSON_BYTES, MAX_RIVER_SURFACE_WIDTH_M, MAX_RIVERS_PER_DOCUMENT,
+    MAX_TOTAL_RIVER_LENGTH_M, MIN_RIVER_BANK_BLEND_WIDTH_M, MIN_RIVER_BED_DEPTH_M,
+    MIN_RIVER_SURFACE_WIDTH_M, RIVER_DOCUMENT_SCHEMA, RIVER_DOCUMENT_SCHEMA_VERSION,
+    RiverChannelProfile, RiverChannelProfileAlgorithm, RiverDocument, RiverDocumentError,
+    RiverSurface,
 };
 pub use road::{
     AuthoredRoad, MAX_ROAD_CROWN_HEIGHT_M, MAX_ROAD_CROWN_TO_WIDTH_RATIO,

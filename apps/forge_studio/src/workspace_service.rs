@@ -9,10 +9,10 @@ use crate::{
 };
 use forge_core::{AreaId, CommandId, ContentHash, ModuleId, ProjectId, Revision, Vec3};
 use forge_project::{
-    AuthoredRoad, MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_LAYERS,
-    NewProjectCommand, PathId, TerrainMaterialRole, VegetationExclusion, VegetationExclusionId,
-    VegetationLayer, VegetationLayerId, WorkspaceArea, WorkspaceChange, WorkspaceCreationInverse,
-    WorkspaceDocument, WorkspaceEdit, WorkspaceError,
+    AuthoredRiver, AuthoredRoad, MAX_PATHS_PER_DOCUMENT, MAX_VEGETATION_EXCLUSIONS,
+    MAX_VEGETATION_LAYERS, NewProjectCommand, PathId, TerrainMaterialRole, VegetationExclusion,
+    VegetationExclusionId, VegetationLayer, VegetationLayerId, WorkspaceArea, WorkspaceChange,
+    WorkspaceCreationInverse, WorkspaceDocument, WorkspaceEdit, WorkspaceError,
 };
 use std::path::{Path, PathBuf};
 
@@ -156,7 +156,8 @@ impl WorkspaceSession {
             }
             command @ (WorkspaceCommand::CreatePath { .. }
             | WorkspaceCommand::RedrawPath { .. }
-            | WorkspaceCommand::UpsertRoad { .. }) => return self.execute_path_edit(command),
+            | WorkspaceCommand::UpsertRoad { .. }
+            | WorkspaceCommand::UpsertRiver { .. }) => return self.execute_path_edit(command),
             command @ (WorkspaceCommand::AddModule { .. }
             | WorkspaceCommand::AddArea { .. }
             | WorkspaceCommand::RenameProject { .. }
@@ -468,7 +469,10 @@ impl WorkspaceSession {
             WorkspaceCommand::UpsertRoad { request, road } => {
                 self.execute_road_upsert(request, road)
             }
-            _ => Err("Commande de chemin ou de route attendue.".into()),
+            WorkspaceCommand::UpsertRiver { request, river } => {
+                self.execute_river_upsert(request, river)
+            }
+            _ => Err("Commande de chemin, de route ou de rivière attendue.".into()),
         }
     }
 
@@ -495,6 +499,31 @@ impl WorkspaceSession {
         let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
         self.commit_edit(candidate.edit, receipt);
         self.state("Profil de route appliqué. Annulation disponible.".into())
+    }
+
+    fn execute_river_upsert(
+        &mut self,
+        request: crate::area_preview::AreaPreviewRequest,
+        river: AuthoredRiver,
+    ) -> Result<WorkspaceState, String> {
+        self.require_revision(request.base_revision)?;
+        self.next_revision()?;
+        let document = self.document.as_ref().ok_or("Aucun projet ouvert.")?;
+        let candidate = forge_world::preview_upsert_river(
+            document,
+            forge_world::RiverUpsertCommand {
+                command_id: CommandId::deterministic(workspace_store::unique_key()?),
+                base_revision: Revision::new(request.base_revision),
+                project_id: request.key.project_id,
+                module_id: request.key.module_id,
+                area_id: request.key.area_id,
+                river,
+            },
+        )
+        .map_err(|error| error.to_string())?;
+        let receipt = serde_json::to_string(&candidate).map_err(|error| error.to_string())?;
+        self.commit_edit(candidate.edit, receipt);
+        self.state("Profil de rivière appliqué. Annulation disponible.".into())
     }
 
     fn execute_path_redraw(
@@ -1171,6 +1200,7 @@ fn stamp_revision(document: &mut WorkspaceDocument, next: u64) {
             area.vegetation_density.revision = document.revision;
             area.paths.revision = document.revision;
             area.roads.revision = document.revision;
+            area.rivers.revision = document.revision;
         }
     }
 }

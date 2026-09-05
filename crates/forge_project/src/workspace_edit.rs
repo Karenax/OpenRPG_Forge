@@ -3,7 +3,7 @@
 #[path = "workspace_edit_tests.rs"]
 mod tests;
 use crate::{
-    AuthoredPath, AuthoredRoad, PromotedVegetationInstance, TerrainHeightDelta,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, PromotedVegetationInstance, TerrainHeightDelta,
     TerrainMaterialWeightOverride, VegetationDensityLayer, VegetationDensityOverride,
     VegetationExclusion, VegetationLayer, VegetationLayerId, WorkspaceDocument, WorkspaceError,
     WorkspaceModule,
@@ -81,6 +81,16 @@ pub enum WorkspaceChange {
         expected_path_document_hash: ContentHash,
         expected_road_document_hash: ContentHash,
         road: AuthoredRoad,
+    },
+    /// Creates or replaces one river channel assigned to an existing open, non-road path.
+    UpsertRiver {
+        module_id: ModuleId,
+        area_id: AreaId,
+        expected_terrain_document_hash: ContentHash,
+        expected_path_document_hash: ContentHash,
+        expected_road_document_hash: ContentHash,
+        expected_river_document_hash: ContentHash,
+        river: AuthoredRiver,
     },
     AddModule {
         module_id: ModuleId,
@@ -285,6 +295,25 @@ impl WorkspaceDocument {
                 road,
                 next,
             )?,
+            WorkspaceChange::UpsertRiver {
+                module_id,
+                area_id,
+                expected_terrain_document_hash,
+                expected_path_document_hash,
+                expected_road_document_hash,
+                expected_river_document_hash,
+                river,
+            } => upsert_river(
+                document,
+                *module_id,
+                *area_id,
+                *expected_terrain_document_hash,
+                *expected_path_document_hash,
+                *expected_road_document_hash,
+                *expected_river_document_hash,
+                river,
+                next,
+            )?,
             WorkspaceChange::AddModule { module_id, name } => {
                 document.project.modules.push(WorkspaceModule {
                     id: *module_id,
@@ -371,6 +400,8 @@ fn update_area_metadata(
     area.paths.revision = revision;
     name.clone_into(&mut area.roads.name);
     area.roads.revision = revision;
+    name.clone_into(&mut area.rivers.name);
+    area.rivers.revision = revision;
     Ok(())
 }
 
@@ -466,6 +497,76 @@ fn upsert_road(
     replacement.revision = revision;
     replacement.validate()?;
     area.roads = replacement;
+    Ok(())
+}
+
+#[allow(
+    clippy::too_many_arguments,
+    reason = "the river edit is deliberately bound to every source document it consumes"
+)]
+fn upsert_river(
+    document: &mut WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    expected_terrain_hash: ContentHash,
+    expected_path_hash: ContentHash,
+    expected_road_hash: ContentHash,
+    expected_river_hash: ContentHash,
+    river: &AuthoredRiver,
+    revision: Revision,
+) -> Result<(), WorkspaceError> {
+    let area = document
+        .project
+        .modules
+        .iter_mut()
+        .find(|module| module.id == module_id)
+        .ok_or(WorkspaceError::MissingTarget("module"))?
+        .areas
+        .iter_mut()
+        .find(|area| area.id == area_id)
+        .ok_or(WorkspaceError::MissingTarget("area"))?;
+    if area.terrain.content_hash()? != expected_terrain_hash
+        || area.paths.content_hash()? != expected_path_hash
+        || area.roads.content_hash()? != expected_road_hash
+        || area.rivers.content_hash()? != expected_river_hash
+    {
+        return Err(WorkspaceError::StaleRevision);
+    }
+    let path = area
+        .paths
+        .paths
+        .binary_search_by_key(&river.path_id, |path| path.id)
+        .ok()
+        .map(|index| &area.paths.paths[index])
+        .ok_or(WorkspaceError::MissingRiverPath(river.path_id))?;
+    if path.closed {
+        return Err(WorkspaceError::ClosedRiverPath(river.path_id));
+    }
+    if area
+        .roads
+        .roads
+        .binary_search_by_key(&river.path_id, |road| road.path_id)
+        .is_ok()
+    {
+        return Err(WorkspaceError::RiverRoadConflict(river.path_id));
+    }
+
+    let mut replacement = area.rivers.clone();
+    match replacement
+        .rivers
+        .binary_search_by_key(&river.path_id, |candidate| candidate.path_id)
+    {
+        Ok(index) => {
+            if replacement.rivers[index] == *river {
+                return Err(WorkspaceError::NoChange);
+            }
+            replacement.rivers[index] = *river;
+        }
+        Err(index) => replacement.rivers.insert(index, *river),
+    }
+    replacement.revision = revision;
+    replacement.validate()?;
+    area.rivers = replacement;
     Ok(())
 }
 

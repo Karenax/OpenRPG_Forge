@@ -3,9 +3,9 @@ use crate::area_tabs::AreaKey;
 use forge_core::{ContentHash, Vec3};
 use forge_project::{TerrainDocument, WorkspaceArea};
 use forge_world::{
-    GeneratedPaths, GeneratedRoads, GeneratedTerrain, GeneratedVegetation, PathGenerationPlan,
-    RoadGenerationPlan, TerrainGenerationPlan, TerrainPartialUpdate, TerrainPartialUpdateError,
-    VegetationRuntimeCache,
+    GeneratedPaths, GeneratedRivers, GeneratedRoads, GeneratedTerrain, GeneratedVegetation,
+    PathGenerationPlan, RiverGenerationPlan, RoadGenerationPlan, TerrainGenerationPlan,
+    TerrainPartialUpdate, TerrainPartialUpdateError, VegetationRuntimeCache,
 };
 use serde::{Deserialize, Serialize};
 
@@ -34,6 +34,8 @@ pub struct AreaPreview {
     pub paths: GeneratedPaths,
     /// Complete procedural road projection for the canonical terrain, path and road sources.
     pub roads: GeneratedRoads,
+    /// Complete water meshes plus canonical/effective terrain source binding.
+    pub rivers: GeneratedRivers,
     pub spawn: Vec3,
     /// Some means that terrain.chunks contains only replacements against this exact cache.
     pub base_source_hash: Option<ContentHash>,
@@ -88,20 +90,33 @@ impl AreaPreviewCache {
         area: &WorkspaceArea,
         base_source_hash: Option<ContentHash>,
     ) -> Result<String, String> {
+        let river_projection = RiverGenerationPlan::from_documents(
+            &area.terrain,
+            &area.paths,
+            &area.roads,
+            &area.rivers,
+        )
+        .map_err(|error| error.to_string())?
+        .generate()
+        .map_err(|error| error.to_string())?;
+        let mut effective_area = area.clone();
+        effective_area.terrain = river_projection.effective_terrain;
+        let rivers = river_projection.generated;
         let (vegetation_cache, vegetation_regenerated, changed_chunks, retained_chunks) =
-            self.prepare_vegetation(area)?;
+            self.prepare_vegetation(&effective_area)?;
         let vegetation = vegetation_cache.snapshot();
         let vegetation_density_source_hash =
             vegetation_cache.key().vegetation_density_document_hash();
-        let paths = PathGenerationPlan::from_documents(&area.terrain, &area.paths)
+        let paths = PathGenerationPlan::from_documents(&effective_area.terrain, &area.paths)
             .map_err(|error| error.to_string())?
             .generate()
             .map_err(|error| error.to_string())?;
-        let roads = RoadGenerationPlan::from_documents(&area.terrain, &area.paths, &area.roads)
-            .map_err(|error| error.to_string())?
-            .generate()
-            .map_err(|error| error.to_string())?;
-        let partial_update = self.prepare_partial_terrain(area, base_source_hash)?;
+        let roads =
+            RoadGenerationPlan::from_documents(&effective_area.terrain, &area.paths, &area.roads)
+                .map_err(|error| error.to_string())?
+                .generate()
+                .map_err(|error| error.to_string())?;
+        let partial_update = self.prepare_partial_terrain(&effective_area, base_source_hash)?;
         let terrain = match &partial_update {
             Some(update) => {
                 let cache = &self.cached.as_ref().expect("partial cache checked").terrain;
@@ -112,7 +127,7 @@ impl AreaPreviewCache {
                     material_layer_ids: cache.material_layer_ids.clone(),
                 }
             }
-            None => TerrainGenerationPlan::from_document(&area.terrain)
+            None => TerrainGenerationPlan::from_document(&effective_area.terrain)
                 .map_err(|error| error.to_string())?
                 .generate()
                 .map_err(|error| error.to_string())?,
@@ -127,6 +142,7 @@ impl AreaPreviewCache {
             vegetation_retained_chunks: retained_chunks,
             paths,
             roads,
+            rivers,
             spawn: area.spawn,
             base_source_hash: partial_update.as_ref().map(|_| {
                 base_source_hash.expect("a partial update requires an exact base source hash")
@@ -138,11 +154,11 @@ impl AreaPreviewCache {
             update
                 .apply_to_cache(&mut cache.terrain)
                 .map_err(|error| error.to_string())?;
-            cache.terrain_source = area.terrain.clone();
+            cache.terrain_source = effective_area.terrain.clone();
             cache.vegetation = vegetation_cache;
         } else {
             self.cached = Some(CachedAreaPreview {
-                terrain_source: area.terrain.clone(),
+                terrain_source: effective_area.terrain,
                 terrain: preview.terrain,
                 vegetation: vegetation_cache,
             });
@@ -207,6 +223,7 @@ fn validate_preview_source(
         area.vegetation_density.revision.get(),
         area.paths.revision.get(),
         area.roads.revision.get(),
+        area.rivers.revision.get(),
     ];
     if revisions
         .into_iter()
@@ -231,6 +248,7 @@ fn validate_vegetation_density_candidate_source(
         || area.vegetation_density.revision.get() != candidate_revision
         || area.paths.revision.get() > request.base_revision
         || area.roads.revision.get() > request.base_revision
+        || area.rivers.revision.get() > request.base_revision
     {
         return Err("Source candidate incohérente avec la demande d’aperçu.".into());
     }
@@ -254,6 +272,8 @@ fn validate_preview_identity(
         || area.paths.area_id != area_id
         || area.roads.project_id != project_id
         || area.roads.area_id != area_id
+        || area.rivers.project_id != project_id
+        || area.rivers.area_id != area_id
         || ![area.spawn.x, area.spawn.y, area.spawn.z]
             .iter()
             .all(|value| value.is_finite())
@@ -290,6 +310,10 @@ mod tests {
     use forge_project::WorkspaceDocument;
 
     #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "one read-only preview scenario checks every bounded renderer projection"
+    )]
     fn native_preview_is_bounded_read_only_and_matches_the_accepted_source() {
         let mut session = WorkspaceSession::default();
         let before = session
@@ -357,6 +381,15 @@ mod tests {
             accepted_area.roads.content_hash().unwrap()
         );
         assert!(preview.roads.roads.is_empty());
+        assert_eq!(
+            preview.rivers.terrain_document_hash,
+            accepted_area.terrain.content_hash().unwrap()
+        );
+        assert_eq!(
+            preview.rivers.river_document_hash,
+            accepted_area.rivers.content_hash().unwrap()
+        );
+        assert!(preview.rivers.rivers.is_empty());
         assert!(json.len() < MAX_PREVIEW_JSON_BYTES);
         println!("native preview JSON bytes: {}", json.len());
         let after = session.execute(WorkspaceCommand::Current).unwrap();

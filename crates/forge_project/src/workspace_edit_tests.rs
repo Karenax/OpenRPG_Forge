@@ -1,10 +1,12 @@
 use super::*;
 use crate::{
-    AuthoredPath, AuthoredRoad, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
-    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_ROADS_PER_DOCUMENT, MAX_TOTAL_ROAD_LENGTH_M,
-    MAX_VEGETATION_EXCLUSIONS, MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand,
-    PathControlPoint, PathDocumentError, PathId, PathInterpolation, PromotedVegetationInstance,
-    RoadProfile, RoadProfileAlgorithm, RoadSurface, TerrainMaterialLayerId, TerrainMaterialRole,
+    AuthoredPath, AuthoredRiver, AuthoredRoad, MAX_PATH_CONTROL_POINTS, MAX_PATHS_PER_DOCUMENT,
+    MAX_PROMOTED_VEGETATION_INSTANCES, MAX_RIVERS_PER_DOCUMENT, MAX_ROADS_PER_DOCUMENT,
+    MAX_TOTAL_RIVER_LENGTH_M, MAX_TOTAL_ROAD_LENGTH_M, MAX_VEGETATION_EXCLUSIONS,
+    MAX_WORKSPACE_AREAS, MAX_WORKSPACE_MODULES, NewProjectCommand, PathControlPoint,
+    PathDocumentError, PathId, PathInterpolation, PromotedVegetationInstance, RiverChannelProfile,
+    RiverChannelProfileAlgorithm, RiverDocumentError, RiverSurface, RoadProfile,
+    RoadProfileAlgorithm, RoadSurface, TerrainMaterialLayerId, TerrainMaterialRole,
     TerrainMaterialWeightOverride, VegetationDensityError, VegetationDensityOverride,
     VegetationDocumentError, VegetationExclusion, VegetationExclusionId,
     VegetationGenerationAlgorithm, VegetationInstanceTransform, VegetationPromotionSource,
@@ -144,6 +146,43 @@ fn road_change(document: &WorkspaceDocument, road: AuthoredRoad) -> WorkspaceCha
     }
 }
 
+fn authored_river(path_id: PathId, surface_width_m: f32) -> AuthoredRiver {
+    AuthoredRiver {
+        path_id,
+        channel: RiverChannelProfile {
+            algorithm: RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+            surface_width_m,
+            bed_depth_m: 1.5,
+            bank_blend_width_m: 4.0,
+        },
+        surface: RiverSurface::ForgeWaterV1,
+    }
+}
+
+fn river_change(document: &WorkspaceDocument, river: AuthoredRiver) -> WorkspaceChange {
+    let module = &document.project.modules[0];
+    let area = &module.areas[0];
+    river_change_for_target(document, module.id, area.id, river)
+}
+
+fn river_change_for_target(
+    document: &WorkspaceDocument,
+    module_id: ModuleId,
+    area_id: AreaId,
+    river: AuthoredRiver,
+) -> WorkspaceChange {
+    let source_area = &document.project.modules[0].areas[0];
+    WorkspaceChange::UpsertRiver {
+        module_id,
+        area_id,
+        expected_terrain_document_hash: source_area.terrain.content_hash().unwrap(),
+        expected_path_document_hash: source_area.paths.content_hash().unwrap(),
+        expected_road_document_hash: source_area.roads.content_hash().unwrap(),
+        expected_river_document_hash: source_area.rivers.content_hash().unwrap(),
+        river,
+    }
+}
+
 fn legacy_json(document: &WorkspaceDocument) -> String {
     let mut value = serde_json::to_value(document).unwrap();
     value["schema_version"] = json!(1);
@@ -153,6 +192,7 @@ fn legacy_json(document: &WorkspaceDocument) -> String {
     area.as_object_mut().unwrap().remove("vegetation_density");
     area.as_object_mut().unwrap().remove("paths");
     area.as_object_mut().unwrap().remove("roads");
+    area.as_object_mut().unwrap().remove("rivers");
     module.as_object_mut().unwrap().remove("areas");
     module["area"] = area;
     value["project"].as_object_mut().unwrap().remove("modules");
@@ -169,6 +209,7 @@ fn legacy_v2_json(document: &WorkspaceDocument) -> String {
             area.as_object_mut().unwrap().remove("vegetation_density");
             area.as_object_mut().unwrap().remove("paths");
             area.as_object_mut().unwrap().remove("roads");
+            area.as_object_mut().unwrap().remove("rivers");
         }
     }
     value.to_string()
@@ -181,6 +222,7 @@ fn legacy_v3_json(document: &WorkspaceDocument) -> String {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("paths");
             area.as_object_mut().unwrap().remove("roads");
+            area.as_object_mut().unwrap().remove("rivers");
         }
     }
     value.to_string()
@@ -192,6 +234,18 @@ fn legacy_v4_json(document: &WorkspaceDocument) -> String {
     for module in value["project"]["modules"].as_array_mut().unwrap() {
         for area in module["areas"].as_array_mut().unwrap() {
             area.as_object_mut().unwrap().remove("roads");
+            area.as_object_mut().unwrap().remove("rivers");
+        }
+    }
+    value.to_string()
+}
+
+fn legacy_v5_json(document: &WorkspaceDocument) -> String {
+    let mut value = serde_json::to_value(document).unwrap();
+    value["schema_version"] = json!(5);
+    for module in value["project"]["modules"].as_array_mut().unwrap() {
+        for area in module["areas"].as_array_mut().unwrap() {
+            area.as_object_mut().unwrap().remove("rivers");
         }
     }
     value.to_string()
@@ -321,17 +375,22 @@ fn workspace_v3_migration_adds_only_empty_paths_and_migrates_embedded_sources() 
     let area = &migrated.project.modules[0].areas[0];
     assert!(area.paths.paths.is_empty());
     assert!(area.roads.roads.is_empty());
+    assert!(area.rivers.rivers.is_empty());
     assert_eq!(area.paths.project_id, migrated.project.id);
     assert_eq!(area.paths.area_id, area.id);
     assert_eq!(area.paths.name, area.name);
     assert_eq!(area.roads.project_id, migrated.project.id);
     assert_eq!(area.roads.area_id, area.id);
     assert_eq!(area.roads.name, area.name);
+    assert_eq!(area.rivers.project_id, migrated.project.id);
+    assert_eq!(area.rivers.area_id, area.id);
+    assert_eq!(area.rivers.name, area.name);
     assert_eq!(
         area.paths.revision,
         revisions.1.max(revisions.2).max(revisions.3)
     );
     assert_eq!(area.roads.revision, area.paths.revision);
+    assert_eq!(area.rivers.revision, area.paths.revision);
     assert_eq!(
         area.terrain.height_deltas,
         vec![crate::TerrainHeightDelta::new(128, 128, 3.5)]
@@ -382,6 +441,7 @@ fn workspace_v3_migration_preserves_current_embedded_hashes_but_has_a_new_worksp
     );
     assert!(area.paths.paths.is_empty());
     assert!(area.roads.roads.is_empty());
+    assert!(area.rivers.rivers.is_empty());
     assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
 }
 
@@ -411,10 +471,12 @@ fn workspace_v4_migration_adds_only_empty_roads_and_preserves_embedded_hashes() 
     let area = &migrated.project.modules[0].areas[0];
     assert_eq!(area.paths.paths, vec![path]);
     assert!(area.roads.roads.is_empty());
+    assert!(area.rivers.rivers.is_empty());
     assert_eq!(area.roads.project_id, migrated.project.id);
     assert_eq!(area.roads.area_id, area.id);
     assert_eq!(area.roads.name, area.name);
     assert_eq!(area.roads.revision, area.paths.revision);
+    assert_eq!(area.rivers.revision, area.paths.revision);
     assert_eq!(area.terrain.content_hash().unwrap(), embedded_hashes.0);
     assert_eq!(area.vegetation.content_hash().unwrap(), embedded_hashes.1);
     assert_eq!(
@@ -424,6 +486,65 @@ fn workspace_v4_migration_adds_only_empty_roads_and_preserves_embedded_hashes() 
     assert_eq!(area.paths.content_hash().unwrap(), embedded_hashes.3);
     assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
     assert_eq!(legacy_v4_json(&migrated), json);
+}
+
+#[test]
+fn workspace_v5_migration_adds_only_empty_rivers_and_preserves_embedded_hashes() {
+    let source = source();
+    let river_path = authored_path("v5-river-source", -16.0);
+    let road_path = authored_path("v5-road-source", 16.0);
+    let with_river_path = source
+        .preview_edit(edit(&source, path_change(&source, river_path.clone())))
+        .unwrap()
+        .document;
+    let with_paths = with_river_path
+        .preview_edit(edit(
+            &with_river_path,
+            path_change(&with_river_path, road_path.clone()),
+        ))
+        .unwrap()
+        .document;
+    let with_road = with_paths
+        .preview_edit(edit(
+            &with_paths,
+            road_change(&with_paths, authored_road(road_path.id, 4.0)),
+        ))
+        .unwrap()
+        .document;
+    let source_area = &with_road.project.modules[0].areas[0];
+    let embedded_hashes = (
+        source_area.terrain.content_hash().unwrap(),
+        source_area.vegetation.content_hash().unwrap(),
+        source_area.vegetation_density.content_hash().unwrap(),
+        source_area.paths.content_hash().unwrap(),
+        source_area.roads.content_hash().unwrap(),
+    );
+    let json = legacy_v5_json(&with_road);
+    let untouched = json.clone();
+    let legacy_value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    let legacy_workspace_hash = forge_core::canonical_json_sha256(&legacy_value).unwrap();
+
+    let migrated = WorkspaceDocument::from_json(&json).unwrap();
+    assert_eq!(json, untouched);
+    assert_eq!(migrated.schema_version, crate::WORKSPACE_SCHEMA_VERSION);
+    let area = &migrated.project.modules[0].areas[0];
+    assert_eq!(area.paths.paths, source_area.paths.paths);
+    assert_eq!(area.roads.roads.len(), 1);
+    assert!(area.rivers.rivers.is_empty());
+    assert_eq!(area.rivers.project_id, migrated.project.id);
+    assert_eq!(area.rivers.area_id, area.id);
+    assert_eq!(area.rivers.name, area.name);
+    assert_eq!(area.rivers.revision, area.roads.revision);
+    assert_eq!(area.terrain.content_hash().unwrap(), embedded_hashes.0);
+    assert_eq!(area.vegetation.content_hash().unwrap(), embedded_hashes.1);
+    assert_eq!(
+        area.vegetation_density.content_hash().unwrap(),
+        embedded_hashes.2
+    );
+    assert_eq!(area.paths.content_hash().unwrap(), embedded_hashes.3);
+    assert_eq!(area.roads.content_hash().unwrap(), embedded_hashes.4);
+    assert_ne!(migrated.content_hash().unwrap(), legacy_workspace_hash);
+    assert_eq!(legacy_v5_json(&migrated), json);
 }
 
 #[test]
@@ -492,6 +613,11 @@ fn migration_rejects_unknown_duplicate_and_mixed_shape_fields() {
     mixed_v4["project"]["modules"][0]["areas"][0]["roads"] =
         serde_json::to_value(&current.project.modules[0].areas[0].roads).unwrap();
     assert!(WorkspaceDocument::from_json(&mixed_v4.to_string()).is_err());
+
+    let mut mixed_v5: serde_json::Value = serde_json::from_str(&legacy_v5_json(&current)).unwrap();
+    mixed_v5["project"]["modules"][0]["areas"][0]["rivers"] =
+        serde_json::to_value(&current.project.modules[0].areas[0].rivers).unwrap();
+    assert!(WorkspaceDocument::from_json(&mixed_v5.to_string()).is_err());
 }
 
 #[test]
@@ -977,6 +1103,351 @@ fn road_assignments_respect_collection_and_total_length_limits() {
 }
 
 #[test]
+fn upsert_river_creates_edits_sorts_reopens_and_replays_from_its_inverse() {
+    let source = source();
+    let first_path = authored_path("river-first", -12.0);
+    let second_path = authored_path("river-second", 12.0);
+    let with_first = source
+        .preview_edit(edit(&source, path_change(&source, first_path)))
+        .unwrap()
+        .document;
+    let with_paths = with_first
+        .preview_edit(edit(&with_first, path_change(&with_first, second_path)))
+        .unwrap()
+        .document;
+    let module_id = with_paths.project.modules[0].id;
+    let area_id = with_paths.project.modules[0].areas[0].id;
+    let source_area = with_paths.area(module_id, area_id).unwrap().clone();
+    let path_ids = source_area
+        .paths
+        .paths
+        .iter()
+        .map(|path| path.id)
+        .collect::<Vec<_>>();
+    let later_river = authored_river(path_ids[1], 8.0);
+
+    let first = with_paths
+        .preview_edit(edit(&with_paths, river_change(&with_paths, later_river)))
+        .unwrap();
+    let first_area = first.document.area(module_id, area_id).unwrap();
+    assert_eq!(first.document.revision, with_paths.revision.next().unwrap());
+    assert_eq!(first_area.rivers.revision, first.document.revision);
+    assert_eq!(first_area.rivers.rivers, vec![later_river]);
+    assert_eq!(first_area.terrain, source_area.terrain);
+    assert_eq!(first_area.vegetation, source_area.vegetation);
+    assert_eq!(
+        first_area.vegetation_density,
+        source_area.vegetation_density
+    );
+    assert_eq!(first_area.paths, source_area.paths);
+    assert_eq!(first_area.roads, source_area.roads);
+    assert_eq!(*first.receipt.inverse_snapshot, with_paths);
+
+    let earlier_river = authored_river(path_ids[0], 5.0);
+    let second_command = edit(
+        &first.document,
+        river_change(&first.document, earlier_river),
+    );
+    let second = first.document.preview_edit(second_command.clone()).unwrap();
+    let rivers = &second
+        .document
+        .area(module_id, area_id)
+        .unwrap()
+        .rivers
+        .rivers;
+    assert_eq!(rivers, &vec![earlier_river, later_river]);
+    assert!(
+        rivers
+            .windows(2)
+            .all(|pair| pair[0].path_id < pair[1].path_id)
+    );
+
+    let reopened =
+        WorkspaceDocument::from_json(&second.document.to_pretty_json().unwrap()).unwrap();
+    assert_eq!(reopened, second.document);
+    let undone = *second.receipt.inverse_snapshot.clone();
+    assert_eq!(undone, first.document);
+    let replayed = undone.preview_edit(second_command).unwrap();
+    assert_eq!(replayed.document, second.document);
+    assert_eq!(replayed.receipt.after_hash, second.receipt.after_hash);
+
+    let edited = authored_river(path_ids[0], 12.0);
+    let third = second
+        .document
+        .preview_edit(edit(
+            &second.document,
+            river_change(&second.document, edited),
+        ))
+        .unwrap();
+    assert_eq!(
+        third
+            .document
+            .area(module_id, area_id)
+            .unwrap()
+            .rivers
+            .rivers,
+        vec![edited, later_river]
+    );
+    assert_eq!(
+        third.document.revision,
+        second.document.revision.next().unwrap()
+    );
+}
+
+#[test]
+fn upsert_river_rejects_noop_stale_hashes_missing_and_invalid_atomically() {
+    let source = source();
+    let path = authored_path("river-atomic", 0.0);
+    let with_path = source
+        .preview_edit(edit(&source, path_change(&source, path.clone())))
+        .unwrap()
+        .document;
+    let river = authored_river(path.id, 8.0);
+    let created = with_path
+        .preview_edit(edit(&with_path, river_change(&with_path, river)))
+        .unwrap()
+        .document;
+    let module_id = created.project.modules[0].id;
+    let area_id = created.project.modules[0].areas[0].id;
+    let created_hash = created.content_hash().unwrap();
+
+    assert!(matches!(
+        created.preview_edit(edit(&created, river_change(&created, river))),
+        Err(WorkspaceError::NoChange)
+    ));
+
+    let mut stale_base = edit(
+        &created,
+        river_change(&created, authored_river(path.id, 10.0)),
+    );
+    stale_base.base_revision = with_path.revision;
+    assert!(matches!(
+        created.preview_edit(stale_base),
+        Err(WorkspaceError::StaleRevision)
+    ));
+
+    for stale_source in 0..4 {
+        let mut change = river_change(&created, authored_river(path.id, 10.0));
+        if let WorkspaceChange::UpsertRiver {
+            expected_terrain_document_hash,
+            expected_path_document_hash,
+            expected_road_document_hash,
+            expected_river_document_hash,
+            ..
+        } = &mut change
+        {
+            let stale = ContentHash::from_bytes([u8::try_from(stale_source + 1).unwrap(); 32]);
+            match stale_source {
+                0 => *expected_terrain_document_hash = stale,
+                1 => *expected_path_document_hash = stale,
+                2 => *expected_road_document_hash = stale,
+                _ => *expected_river_document_hash = stale,
+            }
+        }
+        assert!(matches!(
+            created.preview_edit(edit(&created, change)),
+            Err(WorkspaceError::StaleRevision)
+        ));
+    }
+
+    let missing = authored_river(PathId::deterministic("missing-river-path"), 8.0);
+    assert!(matches!(
+        created.preview_edit(edit(&created, river_change(&created, missing))),
+        Err(WorkspaceError::MissingRiverPath(id)) if id == missing.path_id
+    ));
+
+    let mut invalid = authored_river(path.id, 8.0);
+    invalid.channel.bed_depth_m = f32::NAN;
+    assert!(matches!(
+        created.preview_edit(edit(&created, river_change(&created, invalid))),
+        Err(WorkspaceError::River(
+            RiverDocumentError::InvalidNumericValue("channel.bed_depth_m")
+        ))
+    ));
+
+    for change in [
+        river_change_for_target(
+            &created,
+            ModuleId::deterministic("missing-river-module"),
+            area_id,
+            authored_river(path.id, 10.0),
+        ),
+        river_change_for_target(
+            &created,
+            module_id,
+            AreaId::deterministic("missing-river-area"),
+            authored_river(path.id, 10.0),
+        ),
+    ] {
+        assert!(matches!(
+            created.preview_edit(edit(&created, change)),
+            Err(WorkspaceError::MissingTarget(_))
+        ));
+    }
+
+    assert_eq!(created.content_hash().unwrap(), created_hash);
+    assert_eq!(
+        created.area(module_id, area_id).unwrap().rivers.rivers,
+        vec![river]
+    );
+}
+
+#[test]
+fn river_targets_reject_closed_paths_and_road_conflicts_without_mutation() {
+    let source = source();
+    let mut closed_path = authored_path("river-closed", 0.0);
+    closed_path.closed = true;
+    let with_closed = source
+        .preview_edit(edit(&source, path_change(&source, closed_path.clone())))
+        .unwrap()
+        .document;
+    let closed_hash = with_closed.content_hash().unwrap();
+    assert!(matches!(
+        with_closed.preview_edit(edit(
+            &with_closed,
+            river_change(&with_closed, authored_river(closed_path.id, 8.0))
+        )),
+        Err(WorkspaceError::ClosedRiverPath(id)) if id == closed_path.id
+    ));
+    assert_eq!(with_closed.content_hash().unwrap(), closed_hash);
+
+    let open_path = authored_path("river-road-conflict", 0.0);
+    let with_path = source
+        .preview_edit(edit(&source, path_change(&source, open_path.clone())))
+        .unwrap()
+        .document;
+    let with_road = with_path
+        .preview_edit(edit(
+            &with_path,
+            road_change(&with_path, authored_road(open_path.id, 4.0)),
+        ))
+        .unwrap()
+        .document;
+    let road_hash = with_road.content_hash().unwrap();
+    assert!(matches!(
+        with_road.preview_edit(edit(
+            &with_road,
+            river_change(&with_road, authored_river(open_path.id, 8.0))
+        )),
+        Err(WorkspaceError::RiverRoadConflict(id)) if id == open_path.id
+    ));
+    assert_eq!(with_road.content_hash().unwrap(), road_hash);
+
+    let with_river = with_path
+        .preview_edit(edit(
+            &with_path,
+            river_change(&with_path, authored_river(open_path.id, 8.0)),
+        ))
+        .unwrap()
+        .document;
+    let river_hash = with_river.content_hash().unwrap();
+    assert!(matches!(
+        with_river.preview_edit(edit(
+            &with_river,
+            road_change(&with_river, authored_road(open_path.id, 4.0))
+        )),
+        Err(WorkspaceError::RiverRoadConflict(id)) if id == open_path.id
+    ));
+
+    let mut newly_closed = open_path.clone();
+    newly_closed.closed = true;
+    assert!(matches!(
+        with_river.preview_edit(edit(
+            &with_river,
+            path_change(&with_river, newly_closed)
+        )),
+        Err(WorkspaceError::ClosedRiverPath(id)) if id == open_path.id
+    ));
+    assert_eq!(with_river.content_hash().unwrap(), river_hash);
+}
+
+#[test]
+fn river_assignments_respect_collection_and_total_control_polyline_length_limits() {
+    let mut full = source();
+    let module_id = full.project.modules[0].id;
+    let area_id = full.project.modules[0].areas[0].id;
+    let mut paths = (0..=MAX_RIVERS_PER_DOCUMENT)
+        .map(|index| {
+            let offset_m = f32::from(u16::try_from(index).unwrap()) * 0.1;
+            authored_path(&format!("river-capacity-{index:02}"), offset_m)
+        })
+        .collect::<Vec<_>>();
+    paths.sort_by_key(|path| path.id);
+    full.project.modules[0].areas[0].paths.paths = paths.clone();
+    full.validate().unwrap();
+    for path in paths.iter().take(MAX_RIVERS_PER_DOCUMENT) {
+        full = full
+            .preview_edit(edit(
+                &full,
+                river_change(&full, authored_river(path.id, 4.0)),
+            ))
+            .unwrap()
+            .document;
+    }
+    assert_eq!(
+        full.area(module_id, area_id).unwrap().rivers.rivers.len(),
+        MAX_RIVERS_PER_DOCUMENT
+    );
+    let before_hash = full.content_hash().unwrap();
+    assert!(matches!(
+        full.preview_edit(edit(
+            &full,
+            river_change(
+                &full,
+                authored_river(paths[MAX_RIVERS_PER_DOCUMENT].id, 4.0)
+            )
+        )),
+        Err(WorkspaceError::River(RiverDocumentError::TooManyRivers(count)))
+            if count == MAX_RIVERS_PER_DOCUMENT + 1
+    ));
+    assert_eq!(full.content_hash().unwrap(), before_hash);
+
+    let control_polyline = |key: &str, z_m: f32, point_count: usize| AuthoredPath {
+        id: PathId::deterministic(key),
+        name: key.to_owned(),
+        closed: false,
+        interpolation: PathInterpolation::CentripetalCatmullRomV1,
+        control_points: (0..point_count)
+            .map(|index| {
+                let x_m = if index % 2 == 0 { -250.0 } else { 250.0 };
+                PathControlPoint::new(Vec3::new(x_m, 0.0, z_m))
+            })
+            .collect(),
+    };
+    let mut length_limited = source();
+    let first_path = control_polyline("river-length-a", -20.0, 9);
+    let second_path = control_polyline("river-length-b", 20.0, 9);
+    let mut long_paths = vec![first_path.clone(), second_path.clone()];
+    long_paths.sort_by_key(|path| path.id);
+    length_limited.project.modules[0].areas[0].paths.paths = long_paths;
+    length_limited.validate().unwrap();
+    for path in [&first_path, &second_path] {
+        length_limited = length_limited
+            .preview_edit(edit(
+                &length_limited,
+                river_change(&length_limited, authored_river(path.id, 4.0)),
+            ))
+            .unwrap()
+            .document;
+    }
+    let before_hash = length_limited.content_hash().unwrap();
+    let redrawn = control_polyline("river-length-a", -20.0, 10);
+    assert_eq!(redrawn.id, first_path.id);
+    assert!(matches!(
+        length_limited.preview_edit(edit(
+            &length_limited,
+            path_change(&length_limited, redrawn)
+        )),
+        Err(WorkspaceError::TotalRiverLengthExceeded {
+            length_m,
+            maximum_m
+        }) if length_m > MAX_TOTAL_RIVER_LENGTH_M
+            && maximum_m == MAX_TOTAL_RIVER_LENGTH_M
+    ));
+    assert_eq!(length_limited.content_hash().unwrap(), before_hash);
+}
+
+#[test]
 fn upsert_path_enforces_document_and_per_path_limits_before_commit() {
     let mut full = source();
     let mut paths = (0..MAX_PATHS_PER_DOCUMENT)
@@ -1054,6 +1525,8 @@ fn add_module_then_area_is_deterministic_pure_and_reversible_by_receipt() {
     assert!(area.paths.paths.is_empty());
     assert_eq!(area.roads.revision, next.revision);
     assert!(area.roads.roads.is_empty());
+    assert_eq!(area.rivers.revision, next.revision);
+    assert!(area.rivers.rivers.is_empty());
     assert!(
         area.vegetation_density
             .layers
@@ -1090,11 +1563,13 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     assert_eq!(area.name, area.vegetation_density.name);
     assert_eq!(area.name, area.paths.name);
     assert_eq!(area.name, area.roads.name);
+    assert_eq!(area.name, area.rivers.name);
     assert_eq!(area.terrain.revision, result.revision);
     assert_eq!(area.vegetation.revision, result.revision);
     assert_eq!(area.vegetation_density.revision, result.revision);
     assert_eq!(area.paths.revision, result.revision);
     assert_eq!(area.roads.revision, result.revision);
+    assert_eq!(area.rivers.revision, result.revision);
     assert_eq!(area.terrain.height_sampling, old.terrain.height_sampling);
     assert_eq!(area.terrain.seed, old.terrain.seed);
     assert_eq!(area.vegetation.seed, old.vegetation.seed);
@@ -1105,6 +1580,7 @@ fn metadata_targets_only_selected_area_and_preserves_relief_and_ids() {
     );
     assert_eq!(area.paths.paths, old.paths.paths);
     assert_eq!(area.roads.roads, old.roads.roads);
+    assert_eq!(area.rivers.rivers, old.rivers.rivers);
     assert_eq!(area.spawn.y.to_bits(), 1024.0_f32.to_bits());
     assert_eq!(result.revision.get(), 2);
 }
@@ -2232,6 +2708,7 @@ fn collection_budgets_and_global_area_identity_are_validated() {
             area.vegetation_density.area_id = area.id;
             area.paths.area_id = area.id;
             area.roads.area_id = area.id;
+            area.rivers.area_id = area.id;
             area
         })
         .collect();

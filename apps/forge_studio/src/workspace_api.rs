@@ -2,8 +2,8 @@
 
 use forge_core::{AreaId, EntityId, ModuleId};
 use forge_project::{
-    AuthoredRoad, PathId, VegetationExclusionId, VegetationInstanceTransform, VegetationLayerId,
-    VegetationSpeciesPreset,
+    AuthoredRiver, AuthoredRoad, PathId, VegetationExclusionId, VegetationInstanceTransform,
+    VegetationLayerId, VegetationSpeciesPreset,
 };
 use serde::{Deserialize, Serialize};
 
@@ -128,6 +128,10 @@ pub enum WorkspaceCommand {
     UpsertRoad {
         request: crate::area_preview::AreaPreviewRequest,
         road: AuthoredRoad,
+    },
+    UpsertRiver {
+        request: crate::area_preview::AreaPreviewRequest,
+        river: AuthoredRiver,
     },
     Current,
     Create {
@@ -298,6 +302,20 @@ mod tests {
                     surface: forge_project::RoadSurface::CompactedEarthV1,
                 },
             },
+            WorkspaceCommand::UpsertRiver {
+                request,
+                river: AuthoredRiver {
+                    path_id: PathId::deterministic("ipc-river-path"),
+                    channel: forge_project::RiverChannelProfile {
+                        algorithm:
+                            forge_project::RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                        surface_width_m: 8.0,
+                        bed_depth_m: 1.5,
+                        bank_blend_width_m: 4.0,
+                    },
+                    surface: forge_project::RiverSurface::ForgeWaterV1,
+                },
+            },
             WorkspaceCommand::Undo { base_revision: 1 },
             WorkspaceCommand::Redo { base_revision: 2 },
             WorkspaceCommand::Close,
@@ -394,6 +412,23 @@ mod tests {
         .unwrap();
         road["road"]["profile"]["unexpected"] = serde_json::json!(true);
         assert!(serde_json::from_value::<WorkspaceCommand>(road).is_err());
+
+        let mut river = serde_json::to_value(WorkspaceCommand::UpsertRiver {
+            request,
+            river: AuthoredRiver {
+                path_id: PathId::deterministic("strict-ipc-river"),
+                channel: forge_project::RiverChannelProfile {
+                    algorithm: forge_project::RiverChannelProfileAlgorithm::TerrainCarvedChannelV1,
+                    surface_width_m: 8.0,
+                    bed_depth_m: 1.5,
+                    bank_blend_width_m: 4.0,
+                },
+                surface: forge_project::RiverSurface::ForgeWaterV1,
+            },
+        })
+        .unwrap();
+        river["river"]["channel"]["unexpected"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<WorkspaceCommand>(river).is_err());
     }
 
     #[test]

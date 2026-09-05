@@ -354,6 +354,7 @@ pub fn preview_upsert_road(
         },
     })?;
     validate_candidate_roads(&edit, command.module_id, command.area_id)?;
+    crate::river::validate_candidate_rivers(&edit, command.module_id, command.area_id)?;
     Ok(RoadUpsertResult {
         road: command.road,
         command,
@@ -771,6 +772,8 @@ pub enum RoadCommandError {
     Workspace(#[from] WorkspaceError),
     #[error("generated road candidate is invalid: {0}")]
     Generation(#[from] RoadGenerationError),
+    #[error("river projection affected by the road edit is invalid: {0}")]
+    RiverGeneration(#[from] crate::river::RiverGenerationError),
 }
 
 #[cfg(test)]
