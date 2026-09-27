@@ -18,6 +18,10 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::{Arc, OnceLock};
 use thiserror::Error;
+mod render_density;
+mod spatial_density;
+pub use render_density::VegetationRenderDensityProjection;
+pub(crate) use spatial_density::mask_weight;
 
 pub const VISUAL_VALLEY_VEGETATION_SEED: u64 = 0x5645_4745_5441_5445;
 pub const VISUAL_VALLEY_VEGETATION_CELLS_PER_CHUNK_AXIS: u16 = 8;
@@ -54,7 +58,7 @@ impl VisualValleyVegetationRecipe {
     )]
     pub fn build(self) -> Result<VegetationDocument, VegetationDocumentError> {
         let meadow_grass = || TerrainMaterialLayerId::new("meadow_grass");
-        let document = VegetationDocument::new(
+        let mut document = VegetationDocument::new(
             ProjectId::deterministic("visual-valley-project"),
             AreaId::deterministic("visual-valley-area"),
             Revision::INITIAL,
@@ -132,8 +136,8 @@ impl VisualValleyVegetationRecipe {
                     "forge_grass",
                     "Forge grass patches",
                     VegetationKind::Grass,
-                    0.32,
-                    4,
+                    0.8,
+                    8,
                     0.0,
                     0.7,
                     1.25,
@@ -178,6 +182,11 @@ impl VisualValleyVegetationRecipe {
                 grass_blades_per_patch: 32,
             },
         );
+        document.layers[3].density_pattern = Some(forge_project::VegetationDensityPattern {
+            patch_size_m: 32.0,
+            minimum_multiplier: 0.15,
+            maximum_multiplier: 1.6,
+        });
         document.validate()?;
         Ok(document)
     }
@@ -322,17 +331,72 @@ pub struct VegetationGenerationPlan {
     terrain: TerrainGenerationPlan,
     vegetation: VegetationDocument,
     vegetation_document_hash: ContentHash,
+    path_exclusions: Vec<VegetationExclusion>,
+    river_exclusions: Vec<crate::river_vegetation::Segment>,
+    building_exclusions: Vec<crate::building_vegetation::Footprint>,
     material_filter_indices: Vec<Option<usize>>,
     cells_per_axis: u16,
     generated: OnceLock<Arc<GeneratedVegetation>>,
+    promoted: std::collections::BTreeSet<(VegetationLayerId, EntityId)>,
 }
 
 impl VegetationGenerationPlan {
+    /// Suppress exact promoted origins after spacing acceptance, retaining neighbours.
+    /// An unresolved origin is an explicit conflict, never silently discarded.
+    pub fn with_promotions(
+        mut self,
+        origins: &[forge_project::zone_authoring::promotion::PromotedInstance],
+    ) -> Result<Self, VegetationGenerationError> {
+        if !self.promoted.is_empty() {
+            return Err(VegetationGenerationError::InvalidPromotions(
+                "Promotions already installed".into(),
+            ));
+        }
+        if origins.is_empty() {
+            return Ok(self);
+        }
+        if origins.len() > forge_project::zone_authoring::placements::MAX_MANUAL_PLACEMENTS {
+            return Err(VegetationGenerationError::InvalidPromotions(
+                "Promotion quota exceeded".into(),
+            ));
+        }
+        for origin in origins {
+            if !self
+                .vegetation
+                .layers
+                .iter()
+                .any(|l| l.id == origin.layer_id && l.kind == VegetationKind::Tree)
+                || !self
+                    .promoted
+                    .insert((origin.layer_id.clone(), origin.instance_id))
+            {
+                return Err(VegetationGenerationError::InvalidPromotions(
+                    "Duplicate or absent tree layer".into(),
+                ));
+            }
+        }
+        self.vegetation_document_hash = canonical_json_sha256(&(
+            "forge-promoted-scatter-v1",
+            self.vegetation_document_hash,
+            &self.promoted,
+        ))
+        .map_err(|e| VegetationGenerationError::InvalidPromotions(e.to_string()))?;
+        self.generated = OnceLock::new();
+        Ok(self)
+    }
+    /// Identity of the derived population, including authored corridor recipes.
+    #[must_use]
+    pub const fn source_hash(&self) -> ContentHash {
+        self.vegetation_document_hash
+    }
     pub fn from_documents(
         terrain: &TerrainDocument,
         vegetation: &VegetationDocument,
     ) -> Result<Self, VegetationGenerationError> {
         vegetation.validate()?;
+        if vegetation.imported_source.is_some() {
+            return Err(VegetationGenerationError::ImportedSourceRequiresResolver);
+        }
         let terrain = TerrainGenerationPlan::from_document(terrain)?;
         if terrain.document().project_id != vegetation.project_id {
             return Err(VegetationGenerationError::ProjectIdentityMismatch);
@@ -369,11 +433,30 @@ impl VegetationGenerationPlan {
         Ok(Self {
             terrain,
             vegetation_document_hash: vegetation.content_hash()?,
+            path_exclusions: Vec::new(),
+            river_exclusions: Vec::new(),
+            building_exclusions: Vec::new(),
             vegetation: vegetation.clone(),
             material_filter_indices,
             cells_per_axis: vegetation.cells_per_chunk_axis * TERRAIN_CHUNKS_PER_AXIS,
             generated: OnceLock::new(),
+            promoted: std::collections::BTreeSet::new(),
         })
+    }
+
+    /// Interpret authored vegetation and path-derived clearances separately.
+    /// Filtering precedes spacing acceptance, just like authored exclusions.
+    pub fn from_documents_with_paths(
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+        paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+    ) -> Result<Self, VegetationGenerationError> {
+        let mut plan = Self::from_documents(terrain, vegetation)?;
+        let prepared = crate::path_vegetation::prepare(vegetation, paths)
+            .map_err(VegetationGenerationError::InvalidPathExclusions)?;
+        plan.vegetation_document_hash = prepared.source_hash;
+        plan.path_exclusions = prepared.exclusions;
+        Ok(plan)
     }
 
     #[must_use]
@@ -381,9 +464,56 @@ impl VegetationGenerationPlan {
         &self.terrain
     }
 
+    /// Combined generated clearances, independent from manual exclusion quotas.
+    /// With no rivers, preserve the existing path projection hash exactly.
+    pub fn from_documents_with_waterways(
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+        paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+        rivers: &[forge_project::zone_authoring::rivers::AuthoredRiver],
+    ) -> Result<Self, VegetationGenerationError> {
+        let mut plan = Self::from_documents_with_paths(terrain, vegetation, paths)?;
+        plan.river_exclusions = crate::river_vegetation::prepare(terrain, rivers)
+            .map_err(VegetationGenerationError::InvalidRiverExclusions)?;
+        if !rivers.is_empty() {
+            plan.vegetation_document_hash = canonical_json_sha256(&(
+                "river-vegetation-projection-v1",
+                plan.vegetation_document_hash,
+                rivers,
+            ))
+            .map_err(|error| {
+                VegetationGenerationError::InvalidRiverExclusions(error.to_string())
+            })?;
+        }
+        Ok(plan)
+    }
+
     #[must_use]
     pub const fn vegetation(&self) -> &VegetationDocument {
         &self.vegetation
+    }
+
+    /// Root clearances derived from accepted rooms, without changing vegetation
+    /// masks or consuming authored exclusion slots. Does not clip overhanging crowns.
+    pub fn from_documents_with_buildings(
+        terrain: &TerrainDocument,
+        vegetation: &VegetationDocument,
+        paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+        rivers: &[forge_project::zone_authoring::rivers::AuthoredRiver],
+        buildings: &[forge_project::zone_authoring::buildings::AuthoredBuilding],
+    ) -> Result<Self, VegetationGenerationError> {
+        let mut plan = Self::from_documents_with_waterways(terrain, vegetation, paths, rivers)?;
+        plan.building_exclusions = crate::building_vegetation::prepare(terrain, buildings)
+            .map_err(VegetationGenerationError::InvalidBuildingExclusions)?;
+        if !plan.building_exclusions.is_empty() {
+            plan.vegetation_document_hash = canonical_json_sha256(&(
+                "building-vegetation-projection-v1",
+                plan.vegetation_document_hash,
+                &plan.building_exclusions,
+            ))
+            .map_err(|e| VegetationGenerationError::InvalidBuildingExclusions(e.to_string()))?;
+        }
+        Ok(plan)
     }
 
     #[must_use]
@@ -393,6 +523,37 @@ impl VegetationGenerationPlan {
 
     pub fn generate(&self) -> Result<Arc<GeneratedVegetation>, VegetationGenerationError> {
         Ok(Arc::clone(self.generated()?))
+    }
+
+    /// Resolve a canonical tree from an acknowledged projection, never a quality-only decoration.
+    /// Asset selection is deliberately left to the governed prototype resolver.
+    pub fn resolve_promotion_source(
+        &self,
+        terrain_hash: ContentHash,
+        vegetation_hash: ContentHash,
+        layer_id: &VegetationLayerId,
+        instance_id: EntityId,
+    ) -> Result<VegetationInstance, VegetationGenerationError> {
+        if terrain_hash != self.terrain.document_hash() || vegetation_hash != self.source_hash() {
+            return Err(VegetationGenerationError::InvalidPromotions(
+                "Stale promotion selection: terrain or vegetation source changed".into(),
+            ));
+        }
+        self.generate()?
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .find(|instance| {
+                instance.kind == VegetationKind::Tree
+                    && &instance.layer_id == layer_id
+                    && instance.id.as_entity_id() == instance_id
+            })
+            .cloned()
+            .ok_or_else(|| {
+                VegetationGenerationError::InvalidPromotions(
+                    "Selected canonical tree is absent or already promoted".into(),
+                )
+            })
     }
 
     /// Returns the exact cached subset used by [`Self::generate`], including cross-chunk spacing.
@@ -419,6 +580,7 @@ impl VegetationGenerationPlan {
     }
 
     fn generate_uncached(&self) -> Result<GeneratedVegetation, VegetationGenerationError> {
+        let mut unresolved = self.promoted.clone();
         let mut chunks = Vec::with_capacity(usize::from(TERRAIN_CHUNKS_PER_AXIS).pow(2));
         for z in 0..TERRAIN_CHUNKS_PER_AXIS {
             for x in 0..TERRAIN_CHUNKS_PER_AXIS {
@@ -451,6 +613,12 @@ impl VegetationGenerationPlan {
                         {
                             let xz = [instance.position_m.x, instance.position_m.z];
                             if spacing_indexes[layer_index].accept(xz) {
+                                if unresolved.remove(&(
+                                    instance.layer_id.clone(),
+                                    instance.id.as_entity_id(),
+                                )) {
+                                    continue;
+                                }
                                 let coordinate = self.owner_chunk(cell_x, cell_z);
                                 let index = usize::from(
                                     coordinate.z * TERRAIN_CHUNKS_PER_AXIS + coordinate.x,
@@ -464,6 +632,11 @@ impl VegetationGenerationPlan {
             }
         }
 
+        if !unresolved.is_empty() {
+            return Err(VegetationGenerationError::UnresolvedPromotions(
+                unresolved.into_iter().collect(),
+            ));
+        }
         let mut kind_counts = VegetationKindCounts::default();
         for chunk in &chunks {
             kind_counts.add(chunk.kind_counts);
@@ -487,6 +660,25 @@ impl VegetationGenerationPlan {
         cell_z: u16,
         attempt: u8,
     ) -> Result<Option<VegetationInstance>, VegetationGenerationError> {
+        self.generate_attempt_with_acceptance(
+            layer_index,
+            layer,
+            cell_x,
+            cell_z,
+            attempt,
+            self.attempt_acceptance(layer, cell_x, cell_z, attempt),
+        )
+    }
+
+    fn generate_attempt_with_acceptance(
+        &self,
+        layer_index: usize,
+        layer: &VegetationLayer,
+        cell_x: u16,
+        cell_z: u16,
+        attempt: u8,
+        acceptance: f64,
+    ) -> Result<Option<VegetationInstance>, VegetationGenerationError> {
         let entropy = attempt_entropy(
             self.vegetation.seed,
             layer.id.as_str(),
@@ -494,7 +686,7 @@ impl VegetationGenerationPlan {
             cell_z,
             attempt,
         );
-        if unit_f64(entropy, 0) >= f64::from(layer.acceptance_probability) {
+        if unit_f64(entropy, 0) >= acceptance {
             return Ok(None);
         }
 
@@ -503,7 +695,16 @@ impl VegetationGenerationPlan {
             .vegetation
             .exclusions
             .iter()
+            .chain(&self.path_exclusions)
             .any(|exclusion| exclusion_contains(exclusion, x_m, z_m))
+            || self
+                .river_exclusions
+                .iter()
+                .any(|segment| segment.contains(x_m, z_m))
+            || self
+                .building_exclusions
+                .iter()
+                .any(|footprint| footprint.contains(x_m, z_m))
         {
             return Ok(None);
         }
@@ -711,15 +912,26 @@ fn respects_spacing(candidate: [f32; 2], minimum_spacing_m: f32, accepted: &[[f3
 
 #[must_use]
 fn exclusion_contains(exclusion: &VegetationExclusion, x_m: f32, z_m: f32) -> bool {
+    exclusion_contains_f64(exclusion, f64::from(x_m), f64::from(z_m))
+}
+
+pub(crate) fn exclusion_contains_f64(exclusion: &VegetationExclusion, x_m: f64, z_m: f64) -> bool {
     match exclusion {
+        VegetationExclusion::PolylineCorridor {
+            points_xz_m,
+            half_width_m,
+            ..
+        } => points_xz_m
+            .windows(2)
+            .any(|pair| corridor_contains(pair[0], pair[1], *half_width_m, x_m, z_m)),
         VegetationExclusion::Circle {
             center_x_m,
             center_z_m,
             radius_m,
             ..
         } => {
-            let delta_x = f64::from(x_m) - f64::from(*center_x_m);
-            let delta_z = f64::from(z_m) - f64::from(*center_z_m);
+            let delta_x = x_m - f64::from(*center_x_m);
+            let delta_z = z_m - f64::from(*center_z_m);
             delta_x * delta_x + delta_z * delta_z <= f64::from(*radius_m).powi(2)
         }
         VegetationExclusion::CorridorSegment {
@@ -729,25 +941,55 @@ fn exclusion_contains(exclusion: &VegetationExclusion, x_m: f32, z_m: f32) -> bo
             end_z_m,
             half_width_m,
             ..
-        } => {
-            let start_x = f64::from(*start_x_m);
-            let start_z = f64::from(*start_z_m);
-            let segment_x = f64::from(*end_x_m) - start_x;
-            let segment_z = f64::from(*end_z_m) - start_z;
-            let point_x = f64::from(x_m) - start_x;
-            let point_z = f64::from(z_m) - start_z;
-            let segment_length_squared = segment_x * segment_x + segment_z * segment_z;
-            let amount = ((point_x * segment_x + point_z * segment_z) / segment_length_squared)
-                .clamp(0.0, 1.0);
-            let delta_x = point_x - segment_x * amount;
-            let delta_z = point_z - segment_z * amount;
-            delta_x * delta_x + delta_z * delta_z <= f64::from(*half_width_m).powi(2)
-        }
+        } => corridor_contains(
+            [*start_x_m, *start_z_m],
+            [*end_x_m, *end_z_m],
+            *half_width_m,
+            x_m,
+            z_m,
+        ),
     }
+}
+
+fn corridor_contains(
+    start: [f32; 2],
+    end: [f32; 2],
+    half_width_m: f32,
+    x_m: f64,
+    z_m: f64,
+) -> bool {
+    let start_x = f64::from(start[0]);
+    let start_z = f64::from(start[1]);
+    let segment_x = f64::from(end[0]) - start_x;
+    let segment_z = f64::from(end[1]) - start_z;
+    let point_x = x_m - start_x;
+    let point_z = z_m - start_z;
+    let segment_length_squared = segment_x * segment_x + segment_z * segment_z;
+    let amount =
+        ((point_x * segment_x + point_z * segment_z) / segment_length_squared).clamp(0.0, 1.0);
+    let delta_x = point_x - segment_x * amount;
+    let delta_z = point_z - segment_z * amount;
+    delta_x * delta_x + delta_z * delta_z <= f64::from(half_width_m).powi(2)
 }
 
 #[derive(Debug, Error)]
 pub enum VegetationGenerationError {
+    #[error("Imported vegetation requires its content-addressed instance resolver")]
+    ImportedSourceRequiresResolver,
+    #[error("promoted origins no longer resolve; explicit reconciliation required: {0:?}")]
+    UnresolvedPromotions(Vec<(VegetationLayerId, EntityId)>),
+    #[error("invalid promoted vegetation origins: {0}")]
+    InvalidPromotions(String),
+    #[error("river-derived vegetation clearances are invalid: {0}")]
+    InvalidRiverExclusions(String),
+    #[error("Invalid building vegetation exclusions: {0}")]
+    InvalidBuildingExclusions(String),
+    #[error("path-derived vegetation clearances are invalid: {0}")]
+    InvalidPathExclusions(String),
+    #[error("render vegetation density must be finite and within 0.1..=2.0")]
+    InvalidRenderDensity,
+    #[error("render vegetation placement count exceeds u32 capacity")]
+    RenderDensityCountOverflow,
     #[error("vegetation document is invalid: {0}")]
     InvalidVegetationDocument(#[from] VegetationDocumentError),
     #[error("terrain document is invalid or unsupported: {0}")]
@@ -775,6 +1017,69 @@ pub enum VegetationGenerationError {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn world_sketch_corridors_exclude_scatter_without_moving_surviving_instances() {
+        let compiled =
+            crate::compile_world_sketch(&crate::embedded_visual_valley_world_sketch().unwrap())
+                .unwrap();
+        let mut before_document = compiled.vegetation.clone();
+        before_document
+            .exclusions
+            .retain(|e| !matches!(e, VegetationExclusion::PolylineCorridor { .. }));
+        let before =
+            VegetationGenerationPlan::from_documents(&compiled.carved_terrain, &before_document)
+                .unwrap()
+                .generate()
+                .unwrap();
+        let after = VegetationGenerationPlan::from_documents(
+            &compiled.carved_terrain,
+            &compiled.vegetation,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        let replay = VegetationGenerationPlan::from_documents(
+            &compiled.carved_terrain,
+            &compiled.vegetation,
+        )
+        .unwrap()
+        .generate()
+        .unwrap();
+        assert_eq!(after, replay);
+        let old: std::collections::HashMap<_, _> = before
+            .chunks
+            .iter()
+            .flat_map(|c| &c.instances)
+            .map(|i| (i.id, i))
+            .collect();
+        let mut survivors = 0;
+        for instance in after.chunks.iter().flat_map(|c| &c.instances) {
+            assert!(
+                !compiled
+                    .vegetation
+                    .exclusions
+                    .iter()
+                    .any(|e| exclusion_contains(e, instance.position_m.x, instance.position_m.z))
+            );
+            if let Some(previous) = old.get(&instance.id) {
+                assert_eq!(*previous, instance);
+                survivors += 1;
+            }
+        }
+        assert!(survivors > 1000);
+        assert!(after.kind_counts.total() < before.kind_counts.total());
+        let reopened =
+            VegetationDocument::from_json(&compiled.vegetation.to_pretty_json().unwrap()).unwrap();
+        assert_eq!(reopened, compiled.vegetation);
+        let mut invalid = compiled.vegetation.clone();
+        let VegetationExclusion::PolylineCorridor { points_xz_m, .. } = &mut invalid.exclusions[2]
+        else {
+            panic!("expected corridor");
+        };
+        points_xz_m[1] = points_xz_m[0];
+        assert!(invalid.validate().is_err());
+    }
+
     use super::*;
     use crate::VisualValleyTerrainRecipe;
     use forge_project::TerrainHeightDelta;
@@ -803,7 +1108,7 @@ mod tests {
         );
         assert_eq!(
             fixture.content_hash().unwrap().to_string(),
-            "5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8"
+            "b26f8ec68b996f41887bda3eddd9d641e861cc8bbd00645c0de2df6739e51b5c"
         );
         assert_eq!(fixture.extent_m, VegetationExtent::new(512.0, 512.0));
         assert_eq!(fixture.layers.len(), 4);
@@ -990,12 +1295,12 @@ mod tests {
                 trees: 704,
                 shrubs: 1_228,
                 ferns: 1_282,
-                grass_patches: 5_068,
+                grass_patches: 21_431,
             }
         );
         assert_eq!(
             generated.content_hash().unwrap().to_string(),
-            "82995caa4f17c315cdc42542b255e50945dc70b2e3c959a97b818ebbd60ceb98"
+            "c24eee7a0a6f19e249436c568c8e5f1403cc6ec9013de5ef81554cf465eefa5f"
         );
         for kind in [
             VegetationKind::Tree,

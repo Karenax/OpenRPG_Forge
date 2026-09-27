@@ -1,0 +1,102 @@
+{
+  "schema_version": "0.1",
+  "bestiary_id": "openrpg-forge.bestiary.fr.v0.2",
+  "title": "Bestiaire OpenRPG Forge",
+  "subtitle": "Lisières, eaux et cendres — volume I",
+  "language": "fr-FR",
+  "status": "design-proposal-not-implemented",
+  "ruleset": {
+    "id": "openrpg-forge.systemic-rpg.v1",
+    "sha256": "7C5A3089D4013932FEF9A6A22F38E3CA3165DEA7E8590FC9273DE1242802D37E"
+  },
+  "player_handbook": {
+    "id": "openrpg-forge.player-handbook.fr.v0.1",
+    "sha256": "1C3D1D588A825DEAFFC80130EE3E33E42479E0A5ACE9BD5485B91C0EBE538566"
+  },
+  "design_system": {
+    "id": "openrpg-forge.design-system.fr.v0.1",
+    "sha256": "875651CDE234E24B02BF0D533CA396078F215EF9F50C558E775E83FB6D5762BE"
+  },
+  "knowledge_difficulties": {
+    "14": "signe évident ou savoir local courant",
+    "18": "observation attentive ou expérience de terrain",
+    "22": "expertise confirmée et recoupement",
+    "26": "preuve rare, autopsie ou rencontre directe",
+    "30": "secret exceptionnel ou causalité dissimulée",
+    "34": "vérité presque inaccessible sans source unique"
+  },
+  "release_wave": {
+    "id": "humanoid-families.v0.2",
+    "status": "design-proposal-not-implemented",
+    "entry_ids": [
+      "creature.rivefil-gobelin",
+      "creature.veille-lueur-gobeline",
+      "creature.prevote-gobeline-des-sept-vannes",
+      "creature.cours-de-bise-gnoll",
+      "creature.mirevent-gnolle",
+      "creature.cartographe-gnoll-du-tonnerre",
+      "creature.porte-schiste-orc",
+      "creature.greffepente-orque",
+      "creature.maitre-etai-orc-de-la-faille-claire"
+    ],
+    "major_entry_ids": [
+      "creature.prevote-gobeline-des-sept-vannes",
+      "creature.cartographe-gnoll-du-tonnerre",
+      "creature.maitre-etai-orc-de-la-faille-claire"
+    ],
+    "families": {
+      "gobelin": {
+        "label": "Gobelins des ouvrages d’eau",
+        "entry_ids": [
+          "creature.rivefil-gobelin",
+          "creature.veille-lueur-gobeline",
+          "creature.prevote-gobeline-des-sept-vannes"
+        ]
+      },
+      "gnoll": {
+        "label": "Gnolls des Routes Hautes",
+        "entry_ids": [
+          "creature.cours-de-bise-gnoll",
+          "creature.mirevent-gnolle",
+          "creature.cartographe-gnoll-du-tonnerre"
+        ]
+      },
+      "orc": {
+        "label": "Orcs des Terrasses de Schiste",
+        "entry_ids": [
+          "creature.porte-schiste-orc",
+          "creature.greffepente-orque",
+          "creature.maitre-etai-orc-de-la-faille-claire"
+        ]
+      }
+    },
+    "editorial_constraints": [
+      "Les capacités viennent d’un métier, d’un équipement, d’un apprentissage ou d’un milieu, jamais d’une hostilité innée.",
+      "Chaque profil propose au moins une issue de négociation, d’entraide, de reddition ou de réparation.",
+      "La récupération porte sur du matériel abandonné ou cédé, jamais sur une anatomie sapiente par défaut."
+    ]
+  },
+  "entries": [
+    "entries/01-loup-de-bruyere.json",
+    "entries/02-sanglier-de-tourbe.json",
+    "entries/03-cerf-miroir.json",
+    "entries/04-mante-fougere.json",
+    "entries/05-myceleur-gris.json",
+    "entries/06-sangsue-d-orage.json",
+    "entries/07-charognard-de-braise.json",
+    "entries/08-brumaille.json",
+    "entries/09-rodeur-corrompu.json",
+    "entries/10-sentinelle-de-cendre.json",
+    "entries/11-gardien-des-cendres.json",
+    "entries/12-gardien-des-racines.json",
+    "entries/13-rivefil-gobelin.json",
+    "entries/14-veille-lueur-gobeline.json",
+    "entries/15-prevote-gobeline-des-sept-vannes.json",
+    "entries/16-cours-de-bise-gnoll.json",
+    "entries/17-mirevent-gnolle.json",
+    "entries/18-cartographe-gnoll-du-tonnerre.json",
+    "entries/19-porte-schiste-orc.json",
+    "entries/20-greffepente-orque.json",
+    "entries/21-maitre-etai-orc-de-la-faille-claire.json"
+  ]
+}

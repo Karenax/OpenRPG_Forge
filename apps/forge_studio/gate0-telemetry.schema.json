@@ -190,7 +190,9 @@
       "properties": {
         "starts": { "type": "integer", "minimum": 0 },
         "canvas_width_px": { "$ref": "#/$defs/nullable_non_negative_integer" },
-        "canvas_height_px": { "$ref": "#/$defs/nullable_non_negative_integer" }
+        "canvas_height_px": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "render_width_px": { "$ref": "#/$defs/nullable_non_negative_integer" },
+        "render_height_px": { "$ref": "#/$defs/nullable_non_negative_integer" }
       }
     },
     "permissions": {

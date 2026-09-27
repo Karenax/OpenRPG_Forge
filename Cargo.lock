@@ -3370,7 +3370,9 @@ name = "forge_assets"
 version = "0.1.0"
 dependencies = [
  "forge_core",
+ "forge_project",
  "serde",
+ "serde_json",
  "thiserror 2.0.20",
 ]
 
@@ -3382,6 +3384,7 @@ dependencies = [
  "forge_core",
  "forge_project",
  "forge_world",
+ "sha2 0.11.0",
  "thiserror 2.0.20",
 ]
 
@@ -3402,12 +3405,15 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_rapier3d",
+ "forge_assets",
  "forge_core",
  "forge_project",
  "forge_world",
+ "naga",
  "serde",
  "serde_json",
  "tracing",
+ "wgpu",
 ]
 
 [[package]]
@@ -3426,11 +3432,13 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_rapier3d",
+ "forge_assets",
  "forge_core",
  "forge_engine",
  "forge_project",
  "forge_world",
  "serde_json",
+ "sha2 0.11.0",
  "tracing",
  "tracing-subscriber",
 ]
@@ -3441,6 +3449,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "console_error_panic_hook",
+ "forge_assets",
  "forge_core",
  "forge_engine",
  "forge_project",
@@ -3450,6 +3459,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
+ "sha2 0.11.0",
  "tauri",
  "tauri-build",
  "wasm-bindgen",
@@ -3464,6 +3474,7 @@ dependencies = [
  "forge_core",
  "forge_project",
  "serde",
+ "serde_json",
  "thiserror 2.0.20",
 ]
 

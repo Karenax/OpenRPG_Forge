@@ -1,0 +1,247 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.sentinelle-de-cendre",
+  "name": "Sentinelle de cendre",
+  "subtitle": "Gardienne du seuil scellé de la Crypte des Cendres",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "historical-anchor",
+  "origin_notes": "Ancre canonique du contenu actif de la Crypte des Cendres dans le runtime historique main : le nom, la faction ash-legion, la Griffe de cendre, la poussière de cendre et la salle de la Sentinelle y sont établis. La fiche remplace les anciens PV proxy par les ressources exactes du Manuel du joueur et développe une zoologie encore absente des sources. Sur la branche Rust, la Crypte reste une référence de migration et cette créature n’est ni importée ni implémentée.",
+  "major": false,
+  "classification": {
+    "nature": "Gardien humanoïde animé par un noyau de braise",
+    "family": "Sentinelles de cendre",
+    "rarity": "Exceptionnelle hors des cryptes liées à la Légion des cendres",
+    "activity": "Continue tant que le seuil confié demeure menacé",
+    "social": "Veilleur solitaire lié à un poste et à une chaîne de commandement",
+    "threat": "forte",
+    "threat_reason": "Sa patience, sa cuirasse minérale et son contrôle du passage favorisent un affrontement frontal défavorable si le groupe ignore le sol, l’eau et les issues."
+  },
+  "physique": {
+    "dimensions": "1,80 à 2,05 m ; largeur d’épaules 0,65 à 0,85 m",
+    "mass_kg": [105, 165],
+    "locomotion": [
+      "marche bipède lourde",
+      "charge courte en ligne",
+      "pivot de garde autour d’un passage"
+    ],
+    "center_of_gravity": "Central et bas, alourdi par les plaques du torse et une démarche qui privilégie la stabilité.",
+    "silhouette": "Veilleur massif aux plaques gris mat, fissures orangées discrètes et mains terminées par des doigts charbonneux.",
+    "anatomy_zones": [
+      {
+        "zone": "Masque et fentes de perception",
+        "description": "La face minérale dévie les éclats mais les fentes lumineuses restent des zones sensibles.",
+        "protection": 16
+      },
+      {
+        "zone": "Cuirasse du torse",
+        "description": "Des couches de scorie compactée résistent mieux au tranchant qu’aux chocs transmis.",
+        "protection": 24
+      },
+      {
+        "zone": "Bras de frappe",
+        "description": "Les avant-bras sont renforcés pour griffer et bloquer, au prix d’une récupération lente.",
+        "protection": 18
+      },
+      {
+        "zone": "Genoux et chevilles",
+        "description": "Les joints laissent passer la cendre et permettent le pivot ; ils supportent mal torsion et gel.",
+        "protection": 10
+      }
+    ]
+  },
+  "habitats": [
+    "salles de garde de la Crypte des Cendres",
+    "seuils scellés et couloirs funéraires",
+    "pièces sèches alimentées par des braseros ou dépôts de braise"
+  ],
+  "ecology": {
+    "diet": "Aucune ingestion organique observée. Le maintien par chaleur, cendre ou énergie rituelle est supposé mais non démontré.",
+    "lifecycle": "La sentinelle semble connaître des périodes d’immobilité puis de veille. Les archives ne disent pas si elle fut construite, transformée ou liée à une armure.",
+    "reproduction": "Aucune reproduction biologique connue ; la création de nouvelles sentinelles relèverait d’un procédé rituel ou artisanal perdu.",
+    "behavior": "Elle conserve une position, évalue la distance, ferme le passage et poursuit rarement au-delà de la zone confiée.",
+    "niche": "Verrou vivant entre les espaces accessibles et le sanctuaire du Gardien des Cendres.",
+    "environmental_impact": "Sa chaleur lente dessèche les matières proches, couvre les dalles d’une poussière fine et maintient les petits animaux à distance."
+  },
+  "senses": [
+    "Vision frontale à travers des fentes étroites, efficace dans la pénombre mais sensible aux occultations proches.",
+    "Ouïe transmise par la coque et le sol minéral.",
+    "Détection supposée des variations de chaleur devant le seuil."
+  ],
+  "communication": [
+    "Grondement contenu dans la cuirasse avant l’engagement.",
+    "Coups mesurés contre la pierre pour signaler une alerte vers le sanctuaire."
+  ],
+  "signs": [
+    "Dépôt de poussière de cendre en demi-cercle autour d’une position de garde.",
+    "Marques de griffes noires sur les montants à hauteur de poitrine.",
+    "Dalles plus sèches et légèrement chaudes près du seuil.",
+    "Long silence interrompu par un frottement minéral régulier."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Interdire le passage vers les espaces intérieurs de la Crypte.",
+      "Maintenir l’intrus dans l’axe où sa masse et ses griffes dominent."
+    ],
+    "fears": [
+      "Perte de contact avec le seuil confié.",
+      "Refroidissement brutal qui fissure ses joints."
+    ],
+    "morale": "Impassible tant que le passage reste contesté ; sa conduite ressemble davantage à une consigne qu’à du courage.",
+    "escalation": "Elle avertit par le son, ferme l’espace, frappe au contact puis disperse de la cendre si elle est encerclée.",
+    "retreat": "Elle recule jusqu’au seuil et s’y ancre ; elle ne fuit pas vers une autre zone sans ordre explicite."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 5,
+      "constitution": 7,
+      "intelligence": 3,
+      "willpower": 7,
+      "perception": 6,
+      "presence": 4
+    },
+    "skills": {
+      "athletics": 30,
+      "unarmed": 40,
+      "armor": 45,
+      "tactics": 30,
+      "vigilance": 45,
+      "intimidation": 25,
+      "lore": 15
+    },
+    "resources": {
+      "vitality": 114,
+      "stamina": 106,
+      "mana": 74,
+      "balance": 92,
+      "focus": 92
+    },
+    "movement": "4,5 m/s ; charge rectiligne de 5 m maximum ; pivot rapide sur place mais franchissement et escalade difficiles.",
+    "protections": [
+      "Scorie localisée : torse très protégé contre le tranchant, joints moins protégés.",
+      "La masse réduit le recul léger sans annuler une poussée préparée ni un sol glissant."
+    ],
+    "attacks": [
+      {
+        "name": "Griffe de cendre",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 24,
+        "reach": "1,10 m en balayage frontal",
+        "stamina_cost": 9,
+        "preparation": "0,45 s, main ouverte et épaule tournée vers la cible",
+        "telegraph": "Une traînée de poudre tombe des doigts pendant que le bras se retire avant le balayage.",
+        "effect": "Impact tranchant et contondant ; la poussière soulevée gêne brièvement une cible touchée au visage sans supprimer sa perception arbitrairement.",
+        "counterplay": "Esquiver vers l’extérieur du bras, viser le coude pendant la récupération ou opposer une arme d’allonge supérieure."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Voile de cendre",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "tactics",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "cône de 3 m devant la sentinelle",
+        "stamina_cost": 12,
+        "preparation": "0,9 s, contraction du torse et lueur des fissures",
+        "telegraph": "La cendre au sol converge vers ses pieds puis remonte autour du masque avant l’expulsion.",
+        "effect": "Un nuage dense réduit les lignes de vue et permet à la sentinelle de reprendre le contrôle du seuil ; cette extension reste à tester et n’existait pas comme capacité historique.",
+        "counterplay": "Sortir du cône, créer un courant d’air, mouiller la poussière ou profiter de la préparation pour passer derrière elle."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chaleur sèche et flammes brèves",
+        "mechanism": "Les couches minérales chauffent lentement et isolent le noyau ; une exposition prolongée continue toutefois d’accumuler de l’énergie."
+      },
+      {
+        "subject": "tranchant sur la cuirasse",
+        "mechanism": "La scorie compacte dévie une lame sur le torse, tandis que les joints gardent leur protection propre plus faible."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "eau suivie de froid ou de choc",
+        "mechanism": "L’humidité pénètre les fissures ; un refroidissement ou un impact immédiat crée un gradient thermique qui favorise leur rupture."
+      },
+      {
+        "subject": "sol glissant et poussée latérale",
+        "mechanism": "Sa masse devient un désavantage lorsque ses appuis rigides perdent leur friction ou que le passage ne permet pas de se rétablir."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Dalle mouillée puis gelée",
+        "result": "adhérence réduite et pivot ralenti",
+        "chain": "L’eau atteint les joints, le gel raidit les appuis puis une poussée préparée déplace la sentinelle hors de son axe."
+      },
+      {
+        "input": "Vent, tissu ou eau sur un voile de cendre",
+        "result": "nuage déplacé ou fixé au sol",
+        "chain": "Le groupe agit sur les particules elles-mêmes et rétablit une ligne de vue sans ignorer la cause physique du voile."
+      },
+      {
+        "input": "Passage étroit obstrué derrière elle",
+        "result": "recul et repositionnement limités",
+        "chain": "Un obstacle préparé ferme son ancrage, rend sa récupération prévisible et ouvre une route latérale au groupe."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "La poussière en demi-cercle révèle la limite de patrouille et l’axe que la sentinelle cherche à tenir."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "L’eau dans les joints, suivie d’un refroidissement, devrait fragiliser la coque sans éteindre instantanément son noyau."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Les sources ne permettent pas encore de décider si une volonté demeure dans l’armure ou si seule la consigne de garde subsiste."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "gardien de passage",
+      "bloqueur frontal",
+      "initiation au combat environnemental"
+    ],
+    "telegraphs": [
+      "La chaleur des dalles et le demi-cercle de cendre annoncent sa zone de contrôle.",
+      "La poudre qui tombe des doigts précède le balayage de Griffe de cendre.",
+      "La convergence de cendre au sol annonce le Voile avant qu’il masque la vue."
+    ],
+    "noncombat_options": [
+      "Étudier puis contourner sa limite de garde si l’architecture offre une vraie route.",
+      "Bloquer temporairement sa perception avec un écran matériel et franchir le seuil.",
+      "Rechercher une consigne, un sceau ou une autorité rituelle capable de suspendre la garde."
+    ],
+    "complications": [
+      "Repousser la sentinelle peut alerter le sanctuaire par les vibrations du sol.",
+      "Un voile mal dispersé aveugle aussi les alliés et masque les dangers du passage."
+    ]
+  },
+  "salvage": [
+    "Poussière de cendre : butin historique garanti, à redéfinir comme composant gouverné avant toute implémentation Rust."
+  ],
+  "plates": [
+    {
+      "image": "sentinelle-de-cendre-plate.png",
+      "alt": "Sentinelle humanoïde de scorie gardant une porte funéraire, fissures de braise discrètes et poussière en demi-cercle sur les dalles.",
+      "caption": "La sentinelle ne chasse pas : elle transforme un seuil étroit en problème de matière, d’appui et de lecture.",
+      "prompt_key": "sentinelle-de-cendre-plate"
+    }
+  ]
+}

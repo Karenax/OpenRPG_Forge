@@ -14,19 +14,20 @@ required-features = ["native"]
 
 [features]
 default = ["native"]
-native = ["forge_engine/native"]
+native = ["forge_engine/native", "forge_engine/qualification"]
 
 [dependencies]
 bevy.workspace = true
 bevy_rapier3d.workspace = true
+forge_assets.workspace = true
 forge_core.workspace = true
 forge_engine.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true
+sha2.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 
-[dev-dependencies]
 serde_json.workspace = true
 
 [lints]

@@ -1,0 +1,30 @@
+// Run the unchanged pinned buildStations function against an effective document.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+const [root, document, output]=process.argv.slice(2);
+if(!output || fs.existsSync(output)) throw Error('ROOT DOCUMENT NEW_REPORT required');
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const original=fs.readFileSync(path.join(root,'upstream/src/ocean/Breakers.js'),'utf8');
+if(hash(original)!=='0f0119cd0f24a87b46d296f6847aec8145aa5048334b1f50869c08be13ee1d3b') throw Error('source pin');
+const code=original.slice(original.indexOf('export function buildStations('));
+const {buildStations}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const raw=fs.readFileSync(path.join(root,'source-017/terrain/heights.bin'));
+if(hash(raw)!=='be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3') throw Error('height pin');
+const h=new Float32Array(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));
+const doc=JSON.parse(fs.readFileSync(document));
+const corners=new Float64Array(2049*2049);
+for(const d of doc.height_deltas ?? []) corners[d.sample_z*2049+d.sample_x]=d.delta_m;
+const heightAt=(x,z)=>{
+ const fx=x+1023.5,fz=z+1023.5,i=Math.floor(fx),j=Math.floor(fz),tx=fx-i,tz=fz-j,k=j*2048+i;
+ let base=fx<0||fz<0||fx>=2047||fz>=2047 ? -90 : (h[k]*(1-tx)+h[k+1]*tx)*(1-tz)+(h[k+2048]*(1-tx)+h[k+2049]*tx)*tz;
+ base+=doc.height_sampling.base_elevation_m;
+ const gx=x+1024,gz=z+1024;
+ if(gx<0||gz<0||gx>2048||gz>2048) return base;
+ const ix=Math.min(Math.floor(gx),2047),iz=Math.min(Math.floor(gz),2047),u=gx-ix,v=gz-iz,p=iz*2049+ix;
+ return base+(corners[p]*(1-u)+corners[p+1]*u)*(1-v)+(corners[p+2049]*(1-u)+corners[p+2050]*u)*v;
+};
+const {data,count}=buildStations({heightAt});
+const report={count,sha256:hash(Buffer.from(data.buffer)),source_sha256:hash(original)};
+fs.writeFileSync(output,JSON.stringify(report,null,2),{flag:'wx'});
+console.log(JSON.stringify(report));

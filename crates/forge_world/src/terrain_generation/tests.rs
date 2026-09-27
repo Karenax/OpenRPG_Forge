@@ -13,6 +13,75 @@ fn generated() -> GeneratedTerrain {
 }
 
 #[test]
+fn shading_normal_matches_emitted_mesh_without_changing_collision_sample() {
+    let source =
+        crate::compile_world_sketch(&crate::embedded_visual_valley_world_sketch().unwrap())
+            .unwrap();
+    let plan = TerrainGenerationPlan::from_document(&source.carved_terrain).unwrap();
+    let mesh = plan.generate().unwrap();
+    for chunk in &mesh.chunks {
+        for triangle in chunk.indices.as_chunks::<3>().0.iter().step_by(127) {
+            let weights = [0.2, 0.3, 0.5];
+            let mut point = [0.0; 3];
+            let mut expected = [0.0; 3];
+            for (index, weight) in triangle.iter().zip(weights) {
+                for axis in 0..3 {
+                    point[axis] += chunk.positions_m[*index as usize][axis] * weight;
+                    expected[axis] += chunk.normals[*index as usize][axis] * weight;
+                }
+            }
+            let length = expected.iter().map(|v| v * v).sum::<f32>().sqrt();
+            let (surface, normal) = plan
+                .surface_with_shading_normal_at(point[0], point[2])
+                .unwrap();
+            assert_eq!(surface, plan.surface_at(point[0], point[2]).unwrap());
+            for axis in 0..3 {
+                assert!((normal[axis] - expected[axis] / length).abs() < 1.0e-4);
+            }
+        }
+    }
+    assert!(plan.surface_with_shading_normal_at(f32::NAN, 0.0).is_err());
+    assert!(plan.surface_with_shading_normal_at(257.0, 0.0).is_err());
+}
+
+#[test]
+fn height_only_surface_is_bit_exact_for_both_triangles_edges_and_authored_relief() {
+    let source =
+        crate::compile_world_sketch(&crate::embedded_visual_valley_world_sketch().unwrap())
+            .unwrap();
+    for plan in [
+        plan(),
+        TerrainGenerationPlan::from_document(&source.carved_terrain).unwrap(),
+    ] {
+        let hash = plan.document_hash();
+        for cell_x in [0_u16, 1, 31, 32, 127, 128, 254, 255] {
+            for cell_z in [0_u16, 31, 32, 127, 128, 255] {
+                for (u, v) in [(0.0, 0.0), (0.1, 0.2), (0.5, 0.5), (0.9, 0.8), (1.0, 1.0)] {
+                    let x = -256.0 + (f32::from(cell_x) + u) * 2.0;
+                    let z = -256.0 + (f32::from(cell_z) + v) * 2.0;
+                    assert_eq!(
+                        plan.surface_height_at(x, z).unwrap().to_bits(),
+                        plan.surface_at(x, z).unwrap().height_m.to_bits()
+                    );
+                }
+            }
+        }
+        for (x, z) in [
+            (f32::NAN, 0.0),
+            (0.0, f32::INFINITY),
+            (-256.1, 0.0),
+            (0.0, 256.1),
+        ] {
+            assert_eq!(
+                plan.surface_height_at(x, z).unwrap_err().to_string(),
+                plan.surface_at(x, z).unwrap_err().to_string()
+            );
+        }
+        assert_eq!(plan.document_hash(), hash);
+    }
+}
+
+#[test]
 #[allow(clippy::float_cmp)]
 fn centred_plan_and_chunks_cover_every_interval_exactly_once() {
     let generated = generated();

@@ -1,0 +1,184 @@
+{
+  "schema": "forge.asset-kit",
+  "schema_version": 1,
+  "id": "visual-valley-r1-063",
+  "name": "Visual Valley - premier kit gouverne",
+  "revision": 3,
+  "coordinate_system": "right_handed_y_up",
+  "unit": "metre",
+  "generator": {
+    "kind": "blender_bpy_deterministic",
+    "blender_version": "4.5",
+    "script": "scripts/blender/Build-VisualValleyAssetKit.py",
+    "seed": 63001
+  },
+  "art_direction": {
+    "summary": "RPG europeen lumineux, monumental et accueillant, calcaire dore, vegetation saine et silhouettes naturelles.",
+    "forbidden": [
+      "asset Cadle",
+      "asset extrait d'un jeu commercial",
+      "gothique morbide",
+      "palette noir sur noir",
+      "forme primitive non travaillee presentee comme asset final"
+    ],
+    "palette": {
+      "limestone": "#B8A680",
+      "mortar": "#7C7462",
+      "oak_bark": "#4D3522",
+      "oak_leaf": "#3F7334",
+      "pine_needle": "#285A3D",
+      "moss": "#53713B",
+      "lichen": "#B9B57E"
+    }
+  },
+  "provenance": {
+    "author": "OpenRPG Forge project",
+    "source_kind": "procedural_original",
+    "source_uri": null,
+    "license": "LicenseRef-OpenRPG-Forge-Project-Generated",
+    "distribution_status": "internal_gate_proof_only",
+    "cadle_content_used": false,
+    "commercial_game_content_used": false,
+    "human_publication_review_required": true
+  },
+  "validation": {
+    "required_lods": [
+      "LOD0",
+      "LOD1",
+      "LOD2"
+    ],
+    "required_collision": true,
+    "required_uv_layer": "UVMap",
+    "required_material_model": "principled_pbr",
+    "texture_policy": {
+      "resolution": 512,
+      "required_maps": [
+        "base_color",
+        "roughness",
+        "normal"
+      ],
+      "foliage_alpha_required": true,
+      "foliage_alpha_mode": "blend",
+      "embed_in_glb": true
+    },
+    "turntable_angles_degrees": [
+      0,
+      45,
+      90,
+      135,
+      180,
+      225,
+      270,
+      315
+    ],
+    "render_resolution": [
+      1920,
+      1080
+    ],
+    "deterministic_rebuild_count": 2
+  },
+  "assets": [
+    {
+      "id": "vv-rock-moss-a",
+      "kind": "rock",
+      "generator_profile": "mossed_granite",
+      "seed": 63101,
+      "dimensions_m": [
+        3.8,
+        2.6,
+        2.2
+      ],
+      "lod_triangle_budgets": [
+        18000,
+        5000,
+        1200
+      ],
+      "collision": "convex_hull"
+    },
+    {
+      "id": "vv-rock-moss-b",
+      "kind": "rock",
+      "generator_profile": "mossed_granite",
+      "seed": 63102,
+      "dimensions_m": [
+        2.4,
+        2.0,
+        1.6
+      ],
+      "lod_triangle_budgets": [
+        12000,
+        3500,
+        800
+      ],
+      "collision": "convex_hull"
+    },
+    {
+      "id": "vv-tree-oak-a",
+      "kind": "tree",
+      "generator_profile": "broadleaf_oak",
+      "seed": 63201,
+      "dimensions_m": [
+        11.0,
+        11.0,
+        15.5
+      ],
+      "lod_triangle_budgets": [
+        85000,
+        26000,
+        6500
+      ],
+      "collision": "compound_trunk_branches"
+    },
+    {
+      "id": "vv-tree-pine-a",
+      "kind": "tree",
+      "generator_profile": "silver_pine",
+      "seed": 63202,
+      "dimensions_m": [
+        7.5,
+        7.5,
+        18.0
+      ],
+      "lod_triangle_budgets": [
+        70000,
+        22000,
+        5500
+      ],
+      "collision": "compound_trunk_branches"
+    },
+    {
+      "id": "vv-architecture-wall-a",
+      "kind": "architecture",
+      "generator_profile": "limestone_wall",
+      "seed": 63301,
+      "dimensions_m": [
+        4.0,
+        0.72,
+        3.2
+      ],
+      "lod_triangle_budgets": [
+        24000,
+        7000,
+        1800
+      ],
+      "collision": "box_compound"
+    },
+    {
+      "id": "vv-architecture-arch-a",
+      "kind": "architecture",
+      "generator_profile": "limestone_arch",
+      "seed": 63302,
+      "dimensions_m": [
+        4.0,
+        0.9,
+        4.2
+      ],
+      "lod_triangle_budgets": [
+        32000,
+        9000,
+        2200
+      ],
+      "collision": "box_compound"
+    }
+  ]
+}

@@ -1,0 +1,329 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.cartographe-gnoll-du-tonnerre",
+  "name": "Cartographe gnoll du tonnerre",
+  "subtitle": "Maître des balises d’orage et des routes qui changent",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Proposition originale majeure. Le titre de Cartographe du tonnerre récompense une maîtrise technique, historique et diplomatique parmi les Gnolls des Routes Hautes. Il ne décrit ni une caste héréditaire ni une disposition naturelle de l’espèce.",
+  "major": true,
+  "classification": {
+    "nature": "Humanoïde sapient formé à l’élémentalisme atmosphérique",
+    "family": "Gnolls des Routes Hautes",
+    "rarity": "Très rare, un titulaire pour plusieurs réseaux de cols",
+    "activity": "Variable, concentrée avant et pendant les orages",
+    "social": "Expert mandaté entouré d’équipes de relais autonomes",
+    "threat": "majeure",
+    "threat_reason": "Son réseau de balises, sa connaissance du col et sa capacité à guider une décharge transforment toute l’arène, mais chaque effet dépend d’un conducteur visible."
+  },
+  "physique": {
+    "dimensions": "1,85 à 2,15 m ; perche de mesure de 2,4 m",
+    "mass_kg": [82, 122],
+    "locomotion": [
+      "marche bipède assurée",
+      "progression à trois appuis avec perche",
+      "déplacements courts entre points de mise à la terre"
+    ],
+    "center_of_gravity": "Bas et centré, renforcé par une perche plantée en troisième appui lorsque la pluie ou le vent menacent l’équilibre.",
+    "silhouette": "Grand humanoïde à fourrure sombre argentée, manteau de laine segmenté, harnais de bronze relié à une perche de mesure et rouleaux de carte sans écriture visible.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles protégées",
+        "description": "Un capuchon souple réduit la pluie et le bruit, tout en laissant le museau et la vision dégagés.",
+        "protection": 6
+      },
+      {
+        "zone": "Torse sous manteau segmenté",
+        "description": "La laine épaisse et des lamelles non jointives protègent des projections sans former une cage conductrice.",
+        "protection": 13
+      },
+      {
+        "zone": "Harnais de dérivation",
+        "description": "Des bandes de bronze conduisent une charge vers la perche ou une balise ; une connexion rompue devient dangereuse.",
+        "protection": 10
+      },
+      {
+        "zone": "Bras et mains d’instrument",
+        "description": "Gants isolants et mobilité fine permettent de régler les attaches, au prix d’une protection modeste.",
+        "protection": 7
+      },
+      {
+        "zone": "Jambes et appuis",
+        "description": "Bottes cloutées stables sur pierre ; l’eau accumulée peut relier involontairement les deux appuis.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "terrasses de mesure au sommet des cols",
+    "réseaux de balises de bronze et de pierre",
+    "ponts suspendus exposés aux orages",
+    "observatoires de route abandonnés ou contestés"
+  ],
+  "ecology": {
+    "diet": "Régime omnivore ordinaire, soutenu lors des campagnes par les réserves et cuisines des relais.",
+    "lifecycle": "Des décennies d’apprentissage associent cartographie de terrain, histoire orale, mécanismes, sécurité électrique et négociation entre communautés.",
+    "reproduction": "La fonction n’est pas héréditaire. Familles, lignées et apprentissages constituent des réseaux distincts qui peuvent se recouper sans se déterminer.",
+    "behavior": "Il mesure avant d’agir, nomme les risques, place des issues puis protège le réseau si quelqu’un force un passage pendant une phase critique.",
+    "niche": "Maintenance des routes changeantes, prévision des couloirs de foudre et arbitrage des travaux communs.",
+    "environmental_impact": "Les balises réduisent les impacts aléatoires et documentent les glissements, mais un réseau mal entretenu concentre le danger au lieu de l’éliminer."
+  },
+  "senses": [
+    "Vision experte des nuages, ruissellements et déformations du terrain.",
+    "Ouïe attentive au délai entre éclair, tonnerre et résonance des balises.",
+    "Odorat sensible à l’ozone, à la pierre mouillée et au métal chauffé.",
+    "Perception magique entraînée des charges atmosphériques proches, sans omniscience."
+  ],
+  "communication": [
+    "Parole articulée et exposé méthodique des risques.",
+    "Coups codés sur la perche et plaques de résonance non écrites.",
+    "Éclats brefs produits entre balises comme signaux locaux, jamais comme langage universel."
+  ],
+  "signs": [
+    "Quatre balises de bronze reliées à des rigoles de pierre propres.",
+    "Impacts anciens groupés autour d’un conducteur plutôt que dispersés.",
+    "Petites pierres de mesure alignées selon les courbes du ruissellement.",
+    "Odeur d’ozone et vibration grave d’une plaque avant l’arrivée de l’orage."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Maintenir les balises dans une configuration sûre.",
+      "Empêcher une traversée qui exposerait plusieurs vallées à un accident.",
+      "Conserver et transmettre des observations contestables par d’autres experts."
+    ],
+    "fears": [
+      "Une balise arrachée au mauvais instant et devenue source d’arc incontrôlé.",
+      "Une autorité utilisant ses cartes pour exclure durablement une communauté."
+    ],
+    "morale": "Très élevé lorsqu’il protège des vies pendant l’orage ; immédiatement ouvert à une trêve technique crédible.",
+    "escalation": "Il ferme le passage, immobilise par la perche, active une première balise puis engage le réseau complet seulement si les avertissements échouent.",
+    "retreat": "Il se replie vers la pierre de résonance centrale ou quitte l’arène si les balises sont mises en sécurité et les voyageurs évacués."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 7,
+      "constitution": 7,
+      "intelligence": 9,
+      "willpower": 8,
+      "perception": 9,
+      "presence": 8
+    },
+    "skills": {
+      "athletics": 35,
+      "climbing": 45,
+      "survival": 60,
+      "polearms": 45,
+      "mechanisms": 60,
+      "crafting": 50,
+      "lore": 60,
+      "investigation": 55,
+      "vigilance": 65,
+      "tactics": 50,
+      "leadership": 50,
+      "persuasion": 45,
+      "elementalism": 65
+    },
+    "resources": {
+      "vitality": 114,
+      "stamina": 109,
+      "mana": 104,
+      "balance": 92,
+      "focus": 108
+    },
+    "movement": "5,4 m/s ; progression stable avec troisième appui ; course limitée sur dalle mouillée ou au milieu de conducteurs actifs.",
+    "protections": [
+      "Manteau de laine segmenté, gants isolants et lamelles espacées contre pluie et petits impacts.",
+      "Harnais de bronze protecteur seulement lorsqu’il reste relié à une mise à la terre visible.",
+      "Aucune immunité à la foudre : une dérivation défaillante expose pleinement le Cartographe."
+    ],
+    "attacks": [
+      {
+        "name": "Perche de mesure",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 22,
+        "reach": "2,1 m en estoc retenu ou crochetage",
+        "stamina_cost": 9,
+        "preparation": "0,4 s, troisième appui retiré du sol et mains espacées",
+        "telegraph": "Le pied arrière se plante tandis que l’extrémité ferrée quitte sa rigole avec un son clair.",
+        "effect": "Écarte, accroche ou déséquilibre ; le Cartographe évite une pointe vitale tant qu’une issue reste négociable.",
+        "counterplay": "Fermer la distance pendant le retrait, coincer la perche ou répondre à la sommation sans avancer."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Arc de balise",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "intelligence",
+        "impact": 30,
+        "reach": "jusqu’à 18 m entre deux conducteurs visibles",
+        "stamina_cost": 18,
+        "preparation": "1,1 s, perche connectée et deux balises vibrant à l’unisson",
+        "telegraph": "Les rigoles luisent faiblement, les poils se dressent et un bourdonnement relie clairement les deux balises.",
+        "effect": "Une décharge suit le trajet conducteur préparé ; eau, métal et corps en contact peuvent prolonger la chaîne physiquement.",
+        "counterplay": "Rompre une liaison, quitter les surfaces conductrices, mettre la balise à la terre ou attendre que l’arc se décharge ailleurs."
+      },
+      {
+        "name": "Carte des rabattants",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "investigation",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "ensemble de la terrasse de mesure visible",
+        "stamina_cost": 12,
+        "preparation": "1,5 s, comparaison des rigoles, fanions unis et échos",
+        "telegraph": "Il suit du doigt les lignes du sol sans symbole et écoute successivement chaque plaque.",
+        "effect": "Il anticipe une rafale, un ruissellement ou un appui fragile à partir des indices présents et réorganise ses déplacements.",
+        "counterplay": "Changer matériellement le drainage, déplacer un écran ou lui fournir une observation qu’il n’avait pas."
+      },
+      {
+        "name": "Accord du tonnerre",
+        "kind": "ability",
+        "visibility": "secrete",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 26,
+        "reach": "réseau complet des quatre balises, rayon effectif de 12 m",
+        "stamina_cost": 28,
+        "preparation": "2,4 s, quatre plaques répondent dans une séquence grave et la perche reste ancrée",
+        "telegraph": "Chaque balise émet une vibration distincte, les rigoles se remplissent et la pierre centrale résonne avant l’impact.",
+        "effect": "La charge atmosphérique se répartit entre les quatre mises à la terre puis libère une onde de choc et des arcs secondaires suivant les connexions visibles.",
+        "counterplay": "Désaccorder une plaque, isoler une rigole, libérer une voie d’évacuation ou convaincre le Cartographe de suspendre la séquence."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "foudre guidée par son réseau intact",
+        "mechanism": "Harnais, perche et balises dérivent une partie de la charge vers la terre tant que chaque connexion reste visible et continue."
+      },
+      {
+        "subject": "vents de col annoncés",
+        "mechanism": "La lecture du relief et le troisième appui réduisent les pertes d’équilibre contre une rafale anticipée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "connexion de terre rompue",
+        "mechanism": "Le harnais devient un conducteur proche du corps et toute activation électrique menace directement le Cartographe."
+      },
+      {
+        "subject": "eau détournée dans les rigoles",
+        "mechanism": "Un nouveau trajet conducteur redistribue les arcs et peut rendre sa position aussi dangereuse que celle de ses adversaires."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Balises reliées et mises à la terre",
+        "result": "décharge guidée et télégraphiée",
+        "chain": "La charge descend, les plaques vibrent puis l’arc suit les conducteurs au lieu de choisir une cible arbitraire."
+      },
+      {
+        "input": "Rigole inondée ou détournée",
+        "result": "nouvelle branche conductrice",
+        "chain": "L’eau relie deux points, déplace le danger et oblige tous les présents à reconsidérer leurs appuis."
+      },
+      {
+        "input": "Plaque de résonance calée",
+        "result": "séquence majeure désaccordée",
+        "chain": "Le matériau interposé étouffe une fréquence, rompt l’Accord du tonnerre et laisse le réseau se décharger vers la terre."
+      },
+      {
+        "input": "Pont suspendu sous rafale",
+        "result": "voie instable mais évacuable",
+        "chain": "Le vent tend les câbles, la passerelle se déporte et une action coordonnée peut la stabiliser ou la libérer."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 14,
+      "fact": "Les Cartographes du tonnerre sont des experts mandatés ; leur titre s’acquiert et peut être retiré par les relais."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Toute capacité électrique suit une balise, une rigole humide, la perche ou un autre conducteur observable."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "La fermeture actuelle du col pourrait protéger une balise fissurée plutôt que défendre un privilège de passage."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "La carte la plus importante n’est pas un objet : plusieurs communautés mémorisent chacune une partie du réseau afin qu’aucune autorité ne puisse le confisquer."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "adversaire majeur de contrôle environnemental",
+      "expert négociable",
+      "allié potentiel contre l’orage"
+    ],
+    "telegraphs": [
+      "Les quatre balises, rigoles et plaques rendent chaque connexion visible avant l’activation.",
+      "Le bourdonnement et les poils dressés précèdent l’Arc de balise.",
+      "Quatre notes graves successives annoncent l’Accord du tonnerre.",
+      "Le Cartographe désigne toujours une issue sûre avant la première attaque."
+    ],
+    "noncombat_options": [
+      "Inspecter avec lui la balise fissurée et contribuer à sa mise à la terre.",
+      "Accepter l’évacuation temporaire puis négocier un calendrier de passage public.",
+      "Apporter des observations d’une vallée absente afin de compléter la carte distribuée.",
+      "Stabiliser le pont et secourir une équipe de relais prise par l’orage."
+    ],
+    "complications": [
+      "Un sabotage antérieur ressemble à une panne naturelle.",
+      "Une autorité de vallée exige l’ouverture immédiate malgré le risque partagé.",
+      "La pluie transforme une rigole sûre en conducteur vers la zone d’évacuation."
+    ]
+  },
+  "salvage": [
+    "Plaques et perche de mesure uniquement si elles sont abandonnées ou cédées ; elles restent dangereuses hors de leur réseau documenté.",
+    "Copies ou fragments de carte uniquement s’ils sont cédés par les relais ; leur sens dépend de la mémoire collective."
+  ],
+  "plates": [
+    {
+      "image": "cartographe-gnoll-du-tonnerre-plate.png",
+      "alt": "Cartographe gnoll du tonnerre entier sur une terrasse de col, perche de mesure, harnais de bronze et quatre balises visibles.",
+      "caption": "Son autorité vient d’un réseau vérifiable : balises, mesures et responsabilités partagées.",
+      "prompt_key": "cartographe-gnoll-du-tonnerre-plate"
+    },
+    {
+      "image": "cartographe-gnoll-du-tonnerre-dossier.png",
+      "alt": "Vue d’ensemble de la terrasse d’orage montrant quatre balises, rigoles, pierre de résonance, pont suspendu et voies de mise en sécurité.",
+      "caption": "Le dossier révèle une arène de conducteurs et d’accords, où interrompre le danger peut remplacer la victoire.",
+      "prompt_key": "cartographe-gnoll-du-tonnerre-dossier"
+    }
+  ],
+  "major_dossier": {
+    "arena": "Une terrasse de pierre domine un col. Quatre balises de bronze entourent une pierre de résonance ; des rigoles conduisent la pluie, un pont suspendu offre une sortie exposée et chaque connexion peut être observée, isolée ou réparée.",
+    "sequence": [
+      "Le Cartographe ferme le passage, indique l’abri et demande l’arrêt des mouvements près des rigoles.",
+      "Si l’avertissement échoue, il utilise la perche et un Arc de balise entre deux conducteurs clairement actifs.",
+      "La pluie ouvre de nouvelles branches tandis que les rafales rendent le pont instable.",
+      "En dernier recours, les quatre plaques annoncent l’Accord du tonnerre, interrompable avant sa décharge."
+    ],
+    "causal_opportunities": [
+      "Déconnecter proprement une balise ou restaurer sa terre pour détourner un arc sans la détruire.",
+      "Caler une plaque de résonance avec un matériau souple afin de désaccorder la séquence majeure.",
+      "Détourner une rigole pour déplacer la conduction, en vérifiant que la nouvelle route n’atteint personne.",
+      "Stabiliser le pont et évacuer les tiers, ce qui retire au Cartographe sa raison principale d’escalade.",
+      "Partager une observation vérifiable ou reconnaître la fermeture temporaire pour ouvrir une négociation."
+    ],
+    "aftermath": "Une résolution coopérative peut rouvrir le col, créer un protocole public de fermeture et donner accès à une partie de la cartographie orale. La destruction du réseau laisse au contraire plusieurs vallées sans protection lors du prochain orage."
+  }
+}

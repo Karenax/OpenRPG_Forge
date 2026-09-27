@@ -1,0 +1,68 @@
+{
+  "schema": "forge-gate1-renderdoc-capture-rejections/v2",
+  "cases": [
+    {
+      "name": "multiple_frames",
+      "expected_code": "captured_frame_count",
+      "overrides": {
+        "captured_frame_count": 2
+      }
+    },
+    {
+      "name": "multiple_presents",
+      "expected_code": "present_count_mismatch",
+      "overrides": {
+        "present_count": 2
+      }
+    },
+    {
+      "name": "no_present",
+      "expected_code": "present_count_mismatch",
+      "overrides": {
+        "present_count": 0
+      }
+    },
+    {
+      "name": "local_replay_unsupported",
+      "expected_code": "local_replay_not_supported",
+      "overrides": {
+        "local_replay_support": "Unsupported"
+      }
+    },
+    {
+      "name": "d3d12_not_qualified",
+      "expected_code": "pipeline_type_not_qualified",
+      "overrides": {
+        "pipeline_type": "D3D12"
+      }
+    },
+    {
+      "name": "browser_webgpu_not_qualified",
+      "expected_code": "pipeline_type_not_qualified",
+      "overrides": {
+        "pipeline_type": "Browser WebGPU"
+      }
+    },
+    {
+      "name": "pipeline_name_is_exact",
+      "expected_code": "pipeline_type_not_qualified",
+      "overrides": {
+        "pipeline_type": "vulkan"
+      }
+    },
+    {
+      "name": "degraded_replay",
+      "expected_code": "degraded_replay",
+      "overrides": {
+        "degraded": true
+      }
+    },
+    {
+      "name": "boolean_present_count",
+      "expected_code": "invalid_type",
+      "overrides": {
+        "present_count": true
+      }
+    }
+  ]
+}

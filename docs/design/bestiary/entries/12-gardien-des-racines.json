@@ -1,0 +1,315 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.gardien-des-racines",
+  "name": "Gardien des Racines",
+  "subtitle": "Colosse rootbound et cœur défensif de la forêt corrompue",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "historical-anchor",
+  "origin_notes": "Ancre majeure héritée du workspace historique Forgotten Forest de main : le nom, la faction rootbound, la Griffe d’épine, l’appel scripté de deux rootbound-scout et le heartwood-sigil y sont établis. La référence rootbound-scout ne correspond toutefois pas exactement au slug historique scout du Rôdeur corrompu et cette association doit être revalidée. Forgotten Forest n’est plus un contenu Runtime actif et son arène n’offrait pas encore la zoologie systémique détaillée ici. Les anciens PV proxy sont abandonnés au profit des formules exactes du Manuel du joueur. Aucun port de cette créature, de ses données ou de son module n’existe sur la branche Rust.",
+  "major": true,
+  "classification": {
+    "nature": "Colosse végétal lié à un réseau racinaire corrompu",
+    "family": "Liés-aux-racines",
+    "rarity": "Unique par réseau rootbound mature",
+    "activity": "Lente veille continue, brusques phases d’activité en cas d’intrusion",
+    "social": "Noyau de commandement entouré de rôdeurs corrompus",
+    "threat": "majeure",
+    "threat_reason": "Sa masse, son allonge et sa capacité à faire surgir des rôdeurs transforment le terrain forestier en prolongement de son corps."
+  },
+  "physique": {
+    "dimensions": "2,80 à 3,60 m dressé ; envergure de 3,50 à 4,50 m selon les branches",
+    "mass_kg": [420, 780],
+    "locomotion": [
+      "marche bipède lente sur racines épaisses",
+      "ancrage au sol par plusieurs appuis",
+      "rotation du torse avec balayage des bras"
+    ],
+    "center_of_gravity": "Très bas lorsqu’il est ancré, mais déplacé vers l’avant pendant une marche qui soulève successivement ses racines porteuses.",
+    "silhouette": "Tronc humanoïde colossal, couronne de branches irrégulières, bras terminés par des serres ligneuses et réseau de racines visible autour des jambes.",
+    "anatomy_zones": [
+      {
+        "zone": "Couronne et tête creuse",
+        "description": "Les branches protègent la cavité sensorielle mais s’accrochent facilement aux structures et aux cordages.",
+        "protection": 20
+      },
+      {
+        "zone": "Tronc central",
+        "description": "Plusieurs cernes de bois dense couvrent le cœur ; le contondant transmet mieux son énergie que les entailles faibles.",
+        "protection": 30
+      },
+      {
+        "zone": "Bras et griffes d’épine",
+        "description": "Les bras sont renforcés pour le balayage, mais une griffe engagée dans un obstacle devient un levier contre l’articulation.",
+        "protection": 24
+      },
+      {
+        "zone": "Nœuds des hanches et genoux",
+        "description": "Les fibres changent de direction autour de ces articulations et se séparent sous torsion répétée.",
+        "protection": 16
+      },
+      {
+        "zone": "Racines d’ancrage",
+        "description": "Épaisses au contact du corps puis plus fines dans le sol ; elles donnent stabilité, perception et accès au réseau.",
+        "protection": 14
+      }
+    ]
+  },
+  "habitats": [
+    "clairières profondes de Forgotten Forest",
+    "ruines dont les fondations sont traversées par des racines",
+    "sols humides capables d’entretenir un vaste réseau souterrain",
+    "cœurs de forêt contaminés protégés par des rôdeurs corrompus"
+  ],
+  "ecology": {
+    "diet": "Absorption supposée d’eau, de minéraux et de matière organique par le réseau ; aucune prédation alimentaire directe n’est établie.",
+    "lifecycle": "Il pourrait se former lorsqu’un arbre ancien, un esprit local ou plusieurs racines corrompues convergent, mais les sources historiques ne tranchent pas.",
+    "reproduction": "Pas de reproduction attestée. L’extension du réseau et la transformation de nouveaux rôdeurs sont distinctes d’une naissance de Gardien.",
+    "behavior": "Il demeure immobile jusqu’à ce que le réseau détecte une menace, cherche ensuite à l’enfermer entre ses appuis et appelle des éclaireurs.",
+    "niche": "Centre défensif, relais de perception et organisateur des patrouilles rootbound.",
+    "environmental_impact": "Le réseau soulève les chemins, détourne l’eau, étouffe les jeunes pousses et crée des couloirs denses favorables aux rôdeurs."
+  },
+  "senses": [
+    "Perception vibratoire étendue dans les racines reliées au sol.",
+    "Vision courte depuis une cavité protégée par les branches.",
+    "Sensibilité aux variations d’humidité, de chaleur et de pression du sol.",
+    "Détection supposée de blessures infligées à son réseau proche."
+  ],
+  "communication": [
+    "Craquements graves du tronc audibles avant ses mouvements majeurs.",
+    "Impulsions dans le réseau racinaire qui orientent les rôdeurs corrompus.",
+    "Émission de spores ou de sève odorante dont la fonction reste supposée."
+  ],
+  "signs": [
+    "Racines qui traversent un chemin en convergeant toutes dans la même direction.",
+    "Troncs voisins étranglés sans trace de coupe humaine.",
+    "Sol qui transmet de faibles pulsations à intervalles réguliers.",
+    "Marques de Griffe d’épine beaucoup plus hautes et larges que celles d’un rôdeur."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Préserver le cœur et la continuité du réseau rootbound.",
+      "Maintenir les intrus sur un sol où ses racines peuvent les détecter et les encercler.",
+      "Faire surgir des rôdeurs afin de diviser le groupe."
+    ],
+    "fears": [
+      "Incendie incontrôlé du réseau et des arbres anciens.",
+      "Section simultanée de plusieurs racines d’ancrage.",
+      "Déracinement hors du sol qui alimente ses appuis."
+    ],
+    "morale": "Très élevée à proximité du réseau ; la perte successive des racines le rend plus agressif mais moins coordonné.",
+    "escalation": "Il bloque d’abord l’espace avec ses bras, s’ancre, appelle deux rôdeurs puis concentre ses frappes sur ceux qui coupent les racines.",
+    "retreat": "Il ne fuit pas comme un animal ; si le cœur du réseau reste intact, il cherche à se réenraciner plus profondément."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 9,
+      "dexterity": 4,
+      "constitution": 9,
+      "intelligence": 4,
+      "willpower": 8,
+      "perception": 6,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 50,
+      "unarmed": 60,
+      "armor": 40,
+      "tactics": 45,
+      "vigilance": 50,
+      "tracking": 40,
+      "intimidation": 50,
+      "elementalism": 30,
+      "summoning": 45,
+      "lore": 30
+    },
+    "resources": {
+      "vitality": 132,
+      "stamina": 119,
+      "mana": 84,
+      "balance": 112,
+      "focus": 96
+    },
+    "movement": "3,6 m/s déraciné ; presque immobile pendant l’ancrage ; portée de contrôle accrue autour des racines reliées.",
+    "protections": [
+      "Bois dense localisé sur le tronc ; articulations et racines possèdent leurs propres protections plus faibles.",
+      "Ancrage efficace contre une petite impulsion, sans immunité aux leviers, à la perte de sol ou à une structure en chute.",
+      "Aucune réduction arbitraire liée au statut de boss."
+    ],
+    "attacks": [
+      {
+        "name": "Griffe d’épine",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 36,
+        "reach": "2,4 m en large arc latéral",
+        "stamina_cost": 20,
+        "preparation": "0,9 s, torsion du tronc et transfert du poids vers la racine opposée",
+        "telegraph": "Les branches s’inclinent, les racines grincent du côté d’appui et le bras décrit lentement le futur arc.",
+        "effect": "Balayage tranchant et contondant qui inflige une forte perte d’Équilibre ; la griffe peut rester engagée dans un obstacle solide.",
+        "counterplay": "Passer sous ou derrière l’arc, couper l’appui opposé, attirer la griffe dans un tronc ou exploiter la longue récupération."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Jaillissement des rôdeurs",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "summoning",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "deux émergences reliées dans un rayon de 12 m",
+        "stamina_cost": 20,
+        "preparation": "2,2 s ; elle engage aussi 24 points de Mana dans ce profil de conception",
+        "telegraph": "Deux lignes de racines gonflent sous le sol et convergent vers des points distincts avant de se rompre.",
+        "effect": "Le script historique appelle deux rootbound-scout puis enchaîne une Griffe d’épine. Le Rôdeur corrompu est le profil documenté le plus proche, mais son slug historique est scout : l’implémentation doit résoudre explicitement cet écart au lieu d’assimiler silencieusement les deux références.",
+        "counterplay": "Quitter les zones bombées, couper une ligne avant l’émergence, interrompre la canalisation ou préparer un contrôle sur les deux points annoncés."
+      },
+      {
+        "name": "Ancrage du cœur-racine",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "athletics",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "le Gardien et ses racines dans un rayon de 3 m",
+        "stamina_cost": 12,
+        "preparation": "1,2 s, immobilisation et enfoncement visible de quatre racines principales",
+        "telegraph": "Le torse s’abaisse, le sol se fend en croix et les racines porteuses cessent de progresser.",
+        "effect": "Le Gardien stabilise ses appuis et transmet mieux les vibrations tant que les racines et le sol restent intacts ; cette capacité systémique est une proposition, non une fonction du runtime historique.",
+        "counterplay": "Sectionner une racine, détremper ou effondrer le sol, employer un levier latéral ou profiter de son immobilité pour changer d’objectif."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "petites coupures sur le tronc",
+        "mechanism": "Les cernes épais arrêtent une entaille superficielle ; les articulations, fissures et racines fines ne bénéficient pas de cette épaisseur."
+      },
+      {
+        "subject": "poussée faible pendant l’ancrage",
+        "mechanism": "Plusieurs racines répartissent l’impulsion dans le sol, mais perdent cet avantage si le terrain cède ou si elles sont sectionnées."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "feu sur fibres sèches et sève exposée",
+        "mechanism": "La combustion progresse par matière réellement chauffée ; elle exige oxygène et durée, et menace également toute la forêt."
+      },
+      {
+        "subject": "racines porteuses coupées",
+        "mechanism": "Chaque section réduit la base d’appui et la transmission vibratoire, rendant les poussées latérales et les feintes plus efficaces."
+      },
+      {
+        "subject": "sol saturé, miné ou effondré",
+        "mechanism": "Une racine massive ne transmet plus correctement la charge lorsque le substrat se liquéfie, se vide ou se dérobe sous elle."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Racine porteuse coupée avec un outil adapté",
+        "result": "base d’appui et perception réduites",
+        "chain": "Une entaille préparée ouvre les fibres, la charge achève la rupture puis le Gardien redistribue son poids sur moins d’appuis."
+      },
+      {
+        "input": "Sol détrempé puis force latérale",
+        "result": "ancrage arraché ou déplacement accru",
+        "chain": "L’eau réduit la cohésion du sol, l’appui s’enfonce et une poussée proportionnée transforme sa masse en levier contre lui."
+      },
+      {
+        "input": "Feu localisé sur bois mort",
+        "result": "barrière ouverte avec risque de propagation",
+        "chain": "Le groupe chauffe une matière sèche, coupe une voie racinaire mais doit ensuite contenir l’incendie qui menace les arbres sains."
+      },
+      {
+        "input": "Tronc ou mur fragilisé abattu",
+        "result": "impact lourd et séparation du réseau",
+        "chain": "Une structure préparée chute, frappe une zone anatomique réelle et peut isoler le Gardien de ses rôdeurs sans bonus de boss."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Les racines convergentes et les marques très hautes distinguent le domaine du Gardien d’une simple patrouille de rôdeurs."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les quatre racines principales répartissent l’essentiel de la charge et devraient céder plus vite sous actions coordonnées."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Nul ne sait encore si le heartwood-sigil commande le réseau, conserve sa mémoire ou ne constitue qu’un trophée rituel."
+    },
+    {
+      "status": "secret",
+      "skill_id": "animal_handling",
+      "difficulty": 34,
+      "fact": "Aucune preuve ne permet d’affirmer qu’un Gardien séparé de la corruption redevient un être forestier avec lequel négocier."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "boss territorial",
+      "contrôleur de terrain",
+      "chef de renforts rootbound"
+    ],
+    "telegraphs": [
+      "La torsion du tronc et la racine opposée indiquent l’arc de la Griffe d’épine.",
+      "Deux lignes gonflées sous le sol annoncent séparément les rôdeurs avant leur émergence.",
+      "La croix de fissures autour des pieds annonce l’Ancrage et son immobilité."
+    ],
+    "noncombat_options": [
+      "Cartographier puis contourner les racines de perception sans entrer dans la clairière.",
+      "Isoler le cœur du réseau par coupe sélective avant de tenter une communication.",
+      "Rechercher la fonction du heartwood-sigil ou l’origine de la corruption pour suspendre la défense."
+    ],
+    "complications": [
+      "Le feu efficace contre les fibres peut détruire la forêt que le groupe voulait libérer.",
+      "Les rôdeurs surgissent sur des points télégraphiés mais peuvent couper une retraite préparée.",
+      "Déraciner le Gardien modifie le drainage et la stabilité de toute la clairière."
+    ]
+  },
+  "salvage": [
+    "Sceau de bois-cœur (heartwood-sigil) : butin historique garanti dont la fonction future reste à définir.",
+    "Fibres ou sève uniquement si leur prélèvement ne propage pas la corruption et si la scène en conserve la provenance."
+  ],
+  "plates": [
+    {
+      "image": "gardien-des-racines-plate.png",
+      "alt": "Gardien des Racines colossal dressé dans une clairière sombre, tronc humanoïde, griffes ligneuses et quatre racines d’ancrage visibles.",
+      "caption": "La menace naît de la continuité entre le corps, les appuis et la forêt plutôt que d’une réserve de vie arbitraire.",
+      "prompt_key": "gardien-des-racines-plate"
+    },
+    {
+      "image": "gardien-des-racines-dossier.png",
+      "alt": "Coupe tactique d’une clairière rootbound montrant racines porteuses, sol humide, bois mort, deux émergences de rôdeurs et voies de repli.",
+      "caption": "Le dossier rend lisibles les racines à couper, les renforts annoncés et les conséquences d’un feu ou d’un déracinement.",
+      "prompt_key": "gardien-des-racines-dossier"
+    }
+  ],
+  "major_dossier": {
+    "arena": "Les sources historiques établissent le Gardien dans Forgotten Forest sans décrire une arène systémique complète. La proposition retient une clairière reliée à un réseau visible, avec racines porteuses, sol humide, bois mort et structures fragilisables ; chaque élément doit être authoré comme matière et géométrie, jamais comme interaction spéciale invisible.",
+    "sequence": [
+      "Avant le combat, les pulsations du sol, les racines convergentes et l’absence d’animaux permettent de reconnaître le domaine.",
+      "Le Gardien ferme l’espace par ses Griffe d’épine et tente de conserver quatre appuis reliés au réseau.",
+      "L’Ancrage proposé augmente sa stabilité au prix d’une immobilité clairement télégraphiée et de racines devenues des objectifs matériels.",
+      "Lors de la phase historique, deux rootbound-scout sont appelés avant une Griffe d’épine ; leur correspondance probable avec le blueprint scout du Rôdeur corrompu reste à confirmer avant implémentation.",
+      "La conclusion dépend du cœur, des racines, des rôdeurs, du feu éventuel et de l’état hydraulique de la clairière, pas seulement de la chute du boss."
+    ],
+    "causal_opportunities": [
+      "Couper deux racines porteuses depuis des angles différents avant d’appliquer une poussée latérale coordonnée.",
+      "Détremper un secteur de sol, attirer l’Ancrage sur cette zone puis employer la masse du Gardien contre son propre appui.",
+      "Brûler uniquement du bois mort pour ouvrir une route racinaire, avec eau et outils prêts à contenir la propagation.",
+      "Faire tomber un tronc ou un mur déjà fragilisé afin de séparer le Gardien d’un point d’émergence sans effacer les rôdeurs présents."
+    ],
+    "aftermath": "Le heartwood-sigil demeure récupérable selon l’héritage, mais sa fonction et la possibilité de purifier le réseau restent ouvertes. Le sol, l’eau, les arbres brûlés ou abattus et les rôdeurs survivants persistent comme conséquences ; vaincre le Gardien ne restaure pas automatiquement la forêt."
+  }
+}

@@ -10,7 +10,11 @@ description = "Asset identity and provenance validation contracts for OpenRPG Fo
 [dependencies]
 forge_core.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
+
+[dev-dependencies]
+forge_project.workspace = true
 
 [lints]
 workspace = true

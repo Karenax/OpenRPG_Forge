@@ -321,6 +321,7 @@ La qualité attendue :
 
 | Domaine | Décision | Gate |
 | --- | --- | --- |
+| ruleset `openrpg-forge.systemic-rpg.v1` | Reprendre comme spécification normative | D (document) / 3-5 (implémentation) |
 | contrôleur personnage | Réécrire | 1-3 |
 | caméra | Réécrire | 1 |
 | interaction | Réécrire | 3 |
@@ -336,9 +337,22 @@ La qualité attendue :
 | save delta | Reprendre le principe | 3 |
 | autorité serveur | Reprendre le principe | 3 et 8 |
 
-Les règles rédigées pour le projet historique sont une spécification. Elles doivent être placées dans
-un document Rust canonique lorsqu’un lot gameplay commence, pas copiées dans le moteur sous forme de
-branches spéciales.
+Le ruleset historique est disponible dans `docs/design/OPENRPG_FORGE_RULESET_FR.md`. La reprise est
+une copie documentaire intégrale de `archive/main@a7f4a3f5` ; elle ne copie aucune implémentation et
+n’ouvre pas les gates gameplay. Les contrats Rust restent à écrire par tranche et ne doivent jamais
+prendre la forme de branches spéciales liées à un module.
+
+Provenance vérifiée de cette reprise :
+
+- source : `docs/design/OPENRPG_FORGE_RULESET_FR.md` au snapshot
+  `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0` ;
+- création : `b23fa98e0233dd6318cb6de81e4db283f675b5c3` ;
+- blob Git : `f9fb40a9b4775d5f761d032a2e14b3a7f4086bea` ;
+- SHA-256 : `7c5a3089d4013932fef9a6a22f38e3ca3165dea7e8590fc9273de1242802d37e` ;
+- licence source : PolyForm Noncommercial 1.0.0 et notice OpenRPG Forge historique ;
+- conversion : aucune ; contenu repris intégralement ;
+- limite : section 25 historique non exécutable dans Rust et touches contradictoires avec le manifeste
+  Crypte ; aucun profil `forge.generic`, manifeste Crypte ou code C#/Godot n’est importé.
 
 ---
 

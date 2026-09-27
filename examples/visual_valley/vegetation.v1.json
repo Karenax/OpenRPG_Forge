@@ -86,8 +86,13 @@
       "id": "forge_grass",
       "display_name": "Forge grass patches",
       "kind": "grass",
-      "acceptance_probability": 0.32,
-      "attempts_per_cell": 4,
+      "acceptance_probability": 0.8,
+      "density_pattern": {
+        "patch_size_m": 32.0,
+        "minimum_multiplier": 0.15,
+        "maximum_multiplier": 1.6
+      },
+      "attempts_per_cell": 8,
       "minimum_spacing_m": 0.0,
       "minimum_scale": 0.7,
       "maximum_scale": 1.25,

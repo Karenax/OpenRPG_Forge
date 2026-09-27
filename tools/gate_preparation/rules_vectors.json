@@ -1,0 +1,35 @@
+{
+  "fixture_version": 1,
+  "scope": "preparation_only",
+  "reference": "openrpg-forge.player-handbook.fr.v0.1",
+  "adopted_product_profile": false,
+  "learning_cost": [
+    {"score":0,"expected":5}, {"score":20,"expected":10},
+    {"score":40,"expected":17}, {"score":60,"expected":26},
+    {"score":80,"expected":37}, {"score":99,"expected":48}
+  ],
+  "level_threshold": [
+    {"level":1,"expected":0}, {"level":2,"expected":6},
+    {"level":5,"expected":36}, {"level":10,"expected":126},
+    {"level":20,"expected":456}
+  ],
+  "margin_class": [
+    {"margin":-10,"expected":"net"}, {"margin":-9,"expected":"constructif"},
+    {"margin":-1,"expected":"constructif"}, {"margin":0,"expected":"fragile"},
+    {"margin":4,"expected":"fragile"}, {"margin":5,"expected":"propre"},
+    {"margin":9,"expected":"propre"}, {"margin":10,"expected":"décisif"}
+  ],
+  "trauma": [
+    {"id":"plate","impact":24,"contact_quality":"1","protection":33,"zone_coefficient":"1","expected":3},
+    {"id":"lighter_armor","impact":25,"contact_quality":"1","protection":14,"zone_coefficient":"1","expected":16},
+    {"id":"full_protection_confirmed_contact","impact":24,"contact_quality":"1","protection":100,"zone_coefficient":"1","expected":0},
+    {"id":"half_up_boundary","impact":1,"contact_quality":"0.5","protection":0,"zone_coefficient":"1","expected":1}
+  ],
+  "resources": [
+    {"strength":5,"constitution":5,"intelligence":5,"willpower":5,"perception":5,
+     "expected":{"Vitalité":100,"Endurance":90,"Mana":70,"Équilibre":80,"Concentration":80}}
+  ],
+  "safe_magic_intensity": [
+    {"skill":55,"intelligence":7,"willpower":6,"expected":3}
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schema": "forge.asset-kit",
+  "schema_version": 1,
+  "id": "visual-valley-r2-025-wall-corner",
+  "name": "Mur modulaire - angle droit continu",
+  "revision": 1,
+  "coordinate_system": "right_handed_y_up",
+  "unit": "metre",
+  "generator": {
+    "kind": "blender_bpy_deterministic",
+    "blender_version": "5.2",
+    "script": "scripts/blender/Build-VisualValleyAssetKit.py",
+    "seed": 63001
+  },
+  "art_direction": {
+    "summary": "RPG europeen lumineux, monumental et accueillant, calcaire dore, vegetation saine et silhouettes naturelles.",
+    "forbidden": [
+      "asset Cadle",
+      "asset extrait d'un jeu commercial",
+      "gothique morbide",
+      "palette noir sur noir",
+      "forme primitive non travaillee presentee comme asset final"
+    ],
+    "palette": {
+      "limestone": "#B8A680",
+      "mortar": "#7C7462",
+      "oak_bark": "#4D3522",
+      "oak_leaf": "#3F7334",
+      "pine_needle": "#285A3D",
+      "moss": "#53713B",
+      "lichen": "#B9B57E"
+    }
+  },
+  "provenance": {
+    "author": "OpenRPG Forge project",
+    "source_kind": "procedural_original_with_authored_edits",
+    "source_uri": null,
+    "license": "LicenseRef-OpenRPG-Forge-Project-Generated",
+    "distribution_status": "internal_gate_proof_only",
+    "cadle_content_used": false,
+    "commercial_game_content_used": false,
+    "human_publication_review_required": true
+  },
+  "validation": {
+    "required_lods": ["LOD0", "LOD1", "LOD2"],
+    "required_collision": true,
+    "required_uv_layer": "UVMap",
+    "required_material_model": "principled_pbr",
+    "texture_policy": {
+      "resolution": 512,
+      "required_maps": ["base_color", "roughness", "normal"],
+      "foliage_alpha_required": true,
+      "foliage_alpha_mode": "blend",
+      "embed_in_glb": true
+    },
+    "turntable_angles_degrees": [0, 45, 90],
+    "render_resolution": [768, 768],
+    "deterministic_rebuild_count": 2
+  },
+  "assets": [
+    {
+      "id": "vv-architecture-wall-corner-a",
+      "kind": "architecture",
+      "generator_profile": "limestone_wall_corner",
+      "seed": 63325,
+      "dimensions_m": [4, 4, 3.2],
+      "pivot": {
+        "semantic": "ground_outside_corner",
+        "position_m": [0, 0, 0],
+        "arms": ["+X", "+Z"]
+      },
+      "lod_triangle_budgets": [24000, 7000, 1800],
+      "collision": "box_compound",
+      "collision_boxes": 2
+    }
+  ]
+}

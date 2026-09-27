@@ -1,0 +1,34 @@
+{
+  "schema": "forge.reference-provenance",
+  "schema_version": 1,
+  "generated_utc": "2026-08-31T19:49:00Z",
+  "provider": "OpenAI",
+  "tool": "Codex built-in image_gen",
+  "model": null,
+  "rights": "LicenseRef-OpenAI-Generated-Content-Review-Required",
+  "publication_review_required": true,
+  "assets": [
+    {
+      "path": "visual-valley-topdown-v1.png",
+      "role": "top_down_plan",
+      "sha256": "69c48bac7cb86e0770e2681b6e17eccbfd3ae8020e1fb0526e0c82b465f55b28",
+      "bytes": 3537692,
+      "pixel_width": 1254,
+      "pixel_height": 1254
+    },
+    {
+      "path": "visual-valley-hero-v1.png",
+      "role": "perspective_concept",
+      "sha256": "a7ea058a04a40e1f0369a5c328294aa7a752e609696742ec332cdc90655c2757",
+      "bytes": 3203721,
+      "pixel_width": 1672,
+      "pixel_height": 941
+    }
+  ],
+  "prompt_path": "PROMPTS.md",
+  "limitations": [
+    "The top-down image is a concept reference, not surveyed metric topography.",
+    "Perspective, hidden relief and individual building footprints require human correction.",
+    "The images do not constitute runtime or visual-quality evidence."
+  ]
+}

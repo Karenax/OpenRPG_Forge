@@ -5,10 +5,14 @@ use forge_core::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+mod medium;
+pub use medium::WaterMediumProfile;
+
 pub const WATER_DOCUMENT_SCHEMA: &str = "forge.water";
 pub const WATER_DOCUMENT_SCHEMA_VERSION: u32 = 1;
 pub const MIN_RIVER_CONTROL_POINTS: usize = 4;
 pub const MAX_RIVER_CONTROL_POINTS: usize = 64;
+pub const MAX_LINEAR_RIVER_CONTROL_POINTS: usize = 2_048;
 pub const MAX_RIVER_SAMPLE_COUNT: u32 = 262_144;
 pub const MAX_WATER_DOCUMENT_JSON_BYTES: usize = 256 * 1_024;
 
@@ -38,6 +42,9 @@ pub struct WaterDocument {
     pub surface: WaterSurfaceProfile,
     pub banks: RiverBankProfile,
     pub optics: WaterOpticsProfile,
+    /// Opt-in homogeneous RGB medium; absence preserves the legacy palette model.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub medium: Option<WaterMediumProfile>,
 }
 
 impl WaterDocument {
@@ -67,6 +74,7 @@ impl WaterDocument {
             surface,
             banks,
             optics,
+            medium: None,
         }
     }
 
@@ -96,6 +104,9 @@ impl WaterDocument {
         self.surface.validate()?;
         self.banks.validate()?;
         self.optics.validate()?;
+        if let Some(medium) = self.medium {
+            medium.validate()?;
+        }
 
         let minimum_depth_m = self
             .river
@@ -201,6 +212,28 @@ impl WaterDocument {
 #[serde(rename_all = "snake_case")]
 pub enum RiverPathAlgorithm {
     CentripetalCatmullRomV1,
+    /// Preserve an already sampled carving polyline without a second smoothing pass.
+    PiecewiseLinearV1,
+}
+
+/// Explicit surface-height authority, independent of horizontal path interpolation.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RiverElevationPolicy {
+    #[default]
+    TerrainClearanceMonotoneV1,
+    /// Keep authored surface levels; terrain may occlude an incompletely carved bed.
+    AuthoredSurfaceV1,
+}
+
+impl RiverElevationPolicy {
+    #[allow(
+        clippy::trivially_copy_pass_by_ref,
+        reason = "serde skip_serializing_if requires a borrowed value"
+    )]
+    fn is_default(&self) -> bool {
+        *self == Self::TerrainClearanceMonotoneV1
+    }
 }
 
 /// Ordered control points and deterministic sampling parameters for one bounded river.
@@ -208,6 +241,8 @@ pub enum RiverPathAlgorithm {
 #[serde(deny_unknown_fields)]
 pub struct RiverProfile {
     pub algorithm: RiverPathAlgorithm,
+    #[serde(default, skip_serializing_if = "RiverElevationPolicy::is_default")]
+    pub elevation_policy: RiverElevationPolicy,
     pub sample_spacing_m: f32,
     pub control_points: Vec<RiverControlPoint>,
 }
@@ -219,7 +254,11 @@ impl RiverProfile {
                 self.control_points.len(),
             ));
         }
-        if self.control_points.len() > MAX_RIVER_CONTROL_POINTS {
+        let maximum = match self.algorithm {
+            RiverPathAlgorithm::CentripetalCatmullRomV1 => MAX_RIVER_CONTROL_POINTS,
+            RiverPathAlgorithm::PiecewiseLinearV1 => MAX_LINEAR_RIVER_CONTROL_POINTS,
+        };
+        if self.control_points.len() > maximum {
             return Err(WaterDocumentError::TooManyRiverControlPoints(
                 self.control_points.len(),
             ));
@@ -763,7 +802,7 @@ pub enum WaterDocumentError {
     NameTooLong(usize),
     #[error("water needs at least {MIN_RIVER_CONTROL_POINTS} river control points, found {0}")]
     TooFewRiverControlPoints(usize),
-    #[error("water supports at most {MAX_RIVER_CONTROL_POINTS} river control points, found {0}")]
+    #[error("river control-point limit exceeded for the selected path algorithm: {0}")]
     TooManyRiverControlPoints(usize),
     #[error("river control point {index} has an invalid `{field}`")]
     InvalidControlPoint { index: usize, field: &'static str },
@@ -820,6 +859,7 @@ mod tests {
             seed,
             RiverProfile {
                 algorithm: RiverPathAlgorithm::CentripetalCatmullRomV1,
+                elevation_policy: RiverElevationPolicy::default(),
                 sample_spacing_m: 2.0,
                 control_points: vec![
                     RiverControlPoint {
@@ -897,6 +937,29 @@ mod tests {
             valid_document(42).content_hash().unwrap(),
             valid_document(43).content_hash().unwrap()
         );
+    }
+
+    #[test]
+    fn optional_medium_round_trips_without_changing_legacy_serialization() {
+        let mut document = valid_document(42);
+        let legacy_json = document.to_pretty_json().unwrap();
+        let legacy_hash = document.content_hash().unwrap();
+        assert!(!legacy_json.contains("medium"));
+        let legacy_value = serde_json::to_value(&document).unwrap();
+        assert_eq!(canonical_json_sha256(&legacy_value).unwrap(), legacy_hash);
+        document.medium = Some(WaterMediumProfile {
+            absorption_per_m: [0.8, 0.2, 0.1],
+            scattering_per_m: [0.1; 3],
+        });
+        let json = document.to_pretty_json().unwrap();
+        assert_eq!(WaterDocument::from_json(&json).unwrap(), document);
+        assert_ne!(document.content_hash().unwrap(), legacy_hash);
+        assert!(WaterDocument::from_json(&json.replace("absorption_per_m", "unknown")).is_err());
+        document.medium.as_mut().unwrap().scattering_per_m[1] = -1.0;
+        assert!(document.validate().is_err());
+        document.medium = None;
+        assert_eq!(document.to_pretty_json().unwrap(), legacy_json);
+        assert_eq!(document.content_hash().unwrap(), legacy_hash);
     }
 
     #[test]

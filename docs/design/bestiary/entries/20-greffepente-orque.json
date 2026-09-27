@@ -1,0 +1,261 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.greffepente-orque",
+  "name": "Greffepente orque",
+  "subtitle": "L'arboriste qui retient les vergers au-dessus du vide",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Personnage original des Terrasses de Schiste. Son expertise vient d'un apprentissage d'arboriste et de stabilisation des sols, sans essentialisme lié à son ascendance.",
+  "major": false,
+  "classification": {
+    "nature": "humanoïde sapient",
+    "family": "Orcs des Terrasses de Schiste",
+    "rarity": "commune dans les vergers suspendus, rare ailleurs",
+    "activity": "diurne et saisonnière, avec interventions après les pluies",
+    "social": "binômes d'arboristes reliés à des équipes de terrassement",
+    "threat": "forte",
+    "threat_reason": "Ses cordes déplacent corps et branches près du vide, mais chaque effet dépend d'un ancrage visible et perd sa force sur terrain ouvert."
+  },
+  "physique": {
+    "dimensions": "1,65 à 1,90 m ; allonge de serpe 1,8 m ; cordages jusqu'à 14 m",
+    "mass_kg": [68, 102],
+    "locomotion": ["marche assurée sur terrasses", "escalade encordée", "descente contrôlée sur pente"],
+    "center_of_gravity": "Centré sous le baudrier ; déplacé volontairement en opposition à la corde lors d'une traction.",
+    "silhouette": "Baudrier ceinturé de cordes, serpe d'hast, grappin d'élagage et sac de jeunes plants équilibré dans le dos.",
+    "anatomy_zones": [
+      {
+        "zone": "tête et épaules",
+        "description": "Capuche courte et lunettes de poussière, liberté complète pour regarder les ancrages en hauteur.",
+        "protection": 5
+      },
+      {
+        "zone": "torse et baudrier",
+        "description": "Veste renforcée aux frottements ; sangles répartissant une charge sans former une armure.",
+        "protection": 9
+      },
+      {
+        "zone": "mains et avant-bras",
+        "description": "Gants épais contre corde et épines, articulations encore exposées aux chocs lourds.",
+        "protection": 7
+      },
+      {
+        "zone": "jambes et chevilles",
+        "description": "Bottes souples à crampons et genoux mobiles conçus pour l'escalade.",
+        "protection": 6
+      }
+    ]
+  },
+  "habitats": [
+    "vergers en terrasses de schiste",
+    "sentiers suspendus et talus plantés",
+    "ravins où arbres et haubans retiennent le sol"
+  ],
+  "ecology": {
+    "diet": "Cuisine omnivore de montagne riche en fruits secs, légumineuses, céréales et produits échangés entre terrasses.",
+    "lifecycle": "L'apprentissage alterne botanique, nœuds, lecture du sol et secours encordé ; l'exercice diminue lorsque les articulations ne supportent plus les suspensions.",
+    "reproduction": "Aucune particularité biologique n'est établie ici ; enfants et adolescents participent aux vergers sans être exposés aux travaux de corde dangereux.",
+    "behavior": "Elle protège d'abord les personnes et les arbres porteurs, annonce chaque mise en tension et évite de couper un ancrage dont elle ignore la charge.",
+    "niche": "Arboriste, greffeuse et technicienne de pente maintenant des cultures là où racines, murets et cordes travaillent ensemble.",
+    "environmental_impact": "Ses plantations fixent les sols, ralentissent le ruissellement et créent des corridors nourriciers pour oiseaux, voyageurs et communautés."
+  },
+  "senses": [
+    "vision précise des fibres, bourgeons, tensions et mouvements de branche",
+    "toucher entraîné à sentir une corde glisser avant la rupture",
+    "audition des craquements du bois et du schiste sous charge"
+  ],
+  "communication": [
+    "appels de corde courts indiquant tendre, donner ou bloquer",
+    "rubans de couleur et nœuds tactiles distinguant les lignes de travail"
+  ],
+  "signs": [
+    "haubans doublés autour d'un arbre incliné sans étrangler son écorce",
+    "greffes protégées par une toile claire et de l'argile",
+    "marches taillées juste assez pour recevoir l'avant du pied",
+    "petits tas de pierres drainantes au-dessus des murets"
+  ],
+  "demeanor": {
+    "objectives": ["maintenir un talus vivant", "retenir une personne en chute", "sauver un arbre ou une récolte"],
+    "fears": ["ancrage caché dans une roche pourrie", "corde coupée sous charge", "feu courant dans un verger sec"],
+    "morale": "Prudente mais ferme près d'un danger collectif ; elle se désengage si le combat rend impossible la surveillance des cordes.",
+    "escalation": "Elle avertit, ferme un sentier par une ligne visible, déplace l'intrus hors de la zone fragile puis emploie la serpe si une vie est menacée.",
+    "retreat": "Elle descend vers une terrasse stable en récupérant ses lignes utiles et abandonne le matériel qui mettrait une personne en danger."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 7,
+      "constitution": 7,
+      "intelligence": 6,
+      "willpower": 7,
+      "perception": 7,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 55,
+      "climbing": 75,
+      "polearms": 58,
+      "throwing": 48,
+      "survival": 62,
+      "crafting": 65,
+      "mechanisms": 56,
+      "medicine": 42,
+      "vigilance": 55,
+      "tactics": 50
+    },
+    "resources": {
+      "vitality": 116,
+      "stamina": 106,
+      "mana": 86,
+      "balance": 96,
+      "focus": 96
+    },
+    "movement": "7 m/s sur terrasse, 4 m/s encordée sur pente ; descente contrôlée jusqu'à 8 m si deux ancrages tiennent.",
+    "protections": [
+      "Le baudrier répartit une traction et prévient une chute courte ; il ne réduit pas une lame, un projectile ou l'écrasement d'un ancrage.",
+      "Les gants protègent du frottement et des épines mais diminuent la finesse lors d'une manipulation très petite."
+    ],
+    "attacks": [
+      {
+        "name": "Serpe de dégagement",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 23,
+        "reach": "arc de 1,8 m autour de la hampe",
+        "stamina_cost": 9,
+        "preparation": "0,5 seconde pour déplacer la main avant et ouvrir l'arc",
+        "telegraph": "La hampe quitte l'épaule, la lame s'oriente vers l'extérieur et les cordes proches sont écartées.",
+        "effect": "Coupe contrôlée visant une prise, une sangle ou une branche ; la lame perd de l'efficacité dans un espace encombré.",
+        "counterplay": "Entrer sous la hampe, bloquer l'arc contre un tronc ou forcer la Greffepente à protéger une corde chargée."
+      },
+      {
+        "name": "Traction au grappin",
+        "kind": "attack",
+        "visibility": "supposee",
+        "skill_id": "throwing",
+        "attribute_id": "strength",
+        "impact": 14,
+        "reach": "ligne visible jusqu'à 10 m",
+        "stamina_cost": 13,
+        "preparation": "0,8 seconde pour lancer puis reprendre la corde au baudrier",
+        "telegraph": "Le grappin tourne une fois au-dessus de l'épaule et la corde libre dessine sa trajectoire.",
+        "effect": "Le crochet saisit un équipement, une branche ou un relief ; la traction déplace seulement ce que l'ancrage et la masse permettent.",
+        "counterplay": "Couper ou décrocher la ligne, passer derrière un obstacle, avancer vers l'ancrage ou relâcher l'objet saisi."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Hauban de pente",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "deux ancrages séparés de 3 à 14 m",
+        "stamina_cost": 12,
+        "preparation": "2 secondes si les points sont accessibles",
+        "telegraph": "Elle vérifie deux ancrages, passe la corde dans une poulie simple puis annonce la mise en tension.",
+        "effect": "La ligne retient un allié, une branche ou une petite masse et modifie un trajet ; sa capacité dépend de chaque support.",
+        "counterplay": "Inspecter l'ancrage, détendre la ligne, changer de hauteur ou proposer une reprise de charge plus sûre."
+      },
+      {
+        "name": "Retenue de secours",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "climbing",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "personne reliée à moins de 8 m",
+        "stamina_cost": 18,
+        "preparation": "réaction après tension brusque de la corde",
+        "telegraph": "Le baudrier pivote, les jambes se placent perpendiculairement à la pente et la corde se tend progressivement.",
+        "effect": "Une chute est ralentie tant que l'ancrage et l'Équilibre de la Greffepente supportent la charge cumulée.",
+        "counterplay": "Réduire la charge, fournir un second ancrage ou éviter toute attaque qui transformerait le sauvetage en chute collective."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chute courte encordée",
+        "mechanism": "Le baudrier, les nœuds et un ancrage valide dissipent progressivement la traction au lieu de l'arrêter brutalement."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "terrain sans ancrage",
+        "mechanism": "Sur une place ouverte ou un sol friable, les cordes ne fournissent ni levier fiable, ni retenue, ni contrôle de trajet."
+      },
+      {
+        "subject": "feu et arêtes coupantes",
+        "mechanism": "La chaleur fragilise les fibres et une arête sous tension peut sectionner rapidement une ligne chargée."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "arbre, piton ou muret stable",
+        "result": "ancrage de contrôle disponible",
+        "chain": "La corde transmet la force au support, le baudrier la répartit et l'objet relié peut être retenu ou déplacé dans cette limite."
+      },
+      {
+        "input": "pluie sur terre de terrasse",
+        "result": "glissement accru mais plantation utile",
+        "chain": "L'eau alourdit le sol, réduit l'adhérence et rend les racines, drains et haubans déterminants pour éviter une coulée."
+      },
+      {
+        "input": "branche lourde déjà entaillée",
+        "result": "couvert ou obstacle orientable",
+        "chain": "Une coupe contrôlée libère la branche tandis que le hauban borne sa chute et détermine où elle touche réellement."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "animal_handling",
+      "difficulty": 14,
+      "fact": "Les Greffepentes entretiennent aussi des corridors pour pollinisateurs et oiseaux ; brûler un verger détruit un ouvrage écologique collectif."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "Un ruban doublé autour d'une corde signale une ligne chargée qu'il faut détendre avant de la couper ou de la déplacer."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 26,
+      "fact": "Une greffe d'écorce claire sur le plus vieil arbre marque un droit de refuge : l'invoquer impose traditionnellement une suspension des hostilités."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["contrôle vertical", "soutien de déplacement", "gardienne d'ancrages"],
+    "telegraphs": [
+      "Le grappin tourne et sa corde trace la ligne avant toute traction.",
+      "Deux points sont vérifiés et un ordre vocal précède la tension d'un hauban.",
+      "La serpe écarte d'abord les cordes que son arc pourrait couper."
+    ],
+    "noncombat_options": [
+      "Aider à sauver une personne ou une récolte menacée par un glissement.",
+      "Réparer un muret, un drain ou un hauban avant de demander le passage.",
+      "Reconnaître un droit de refuge et négocier sous l'arbre greffé."
+    ],
+    "complications": [
+      "Couper une ligne peut faire tomber une branche, un allié ou une portion de terrasse.",
+      "Une corde abandonnée sous tension continue d'agir après le départ de la Greffepente."
+    ]
+  },
+  "salvage": [
+    "Corde, pitons et outils uniquement s'ils sont abandonnés, donnés ou remplacés après réparation.",
+    "Greffons et jeunes plants restent vivants et ne sont transportables qu'avec l'accord et les soins appropriés."
+  ],
+  "plates": [
+    {
+      "image": "greffepente-orque-plate.png",
+      "alt": "Greffepente orque entière sur un verger en terrasses, baudrier chargé de cordes, serpe d'hast et grappin relié à un arbre au-dessus du vide.",
+      "caption": "Chaque traction dépend d'un ancrage visible ; couper une corde peut sauver, déplacer ou faire tomber.",
+      "prompt_key": "greffepente-orque-plate"
+    }
+  ]
+}

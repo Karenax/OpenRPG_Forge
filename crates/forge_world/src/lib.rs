@@ -2,13 +2,54 @@
 
 //! Deterministic world recipes. Rendering remains an adapter responsibility.
 
+pub mod building_layout;
+mod building_vegetation;
+pub mod cdlod;
+mod clouds;
+pub mod editor_vegetation;
 mod environment;
+pub mod imported_vegetation;
+pub mod path_intersections;
+pub mod path_placement;
+pub mod path_stroke;
+pub mod path_surface;
+pub mod path_vegetation;
+pub mod placement_axis;
+pub mod placement_pivot;
+pub mod placement_rotation;
+pub mod placement_snap;
+pub mod placement_transform;
 mod player;
+pub mod promotion_preflight;
+pub mod promotion_transform;
+mod quality;
+pub mod quality_application;
+pub mod river_carving;
+pub mod river_projection;
+pub mod river_stroke;
+mod river_vegetation;
+mod road_surface;
+pub mod sampled_terrain;
+pub mod spline_edit;
 mod terrain;
+pub mod terrain_brush;
+pub mod terrain_brush_preview;
+pub mod terrain_brush_stroke;
 mod terrain_generation;
+pub mod terrain_material_brush;
+pub mod tidewater_vegetation;
 mod vegetation;
+pub mod vegetation_density_brush;
+pub mod vegetation_density_preview;
 mod water;
 mod weather;
+mod world_sketch;
+
+pub use clouds::{
+    CLOUD_LAYER_DEPTH_RATIO, CloudDensityMap, CloudDensityVolume, CloudGenerationError,
+    generate_cloud_density, generate_cloud_density_volume,
+};
+pub use road_surface::{RoadSurfaceError, RoadSurfaceProjection};
 
 pub use environment::{
     VISUAL_VALLEY_ENVIRONMENT_JSON, VisualValleyEnvironmentRecipe,
@@ -18,6 +59,10 @@ pub use environment::{
 pub use player::{
     VISUAL_VALLEY_PLAYER_CONTROLLER_JSON, VisualValleyPlayerControllerRecipe,
     embedded_visual_valley_player_controller_profile,
+};
+pub use quality::{
+    QualityAdaptationController, QualityChange, QualityChangeReason, QualityControlError,
+    QualityControlMode,
 };
 pub use terrain::{
     VISUAL_VALLEY_SEED, VISUAL_VALLEY_SIZE_M, VISUAL_VALLEY_TERRAIN_JSON,
@@ -30,25 +75,44 @@ pub use terrain_generation::{
     TERRAIN_SAMPLE_SPACING_M, TERRAIN_TRIANGLE_COUNT, TERRAIN_VERTEX_COUNT,
     TerrainChunkColliderData, TerrainChunkCoordinate, TerrainChunkId, TerrainChunkMesh,
     TerrainColliderTriangleOrder, TerrainColliderVertexOrder, TerrainDirtyChunk, TerrainDirtyPlan,
-    TerrainGenerationError, TerrainGenerationPlan, TerrainHeightSampleCoordinate,
-    TerrainMaterialWeights, TerrainPartialUpdate, TerrainPartialUpdateCommit,
-    TerrainPartialUpdateError, TerrainPartialUpdateRequest, TerrainSampleRegion,
-    TerrainSurfaceSample, sample_height,
+    TerrainGenerationError, TerrainGenerationPlan, TerrainHeightSampleCoordinate, TerrainLodError,
+    TerrainLodMesh, TerrainLodTopology, TerrainMaterialWeights, TerrainPartialUpdate,
+    TerrainPartialUpdateCommit, TerrainPartialUpdateError, TerrainPartialUpdateRequest,
+    TerrainSampleRegion, TerrainSurfaceSample, sample_height,
 };
 pub use vegetation::{
     GeneratedVegetation, VISUAL_VALLEY_VEGETATION_CELLS_PER_CHUNK_AXIS,
     VISUAL_VALLEY_VEGETATION_JSON, VISUAL_VALLEY_VEGETATION_SEED, VegetationChunk,
     VegetationChunkId, VegetationGenerationError, VegetationGenerationPlan, VegetationInstance,
-    VegetationInstanceId, VegetationKindCounts, VisualValleyVegetationRecipe,
-    embedded_visual_valley_vegetation_document,
+    VegetationInstanceId, VegetationKindCounts, VegetationRenderDensityProjection,
+    VisualValleyVegetationRecipe, embedded_visual_valley_vegetation_document,
 };
 pub use water::{
     RiverCenterlineSample, VISUAL_VALLEY_WATER_JSON, VISUAL_VALLEY_WATER_SEED,
     VisualValleyWaterRecipe, embedded_visual_valley_water_document, sample_river_centerline,
+    water_from_carved_spline,
 };
 pub use weather::{
     VISUAL_VALLEY_WEATHER_JSON, VISUAL_VALLEY_WEATHER_SEED, VisualValleyWeatherRecipe,
     embedded_visual_valley_weather_profile,
+};
+pub use world_sketch::{
+    CompiledWorldSketch, VISUAL_VALLEY_WORLD_SKETCH_JSON, WORLD_SKETCH_SCHEMA,
+    WORLD_SKETCH_SCHEMA_VERSION, WorldSketchBlenderInput, WorldSketchBridgeCollisionShape,
+    WorldSketchBridgePlacement, WorldSketchBridgePlacementDocument,
+    WorldSketchBridgePlacementError, WorldSketchBridgeSupport, WorldSketchCalibration,
+    WorldSketchCamera, WorldSketchCameraRole, WorldSketchCarvedSpline,
+    WorldSketchCarvingCenterlineSample, WorldSketchCompilationError, WorldSketchCompilationReport,
+    WorldSketchCrossingRuntimeStatus, WorldSketchCrossingTraversalAudit, WorldSketchDocument,
+    WorldSketchError, WorldSketchExtent, WorldSketchForestScatter, WorldSketchHeightGrid,
+    WorldSketchLandmark, WorldSketchLandmarkKind, WorldSketchMaskGrid,
+    WorldSketchNavigationProviderStatus, WorldSketchPoint2, WorldSketchPolygon,
+    WorldSketchRouteTraversalAudit, WorldSketchSemanticKind, WorldSketchSemanticMaskDocument,
+    WorldSketchSemanticMaskLayer, WorldSketchSemanticRegion, WorldSketchSourceImage,
+    WorldSketchSourceProvenance, WorldSketchSourceRole, WorldSketchSpline,
+    WorldSketchSplineCarvingDocument, WorldSketchSplineKind, WorldSketchTraversalAuditDocument,
+    WorldSketchUncertaintyRegion, compile_world_sketch, embedded_visual_valley_world_sketch,
+    world_sketch_player_spawn,
 };
 
 use forge_core::{AreaId, ProjectId, Revision, Transform, UnitQuaternion, Vec3};

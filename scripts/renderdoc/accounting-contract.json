@@ -1,0 +1,111 @@
+{
+  "schema": "forge-renderdoc-accounting-contract/v1",
+  "route": "R1-037",
+  "normalized_input": {
+    "schema": "forge-gate1-renderdoc-actions/v2",
+    "model": "scripts/renderdoc/gate1_renderdoc_model.py",
+    "root_fields": [
+      "schema",
+      "capture",
+      "actions"
+    ],
+    "capture_fields": [
+      "captured_frame_count",
+      "present_count",
+      "local_replay_support",
+      "pipeline_type",
+      "degraded"
+    ],
+    "action_fields": [
+      "event_id",
+      "name",
+      "flags",
+      "topology",
+      "num_indices",
+      "num_instances",
+      "instanced",
+      "indirect",
+      "indirect_resolved",
+      "active_stages",
+      "children"
+    ]
+  },
+  "analysis": {
+    "output_schema": "forge-gate1-renderdoc-analysis/v2",
+    "output_fields": [
+      "schema",
+      "status",
+      "capture",
+      "metrics"
+    ],
+    "metric_fields": [
+      "actions_visited",
+      "present_actions",
+      "draws",
+      "instances",
+      "triangles",
+      "lines",
+      "points",
+      "draws_by_topology"
+    ],
+    "leaf_flag": "Drawcall",
+    "containers_recursed_without_counting_parent": true,
+    "present_action_flag": "Present",
+    "required_present_actions": 1,
+    "present_count_cross_checked_with_actions": true,
+    "instance_accounting": {
+      "explicit_field": "instanced",
+      "action_flag": "Instanced",
+      "field_and_flag_must_match": true,
+      "non_instanced_num_instances_sentinel": 0,
+      "non_instanced_effective_instances": 1,
+      "instanced_uses_exact_num_instances": true,
+      "instanced_zero_preserved": true
+    },
+    "accepted_topologies": [
+      "TriangleList",
+      "LineList",
+      "PointList"
+    ],
+    "triangle_formula": "num_indices_div_3_times_instances",
+    "line_formula": "num_indices_div_2_times_instances",
+    "point_formula": "num_indices_times_instances",
+    "separate_counters": [
+      "draws",
+      "instances",
+      "triangles",
+      "lines",
+      "points"
+    ],
+    "integer_limit": "uint64",
+    "reject": [
+      "triangle_strip",
+      "triangle_fan",
+      "line_strip",
+      "adjacency",
+      "patch",
+      "unknown_topology",
+      "geometry_stage",
+      "tessellation_stage",
+      "mesh_task_stage",
+      "unresolved_indirect",
+      "unexpanded_multiaction_leaf",
+      "ambiguous_draw_container",
+      "instance_metadata_mismatch",
+      "present_drawcall_conflict",
+      "present_count_mismatch",
+      "present_action_count",
+      "indivisible_primitive_count",
+      "duplicate_event_id",
+      "integer_overflow"
+    ],
+    "fps_from_renderdoc": false
+  },
+  "qualification_boundary": {
+    "captures_status": "NOT_RUN",
+    "closes_r1_037": false,
+    "closes_gate1": false,
+    "authorizes_gate2": false,
+    "cadle_asset_copied": false
+  }
+}

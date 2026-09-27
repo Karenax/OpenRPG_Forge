@@ -1,0 +1,294 @@
+{
+  "schema": "forge.world-sketch",
+  "schema_version": 1,
+  "project_id": "156abf3c-028c-5bb6-be3a-facc417a29bc",
+  "area_id": "55b4fcee-2e80-5855-aafa-d1942158ff67",
+  "revision": 3,
+  "coordinate_system": {
+    "length_unit": "metre",
+    "up_axis": "y",
+    "handedness": "right"
+  },
+  "name": "Visual Valley AAA Slice",
+  "forest_scatter": {
+    "acceptance_probability": 0.85,
+    "attempts_per_cell": 8,
+    "minimum_spacing_m": 4.0,
+    "minimum_scale": 1.6,
+    "maximum_scale": 3.15
+  },
+  "extent_m": {
+    "size_x_m": 512.0,
+    "size_z_m": 512.0
+  },
+  "source_images": [
+    {
+      "id": "topdown_master_v1",
+      "role": "top_down_plan",
+      "path": "examples/visual_valley/references/visual-valley-topdown-v1.png",
+      "sha256": "69c48bac7cb86e0770e2681b6e17eccbfd3ae8020e1fb0526e0c82b465f55b28",
+      "pixel_width": 1254,
+      "pixel_height": 1254,
+      "provenance": {
+        "provider": "OpenAI",
+        "tool": "Codex built-in image_gen",
+        "model": null,
+        "generated_utc": "2026-08-31T19:47:00Z",
+        "rights": "LicenseRef-OpenAI-Generated-Content-Review-Required",
+        "prompt_path": "examples/visual_valley/references/PROMPTS.md"
+      }
+    },
+    {
+      "id": "hero_reference_v1",
+      "role": "perspective_concept",
+      "path": "examples/visual_valley/references/visual-valley-hero-v1.png",
+      "sha256": "a7ea058a04a40e1f0369a5c328294aa7a752e609696742ec332cdc90655c2757",
+      "pixel_width": 1672,
+      "pixel_height": 941,
+      "provenance": {
+        "provider": "OpenAI",
+        "tool": "Codex built-in image_gen",
+        "model": null,
+        "generated_utc": "2026-08-31T19:49:00Z",
+        "rights": "LicenseRef-OpenAI-Generated-Content-Review-Required",
+        "prompt_path": "examples/visual_valley/references/PROMPTS.md"
+      }
+    }
+  ],
+  "calibration": {
+    "top_down_source_id": "topdown_master_v1",
+    "metres_per_pixel": 0.40829346,
+    "origin_pixel": [627.0, 627.0],
+    "north_degrees_clockwise": 0.0,
+    "confidence": 0.72
+  },
+  "terrain_seed": 94838452929881,
+  "terrain_height_sampling": {
+    "algorithm": "fractal_value_noise_v1",
+    "sample_spacing_m": 2.0,
+    "base_elevation_m": 8.0,
+    "amplitude_m": 48.0,
+    "base_frequency_cycles_per_m": 0.00390625,
+    "octaves": 5,
+    "lacunarity": 2.0,
+    "persistence": 0.5
+  },
+  "vegetation_seed": 6216453223746720837,
+  "semantic_regions": [
+    {
+      "id": "central_meadow",
+      "kind": "meadow",
+      "polygon": [
+        { "x_m": -90.0, "z_m": -170.0 },
+        { "x_m": 80.0, "z_m": -145.0 },
+        { "x_m": 125.0, "z_m": 85.0 },
+        { "x_m": -35.0, "z_m": 155.0 },
+        { "x_m": -120.0, "z_m": 35.0 }
+      ],
+      "confidence": 0.82
+    },
+    {
+      "id": "eastern_wetland",
+      "kind": "wetland",
+      "polygon": [
+        { "x_m": 65.0, "z_m": -95.0 },
+        { "x_m": 215.0, "z_m": -120.0 },
+        { "x_m": 238.0, "z_m": 40.0 },
+        { "x_m": 125.0, "z_m": 70.0 }
+      ],
+      "confidence": 0.74
+    },
+    {
+      "id": "northern_rock",
+      "kind": "rock",
+      "polygon": [
+        { "x_m": -150.0, "z_m": 145.0 },
+        { "x_m": 215.0, "z_m": 115.0 },
+        { "x_m": 256.0, "z_m": 256.0 },
+        { "x_m": -256.0, "z_m": 256.0 }
+      ],
+      "confidence": 0.68
+    },
+    {
+      "id": "village_terrace",
+      "kind": "buildable",
+      "polygon": [
+        { "x_m": -230.0, "z_m": -20.0 },
+        { "x_m": -115.0, "z_m": -35.0 },
+        { "x_m": -105.0, "z_m": 75.0 },
+        { "x_m": -220.0, "z_m": 90.0 }
+      ],
+      "confidence": 0.91
+    },
+    {
+      "id": "western_forest",
+      "kind": "forest",
+      "polygon": [
+        { "x_m": -256.0, "z_m": -256.0 },
+        { "x_m": -75.0, "z_m": -230.0 },
+        { "x_m": -105.0, "z_m": 105.0 },
+        { "x_m": -165.0, "z_m": 220.0 },
+        { "x_m": -256.0, "z_m": 256.0 }
+      ],
+      "confidence": 0.79
+    }
+  ],
+  "splines": [
+    {
+      "id": "creek_east",
+      "kind": "creek",
+      "width_m": 5.0,
+      "points": [
+        { "x_m": 245.0, "z_m": -20.0 },
+        { "x_m": 190.0, "z_m": -35.0 },
+        { "x_m": 130.0, "z_m": -15.0 },
+        { "x_m": 70.0, "z_m": -45.0 }
+      ],
+      "confidence": 0.63
+    },
+    {
+      "id": "river_main",
+      "kind": "river",
+      "width_m": 18.0,
+      "surface_heights_m": [28.0, 23.0, 8.0, 4.0, 3.0, 2.0, 0.5],
+      "maximum_cut_m": 12.0,
+      "maximum_fill_m": 40.0,
+      "valley_blend_width_m": 120.0,
+      "points": [
+        { "x_m": 160.0, "z_m": 250.0 },
+        { "x_m": 135.0, "z_m": 175.0 },
+        { "x_m": 85.0, "z_m": 95.0 },
+        { "x_m": 25.0, "z_m": 25.0 },
+        { "x_m": -15.0, "z_m": -55.0 },
+        { "x_m": -60.0, "z_m": -170.0 },
+        { "x_m": -185.0, "z_m": -250.0 }
+      ],
+      "confidence": 0.94
+    },
+    {
+      "id": "road_main",
+      "kind": "road",
+      "width_m": 7.0,
+      "points": [
+        { "x_m": 20.0, "z_m": -256.0 },
+        { "x_m": -55.0, "z_m": -175.0 },
+        { "x_m": -125.0, "z_m": -75.0 },
+        { "x_m": -160.0, "z_m": 25.0 },
+        { "x_m": -125.0, "z_m": 115.0 },
+        { "x_m": -95.0, "z_m": 195.0 }
+      ],
+      "confidence": 0.9
+    }
+  ],
+  "landmarks": [
+    {
+      "id": "bridge_south",
+      "kind": "bridge",
+      "position": { "x_m": -55.0, "z_m": -175.0 },
+      "influence_radius_m": 16.0,
+      "confidence": 0.95
+    },
+    {
+      "id": "player_spawn",
+      "kind": "player_spawn",
+      "position": { "x_m": 15.0, "z_m": -225.0 },
+      "influence_radius_m": 12.0,
+      "confidence": 0.88
+    },
+    {
+      "id": "village_west",
+      "kind": "village",
+      "position": { "x_m": -165.0, "z_m": 25.0 },
+      "influence_radius_m": 55.0,
+      "confidence": 0.91
+    },
+    {
+      "id": "watch_keep_north",
+      "kind": "keep",
+      "position": { "x_m": -95.0, "z_m": 195.0 },
+      "influence_radius_m": 32.0,
+      "confidence": 0.89
+    },
+    {
+      "id": "waterfall_northeast",
+      "kind": "waterfall",
+      "position": { "x_m": 160.0, "z_m": 238.0 },
+      "influence_radius_m": 28.0,
+      "confidence": 0.93
+    }
+  ],
+  "uncertainty_regions": [
+    {
+      "id": "canopy_relief_west",
+      "polygon": [
+        { "x_m": -256.0, "z_m": 80.0 },
+        { "x_m": -145.0, "z_m": 95.0 },
+        { "x_m": -155.0, "z_m": 256.0 },
+        { "x_m": -256.0, "z_m": 256.0 }
+      ],
+      "confidence": 0.42,
+      "reason": "Dense canopy obscures the ground; terrain must be reconstructed and reviewed in Blender."
+    },
+    {
+      "id": "village_interior_layout",
+      "polygon": [
+        { "x_m": -225.0, "z_m": -25.0 },
+        { "x_m": -115.0, "z_m": -35.0 },
+        { "x_m": -105.0, "z_m": 75.0 },
+        { "x_m": -220.0, "z_m": 90.0 }
+      ],
+      "confidence": 0.35,
+      "reason": "The concept defines settlement massing, not production-ready building footprints."
+    }
+  ],
+  "locked_feature_ids": [
+    "bridge_south",
+    "river_main",
+    "road_main",
+    "village_west",
+    "watch_keep_north",
+    "waterfall_northeast"
+  ],
+  "validation_cameras": [
+    {
+      "id": "hero_reference_match",
+      "role": "reference_match",
+      "source_image_id": "hero_reference_v1",
+      "position_m": [-65.0, 42.0, -245.0],
+      "target_m": [-25.0, 6.0, 45.0],
+      "vertical_fov_degrees": 58.0,
+      "near_m": 0.1,
+      "far_m": 1500.0
+    },
+    {
+      "id": "human_bridge",
+      "role": "human_height",
+      "source_image_id": null,
+      "position_m": [-35.0, 5.4, -205.0],
+      "target_m": [-40.0, 11.4, -90.0],
+      "vertical_fov_degrees": 62.0,
+      "near_m": 0.1,
+      "far_m": 1000.0
+    },
+    {
+      "id": "keep_landmark",
+      "role": "landmark",
+      "source_image_id": null,
+      "position_m": [-10.0, 18.0, 90.0],
+      "target_m": [-95.0, 42.0, 195.0],
+      "vertical_fov_degrees": 48.0,
+      "near_m": 0.1,
+      "far_m": 1000.0
+    },
+    {
+      "id": "valley_overview",
+      "role": "overview",
+      "source_image_id": null,
+      "position_m": [0.0, 190.0, -250.0],
+      "target_m": [0.0, 10.0, 30.0],
+      "vertical_fov_degrees": 54.0,
+      "near_m": 0.5,
+      "far_m": 1800.0
+    }
+  ]
+}

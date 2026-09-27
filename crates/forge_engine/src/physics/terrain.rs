@@ -411,7 +411,10 @@ mod tests {
         math::Vector,
         query::{Ray, RayCast},
     };
-    use forge_world::embedded_visual_valley_terrain_document;
+    use forge_world::{
+        compile_world_sketch, embedded_visual_valley_terrain_document,
+        embedded_visual_valley_world_sketch,
+    };
 
     fn prepared() -> Vec<PreparedTerrainHeightfield> {
         let document = embedded_visual_valley_terrain_document().unwrap();
@@ -616,6 +619,57 @@ mod tests {
         );
         assert!((left_hit_height - right_hit_height).abs() <= 0.05);
         assert!((left.center.x + left_local_x - (right.center.x + right_local_x)).abs() <= 0.0021);
+    }
+
+    #[test]
+    fn world_sketch_carved_candidate_reaches_all_64_rapier_heightfields_and_raycast() {
+        let compiled =
+            compile_world_sketch(&embedded_visual_valley_world_sketch().unwrap()).unwrap();
+        assert_eq!(
+            compiled.carved_terrain.height_deltas.len(),
+            compiled.spline_carving.modified_sample_count
+        );
+        let payloads = prepare_terrain_heightfields(&compiled.carved_terrain).unwrap();
+        assert_eq!(payloads.len(), TERRAIN_CHUNK_COUNT);
+        assert!(payloads.iter().all(|payload| {
+            payload
+                .heights_column_major
+                .iter()
+                .all(|height| height.is_finite())
+        }));
+
+        let probe_delta = compiled
+            .carved_terrain
+            .height_deltas
+            .iter()
+            .filter(|delta| {
+                delta.sample_x % TERRAIN_CHUNK_INTERVALS != 0
+                    && delta.sample_z % TERRAIN_CHUNK_INTERVALS != 0
+                    && delta.sample_x < 256
+                    && delta.sample_z < 256
+            })
+            .max_by(|left, right| left.delta_m.abs().total_cmp(&right.delta_m.abs()))
+            .expect("carving must modify at least one sample away from a chunk seam");
+        let world_x = -256.0 + f32::from(probe_delta.sample_x) * TERRAIN_SAMPLE_SPACING_M + 0.25;
+        let world_z = -256.0 + f32::from(probe_delta.sample_z) * TERRAIN_SAMPLE_SPACING_M + 0.25;
+        let base_plan = TerrainGenerationPlan::from_document(&compiled.terrain).unwrap();
+        let carved_plan = TerrainGenerationPlan::from_document(&compiled.carved_terrain).unwrap();
+        let base_height = base_plan.surface_at(world_x, world_z).unwrap().height_m;
+        let expected_height = carved_plan.surface_at(world_x, world_z).unwrap().height_m;
+        assert!((expected_height - base_height).abs() > 1.0);
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let chunk_x = ((world_x + 256.0) / 64.0).floor() as usize;
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        let chunk_z = ((world_z + 256.0) / 64.0).floor() as usize;
+        let payload = &payloads[chunk_z * 8 + chunk_x];
+        let local_x = world_x - payload.center.x;
+        let local_z = world_z - payload.center.z;
+        let origin_y = expected_height + 100.0;
+        let time_of_impact = cast_vertical_ray(payload, local_x, local_z, origin_y)
+            .expect("the carved Rapier heightfield must answer the terrain probe");
+        let hit_height = origin_y - time_of_impact;
+        assert!((hit_height - expected_height).abs() <= 1.0e-3);
     }
 
     fn cast_vertical_ray(

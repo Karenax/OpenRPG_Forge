@@ -1,0 +1,313 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.maitre-etai-orc-de-la-faille-claire",
+  "name": "Maître-étai orc de la Faille Claire",
+  "subtitle": "L'architecte qui négocie avec le poids d'un pont-cité",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Personnage majeur original des Terrasses de Schiste. Son autorité vient d'une charge publique et d'une expertise structurelle, jamais d'une supériorité innée attribuée aux Orcs.",
+  "major": true,
+  "classification": {
+    "nature": "humanoïde sapient",
+    "family": "Orcs des Terrasses de Schiste",
+    "rarity": "unique titulaire de la charge à la Faille Claire",
+    "activity": "selon inspections, convois et alertes sismiques",
+    "social": "direction d'équipes mixtes d'étaiement, d'évacuation et de maintenance",
+    "threat": "majeure",
+    "threat_reason": "Il commande un réseau de contrepoids capable de fermer des travées ou d'en reporter la charge ; la menace appartient au pont entier et à ses conséquences persistantes."
+  },
+  "physique": {
+    "dimensions": "1,85 à 2,10 m ; exoharnais de 2,25 m avec balancier transversal",
+    "mass_kg": [92, 138],
+    "locomotion": ["marche mesurée sur travée", "ancrage dans l'exoharnais", "déplacement encordé entre niveaux"],
+    "center_of_gravity": "Variable : les contrepoids le recentrent sous charge, mais deviennent dangereux lorsqu'une clavette ou une ligne est bloquée.",
+    "silhouette": "Exoharnais de bois et bronze autour d'un corps entier, deux contrepoids pendants, marteau d'inspection et craie de chantier sans symbole héraldique.",
+    "anatomy_zones": [
+      {
+        "zone": "tête et poitrine",
+        "description": "Casque de chantier ouvert et plastron matelassé sous les montants du harnais.",
+        "protection": 10
+      },
+      {
+        "zone": "épaules et montants",
+        "description": "Pièces de bois lamellé reprenant la charge ; solides dans l'axe, sensibles à une torsion latérale.",
+        "protection": 18
+      },
+      {
+        "zone": "hanches et mécanisme central",
+        "description": "Ceinture articulée portant treuil, clavettes et lignes de commande clairement accessibles.",
+        "protection": 13
+      },
+      {
+        "zone": "jambes et pieds",
+        "description": "Jambes protégées par guêtres, pieds larges équipés de griffes de plancher rétractables.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "pont-cité de la Faille Claire",
+    "travées de bois et de schiste suspendues",
+    "tours de contrepoids et galeries d'inspection"
+  ],
+  "ecology": {
+    "diet": "Alimentation omnivore commune aux habitants du pont, prise en petites portions pendant les longues inspections.",
+    "lifecycle": "La charge de Maître-étai est acquise après compagnonnage, examens publics et années d'entretien ; elle peut être quittée ou retirée.",
+    "reproduction": "Aucune particularité biologique n'est définie ; la succession professionnelle ne suit pas la filiation et reste ouverte aux personnes qualifiées.",
+    "behavior": "Il écoute les structures avant d'agir, évacue les travées menacées et préfère réparer. Sous pression, il ferme un trajet pour préserver l'ensemble du pont.",
+    "niche": "Architecte de crise maintenant la circulation, les charges et les refuges d'une ville répartie sur plusieurs niveaux au-dessus d'une faille.",
+    "environmental_impact": "Ses décisions déplacent convois, eaux de ruissellement et efforts structurels ; une réparation correcte protège aussi les nids et plantes accrochés aux arches."
+  },
+  "senses": [
+    "audition fine des fréquences de poutres frappées",
+    "perception tactile des vibrations transmise par l'exoharnais",
+    "vision entraînée aux lignes de charge, poussières et déformations lentes"
+  ],
+  "communication": [
+    "séquences de marteau relayées entre travées",
+    "cordes à cloche distinctes pour évacuation, contrepoids et reprise de circulation",
+    "ordres publics répétés par les équipes de niveau"
+  ],
+  "signs": [
+    "petites marques de craie aux jonctions sans texte lisible",
+    "clavettes graissées et contrôlées par paires",
+    "cordes de cloche séparées des lignes porteuses",
+    "poussière recueillie sur des tablettes sous les fissures actives"
+  ],
+  "demeanor": {
+    "objectives": ["évacuer les travées fragiles", "préserver l'arc principal", "identifier un sabotage sans condamner les innocents"],
+    "fears": ["résonance sismique pendant une foule en mouvement", "contrepoids bloqué hors de vue", "ordre falsifié provoquant une panique"],
+    "morale": "Inébranlable tant qu'une décision protège des vies ; il suspend le combat dès qu'une coopération permet une stabilisation réelle.",
+    "escalation": "Il ferme une travée, avertit par cloche, déplace une charge puis emploie son marteau seulement contre qui compromet l'évacuation ou l'ouvrage.",
+    "retreat": "Il recule vers la tour centrale en maintenant un trajet de sortie et refuse de poursuivre une personne hors des structures dont il a la charge."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 5,
+      "constitution": 8,
+      "intelligence": 9,
+      "willpower": 8,
+      "perception": 8,
+      "presence": 8
+    },
+    "skills": {
+      "athletics": 62,
+      "climbing": 54,
+      "impact_weapons": 65,
+      "armor": 60,
+      "crafting": 88,
+      "mechanisms": 82,
+      "investigation": 68,
+      "lore": 60,
+      "tactics": 72,
+      "leadership": 75,
+      "vigilance": 64
+    },
+    "resources": {
+      "vitality": 124,
+      "stamina": 114,
+      "mana": 104,
+      "balance": 104,
+      "focus": 104
+    },
+    "movement": "5,5 m/s dans l'exoharnais, 7 m/s désarrimé ; franchissement encordé de 6 m entre deux paliers préparés.",
+    "protections": [
+      "L'exoharnais répartit les impacts dans son axe et protège partiellement le torse ; ses joints, lignes et flancs restent exposés.",
+      "Les griffes de plancher augmentent l'ancrage uniquement sur les travées compatibles et ralentissent tout pivot."
+    ],
+    "attacks": [
+      {
+        "name": "Marteau d'inspection",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 30,
+        "reach": "arc de 1,25 m",
+        "stamina_cost": 11,
+        "preparation": "0,55 seconde, marteau levé à hauteur d'épaule",
+        "telegraph": "Le contrepoids opposé descend et la tête du marteau s'aligne sur le point visé.",
+        "effect": "Choc lourd visant appui, arme ou assemblage ; sur une structure, il produit une vibration qui révèle aussi son état.",
+        "counterplay": "Sortir de l'arc, bloquer le balancier, exploiter la récupération ou ne pas se placer sur une pièce déjà fragilisée."
+      },
+      {
+        "name": "Revers d'exoharnais",
+        "kind": "attack",
+        "visibility": "supposee",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 24,
+        "reach": "1,5 m du côté du balancier",
+        "stamina_cost": 15,
+        "preparation": "0,8 seconde pour libérer une griffe et déplacer un contrepoids",
+        "telegraph": "Une clavette claque, un poids monte et le montant transversal commence à pivoter.",
+        "effect": "Le balancier pousse dans un secteur latéral et peut projeter vers un garde-corps si l'Équilibre cède réellement.",
+        "counterplay": "Se rapprocher de l'axe, coincer la clavette, passer sous le balancier ou sécuriser le garde-corps avant l'impact."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Transfert de charge",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "crafting",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "une travée reliée à la tour de contrepoids",
+        "stamina_cost": 18,
+        "preparation": "2,5 secondes après une cloche grave et deux tests de ligne",
+        "telegraph": "Les cordes se tendent successivement, la poussière tombe d'un joint et un contrepoids descend dans sa cage.",
+        "effect": "La charge quitte partiellement une section et augmente ailleurs ; portes, pentes et stabilité changent selon les assemblages réels.",
+        "counterplay": "Lire les lignes, libérer une cage, soutenir la travée receveuse ou convaincre le Maître-étai d'interrompre la manœuvre."
+      },
+      {
+        "name": "Verrouillage de travée",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "passage équipé à moins de 20 m",
+        "stamina_cost": 14,
+        "preparation": "1,8 seconde pour tirer la ligne dédiée",
+        "telegraph": "Une cloche claire sonne, des taquets sortent et le tablier s'incline lentement avant de se bloquer.",
+        "effect": "Une route devient une pente, un couvert ou un passage fermé sans disparaître ; la nouvelle géométrie persiste.",
+        "counterplay": "Franchir avant le verrou, actionner le mécanisme opposé, étayer la pente ou employer une voie de maintenance."
+      },
+      {
+        "name": "Lecture vibratoire",
+        "kind": "ability",
+        "visibility": "secrete",
+        "skill_id": "investigation",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "assemblage continu dans un rayon d'environ 18 m",
+        "stamina_cost": 8,
+        "preparation": "1,2 seconde immobile après un coup léger du marteau",
+        "telegraph": "Il pose deux doigts sur le montant et ferme les yeux pendant que l'écho parcourt la structure.",
+        "effect": "Il localise mouvement, rupture ou charge anormale transmis par l'ouvrage, sans voir à travers un vide ni identifier automatiquement une personne.",
+        "counterplay": "Quitter la structure continue, produire plusieurs vibrations cohérentes ou coopérer pour révéler la cause réelle."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "impact frontal dans l'axe du harnais",
+        "mechanism": "Les montants et contrepoids répartissent le choc vers le plancher tant que les deux griffes et la ceinture restent engagées."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "clavette immobilisée ou charge asymétrique",
+        "mechanism": "Bloquer un poids pendant que l'autre se déplace transforme l'assistance du harnais en torsion et réduit fortement l'Équilibre."
+      },
+      {
+        "subject": "structure désolidarisée",
+        "mechanism": "Sur un sol massif sans lignes ni assemblages, ses capacités de transfert et de lecture perdent presque toute portée."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "contrepoids coincé par un coin solide",
+        "result": "transfert interrompu et harnais déséquilibré",
+        "chain": "Le poids cesse de descendre, la ligne opposée conserve sa tension et la torsion remonte jusqu'à l'exoharnais."
+      },
+      {
+        "input": "travée étayée avant la manœuvre",
+        "result": "charge dérivée vers le nouvel appui",
+        "chain": "L'étai reçoit l'effort, limite l'inclinaison et peut rendre une route sûre si sa base repose sur une structure saine."
+      },
+      {
+        "input": "marche cadencée ou choc répété",
+        "result": "résonance et fissure accélérée",
+        "chain": "Des impulsions régulières s'additionnent dans une pièce déjà fatiguée, font tomber la poussière puis élargissent sa rupture."
+      },
+      {
+        "input": "corde de cloche correctement actionnée",
+        "result": "évacuation ou suspension de manœuvre",
+        "chain": "Le signal connu traverse les niveaux, déclenche les relais humains et modifie les priorités du Maître-étai avant toute attaque."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 14,
+      "fact": "Le titre de Maître-étai est une charge révocable : protéger la population et l'arc principal passe avant défendre son prestige."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les marques fraîches et la poussière recueillie montrent quelle travée recevra la prochaine charge et où un étai sera utile."
+    },
+    {
+      "status": "secret",
+      "skill_id": "vigilance",
+      "difficulty": 30,
+      "fact": "La cloche d'évacuation prime sur toutes les autres consignes ; une alerte crédible et vérifiable suspend immédiatement l'affrontement."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Le sabotage recherché imite une fatigue naturelle, mais une graisse étrangère sous la clavette centrale trahit une intervention récente."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["architecte d'arène", "contrôleur de routes", "responsable d'évacuation"],
+    "telegraphs": [
+      "Chaque transfert commence par une cloche grave, deux lignes testées et une pluie de poussière localisée.",
+      "Le verrouillage d'une travée produit une cloche claire puis une inclinaison lente et visible.",
+      "Une clavette qui claque et un poids qui monte annoncent le revers latéral du harnais."
+    ],
+    "noncombat_options": [
+      "Aider les équipes à évacuer les niveaux exposés avant de discuter du sabotage.",
+      "Étayer la travée fissurée et présenter une preuve matérielle de bonne foi.",
+      "Identifier la graisse étrangère et proposer une inspection commune de la clavette centrale.",
+      "Actionner honnêtement la cloche d'évacuation lorsqu'un danger vérifiable survient."
+    ],
+    "complications": [
+      "Coincer un contrepoids sans soutenir la travée receveuse peut reporter la catastrophe ailleurs.",
+      "Une foule paniquée ajoute une charge mobile que ni le Maître-étai ni les personnages ne contrôlent seuls.",
+      "Les transformations du pont persistent après l'affrontement et modifient circulation, refuges et secours."
+    ]
+  },
+  "salvage": [
+    "Clavettes, coins, poulies et corde seulement s'ils sont remplacés, abandonnés ou cédés après sécurisation publique.",
+    "L'exoharnais est un outil de charge et n'est jamais traité comme un butin automatique."
+  ],
+  "plates": [
+    {
+      "image": "maitre-etai-orc-de-la-faille-claire-plate.png",
+      "alt": "Maître-étai orc entier sur une travée suspendue, intégré à un exoharnais de bois et bronze avec contrepoids, marteau et lignes de commande visibles.",
+      "caption": "Le harnais ne donne pas une force abstraite : il redistribue le poids vers des appuis et des lignes identifiables.",
+      "prompt_key": "maitre-etai-orc-de-la-faille-claire-plate"
+    },
+    {
+      "image": "maitre-etai-orc-de-la-faille-claire-dossier.png",
+      "alt": "Vue élevée du pont-cité de la Faille Claire montrant le Maître-étai, trois travées, cages de contrepoids, voie d'évacuation et équipes stabilisant une arche fissurée.",
+      "caption": "L'arène entière devient le mécanisme : déplacer une charge sauve une travée tout en en menaçant une autre.",
+      "prompt_key": "maitre-etai-orc-de-la-faille-claire-dossier"
+    }
+  ],
+  "major_dossier": {
+    "arena": "La Faille Claire est franchie par trois travées superposées reliées à une tour centrale. Deux cages de contrepoids, des cordes de cloche, des voies de maintenance et une arche fissurée transmettent réellement les charges ; habitants et équipes d'évacuation restent présents.",
+    "sequence": [
+      "Le Maître-étai ferme la travée basse, sonne l'évacuation locale et demande l'origine de l'intrusion.",
+      "Une première redistribution incline le tablier central et ouvre une voie de maintenance tout en surchargeant l'arche fissurée.",
+      "Si le conflit continue, il verrouille une cage et utilise l'exoharnais pour défendre les lignes ; les craquements indiquent l'évolution de chaque appui.",
+      "Une résonance ou un contrepoids saboté menace l'arc principal : combat, réparation et évacuation deviennent une seule décision persistante.",
+      "La résolution dépend de l'état des trois travées, des cages, de l'arche, des habitants et de la preuve concernant le sabotage."
+    ],
+    "causal_opportunities": [
+      "Coincer un contrepoids après avoir étayé la travée qui devait recevoir sa charge.",
+      "Employer une voie de maintenance pour atteindre une clavette sans traverser le secteur défendu.",
+      "Rompre la cadence d'une foule ou d'une machine afin d'arrêter une résonance dangereuse.",
+      "Réparer l'arche principale, actionner la cloche d'évacuation ou produire la preuve du sabotage pour suspendre le combat."
+    ],
+    "aftermath": "Les inclinaisons, étaiements, ruptures et voies fermées restent en place. Une issue coopérative restaure progressivement la circulation et permet une enquête publique ; une victoire par destruction peut isoler des quartiers et transformer durablement la Faille Claire."
+  }
+}

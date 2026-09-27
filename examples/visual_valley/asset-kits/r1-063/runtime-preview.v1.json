@@ -1,0 +1,180 @@
+{
+  "schema": "forge.asset-kit-runtime-preview",
+  "schema_version": 1,
+  "asset_kit_id": "visual-valley-r1-063",
+  "asset_kit_revision": 3,
+  "source_world_sketch_sha256": "46f1d766a9dc35af75d172a7d1700af95dda397ba956ceba0e23318df49f3839",
+  "source_terrain_sha256": "f47294def69f86f2d3c7e1fd52c522cab0b1a595e6e292bb7af724742e4ddb16",
+  "input_manifest_sha256": "c75ebf0183f6a30af6ed9c5f3190079102d76f7bf90887b201358027c8fcb920",
+  "camera_id": "hero_reference_match",
+  "assets": [
+    "vv-rock-moss-a",
+    "vv-rock-moss-b",
+    "vv-tree-oak-a",
+    "vv-tree-pine-a",
+    "vv-architecture-wall-a",
+    "vv-architecture-arch-a"
+  ],
+  "placements": [
+    {
+      "id": "foreground-oak-west",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [-118.0, -145.0],
+      "surface_offset_m": -0.04,
+      "yaw_degrees": 18.0,
+      "scale": 0.92
+    },
+    {
+      "id": "foreground-pine-east",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [16.0, -126.0],
+      "surface_offset_m": -0.04,
+      "yaw_degrees": -27.0,
+      "scale": 0.86
+    },
+    {
+      "id": "forest-oak-south",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [-176.0, -112.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 73.0,
+      "scale": 1.08
+    },
+    {
+      "id": "forest-pine-south",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [-211.0, -74.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 121.0,
+      "scale": 0.94
+    },
+    {
+      "id": "forest-oak-mid",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [-205.0, -4.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": -46.0,
+      "scale": 1.16
+    },
+    {
+      "id": "forest-pine-mid",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [-182.0, 72.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 39.0,
+      "scale": 1.02
+    },
+    {
+      "id": "forest-oak-north",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [-143.0, 126.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 156.0,
+      "scale": 1.2
+    },
+    {
+      "id": "forest-pine-north",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [-82.0, 158.0],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": -112.0,
+      "scale": 1.05
+    },
+    {
+      "id": "river-rock-south-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [-26.0, -138.0],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 24.0,
+      "scale": 1.15
+    },
+    {
+      "id": "river-rock-south-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [32.0, -102.0],
+      "surface_offset_m": -0.06,
+      "yaw_degrees": -61.0,
+      "scale": 1.35
+    },
+    {
+      "id": "ridge-rock-east-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [76.0, 18.0],
+      "surface_offset_m": -0.12,
+      "yaw_degrees": 91.0,
+      "scale": 1.8
+    },
+    {
+      "id": "ridge-rock-east-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [28.0, 88.0],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 147.0,
+      "scale": 1.55
+    },
+    {
+      "id": "ridge-rock-north-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [-18.0, 154.0],
+      "surface_offset_m": -0.12,
+      "yaw_degrees": -133.0,
+      "scale": 2.1
+    },
+    {
+      "id": "ridge-rock-north-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [84.0, 192.0],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 53.0,
+      "scale": 1.75
+    },
+    {
+      "id": "village-gate",
+      "asset_id": "vv-architecture-arch-a",
+      "xz_m": [-157.0, -13.0],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19.0,
+      "scale": 1.15
+    },
+    {
+      "id": "village-wall-west",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [-163.5, -8.5],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19.0,
+      "scale": 1.15
+    },
+    {
+      "id": "village-wall-east",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [-150.5, -17.5],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19.0,
+      "scale": 1.15
+    },
+    {
+      "id": "keep-gate",
+      "asset_id": "vv-architecture-arch-a",
+      "xz_m": [-96.0, 184.0],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12.0,
+      "scale": 1.35
+    },
+    {
+      "id": "keep-wall-west",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [-102.5, 182.5],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12.0,
+      "scale": 1.35
+    },
+    {
+      "id": "keep-wall-east",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [-89.5, 185.5],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12.0,
+      "scale": 1.35
+    }
+  ]
+}

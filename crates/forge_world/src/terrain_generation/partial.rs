@@ -6,7 +6,10 @@ use super::{
     TerrainDirtyChunk, TerrainGenerationError, TerrainGenerationPlan,
 };
 use forge_core::{ContentHash, Revision, RevisionError};
-use forge_project::{TERRAIN_DOCUMENT_SCHEMA_VERSION, TerrainDocument, TerrainHeightDelta};
+use forge_project::{
+    TERRAIN_DOCUMENT_SCHEMA_VERSION, TERRAIN_DOCUMENT_SCHEMA_VERSION_V3, TerrainDocument,
+    TerrainHeightDelta,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use thiserror::Error;
@@ -169,6 +172,88 @@ impl TerrainPartialUpdateCommit {
 }
 
 impl TerrainGenerationPlan {
+    /// Explicit projection update for editor metadata and base elevation.
+    /// Keeps the sparse-delta API strict; other structural changes still require
+    /// rebuilding the entire scene and its bindings through a separate operation.
+    pub fn apply_authoring_update(
+        &self,
+        source_cache: &GeneratedTerrain,
+        request: TerrainPartialUpdateRequest,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        if request.base_revision != self.document.revision {
+            return Err(TerrainPartialUpdateError::StaleBaseRevision {
+                expected: self.document.revision,
+                actual: request.base_revision,
+            });
+        }
+        if request.base_document_hash != self.document_hash {
+            return Err(TerrainPartialUpdateError::StaleBaseDocumentHash {
+                expected: self.document_hash,
+                actual: request.base_document_hash,
+            });
+        }
+        validate_source_cache(self, source_cache)?;
+        let expected = self.document.revision.next()?;
+        if request.target_document.revision != expected {
+            return Err(TerrainPartialUpdateError::UnexpectedTargetRevision {
+                expected,
+                actual: request.target_document.revision,
+            });
+        }
+        if !matches!(request.target_document.schema_version, 1..=3) {
+            return Err(TerrainPartialUpdateError::TargetMustUseCurrentSchema);
+        }
+        let mut structural = request.target_document.clone();
+        structural.name.clone_from(&self.document.name);
+        structural.height_sampling.base_elevation_m =
+            self.document.height_sampling.base_elevation_m;
+        validate_partial_compatibility(&self.document, &structural)?;
+        let target = TerrainGenerationPlan::from_document(&request.target_document)
+            .map_err(TerrainPartialUpdateError::InvalidTargetDocument)?;
+        let elevated = self.document.height_sampling.base_elevation_m.to_bits()
+            != request
+                .target_document
+                .height_sampling
+                .base_elevation_m
+                .to_bits();
+        if !elevated
+            && (self.document.height_deltas != request.target_document.height_deltas
+                || self.document.material_overrides != request.target_document.material_overrides)
+        {
+            // A combined rename/delta gesture is not yet part of the editor contract.
+            return self.apply_partial_update(source_cache, request);
+        }
+        let changed_samples = if elevated {
+            (0..=TERRAIN_GLOBAL_INTERVALS_PER_AXIS)
+                .flat_map(|z| {
+                    (0..=TERRAIN_GLOBAL_INTERVALS_PER_AXIS)
+                        .map(move |x| TerrainHeightSampleCoordinate::new(x, z))
+                })
+                .collect()
+        } else {
+            Vec::new()
+        };
+        let coordinates = affected_chunk_coordinates(&changed_samples);
+        let dirty = dirty_chunks(&target, &coordinates);
+        let replacement_chunks = if elevated {
+            target
+                .generate()
+                .map_err(TerrainPartialUpdateError::InvalidTargetDocument)?
+                .chunks
+        } else {
+            Vec::new()
+        };
+        Ok(TerrainPartialUpdate {
+            source_document_hash: self.document_hash,
+            target_document_hash: target.document_hash,
+            target_document: request.target_document,
+            replacement_chunks,
+            changed_samples,
+            mesh_chunks: dirty.clone(),
+            collider_chunks: dirty,
+        })
+    }
+
     /// Applies only a sparse height-delta transition to a valid derived cache.
     ///
     /// The request cannot provide a dirty region: changed samples and their cardinal normal
@@ -200,7 +285,10 @@ impl TerrainGenerationPlan {
                 actual: request.target_document.revision,
             });
         }
-        if request.target_document.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION {
+        if !matches!(
+            request.target_document.schema_version,
+            TERRAIN_DOCUMENT_SCHEMA_VERSION | TERRAIN_DOCUMENT_SCHEMA_VERSION_V3
+        ) {
             return Err(TerrainPartialUpdateError::TargetMustUseCurrentSchema);
         }
         validate_partial_compatibility(&self.document, &request.target_document)?;
@@ -210,11 +298,17 @@ impl TerrainGenerationPlan {
             &self.document.height_deltas,
             &request.target_document.height_deltas,
         );
-        if changed_samples.is_empty() {
+        let material_samples = changed_material_samples(&self.document, &request.target_document);
+        if changed_samples.is_empty() && material_samples.is_empty() {
             return Err(TerrainPartialUpdateError::NoHeightDeltaChanges);
         }
 
-        let dependency_samples = normal_dependency_samples(&changed_samples);
+        let dependency_samples = normal_dependency_samples(&changed_samples)
+            .into_iter()
+            .chain(material_samples)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
         let mesh_coordinates = affected_chunk_coordinates(&dependency_samples);
         let collider_coordinates = affected_chunk_coordinates(&changed_samples);
         let mesh_chunks = dirty_chunks(&target_plan, &mesh_coordinates);
@@ -281,6 +375,30 @@ fn validate_partial_compatibility(
     } else {
         Err(TerrainPartialUpdateError::FullRebuildRequired)
     }
+}
+
+fn changed_material_samples(
+    source: &TerrainDocument,
+    target: &TerrainDocument,
+) -> Vec<TerrainHeightSampleCoordinate> {
+    let old = source
+        .material_overrides
+        .iter()
+        .map(|sample| ((sample.sample_z, sample.sample_x), &sample.weights))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let new = target
+        .material_overrides
+        .iter()
+        .map(|sample| ((sample.sample_z, sample.sample_x), &sample.weights))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    old.keys()
+        .chain(new.keys())
+        .copied()
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .filter(|key| old.get(key) != new.get(key))
+        .map(|(z, x)| TerrainHeightSampleCoordinate::new(x, z))
+        .collect()
 }
 
 fn validate_source_cache(
@@ -555,7 +673,13 @@ fn patch_sample(
     let z_m = world_coordinate(sample.sample_z);
     let height_m = sample_height_unchecked(document, x_m, z_m);
     let normal = sample_normal(document, x_m, z_m);
-    let weights = material_weights_for(document, height_m, normal[1]);
+    let weights = material_weights_for(
+        document,
+        height_m,
+        normal[1],
+        sample.sample_x,
+        sample.sample_z,
+    );
 
     for coordinate in affected_chunk_coordinates(&[sample]) {
         let local_x = sample.sample_x - coordinate.x * TERRAIN_CHUNK_INTERVALS;

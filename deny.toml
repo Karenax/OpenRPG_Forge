@@ -10,16 +10,6 @@ targets = [
 yanked = "deny"
 ignore = [
     { id = "RUSTSEC-2024-0370", reason = "Tauri 2.11.5 Linux transitively requires proc-macro-error 1.0.4 through GTK3; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream replacement." },
-    { id = "RUSTSEC-2024-0411", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0412", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0413", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0414", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0415", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0416", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0417", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0418", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0419", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
-    { id = "RUSTSEC-2024-0420", reason = "Tauri 2.11.5 Linux transitively requires GTK3 0.18; informational unmaintained notice with no safe upgrade in the pinned Tauri graph; track upstream removal of GTK3." },
     { id = "RUSTSEC-2024-0436", reason = "Leptos 0.8.20 transitively requires paste 1.0.15; informational unmaintained notice with no vulnerability reported; track the upstream replacement." },
     { id = "RUSTSEC-2025-0075", reason = "Tauri 2.11.5 transitively requires rust-unic 0.9 through urlpattern 0.3.0; informational unmaintained notice; track the upstream replacement." },
     { id = "RUSTSEC-2025-0080", reason = "Tauri 2.11.5 transitively requires rust-unic 0.9 through urlpattern 0.3.0; informational unmaintained notice; track the upstream replacement." },

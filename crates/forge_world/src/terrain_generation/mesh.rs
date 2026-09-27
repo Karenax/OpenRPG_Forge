@@ -230,7 +230,13 @@ impl GlobalTerrainGrid {
                     f32::from(global_x) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
                     f32::from(global_z) / f32::from(TERRAIN_GLOBAL_INTERVALS_PER_AXIS),
                 ]);
-                material_weights.push(material_weights_for(&plan.document, height_m, normal[1]));
+                material_weights.push(material_weights_for(
+                    &plan.document,
+                    height_m,
+                    normal[1],
+                    global_x,
+                    global_z,
+                ));
             }
         }
 

@@ -11,7 +11,12 @@ description = "Deterministic engine-neutral world recipes for OpenRPG Forge."
 forge_core.workspace = true
 forge_project.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
+
+[dev-dependencies]
+# Source-oracle examples compare binary64 values without JSON parse rounding.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 
 [lints]
 workspace = true

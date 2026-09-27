@@ -1,0 +1,127 @@
+/* Only the active tool panel scrolls. Essential actions and navigation stay visible. */
+.authoring-shell { height: 100dvh; display: flex; flex-direction: column; overflow: clip; background: #101720; color: #e0e7ef; color-scheme: dark; font-size: 14px; }
+.authoring-shell > .topbar { flex: 0 0 auto; min-height: 52px; padding: 8px 16px; display: flex; align-items: center; gap: 20px; }
+.authoring-shell h1 { font-size: 18px; margin: 0 auto 0 0; }
+.authoring-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(360px, 410px) minmax(0, 1fr); overflow: clip; }
+.authoring-tools { min-height: 0; min-width: 0; overflow: clip; border-right: 1px solid #354151; }
+.authoring-tools .authoring-editor { position: static; display: flex; flex-direction: column; height: 100%; min-height: 0; width: auto; max-width: none; margin: 0; border: 0; }
+.authoring-tools .authoring-editor > summary { display: none; }
+/* details has an anonymous content box: flex:1 alone does not constrain its child. */
+.authoring-tools .authoring-editor::details-content { height: 100%; min-height: 0; }
+.authoring-tools .authoring-editor > div[aria-label="Édition terrain"] { position: static; display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; max-height: none; width: auto; padding: 0; overflow: clip; }
+.authoring-toolbar { flex: 0 0 auto; padding: 10px 12px 8px; border-bottom: 1px solid #30455e; background: #101f32; }
+.authoring-context { margin-bottom: 7px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; color: #dce8f5; }
+.authoring-editor .authoring-main-tabs { position: static; inset: auto; transform: none; width: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 9px; padding: 0; border: 0; box-shadow: none; background: transparent; }
+.authoring-tools .authoring-main-tabs button { min-height: 34px; padding: 5px 3px; text-align: center; font-size: 12px; border: 1px solid #405b77; border-radius: 5px; background: #1b3048; color: #c7d9eb; cursor: pointer; }
+.authoring-main-tabs button[aria-current="page"] { background: #23638f; border-color: #8acdf5; color: white; font-weight: 700; }
+.authoring-main-tabs button:hover { background: #2c4e6e; }
+.authoring-main-tabs button:focus-visible { outline: 2px solid #a9dcff; outline-offset: 2px; }
+.authoring-panel-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #546478 transparent; }
+.authoring-panel { display: grid; gap: 8px; align-content: start; padding-bottom: 16px; }
+.authoring-panel[hidden], .authoring-editor output[hidden] { display: none !important; }
+.authoring-panel h2 { margin: 0; font-size: 17px; }
+.authoring-panel > p { margin: 0 0 4px; color: #aec4da; line-height: 1.4; }
+.authoring-panel details { min-width: 0; border: 1px solid #30455e; border-radius: 6px; padding: 0 9px 8px; }
+.authoring-panel .scene-navigation { margin: 0; }
+.authoring-panel details > summary { padding: 10px 2px; border: 0; font-weight: 600; }
+.authoring-panel .workspace-history > ul,
+.authoring-panel .zone-history > ol { max-height: 260px; overflow-y: auto; overscroll-behavior: contain; padding-right: 8px; }
+.authoring-tools label { display: grid; gap: 4px; font-size: 13px; }
+.authoring-tools input, .authoring-tools select { width: 100%; min-width: 0; box-sizing: border-box; }
+.authoring-tools button { width: 100%; white-space: normal; text-align: left; }
+.authoring-tools button[hidden] { display: none !important; }
+.authoring-tools .managed-zone-tabs {
+  /* Zone tabs are not the floating scene-picker menu. */
+  position: static; inset: auto; transform: none; width: auto;
+  display: flex; flex-wrap: wrap; gap: 6px; padding: 8px;
+  box-shadow: none; border: 1px solid #30455e; border-radius: 6px;
+}
+.authoring-tools .managed-zone-tabs:empty { display: none; }
+.authoring-tools .managed-zone-tabs button { width: auto; flex: 1 1 110px; overflow-wrap: anywhere; }
+.authoring-tools .managed-zone-tabs button[aria-current="page"] {
+  opacity: 1; color: #dce8f5; background: #214b70; border: 1px solid #6ca8d4;
+}
+.authoring-tools .authoring-command-bar { position: static; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 0; background: transparent; border: 0; box-shadow: none; }
+.authoring-command-bar .authoring-apply,
+.authoring-command-bar > div:first-child,
+.authoring-command-bar output { grid-column: 1 / -1; }
+.authoring-command-bar button { min-height: 32px; padding: 5px 7px; font-size: 12px; text-align: center; }
+.authoring-command-bar .authoring-apply { background: #285b79; color: white; font-weight: 700; }
+.authoring-tools .authoring-command-bar output { max-height: 3.2rem; overflow-y: auto; margin: 0; padding: 2px 0; font-size: 11px; }
+.authoring-tools .authoring-command-bar output[hidden] { display: none; }
+.authoring-tools output { display: block; overflow-wrap: anywhere; padding: 8px 0; font-size: 12px; }
+.authoring-tools fieldset { min-width: 0; display: grid; gap: 8px; border: 1px solid #30455e; padding: 10px; margin: 6px 0; }
+.authoring-tools .authoring-brush-gate { border: 0; padding: 0; margin: 0; }
+.authoring-tools fieldset:disabled { opacity: 0.5; }
+.authoring-tools summary { cursor: pointer; padding: 8px 0; }
+.authoring-tools p { font-size: 12px; line-height: 1.5; }
+.authoring-view { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.authoring-view > div[aria-label] { padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.authoring-view > div[aria-label] span { font-size: 12px; color: #aec4da; }
+.authoring-viewport-info { padding: 0 12px; font-size: 12px; color: #aec4da; }
+.authoring-viewport-info > summary { width: fit-content; cursor: pointer; }
+.authoring-status { max-height: 3rem; padding: 6px 12px; overflow-y: auto; overflow-wrap: anywhere; font-size: 12px; }
+.authoring-canvas-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+#forge-authoring-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#forge-authoring-canvas:focus-visible { outline: 2px solid #7ac9ff; outline-offset: -2px; }
+@media (min-width: 2500px) { .authoring-body { grid-template-columns: 430px minmax(0, 1fr); } }
+@media (max-width: 1200px) { .authoring-body { grid-template-columns: 360px minmax(0, 1fr); } }
+
+/* Editor chrome: restrained motion, explicit tool hierarchy, no native grey forms. */
+.authoring-shell > .topbar { background: #141d29; border-bottom: 1px solid #354151; }
+.authoring-shell h1::before { content: "F"; display: inline-grid; place-items: center; width: 28px; height: 28px; margin-right: 10px; border-radius: 7px; background: #d7b77c; color: #17202b; font: 800 19px Georgia, serif; }
+.authoring-shell .topbar a { color: #aebed0; font-size: 12px; text-decoration: none; padding: 8px 10px; border-radius: 5px; }
+.authoring-shell .topbar a:hover { background: #253346; color: white; }
+.authoring-toolbar { background: linear-gradient(145deg, #202c3b, #182230); padding: 12px; position: relative; }
+.authoring-toolbar[aria-busy="true"]::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: #77d9c5; animation: authoring-busy 1s ease-in-out infinite alternate; }
+.authoring-context { font-size: 15px; margin-bottom: 10px; color: #f0dfbf; }
+.authoring-shell button { border: 1px solid #415166; background: #263447; color: #e1e9f3; border-radius: 6px; min-height: 34px; padding: 7px 10px; cursor: pointer; font: inherit; line-height: 1.25; transition: background-color 140ms, border-color 140ms, box-shadow 140ms; }
+.authoring-shell button:hover:not(:disabled) { background: #344962; border-color: #839bb5; }
+.authoring-shell button:active:not(:disabled) { background: #1a2839; }
+.authoring-shell button:disabled { opacity: .45; cursor: not-allowed; }
+.authoring-shell :is(button, input, select, textarea, summary, a):focus-visible { outline: 2px solid #82decf; outline-offset: 3px; }
+.authoring-tools :is(input, select, textarea) { color: #edf3fa; background: #111b28; border: 1px solid #43536a; border-radius: 5px; padding: 8px; min-height: 34px; font: inherit; accent-color: #78d4c0; }
+.authoring-tools :is(input, select, textarea):focus { border-color: #78d4c0; }
+.authoring-tools input[type="checkbox"] { width: 17px; height: 17px; min-height: 0; margin: 0; }
+.authoring-tools label:has(> input[type="checkbox"]) { display: flex; align-items: center; gap: 9px; }
+.authoring-tools label { color: #becbdb; line-height: 1.4; }
+.authoring-tools fieldset { border-color: #35465b; border-radius: 9px; background: #192432; padding: 12px; gap: 10px; }
+.authoring-tools legend { color: #d9c49b; font-size: 12px; font-weight: 650; padding: 0 5px; }
+.authoring-tools .authoring-brush-gate { background: transparent; }
+.authoring-panel { gap: 10px; }
+.authoring-panel h2 { font-size: 20px; font-weight: 650; letter-spacing: -.3px; }
+.authoring-panel > p { font-size: 13px; color: #9fb2c8; }
+.authoring-panel details { background: #172230; padding-bottom: 0; border-color: #35465b; }
+.authoring-panel details[open] { padding-bottom: 10px; }
+.authoring-panel details[open] > :not(summary) { margin-top: 8px; }
+.authoring-panel details > summary { color: #c4d4e6; font-size: 13px; min-height: 20px; }
+.authoring-tools .authoring-main-tabs { gap: 6px; margin-top: 12px; }
+.authoring-tools .authoring-main-tabs button { display: flex; align-items: center; justify-content: flex-start; gap: 7px; min-height: 42px; padding: 7px; border: 1px solid transparent; background: #1a2635; color: #aabdd3; font-size: 12px; }
+.authoring-tools .authoring-main-tabs button[aria-current="page"] { background: #314238; border-color: #829a6d; color: #e6edda; box-shadow: inset 0 -2px #b2c48e; }
+.authoring-tool-icon { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.authoring-tools .authoring-primary, .authoring-command-bar .authoring-apply:not(:disabled) { background: #bca06c; border-color: #ddc38e; color: #17202c; font-weight: 700; }
+.authoring-tools .authoring-primary:hover:not(:disabled), .authoring-command-bar .authoring-apply:hover:not(:disabled) { background: #dec18d; border-color: #f3d9a9; }
+.authoring-command-bar .authoring-apply { font-size: 13px; }
+.authoring-play-actions { display: grid; grid-template-columns: 1fr 1.5fr; gap: 6px; margin-top: 8px; }
+.authoring-play-actions button { text-align: center; font-size: 12px; }
+.authoring-play-actions .authoring-play:not(:disabled) { background: #245549; border-color: #4a9b82; color: #d3f7e8; }
+.authoring-play::before { content: "▶"; font-size: 10px; margin-right: 7px; }
+.authoring-tools .authoring-command-status { color: #bfcece; }
+.authoring-tools .authoring-command-diff { background: #243b36; padding: 7px; border-radius: 5px; color: #c2eadd; }
+.authoring-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.authoring-relief .authoring-field-grid > label:first-child { grid-column: 1 / -1; }
+.authoring-brush-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.authoring-brush-actions button { font-size: 12px; text-align: center; }
+.authoring-tools .authoring-hint { margin: 0; color: #adcbbf; padding-left: 10px; border-left: 2px solid #688b77; }
+.authoring-view { background: #0e1722; }
+.authoring-view > div[aria-label] { border-bottom: 1px solid #293848; background: #172230; }
+.authoring-view > div[aria-label] button { font-size: 12px; min-height: 30px; }
+.authoring-status { color: #a4b6ca; font: 11px/1.4 Consolas, monospace; background: #111c29; }
+.authoring-viewport-info { background: #111c29; padding-top: 4px; padding-bottom: 4px; }
+.authoring-panel:not([hidden]) { animation: authoring-enter 160ms ease-out; }
+.authoring-tool-mode { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 2; pointer-events: none; max-width: calc(100% - 48px); padding: 10px 18px; border: 1px solid #a4b886; border-radius: 20px; background: #152b26ed; color: #e7f3d8; font-size: 13px; box-shadow: 0 4px 18px #0006; }
+.authoring-tool-mode[hidden] { display: none; }
+.authoring-view > label { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #172230; color: #acc0d4; font-size: 12px; }
+@keyframes authoring-enter { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes authoring-busy { from { opacity: .35; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .authoring-shell *, .authoring-shell *::after { animation: none !important; transition: none !important; } }

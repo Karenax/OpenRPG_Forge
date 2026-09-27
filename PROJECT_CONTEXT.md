@@ -1,39 +1,157 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
-Dernière mise à jour : **31 août 2026**
-Branche : **`Rust`**
-Statut : **Gate 0 passée sur preuves automatisées locales ; Gate 1 active ; produit non qualifié**
-Référence historique : `main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`
-Référence upstream exécutable : `Humpalumps/Cadle@ea0da62549980816a6a27e08b75808b1f56d70e7` (`v0.6.0`)
+## Chantier Tidewater autorisé — 24 septembre 2026
 
-Ce document est la source de vérité narrative de la branche `Rust`. Il doit permettre à un agent de
-développement de comprendre le produit, les objectifs, les frontières, l’architecture cible, la
-stratégie de migration et les critères d’acceptation sans charger le dépôt C#/Godot complet.
+Le propriétaire a demandé l'exécution du plan complet avec la même carte et les
+mêmes effets visuels que `dgreenheck/tidewater@1438b1ab`. Le chantier maritime
+précédemment différé est explicitement autorisé dans cette portée, selon
+[ADR-0017](docs/ADR/ADR-0017-tidewater-fidelity-integration.md).
+Le [suivi Tidewater](docs/planning/TIDEWATER_INTEGRATION.md) distingue extraction,
+port Rust, édition Studio et qualification visuelle. Aucune parité ni clôture de
+gate n'est acquise par cette autorisation. Rust/Bevy reste la pile produit.
+Le travail existant et les preuves antérieures sont conservés ; aucune publication
+Git implicite. Les paragraphes datés ci-dessous conservent leur portée propre.
 
-La branche `Rust` est une branche orpheline créée avec un arbre Git vide. Elle n’a aucun ancêtre commun
-avec `main`. Une fusion Git classique n’est donc ni prévue ni souhaitable. La migration est une
-migration de connaissances, de contrats, de données et d’assets sélectionnés, pas une migration de
-l’historique ni une traduction ligne par ligne du code existant.
+## Reprise Gate 2 — 19 septembre 2026
 
-La branche ne part toutefois plus d’une page blanche fonctionnelle. Le dépôt public **Cadle** est
-adopté comme upstream exécutable de référence : l’agent obtient une copie locale épinglée, conserve
-le snapshot source intact, lance la baseline sous l’overlay npm borné d’ADR-0003 et utilise ses systèmes MIT comme donneurs de
-techniques et de contrats comportementaux. Cadle n’est ni une nouvelle dépendance de production ni le
-runtime final de Forge : son JavaScript/Three.js/WebGL2 doit être progressivement remplacé par des
-implémentations Rust/Bevy/wgpu/WebGPU, avec attribution et preuves comparatives.
+Objectif actif de la tâche de reprise : finir Gate 2, sur le worktree et la branche
+Rust existants, sans publication. R2-020 conserve son verdict local ci-dessous.
+R2-004 qualifié localement : parcours 7D630852 puis régression 9317EE50, départ
+runtime X40/Z0/cap90 et archive finale 89E0DCB8 inchangée autour du playtest.
+R2-006 qualifié localement sur candidat apparié 4DB02C62 / WASM 8FE20704 :
+transport u64 Tauri lossless, pagination 44 objets, quatre catégories de
+sélection, reset A→B, continuité même AreaId, filtre/retouche, picking,
+annulation et suppression/Undo acquis. R2-007 à R2-014 sont aussi qualifiés
+localement sur ce candidat : six gestes de relief, matériaux, cercle/rayon/
+intensité, historique, persistance et recalcul partiel CPU/Rapier. R2-015 est
+qualifié localement : point/trait de densité, annulation/réarmement, historique,
+déverrouillage et masques persistants après réouverture. R2-016 est qualifié
+localement : catalogue gouverné, mélange/retrait, propagation deux couches,
+Undo/Redo et persistance sans doublon. R2-017 est qualifié localement sur
+candidat DA859D53 : exclusions auteur Circle/Corridor, historique, suppression
+et persistance, sans seconde source canonique. R2-018 reste acquis. R2-019 est
+qualifié localement : Preview/Abandon/Apply, historique et réouverture de la
+végétation, avec acquittement CPU/Rapier. R2-020 reste acquis. R2-021 est
+qualifié localement : création puis édition d'un chemin accepté, Preview/Apply,
+Undo/Redo, refus invalide et persistance disque acquis ; une seconde
+réouverture UI a rencontré un sélecteur désactivé et reste consignée comme
+limite. R2-022 est qualifié localement sur candidat 6C1AB803 : profil vertical,
+dévers, limite cut/fill, collider Rapier, historique, refus atomique et
+persistance/reprise acquis. GPU et intersections profilées restent séparément
+non qualifiés. R2-023 est qualifié localement sur le même candidat : rivière
+quatre points, carving et eau concordants, Preview/Apply, historique,
+Save/Close/Open, playtest et retour édition acquis. Le viewport noir immédiat
+correspond au warmup WebGPU (~11 à 14,5 s) et devient stable après attente.
+R2-024 est le prochain critère ouvert.
+La Gate 2 et sa qualification transversale restent ouvertes.
+Tests et Computer Use confiés à Luna max ; implémentations bornées à Terra medium,
+deux sous-agents maximum. [État et preuves de reprise](docs/evidence/gate2/GATE2_RESUME_20260919.md).
 
-Gate C et Gate 0 sont terminées. Le runtime natif, le viewport WASM/WebGPU et le Studio
-Tauri 2 + Leptos partagent une scène Forge versionnée. ADR-0005 confirme ce Studio pour la suite.
-Les revues humaines Gate 0 restent différées et la CI distante reste `NOT RUN` pour blocage de
-facturation ; ADR-0006 autorise jusqu’à Gate 4 une décision sur preuves automatisées locales sans
-jamais transformer ce statut en CI verte.
+## Candidat courant — bilan du 16 septembre 2026
 
----
+R2-020 « promotion et retouche » terminé localement sur candidat Studio 1303A840.
+Le 16 septembre, parcours réel sur copies isolées : promotion, abandon,
+Apply/Undo/Redo, densité/habitat, refus d'habitat incompatible, Save/Open final
+et entrée/sortie du playtest. Panne réelle GLB injectée dans une instance jetable :
+arbre généré conservé, Apply et Ctrl+Entrée refusés, archive intacte.
+Archive finale 3F539AD8 : 29 reçus, 24 commandes antérieures intactes, tête df8808ae ;
+round-trip sans perte, placements initiaux strictement conservés, terrain inchangé.
+Test ajouté pour les deux quotas de promotion ; cinq tests projet et un test de
+pins assets PASS, formatage et Clippy ciblés PASS. Processus d'essai terminés.
+Gate 2 reste ouverte ; aucune garantie frame-par-frame GPU ou validation artistique
+nouvelle, aucun benchmark, commit ou push. Détails, hashes et limites dans
+`docs/evidence/gate2/R2_GENERATED_PROMOTION.md`.
+
+## Contrôle complémentaire Hermes — 17 septembre 2026
+
+Harnais externe Apply/Undo : neuf contrôles CPU réussis via les commandes réelles,
+avec assets synthétiques et sauvegarde/réouverture disque. Essais visuels sur
+copies isolées et candidat 1303A840 : clic par token frais finalement confirmé
+(ouverture du panneau « Projets et modules »), mais parcours visuel
+aperçu/Apply/Undo/sauvegarde/réouverture NON EXÉCUTÉ. Le problème de ciblage
+ne démontre pas un défaut Forge. Dernière instance d'essai PID 18244 fermée.
+La commande `cargo test -p forge_studio reconciliation --offline` a compilé puis
+sélectionné zéro test (76 + 4 filtrés) : résultat NON PROBANT, exclu des preuves
+fonctionnelles. Arrêt des essais Hermes à la demande du propriétaire, relais Codex.
+Aucun code produit modifié, aucun commit/push, aucune preuve d'assistant IA
+intégré ni changement de gate. [Rapport et limites](docs/evidence/gate2/HERMES_APPLY_UNDO_VISUAL_ATTEMPT_20260917.md).
+
+## État de référence et lecture des preuves
+
+- Gate C qualifiée ; Gate 0 passée localement sous dérogations.
+- Gate 1 clôturée localement : [rapport du 12 septembre](docs/evidence/gate1/GATE1_CLOSURE_20260912.md).
+- Gate 2 active et ouverte ; R2-020 terminé localement, selon le bilan ci-dessus.
+- Gate 3 et suivantes non ouvertes. CI distante : `NOT RUN — infrastructure billing`.
+- La vision et les contrats ci-dessous restent normatifs ; un objectif n'est pas
+  une capacité déjà implémentée. La [roadmap](docs/planning/MIGRATION_ROADMAP.md)
+  porte les critères, les dossiers de preuves leurs résultats et limites.
+
+Les étapes anciennes sont conservées sans suppression dans
+[PROJECT_HISTORY_20260916.md](PROJECT_HISTORY_20260916.md). Cette archive n'est
+pas un second contexte canonique. Ses mentions « courant », « à faire » ou
+« non implémenté » décrivent leur étape historique, pas l'état actuel.
+Un verdict ne vaut que pour son périmètre et son candidat : une date plus
+récente ne remplace pas automatiquement toutes les preuves antérieures.
+
+### État Git constaté le 16 septembre 2026
+
+Workspace `E:/OpenRPG_Forge/OpenRPG_Forge-Rust`, branche `Rust`, modifications
+locales suivies et non suivies conservées. HEAD :
+`f786a38aca2023f08d708687f99a47d14f34e6d4`. Ce commit seul ne représente pas
+le logiciel local : les candidats sont identifiés par leurs hashes de build.
+La référence locale `origin/Rust` indique 103 commits d'avance sur HEAD ;
+aucun fetch n'a été fait pour vérifier l'état distant actuel. Cet inventaire
+n'est ni une qualification d'un arbre propre ni une autorisation de nettoyage.
+Aucun pull, reset, fusion, changement de branche, commit ou push pour cette
+mise au clair documentaire. Une synchronisation Git sera une opération distincte,
+avec inspection des différences et préservation préalable du travail.
 
 ## 1. Vision du produit
 
 OpenRPG Forge doit devenir un environnement complet de création de RPG 3D modulaires, utilisable par
 une personne qui ne maîtrise ni Rust, ni la 3D, ni la programmation moteur.
+
+### Parcours directeur : création IA et maîtrise manuelle
+
+L'objectif final est de créer un RPG avec l'assistance de l'IA et de pouvoir en retoucher chaque
+détail dans un éditeur visuel, sans programmation obligatoire. La boucle produit de référence est :
+
+**décrire → proposer/générer → retoucher à la main → régénérer localement sans perdre les corrections
+→ jouer → corriger → sauvegarder → exporter et distribuer.**
+
+Cette orientation est adoptée pour le développement ; elle ne décrit pas des fonctionnalités déjà
+livrées. Gate 1 est clôturée localement sous dérogations ; Gate 2 est active. L'édition manuelle se construit en
+Gate 2, l'aventure jouable en Gate 3, le package en Gate 4 et l'assistant produit en Gate 6. Anticiper
+une implémentation d'une autre gate nécessite toujours la décision correspondante.
+
+Les priorités produit, dans cet ordre, sont :
+
+1. préserver les retouches, verrous et liens persistants pendant une régénération et une réouverture ;
+2. offrir une retouche précise par sélection directe, gizmos, valeurs numériques, masques et splines ;
+3. produire une petite aventure complète depuis le Studio avant d'élargir le catalogue de fonctions ;
+4. faire utiliser à l'IA les mêmes commandes, validations et annulations que l'édition manuelle ;
+5. relier les diagnostics du playtest aux objets et règles à corriger ;
+6. réduire le temps de création et le coût des itérations par reconstruction locale et reprise fiable.
+
+Le Studio est commun aux modules, configurable par leurs données et profils ; créer un RPG ne doit
+pas nécessiter un nouvel éditeur exécutable pour chaque jeu. L'assistance au développement de Forge
+par Codex et l'assistant de création livré au joueur-auteur sont deux capacités distinctes. Une scène
+fabriquée par des scripts de développement ne prouve pas le parcours d'un utilisateur dans le Studio.
+Le produit reste utilisable hors ligne et sans fournisseur IA obligatoire.
+
+Le scénario de référence associe village, forêt, intérieur, quête avec deux approches possibles et
+conséquence persistante. L'auteur retouche une porte et une réplique, régénère une région sans les
+perdre, joue, sauvegarde et reprend. Le package est ensuite testé indépendamment du workspace.
+Chaque portion est qualifiée dans sa gate ; aucun nom de module n'est codé dans le moteur.
+
+Mesurer le temps jusqu'au premier parcours jouable, les actions correctives, les régénérations,
+les attentes médiane/p95, les blocages de quête, le coût IA et les pertes de retouches (objectif zéro).
+Fixer les budgets de temps et de coût à partir de mesures, sans promesse de durée arbitraire.
+La roadmap porte les critères vérifiables ; les choix de schémas, de fusion et de migration restent
+à formaliser par ADR avant implémentation. L'audit daté ayant motivé cette orientation est conservé
+dans `docs/planning/AI_RPG_CREATOR_PRODUCT_REVIEW_2026-09-05.md`, comme historique d'analyse.
+
+### Capacités cibles
 
 La promesse produit est celle d’un **Aurora Toolset moderne** : créer une région, la peupler, écrire
 une histoire, définir les règles, lancer immédiatement le jeu, diagnostiquer les problèmes, distribuer
@@ -186,6 +304,12 @@ partie de Bevy devient bloquante, elle peut être remplacée module par module g
 projet ; une réécriture générale nécessite un ADR et un benchmark.
 
 ### 4.4 La qualité visuelle est une fonction produit
+
+ADR-0011 (2026-09-06, accepté) autorise des profils effectifs explicitement dégradés,
+distincts des presets demandés : teinte au lieu de réfraction écran, brouillard de distance
+au lieu de volumétrie et plafond SSR non garanti déclaré. Aucune capacité inconnue n'est
+validée par défaut. Résolution, projection CPU et readiness GPU restent séparées ; adaptation
+non activée tant que l'intégration n'est pas qualifiée. Gate 1 et ses revues restent ouvertes.
 
 Une carte techniquement correcte mais visuellement médiocre n’est pas un succès. Le renderer, les
 assets, les matériaux, l’éclairage, la composition, les animations, le brouillard et le color grading
@@ -391,6 +515,13 @@ Une carte combine des couches non destructives :
 
 Toute génération doit être déterministe à seed identique. Le créateur peut « cuire » ou promouvoir un
 résultat, puis le retoucher sans perdre la provenance.
+
+Les retouches persistantes doivent survivre à la régénération, à la fermeture de l'historique undo
+et au redémarrage. Distinguer source génératrice, correction authorée et cache dérivé. Un conflit
+entre nouvelle génération et propriété protégée est présenté explicitement ; aucun écrasement
+silencieux n'est admissible. Les verrous peuvent porter sur les propriétés concernées sans figer
+toutes les dépendances. Une retouche Blender doit être conservée dans une source d'asset authorée
+ou une recette reproductible, jamais uniquement dans un cache destiné à être régénéré.
 
 ### O7 — Faire du décor un système de gameplay
 
@@ -723,8 +854,12 @@ ne contiennent que les états nécessaires.
 
 ### 7.9 Navigation
 
-La navigation est derrière un contrat Forge. Le fournisseur initial est choisi après une preuve sur
-terrain extérieur, intérieur, portes et obstacles dynamiques.
+La navigation est derrière un contrat Forge. R1-068 a exécuté la première preuve sur terrain
+extérieur, intérieur, portes, profils d'agent et évitement dynamique. Rerecast + Landmass reste la
+pile préférée pour investigation, mais le fournisseur demeure `not_selected` : sortie globale brute
+invalide, tuiles, reconstruction partielle et carving d'obstacle dynamique absents, backend physique
+maintenu Avian plutôt que Rapier et `RUSTSEC-2025-0141`. Voir
+`docs/ADR/ADR-0009-navigation-provider-benchmark.md`.
 
 Le système doit supporter :
 
@@ -808,10 +943,17 @@ cellules plus tard.
 ### 8.3 Identités
 
 - éléments créés manuellement : UUID stable ;
-- éléments générés : identifiant déterministe calculé depuis recette, seed, étape et index local ;
+- éléments générés : identité reproductible et filiation conservée après modification locale ;
+  recette, seed, étape et index local décrivent la génération, mais un index seul ne suffit pas
+  à garantir la stabilité des références authorées après insertion ou réordonnancement ;
 - assets : identifiant logique + hash de contenu ;
 - révisions : monotones dans un workspace ;
 - aucune identité persistante ne dépend d’un `Entity` Bevy.
+
+Une insertion locale ne doit pas renuméroter les objets non affectés. Une suppression ou un changement
+de recette/seed exige un remappage explicite ou un diagnostic de référence orpheline, jamais une
+réaffectation silencieuse d'une quête, d'un verrou ou d'une sauvegarde. Ce sont des exigences cibles ;
+le mécanisme et sa migration devront être documentés par ADR et prouvés en Gate 2.
 
 ### 8.4 Terrain
 
@@ -885,9 +1027,32 @@ Le bouton Jouer :
 
 Le playtest ne modifie pas silencieusement les documents authorés.
 
----
+### 8.9 Références visuelles, WorldSketch et Blender
+
+Le pipeline de production assistée part de plans top-down, de perspectives et de multivues d'assets,
+mais aucune image n'est une topographie métrique ou une source runtime. Le document intermédiaire
+`forge.world-sketch` conserve calibration, relief, régions sémantiques, splines, landmarks,
+incertitudes, verrous humains, caméras fixes et provenance. Il est ensuite compilé vers les documents
+Forge canoniques et une greybox jouable.
+
+Blender 4.5 LTS intervient comme DCC et worker reproductible pour terrain détaillé, retopologie, UV,
+PBR, Geometry Nodes, LOD, collisions, pivots, turntables et GLB. Les `.blend`, meshes, navmeshes et
+caches générés restent dérivés ; terrain, masques, splines, placements et règles Forge restent les
+sources de vérité. Une image ou un grand GLB opaque ne peut pas être promu implicitement.
+
+Les acquisitions successives du pilote Visual Valley et de ses profils sont
+conservées dans [l'historique](PROJECT_HISTORY_20260916.md). Elles documentent
+leurs candidats respectifs ; le verdict Gate 1 est celui du rapport de clôture
+lié en tête, sans réouverture implicite de ses réserves soldées ou dérogées.
 
 ## 9. Modèle RPG cible
+
+La spécification normative historique est désormais conservée dans
+`docs/design/OPENRPG_FORGE_RULESET_FR.md`, avec l’identifiant
+`openrpg-forge.systemic-rpg.v1`. Il s’agit d’une copie documentaire traçable de
+`archive/main@a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`, pas d’une implémentation Rust ni d’une
+ouverture anticipée des Gates 3 à 5. Les références à la Crypte dans sa section 25 restent des preuves
+historiques et ne créent aucune dépendance produit envers ce module.
 
 Le domaine RPG reste moteur-neutre. Il couvre progressivement :
 
@@ -1215,7 +1380,8 @@ Résultat : **PASS automatisé local sous ADR-0004, ADR-0005 et ADR-0006**. Le c
 scène partagée, l’ACL, l’interaction, le cycle de vie natif et la capture HWND complète sont prouvés.
 La télémétrie globale des draw calls reste indisponible dans Bevy 0.19.1 sous l’exception bornée
 ADR-0004. Les revues humaines sont différées, et les jobs GitHub sont `NOT RUN` avant toute étape à
-cause du blocage de facturation couvert par ADR-0006. Gate 1 est ouverte.
+cause du blocage de facturation couvert par ADR-0006. Gate 1 a depuis été clôturée
+localement sous dérogations ; voir le rapport lié en tête du document.
 
 ### Gate 1 — Preuve visuelle et performance
 
@@ -1316,6 +1482,16 @@ captures et audit. Aucun shell arbitraire exposé aux créateurs.
 Livrables : streaming de cellules, HLOD, packaging, lanceur, réglages, builds Windows/Linux, installation,
 profilage de cartes plus grandes et qualification de distribution.
 
+Une extension maritime pourra ensuite ajouter des mers, de grands lacs et une navigation en bateau.
+Le projet `Token-Gremlin/natural-disasters@d2bae38301ff43bc1d43bfdfd9477a552ca5420b`
+(MIT) est retenu comme référence technique possible pour le rendu de ces grandes masses d'eau :
+simulation FFT multi-cascade, houle, mousse et shading PBR. Il ne constitue ni une dépendance ni une
+fonction livrée. Une éventuelle reprise devra être réécrite pour Rust/Bevy/wgpu/WGSL, conserver les
+contrats Forge moteur-neutres et passer par un ADR, un audit de licence/provenance et un benchmark
+natif/WebGPU. Les rivières, ruisseaux et petites étendues restent servis par le système d'eau borné de
+Forge ; la physique des bateaux, la flottabilité, les sillages, les courants et le gameplay maritime
+formeront une tranche distincte du rendu océanique.
+
 ### Gate 8 — Multijoueur autoritaire
 
 Ne commence qu’après stabilité du solo. Transport, synchronisation, reconnexion et sécurité sont
@@ -1404,7 +1580,9 @@ forge_cli benchmark visual-valley
 forge_cli capture visual-valley
 ```
 
-Les commandes exactes ne doivent être documentées qu’après vérification réelle.
+Les commandes exactes ne doivent être documentées qu’après vérification réelle. Sélectionner les
+contrôles selon le risque conformément à `AGENTS.md` ; conserver intégralement les protocoles de gate
+et les exigences transversales d'ADR-0006. Ne pas relancer ce catalogue après chaque correction locale.
 
 ### 14.3 Preuves visuelles
 
@@ -1425,7 +1603,12 @@ tolérance et une revue humaine.
 
 ### 14.4 Définition de terminé
 
-Une tâche est terminée seulement si :
+Appliquer ces critères au type de tâche et aux éléments affectés : une analyse se clôt par son
+rapport ; une implémentation par ses validations pertinentes ; une qualification par son protocole
+complet. Une revue humaine explicitement requise reste une condition de qualification : son attente
+ne bloque pas les travaux indépendants autorisés et ne permet pas de déclarer la qualification achevée.
+
+Une implémentation est terminée seulement si :
 
 - critères d’acceptation satisfaits ;
 - build et tests pertinents verts ;
@@ -1461,7 +1644,13 @@ comprendre une exigence
 → documenter
 ```
 
-### 15.2 Contraintes
+### 15.2 Contraintes du produit Forge
+
+Ces règles concernent les mutations des documents et modules réalisées par le produit Forge,
+ses interfaces et son MCP. Elles ne prescrivent pas le mécanisme d'édition du code source par
+l'agent de développement. Les éditions de code autorisées préservent ces garanties ; les opérations
+réalisées au moyen des outils Forge restent soumises à leur gouvernance.
+
 
 - pas d’édition de fichier arbitraire via le MCP produit ;
 - pas de commande shell générique exposée aux utilisateurs ;
@@ -1567,17 +1756,22 @@ Il est arrêté ou réduit à un prototype si :
 
 ---
 
-## 18. Plan de lancement exécutable pour Codex
+## 18. Procédure initiale historique de lancement
 
-Le prochain agent doit exécuter ce plan dans l’ordre. Il ne doit pas commencer par recopier tout Cadle
-dans les crates Rust ni par construire un éditeur complet.
+Cette procédure et son instruction d'arrêt concernent le lancement initial, déjà exécuté pour
+Gate C et Gate 0. Elles ne constituent pas des instructions actives pour les tâches suivantes.
+Ne rejouer une étape d'initialisation que sur demande explicite. Pour le travail courant, suivre
+la demande utilisateur, l'état canonique, la roadmap et les prérequis de la gate concernée.
+Les règles d'autonomie et de clarification sont définies dans `AGENTS.md`.
 
 ### Étape 0 — Préflight documentaire et Git
 
-1. confirmer la branche `Rust` et un worktree propre ;
+1. vérifier la branche `Rust`, le worktree et ses modifications ; préserver le travail préexistant.
+   Pour le développement autorisé, un arbre modifié n'impose pas un arrêt si le périmètre est isolable.
+   Pour les acquisitions et qualifications, respecter le protocole d'arbre propre, notamment ADR-0006 ;
 2. lire `AGENTS.md`, ce document, ADR-0001 à ADR-0006 et la roadmap ;
 3. vérifier les références `main` et Cadle épinglées ;
-4. créer un petit commit par résultat cohérent ;
+4. si un commit est explicitement autorisé, le centrer sur un résultat cohérent ; aucun push implicite ;
 5. ne jamais modifier `main` ni fusionner son historique.
 
 Sortie : rapport de préflight court avec toolchains réellement disponibles et aucun code produit ajouté.
@@ -1670,7 +1864,7 @@ Sinon, produire un rapport de cause : asset/pipeline artistique, Bevy, shader, W
 architecture. Toute décision de faire de Three.js/Cadle le runtime produit, de remplacer Bevy ou
 d’abandonner Rust nécessite un nouvel ADR accepté ; elle n’est jamais prise par inertie pendant le port.
 
-### Instruction de départ à donner à Codex
+### Archive de l’instruction initiale — non active
 
 ```text
 Lis AGENTS.md puis PROJECT_CONTEXT.md sur la branche Rust. Exécute uniquement Gate C de la roadmap :
@@ -1689,7 +1883,7 @@ travail de moteur ne commence.
 ADR-0005 confirme Tauri 2 + Leptos/WASM + Bevy WebGPU pour le Studio ; le repli natif Bevy n’est pas
 activé. Les décisions suivantes ne doivent pas être prises implicitement :
 
-- fournisseur de navigation ;
+- fournisseur de navigation (`ADR-0009` proposé, sélection encore bloquée) ;
 - stratégie terrain exacte ;
 - représentation GPU de la végétation ;
 - système d’eau ;
@@ -1749,6 +1943,12 @@ Ne pas reprendre C#, Godot, WPF, DLL, scènes ou abstractions historiques.
 
 MÉTHODE
 Petites tranches verticales, commandes typées, tests, captures, métriques, documentation.
+
+PARCOURS PRODUIT
+Créer un RPG avec l'IA et le retoucher précisément dans le Studio. Préserver corrections et identités
+lors des régénérations ; prouver une aventure complète, sauvegardable et exportable. L'IA utilise les
+mêmes commandes que l'auteur ; le produit reste utilisable sans IA. Décliner ce parcours dans les
+gates existantes, sans changer leur ordre ni annoncer une capacité avant sa preuve.
 
 INTERDIT
 Recréer les 717 fonctions avant la preuve visuelle ; écrire un renderer complet brut sans limite

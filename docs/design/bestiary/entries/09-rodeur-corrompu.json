@@ -1,0 +1,247 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.rodeur-corrompu",
+  "name": "Rôdeur corrompu",
+  "subtitle": "Traqueur humanoïde lié aux racines malades",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "historical-anchor",
+  "origin_notes": "Ancre issue du module historique Forgotten Forest de main : le nom, la faction rootbound et la Griffe d’épine y sont établis. La physiologie, l’écologie et les valeurs ci-dessous sont une reconstruction éditoriale conforme au Manuel du joueur, sans reprendre les anciens PV proxy. Forgotten Forest n’est pas un module actif de la branche Rust et cette fiche n’y est pas implémentée.",
+  "major": false,
+  "classification": {
+    "nature": "Humanoïde végétalisé par corruption",
+    "family": "Liés-aux-racines",
+    "rarity": "Rare hors des forêts contaminées",
+    "activity": "Crépusculaire et nocturne",
+    "social": "Patrouilleur solitaire ou binôme soumis à un Gardien des Racines",
+    "threat": "forte",
+    "threat_reason": "Sa mobilité sous couvert, ses griffes barbelées et sa discipline de chasse punissent les groupes qui avancent sans lire les lisières."
+  },
+  "physique": {
+    "dimensions": "1,70 à 2,05 m debout ; envergure bras et ronces comprise jusqu’à 2,30 m",
+    "mass_kg": [70, 115],
+    "locomotion": [
+      "marche bipède penchée",
+      "course brève entre les couverts",
+      "escalade assistée par les excroissances ligneuses"
+    ],
+    "center_of_gravity": "Bas et avancé, porté sur des jambes fléchies qui favorisent les bonds courts plutôt que la poursuite prolongée.",
+    "silhouette": "Humanoïde décharné sous un manteau de fibres sombres, épaules hérissées et avant-bras prolongés par des griffes d’épine.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et masque d’écorce",
+        "description": "Les plaques frontales protègent les yeux mais laissent les côtés du cou dégagés.",
+        "protection": 8
+      },
+      {
+        "zone": "Torse fibreux",
+        "description": "Des lianes serrées amortissent les coupures superficielles sans arrêter un choc lourd.",
+        "protection": 12
+      },
+      {
+        "zone": "Avant-bras épineux",
+        "description": "Les excroissances sont solides pendant l’attaque mais peuvent être coincées ou brisées.",
+        "protection": 10
+      },
+      {
+        "zone": "Jambes et racines de cheville",
+        "description": "La protection est faible autour des articulations nécessaires aux bonds et aux changements de direction.",
+        "protection": 6
+      }
+    ]
+  },
+  "habitats": [
+    "lisières de forêts corrompues",
+    "sentiers envahis de ronces",
+    "ruines reprises par les racines",
+    "abords du domaine d’un Gardien des Racines"
+  ],
+  "ecology": {
+    "diet": "Non établie. Les observations suggèrent une subsistance mixte faite de sève altérée, de petits animaux et de réserves dérobées.",
+    "lifecycle": "L’origine exacte demeure incertaine ; les archives de Forgotten Forest le présentent comme un serviteur déjà corrompu, pas comme une espèce décrite de la naissance à la mort.",
+    "reproduction": "Aucune reproduction autonome n’est attestée. La transformation d’un humanoïde ou la croissance depuis un réseau racinaire restent deux hypothèses concurrentes.",
+    "behavior": "Il observe depuis un couvert, attaque une cible isolée puis se replie vers les ronces ou vers un allié plus massif.",
+    "niche": "Éclaireur, rabatteur et gardien périphérique du réseau rootbound.",
+    "environmental_impact": "Ses passages ferment progressivement les petits sentiers, déplacent les animaux ordinaires et laissent des épines contaminées dans les zones de repos."
+  },
+  "senses": [
+    "Vision adaptée aux contrastes sous couvert, moins fiable en pleine lumière.",
+    "Ouïe attentive aux branches cassées et aux pas sur feuilles sèches.",
+    "Sensibilité supposée aux vibrations transmises par les racines proches."
+  ],
+  "communication": [
+    "Claquement bref des griffes contre l’écorce pour signaler une intrusion.",
+    "Sifflements rauques et gestes de rabattage entre patrouilleurs."
+  ],
+  "signs": [
+    "Écorce lacérée à hauteur d’épaule par trois sillons parallèles.",
+    "Petits amas d’épines sombres plantés dans la mousse aux croisements.",
+    "Sentier silencieux dont les oiseaux se sont retirés avant la tombée du jour.",
+    "Empreintes bipèdes interrompues net au pied d’un arbre escaladé."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Repérer les intrus et les conduire vers une zone favorable au réseau rootbound.",
+      "Protéger les accès secondaires au domaine du Gardien des Racines."
+    ],
+    "fears": [
+      "Feu qui coupe la retraite vers les ronces.",
+      "Isolement hors de tout couvert ou réseau racinaire."
+    ],
+    "morale": "Élevé tant qu’un chemin de repli végétal subsiste ; il devient hésitant lorsque le réseau est coupé.",
+    "escalation": "Il commence par suivre et marquer, frappe la cible arrière, puis appelle ou rejoint d’autres liés-aux-racines.",
+    "retreat": "Il rompt le contact vers un couvert dense plutôt que de combattre à découvert jusqu’à destruction."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 4,
+      "willpower": 5,
+      "perception": 7,
+      "presence": 3
+    },
+    "skills": {
+      "athletics": 35,
+      "climbing": 45,
+      "survival": 40,
+      "stealth": 55,
+      "unarmed": 45,
+      "vigilance": 45,
+      "tracking": 50,
+      "tactics": 25
+    },
+    "resources": {
+      "vitality": 108,
+      "stamina": 95,
+      "mana": 66,
+      "balance": 88,
+      "focus": 88
+    },
+    "movement": "6 m/s en course sous couvert ; franchissement de 2 m par bond ; escalade à demi-vitesse sur bois ou maçonnerie fissurée.",
+    "protections": [
+      "Protection localisée par fibres et écorce ; aucune armure abstraite uniforme.",
+      "Les articulations et le cou restent moins protégés que le torse."
+    ],
+    "attacks": [
+      {
+        "name": "Griffe d’épine",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 22,
+        "reach": "1,15 m en arc frontal",
+        "stamina_cost": 8,
+        "preparation": "0,35 s, épaule abaissée et avant-bras ramené contre le torse",
+        "telegraph": "Les épines frottent entre elles, puis le coude s’ouvre nettement du côté de la frappe.",
+        "effect": "Contact tranchant et perforant ; un bon angle peut accrocher vêtement ou membre et gêner brièvement le retrait.",
+        "counterplay": "Sortir de l’arc, parer le poignet plutôt que les pointes, ou coincer le bras dans un obstacle après l’engagement."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Repli sous les ronces",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "stealth",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "déplacement de 5 m vers un couvert végétal visible",
+        "stamina_cost": 14,
+        "preparation": "0,8 s, posture très basse et regard fixé sur le couvert choisi",
+        "telegraph": "Les jambes se replient et les ronces du passage frémissent avant le départ.",
+        "effect": "Le rôdeur traverse rapidement un couvert non bloqué et rompt plus facilement la ligne de vue ; cette capacité est une proposition à tester, absente du runtime historique.",
+        "counterplay": "Éclairer ou brûler prudemment le couvert, fermer l’issue, ou interrompre l’élan pendant sa préparation."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "coupures superficielles",
+        "mechanism": "Les fibres du torse répartissent les entailles faibles, mais ne neutralisent ni la pénétration ni le choc."
+      },
+      {
+        "subject": "terrain végétal encombré",
+        "mechanism": "Ses griffes et appuis étroits lui permettent de traverser des ronces qui ralentissent un humanoïde ordinaire."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "feu et dessiccation",
+        "mechanism": "La chaleur sèche les fibres, rend les épines cassantes et peut couper ses voies de retraite sans constituer une faiblesse multiplicative arbitraire."
+      },
+      {
+        "subject": "articulations exposées",
+        "mechanism": "Une attaque précise aux genoux, aux coudes ou au cou contourne les plaques d’écorce les plus épaisses."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Couvert dense intact",
+        "result": "mobilité et dissimulation accrues",
+        "chain": "Le rôdeur rejoint les ronces, brise la ligne de vue puis change d’angle pour une nouvelle attaque."
+      },
+      {
+        "input": "Feu appliqué aux voies de retraite",
+        "result": "repli interdit mais propagation possible",
+        "chain": "Le feu ouvre le couvert, force le rôdeur à découvert et menace aussi la forêt si personne ne maîtrise l’incendie."
+      },
+      {
+        "input": "Racines coupées ou sol détrempé",
+        "result": "perte d’appui et d’information vibratoire",
+        "chain": "La rupture du réseau dégrade ses changements de direction et réduit sa confiance tant qu’il reste isolé."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Trois sillons parallèles sur l’écorce signalent une route surveillée plutôt qu’une griffure animale ordinaire."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Le rôdeur paraît recevoir orientation et assurance d’un réseau de racines ou d’un Gardien proche."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Aucune source ne prouve encore si couper durablement le lien rootbound détruit le rôdeur ou libère l’être antérieur."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "éclaireur hostile",
+      "rabatteur",
+      "attaquant de flanc"
+    ],
+    "telegraphs": [
+      "Le silence des oiseaux et les marques triples annoncent sa zone avant le contact.",
+      "Le frottement sec des épines précède chaque Griffe d’épine.",
+      "Le frémissement d’un couvert indique la direction probable de son repli."
+    ],
+    "noncombat_options": [
+      "Contourner sa route après un test de Pistage.",
+      "Couper son lien au réseau et observer sa réaction avant d’engager.",
+      "Créer une diversion sonore loin du trajet du groupe."
+    ],
+    "complications": [
+      "Un feu tactique non contenu endommage le milieu que le groupe cherche à sauver.",
+      "Le rôdeur peut conduire les poursuivants vers un Gardien des Racines."
+    ]
+  },
+  "salvage": [],
+  "plates": [
+    {
+      "image": "rodeur-corrompu-plate.png",
+      "alt": "Rôdeur corrompu tapi entre deux troncs, silhouette bipède fibreuse et griffes d’épine lisibles dans une forêt humide.",
+      "caption": "Un traqueur rootbound ne défend pas une clairière : il transforme les lisières en couloirs de chasse.",
+      "prompt_key": "rodeur-corrompu-plate"
+    }
+  ]
+}

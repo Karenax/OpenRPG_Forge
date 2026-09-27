@@ -14,3 +14,11 @@ target/
 /artifacts/gate-0/
 *.pdb
 *.wasm.map
+
+# Local generated outputs, disposable checkouts and authoring test sessions.
+/output/
+/tmp/
+/worktree/
+/artifacts/gate2-human-route/
+__pycache__/
+*.py[cod]

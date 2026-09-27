@@ -1,0 +1,307 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.prevote-gobeline-des-sept-vannes",
+  "name": "Prévôte gobeline des Sept Vannes",
+  "subtitle": "Arbitre des niveaux et gardienne d'un polder vivant",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Profil majeur original proposé pour diversifier le bestiaire. La Prévôte est une responsable sapiente et négociable ; son niveau de menace vient exclusivement de sa maîtrise d'un ouvrage hydraulique partagé. Ni sa fonction ni ses capacités ne sont attribuées à tous les Gobelins, et la fiche n'est pas implémentée dans le runtime Rust.",
+  "major": true,
+  "classification": {
+    "nature": "Humanoïde sapient",
+    "family": "Gobelins des ouvrages d’eau",
+    "rarity": "Fonction unique dans le polder des Sept Vannes",
+    "activity": "Rondes liées aux marées, aux pluies et aux heures d'irrigation",
+    "social": "Mandataire d'usagers multiples, entourée d'équipes de maintenance sans autorité naturelle sur les autres Gobelins",
+    "threat": "majeure",
+    "threat_reason": "Dans la maison des vannes, elle peut modifier niveaux, courants et accès avec des mécanismes réels ; loin de cet ouvrage, elle demeure une combattante modérée et privilégie la négociation."
+  },
+  "physique": {
+    "dimensions": "1,16 à 1,42 m debout ; roue-clef large de 0,9 m portée sur un harnais articulé",
+    "mass_kg": [39, 58],
+    "locomotion": [
+      "marche bipède mesurée",
+      "déplacement assuré sur passerelles et échelles de service",
+      "nage utilitaire avec ligne de sécurité"
+    ],
+    "center_of_gravity": "Bas et centré sous le harnais ; la roue est décrochée avant tout effort important afin de ne pas entraîner le corps vers l'arrière.",
+    "silhouette": "Humanoïde de petite taille sous un long manteau imperméable, bâton-jauge gradué par encoches non écrites, roue-clef de bronze et bois derrière les épaules, trousse de coins aux hanches.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles",
+        "description": "Capuche basse contre les projections, ouverte sur les côtés pour conserver l'écoute des cloches et conduites.",
+        "protection": 4
+      },
+      {
+        "zone": "Torse sous manteau",
+        "description": "Toile multicouche, cuir souple et plaque de flottaison protègent des chocs légers et de l'eau froide.",
+        "protection": 9
+      },
+      {
+        "zone": "Harnais et roue-clef",
+        "description": "Le cadre de bronze couvre une partie du dos mais ses axes, attaches et contrepoids restent accessibles.",
+        "protection": 14
+      },
+      {
+        "zone": "Mains, genoux et chevilles",
+        "description": "Les articulations sont libres pour actionner les commandes et se déplacer sur les passerelles.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "maison verticale des Sept Vannes",
+    "polder mêlant canaux, prés humides et bassins de retenue",
+    "passerelles de service au-dessus des conduites",
+    "digues et déversoirs soumis aux crues saisonnières"
+  ],
+  "ecology": {
+    "diet": "Alimentation variée fournie par les usagers du polder ; aucune préférence alimentaire n'est généralisée à sa famille.",
+    "lifecycle": "Prévôte est une charge temporaire acquise par expertise et mandat. Le volume ne lui attribue aucun cycle biologique distinct de celui des autres humanoïdes sapients.",
+    "reproduction": "Aucune particularité reproductive n'est établie ; la succession de la charge suit des accords civiques, sans lien nécessaire avec la parenté.",
+    "behavior": "Elle mesure, consigne oralement, écoute les conduites et arbitre les besoins contradictoires. Une intrusion dangereuse reçoit plusieurs avertissements avant la fermeture défensive de l'ouvrage.",
+    "niche": "Régulation de l'eau entre habitat, irrigation, réserve potable et zone d'expansion des crues.",
+    "environmental_impact": "Une bonne régulation maintient une mosaïque de frayères, prés et terres cultivées. Une manœuvre erronée salinise les sols, assèche les roselières ou concentre une crue sur les habitations basses."
+  },
+  "senses": [
+    "Ouïe entraînée à distinguer cavitation, fuite et choc de grille dans les conduites.",
+    "Vision précise des repères de niveau, remous et tensions de câble.",
+    "Perception tactile des vibrations transmise par le bâton-jauge."
+  ],
+  "communication": [
+    "Parole formelle, cloches de séquence et coups de bâton codés pour coordonner des équipes de toute origine."
+  ],
+  "signs": [
+    "Sept sons de cloche différents correspondant aux mécanismes plutôt qu'à des alarmes abstraites.",
+    "Repères d'anciens niveaux gravés sans écriture sur les piliers.",
+    "Coins de bois sec rangés près de chaque roue de secours.",
+    "Traces de vase interrompues aux postes où le manteau a été rincé."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Empêcher une rupture de digue et maintenir un niveau sûr pour les habitants du polder.",
+      "Conserver au moins une voie sèche d'évacuation.",
+      "Identifier la cause d'une commande forcée ou sabotée."
+    ],
+    "fears": [
+      "Ouverture simultanée de deux conduites incompatibles.",
+      "Panique qui bloque les passerelles d'évacuation.",
+      "Perte des frayères et des réserves d'eau par une purge inutile."
+    ],
+    "morale": "Ferme mais conditionnelle : elle suspend immédiatement le conflit si une solution protège mieux l'ouvrage ou si la preuve d'une erreur de diagnostic est apportée.",
+    "escalation": "Elle ordonne l'arrêt, isole un secteur, emploie un jet de pression puis lance un cycle de vannes ; la purge générale n'arrive qu'en présence d'une rupture imminente.",
+    "retreat": "Elle rejoint la roue de dérivation et laisse toute issue sûre ouverte si son harnais est bloqué, si deux passerelles cèdent ou si des civils restent dans un bassin menacé."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 6,
+      "constitution": 6,
+      "intelligence": 8,
+      "willpower": 8,
+      "perception": 8,
+      "presence": 8
+    },
+    "skills": {
+      "swimming": 45,
+      "polearms": 45,
+      "tactics": 60,
+      "crafting": 55,
+      "mechanisms": 75,
+      "investigation": 55,
+      "persuasion": 65,
+      "leadership": 65,
+      "trade": 50,
+      "vigilance": 55
+    },
+    "resources": {
+      "vitality": 106,
+      "stamina": 104,
+      "mana": 100,
+      "balance": 84,
+      "focus": 104
+    },
+    "movement": "5 m/s sur sol stable ; 3,2 m/s sur passerelle humide ; nage 2,4 m/s après décrochage de la roue-clef.",
+    "protections": [
+      "Manteau et plaque de flottaison : protection légère localisée contre projection, eau froide et petits impacts.",
+      "Le harnais couvre le dos, mais augmente le risque d'accrochage et ne protège ni les articulations ni l'avant du corps.",
+      "Aucune réduction générale ne provient de son statut majeur ; sa puissance est celle du réseau hydraulique."
+    ],
+    "attacks": [
+      {
+        "name": "Bâton-jauge",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "1,9 m en poussée ou balayage bas",
+        "stamina_cost": 8,
+        "preparation": "0,45 seconde pour libérer l'extrémité ferrée de la mesure",
+        "telegraph": "La Prévôte décroche le bâton du pilier, place la roue derrière sa hanche et montre l'axe avec l'embout.",
+        "effect": "Contact contondant destiné à repousser d'une commande ou à compromettre un appui sur passerelle ; la chute éventuelle dépend du bord et de l'Équilibre.",
+        "counterplay": "Quitter la ligne, saisir la hampe, maintenir un appui bas ou laisser la Prévôte protéger la commande plutôt que la poursuivre."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Cycle des vannes",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "une vanne reliée à sa roue ou une commande située à moins de 12 m",
+        "stamina_cost": 16,
+        "preparation": "2 secondes de rotation continue, puis 3 à 8 secondes de propagation de l'eau selon le bassin",
+        "telegraph": "Une cloche propre à la vanne sonne, la chaîne se tend, la roue tourne à vue et le repère de niveau montre le secteur concerné.",
+        "effect": "Le niveau monte ou baisse dans un bassin, ouvre une voie flottante, découvre un sol ou crée un courant ; aucune eau n'apparaît sans volume connecté.",
+        "counterplay": "Bloquer la roue avec un coin, actionner une commande secondaire, fermer l'amont, quitter le secteur annoncé ou convaincre la Prévôte que le cycle menace l'ouvrage."
+      },
+      {
+        "name": "Bélier hydraulique",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 26,
+        "reach": "jet rectiligne de 8 m depuis une bouche orientable",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde pour fermer le clapet, accumuler la pression et libérer la bouche",
+        "telegraph": "La conduite cogne deux fois, le manomètre mécanique se lève et un filet d'eau dessine l'axe avant l'ouverture.",
+        "effect": "Le jet applique eau, impulsion et perte d'Équilibre sur sa trajectoire, puis mouille durablement les surfaces touchées.",
+        "counterplay": "Sortir de l'axe, interposer une masse ancrée, ouvrir un déversoir, coincer le clapet ou exploiter ensuite l'eau répandue."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "courant peu profond sur passerelle équipée",
+        "mechanism": "Ligne de sécurité, bottes rainurées et prises connues stabilisent la Prévôte ; une rupture d'ancrage, une eau profonde ou un courant imprévu annule cet avantage."
+      },
+      {
+        "subject": "intimidation liée à l'urgence",
+        "mechanism": "Ses procédures et sa connaissance du risque limitent la panique, sans empêcher une preuve, une négociation crédible ou la crainte pour les personnes exposées."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "isolement du réseau de commandes",
+        "mechanism": "Une roue déconnectée, une passerelle coupée ou un secteur mis à sec retire l'accès au Cycle des vannes et au Bélier hydraulique."
+      },
+      {
+        "subject": "harnais saisi ou contrepoids bloqué",
+        "mechanism": "La roue-clef déplace son centre de gravité ; l'immobiliser limite ses rotations et permet une neutralisation sans dommage corporel."
+      },
+      {
+        "subject": "surface inclinée couverte de limon",
+        "mechanism": "Les bottes conservent leur adhérence sur grille, mais le limon humide réduit la friction et compromet les actions exigeant une rotation continue."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Coin placé dans l'engrenage annoncé",
+        "result": "vanne immobilisée à son niveau courant",
+        "chain": "Le coin bloque une dent, l'arbre cesse de transmettre le couple et le bassin poursuit seulement l'écoulement déjà engagé jusqu'à égalisation."
+      },
+      {
+        "input": "Plateforme de maintenance détachée",
+        "result": "couvert flottant ou pont déplacé par le courant",
+        "chain": "L'amarre est libérée, l'eau pousse la plateforme selon le chenal ouvert et sa masse peut offrir un passage, obstruer une grille ou heurter un obstacle."
+      },
+      {
+        "input": "Ouverture du déversoir de secours",
+        "result": "pression principale réduite et zone basse inondée",
+        "chain": "Le volume quitte la conduite sous pression, le Bélier hydraulique perd sa puissance puis l'eau rejoint le bassin inférieur, où elle modifie accès et flottabilité."
+      },
+      {
+        "input": "Froid intense sur une vanne mouillée",
+        "result": "mécanisme ralenti ou bloqué par la glace",
+        "chain": "L'eau résiduelle gèle dans le guide, augmente les frottements et empêche la course complète jusqu'au réchauffement ou au dégagement mécanique."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "investigation",
+      "difficulty": 14,
+      "fact": "Chaque cloche, chaîne et repère de niveau correspond à une vanne visible ; aucun changement de bassin n'est instantané ni sans source d'eau."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Un filet précurseur trace l'axe du Bélier hydraulique avant le jet principal et laisse le temps de quitter la ligne."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La Prévôte défend l'équilibre du polder plutôt qu'un pouvoir personnel ; démontrer une solution plus sûre devrait interrompre l'affrontement."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "La septième vanne est un déversoir de sauvegarde dissimulé derrière le limon ; l'ouvrir protège la digue mais sacrifie temporairement une prairie basse."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "adversaire majeure de contrôle hydraulique",
+      "opératrice d'une arène partagée",
+      "arbitre avec résolution négociée ou réparatrice"
+    ],
+    "telegraphs": [
+      "une cloche distincte, une chaîne tendue et un repère de niveau annoncent chaque Cycle des vannes",
+      "deux chocs de conduite et un filet précurseur annoncent le Bélier hydraulique",
+      "la Prévôte regarde et dégage toujours la voie d'évacuation avant une manœuvre risquée"
+    ],
+    "noncombat_options": [
+      "présenter un mandat ou demander formellement la raison de l'isolement du secteur",
+      "repérer et réparer la commande sabotée qui a déclenché l'alerte",
+      "aider à évacuer les bassins puis proposer une séquence de vannes plus sûre",
+      "négocier la perte temporaire d'une prairie pour sauver la digue et les habitations"
+    ],
+    "complications": [
+      "bloquer une vanne conserve le niveau actuel mais transfère la pression vers l'amont",
+      "une plateforme libérée peut sauver un personnage puis obstruer une grille",
+      "la purge protège la digue au prix d'un dommage écologique durable mais réparable",
+      "des usagers extérieurs ont peut-être falsifié les signes de sabotage"
+    ]
+  },
+  "salvage": [],
+  "plates": [
+    {
+      "image": "prevote-gobeline-des-sept-vannes-plate.png",
+      "alt": "La Prévôte gobeline apparaît entière sur une passerelle hydraulique, long manteau de pluie, bâton-jauge et grande roue-clef articulée derrière les épaules.",
+      "caption": "Son autorité vient de sa lecture des niveaux et des conséquences, jamais d'une puissance innée.",
+      "prompt_key": "prevote-gobeline-des-sept-vannes-plate"
+    },
+    {
+      "image": "prevote-gobeline-des-sept-vannes-dossier.png",
+      "alt": "Vue élevée de la maison des Sept Vannes montrant la Prévôte, trois bassins à des niveaux différents, chaînes, passerelles, plateforme flottante et déversoir de secours.",
+      "caption": "L'arène est un réseau partagé : toute vanne ouverte sauve un secteur et en expose potentiellement un autre.",
+      "prompt_key": "prevote-gobeline-des-sept-vannes-dossier"
+    }
+  ],
+  "major_dossier": {
+    "arena": "La maison des Sept Vannes est un ouvrage vertical au-dessus de trois bassins reliés. Passerelles, roues secondaires, chaînes, plateforme de maintenance, conduite du bélier et déversoir de secours restent accessibles aux personnages ; les repères de niveau rendent chaque conséquence prévisible.",
+    "sequence": [
+      "La Prévôte ferme l'accès, formule son avertissement et isole le bassin où elle pense avoir détecté un sabotage.",
+      "Elle ouvre une vanne latérale : un bassin monte pendant qu'un sol vaseux se découvre ailleurs, créant de nouvelles routes pour tous.",
+      "Le Bélier hydraulique protège la commande centrale et mouille une passerelle dont la friction devient un enjeu partagé.",
+      "Si la pression continue d'augmenter, elle prépare la septième vanne ; la purge sauvera la digue mais inondera la prairie basse tant qu'aucune autre solution n'est établie.",
+      "La résolution conserve les niveaux, dégâts, objets flottants et accords obtenus au lieu de réinitialiser l'ouvrage après la scène."
+    ],
+    "causal_opportunities": [
+      "Lire cloches et repères pour quitter un bassin avant que le niveau n'y change.",
+      "Coincer une roue précise, tout en gérant la pression transférée vers une autre conduite.",
+      "Détacher la plateforme de maintenance pour fabriquer un pont ou libérer une grille encombrée.",
+      "Ouvrir le déversoir, réparer la commande sabotée ou proposer une séquence qui protège à la fois digue et prairie.",
+      "Immobiliser le harnais sans blesser la Prévôte afin de créer le temps nécessaire à une expertise contradictoire."
+    ],
+    "aftermath": "Le polder garde la trace du choix : niveau des bassins, prairie inondée ou préservée, digue fragilisée ou réparée et confiance des usagers. La Prévôte peut devenir une alliée technique, demander réparation ou remettre sa charge ; aucune issue ne suppose la mort d'un membre de cette famille."
+  }
+}

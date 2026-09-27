@@ -1,0 +1,264 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.mante-fougere",
+  "name": "Mante-fougère",
+  "subtitle": "L'embuscade feuillue du sous-bois humide",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée : un grand mantode adapté aux fougères tempérées, dont le camouflage reste matériel et observable.",
+  "major": false,
+  "classification": {
+    "nature": "arthropode géant",
+    "family": "mantode foliaire",
+    "rarity": "peu commun, discret",
+    "activity": "diurne sous couvert et crépusculaire en clairière",
+    "social": "solitaire hors reproduction ; jeunes tolérés près de l'oothèque",
+    "threat": "forte",
+    "threat_reason": "Son premier contact est extrêmement rapide et précis, mais sa carapace légère, son besoin d'appui et ses télégraphes rapprochés offrent des contre-jeux physiques."
+  },
+  "physique": {
+    "dimensions": "1,1 à 1,4 m dressée ; 1,6 m avec les pattes ravisseuses déployées",
+    "mass_kg": [35, 55],
+    "locomotion": ["marche lente sur six appuis", "bond court", "escalade d'écorce"],
+    "center_of_gravity": "Haut dans le thorax lorsqu'elle se dresse, reporté vers l'abdomen avant un bond ; instable sous une poussée latérale.",
+    "silhouette": "Thorax long semblable à une tige, abdomen dentelé et ailes mates veinées comme l'envers d'une fronde.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Capsule triangulaire mobile, grands yeux composés et mandibules courtes.",
+        "protection": 8
+      },
+      {
+        "zone": "thorax",
+        "description": "Plaques étroites articulées pour la rotation, solides de face mais ouvertes aux jointures.",
+        "protection": 12
+      },
+      {
+        "zone": "pattes ravisseuses",
+        "description": "Segments épineux capables de se fermer rapidement ; membranes articulaires visibles à l'intérieur.",
+        "protection": 9
+      },
+      {
+        "zone": "abdomen et ailes",
+        "description": "Volume souple protégé par de fines plaques et deux ailes fragiles repliées à plat.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "sous-bois humide dominé par les fougères",
+    "ravins ombragés à bois mort vertical",
+    "lisières chaudes proches de mares à insectes"
+  ],
+  "ecology": {
+    "diet": "Gros insectes, grenouilles, rongeurs, oiseaux au sol et charognes très fraîches lorsque la chasse échoue.",
+    "lifecycle": "Les nymphes de vingt centimètres muent six à huit fois ; l'adulte vit deux étés et cesse presque de se nourrir avant la dernière ponte.",
+    "reproduction": "Une oothèque fibreuse de trente à soixante œufs est collée sous un tronc incliné, au-dessus des crues ordinaires.",
+    "behavior": "Elle choisit une fronde de même orientation que son corps, attend sans bouger puis saisit une proie isolée avant de reculer sous le couvert.",
+    "niche": "Prédateur d'affût limitant les pullulations d'insectes et de petits vertébrés dans les clairières humides.",
+    "environmental_impact": "Les oothèques abandonnées abritent de nombreux invertébrés ; la disparition des mantes précède souvent une explosion de ravageurs."
+  },
+  "senses": [
+    "vision composée excellente sur le mouvement, moins précise sur un objet parfaitement immobile",
+    "perception des vibrations transmises par branches et frondes",
+    "détection limitée des odeurs proches par les antennes"
+  ],
+  "communication": [
+    "frottement sec des ailes contre l'abdomen",
+    "balancement lent imitant une fronde sous le vent",
+    "signaux tactiles brefs pendant la reproduction"
+  ],
+  "signs": [
+    "frondes coupées à hauteur identique autour d'un perchoir",
+    "pelotes de chitine et petits os sous une branche verticale",
+    "oothèque beige striée collée à l'abri de la pluie directe",
+    "deux marques parallèles laissées par les épines ravisseuses"
+  ],
+  "demeanor": {
+    "objectives": ["capturer une proie isolée", "conserver un perchoir sec", "protéger une oothèque proche"],
+    "fears": ["feu montant", "froid prolongé", "vibration lourde venant de plusieurs directions"],
+    "morale": "Elle mise sur le premier contact ; si la prise échoue et que son couvert disparaît, elle cherche presque toujours à rompre.",
+    "escalation": "Immobilité, orientation de la tête, ouverture graduelle des pattes, balancement inverse au vent puis détente.",
+    "retreat": "Elle bondit derrière un tronc, grimpe hors de la ligne directe et n'insiste que si l'oothèque reste exposée."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 9,
+      "constitution": 4,
+      "intelligence": 2,
+      "willpower": 5,
+      "perception": 8,
+      "presence": 2
+    },
+    "skills": {
+      "acrobatics": 60,
+      "climbing": 55,
+      "survival": 40,
+      "stealth": 72,
+      "unarmed": 58,
+      "intimidation": 30,
+      "vigilance": 66,
+      "tracking": 30
+    },
+    "resources": {
+      "vitality": 94,
+      "stamina": 85,
+      "mana": 58,
+      "balance": 76,
+      "focus": 92
+    },
+    "movement": "Marche 3 m/s, bond de 4 m, escalade 2 m/s sur une surface offrant des prises ; vol plané de 8 m au plus depuis une hauteur.",
+    "protections": [
+      "La chitine dévie les coupures légères sur les plaques, mais les jointures restent exposées.",
+      "Les ailes protègent visuellement l'abdomen sans fournir de protection mécanique notable."
+    ],
+    "attacks": [
+      {
+        "name": "Fermeture ravisseuse",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 20,
+        "reach": "1,6 m dans un cône frontal étroit",
+        "stamina_cost": 10,
+        "preparation": "0,25 seconde après ouverture complète des pattes",
+        "telegraph": "Les épines s'écartent, les coudes montent et la tête cesse soudain de suivre les mouvements secondaires.",
+        "effect": "Deux contacts perforants referment la proie contre le thorax ; la saisie exige que les deux membres gardent leur appui et leur Équilibre.",
+        "counterplay": "Sortir latéralement du cône, interposer une hampe ou un bouclier, ou frapper une articulation avant la fermeture."
+      },
+      {
+        "name": "Morsure de maintien",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 16,
+        "reach": "0,5 m contre une cible déjà saisie ou au contact",
+        "stamina_cost": 8,
+        "preparation": "0,2 seconde, tête tournée vers la zone non protégée la plus proche",
+        "telegraph": "Les mandibules s'ouvrent tandis que les pattes ravisseuses resserrent leur angle.",
+        "effect": "Trauma perforant localisé ; aucune morsure n'est possible si la tête ne peut physiquement atteindre la zone.",
+        "counterplay": "Briser ou écarter la prise, protéger la zone accessible ou imposer une rotation qui désaligne la tête."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Immobilité foliée",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "stealth",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "soi-même parmi des frondes d'au moins 80 cm",
+        "stamina_cost": 3,
+        "preparation": "2 secondes pour aligner corps, ailes et végétation",
+        "telegraph": "La mante replie les antennes et adopte le rythme exact des frondes déplacées par le vent.",
+        "effect": "Réduit fortement la détection visuelle tant qu'elle ne frappe pas ; masse, ombre, chaleur, odeur et frondes chargées demeurent observables.",
+        "counterplay": "Changer d'angle, provoquer un vent opposé, observer les ombres ou rechercher les restes de proies sous le perchoir."
+      },
+      {
+        "name": "Déploiement ocellé",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "intimidation",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "8 m devant les ailes ouvertes",
+        "stamina_cost": 8,
+        "preparation": "0,7 seconde de redressement et d'ouverture des ailes",
+        "telegraph": "L'abdomen se lève et une vibration sèche précède l'apparition de deux grands ocelles sombres.",
+        "effect": "Peut faire hésiter ou reculer une créature qui découvre brusquement une silhouette plus large ; ne contrôle ni pensée ni mouvement.",
+        "counterplay": "Maintenir la distance, reconnaître le bluff, masquer les ocelles ou attaquer depuis un angle où les ailes ne sont pas visibles."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "détection visuelle immobile",
+        "mechanism": "La forme, les veines et le balancement des ailes reproduisent une fronde réelle lorsqu'un couvert adapté existe."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "froid prolongé",
+        "mechanism": "La baisse de température ralentit la détente musculaire et allonge visiblement les préparations."
+      },
+      {
+        "subject": "poussée latérale",
+        "mechanism": "Le thorax haut et les appuis écartés résistent mal à une impulsion qui ne vient pas de l'axe de saisie."
+      },
+      {
+        "subject": "feu et fumée montante",
+        "mechanism": "Les ailes sèches chauffent vite et la fumée force l'abandon du perchoir avant l'embrasement."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "vent changeant",
+        "result": "camouflage momentanément désynchronisé",
+        "chain": "Les frondes changent de rythme avant que la mante puisse réaligner son balancement et ses ailes."
+      },
+      {
+        "input": "pluie forte",
+        "result": "ailes alourdies et vol plané indisponible",
+        "chain": "L'eau s'accumule sur les membranes, augmente leur masse et réduit la portance jusqu'au séchage."
+      },
+      {
+        "input": "feu dans le sous-bois",
+        "result": "couvert détruit et retraite verticale urgente",
+        "chain": "La chaleur recroqueville les frondes, révèle la silhouette puis menace directement les ailes."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Une fronde qui oscille exactement contre le vent peut être le thorax d'une mante déjà orientée vers sa cible."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 22,
+      "fact": "Le déploiement des ocelles servirait d'abord à éviter un combat coûteux contre un prédateur trop grand."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "La succession des pelotes sous plusieurs arbres permet de dater les mues et de prévoir le déplacement du prochain perchoir."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["embusqueur", "contrôleur de passage étroit", "prédateur de perchoir"],
+    "telegraphs": [
+      "Une fronde se balance contre le vent alors que les autres restent synchrones.",
+      "Les épines et les coudes deviennent visibles juste avant la fermeture ravisseuse."
+    ],
+    "noncombat_options": [
+      "Contourner le perchoir après avoir identifié l'orientation de la tête.",
+      "Déposer une proie morte loin de l'oothèque pour ouvrir le passage.",
+      "Employer Dressage avec mouvements lents et issue visible face à une mante non affamée."
+    ],
+    "complications": [
+      "Brûler les fougères révèle la mante mais détruit aussi oothèques et habitat.",
+      "Une mante blessée peut bondir sur une branche au-dessus du groupe et changer l'axe de menace."
+    ]
+  },
+  "salvage": [
+    "Mues abandonnées, légères et utiles à l'étude des articulations.",
+    "Oothèques écloses seulement ; une oothèque vivante reste un habitat, pas un butin.",
+    "Écailles d'ailes tombées qui servent de pigment mat sans conserver le camouflage complet."
+  ],
+  "plates": [
+    {
+      "image": "mante-fougere-plate.png",
+      "alt": "Une mante géante aux ailes veinées comme des fougères attend dans un sous-bois humide, ses pattes ravisseuses entrouvertes au-dessus d'un sentier.",
+      "caption": "Son camouflage reproduit une matière et un mouvement réels ; l'observation attentive peut toujours le défaire.",
+      "prompt_key": "mante-fougere"
+    }
+  ]
+}

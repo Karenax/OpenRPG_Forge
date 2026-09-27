@@ -9,6 +9,7 @@ members = [
     "apps/forge_studio",
     "tools/forge_cli",
 ]
+exclude = ["tools/forge_navigation_benchmark"]
 resolver = "3"
 
 [workspace.package]

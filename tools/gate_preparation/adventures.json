@@ -1,0 +1,88 @@
+{
+  "fixture_version": 1,
+  "scope": "preparation_only",
+  "product_schema": false,
+  "modules": [
+    {
+      "id": "fixture.aventure-a",
+      "title": "Le sceau de la réserve",
+      "profile": "decision_pending",
+      "entities": [
+        {"id": "lieu.village", "kind": "location", "references": ["lieu.foret", "pnj.intendant"]},
+        {"id": "lieu.foret", "kind": "location", "references": ["lieu.village", "lieu.reserve", "acteur.garde", "support.charge"]},
+        {"id": "lieu.reserve", "kind": "location", "references": ["lieu.foret", "porte.reserve", "objet.sceau"]},
+        {"id": "acteur.joueur", "kind": "actor", "references": ["lieu.village"]},
+        {"id": "pnj.intendant", "kind": "actor", "references": ["dialogue.intendant", "quete.sceau"]},
+        {"id": "acteur.garde", "kind": "actor", "references": ["lieu.foret"]},
+        {"id": "porte.reserve", "kind": "door", "references": ["lieu.reserve"]},
+        {"id": "support.charge", "kind": "destructible", "references": ["charge.pierre"]},
+        {"id": "charge.pierre", "kind": "physical_object", "references": ["lieu.foret"]},
+        {"id": "objet.sceau", "kind": "unique_item", "references": ["quete.sceau"]},
+        {"id": "quete.sceau", "kind": "quest", "references": ["objet.sceau", "pnj.intendant"]},
+        {"id": "dialogue.intendant", "kind": "dialogue", "references": ["pnj.intendant", "quete.sceau"]}
+      ],
+      "dialogues": [
+        {
+          "id": "dialogue.intendant",
+          "entry": "offre",
+          "nodes": [
+            {"id": "offre", "text": "Le sceau est dans la réserve, au-delà du bois. Rapporte-le-moi.", "choices": [
+              {"id": "accepter", "text": "Je m'en charge.", "next": "accord", "expected_effect": "accepter la quête une seule fois"},
+              {"id": "informer", "text": "Quel passage puis-je emprunter ?", "next": "indice", "expected_effect": "aucune mutation de quête ou de support"},
+              {"id": "refuser", "text": "Plus tard.", "next": "fin", "expected_effect": "aucune mutation"}
+            ]},
+            {"id": "indice", "text": "Un ancien support retient une charge de pierre près du passage. Prends garde à sa chute.", "choices": [
+              {"id": "retour", "text": "Revenons au sceau.", "next": "offre", "expected_effect": "aucune mutation"}
+            ]},
+            {"id": "accord", "text": "Je t'attendrai ici.", "choices": []},
+            {"id": "fin", "text": "Reviens si tu changes d'avis.", "choices": []}
+          ]
+        }
+      ],
+      "checkpoints": [
+        {"id": "S0", "quest": "available", "seal_owner": "world", "reward_count": 0, "support": "intact", "guard": "active"},
+        {"id": "S1", "quest": "accepted", "seal_owner": "world", "reward_count": 0, "support": "intact", "guard": "active"},
+        {"id": "S2", "quest": "accepted", "seal_owner": "world", "reward_count": 0, "support": "intact", "guard": "active"},
+        {"id": "S3A", "quest": "accepted", "seal_owner": "world", "reward_count": 0, "support": "intact", "guard": "neutralized"},
+        {"id": "S3B", "quest": "accepted", "seal_owner": "world", "reward_count": 0, "support": "destroyed", "guard": "neutralized"},
+        {"id": "S4A", "quest": "recovered", "seal_owner": "player", "reward_count": 0, "support": "intact", "guard": "neutralized"},
+        {"id": "S4B", "quest": "recovered", "seal_owner": "player", "reward_count": 0, "support": "destroyed", "guard": "neutralized"},
+        {"id": "S5A", "quest": "completed", "seal_owner": "intendant", "reward_count": 1, "support": "intact", "guard": "neutralized"},
+        {"id": "S5B", "quest": "completed", "seal_owner": "intendant", "reward_count": 1, "support": "destroyed", "guard": "neutralized"}
+      ],
+      "routes": [
+        {"id": "direct", "checkpoints": ["S0", "S1", "S2", "S3A", "S4A", "S5A"], "initiator": "acteur.joueur", "obstacle_cause": ["attaque", "contact", "neutralisation"]},
+        {"id": "environment", "checkpoints": ["S0", "S1", "S2", "S3B", "S4B", "S5B"], "initiator": "acteur.joueur", "obstacle_cause": ["destruction-support", "chute-charge", "contact", "neutralisation"]}
+      ]
+    },
+    {
+      "id": "fixture.enquete-b",
+      "title": "La clef égarée",
+      "profile": "decision_pending",
+      "entities": [
+        {"id": "lieu.atelier", "kind": "location", "references": ["pnj.artisane", "conteneur.etabli"]},
+        {"id": "pnj.artisane", "kind": "actor", "references": ["dialogue.artisane", "quete.clef"]},
+        {"id": "conteneur.etabli", "kind": "container", "references": ["objet.clef"]},
+        {"id": "objet.clef", "kind": "unique_item", "references": ["quete.clef"]},
+        {"id": "quete.clef", "kind": "quest", "references": ["objet.clef", "pnj.artisane"]},
+        {"id": "dialogue.artisane", "kind": "dialogue", "references": ["pnj.artisane", "quete.clef"]}
+      ],
+      "dialogues": [
+        {
+          "id": "dialogue.artisane",
+          "entry": "demande",
+          "nodes": [
+            {"id": "demande", "text": "J'ai rangé la clef trop vite. Peux-tu regarder près de l'établi ?", "choices": [
+              {"id": "aider", "text": "Je vais chercher.", "next": "indice", "expected_effect": "accepter la quête une seule fois"},
+              {"id": "partir", "text": "Pas maintenant.", "next": "fin", "expected_effect": "aucune mutation"}
+            ]},
+            {"id": "indice", "text": "Le petit coffret devrait être ouvert.", "choices": []},
+            {"id": "fin", "text": "Je chercherai encore un peu.", "choices": []}
+          ]
+        }
+      ],
+      "checkpoints": [],
+      "routes": []
+    }
+  ]
+}

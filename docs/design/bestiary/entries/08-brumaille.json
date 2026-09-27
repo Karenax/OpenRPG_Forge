@@ -1,0 +1,339 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.brumaille",
+  "name": "Brumaille",
+  "subtitle": "Jeune dragon des bois, éclaireur lié et monture de brume",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "historical-anchor",
+  "origin_notes": "Ancrage historique : le manifeste E:\\OpenRPG_Forge\\OpenRPG_Forge\\asset_manifests\\packs\\asset_vault_quaternius_dragon.json décrit « Brumaille, jeune dragon des bois » comme une créature animée, volante, forestière et utilisable comme monture. Le modèle source y est déclaré sous licence CC0-1.0 ; cette fiche n'ajoute ni licence propriétaire ni droit supplémentaire et propose seulement une zoologie ainsi que des règles éditoriales encore non implémentées.",
+  "major": false,
+  "classification": {
+    "nature": "Dragon juvénile vivant, à affinité atmosphérique",
+    "family": "Draconidés sylvestres",
+    "rarity": "Rare ; quelques couloirs forestiers abritent un jeune par vaste territoire",
+    "activity": "Crépusculaire, avec des sorties diurnes lorsque l'air reste frais",
+    "social": "Solitaire hors de sa fratrie, mais capable d'un lien durable avec un petit groupe",
+    "threat": "moderee",
+    "threat_reason": "Brumaille est amical et évite le combat, mais sa masse en vol, ses réactions de défense et un atterrissage paniqué peuvent blesser gravement les personnes mal placées."
+  },
+  "physique": {
+    "dimensions": "2,4 à 2,8 m du museau à la pointe de la queue ; envergure de 4,5 à 5,1 m ; 1,25 m au garrot",
+    "mass_kg": [120, 165],
+    "locomotion": [
+      "Marche quadrupède souple entre les racines",
+      "Course bondissante sur terrain dégagé",
+      "Vol battu à courte et moyenne distance",
+      "Plané silencieux dans les trouées de la canopée",
+      "Portage d'un seul cavalier correctement harnaché"
+    ],
+    "center_of_gravity": "Bas entre les épaules au sol ; déplacé vers l'avant du thorax pendant le décollage et recentré par la longue queue en vol.",
+    "silhouette": "Un jeune dragon élancé aux grandes ailes encore légèrement disproportionnées, aux cornes courtes, à la queue gouvernail et aux écailles vert mousse voilées de gris bleuté.",
+    "anatomy_zones": [
+      {
+        "zone": "Crâne et encolure",
+        "description": "Plaques imbriquées, cornes courtes et muscles souples protégeant la gorge sans gêner la rotation de la tête.",
+        "protection": 14
+      },
+      {
+        "zone": "Thorax et selle naturelle",
+        "description": "Cage profonde abritant poumons et sacs de brume ; une dépression entre les épaules reçoit un harnais léger, jamais une selle rigide.",
+        "protection": 16
+      },
+      {
+        "zone": "Membranes alaires",
+        "description": "Peau fine parcourue de nervures élastiques ; excellente portance, mais faible résistance aux pointes, aux câbles et aux branches cassées.",
+        "protection": 4
+      },
+      {
+        "zone": "Pattes et griffes",
+        "description": "Membres légers munis de coussinets rugueux, capables d'agripper la pierre humide et l'écorce sans lacérer à chaque appui.",
+        "protection": 10
+      },
+      {
+        "zone": "Queue gouvernail",
+        "description": "Longue queue musclée, mobile jusqu'à la pointe ; elle corrige le roulis et avertit nettement avant un coup défensif.",
+        "protection": 10
+      }
+    ]
+  },
+  "habitats": [
+    "Lisières de forêts anciennes où une trouée permet un décollage sûr",
+    "Vallons brumeux, ravins humides et bords de lacs forestiers",
+    "Corniches couvertes de mousse au-dessus de la canopée",
+    "Clairières entretenues autour d'un refuge ou d'un camp allié"
+  ],
+  "ecology": {
+    "diet": "Omnivore opportuniste, Brumaille préfère poissons, gros coléoptères, œufs non fécondés, fruits tombés et jeunes pousses riches en eau. Il peut consommer une petite proie ou une carcasse fraîche, mais délaisse les chairs corrompues et ne chasse pas les voyageurs.",
+    "lifecycle": "Les draconidés sylvestres grandissent lentement. Durant leurs premières années de vol, leurs ailes gagnent plus vite en surface qu'en force : ils planent avec adresse mais fatiguent lors des ascensions longues. Brumaille se trouve dans cette phase juvénile, curieuse et encore dépendante de refuges réguliers.",
+    "reproduction": "L'espèce pond rarement dans des creux de roche tapissés de mousse, chauffés par la fermentation végétale plutôt que par une flamme. Deux adultes se relaient autour du nid. Brumaille n'est pas en âge de se reproduire ; aucun comportement de parade ne doit lui être attribué.",
+    "behavior": "Il mémorise les itinéraires par une succession d'odeurs, de courants et de silhouettes d'arbres. Avec des compagnons patients, il apprend des signaux de main et de harnais, offre son flanc pour l'équipement puis vérifie lui-même les sangles du museau. Il refuse toutefois une charge excessive ou une aire de décollage obstruée.",
+    "niche": "Éclaireur aérien et disperseur de graines, il relie les clairières, consomme les insectes qui pullulent après les pluies et ouvre de petites trouées en rabattant les fougères. Son souffle humide limite les feux naissants sans pouvoir arrêter un incendie établi.",
+    "environmental_impact": "Ses aires d'atterrissage forment des ovales de végétation couchée où germent des graines apportées dans ses écailles. Un territoire fréquenté présente moins de foyers couvants et davantage de mares temporaires, mais des décollages répétés peuvent éroder les sols meubles et déranger les nicheurs de canopée."
+  },
+  "senses": [
+    "Vue adaptée au mouvement : il distingue un geste de guidage à travers une pluie fine, mais perd les détails dans une fumée dense.",
+    "Odorat humide très développé : la mousse mouillée, le cuir familier et l'ozone forment pour lui une véritable carte du territoire.",
+    "Ouïe sensible aux craquements de branches et aux variations du battement d'ailes ; les sons métalliques soudains le font sursauter.",
+    "Perception des pressions d'air par les cornes et les bords alaires, utile pour lire les rabattants avant qu'ils ne deviennent dangereux."
+  ],
+  "communication": [
+    "Trilles courts pour saluer ou demander l'attention, grondement grave pour signaler une menace et souffle sifflé lorsqu'il hésite.",
+    "Queue tenue haute pour autoriser l'approche, pointe qui fouette le sol avant une défense et ailes entrouvertes lorsqu'il réclame de l'espace.",
+    "Avec un partenaire lié, il répond à quelques gestes stables de direction, d'arrêt et d'atterrissage ; ce vocabulaire se construit par confiance, jamais par contrainte instantanée."
+  ],
+  "signs": [
+    "Empreintes à quatre doigts entourant une marque de coussinet, souvent suivies d'une traînée légère laissée par la queue dans la boue.",
+    "Ovales de fougères couchées de quatre à six mètres, sans branches carbonisées, correspondant à ses zones d'atterrissage.",
+    "Écailles translucides gris-vert naturellement muées, prises dans la mousse ou les sangles d'un harnais familier.",
+    "Condensation froide sur les pierres et odeur de pluie après l'emploi récent de son souffle de brume.",
+    "Arêtes de poissons, noyaux de fruits et carapaces de coléoptères rassemblés proprement à l'écart de son gîte."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Garder ses compagnons liés à portée de vue et les ramener vers un refuge sûr",
+      "Explorer les courants praticables sans s'engager dans un couloir trop étroit",
+      "Préserver les points d'eau et les clairières qui composent son territoire",
+      "Obtenir nourriture, jeu et repos sans mettre son cavalier en danger"
+    ],
+    "fears": [
+      "Incendie de canopée et fumée épaisse",
+      "Filets, chaînes ou câbles tendus entre les arbres",
+      "Détonations soudaines sous ses ailes",
+      "Harnais rigide, douloureux ou chargé au-delà de ses forces"
+    ],
+    "morale": "Sa loyauté est forte quand un compagnon est menacé, mais elle ne devient pas témérité. Il préfère extraire, masquer et fuir plutôt que poursuivre un adversaire.",
+    "escalation": "Brumaille recule d'abord, gronde, gonfle ses sacs de gorge puis déploie les ailes. Il emploie la brume et les coups de déplacement avant de mordre ; une attaque blessante n'apparaît qu'en défense immédiate d'un allié ou de lui-même.",
+    "retreat": "Il cherche une trouée, abaisse le flanc pour embarquer un unique compagnon si le temps le permet, puis gagne une corniche connue. Une aile blessée le conduit à fuir au sol vers l'eau ou les racines épaisses."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 7,
+      "constitution": 7,
+      "intelligence": 6,
+      "willpower": 7,
+      "perception": 8,
+      "presence": 8
+    },
+    "skills": {
+      "athletics": 65,
+      "acrobatics": 60,
+      "survival": 55,
+      "vigilance": 65,
+      "tracking": 45,
+      "unarmed": 55,
+      "empathy": 55,
+      "animal_handling": 45,
+      "elementalism": 45
+    },
+    "resources": {
+      "vitality": 116,
+      "stamina": 106,
+      "mana": 86,
+      "balance": 96,
+      "focus": 100
+    },
+    "movement": "Sol 8 m ; vol battu 14 m ; plané 18 m avec perte d'altitude ; décollage exige une course ou une chute de 4 m, et le port d'un cavalier interdit toute charge supplémentaire importante.",
+    "protections": [
+      "Crâne et encolure écailleux : protection 14",
+      "Thorax et épaules : protection 16",
+      "Pattes et queue : protection 10",
+      "Membranes alaires : protection 4"
+    ],
+    "attacks": [
+      {
+        "name": "Coup d'aile",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 18,
+        "reach": "Arc latéral de 2,5 m au contact du flanc",
+        "stamina_cost": 14,
+        "preparation": "0,7 s pour prendre appui et armer l'aile sans quitter le sol",
+        "telegraph": "Il tourne l'épaule, plante les griffes opposées et tend la membrane avant de balayer.",
+        "effect": "Le bord charnu frappe surtout pour repousser et rompre un encerclement ; une cible touchée est déplacée hors de son flanc si l'espace derrière elle est libre.",
+        "counterplay": "Reculer hors de l'arc, se placer devant le museau plutôt que sur le côté, ou profiter d'un tronc qui bloque l'amplitude de l'aile."
+      },
+      {
+        "name": "Morsure retenue",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 20,
+        "reach": "1,1 m devant le museau",
+        "stamina_cost": 12,
+        "preparation": "0,5 s, tête basse et cou replié avant une détente courte",
+        "telegraph": "Ses trilles cessent, les lèvres se retroussent et son regard se fixe sur la main ou l'arme menaçante.",
+        "effect": "Il saisit brièvement un membre, une manche ou une arme afin d'interrompre l'agression ; il relâche dès que la menace recule, sauf panique ou ordre contraire incohérent avec son lien.",
+        "counterplay": "Cesser le geste hostile, présenter un objet à lâcher, interposer un bouclier ou sortir de l'axe pendant le repli visible de l'encolure."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Souffle de brumaille",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "Cône de 6 m, large de 4 m à son extrémité",
+        "stamina_cost": 18,
+        "preparation": "1,2 s pour emplir les sacs de gorge et condenser l'humidité inspirée",
+        "telegraph": "Une buée bleutée perle entre ses écailles cervicales, ses joues se gonflent et un sifflement humide précède l'expiration.",
+        "effect": "Une brume fraîche étouffe les flammes petites ou naissantes, mouille les surfaces légères et masque les silhouettes. Elle ne neutralise ni un brasier alimenté ni un incendie de canopée.",
+        "counterplay": "Quitter le cône pendant l'inspiration, gagner de la hauteur, ouvrir un passage au vent ou entretenir une flamme protégée par un écran et du combustible sec."
+      },
+      {
+        "name": "Vol en cloche",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "Déplacement aérien jusqu'à 14 m, avec montée maximale de 6 m",
+        "stamina_cost": 22,
+        "preparation": "0,9 s sur terrain dégagé, ou départ immédiat depuis une corniche avec 4 m de vide",
+        "telegraph": "Il s'accroupit, aligne la queue, inspecte le ciel d'un mouvement de tête puis abat les ailes une première fois sans avancer.",
+        "effect": "Brumaille monte au-dessus d'un obstacle, franchit la zone et peut terminer en plané. Avec un cavalier, le déplacement exige un harnais vérifié et une trajectoire sans branche basse.",
+        "counterplay": "Occuper la piste d'élan, tendre un obstacle clairement visible, exploiter un fort vent traversier ou forcer un choix entre emporter le cavalier et gagner rapidement de l'altitude."
+      },
+      {
+        "name": "Portage lié",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "animal_handling",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "Contact ; un seul cavalier installé entre les épaules",
+        "stamina_cost": 20,
+        "preparation": "3 s pour s'abaisser, laisser monter le cavalier et contrôler chaque sangle avant le départ",
+        "telegraph": "Il présente le flanc, replie l'aile proche et touche du museau la sangle ventrale puis la charge transportée.",
+        "effect": "Un partenaire accepté peut monter et guider Brumaille par gestes appris. Le cavalier et la monture partagent les conséquences d'une perte de Balance en vol ; bagages lourds, second passager ou armure rigide annulent l'aptitude.",
+        "counterplay": "Réduire ou déplacer la charge pour conserver le vol ; un harnais coupé, une montée forcée, une selle douloureuse ou un couloir sans dégagement oblige Brumaille à refuser ou à atterrir."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Froid humide et pluie ordinaire",
+        "mechanism": "Ses sacs respiratoires récupèrent l'humidité et ses écailles évacuent l'eau sans alourdir durablement les membranes."
+      },
+      {
+        "subject": "Chocs légers contre le feuillage",
+        "mechanism": "Les bords alaires souples et les écailles arrondies dévient feuilles et brindilles tant que la vitesse reste modérée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Pointes, câbles et filets sur les ailes",
+        "mechanism": "Une perforation ou une entrave de membrane dégrade immédiatement la portance et peut imposer un atterrissage d'urgence."
+      },
+      {
+        "subject": "Fumée dense et feu de canopée",
+        "mechanism": "La fumée sature ses sacs de brume, masque ses repères visuels et provoque une panique de fuite avant que son souffle puisse agir."
+      },
+      {
+        "subject": "Surcharge ou harnais déséquilibré",
+        "mechanism": "Une masse excessive derrière les épaules déplace son centre de gravité, allonge le décollage et rend le premier virage dangereux."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Vent traversier fort dans une clairière étroite",
+        "result": "Décollage dévié et atterrissage exposé",
+        "chain": "Le vent prend la grande membrane juvénile, décale Brumaille vers les arbres, lui fait dépenser davantage de Vigueur puis l'oblige à choisir une autre trouée ou à rester au sol."
+      },
+      {
+        "input": "Souffle de brume sur un petit foyer ou des braises",
+        "result": "Flamme rabattue, vapeur et sol glissant",
+        "chain": "L'eau condensée étouffe le foyer, la chaleur produit un écran de vapeur, puis les cendres mouillées rendent l'approche moins visible et moins stable pour les deux camps."
+      },
+      {
+        "input": "Canopée serrée, lianes ou branches mortes",
+        "result": "Couloir de vol réduit à quelques trajectoires lisibles",
+        "chain": "Les obstacles imposent le repli des ailes, réduisent la portance, annoncent la trajectoire probable et permettent à un observateur de préparer un passage sûr ou une interception."
+      },
+      {
+        "input": "Pluie fraîche après une longue étape",
+        "result": "Récupération facilitée des sacs de brume",
+        "chain": "Les écailles recueillent l'eau, Brumaille la réchauffe en respirant, puis ses sacs cervicaux retrouvent progressivement la souplesse nécessaire à un nouveau souffle."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "animal_handling",
+      "difficulty": 14,
+      "fact": "Un jeune dragon qui présente son flanc, replie l'aile proche et contrôle les sangles autorise la montée ; sa queue doit rester libre de servir de gouvernail."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 18,
+      "fact": "Les ovales de fougères couchées, les quatre marques de griffes et la condensation sans suie distinguent une aire de Brumaille du passage d'un grand prédateur."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les sacs cervicaux semblent condenser l'eau de l'air plutôt que créer de la matière ; une sécheresse durable devrait donc limiter son souffle sans supprimer son vol."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Brumaille retrouve ses refuges en associant odeurs humides, reliefs et pression du vent ; déplacer une seule balise ne suffit pas à l'égarer, mais une fumée étendue brouille les trois repères."
+    },
+    {
+      "status": "secret",
+      "skill_id": "vigilance",
+      "difficulty": 30,
+      "fact": "Avant de refuser un ordre dangereux, il regarde successivement la charge, la piste et son cavalier : suivre ce regard révèle la cause précise du refus et évite de briser le lien."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "Compagnon aérien qui ouvre une route et signale les dangers sans résoudre seul l'exploration",
+      "Monture d'extraction pour un unique personnage, soumise au poids, au harnais et à une aire praticable",
+      "Gardien amical d'un point d'eau, d'un refuge ou d'une clairière menacée",
+      "Créature à rassurer lorsqu'un incendie, un piège ou un bruit provoque sa panique"
+    ],
+    "telegraphs": [
+      "La buée aux écailles du cou et le gonflement des joues annoncent le souffle plus d'une seconde avant son émission.",
+      "L'accroupissement, la queue alignée et le premier battement sur place annoncent sans ambiguïté le décollage.",
+      "Un coup de queue au sol, les ailes ouvertes et l'arrêt des trilles marquent l'escalade défensive avant toute morsure.",
+      "Le regard répété vers la charge ou la piste indique un refus motivé, pas une désobéissance arbitraire."
+    ],
+    "noncombat_options": [
+      "Gagner sa confiance avec nourriture adaptée, approche latérale et répétition calme des gestes de guidage",
+      "Dégager une piste de décollage, alléger le paquetage ou réparer un harnais sans pièce rigide",
+      "L'aider à étouffer un foyer naissant en apportant eau, terre et couvertures pendant qu'il produit la brume",
+      "Suivre ses signaux jusqu'à un blessé, une source d'eau ou une corniche sûre",
+      "Renoncer au vol et progresser ensemble au sol lorsque le vent, la fumée ou la canopée rendent l'envol irresponsable"
+    ],
+    "complications": [
+      "Un second blessé doit être évacué, mais Brumaille ne peut porter qu'une personne sans risquer la chute.",
+      "Le meilleur couloir aérien traverse un territoire de nicheurs agressifs que la monture refuse de déranger.",
+      "Une sangle paraît intacte mais s'est gorgée d'eau ; elle se détendra dès les premiers battements.",
+      "La brume éteint les flammes, puis masque également un ravin et rend les pierres glissantes.",
+      "Des chasseurs interprètent les traces de dragon comme celles d'un monstre hostile et préparent des filets."
+    ]
+  },
+  "salvage": [
+    "Écailles naturellement muées, translucides et sans prélèvement sur l'animal, utiles comme repères de vent ou éléments décoratifs.",
+    "Fragments de membrane trouvés après une mue ou un accroc déjà cicatrisé, souples mais impropres à toute armure durable.",
+    "Mousse de gîte enrichie en graines et en minéraux, récoltable en petite quantité sans détruire le refuge.",
+    "Boucles et sangles de harnais abandonnées, récupérables seulement après vérification qu'elles ne servent plus au compagnon."
+  ],
+  "plates": [
+    {
+      "image": "brumaille-plate.png",
+      "alt": "Brumaille, jeune dragon vert et gris aux ailes déployées, se tient dans une clairière brumeuse avec un harnais léger entre les épaules.",
+      "caption": "Brumaille présente son flanc avant le départ ; la piste libre, la charge légère et la confiance du compagnon conditionnent le vol.",
+      "prompt_key": "brumaille-plate"
+    }
+  ]
+}

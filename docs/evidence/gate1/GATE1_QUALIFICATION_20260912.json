@@ -1,0 +1,512 @@
+{
+  "schema": "forge.gate1-local-qualification",
+  "schema_version": 1,
+  "date_utc": "2026-09-12T06:22:49.917158+00:00",
+  "verdict": "PASS_AUTOMATED_LOCAL_WITH_ACCEPTED_EXCEPTIONS",
+  "gate1_closed": true,
+  "qualification_commit": "7386e00a1d9e8531470b57bcd8da190636a9e390",
+  "qualification_tree": "f73099c6372f0e10f4cd759acc6e0082aada2367",
+  "qualification_branch": "Rust",
+  "qualification_worktree": "E:\\OpenRPG_Forge\\.gate1-closure-20260912",
+  "qualification_worktree_clean": true,
+  "source_worktree_preserved": "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust",
+  "publication_performed": false,
+  "source_base_commit": "f786a38aca2023f08d708687f99a47d14f34e6d4",
+  "source_origin_divergence_cached": "0\t103",
+  "exceptions": [
+    "ADR-0006",
+    "ADR-0011",
+    "ADR-0012",
+    "ADR-0013",
+    "R1_PERFORMANCE_POINT2"
+  ],
+  "owner_comparative_acceptance": true,
+  "quality_change_stutter": "WAIVED_ACCEPTED",
+  "human_kit": "WAIVED_DEFERRED",
+  "human_retouch_performed": false,
+  "distribution_qualified": false,
+  "gate2_implemented_by_this_task": false,
+  "rust_tests": {
+    "passed": 738,
+    "failed": 0,
+    "ignored": 2
+  },
+  "checks": [
+    {
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:16:24.8953298Z",
+      "command": "cargo fmt --all -- --check",
+      "name": "fmt",
+      "end_utc": "2026-09-12T06:16:25.7648344Z",
+      "log_sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:16:25.8429732Z",
+      "command": "cargo clippy --workspace --all-targets --all-features --locked --offline -- -D warnings",
+      "name": "clippy",
+      "end_utc": "2026-09-12T06:16:27.6717163Z",
+      "log_sha256": "4BFD586492DA224F226F30A87E9D41F8938761498CDD3A4F9EA758AE85E75215"
+    },
+    {
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:16:27.7266926Z",
+      "command": "cargo test --workspace --all-targets --locked --offline",
+      "name": "workspace-tests",
+      "end_utc": "2026-09-12T06:17:38.4646411Z",
+      "log_sha256": "1E7AD20E6DC885C806B6D2F430E355DD9FD056187CFDFCDCBCD6DF782EB09E41"
+    },
+    {
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:17:38.5319633Z",
+      "command": "cargo check --locked --offline --target wasm32-unknown-unknown -p forge_engine --no-default-features --features web",
+      "name": "wasm-engine",
+      "end_utc": "2026-09-12T06:17:39.2617303Z",
+      "log_sha256": "B20F4DF656A34166D9A84A94EE46E37972F1EB6D6E8CE8A05345D8C0D0DADAA3"
+    },
+    {
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:17:39.3180089Z",
+      "command": "cargo clippy --locked --offline --target wasm32-unknown-unknown -p forge_studio --no-default-features --features web -- -D warnings",
+      "name": "wasm-clippy",
+      "end_utc": "2026-09-12T06:17:43.2019399Z",
+      "log_sha256": "0A0F2B775A40822D55914C6C9FA3D905B27F06802374505FA4BC0A7548BC7BF0"
+    },
+    {
+      "log_sha256": "3BA578F047E60F22DB2B8538FFB65416562563A588A3BC8944DEEEF949E80A10",
+      "name": "native-build",
+      "command": "cargo build -p forge_runtime --locked --offline",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:06:34.4367039Z",
+      "end_utc": "2026-09-12T06:08:24.6377980Z"
+    },
+    {
+      "log_sha256": "62270BB1849B82B99E3E4A9C19ADB05D31AD1F69DAC96EE201F1F032F0D74711",
+      "name": "deny",
+      "command": "cargo deny check licenses bans sources advisories",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:08:24.7159378Z",
+      "end_utc": "2026-09-12T06:08:32.1250429Z"
+    },
+    {
+      "end_utc": "2026-09-12T06:11:35.6021283Z",
+      "command": "pwsh -NoProfile -File E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-RustSec.ps1 -RepositoryRoot E:/OpenRPG_Forge/.gate1-closure-20260912",
+      "name": "rustsec",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:11:33.1964355Z",
+      "log_sha256": "7F79F4829D18CFB69188F00006A1CE65C5A35C2A230EB661EA8CE2F2224628C1"
+    },
+    {
+      "end_utc": "2026-09-12T06:11:36.6175524Z",
+      "command": "pwsh -NoProfile -File E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Invoke-StudioWindowProof.ps1 -SelfTest",
+      "name": "gate0-window-selftest",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:11:35.6580863Z",
+      "log_sha256": "44990A3846B355F34194CEF3BA3401B4ED3D2882A33FB43625BBC9798EF62FA9"
+    },
+    {
+      "end_utc": "2026-09-12T06:11:36.9009944Z",
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-BridgeVideo.py",
+      "name": "Test-BridgeVideo",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:11:36.6713529Z",
+      "log_sha256": "4EC978616E0E2C74B14EE33995529AFC91F2FFB7AB86C370E2BDBEF40D0550C1"
+    },
+    {
+      "end_utc": "2026-09-12T06:11:37.1566042Z",
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-Gate1FinalEvidence.py",
+      "name": "Test-Gate1FinalEvidence",
+      "exit_code": 0,
+      "start_utc": "2026-09-12T06:11:36.9543648Z",
+      "log_sha256": "00C4870EAE3F800A4ACDAA571BE3A19B97E505F7C418033075115E7F3AD637FA"
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-NativeStudioProfiles.py E:/OpenRPG_Forge/.gate1-evidence-runtime/r1-parity-point4-20260910",
+      "name": "Test-NativeStudioProfiles",
+      "start_utc": "2026-09-12T06:12:57.3307437Z",
+      "log_sha256": "638D287C0B0A39696192D173099F90DFD19C0B1B2DF974802576F431E7C9EB0B",
+      "end_utc": "2026-09-12T06:12:57.5306774Z",
+      "exit_code": 0
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-Gate1Measurements.py",
+      "name": "Test-Gate1Measurements",
+      "start_utc": "2026-09-12T06:12:57.6075426Z",
+      "log_sha256": "383A12FBA9B5B327054A24CE7E5739569C4F0B6621FACD981F2D6A4271063B3C",
+      "end_utc": "2026-09-12T06:12:57.7179189Z",
+      "exit_code": 0
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-CaptureCameraSet.py E:/OpenRPG_Forge/.gate1-evidence-runtime/r1-camera-set-20260906-c",
+      "name": "Test-CaptureCameraSet",
+      "start_utc": "2026-09-12T06:12:57.7757980Z",
+      "log_sha256": "C3BD7F920C3BEF5F039F142712FDD1D8F61458780FB03AAFBC18C2801E0F993F",
+      "end_utc": "2026-09-12T06:12:58.9480270Z",
+      "exit_code": 0
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-WorldSketchCapture.py E:/OpenRPG_Forge/.gate1-evidence-runtime/r1-twelve-views-20260906",
+      "name": "Test-WorldSketchCapture",
+      "start_utc": "2026-09-12T06:12:59.0100860Z",
+      "log_sha256": "457F9DE3A6B092EB2BA1E2293AB6AD8FC3D3719D79EE311DDF10967C52D21DDE",
+      "end_utc": "2026-09-12T06:12:59.8093048Z",
+      "exit_code": 0
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-FixedWorldSketchCapture.py E:/OpenRPG_Forge/.gate1-evidence-runtime/r1-overlap-twelve-views-20260911",
+      "name": "Test-FixedWorldSketchCapture",
+      "start_utc": "2026-09-12T06:12:59.8636831Z",
+      "log_sha256": "9BE8F410066A1A8B468FFB9B2F584767AE1606D2DC16E2AED35ED12C02A935C8",
+      "end_utc": "2026-09-12T06:13:01.1853207Z",
+      "exit_code": 0
+    },
+    {
+      "command": "python E:/OpenRPG_Forge/.gate1-closure-20260912/scripts/Test-VisualValleyText.py",
+      "name": "Test-VisualValleyText",
+      "start_utc": "2026-09-12T06:13:01.2402761Z",
+      "log_sha256": "351F929ED84AACAFADE91B6FD67DC7BE9217FFAEA2CA9D1C9D59BD385BA30FB6",
+      "end_utc": "2026-09-12T06:13:01.3564908Z",
+      "exit_code": 0
+    }
+  ],
+  "native_input_reuse": "9aa22011721fe80e065924de3dd710e765c624c2",
+  "remote_ci": {
+    "Windows": "NOT RUN — infrastructure billing",
+    "Linux": "NOT RUN — infrastructure billing",
+    "WASM": "NOT RUN — infrastructure billing",
+    "supply-chain": "NOT RUN — infrastructure billing"
+  },
+  "artifacts": [
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\environment.json",
+      "sha256": "1d16802771bb59359ae17a5cfc9ced49664cdca6c63e9c43a7fddc67530e7eb2",
+      "bytes": 765
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\scope.json",
+      "sha256": "21c82c471c26785d5e459a3e59287c35ec955443492796108b3a0a6f93f44be3",
+      "bytes": 141612
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\final-source-linkage.json",
+      "sha256": "06458ac82e57e5c7f18e3c9631b8c74f34ea86a01e0ec9f6b34dabd88b23578d",
+      "bytes": 88085
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\evidence-links.json",
+      "sha256": "e3003a889679cf3b036919014c5c741e07e190d9bbc7984424508d99577632c7",
+      "bytes": 148651
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\withdrawn-advisories.json",
+      "sha256": "0cbb5575796ee69a1d5d48d36593e5a7cf76bba06ac87659fdc90699d5dd64fa",
+      "bytes": 2665
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\rustsec-current.json",
+      "sha256": "3ff727934a5ec9aa07f5bfdbd2123151abb0813a2002541f322884817032150d",
+      "bytes": 15515
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\native-replay.json",
+      "sha256": "94fda48451bf467c10f179f621514318d5e4610d58e184f3986e2ffeb27a7fb3",
+      "bytes": 2526
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\gate0-native.png",
+      "sha256": "046a43f32c2498a947ef487ef25ac5dc61a102021e049245dd3f3aa411804101",
+      "bytes": 493192
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\native-temporal\\manifest.json",
+      "sha256": "f5006f8856d9a82580c46680aacc37e3e0c3611cf8c07834105faf8410d66b3e",
+      "bytes": 69041
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\native-temporal\\bridge.mp4",
+      "sha256": "d5fdf3f14c223c88e7fc87353263b88d5aba99fa78eba9d6a74e3e7a3153a7f2",
+      "bytes": 7992302
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\native-temporal\\frames\\frame-0043.png",
+      "sha256": "be3da5005775b7479aa073cb0c9bc1a9138b1a66b00cc2c3d7524f6f58da4d47",
+      "bytes": 2394144
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\runtime.exe",
+      "sha256": "3cc6ea4e18b2d232750d82923fc6cd4a0cdd7d2e9ffac71c23c745851a35df51",
+      "bytes": 118624768
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio\\build-proof.json",
+      "sha256": "10da3efc34ddcdb352a42389b83b9b1962d9d8e0ba30120ce14e659e16130fc9",
+      "bytes": 2405
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio\\forge-studio-candidate.exe",
+      "sha256": "97c4ca599d1760aefe1bfd50fca203f90a8bece6645ded2692b98ebbc004b7c2",
+      "bytes": 50746880
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio-temporal.json",
+      "sha256": "2dc9aa0ecb1e02dd831097887073ceb2309bec4ea085bde3bfa7d72baacc67a7",
+      "bytes": 11470
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio-inspected.png",
+      "sha256": "ff1c174750871f61ad953bd1e2ea59f0f0591b5a0dd65be25283a52fbb0a6da5",
+      "bytes": 1555633
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\gate0-studio-telemetry.json",
+      "sha256": "bf3f55c30f3576f9392b020afb212bcc830398bbb31487358fabb0bf6da4f5aa",
+      "bytes": 2252
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\gate0-studio.png",
+      "sha256": "7870edc437239f2edab211009d9bebc3b669f27903a0bc1263a49cd2fb76998b",
+      "bytes": 588338
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio-cleanup.json",
+      "sha256": "8bbb13c2b3d986a4a3043850dfc359d5c1f6e1dad45380e1663d10cdec38ffc6",
+      "bytes": 149
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-studio2-20260912\\studio-probe.log",
+      "sha256": "441e34ea6794355faaffe4bc67b5f6a9b917d0c755f5cc85609a0afee2762104",
+      "bytes": 96
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\studio-cleanup.json",
+      "sha256": "a53c8b4cbf548c11880dd712e3c69fe7e4f5830a6e9e4a6e9c1b526751f34661",
+      "bytes": 160
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\clippy.log",
+      "sha256": "23bf97fa75beb787161269a8857313a0b1e97a7f7205a7b11889b5d4623e8b7b",
+      "bytes": 71
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\deny.log",
+      "sha256": "62270bb1849b82b99e3e4a9c19adb05d31ad1f69dac96ee201f1f032f0d74711",
+      "bytes": 1039232
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\native-build.log",
+      "sha256": "3ba578f047e60f22db2b8538ffb65416562563a588a3bc8944deeef949e80a10",
+      "bytes": 650
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\rustsec.log",
+      "sha256": "7f6f44022b6b93fc7c1b38ebe602dd7128ae12f7776bad75338bc14a10b38e0b",
+      "bytes": 848
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\wasm-clippy.log",
+      "sha256": "7c8fcb4f07886e33002f8e52e9dd5660838fce5dc7e036bac5df227a47a93b53",
+      "bytes": 423
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\wasm-engine.log",
+      "sha256": "712075e9c85e6e3b010d01876a633f68736473e9b1bdc1c41b9c04232bdba809",
+      "bytes": 71
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\workspace-tests.log",
+      "sha256": "aeab2c81acb6f0ae292546dfa9112ce610ec1289ab09a0f84a545ec2570d8182",
+      "bytes": 75173
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-2\\checks.json",
+      "sha256": "429cce0e7587d1a741f880c27e9ca3d2567df1a65c6aa23c3fdec3ca7f58ffb0",
+      "bytes": 3012
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\clippy.log",
+      "sha256": "4bfd586492da224f226f30a87e9d41f8938761498cdd3a4f9ea758ae85e75215",
+      "bytes": 166
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\fmt.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\wasm-clippy.log",
+      "sha256": "0a0f2b775a40822d55914c6c9fa3d905b27f06802374505fa4bc0a7548bc7bf0",
+      "bytes": 582
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\wasm-engine.log",
+      "sha256": "b20f4df656a34166d9a84a94ee46e37972f1eb6d6e8ce8a05345d8c0d0dadaa3",
+      "bytes": 71
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\workspace-tests.log",
+      "sha256": "1e7ad20e6dc885c806b6d2f430e355dd9fd056187cfdfcdcbcd6df782eb09e41",
+      "bytes": 75476
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\validation-3\\checks.json",
+      "sha256": "9b2d2cc72a87941ffbf1c89f78c902dce0a81971c1662aa86986480f4426616d",
+      "bytes": 1942
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\deny.log",
+      "sha256": "5f306a826e7b664e0f1483c6ef99c9a3d8725139ba20b4fca67488fc07b6dc06",
+      "bytes": 1028602
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\gate0-window-selftest.log",
+      "sha256": "44990a3846b355f34194cef3ba3401b4ed3d2882a33fb43625bbc9798ef62fa9",
+      "bytes": 40
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\rustsec.log",
+      "sha256": "7f79f4829d18cfb69188f00006a1ce65c5a35c2a230eb661ea8ce2f2224628c1",
+      "bytes": 160
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\Test-BridgeVideo.log",
+      "sha256": "4ec978616e0e2c74b14ee33995529afc91f2ffb7ab86c370e2bdbef40d0550c1",
+      "bytes": 110
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\Test-Gate1FinalEvidence.log",
+      "sha256": "00c4870eae3f800a4acdaa571be3a19b97e505f7c418033075115e7f3ad637fa",
+      "bytes": 119
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\Test-NativeStudioProfiles.log",
+      "sha256": "90121043c2b2d7c6290cafce5dcc9748ba7a619546d920b9f2d9c1cd804f6732",
+      "bytes": 249
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\policy-and-tools\\checks.json",
+      "sha256": "af6924cc822712ee151843f95869429f45b22f491586360d14e0c1f3cada69cc",
+      "bytes": 2390
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-CaptureCameraSet.log",
+      "sha256": "c3bd7f920c3bef5f039f142712fdd1d8f61458780fb03aafbc18c2801e0f993f",
+      "bytes": 107
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-FixedWorldSketchCapture.log",
+      "sha256": "9be8f410066a1a8b468ffb9b2f584767ae1606d2dc16e2aed35ed12c02a935c8",
+      "bytes": 105
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-Gate1Measurements.log",
+      "sha256": "383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c",
+      "bytes": 106
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-NativeStudioProfiles.log",
+      "sha256": "638d287c0b0a39696192d173099f90dfd19c0b1b2df974802576f431e7c9eb0b",
+      "bytes": 107
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-VisualValleyText.log",
+      "sha256": "351f929ed84aacafade91b6fd67dc7be9217ffaea2ca9d1c9d59bd385ba30fb6",
+      "bytes": 107
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\Test-WorldSketchCapture.log",
+      "sha256": "457f9de3a6b092eb2ba1e2293ab6ad8fc3d3719d79ee311ddf10967c52d21dde",
+      "bytes": 107
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\r1-clean-closure-20260912\\remaining-tools\\checks.json",
+      "sha256": "75fd0f6fab568de86ab80cec5043280555e8e8b2180edf862b7df01f4521845c",
+      "bytes": 2658
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Build-CleanClosureStudio-20260912.ps1",
+      "sha256": "3ad5c5486124a2ccd48735cd778498e81faf284fe4e9965b721260936df734ca",
+      "bytes": 1885
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Build-ClosureStudio2-20260912.ps1",
+      "sha256": "72723c4589fea0bbb865cd9a027429103adfeff163000d9b56e409a600ad027b",
+      "bytes": 1893
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Inspect-CleanClosureStudio-20260912.mjs",
+      "sha256": "1e6340c887537b7eb313f560b4c3b8fdd4e1a1c44ce30bea87113b1cd42e614d",
+      "bytes": 4968
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Pin-FinalClosureSources-20260912.py",
+      "sha256": "15541fb810cd1adcfa80e391f55497ed2f4af42f4ad4e33c28ec833be3b995e2",
+      "bytes": 2620
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Prepare-CleanClosure-20260912.py",
+      "sha256": "78484dad071677fbd35d7ab85b1770e6cb4ef4658ede55fab9703ec899d585bd",
+      "bytes": 2433
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Prepare-ClosureReview-20260912.ps1",
+      "sha256": "62b976c1f67537f55727cb88a9cde9c47853d13722cc8abec6a6812269676e56",
+      "bytes": 5019
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Replay-CleanClosureNative-20260912.py",
+      "sha256": "1d54a7e177d7c79ff35977bd1087df58c6e8203c2ab84c31ce4489caff47ddb9",
+      "bytes": 2510
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Run-CleanClosureStudio-20260912.ps1",
+      "sha256": "cf9a75087e8efc51de5e9bad8a4469b660bf082e110aff1e681d3f9efdba2cb6",
+      "bytes": 2322
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Run-ClosureStudio2-20260912.ps1",
+      "sha256": "0a279456fb7c8da4968da45479d678cb7842f938ef143565c4c87a635d688b3a",
+      "bytes": 2330
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Validate-CleanClosure-20260912-v2.ps1",
+      "sha256": "9e981abda32a9dd4c1012aa5cb09ae3636b9ac02212661dd063c80b54c3d76d4",
+      "bytes": 2624
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Validate-CleanClosure-20260912.ps1",
+      "sha256": "3ba78659577d8c5c80d9a33238a15678a4e78bc3e9ee96a84392c491096f1f9e",
+      "bytes": 2611
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Validate-ClosureAcl-20260912.ps1",
+      "sha256": "89d48c7766a9ded06ca0041e98f03a59c6164535424c12b772d7a024f23acf97",
+      "bytes": 1830
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Validate-ClosurePolicy-20260912.ps1",
+      "sha256": "1301a29a9e40c6dedf85ec25f35f3eb665eca4b89c69ef873ac1452cc5317602",
+      "bytes": 1874
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Validate-ClosureRemainingTools-20260912.ps1",
+      "sha256": "ce3a802ede386de1de4563fcc2ea355a7017d5ffce62610c4135892f6e328b3a",
+      "bytes": 2018
+    },
+    {
+      "path": "E:\\OpenRPG_Forge\\.gate1-evidence-runtime\\Verify-ClosureLinks-20260912.py",
+      "sha256": "cf27baad80be5bc6b534343857e99f068c6329ea4b5198a58f00d4eb9314ec5e",
+      "bytes": 3289
+    }
+  ],
+  "limitations": [
+    "No real-time fluidity claim from offline 30 fps video.",
+    "Historical twelve-view comparison remains pinned to its source revision.",
+    "Kit internal_gate_proof_only; human retouch and publication review deferred.",
+    "glib RUSTSEC-2024-0429 remains a distribution blocker; no target GPU performance guarantee."
+  ]
+}

@@ -1,0 +1,260 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.loup-de-bruyere",
+  "name": "Loup de bruyère",
+  "subtitle": "Le rabatteur silencieux des landes mauves",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée pour le volume I ; elle transpose un canidé social aux contraintes des landes ouvertes sans reprendre de bestiaire commercial.",
+  "major": false,
+  "classification": {
+    "nature": "animal",
+    "family": "canidé des landes",
+    "rarity": "peu commun, localement abondant",
+    "activity": "crépusculaire et nocturne",
+    "social": "meutes familiales de quatre à neuf individus",
+    "threat": "moderee",
+    "threat_reason": "Sa morsure reste celle d'un prédateur ordinaire, mais la meute exploite relief, vent et angles morts avec une coordination dangereuse."
+  },
+  "physique": {
+    "dimensions": "1,25 à 1,55 m du museau à la croupe ; 0,70 à 0,85 m au garrot",
+    "mass_kg": [35, 55],
+    "locomotion": ["course endurante", "bond court", "progression basse dans les bruyères"],
+    "center_of_gravity": "Bas et légèrement porté vers l'avant ; stable en course, plus vulnérable lors d'un changement brutal de direction.",
+    "silhouette": "Poitrine étroite, longues pattes sombres et ligne dorsale cassée par un épais manteau de poils couleur tourbe.",
+    "anatomy_zones": [
+      {
+        "zone": "tête et nuque",
+        "description": "Crâne allongé, mâchoires puissantes et collerette dense protégeant partiellement la gorge.",
+        "protection": 8
+      },
+      {
+        "zone": "torse",
+        "description": "Cage thoracique souple sous un sous-poil serré, sans protection minérale.",
+        "protection": 5
+      },
+      {
+        "zone": "pattes antérieures",
+        "description": "Membres fins adaptés à l'endurance ; les articulations restent exposées de côté.",
+        "protection": 3
+      },
+      {
+        "zone": "flancs et arrière-train",
+        "description": "Musculature de propulsion couverte d'un pelage qui amortit surtout les éraflures.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "landes de bruyère traversées de ravines",
+    "lisières de tourbières sèches",
+    "ruines basses ouvertes aux vents"
+  ],
+  "ecology": {
+    "diet": "Lapins, oiseaux nichant au sol, jeunes ongulés affaiblis et charognes fraîches ; baies en fin d'été.",
+    "lifecycle": "Les jeunes quittent la tanière après huit semaines, apprennent les routes de rabattement pendant un an et atteignent leur pleine taille au second hiver.",
+    "reproduction": "Une portée annuelle de trois à six petits dans une galerie sèche, gardée à tour de rôle par les adultes apparentés.",
+    "behavior": "La meute observe longtemps, teste la réaction d'une proie puis la pousse vers une ravine, une nappe de boue ou un second chasseur dissimulé.",
+    "niche": "Prédateur régulateur des petits herbivores et consommateur rapide de carcasses exposées.",
+    "environmental_impact": "Ses sentiers tassés percent la bruyère, relient les points d'eau et servent ensuite aux renards, collecteurs et contrebandiers."
+  },
+  "senses": [
+    "odorat très fin, particulièrement efficace vent de face",
+    "audition directionnelle sensible aux pas dans les tiges sèches",
+    "vision adaptée au contraste crépusculaire mais médiocre face à un éclat direct"
+  ],
+  "communication": [
+    "hurlements espacés portant au-delà des crêtes",
+    "grondements brefs et posture de queue pour coordonner l'approche",
+    "marquages odorants sur pierres hautes"
+  ],
+  "signs": [
+    "empreintes étroites alignées presque sur une seule piste",
+    "touffes de sous-poil brun prises aux tiges ligneuses",
+    "crottes déposées sur une pierre ou une motte dominante",
+    "silences brusques des oiseaux au passage d'une patrouille"
+  ],
+  "demeanor": {
+    "objectives": ["isoler une proie faible", "protéger la tanière", "conserver une route de chasse sûre"],
+    "fears": ["feu courant dans la bruyère", "grondement métallique inconnu", "perte du vent favorable"],
+    "morale": "Élevé tant que deux adultes peuvent se voir ou s'entendre ; il chute vite après une blessure grave ou la rupture du groupe.",
+    "escalation": "Un éclaireur suit à distance, deux rabatteurs ferment les côtés, puis le plus lourd tente le contact seulement lorsque la fuite est orientée.",
+    "retreat": "Les loups rompent le combat vers une crête sous le vent et ne poursuivent pas au-delà de leur territoire si la tanière n'est pas menacée."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 3,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 5
+    },
+    "skills": {
+      "athletics": 48,
+      "acrobatics": 35,
+      "survival": 55,
+      "stealth": 50,
+      "unarmed": 45,
+      "tactics": 42,
+      "intimidation": 35,
+      "vigilance": 60,
+      "tracking": 65
+    },
+    "resources": {
+      "vitality": 108,
+      "stamina": 98,
+      "mana": 68,
+      "balance": 88,
+      "focus": 96
+    },
+    "movement": "Course 11 m/s sur sol ouvert, 8 m/s dans la bruyère dense ; bond horizontal de 2,5 m avec élan.",
+    "protections": [
+      "Le sous-poil réduit légèrement froid, ronces et contacts superficiels, jamais une lame franche.",
+      "La collerette protège la gorge uniquement contre un contact oblique venu de l'avant."
+    ],
+    "attacks": [
+      {
+        "name": "Morsure d'arrêt",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 22,
+        "reach": "1 m devant le museau",
+        "stamina_cost": 8,
+        "preparation": "0,35 seconde après avoir fixé la cible",
+        "telegraph": "Les épaules s'abaissent, la gueule se ferme un instant et le regard se verrouille sur le membre visé.",
+        "effect": "Contact perforant ; sur une jambe déjà exposée, la morsure réduit l'allure et peut maintenir le membre tant que le loup garde son Équilibre.",
+        "counterplay": "Présenter une garde réelle, pivoter hors de l'axe du museau ou frapper le sol devant lui interrompt l'engagement."
+      },
+      {
+        "name": "Prise de jarret",
+        "kind": "attack",
+        "visibility": "supposee",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "bond de 1,5 m vers un flanc ou l'arrière",
+        "stamina_cost": 14,
+        "preparation": "0,55 seconde après un déplacement latéral visible",
+        "telegraph": "Le loup cesse de regarder le torse, rase le sol et décrit un demi-cercle vers la jambe éloignée.",
+        "effect": "Une cible en course subit une forte perte d'Équilibre ; le contact ne provoque un renversement que si son appui cède réellement.",
+        "counterplay": "Rompre la course, adosser le flanc à un obstacle, tourner avec le loup ou laisser un compagnon couvrir l'angle."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Hurlement de rabattement",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "leadership",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "40 m en terrain ouvert, moins derrière une crête",
+        "stamina_cost": 10,
+        "preparation": "1,2 seconde immobile, tête relevée",
+        "telegraph": "Une longue inspiration soulève la collerette avant un appel modulé en deux notes.",
+        "effect": "Les membres de la même meute qui entendent l'appel partagent une direction de rabattement, pas la position exacte d'une cible invisible.",
+        "counterplay": "Couper la ligne sonore par une porte ou un relief, produire un bruit concurrent ou déplacer la cible avant la réponse."
+      },
+      {
+        "name": "Effacement dans la bruyère",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "stealth",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "soi-même dans une végétation haute d'au moins 60 cm",
+        "stamina_cost": 12,
+        "preparation": "2 secondes sans sprint ni contact",
+        "telegraph": "Le dos s'aplatit et le loup choisit une ligne où le vent couche déjà les tiges.",
+        "effect": "La silhouette devient difficile à suivre tant qu'elle reste sous la ligne des bruyères ; odeur, bruit et tiges déplacées demeurent perceptibles.",
+        "counterplay": "Prendre de la hauteur, éclairer latéralement, surveiller les tiges ou remonter le vent au lieu de poursuivre la silhouette."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "froid humide",
+        "mechanism": "Le double pelage ralentit l'accumulation de Froid tant qu'il n'est ni noyé ni couvert de glace."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "fumée et chaleur sèche",
+        "mechanism": "Le sous-poil retient la chaleur et la fumée désorganise l'odorat dont dépend la coordination de la meute."
+      },
+      {
+        "subject": "appuis latéraux",
+        "mechanism": "Les longues pattes résistent mal à une glissade ou à un impact transversal pendant un virage rapide."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "bruyère enflammée",
+        "result": "retraite immédiate vers une rupture minérale ou humide",
+        "chain": "Le feu détruit le couvert, surcharge le pelage en chaleur et coupe les routes de rabattement."
+      },
+      {
+        "input": "boue profonde ou glace",
+        "result": "allure réduite et prise de jarret moins stable",
+        "chain": "La perte de friction dégrade les changements d'angle dont dépend l'attaque coordonnée."
+      },
+      {
+        "input": "vent changeant",
+        "result": "pistes olfactives discontinues et repositionnement des éclaireurs",
+        "chain": "Le changement de vent révèle parfois la meute tout en lui retirant l'information précise sur la proie."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Une piste apparemment unique peut cacher plusieurs loups qui posent les pattes dans les mêmes empreintes."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les deux notes du hurlement indiqueraient d'abord une direction, puis la vitesse attendue du rabattement."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Certaines meutes entretiennent volontairement un sentier humain abandonné afin que les voyageurs y deviennent prévisibles."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["éclaireur", "rabatteur", "attaquant de flanc"],
+    "telegraphs": [
+      "Les oiseaux se taisent d'un côté tandis qu'un hurlement répond depuis l'autre.",
+      "Les tiges bougent à contre-vent avant qu'un loup ne traverse brièvement une ouverture."
+    ],
+    "noncombat_options": [
+      "Quitter calmement la route de chasse sans approcher la tanière.",
+      "Déposer une carcasse loin du passage pour détourner une meute affamée.",
+      "Employer Dressage et des signaux non menaçants face à un jeune isolé."
+    ],
+    "complications": [
+      "Un feu défensif peut se propager dans la lande et menacer un hameau.",
+      "Blesser un adulte près de la tanière transforme une retraite probable en défense obstinée."
+    ]
+  },
+  "salvage": [
+    "Sous-poil naturellement perdu, recherché comme isolant léger.",
+    "Dents et os seulement sur une carcasse déjà morte ; leur prélèvement peut attirer la meute."
+  ],
+  "plates": [
+    {
+      "image": "loup-de-bruyere-plate.png",
+      "alt": "Un loup brun sombre se fond dans une lande de bruyère mauve tandis que deux silhouettes de sa meute rabattent une proie au loin.",
+      "caption": "La meute chasse avec le relief, le vent et la végétation plutôt qu'avec une force surnaturelle.",
+      "prompt_key": "loup-de-bruyere"
+    }
+  ]
+}

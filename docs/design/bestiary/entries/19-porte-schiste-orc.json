@@ -1,0 +1,260 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.porte-schiste-orc",
+  "name": "Porte-schiste orc",
+  "subtitle": "Le sauveteur qui avance derrière la montagne",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Personnage original des Terrasses de Schiste. Sa fonction de carrier et de sauveteur explique son équipement ; elle ne décrit ni une vocation innée ni le comportement de tous les Orcs.",
+  "major": false,
+  "classification": {
+    "nature": "humanoïde sapient",
+    "family": "Orcs des Terrasses de Schiste",
+    "rarity": "peu commun hors des carrières et cols aménagés",
+    "activity": "diurne, avec gardes nocturnes lors des secours",
+    "social": "équipes de chantier ou de sauvetage de trois à huit personnes",
+    "threat": "forte",
+    "threat_reason": "La dalle mobile bloque un secteur entier et permet une progression méthodique, mais ses sangles, ses appuis et ses flancs restent matériellement exposés."
+  },
+  "physique": {
+    "dimensions": "1,75 à 2,05 m ; dalle de schiste de 1,45 à 1,75 m de haut",
+    "mass_kg": [82, 128],
+    "locomotion": ["marche courte et ancrée", "progression latérale derrière la dalle", "portage collectif sur pente"],
+    "center_of_gravity": "Bas lorsque la dalle repose sur la hanche et l'épaule ; fortement déporté vers l'avant pendant une poussée.",
+    "silhouette": "Corps large derrière une dalle verticale sanglée, masque à poussière, marteau court et coins de secours suspendus bas.",
+    "anatomy_zones": [
+      {
+        "zone": "tête et voies respiratoires",
+        "description": "Visage protégé de la poussière par un masque de toile et de mica, sans casque intégral.",
+        "protection": 6
+      },
+      {
+        "zone": "torse derrière la dalle",
+        "description": "Tablier matelassé et dalle superposée tant que l'angle frontal est conservé.",
+        "protection": 24
+      },
+      {
+        "zone": "bras porteur et sangles",
+        "description": "Avant-bras renforcé, mais attaches visibles nécessaires au transfert du poids.",
+        "protection": 10
+      },
+      {
+        "zone": "jambes et flancs",
+        "description": "Bottes cloutées et guêtres épaisses ; protection faible hors du secteur couvert.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "carrières en terrasses",
+    "ravins de schiste instable",
+    "galeries et chantiers de col"
+  ],
+  "ecology": {
+    "diet": "Alimentation omnivore de chantier : céréales, légumineuses, légumes conservés, fromage et viande selon disponibilité.",
+    "lifecycle": "L'âge adulte n'impose aucun métier. Le port de dalle demande plusieurs années d'apprentissage, puis une réévaluation régulière des articulations et du souffle.",
+    "reproduction": "Aucune particularité biologique n'est établie par ce volume ; filiation et éducation relèvent de foyers et de communautés variés.",
+    "behavior": "Il lit d'abord le terrain, protège une voie d'évacuation puis avance par appuis courts. Il avertit avant d'employer la force lorsque la situation le permet.",
+    "niche": "Métier de protection collective dans les lieux où chutes de pierre, poussière et passages étroits rendent un grand écran mobile utile.",
+    "environmental_impact": "Les équipes étayent les galeries, balisent les fractures et laissent des abris de schiste utilisables par les voyageurs après accord local."
+  },
+  "senses": [
+    "vision entraînée à lire fissures, poussières et chutes de petits éclats",
+    "audition attentive aux craquements transmis par la roche",
+    "sensibilité tactile aux vibrations reçues dans la dalle"
+  ],
+  "communication": [
+    "coups codés sur la dalle pour arrêt, repli ou passage",
+    "ordres brefs de chantier et gestes visibles dans la poussière"
+  ],
+  "signs": [
+    "empreintes profondes et régulières avec une trace de rive parallèle",
+    "coins de bois numérotés par forme plutôt que par inscription",
+    "petits abris triangulaires montés contre une paroi saine",
+    "fragments de schiste rangés afin de laisser une voie libre"
+  ],
+  "demeanor": {
+    "objectives": ["protéger les personnes derrière lui", "maintenir une voie de secours", "stabiliser un ouvrage dangereux"],
+    "fears": ["perte d'appui sur pente mouillée", "rupture d'une sangle sous charge", "effondrement déclenché par une poursuite"],
+    "morale": "Très élevée pendant un sauvetage partagé ; elle chute si continuer met les personnes protégées en danger.",
+    "escalation": "Il présente la dalle, ordonne l'arrêt, ferme le passage puis pousse seulement si l'intrusion ou la panique menace l'ouvrage.",
+    "retreat": "Il se retire par paliers, face au danger, vers un étai ou un sol stable où la dalle peut être posée sans écraser autrui."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 4,
+      "constitution": 8,
+      "intelligence": 5,
+      "willpower": 7,
+      "perception": 6,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 60,
+      "impact_weapons": 58,
+      "shields": 72,
+      "armor": 55,
+      "survival": 48,
+      "crafting": 62,
+      "mechanisms": 46,
+      "vigilance": 52,
+      "leadership": 44
+    },
+    "resources": {
+      "vitality": 124,
+      "stamina": 111,
+      "mana": 82,
+      "balance": 104,
+      "focus": 92
+    },
+    "movement": "4,5 m/s dalle portée, 7 m/s après l'avoir posée ; montée sûre jusqu'à 25 degrés sur terrain sec.",
+    "protections": [
+      "La dalle protège uniquement un secteur frontal réel ; jambes, flancs, dos et ouvertures autour des sangles restent accessibles.",
+      "Le masque filtre la poussière minérale, mais ne protège ni d'un gaz ni d'une immersion."
+    ],
+    "attacks": [
+      {
+        "name": "Poussée de dalle",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "shields",
+        "attribute_id": "strength",
+        "impact": 28,
+        "reach": "contact frontal sur 1,4 m de largeur",
+        "stamina_cost": 14,
+        "preparation": "0,7 seconde pour abaisser l'épaule et reprendre deux appuis",
+        "telegraph": "Les sangles se tendent, la dalle s'incline et le pied arrière cherche une prise visible.",
+        "effect": "La masse pousse et réduit l'Équilibre selon les appuis réels ; elle peut déplacer un obstacle léger sans traverser une garde solide.",
+        "counterplay": "Sortir du secteur, mouiller ou dégrader l'appui, coincer le bord de la dalle ou couper une sangle accessible."
+      },
+      {
+        "name": "Marteau de coin",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 23,
+        "reach": "0,9 m du côté libre",
+        "stamina_cost": 9,
+        "preparation": "0,35 seconde après avoir dégagé le marteau de la ceinture",
+        "telegraph": "La main quitte la sangle et le coude s'ouvre, réduisant brièvement le contrôle de la dalle.",
+        "effect": "Coup contondant court, efficace sur un outil, une main ou un ancrage plutôt que sur une poursuite longue.",
+        "counterplay": "Exploiter la fenêtre où une seule main contrôle la dalle, garder la distance ou bloquer le petit arc du marteau."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Couvert mobile",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "shields",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "cône physique derrière la dalle jusqu'à 2 m",
+        "stamina_cost": 10,
+        "preparation": "1 seconde pour planter les bottes et annoncer la direction",
+        "telegraph": "La dalle touche le sol par un angle et le porteur indique clairement le côté protégé.",
+        "effect": "Les personnes réellement masquées gagnent un couvert contre projectiles et éclats venant du secteur frontal.",
+        "counterplay": "Changer d'angle, prendre de la hauteur ou forcer un déplacement qui découvre les personnes abritées."
+      },
+      {
+        "name": "Étayage d'urgence",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "crafting",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "structure au contact",
+        "stamina_cost": 16,
+        "preparation": "3 secondes avec dalle, coin et surface porteuse disponibles",
+        "telegraph": "Il sonde la pierre, pivote la dalle sous une charge et place un coin au point de reprise.",
+        "effect": "Une charge locale est retenue temporairement ; retirer l'étai ou déplacer la base rend le danger à nouveau actif.",
+        "counterplay": "Négocier le passage, stabiliser un second point ou attendre l'évacuation plutôt que frapper l'étai."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "poussière et petits éclats frontaux",
+        "mechanism": "Masque, tablier et dalle réduisent l'exposition tant que le secteur et les attaches restent correctement orientés."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "pente glissante et force latérale",
+        "mechanism": "La dalle déplace le centre de gravité ; boue, huile, gravier roulant ou impact de côté compromettent fortement l'ancrage."
+      },
+      {
+        "subject": "sangles porteuses",
+        "mechanism": "Une sangle rompue retire le couvert et peut immobiliser le bras jusqu'à ce que la dalle soit abandonnée."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "sol mouillé ou schiste roulant",
+        "result": "ancrage réduit et poussée raccourcie",
+        "chain": "L'eau ou les éclats diminuent l'adhérence, la dalle tire le torse vers l'avant et la perte d'Équilibre augmente."
+      },
+      {
+        "input": "passage étroit et éboulis léger",
+        "result": "couvert renforcé mais mobilité limitée",
+        "chain": "La paroi protège un flanc et la dalle ferme l'autre, tandis que tout recul exige d'abord de libérer les pierres derrière les pieds."
+      },
+      {
+        "input": "corde fixée au bord de la dalle",
+        "result": "traction latérale ou stabilisation partagée",
+        "chain": "Une corde correctement ancrée peut retenir le porteur ; tirée depuis le mauvais angle, elle retourne au contraire la dalle."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 14,
+      "fact": "Le port de dalle est un métier de chantier et de secours, non un rang militaire ni une capacité commune à tous les Orcs."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "La tension inégale des sangles indique de quel côté une traction ou une esquive forcera le porteur à poser sa dalle."
+    },
+    {
+      "status": "secret",
+      "skill_id": "vigilance",
+      "difficulty": 26,
+      "fact": "Trois coups espacés sur la dalle demandent un cessez-le-geste immédiat : répondre au même rythme ouvre une négociation de sécurité."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["protecteur frontal", "couvert mobile", "stabilisateur de terrain"],
+    "telegraphs": [
+      "La dalle s'abaisse et les sangles se tendent avant chaque poussée.",
+      "Le marteau quitte sa boucle lorsque le secteur couvert va momentanément s'ouvrir.",
+      "Trois coups sur la pierre annoncent un danger structurel et non une attaque."
+    ],
+    "noncombat_options": [
+      "Aider à dégager une galerie ou porter un blessé pour obtenir le passage.",
+      "Identifier l'ordre de sécurité et négocier une traversée après stabilisation.",
+      "Réparer une sangle ou fournir corde et coins adaptés."
+    ],
+    "complications": [
+      "Faire tomber la dalle peut écraser une personne située dans son secteur de chute.",
+      "Attaquer un étai peut déclencher l'effondrement que le Porte-schiste empêchait."
+    ]
+  },
+  "salvage": [
+    "Coins, corde et ferrures seulement s'ils sont abandonnés, cédés ou récupérés après sécurisation du chantier.",
+    "La dalle appartient à l'équipe de secours et n'est pas un butin automatique."
+  ],
+  "plates": [
+    {
+      "image": "porte-schiste-orc-plate.png",
+      "alt": "Porte-schiste orc entier dans un ravin de carrière, avançant derrière une grande dalle sanglée tandis que ses appuis et ses flancs restent lisibles.",
+      "caption": "La dalle protège un secteur réel : pente, sangles et angles latéraux déterminent le contre-jeu.",
+      "prompt_key": "porte-schiste-orc-plate"
+    }
+  ]
+}

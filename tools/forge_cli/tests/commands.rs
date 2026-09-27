@@ -17,6 +17,10 @@ fn temporary_directory() -> PathBuf {
     path
 }
 
+fn repository_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+}
+
 #[test]
 fn validate_and_hash_commands_accept_the_procedural_proof() {
     let directory = temporary_directory();
@@ -98,5 +102,68 @@ fn generate_proof_is_deterministic_and_refuses_overwrite() {
         .output()
         .unwrap();
     assert_eq!(second.status.code(), Some(2));
+    fs::remove_dir_all(directory).unwrap();
+}
+
+#[test]
+fn world_sketch_commands_verify_sources_and_compile_bounded_outputs() {
+    let root = repository_root();
+    let document = root.join("examples/visual_valley/world-sketch.v1.json");
+    let directory = temporary_directory();
+    let output_directory = directory.join("compiled");
+
+    let validate = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "validate-world-sketch",
+            document.to_str().unwrap(),
+            "--source-root",
+            root.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(validate.status.success());
+    assert!(
+        String::from_utf8(validate.stdout)
+            .unwrap()
+            .starts_with("VALID_WORLD_SKETCH schema_version=1 revision=3 sources=2")
+    );
+
+    let compile = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "compile-world-sketch",
+            document.to_str().unwrap(),
+            output_directory.to_str().unwrap(),
+            "--source-root",
+            root.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(compile.status.success());
+    assert!(output_directory.join("terrain.v1.json").is_file());
+    assert!(output_directory.join("terrain-carved.v2.json").is_file());
+    assert!(output_directory.join("vegetation.v1.json").is_file());
+    assert!(output_directory.join("semantic-masks.v1.json").is_file());
+    assert!(output_directory.join("spline-carving.v1.json").is_file());
+    assert!(output_directory.join("traversal-audit.v2.json").is_file());
+    assert!(output_directory.join("bridge-placements.v1.json").is_file());
+    assert!(output_directory.join("blender-input.v4.json").is_file());
+    assert!(
+        output_directory
+            .join("world-sketch.compilation.v4.json")
+            .is_file()
+    );
+
+    let second = Command::new(env!("CARGO_BIN_EXE_forge_cli"))
+        .args([
+            "compile-world-sketch",
+            document.to_str().unwrap(),
+            output_directory.to_str().unwrap(),
+            "--source-root",
+            root.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(second.status.code(), Some(2));
+
     fs::remove_dir_all(directory).unwrap();
 }

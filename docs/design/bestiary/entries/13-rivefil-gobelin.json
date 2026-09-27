@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.rivefil-gobelin",
+  "name": "Rivefil gobelin",
+  "subtitle": "Cordier des roselières et gardien des passages d'eau",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Profil original proposé pour diversifier le bestiaire. Le mot gobelin désigne ici une famille d'humanoïdes sapients, sans alignement ni tempérament imposé. Les capacités décrivent un métier de rive et un équipement appris ; elles ne sont pas implémentées dans le runtime Rust.",
+  "major": false,
+  "classification": {
+    "nature": "Humanoïde sapient",
+    "family": "Gobelins des ouvrages d’eau",
+    "rarity": "Courant autour des deltas aménagés, rare loin des canaux",
+    "activity": "Diurne ou crépusculaire selon les marées et les travaux",
+    "social": "Travailleur autonome ou membre d'une équipe de pêcherie, sans organisation universelle propre à sa famille",
+    "threat": "moderee",
+    "threat_reason": "Ses lignes lestées et sa connaissance des berges transforment un passage humide en obstacle, mais sa menace décroît nettement sur un sol ferme et dégagé."
+  },
+  "physique": {
+    "dimensions": "0,95 à 1,20 m debout ; portée de travail proche de 1,70 m avec la perche",
+    "mass_kg": [28, 42],
+    "locomotion": [
+      "marche bipède légère",
+      "progression assurée dans la vase peu profonde",
+      "nage courte avec flotteur de ceinture"
+    ],
+    "center_of_gravity": "Bas, avec les genoux fléchis et le dévidoir porté près des reins afin de conserver l'appui lorsqu'une ligne se tend.",
+    "silhouette": "Petit humanoïde aux oreilles mobiles, vêtu de bottes de vase et d'un mantelet de roseaux ; un large dévidoir asymétrique, une perche et trois piquets repliés rendent sa fonction immédiatement lisible.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles",
+        "description": "La coiffe souple protège de la pluie sans couvrir les oreilles, utiles pour localiser un claquement de corde.",
+        "protection": 2
+      },
+      {
+        "zone": "Torse sous mantelet",
+        "description": "Plusieurs couches de toile cirée et de fibres amortissent les frottements, mais ne forment pas une armure rigide.",
+        "protection": 7
+      },
+      {
+        "zone": "Dévidoir dorsal",
+        "description": "Le bâti de bois protège localement le dos ; ses sangles restent exposées aux coupes et aux accrochages.",
+        "protection": 10
+      },
+      {
+        "zone": "Jambes et bottes de vase",
+        "description": "Les bottes répartissent le poids sur la boue, au prix d'une adhérence médiocre sur pierre lisse.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "roselières traversées de chenaux",
+    "pêcheries sur pilotis",
+    "digues basses et prairies inondables",
+    "ruines hydrauliques encore alimentées"
+  ],
+  "ecology": {
+    "diet": "Régime varié composé de céréales, légumes de rive, poissons et œufs selon les ressources locales ; aucun régime n'est présenté comme propre à tous les Gobelins.",
+    "lifecycle": "Le profil décrit une profession acquise par apprentissage. Le volume ne fixe ni longévité ni stade biologique distinct de ceux des autres humanoïdes sapients.",
+    "reproduction": "Aucune particularité reproductive n'est établie ; parenté, foyer et transmission du métier varient selon les communautés et ne définissent pas la famille entière.",
+    "behavior": "Il inspecte les amarres, répare les nasses et détourne d'abord les voyageurs d'une berge fragile. En conflit, il défend une route courte puis rejoint un appui préparé.",
+    "niche": "Entretien des passages d'eau, des pêcheries et des lisières de roseaux qui freinent l'érosion.",
+    "environmental_impact": "Un réseau entretenu crée des frayères et ralentit les crues. Des lignes abandonnées peuvent toutefois piéger la faune ou accumuler des débris jusqu'à rompre une petite digue."
+  },
+  "senses": [
+    "Vision précise à courte distance dans la végétation dense.",
+    "Ouïe directionnelle attentive au claquement des cordes et au déplacement de l'eau.",
+    "Lecture tactile de la tension transmise par le dévidoir."
+  ],
+  "communication": [
+    "Parole, gestes de chantier et trois motifs de claquement de ligne pour annoncer passage, rupture ou crue."
+  ],
+  "signs": [
+    "Piquets bas coiffés de fibres claires au bord d'un chenal.",
+    "Nœuds de corde placés au-dessus de la ligne d'eau récente.",
+    "Empreintes de bottes larges reliées par la trace étroite d'une perche.",
+    "Roseaux coupés proprement autour d'un passage laissé libre."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Préserver la berge, les nasses et les personnes placées sous sa responsabilité.",
+      "Garder une ligne de repli vers un pilotis ou un sol connu."
+    ],
+    "fears": [
+      "Rupture soudaine d'une digue ou d'une ligne sous forte tension.",
+      "Incendie de roselière qui rendrait le réseau de passage inutilisable."
+    ],
+    "morale": "Pragmatique : il cède le passage si l'enjeu est expliqué, si le danger hydraulique disparaît ou si son équipement principal est neutralisé.",
+    "escalation": "Il avertit, barre un trajet par une ligne visible, emploie un plomb de ligne puis se replie ; il ne poursuit pas au-delà de l'ouvrage confié.",
+    "retreat": "Il détend ses lignes, abandonne au besoin un piquet et rejoint une plateforme stable dès que le dévidoir est bloqué ou que la berge menace de céder."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 7,
+      "constitution": 5,
+      "intelligence": 6,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 5
+    },
+    "skills": {
+      "athletics": 30,
+      "swimming": 40,
+      "survival": 45,
+      "throwing": 45,
+      "crafting": 50,
+      "mechanisms": 40,
+      "traps": 55,
+      "vigilance": 45,
+      "persuasion": 30
+    },
+    "resources": {
+      "vitality": 98,
+      "stamina": 93,
+      "mana": 80,
+      "balance": 76,
+      "focus": 92
+    },
+    "movement": "5,4 m/s sur berge sèche ; 3,8 m/s dans la vase peu profonde ; nage 2,2 m/s avec flotteur et mains libres.",
+    "protections": [
+      "Toile cirée et fibres : protection légère localisée sur le torse, sans bénéfice aux membres ni à la tête.",
+      "Le dévidoir couvre une partie du dos mais devient un point d'accrochage lorsque ses sangles sont saisies."
+    ],
+    "attacks": [
+      {
+        "name": "Plomb de ligne",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 16,
+        "reach": "jet jusqu'à 10 m, relié au dévidoir",
+        "stamina_cost": 7,
+        "preparation": "0,45 seconde pour libérer la bobine et armer le lancer",
+        "telegraph": "La main décroche un poids ovoïde, le dévidoir cliquette puis la perche indique clairement l'axe du jet.",
+        "effect": "Le poids produit un contact contondant léger ; la ligne qui le suit peut accrocher un objet saillant sans immobiliser automatiquement une cible.",
+        "counterplay": "Quitter l'axe, interposer une protection, saisir la ligne après le passage du poids ou la couper avant que le Rivefil ne la retende."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Fil de rive",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "traps",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "ligne physique de 2 à 6 m entre deux appuis",
+        "stamina_cost": 12,
+        "preparation": "2 secondes pour planter ou choisir deux ancrages et tendre la corde",
+        "telegraph": "Deux piquets sont posés, la bobine tourne à découvert et les fibres claires vibrent avant la mise sous tension.",
+        "effect": "La ligne coupe une course, gêne un appui ou transmet une traction à un objet relié ; chaque conséquence dépend de sa hauteur, de sa tension et de la masse rencontrée.",
+        "counterplay": "Repérer les fibres, enjamber à faible vitesse, détendre un piquet, couper la corde ou déplacer l'un des ancrages."
+      },
+      {
+        "name": "Rappel de nasse",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "objet relié à moins de 8 m",
+        "stamina_cost": 10,
+        "preparation": "0,9 seconde pour verrouiller la bobine et prendre appui",
+        "telegraph": "Le Rivefil abaisse son centre de gravité, bloque le tambour du pied et la corde se tend en ligne droite.",
+        "effect": "Il rapproche une nasse, une planche flottante ou un objet non fixé dont la masse reste compatible avec ses appuis ; la traction peut aussi créer un couvert mobile.",
+        "counterplay": "Libérer l'objet, surcharger la ligne, déplacer l'ancrage ou forcer le Rivefil à quitter son appui avant la traction."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "vase peu profonde et végétation de rive",
+        "mechanism": "Les bottes larges et les trajets appris répartissent son poids ; cette résistance disparaît dans une tourbe profonde ou sur un terrain qu'il ne connaît pas."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "pierre lisse et terrain ouvert",
+        "mechanism": "Les semelles conçues pour la vase adhèrent mal à la pierre mouillée, tandis que l'absence d'ancrages réduit fortement l'utilité du dévidoir."
+      },
+      {
+        "subject": "sangles et lignes sous tension",
+        "mechanism": "Une coupe localisée libère brutalement la tension, déséquilibre le porteur et neutralise une partie de son équipement sans exiger de le blesser."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Piquet planté dans une berge saturée",
+        "result": "ancrage arraché et ligne détendue",
+        "chain": "L'eau ramollit le sol, la traction élargit le trou puis le piquet cède ; la corde cesse d'être un obstacle mais peut entraîner un petit objet flottant."
+      },
+      {
+        "input": "Ligne reliée à une planche ou un levier",
+        "result": "objet déplacé à distance",
+        "chain": "Le dévidoir applique une traction, la fixation transmet l'effort et l'objet pivote ou glisse selon sa masse, ses frottements et ses obstacles."
+      },
+      {
+        "input": "Flamme dans les roseaux secs",
+        "result": "route ouverte puis propagation dangereuse",
+        "chain": "Le feu détruit les fibres et les couverts, mais le vent peut le pousser vers les pilotis et transformer un contre-jeu rapide en catastrophe écologique."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Les fibres claires et les piquets bas signalent une ligne de travail ; ralentir suffit souvent à franchir l'ouvrage sans incident."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Le bruit du cliquet indique si le Rivefil prépare un lancer, détend une ligne ou rappelle un objet flottant."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "La fermeture récente du passage répond probablement à une berge fragilisée plutôt qu'à une volonté générale d'interdire la route."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 26,
+      "fact": "Certains motifs de nœuds conservent l'ancien tracé des chenaux et permettent de localiser un déversoir enfoui sans carte écrite."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "contrôleur de passage par lignes physiques",
+      "opérateur de petits objets environnementaux",
+      "interlocuteur territorial plutôt que prédateur"
+    ],
+    "telegraphs": [
+      "les piquets et les fibres claires rendent chaque obstacle observable avant sa tension",
+      "le cliquet du dévidoir et l'orientation de la perche annoncent le prochain axe d'action",
+      "la posture basse précède tout rappel d'objet"
+    ],
+    "noncombat_options": [
+      "demander la raison de la fermeture et emprunter un passage sûr indiqué par le Rivefil",
+      "aider à consolider une berge ou dégager une nasse bloquée",
+      "échanger corde, nourriture ou information contre un guidage dans les chenaux",
+      "présenter une autorisation de pêcherie ou identifier un sabotage récent"
+    ],
+    "complications": [
+      "une ligne coupée sans être détendue peut fouetter une personne ou déplacer une planche",
+      "une poursuite dans les roseaux risque d'endommager une frayère",
+      "le véritable danger peut être la digue instable que le Rivefil cherchait à signaler"
+    ]
+  },
+  "salvage": [],
+  "plates": [
+    {
+      "image": "rivefil-gobelin-plate.png",
+      "alt": "Un Rivefil gobelin entier se tient sur une berge de roseaux, dévidoir dorsal, perche et ligne claire tendue vers une petite plateforme flottante.",
+      "caption": "Ses cordes ne sont dangereuses que par leurs ancrages, leur tension et ce qu'elles déplacent.",
+      "prompt_key": "rivefil-gobelin-plate"
+    }
+  ]
+}

@@ -5,9 +5,39 @@
 Construire une nouvelle génération d’OpenRPG Forge en Rust, avec Bevy et wgpu/WebGPU, sans traduire
 mécaniquement le code C#/Godot de la branche `main`.
 
+Le résultat final est un RPG créé avec l'assistance de l'IA, entièrement retouchable dans le Studio :
+décrire, générer, corriger précisément, régénérer sans perdre les retouches, jouer, sauvegarder et
+distribuer. Le parcours reste réalisable sans IA. Le moteur et l'éditeur sont développés ensemble,
+mais une opération effectuée par Codex hors du produit ne prouve pas son accessibilité dans le Studio.
+Les priorités et critères d'auteur sont définis dans la vision de `PROJECT_CONTEXT.md` et déclinés
+par gate dans `docs/planning/MIGRATION_ROADMAP.md`.
+
 La priorité initiale est de prouver une qualité visuelle nettement supérieure et une boucle de création
 plus efficace. Ne pas reconstruire le catalogue fonctionnel complet avant passage des gates visuelles,
 de performance et d’édition définies dans `PROJECT_CONTEXT.md`.
+
+## Autonomie et portée de la demande
+
+- Une demande d'analyse ou de plan se termine par le livrable demandé, sans implémentation implicite.
+- Pour une réalisation autorisée, poursuivre les étapes nécessaires, corrections, validations et
+  documentation associée jusqu'aux critères convenus. Les petites tranches organisent le travail ;
+  elles ne créent pas de points d'approbation supplémentaires.
+- Ne clarifier que les informations manquantes qui changent matériellement le résultat et ne peuvent
+  pas être établies par inspection. Pour un choix courant et réversible dans le périmètre autorisé,
+  prendre une décision raisonnable et l'indiquer. Poursuivre les travaux indépendants d'une réponse.
+- Vérifier branche, worktree et diffs avec Git. Préserver les changements préexistants ; un arbre
+  modifié n'interdit pas le développement autorisé si le périmètre peut être isolé sans les écraser.
+  Demander une décision seulement pour un chevauchement impossible à résoudre sûrement.
+- Les acquisitions et qualifications exigeant un arbre propre conservent cette exigence. Ne pas
+  nettoyer, déplacer ou committer le travail d'autrui pour la satisfaire.
+- Une autorisation explicite encore active vaut pour l'action et le périmètre qu'elle couvre, même
+  si elle a été donnée dans un tour antérieur. Un commit local n'autorise pas un push. Les approbations
+  explicites de publication, de changement structurel, de délégation et de passage de gate restent
+  requises selon leurs règles ; cette section n'autorise pas de lancer des agents ou de nouvelles gates.
+- Respecter tout ordre d'arrêt. Un échec de validation bloque le verdict, pas le diagnostic : corriger
+  dans le périmètre autorisé et rejouer les contrôles affectés sans demander une permission de réparer.
+- Si une condition externe ou une approbation requise bloque réellement la suite, finir les parties
+  indépendantes autorisées puis indiquer précisément ce qui reste incomplet et ce qui le débloque.
 
 ## Sources de vérité
 
@@ -29,8 +59,7 @@ Avant toute modification importante, lire dans cet ordre :
 planning détaillent le travail mais ne redéfinissent pas la vision.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
-Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est
-la gate active. La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
+Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md). La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
 empêche les runners de démarrer et ne doit jamais être décrite comme verte. Chaque gate conserve les
 preuves de la précédente.
 
@@ -248,7 +277,12 @@ bâtiments, placements, gameplay et environnement.
 
 ## Commandes et mutations
 
-Toute mutation produit au minimum :
+Ces règles concernent les mutations des documents et modules réalisées par le produit Forge,
+ses interfaces et son MCP. Elles ne prescrivent pas le mécanisme d'édition du code source par
+l'agent de développement. Les éditions de code autorisées préservent ces garanties ; les opérations
+réalisées au moyen des outils Forge restent soumises à leur gouvernance.
+
+Toute mutation du produit fournit au minimum :
 
 - `command_id` ;
 - révision de base ;
@@ -325,8 +359,20 @@ Chaque import documente source, commit, hash, licence, conversion et limites.
 
 ## Tests et vérification
 
-Avant de terminer une intervention, exécuter les tests correspondant au risque. À mesure que les
-commandes existent, la base attendue devient :
+Après chaque essai, fermer les onglets de navigateur ouverts pour cet essai et
+arrêter ses processus devenus inutiles, y compris sur échec/timeout. Suivre les
+identifiants et vérifier leur terminaison ; ne jamais tuer un navigateur complet
+ou un processus utilisateur par simple nom. Préserver les captures/rapports et
+les sessions explicitement remises au propriétaire. Ne pas attribuer un manque
+de mémoire à la machine avant de vérifier les ressources laissées par les essais.
+
+Pour une modification, sélectionner les validations selon l'impact et le risque. Une analyse sans
+modification ne déclenche pas de build ; une édition documentaire utilise les contrôles de contenu,
+liens et diff applicables. Les commandes ci-dessous constituent le socle de qualification à appliquer
+selon le protocole concerné, pas une checklist répétée après chaque action. Les contrôles workspace
+exigés par ADR-0006, notamment pour les contrats partagés, restent obligatoires. Réutiliser une preuve
+seulement si ses entrées et conditions restent valides ; élargir ou rejouer après changement pertinent,
+échec ou doute non résolu. À mesure que les commandes existent, ce socle comprend :
 
 ```text
 cargo fmt --check
@@ -365,7 +411,8 @@ Pour une optimisation :
 
 - mettre à jour `PROJECT_CONTEXT.md` uniquement si la vision ou l’état canonique change ;
 - ajouter un ADR pour une décision structurelle ;
-- mettre à jour la roadmap lorsqu’une gate change réellement d’état ;
+- mettre à jour la roadmap lorsqu'une priorité ou un critère approuvé change, ou lorsqu'une preuve
+  change réellement l'état d'une gate ; ne jamais confondre planification et qualification ;
 - ajouter un README local pour un sous-système non trivial ;
 - ne pas créer plusieurs méga-contextes concurrents ;
 - distinguer objectif, implémentation, preuve et limite ;
@@ -373,7 +420,12 @@ Pour une optimisation :
 
 ## Définition de terminé
 
-Une tâche est terminée seulement si :
+Appliquer ces critères au type de tâche et aux éléments affectés : une analyse se clôt par son
+rapport ; une implémentation par ses validations pertinentes ; une qualification par son protocole
+complet. Une revue humaine explicitement requise reste une condition de qualification : son attente
+ne bloque pas les travaux indépendants autorisés et ne permet pas de déclarer la qualification achevée.
+
+Une implémentation est terminée seulement si :
 
 - son objectif sert la gate active ;
 - les critères sont satisfaits ;
@@ -406,3 +458,41 @@ Une tâche est terminée seulement si :
 - changement de shell Studio sans Gate 0 et ADR ;
 - données métier canoniques stockées dans l’ECS Bevy ;
 - désactivation silencieuse d’un test ou d’une validation.
+
+
+## Delegation Codex autorisee — organisation economique
+
+Cette politique constitue l'autorisation persistante de delegation pour les travaux
+relevant de ce depot, en complement de la section Autonomie. Une demande d'analyse
+reste une analyse ; une instruction utilisateur plus restrictive reste prioritaire.
+
+- Le parent conserve le modele choisi dans l'interface ; avec Astra, il garde la
+  conception, les decisions importantes, les implementations complexes, les bugs
+  difficiles et la revue finale des changements delegues.
+- Utiliser selon besoin les roles de `.codex/agents/` : `code_mapper` pour exploration
+  ciblee, `tester` pour validations, `visual_tester` pour parcours graphiques simples
+  (capacite a verifier), `rust_worker` pour implementation bornee.
+- `code_mapper`, `tester`, `visual_tester` : `gpt-5.6-luna`, effort **max toujours**.
+  Toute autre delegation a Luna utilise aussi **max**, y compris sans role explicite.
+  `rust_worker` : `gpt-5.6-terra`, effort `medium`. Aucun remplacement silencieux
+  par Astra ou diminution de l'effort Luna ; signaler toute indisponibilite.
+- Maximum six sous-agents simultanes, hors parent, dans la limite des capacites
+  exposees par la session ; aucun passage obligatoire
+  par les quatre roles. Le parent coordonne, sans delegation recursive par defaut.
+- Preferer un contexte cible. Si l'outil impose le modele parent lors d'une copie
+  integrale de conversation, utiliser un contexte reduit et le modele/effort explicites.
+- Regrouper les commandes dans une mission ; privilegier les scripts existants.
+  Une commande ponctuelle peut rester chez le parent si deleguer coute davantage.
+- Reutiliser les agents utiles ; fermer ceux devenus inutiles si l'outil le permet.
+  Aucun travail simultane sur les memes fichiers ; serialiser fenetre graphique,
+  builds et environnements de test incompatibles avec le parallelisme.
+- Apres deux corrections differentes infructueuses, remonter au parent ; immediatement
+  pour tout probleme structurel ou dangereux. Pas de succession de correctifs approximatifs.
+- Retour compact : resultat, commandes, erreurs utiles, fichiers/lignes, changements,
+  tentatives, preuves et limites. Logs complets sur disque, sans recopies systematiques.
+- Les controles graphiques difficiles restent au parent. Ne jamais annoncer un test
+  graphique delegue si seul le parent a pu l'executer. Respecter les permissions reelles.
+- Sous-agents en Standard (`service_tier = "default"`), sans activation de Fast.
+  Ne pas forcer le modele ni le niveau de raisonnement du parent.
+
+Chargement et essais : `docs/codex-configuration.md`.

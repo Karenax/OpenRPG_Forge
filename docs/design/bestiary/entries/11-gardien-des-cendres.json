@@ -1,0 +1,314 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.gardien-des-cendres",
+  "name": "Gardien des Cendres",
+  "subtitle": "Veilleur emberborn du sanctuaire et de ses braises",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "historical-anchor",
+  "origin_notes": "Ancre majeure du canon actif de la Crypte des Cendres dans le runtime historique main : identité emberborn/construct, rôle de boss gardien, Frappe du Gardien, Nova de cendre, invocation de deux ash-spirit et arène systémique y sont documentés. Les anciens PV et le champ technique d’immunité radiante ne sont pas repris : cette prétendue immunité reste un héritage à revalider et devrait, si elle survit, recevoir un mécanisme matériel ou magique explicable. Les ressources présentes suivent exactement le Manuel du joueur. Sur Rust, la Crypte demeure une référence documentaire et cette créature n’est pas implémentée.",
+  "major": true,
+  "classification": {
+    "nature": "Construct emberborn animé par un foyer de braise",
+    "family": "Gardiens de cendre",
+    "rarity": "Unique dans la tranche documentée de la Crypte",
+    "activity": "Veille prolongée, avec activité rituelle surtout nocturne",
+    "social": "Gardien solitaire à autorité sur les sentinelles et manifestations de cendre",
+    "threat": "majeure",
+    "threat_reason": "Sa masse, sa discipline, son attaque de zone et son usage du sanctuaire exigent de lire les télégraphes et de retourner l’arène contre lui."
+  },
+  "physique": {
+    "dimensions": "2,20 à 2,60 m ; envergure armée proche de 3 m",
+    "mass_kg": [210, 360],
+    "locomotion": [
+      "marche bipède lourde",
+      "avance de garde avec changements d’angle courts",
+      "charge limitée sur sol stable"
+    ],
+    "center_of_gravity": "Très bas malgré la taille, concentré dans le bassin et la cuirasse afin d’absorber les contacts frontaux.",
+    "silhouette": "Construct humanoïde ancien, cuirasse de scorie, épaules hautes, lame massive et braises visibles seulement dans les fractures actives.",
+    "anatomy_zones": [
+      {
+        "zone": "Heaume et fente du foyer",
+        "description": "Le heaume détourne les coups obliques ; la fente lumineuse est étroite mais reliée au foyer interne.",
+        "protection": 24
+      },
+      {
+        "zone": "Cuirasse emberborn",
+        "description": "Plusieurs couches de métal cendreux protègent le foyer et répartissent la chaleur.",
+        "protection": 33
+      },
+      {
+        "zone": "Épaules et bras d’arme",
+        "description": "Massifs et bien protégés, ils perdent toutefois de l’Équilibre lorsque la frappe manque et entraîne la lame.",
+        "protection": 27
+      },
+      {
+        "zone": "Hanches et genoux articulés",
+        "description": "Les joints sont couverts de lamelles plutôt que de plaques pleines et transmettent les chocs latéraux.",
+        "protection": 17
+      },
+      {
+        "zone": "Fissures du dos",
+        "description": "Des évents évacuent chaleur et cendre pendant la Nova ; ils s’ouvrent davantage durant sa préparation.",
+        "protection": 14
+      }
+    ]
+  },
+  "habitats": [
+    "sanctuaire final de la Crypte des Cendres",
+    "architecture funéraire sèche dotée de braises rituelles",
+    "espaces assez vastes pour sa garde et sa lame"
+  ],
+  "ecology": {
+    "diet": "Aucune alimentation biologique attestée. Le foyer semble dépendre de braises, de chaleur ou d’un entretien rituel dont la consommation exacte reste inconnue.",
+    "lifecycle": "Les variantes historiques ancient et awakened suggèrent vieillissement matériel et réveil, mais aucune chronologie complète n’est établie.",
+    "reproduction": "Aucune reproduction. La création d’un emberborn relèverait d’un assemblage et d’un serment ou rituel non documenté.",
+    "behavior": "Il veille, inspecte les runes, patrouille sur une courte route puis concentre toute son attention sur une intrusion dans le sanctuaire.",
+    "niche": "Autorité terminale de la Crypte, protecteur des braises et verrou vivant de la sortie.",
+    "environmental_impact": "Sa présence chauffe lentement les matériaux, produit une poussière minérale et maintient le sanctuaire dans un cycle de veille artificiel."
+  },
+  "senses": [
+    "Vision frontale de garde, précise sur une trentaine de mètres lorsque l’occlusion le permet.",
+    "Ouïe circulaire attentive aux impacts et mécanismes de la Crypte.",
+    "Perception des odeurs proches malgré sa nature construite, fonction exacte inconnue.",
+    "Sensibilité historique aux stimuli magiques autour du sanctuaire."
+  ],
+  "communication": [
+    "Paroles rares, formulées comme des avertissements ou des sentences de garde.",
+    "Résonance de la lame et du sol pour commander ou réveiller les manifestations de cendre.",
+    "Variation de la lumière des fissures pendant la colère et la préparation de la Nova."
+  ],
+  "signs": [
+    "Traces de lame larges et régulières dans les dalles du sanctuaire.",
+    "Accumulations de cendre repoussées loin d’un cercle central de patrouille.",
+    "Runes inspectées et réchauffées à intervalles réguliers.",
+    "Pilier déjà fracturé et brasero suspendu placés autour de son espace de garde."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Préserver les braises et le sanctuaire confiés.",
+      "Maintenir l’intrus dans la portée de sa lame ou de sa Nova.",
+      "Restaurer une position de garde après chaque perturbation de l’arène."
+    ],
+    "fears": [
+      "Extinction ou rupture du foyer interne.",
+      "Effondrement des appuis qui soutiennent sa garde.",
+      "Perte du sanctuaire plutôt que destruction personnelle."
+    ],
+    "morale": "Inébranlable par intimidation ordinaire, mais sa conduite change lorsque le sanctuaire ou les braises sont réellement compromis.",
+    "escalation": "Il avertit, engage à la lame, élargit l’espace par une Nova puis appelle les esprits de cendre lors de la phase critique.",
+    "retreat": "Il ne quitte pas volontairement le sanctuaire ; il recule vers le foyer ou une position qui protège la sortie."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 6,
+      "constitution": 9,
+      "intelligence": 5,
+      "willpower": 8,
+      "perception": 7,
+      "presence": 7
+    },
+    "skills": {
+      "athletics": 45,
+      "blades": 60,
+      "armor": 65,
+      "parry": 50,
+      "tactics": 55,
+      "vigilance": 60,
+      "intimidation": 45,
+      "elementalism": 50,
+      "summoning": 40,
+      "lore": 35
+    },
+    "resources": {
+      "vitality": 130,
+      "stamina": 119,
+      "mana": 88,
+      "balance": 108,
+      "focus": 100
+    },
+    "movement": "4,8 m/s ; accélération lente, garde stable sur pierre sèche, franchissement médiocre des obstacles et surfaces à faible friction.",
+    "protections": [
+      "Cuirasse localisée comparable à de lourdes plaques sur le torse, sans étendre cette protection aux joints.",
+      "Masse élevée contre les impulsions faibles ; une chaîne préparée, un effondrement ou une perte d’appui reste pleinement efficace.",
+      "Aucune immunité générale n’est admise sans cause observable."
+    ],
+    "attacks": [
+      {
+        "name": "Frappe du Gardien",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "blades",
+        "attribute_id": "strength",
+        "impact": 34,
+        "reach": "1,8 m devant lui, arc principal du côté de l’arme",
+        "stamina_cost": 18,
+        "preparation": "0,75 s, lame élevée et pied arrière ancré",
+        "telegraph": "Le métal racle la pierre, les épaules se verrouillent puis le pied avant marque la direction de l’arc.",
+        "effect": "Impact tranchant lourd avec forte perte d’Équilibre en contact normal ; la récupération est longue si la lame frappe le décor.",
+        "counterplay": "Quitter l’arc plutôt que reculer en ligne, provoquer un contact avec pilier ou sol, puis viser les joints pendant la récupération."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Nova de cendre",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 32,
+        "reach": "rayon de 5 m autour du Gardien",
+        "stamina_cost": 18,
+        "preparation": "1,6 s ; elle engage aussi 16 points de Mana dans ce profil de conception",
+        "telegraph": "Les fissures du dos s’ouvrent, la cendre se soulève en anneau et la lumière converge vers le torse.",
+        "effect": "Onde chaude, particules et impulsion circulaire ; le contact dépend de l’occlusion et peut enflammer une matière déjà préparée.",
+        "counterplay": "Sortir du rayon, s’abriter derrière une masse réelle, refroidir les évents ou interrompre la concentration avant l’expansion."
+      },
+      {
+        "name": "Appel des esprits de cendre",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "summoning",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "deux points de manifestation à moins de 8 m dans le sanctuaire",
+        "stamina_cost": 16,
+        "preparation": "2 s ; elle engage aussi 24 points de Mana dans ce profil de conception",
+        "telegraph": "Deux tourbillons distincts se forment au sol tandis que le Gardien plante ou stabilise son arme.",
+        "effect": "Le script historique appelle deux ash-spirit. Aucun blueprint ne définit encore leur corps, leurs ressources ou leurs actions : l’implémentation future doit conserver cette inconnue jusqu’à conception explicite.",
+        "counterplay": "Interrompre l’appel, occuper les points de manifestation, disperser la cendre ou exploiter l’immobilité du Gardien pendant la canalisation."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chaleur et feu ordinaire",
+        "mechanism": "La cuirasse réfractaire et le foyer interne tolèrent une température élevée ; une exposition prolongée peut néanmoins saturer les évents ou chauffer les joints."
+      },
+      {
+        "subject": "petites poussées frontales",
+        "mechanism": "La masse et la posture ancrée dissipent une impulsion faible, mais pas une chute de structure ni une poussée sur sol glissant."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "choc thermique dans les fissures",
+        "mechanism": "L’eau ou le froid appliqués sur une coque chauffée créent des contraintes différentielles qui ouvrent les joints à un impact suivant."
+      },
+      {
+        "subject": "articulations et évents pendant la préparation",
+        "mechanism": "Les lamelles et évents s’ouvrent pour armer la Nova, réduisant localement la protection sans annuler l’action déjà engagée."
+      },
+      {
+        "subject": "effondrement et fosse",
+        "mechanism": "Sa masse amplifie les conséquences d’un pilier, d’un brasero ou d’une chute correctement préparés selon les mêmes règles physiques que pour les personnages."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Brasero suspendu détaché au bon moment",
+        "result": "impact de zone et chaleur redistribuée",
+        "chain": "La force rompt l’ancrage, le brasero chute sur la trajectoire du Gardien et le contact résout impact puis combustion locale."
+      },
+      {
+        "input": "Pilier fracturé renversé",
+        "result": "choc lourd et nouvel obstacle",
+        "chain": "Une poussée exploitant la fracture abat le support, frappe le Gardien et transforme durablement les lignes de déplacement."
+      },
+      {
+        "input": "Perte d’Équilibre près de la fosse de pointes",
+        "result": "projection létale possible",
+        "chain": "Le groupe réduit l’adhérence ou brise la garde, applique une poussée proportionnée puis laisse la chute et les pointes résoudre la conséquence."
+      },
+      {
+        "input": "Eau ou froid sur la cuirasse chauffée",
+        "result": "joints fragilisés temporairement",
+        "chain": "L’humidité atteint une fissure, le froid impose un choc thermique et une attaque localisée exploite l’ouverture matérielle."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 14,
+      "fact": "Le Gardien protège le sanctuaire et ses braises ; provoquer sa poursuite loin de cet objectif contredit sa fonction connue."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les évents qui s’ouvrent avant la Nova devraient offrir une fenêtre de refroidissement ou d’interruption localisée."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Les esprits de cendre sont nommés et invoqués par le script historique, mais leur zoologie, leur autonomie et même leur corps restent inconnus faute de blueprint."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "L’ancienne donnée d’immunité radiante n’est pas une preuve diégétique et doit être requalifiée avant toute règle future."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "boss gardien",
+      "contrôleur d’arène",
+      "épreuve de causalité environnementale"
+    ],
+    "telegraphs": [
+      "Le raclement de la lame et le pied avant annoncent l’arc de la Frappe du Gardien.",
+      "L’anneau de cendre montant et l’ouverture des évents annoncent le rayon de la Nova.",
+      "Deux tourbillons séparés annoncent les points de manifestation des esprits de cendre."
+    ],
+    "noncombat_options": [
+      "Découvrir une autorité, un serment ou un état des braises qui suspendrait sa consigne de garde.",
+      "Modifier l’arène avant son réveil afin de dégager la sortie sans engager un duel frontal.",
+      "Dialoguer si le module futur confirme que la volonté suggérée par ses paroles demeure accessible."
+    ],
+    "complications": [
+      "La chute du brasero peut enflammer des matières ou couper aussi la retraite du groupe.",
+      "Le pilier renversé modifie durablement l’arène et peut bloquer la sortie.",
+      "Les esprits de cendre ne doivent recevoir aucun comportement improvisé avant leur propre contrat."
+    ]
+  },
+  "salvage": [
+    "Braise du Gardien : butin historique garanti, futur composant à définir avec provenance et usages.",
+    "Fragments de scorie uniquement si le mode de défaite laisse la cuirasse récupérable."
+  ],
+  "plates": [
+    {
+      "image": "gardien-des-cendres-plate.png",
+      "alt": "Gardien des Cendres massif dans son sanctuaire, lame lourde, cuirasse de scorie fissurée et foyer de braise contenu.",
+      "caption": "Le Gardien est une architecture mobile : sa masse, ses évents et sa consigne expliquent la menace.",
+      "prompt_key": "gardien-des-cendres-plate"
+    },
+    {
+      "image": "gardien-des-cendres-dossier.png",
+      "alt": "Vue tactique du sanctuaire montrant le Gardien, le pilier fracturé, le brasero suspendu, la fosse et deux tourbillons de cendre non définis.",
+      "caption": "Le dossier d’arène distingue les chaînes causales connues des deux esprits encore sans zoologie.",
+      "prompt_key": "gardien-des-cendres-dossier"
+    }
+  ],
+  "major_dossier": {
+    "arena": "Le Sanctum clôt une Crypte de 48 × 76 m. Le Gardien occupe un espace minéral autour d’un pilier fracturé, sous un brasero suspendu et près d’une fosse de pointes ; ces éléments sont des causes physiques persistantes, pas des boutons de boss.",
+    "sequence": [
+      "Le Gardien quitte sa veille, avertit puis cherche à établir sa garde entre le groupe et la sortie.",
+      "Ses frappes lourdes fixent un rythme lisible : préparation, arc, contact et récupération contre le décor.",
+      "La Nova ouvre ses évents et impose soit une rupture de distance, soit une intervention sur le foyer et l’occlusion.",
+      "Lors de la phase critique, le script historique invoque deux ash-spirit avant une Nova ; ces Esprits de cendre sont une zoologie inconnue et non blueprintée, donc sans statistiques ni comportement inventés dans ce volume.",
+      "La résolution dépend de l’état final du brasero, du pilier, de la fosse, du Gardien et des voies de sortie, puis conserve ces conséquences."
+    ],
+    "causal_opportunities": [
+      "Détacher le brasero suspendu pour créer un impact de zone dont le point de chute doit être anticipé.",
+      "Renverser le pilier fracturé afin de frapper, bloquer une ligne ou fabriquer un couvert durable.",
+      "Briser l’Équilibre du Gardien près de la fosse puis appliquer une poussée proportionnée à sa masse.",
+      "Humidifier puis refroidir une fissure chauffée avant une attaque précise sur le joint fragilisé."
+    ],
+    "aftermath": "La défaite rend accessibles la Braise du Gardien et la sortie lumineuse, mais l’état de l’arène demeure. Les ash-spirit ne sont pas automatiquement morts, dissipés ou domestiqués : leur sort reste une question ouverte jusqu’à création d’un blueprint et d’une écologie propres."
+  }
+}

@@ -38,6 +38,11 @@ pub fn is_explicit_acl_denial(reason: &str) -> bool {
         .strip_prefix("Commande Tauri échouée : Command ")
         .and_then(|verdict| verdict.strip_suffix(" not allowed by ACL"))
         == Some(TAURI_DENIED_COMMAND)
+        || reason
+            == concat!(
+                "Commande Tauri échouée : window.set_title explicitly denied on origin local\n\n",
+                "referenced by: capability: main-window, permission: deny-set-title"
+            )
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -200,8 +205,28 @@ impl InteractionObservation {
 #[serde(deny_unknown_fields)]
 pub struct ViewportObservation {
     pub starts: u32,
+    /// Historical fields measure the CSS client box, not the rendering buffer.
     pub canvas_width_px: Option<u32>,
     pub canvas_height_px: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub render_width_px: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub render_height_px: Option<u32>,
+}
+
+impl ViewportObservation {
+    #[must_use]
+    pub fn resolution_summary(&self) -> String {
+        let dimensions = |width, height| match (width, height) {
+            (Some(width), Some(height)) if width > 0 && height > 0 => format!("{width} × {height}"),
+            _ => "non mesuré".to_owned(),
+        };
+        format!(
+            "CSS {} · rendu {} px · dernier relevé",
+            dimensions(self.canvas_width_px, self.canvas_height_px),
+            dimensions(self.render_width_px, self.render_height_px)
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -370,6 +395,52 @@ fn nearest_rank(sorted: &[f64], percentile: usize) -> f64 {
 mod tests {
     use super::*;
 
+    #[test]
+    fn viewport_reports_css_and_render_pixels_without_inventing_missing_measurements() {
+        let mut observation = ViewportObservation::default();
+        assert!(
+            observation
+                .resolution_summary()
+                .contains("rendu non mesuré")
+        );
+        observation.canvas_width_px = Some(1280);
+        observation.canvas_height_px = Some(720);
+        observation.render_width_px = Some(2560);
+        observation.render_height_px = Some(1440);
+        assert_eq!(
+            observation.resolution_summary(),
+            "CSS 1280 × 720 · rendu 2560 × 1440 px · dernier relevé"
+        );
+        observation.render_width_px = Some(0);
+        assert!(
+            observation
+                .resolution_summary()
+                .contains("rendu non mesuré")
+        );
+        observation.render_width_px = None;
+        assert!(
+            observation
+                .resolution_summary()
+                .contains("rendu non mesuré")
+        );
+    }
+
+    #[test]
+    fn historical_viewport_reports_remain_readable_and_new_dimensions_round_trip() {
+        let historical = r#"{"starts":1,"canvas_width_px":1920,"canvas_height_px":1080}"#;
+        let mut observation: ViewportObservation = serde_json::from_str(historical).unwrap();
+        assert_eq!(observation.render_width_px, None);
+        assert_eq!(observation.render_height_px, None);
+        assert_eq!(serde_json::to_string(&observation).unwrap(), historical);
+        observation.render_width_px = Some(3840);
+        observation.render_height_px = Some(2160);
+        let encoded = serde_json::to_string(&observation).unwrap();
+        assert_eq!(
+            serde_json::from_str::<ViewportObservation>(&encoded).unwrap(),
+            observation
+        );
+    }
+
     fn assert_approx_eq(actual: f64, expected: f64) {
         let tolerance = f64::EPSILON * expected.abs().max(1.0) * 8.0;
         assert!(
@@ -418,6 +489,26 @@ mod tests {
         assert!(!is_explicit_acl_denial(
             "window.set_title explicitly denied on origin local"
         ));
+    }
+
+    #[test]
+    fn current_tauri_acl_denial_requires_the_complete_observed_command_and_capability() {
+        let observed = concat!(
+            "Commande Tauri échouée : window.set_title explicitly denied on origin local\n\n",
+            "referenced by: capability: main-window, permission: deny-set-title"
+        );
+        assert!(is_explicit_acl_denial(observed));
+        for altered in [
+            observed.replace("window.set_title", "window.close"),
+            observed.replace("origin local", "origin remote"),
+            observed.replace("main-window", "other-window"),
+            observed.replace("deny-set-title", "allow-set-title"),
+            observed.replace("Commande Tauri échouée : ", ""),
+            observed.replace("explicitly denied", "failed"),
+            format!("{observed} (cached)"),
+        ] {
+            assert!(!is_explicit_acl_denial(&altered));
+        }
     }
 
     #[test]

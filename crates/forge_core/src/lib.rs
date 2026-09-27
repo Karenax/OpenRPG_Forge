@@ -4,6 +4,9 @@
 
 mod frame_distribution;
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod document_store;
+
 pub use frame_distribution::{
     FRAME_DISTRIBUTION_SCHEMA, FRAME_DISTRIBUTION_SCHEMA_VERSION, FRAME_TIME_30_FPS_BUDGET_MS,
     FRAME_TIME_60_FPS_BUDGET_MS, FrameDistribution, FrameDistributionError, FrameTimeHistogram,
@@ -79,9 +82,11 @@ macro_rules! domain_id {
 }
 
 domain_id!(ProjectId, "project id", "project");
+domain_id!(ModuleId, "module id", "module");
 domain_id!(AreaId, "area id", "area");
 domain_id!(EntityId, "entity id", "entity");
 domain_id!(AssetId, "asset id", "asset");
+domain_id!(CommandId, "command id", "command");
 
 /// Monotone document revision within a workspace.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -335,6 +340,12 @@ pub enum ContentHashParseError {
 pub enum CanonicalJsonError {
     #[error("cannot serialize value as JSON: {0}")]
     Serialize(#[from] serde_json::Error),
+}
+
+/// Hashes exact bytes without JSON normalization.
+#[must_use]
+pub fn bytes_sha256(bytes: &[u8]) -> ContentHash {
+    ContentHash::from_bytes(Sha256::digest(bytes).into())
 }
 
 /// Serializes a value using stable object-key ordering and no insignificant whitespace.

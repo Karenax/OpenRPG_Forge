@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Tidewater reference acquisition</title>
+<style>html,body,#app{margin:0;width:100%;height:100%;overflow:hidden}canvas{display:block}body>:not(#app){display:none!important}</style>
+<div id="app"></div>
+<script type="module">
+// Development overlay only. Source App and effects are unchanged.
+import { App } from '/src/App.js';
+import { GPU } from '/src/engine/gpu/GPU.js';
+import { G } from '/src/engine/render/Frame.js';
+const app = new App();
+const params = new URLSearchParams(location.search);
+const views = {
+  coast: { position:[53.6,4.447713719743241,-77], yaw:Math.PI, pitch:-0.05 },
+  village: { position:[42,14,-90], yaw:0, pitch:-0.2 },
+  island: { position:[120,440,780], yaw:0.1, pitch:-0.38 },
+  reef: { position:[-78,-1.6,58], yaw:0.7, pitch:-0.12 },
+  canopy: { position:[-120,145,-340], yaw:-0.6, pitch:-0.1 },
+};
+const viewName = params.get('view') || 'coast';
+if (!views[viewName]) throw new Error('Unknown proof view');
+window.forgeReference = { status:'loading', view:viewName };
+try {
+  await app.init((progress,text) => { window.forgeReference.progress = {progress,text}; });
+  const view = views[viewName];
+  app.setFreeCam(true);
+  app.fly.setPose(app.camera.position.set(...view.position),view.yaw,view.pitch);
+  app.fly.velocity.set(0,0,0);
+  // Reset time after upstream's own precompile frames; record remaining state.
+  G.time.value = 0;
+  app.settings.timeOfDay = params.get('night') === '1' ? 22 : 16.2;
+  app.settings.timeSpeed = 0;
+  const warmupFrames = 120;
+  for (let i=0;i<warmupFrames;i++) {
+    app.frame(1/60);
+    await GPU.device.queue.onSubmittedWorkDone();
+  }
+  window.forgeReference = {
+    status:'ready_reference_only', source_commit:'1438b1abfcaee3267092b75573014f4d9b4a983c',
+    view:viewName, settings:app.settings, camera:{position:app.camera.position,quaternion:app.camera.quaternion,fov:app.camera.fov},
+    output:[app.engine.width,app.engine.height], render_scale:app.engine.renderScale,
+    time_s:G.time.value, warmup_frames:warmupFrames, step_s:1/60,
+    adapter:GPU.adapter.info, gpu_frame:GPU.frame,
+    vegetation_counts:Object.fromEntries(Object.entries(app.vegetation.records).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.length])),
+    limits:['no_performance_verdict','asynchronous_readback_and_precompile_state_not_yet_replay_qualified'],
+  };
+  document.title = 'READY — Tidewater ' + viewName;
+} catch(error) {
+  window.forgeReference = {status:'failed',message:error.message};
+  document.title = 'FAILED — Tidewater reference';
+  console.error(error);
+}
+</script></html>

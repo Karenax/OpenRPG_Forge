@@ -2,7 +2,58 @@
 
 //! Bevy rendering adapter for shared Forge documents.
 
+#[cfg(feature = "physics-rapier")]
+pub mod authoring_buildings;
+
+#[cfg(feature = "physics-rapier")]
+mod bridge;
+#[cfg(feature = "qualification")]
+mod bridge_crossing_probe;
+#[cfg(feature = "qualification")]
+pub use bridge_crossing_probe::{
+    BridgeCrossingProbePlugin, BridgeCrossingProbeStatus, BridgeTemporalLodStatus,
+};
+mod capture_readiness;
+mod manual_placement_identity;
+pub use manual_placement_identity::ManualPlacementPart;
+#[cfg(feature = "physics-rapier")]
+mod terrain_brush_cursor;
+#[cfg(feature = "physics-rapier")]
+pub use terrain_brush_cursor::{TerrainBrushCursor, update_terrain_brush_cursor};
+#[cfg(feature = "qualification")]
+mod fixed_proof_view;
+#[cfg(feature = "qualification")]
+pub use fixed_proof_view::{
+    FixedProofClock, FixedProofViewError, FixedProofViewPlugin, FixedProofViewStatus,
+};
+mod cloud_preview;
 mod environment;
+pub use cloud_preview::{CloudLayerPreviewPlugin, CloudPreviewObservation};
+mod frame_overlay;
+#[cfg(any(target_arch = "wasm32", test))]
+mod preparation_budget;
+mod quality_cpu_trace;
+pub use quality_cpu_trace::{QualityCpuFrame, QualityCpuPhase, QualityCpuTracePlugin};
+mod gpu_memory;
+pub use gpu_memory::{GpuAllocatorTotals, GpuMemoryDiagnostic};
+#[cfg(feature = "physics-rapier")]
+mod global_quality;
+#[cfg(feature = "physics-rapier")]
+mod profile_warmup;
+#[cfg(feature = "physics-rapier")]
+pub use global_quality::{
+    EffectiveQualityEvidence, GlobalQualityPlugin, GlobalQualityRequest, GlobalQualityStats,
+    QualityAdaptationStats, QualityApplicationEvidence, QualityDomainProjection,
+};
+#[cfg(feature = "physics-rapier")]
+pub use profile_warmup::{PreparedQualityVariant, ProfileWarmup, ProfileWarmupPhase};
+mod post_process_quality;
+pub use post_process_quality::{PostProcessQualityObservation, PostProcessQualityRequest};
+pub mod breaker_geometry;
+pub mod cloud_controller;
+#[cfg(feature = "physics-rapier")]
+mod governed_asset_kit;
+pub mod ocean_spectrum;
 #[cfg(feature = "physics-rapier")]
 mod physics;
 #[cfg(feature = "physics-rapier")]
@@ -10,31 +61,105 @@ mod player_camera;
 #[cfg(feature = "physics-rapier")]
 mod player_controller;
 #[cfg(feature = "physics-rapier")]
+pub mod sampled_terrain_physics;
+mod shadow_quality;
+pub mod spray_budget;
+pub mod sun_cascades;
+mod temporal_lod;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_assets;
+pub mod tidewater_atmosphere;
+pub mod tidewater_clouds;
+pub mod tidewater_environment;
+pub mod tidewater_hill_shadow;
+pub mod tidewater_material;
+pub mod tidewater_mesh;
+pub mod tidewater_object_shadow;
+pub mod tidewater_plants;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_scene_environment;
+pub mod tidewater_sky;
+pub mod tidewater_terrain;
+pub mod tidewater_terrain_edits;
+pub use temporal_lod::{TemporalLod, TemporalLodError, TemporalLodPolicy, TemporalLodSample};
+#[cfg(feature = "physics-rapier")]
+mod terrain_quality;
+#[cfg(feature = "physics-rapier")]
+pub use terrain_quality::{
+    TerrainLodProjectionStats, TerrainQualityRequest, VisualValleyTerrainQualityPlugin,
+};
+#[cfg(feature = "physics-rapier")]
 mod terrain_update;
 mod vegetation;
+pub mod vegetation_far_geometry;
+#[cfg(feature = "physics-rapier")]
+mod vegetation_prototypes;
+#[cfg(feature = "physics-rapier")]
+pub use vegetation::{
+    GovernedFarBatchPreview, VegetationPrototypeForestPreview, governed_forest_ready,
+    stop_governed_forest,
+};
+pub use vegetation::{
+    GovernedTreePrimitive, VegetationQualityObservation, VegetationQualityRequest,
+    VegetationScatterProjection, update_vegetation_sources,
+    update_vegetation_sources_with_buildings, update_vegetation_sources_with_paths,
+    update_vegetation_sources_with_promotions, update_vegetation_sources_with_waterways,
+};
+#[cfg(feature = "physics-rapier")]
+pub use vegetation_prototypes::{
+    PromotedTreeAsset, RenderVegetationPrimitive, RenderVegetationPrototype,
+    ResolvedVegetationPrimitive, ResolvedVegetationPrototype, TreePromotionSelection,
+    VegetationPrototypeCache, VegetationPrototypeLoadPlugin, VegetationPrototypeLoadStatus,
+    VegetationPrototypeLoaderPlugin, VegetationPrototypeResolveError, VegetationPrototypeWindCache,
+    WindVegetationPrimitive, prepare_tree_promotion, resolve_authored_species,
+    resolve_promoted_tree_asset, resolve_vegetation_prototype,
+};
 mod visual_valley;
 mod water;
+pub use water::authoring as authoring_water;
+pub use water::{
+    WaterDepthOpticsPreview, WaterQualityObservation, WaterQualityRequest,
+    WaterReflectionOpticsPreview,
+};
 mod weather;
 
+#[cfg(feature = "physics-rapier")]
+pub use bridge::{
+    WorldSketchBridgeAdapterError, WorldSketchBridgeDeck, WorldSketchBridgeParapet,
+    WorldSketchBridgePlugin, WorldSketchBridgeStats,
+};
 pub use environment::{
     EnvironmentDistanceFogStats, EnvironmentProjectionStats, EnvironmentProjectionStatus,
-    EnvironmentSkyStats, EnvironmentSunStats, EnvironmentVolumetricStats,
-    VisualValleyEnvironmentPlugin,
+    EnvironmentQualityObservation, EnvironmentQualityRequest, EnvironmentSkyStats,
+    EnvironmentSunStats, EnvironmentVolumetricStats, VisualValleyEnvironmentPlugin,
+    VolumetricPreviewRequest,
+};
+#[cfg(feature = "physics-rapier")]
+pub use governed_asset_kit::{
+    GovernedAssetKitAdapterError, GovernedAssetKitPlacementMarker, GovernedAssetKitReadiness,
+    VisualValleyGovernedAssetKitPlugin,
 };
 #[cfg(feature = "physics-rapier")]
 pub(crate) use physics::build_terrain_heightfield_collider;
 #[cfg(feature = "physics-rapier")]
 pub use physics::{
-    TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider, TerrainPhysicsAdapterError,
-    TerrainPhysicsPlugin,
+    ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementCollisionFailed,
+    ManualPlacementCollisionPlugin, ManualPlacementCollisionStatus, ManualPlacementProjection,
+    PathSurfaceColliderIdentity, TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider,
+    TerrainPhysicsAdapterError, TerrainPhysicsPlugin, manual_placements_ready, placement_transform,
+    profiled_path_collider, profiled_path_collider_present,
 };
 #[cfg(feature = "physics-rapier")]
 pub use player_camera::PlayerCameraMode;
 #[cfg(feature = "physics-rapier")]
 pub use player_controller::{
     ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerControlCommand,
-    PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet,
-    PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot, PlayerSpawnPoint,
+    PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet, PlayerInputFocus,
+    PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot,
+    PlayerSimulationReady, PlayerSpawnPoint,
+};
+pub use shadow_quality::{
+    ShadowQualityObservation, ShadowQualityRequest, VisualValleyShadowQualityPlugin,
 };
 #[cfg(feature = "physics-rapier")]
 pub use terrain_update::{
@@ -45,12 +170,13 @@ pub use terrain_update::{
 pub use vegetation::{
     MAX_VEGETATION_CANDIDATE_ATTEMPTS, MAX_VEGETATION_GRASS_BLADES,
     MAX_VEGETATION_PROJECTION_ENTITIES, VegetationAdapterError, VegetationChunkBatchMarker,
-    VegetationInteractionField, VegetationLodRanges, VegetationMeshError, VegetationMeshKey,
-    VegetationPlacementMarker, VegetationPlacementStats, VegetationProjectionCounts,
-    VegetationProjectionLod, VegetationProjectionStats, VegetationRenderPathStats,
-    VegetationTriangleStats, VegetationVisibilityBucket, VegetationVisibilityObservationStatus,
-    VegetationVisibilityStats, VisualValleyVegetationExtension, VisualValleyVegetationMaterial,
-    VisualValleyVegetationPlugin, inspect_vegetation_projection,
+    VegetationInteractionField, VegetationLiveMeshStats, VegetationLodRanges, VegetationMeshError,
+    VegetationMeshKey, VegetationPlacementMarker, VegetationPlacementStats,
+    VegetationProjectionCounts, VegetationProjectionLod, VegetationProjectionStats,
+    VegetationRenderPathStats, VegetationTriangleStats, VegetationVisibilityBucket,
+    VegetationVisibilityObservationStatus, VegetationVisibilityStats,
+    VisualValleyVegetationExtension, VisualValleyVegetationMaterial, VisualValleyVegetationPlugin,
+    inspect_vegetation_projection,
 };
 pub use visual_valley::{
     VisualValleyAdapterError, VisualValleyDebug, VisualValleyPlugin,
@@ -77,10 +203,10 @@ use bevy::{
     render::{
         diagnostic::RenderDiagnosticsPlugin,
         renderer::{RenderAdapterInfo, RenderDevice},
-        view::screenshot::{Screenshot, save_to_disk},
     },
     window::{PresentMode, PrimaryWindow, WindowCloseRequested, WindowResized},
 };
+use capture_readiness::{CaptureProgress, CaptureReadinessPlugin, capture_at_requested_frame};
 use forge_core::{EntityId, FrameDistribution as CoreFrameDistribution, FrameTimeHistogram};
 use forge_project::{SceneProofDocument, SceneProofKind};
 use serde::Serialize;
@@ -131,8 +257,32 @@ pub struct ProofSceneStats {
     pub source_hash: String,
 }
 
+/// Machine-readable evidence for the bounded R1-064 runtime projection.
+#[derive(Clone, Debug, Default, Eq, PartialEq, Resource, Serialize)]
+pub struct GovernedAssetKitRuntimeStats {
+    pub asset_kit_id: String,
+    pub asset_kit_revision: u32,
+    pub input_manifest_sha256: String,
+    pub source_world_sketch_sha256: String,
+    pub source_terrain_sha256: String,
+    pub camera_id: String,
+    pub validation_camera_spawned: bool,
+    pub declared_assets: usize,
+    pub requested_scene_instances: usize,
+    pub loaded_scene_instances: usize,
+    pub failed_scene_instances: usize,
+    pub configured_lod0_nodes: usize,
+    pub configured_lod1_nodes: usize,
+    pub configured_lod2_nodes: usize,
+    pub configured_collision_nodes: usize,
+    pub failed_collision_nodes: usize,
+    pub ready_rapier_colliders: usize,
+    pub all_scene_dependencies_loaded: bool,
+}
+
 #[derive(Clone, Debug, Resource, Serialize)]
 pub struct GpuDiagnostic {
+    pub memory: Option<GpuMemoryDiagnostic>,
     pub name: String,
     pub vendor: u32,
     pub device: u32,
@@ -148,6 +298,22 @@ pub struct GpuDiagnostic {
 
 #[derive(Component)]
 struct DiagnosticsOverlay;
+
+/// Presentation only: hiding the overlay never stops diagnostic collection or export.
+#[derive(Resource)]
+pub struct DiagnosticsOverlaySettings {
+    pub visible: bool,
+}
+
+/// Optional host label; leaves historical proof labels unchanged when absent.
+#[derive(Resource)]
+pub struct DiagnosticsOverlayTitle(pub String);
+
+impl Default for DiagnosticsOverlaySettings {
+    fn default() -> Self {
+        Self { visible: true }
+    }
+}
 
 #[derive(Resource, Default)]
 struct AdapterLogged(bool);
@@ -252,6 +418,18 @@ struct WindowLifecycleReport {
     close_requests_observed: u32,
 }
 
+#[derive(bevy::ecs::system::SystemParam)]
+struct ProjectionEvidence<'w> {
+    capture: Option<Res<'w, CaptureProgress>>,
+    clouds: Option<Res<'w, CloudPreviewObservation>>,
+    #[cfg(feature = "physics-rapier")]
+    terrain_lod: Option<Res<'w, TerrainLodProjectionStats>>,
+    #[cfg(feature = "physics-rapier")]
+    global_quality: Option<Res<'w, GlobalQualityStats>>,
+    #[cfg(feature = "physics-rapier")]
+    profile_warmup: Option<Res<'w, ProfileWarmup>>,
+}
+
 #[derive(Debug, Serialize)]
 struct RuntimeMetricsReport {
     schema: &'static str,
@@ -262,6 +440,19 @@ struct RuntimeMetricsReport {
     frame: FrameMetrics,
     render_diagnostics: Vec<NamedDiagnostic>,
     render_work: RenderWorkReport,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    capture_readiness: Option<CaptureProgress>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cloud_preview: Option<CloudPreviewObservation>,
+    #[cfg(feature = "physics-rapier")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    terrain_lod: Option<TerrainLodProjectionStats>,
+    #[cfg(feature = "physics-rapier")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    global_quality: Option<GlobalQualityStats>,
+    #[cfg(feature = "physics-rapier")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    profile_warmup: Option<ProfileWarmup>,
     #[serde(skip_serializing_if = "Option::is_none")]
     visual_valley: Option<VisualValleyStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -274,6 +465,8 @@ struct RuntimeMetricsReport {
     water: Option<WaterProjectionStats>,
     #[serde(skip_serializing_if = "Option::is_none")]
     weather: Option<WeatherProjectionStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    governed_asset_kit: Option<GovernedAssetKitRuntimeStats>,
 }
 
 #[derive(Debug, Serialize)]
@@ -337,6 +530,11 @@ impl RuntimeEvidencePlugin {
 
 impl Plugin for RuntimeEvidencePlugin {
     fn build(&self, app: &mut App) {
+        if self.automation.capture_path.is_some()
+            && !app.is_plugin_added::<CaptureReadinessPlugin>()
+        {
+            app.add_plugins(CaptureReadinessPlugin);
+        }
         app.insert_resource(self.automation.clone())
             .insert_resource(FrameLedger::for_automation(&self.automation))
             .insert_resource(WindowLifecycle::new(
@@ -345,6 +543,7 @@ impl Plugin for RuntimeEvidencePlugin {
             ))
             .init_resource::<ProofSceneStats>()
             .init_resource::<AdapterLogged>()
+            .init_resource::<DiagnosticsOverlaySettings>()
             .add_plugins((
                 FrameTimeDiagnosticsPlugin::default(),
                 EntityCountDiagnosticsPlugin::default(),
@@ -358,10 +557,12 @@ impl Plugin for RuntimeEvidencePlugin {
                 Update,
                 (
                     record_gpu_diagnostic,
+                    gpu_memory::collect,
                     request_automated_resize,
                     request_automated_close,
                     observe_window_events,
                     update_overlay,
+                    sync_diagnostics_overlay_visibility,
                     capture_at_requested_frame,
                 )
                     .chain(),
@@ -796,6 +997,23 @@ fn initialize_diagnostics_overlay(mut commands: Commands) {
     spawn_diagnostics_overlay(&mut commands);
 }
 
+#[allow(clippy::needless_pass_by_value, reason = "Bevy system parameter")]
+fn sync_diagnostics_overlay_visibility(
+    settings: Res<DiagnosticsOverlaySettings>,
+    mut overlays: Query<&mut Node, With<DiagnosticsOverlay>>,
+) {
+    let display = if settings.visible {
+        Display::Flex
+    } else {
+        Display::None
+    };
+    for mut node in &mut overlays {
+        if node.display != display {
+            node.display = display;
+        }
+    }
+}
+
 fn spawn_pickable_mesh(
     commands: &mut Commands,
     name: String,
@@ -841,6 +1059,7 @@ fn select_proof_entity(
 
 #[derive(SystemParam)]
 struct Gate1OverlayStats<'w> {
+    title: Option<Res<'w, DiagnosticsOverlayTitle>>,
     visual_valley: Option<Res<'w, VisualValleyStats>>,
     vegetation: Option<Res<'w, VegetationProjectionStats>>,
     water: Option<Res<'w, WaterProjectionStats>>,
@@ -857,6 +1076,8 @@ fn update_overlay(
     gate1: Gate1OverlayStats,
     gpu: Option<Res<GpuDiagnostic>>,
     mut overlay: Single<&mut Text, With<DiagnosticsOverlay>>,
+    time: Res<Time<Real>>,
+    mut cadence: Local<frame_overlay::FrameOverlay>,
 ) {
     let fps = diagnostics
         .get(&FrameTimeDiagnosticsPlugin::FPS)
@@ -872,6 +1093,10 @@ fn update_overlay(
     let render_work = build_render_work_report(&stats, &diagnostics);
     **overlay = Text::new(if let Some(visual_valley) = gate1.visual_valley {
         let mut logical_details = visual_valley.overlay_details();
+        logical_details.push('\n');
+        logical_details.push_str(cadence.record(time.delta_secs_f64() * 1_000.0));
+        logical_details.push('\n');
+        logical_details.push_str(&frame_overlay::render_timing_text(&diagnostics));
         if let Some(vegetation) = gate1.vegetation {
             logical_details.push('\n');
             logical_details.push_str(&vegetation.overlay_details());
@@ -894,7 +1119,12 @@ fn update_overlay(
             );
         }
         format_runtime_diagnostics_overlay(
-            "OpenRPG Forge · Gate 1 / Visual Valley",
+            gate1
+                .title
+                .as_ref()
+                .map_or("OpenRPG Forge · Gate 1 / Visual Valley", |title| {
+                    title.0.as_str()
+                }),
             adapter,
             fps,
             frame_ms,
@@ -952,7 +1182,7 @@ fn format_runtime_diagnostics_overlay(
         output.push('\n');
         output.push_str(logical_details);
     }
-    output
+    frame_overlay::diagnostic_font_text(&output)
 }
 
 fn build_render_work_report(
@@ -1008,6 +1238,7 @@ fn record_gpu_diagnostic(
     };
     let limits = device.limits();
     let diagnostic = GpuDiagnostic {
+        memory: None,
         name: adapter.name.clone(),
         vendor: adapter.vendor,
         device: adapter.device,
@@ -1039,33 +1270,6 @@ fn record_gpu_diagnostic(
     clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
 )]
-fn capture_at_requested_frame(
-    mut commands: Commands,
-    frame: Res<bevy::diagnostic::FrameCount>,
-    automation: Res<RuntimeAutomation>,
-) {
-    if frame.0 == automation.capture_frame
-        && let Some(path) = &automation.capture_path
-    {
-        commands
-            .spawn(Screenshot::primary_window())
-            .observe(save_to_disk(path.clone()));
-        info!(
-            target: "forge::proof",
-            schema = "forge.runtime-event",
-            schema_version = 1_u64,
-            event_kind = "capture_requested",
-            path = %path.display(),
-            frame = frame.0,
-            "capture requested"
-        );
-    }
-}
-
-#[allow(
-    clippy::needless_pass_by_value,
-    reason = "Bevy systems require owned system parameter wrappers"
-)]
 fn collect_frame_sample(
     frame: Res<bevy::diagnostic::FrameCount>,
     time: Res<Time<Real>>,
@@ -1090,10 +1294,11 @@ fn write_metrics_and_exit(
     environment: Option<Res<EnvironmentProjectionStats>>,
     water: Option<Res<WaterProjectionStats>>,
     weather: Option<Res<WeatherProjectionStats>>,
+    governed_asset_kit: Option<Res<GovernedAssetKitRuntimeStats>>,
     gpu: Option<Res<GpuDiagnostic>>,
     diagnostics: Res<DiagnosticsStore>,
     windows: Query<&Window, With<PrimaryWindow>>,
-    lifecycle: Res<WindowLifecycle>,
+    (lifecycle, evidence): (Res<WindowLifecycle>, ProjectionEvidence),
     mut exit: MessageWriter<AppExit>,
 ) {
     if automation
@@ -1117,18 +1322,8 @@ fn write_metrics_and_exit(
     }
 
     if let Some(path) = &automation.capture_path {
-        match capture_artifact_size(path) {
-            Ok(bytes) => {
-                info!(
-                    target: "forge::proof",
-                    schema = "forge.runtime-event",
-                    schema_version = 1_u64,
-                    event_kind = "capture_verified",
-                    path = %path.display(),
-                    bytes,
-                    "runtime capture verified"
-                );
-            }
+        match completed_capture_artifact_size(path, evidence.capture.as_deref()) {
+            Ok(_) => {}
             Err(error) => {
                 error!(
                     target: "forge::proof",
@@ -1156,13 +1351,23 @@ fn write_metrics_and_exit(
             environment.as_deref(),
             water.as_deref(),
             weather.as_deref(),
+            governed_asset_kit.as_deref(),
             gpu.as_deref(),
             &diagnostics,
             &lifecycle,
             final_window,
         )
-        .and_then(|report| write_metrics(path, &report))
-        {
+        .and_then(|mut report| {
+            report.capture_readiness = evidence.capture.as_deref().cloned();
+            report.cloud_preview = evidence.clouds.as_deref().cloned();
+            #[cfg(feature = "physics-rapier")]
+            {
+                report.terrain_lod = evidence.terrain_lod.as_deref().cloned();
+                report.global_quality = evidence.global_quality.as_deref().cloned();
+                report.profile_warmup = evidence.profile_warmup.as_deref().cloned();
+            }
+            write_metrics(path, &report)
+        }) {
             Ok(()) => {
                 info!(
                     target: "forge::proof",
@@ -1216,6 +1421,20 @@ fn ensure_resize_confirmed(lifecycle: &WindowLifecycle) -> Result<(), &'static s
     Ok(())
 }
 
+fn completed_capture_artifact_size(
+    path: &Path,
+    progress: Option<&CaptureProgress>,
+) -> Result<u64, String> {
+    progress
+        .ok_or("capture readiness observer was not installed")?
+        .ensure_completed()?;
+    let bytes = capture_artifact_size(path)?;
+    info!(target: "forge::proof", schema = "forge.runtime-event", schema_version = 1_u64,
+        event_kind = "capture_verified", path = %path.display(), bytes,
+        "runtime capture verified");
+    Ok(bytes)
+}
+
 fn capture_artifact_size(path: &Path) -> Result<u64, String> {
     let metadata = fs::metadata(path)
         .map_err(|error| format!("cannot inspect {}: {error}", path.display()))?;
@@ -1241,11 +1460,13 @@ fn build_runtime_metrics(
     environment: Option<&EnvironmentProjectionStats>,
     water: Option<&WaterProjectionStats>,
     weather: Option<&WeatherProjectionStats>,
+    governed_asset_kit: Option<&GovernedAssetKitRuntimeStats>,
     gpu: Option<&GpuDiagnostic>,
     diagnostics: &DiagnosticsStore,
     lifecycle: &WindowLifecycle,
     final_window: Option<WindowStateReport>,
 ) -> Result<RuntimeMetricsReport, String> {
+    validate_governed_asset_kit_runtime_stats(governed_asset_kit)?;
     let distribution = CoreFrameDistribution::from_samples_ms(samples)
         .map_err(|error| format!("invalid post-warmup frame samples: {error}"))?;
     let mut sorted = samples.to_vec();
@@ -1285,8 +1506,16 @@ fn build_runtime_metrics(
         .collect::<Vec<_>>();
     render_diagnostics.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(RuntimeMetricsReport {
+        capture_readiness: None,
+        cloud_preview: None,
+        #[cfg(feature = "physics-rapier")]
+        terrain_lod: None,
+        #[cfg(feature = "physics-rapier")]
+        global_quality: None,
+        #[cfg(feature = "physics-rapier")]
+        profile_warmup: None,
         schema: "forge.runtime-metrics",
-        schema_version: 6,
+        schema_version: 8,
         source_hash: stats.source_hash.clone(),
         gpu: gpu.cloned(),
         window: lifecycle.report(final_window),
@@ -1299,7 +1528,54 @@ fn build_runtime_metrics(
         environment: environment.cloned(),
         water: water.cloned(),
         weather: weather.cloned(),
+        governed_asset_kit: governed_asset_kit.cloned(),
     })
+}
+
+fn validate_governed_asset_kit_runtime_stats(
+    stats: Option<&GovernedAssetKitRuntimeStats>,
+) -> Result<(), String> {
+    let Some(stats) = stats else {
+        return Ok(());
+    };
+    if stats.declared_assets == 0 || stats.requested_scene_instances == 0 {
+        return Err(
+            "governed asset-kit runtime proof contains no assets or scene instances".into(),
+        );
+    }
+    if stats.failed_scene_instances > 0 {
+        return Err(format!(
+            "governed asset-kit runtime proof has {} failed scene instance(s)",
+            stats.failed_scene_instances
+        ));
+    }
+    if !stats.all_scene_dependencies_loaded
+        || stats.loaded_scene_instances != stats.requested_scene_instances
+    {
+        return Err(format!(
+            "governed asset-kit runtime proof loaded {} of {} scene instance(s) with dependencies",
+            stats.loaded_scene_instances, stats.requested_scene_instances
+        ));
+    }
+    if stats.configured_lod0_nodes == 0
+        || stats.configured_lod1_nodes == 0
+        || stats.configured_lod2_nodes == 0
+    {
+        return Err(format!(
+            "governed asset-kit runtime proof is missing configured LOD nodes (LOD0 {}, LOD1 {}, LOD2 {})",
+            stats.configured_lod0_nodes, stats.configured_lod1_nodes, stats.configured_lod2_nodes
+        ));
+    }
+    if stats.configured_collision_nodes == 0
+        || stats.failed_collision_nodes > 0
+        || stats.ready_rapier_colliders != stats.configured_collision_nodes
+    {
+        return Err(format!(
+            "governed asset-kit runtime proof materialized {} of {} configured Rapier collider(s)",
+            stats.ready_rapier_colliders, stats.configured_collision_nodes
+        ));
+    }
+    Ok(())
 }
 
 fn percentile(sorted: &[f64], numerator: usize, denominator: usize) -> f64 {
@@ -1324,6 +1600,77 @@ fn write_metrics(path: &PathBuf, report: &RuntimeMetricsReport) -> Result<(), St
 mod tests {
     use super::*;
 
+    #[test]
+    fn hiding_overlay_preserves_entity_text_other_ui_and_frame_collection() {
+        let mut app = App::new();
+        app.init_resource::<DiagnosticsOverlaySettings>();
+        assert!(app.world().resource::<DiagnosticsOverlaySettings>().visible);
+        let automation = RuntimeAutomation {
+            metrics_path: Some(PathBuf::from("not-written-by-this-test.json")),
+            metrics_warmup_frames: 0,
+            exit_after_frames: Some(6),
+            ..default()
+        };
+        app.insert_resource(FrameLedger::for_automation(&automation))
+            .init_resource::<Time<Real>>()
+            .init_resource::<bevy::diagnostic::FrameCount>()
+            .add_systems(Update, sync_diagnostics_overlay_visibility)
+            .add_systems(Last, collect_frame_sample);
+        let owned = app
+            .world_mut()
+            .spawn((DiagnosticsOverlay, Node::default(), Text::new("kept")))
+            .id();
+        let foreign = app
+            .world_mut()
+            .spawn(Node {
+                display: Display::Grid,
+                ..default()
+            })
+            .id();
+        for (index, visible) in [false, true, false, false, true, false]
+            .into_iter()
+            .enumerate()
+        {
+            app.world_mut()
+                .resource_mut::<DiagnosticsOverlaySettings>()
+                .visible = visible;
+            app.world_mut()
+                .resource_mut::<bevy::diagnostic::FrameCount>()
+                .0 = u32::try_from(index + 1).unwrap();
+            app.world_mut()
+                .resource_mut::<Time<Real>>()
+                .advance_by(std::time::Duration::from_millis(16));
+            app.update();
+            assert_eq!(
+                app.world().get::<Node>(owned).unwrap().display,
+                if visible {
+                    Display::Flex
+                } else {
+                    Display::None
+                }
+            );
+            assert_eq!(app.world().get::<Text>(owned).unwrap().0, "kept");
+            assert_eq!(
+                app.world().get::<Node>(foreign).unwrap().display,
+                Display::Grid
+            );
+            assert_eq!(
+                app.world().resource::<FrameLedger>().samples_ms.len(),
+                index + 1
+            );
+        }
+    }
+
+    #[test]
+    fn an_existing_file_cannot_qualify_a_capture_without_this_runs_readback() {
+        let existing = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/Cargo.toml"));
+        assert!(capture_artifact_size(existing).unwrap() > 0);
+        assert!(completed_capture_artifact_size(existing, None).is_err());
+        assert!(
+            completed_capture_artifact_size(existing, Some(&CaptureProgress::default())).is_err()
+        );
+    }
+
     fn bounded_metrics_automation(warmup: u32, last_frame: Option<u32>) -> RuntimeAutomation {
         RuntimeAutomation {
             metrics_path: Some(PathBuf::from("frame-ledger-test.json")),
@@ -1335,6 +1682,7 @@ mod tests {
 
     fn sample_environment_stats() -> EnvironmentProjectionStats {
         EnvironmentProjectionStats {
+            quality: None,
             source_hash: "environment".to_owned(),
             status: EnvironmentProjectionStatus::ObservedApproximation,
             evidence_source: "main_world_components_not_gpu_execution",
@@ -1352,8 +1700,12 @@ mod tests {
                 tonemapping: Some("tony_mc_mapface"),
                 ambient_light: true,
                 aerial_view_max_distance_m: 1_600.0,
+                atmosphere_ibl: true,
+                atmosphere_ibl_resolution: Some([256, 256]),
+                atmosphere_ibl_intensity: Some(1.0),
             },
             sun: EnvironmentSunStats {
+                weather_response: environment::WeatherSunlightObservation::default(),
                 illuminance_lux: Some(55_000.0),
                 color_linear_rgba: Some([1.0, 0.85, 0.57, 1.0]),
                 forward_world: Some([0.62, -0.62, -0.48]),
@@ -1368,12 +1720,36 @@ mod tests {
                 maximum_opacity: 0.82,
             },
             volumetric: EnvironmentVolumetricStats {
+                effective_maximum_distance_m: None,
                 requested: true,
                 applied: false,
                 resolved_path: "distance_fog_fallback",
                 requested_step_count: 64,
                 fallback: "distance_fog",
             },
+        }
+    }
+
+    fn sample_governed_asset_kit_stats() -> GovernedAssetKitRuntimeStats {
+        GovernedAssetKitRuntimeStats {
+            asset_kit_id: "visual-valley-r1-063".to_owned(),
+            asset_kit_revision: 3,
+            input_manifest_sha256: "manifest".to_owned(),
+            source_world_sketch_sha256: "world-sketch".to_owned(),
+            source_terrain_sha256: "terrain".to_owned(),
+            camera_id: "hero_reference_match".to_owned(),
+            validation_camera_spawned: true,
+            declared_assets: 6,
+            requested_scene_instances: 20,
+            loaded_scene_instances: 20,
+            failed_scene_instances: 0,
+            configured_lod0_nodes: 24,
+            configured_lod1_nodes: 24,
+            configured_lod2_nodes: 24,
+            configured_collision_nodes: 32,
+            failed_collision_nodes: 0,
+            ready_rapier_colliders: 32,
+            all_scene_dependencies_loaded: true,
         }
     }
 
@@ -1457,18 +1833,26 @@ mod tests {
             None,
             None,
             None,
+            None,
             &diagnostics,
             &lifecycle,
             None,
         )
         .unwrap();
-        assert_eq!(report.schema_version, 6);
+        assert_eq!(report.schema_version, 8);
+        assert!(
+            serde_json::to_value(&report)
+                .unwrap()
+                .get("global_quality")
+                .is_none()
+        );
         assert!(report.visual_valley.is_none());
         assert!(report.visual_valley_shadow.is_none());
         assert!(report.vegetation.is_none());
         assert!(report.environment.is_none());
         assert!(report.water.is_none());
         assert!(report.weather.is_none());
+        assert!(report.governed_asset_kit.is_none());
         assert!(
             serde_json::to_value(&report)
                 .unwrap()
@@ -1520,6 +1904,7 @@ mod tests {
             forge_world::embedded_visual_valley_vegetation_document().unwrap();
         let vegetation = inspect_vegetation_projection(&terrain, &vegetation_document).unwrap();
         let shadow = VisualValleyShadowStats {
+            quality: None,
             status: VisualValleyShadowObservationStatus::ObservedSingleSun,
             sun_entities: 1,
             shadow_maps_enabled: Some(true),
@@ -1528,6 +1913,7 @@ mod tests {
             evidence_source: "visual_valley_sun_cascade_shadow_component",
         };
         let environment = sample_environment_stats();
+        let governed_asset_kit = sample_governed_asset_kit_stats();
         let report = build_runtime_metrics(
             &[8.0],
             &stats,
@@ -1537,6 +1923,7 @@ mod tests {
             Some(&environment),
             None,
             None,
+            Some(&governed_asset_kit),
             None,
             &DiagnosticsStore::default(),
             &WindowLifecycle::new(None, None),
@@ -1550,13 +1937,14 @@ mod tests {
         assert_eq!(report.environment, Some(environment));
         assert!(report.water.is_none());
         assert!(report.weather.is_none());
+        assert_eq!(report.governed_asset_kit, Some(governed_asset_kit));
         let serialized = serde_json::to_value(&report).unwrap();
         assert_eq!(serialized["visual_valley"]["chunks"], 64);
         assert_eq!(serialized["visual_valley"]["vertices"], 69_696);
         assert_eq!(serialized["visual_valley"]["triangles"], 131_072);
         assert_eq!(
             serialized["vegetation"]["placements"]["accepted_placements"],
-            8_282
+            24_645
         );
         assert_eq!(serialized["vegetation"]["projection"]["grass_batches"], 64);
         assert_eq!(
@@ -1572,6 +1960,44 @@ mod tests {
             serialized["environment"]["volumetric"]["resolved_path"],
             "distance_fog_fallback"
         );
+        assert_eq!(
+            serialized["governed_asset_kit"]["loaded_scene_instances"],
+            20
+        );
+        assert_eq!(
+            serialized["governed_asset_kit"]["ready_rapier_colliders"],
+            32
+        );
+    }
+
+    #[test]
+    fn runtime_metrics_reject_incomplete_governed_asset_kit_evidence() {
+        let stats = ProofSceneStats {
+            source_entities: 1,
+            source_mesh_instances: 64,
+            source_hash: "terrain".to_owned(),
+        };
+        let mut governed_asset_kit = sample_governed_asset_kit_stats();
+        governed_asset_kit.ready_rapier_colliders -= 1;
+
+        let error = build_runtime_metrics(
+            &[8.0],
+            &stats,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(&governed_asset_kit),
+            None,
+            &DiagnosticsStore::default(),
+            &WindowLifecycle::new(None, None),
+            None,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("materialized 31 of 32 configured Rapier collider"));
     }
 
     #[test]

@@ -188,6 +188,7 @@ impl TerrainRuntimeBindingSnapshot {
 struct QueuedTerrainPartialUpdate {
     sequence: u64,
     request: TerrainPartialUpdateRequest,
+    authoring: bool,
 }
 
 /// Single-slot request queue. At most one terrain transaction is applied per fixed tick.
@@ -210,7 +211,23 @@ impl PendingTerrainPartialUpdate {
             .checked_add(1)
             .ok_or(TerrainUpdateSubmissionError::SequenceOverflow)?;
         let sequence = self.next_sequence;
-        self.request = Some(QueuedTerrainPartialUpdate { sequence, request });
+        self.request = Some(QueuedTerrainPartialUpdate {
+            sequence,
+            request,
+            authoring: false,
+        });
+        Ok(sequence)
+    }
+
+    /// Editor metadata/base-elevation update, preserving the strict sparse API.
+    pub fn submit_authoring(
+        &mut self,
+        request: TerrainPartialUpdateRequest,
+    ) -> Result<u64, TerrainUpdateSubmissionError> {
+        let sequence = self.submit(request)?;
+        if let Some(queued) = &mut self.request {
+            queued.authoring = true;
+        }
         Ok(sequence)
     }
 
@@ -503,8 +520,13 @@ struct PreparedRenderReplacement {
     id: TerrainChunkId,
     entity: Entity,
     asset_id: AssetId<Mesh>,
-    mesh: Mesh,
+    payload: PreparedRenderPayload,
     debug_bounds: VisualValleyChunkDebugBounds,
+}
+
+enum PreparedRenderPayload {
+    Mesh(Mesh),
+    MaterialWeights(Vec<[f32; 4]>),
 }
 
 struct PreparedColliderReplacement {
@@ -547,9 +569,12 @@ fn apply_pending_terrain_partial_update(
         let source_revision = state.document.revision;
         let plan = TerrainGenerationPlan::from_document(&state.document)
             .map_err(|error| TerrainRuntimeUpdateError::Core(error.to_string()))?;
-        let update = plan
-            .apply_partial_update(&state.cache, queued.request)
-            .map_err(|error| TerrainRuntimeUpdateError::Core(error.to_string()))?;
+        let update = if queued.authoring {
+            plan.apply_authoring_update(&state.cache, queued.request)
+        } else {
+            plan.apply_partial_update(&state.cache, queued.request)
+        }
+        .map_err(|error| TerrainRuntimeUpdateError::Core(error.to_string()))?;
         let binding_snapshots = bindings.snapshots()?;
 
         // Validate every live binding and asset before preparing or mutating any projection.
@@ -595,13 +620,50 @@ fn apply_pending_terrain_partial_update(
             debug_bounds
                 .get_mut(render_entity)
                 .map_err(|_| TerrainRuntimeUpdateError::MissingRenderEntity(replacement.id))?;
-            let (mesh, replacement_bounds) = build_bevy_terrain_mesh(replacement)
-                .map_err(|error| TerrainRuntimeUpdateError::Adapter(error.to_string()))?;
+            let original = state
+                .cache
+                .chunks
+                .iter()
+                .find(|chunk| chunk.id == replacement.id)
+                .ok_or(TerrainRuntimeUpdateError::MissingReplacement(
+                    replacement.id,
+                ))?;
+            let material_only = original.positions_m == replacement.positions_m
+                && original.normals == replacement.normals
+                && original.uvs == replacement.uvs
+                && original.indices == replacement.indices;
+            let (payload, replacement_bounds) = if material_only {
+                // Check the live mesh before preserving its geometry in-place.
+                verify_mesh_projection(
+                    meshes
+                        .get(mesh_handle.id())
+                        .ok_or(TerrainRuntimeUpdateError::MissingMeshAsset(replacement.id))?,
+                    original,
+                )
+                .map_err(|reason| TerrainRuntimeUpdateError::Adapter(reason.into()))?;
+                let bounds = *debug_bounds
+                    .get_mut(render_entity)
+                    .map_err(|_| TerrainRuntimeUpdateError::MissingRenderEntity(replacement.id))?;
+                (
+                    PreparedRenderPayload::MaterialWeights(
+                        replacement
+                            .material_weights
+                            .iter()
+                            .map(|w| [w.grass, w.earth, w.rock, 1.0])
+                            .collect(),
+                    ),
+                    bounds,
+                )
+            } else {
+                let (mesh, bounds) = build_bevy_terrain_mesh(replacement)
+                    .map_err(|error| TerrainRuntimeUpdateError::Adapter(error.to_string()))?;
+                (PreparedRenderPayload::Mesh(mesh), bounds)
+            };
             prepared_render.push(PreparedRenderReplacement {
                 id: replacement.id,
                 entity: render_entity,
                 asset_id: mesh_handle.id(),
-                mesh,
+                payload,
                 debug_bounds: replacement_bounds,
             });
         }
@@ -660,7 +722,15 @@ fn apply_pending_terrain_partial_update(
             let mut asset = meshes
                 .get_mut(replacement.asset_id)
                 .expect("validated terrain mesh asset remains borrowed for the atomic commit");
-            let previous_mesh = std::mem::replace(&mut *asset, replacement.mesh.clone());
+            let previous_mesh = match &replacement.payload {
+                PreparedRenderPayload::Mesh(mesh) => std::mem::replace(&mut *asset, mesh.clone()),
+                PreparedRenderPayload::MaterialWeights(weights) => {
+                    // Keep a complete rollback snapshot, but preserve live geometry buffers.
+                    let previous = asset.clone();
+                    asset.insert_attribute(Mesh::ATTRIBUTE_COLOR, weights.clone());
+                    previous
+                }
+            };
             let mut bounds = debug_bounds
                 .get_mut(replacement.entity)
                 .expect("validated terrain render entity remains borrowed for the atomic commit");
@@ -2309,6 +2379,188 @@ mod tests {
         assert!(outcome.rollback_verified());
         assert!(outcome.error().unwrap().contains("changed Rapier context"));
         assert_source_runtime_restored(&mut app, &source);
+    }
+
+    #[test]
+    fn material_paint_preserves_live_geometry_and_rapier_components() {
+        let mut app = build_test_app(true);
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let bindings = snapshots(&app);
+        let geometry = |app: &App| {
+            let meshes = app.world().resource::<Assets<Mesh>>();
+            bindings
+                .iter()
+                .map(|b| {
+                    let mesh = meshes.get(b.mesh_asset_id).unwrap();
+                    let Some(VertexAttributeValues::Float32x3(positions)) =
+                        mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+                    else {
+                        panic!("positions");
+                    };
+                    let Some(VertexAttributeValues::Float32x3(normals)) =
+                        mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
+                    else {
+                        panic!("normals");
+                    };
+                    (
+                        positions.as_ptr() as usize,
+                        normals.as_ptr() as usize,
+                        mesh.indices().unwrap().clone(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        };
+        let before_geometry = geometry(&app);
+        let collider_state = |app: &App| {
+            bindings
+                .iter()
+                .map(|b| {
+                    let entity = app.world().entity(b.collider_entity);
+                    (
+                        entity.get::<RapierColliderHandle>().unwrap().0,
+                        entity.get_ref::<Collider>().unwrap().last_changed(),
+                    )
+                })
+                .collect::<Vec<_>>()
+        };
+        let before_colliders = collider_state(&app);
+        let before_heights = collider_height_bits(&app, &bindings);
+        let source = app.world().resource::<TerrainRuntimeState>();
+        let mut target = source.document().clone();
+        target.schema_version = 3;
+        target.revision = target.revision.next().unwrap();
+        target.material_overrides = vec![forge_project::TerrainMaterialOverride {
+            sample_x: 32,
+            sample_z: 32,
+            weights: vec![forge_project::TerrainMaterialWeight {
+                layer_id: target.material_layers[1].id.clone(),
+                weight: u16::MAX,
+            }],
+        }];
+        let request = TerrainPartialUpdateRequest {
+            base_revision: source.document().revision,
+            base_document_hash: source.cache().source_document_hash,
+            target_document: target.clone(),
+        };
+        app.world_mut()
+            .resource_mut::<PendingTerrainPartialUpdate>()
+            .submit_authoring(request)
+            .unwrap();
+        app.world_mut().run_schedule(FixedUpdate);
+        let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+        assert!(outcome.error().is_none(), "{:?}", outcome.error());
+        let report = outcome.report().unwrap();
+        assert_eq!(report.mesh_chunks().len(), 4);
+        assert!(report.collider_chunks().is_empty());
+        assert_eq!(
+            geometry(&app),
+            before_geometry,
+            "live position/normal allocations retained"
+        );
+        assert_eq!(
+            collider_state(&app),
+            before_colliders,
+            "no collider change tick or backend handle change"
+        );
+        assert_eq!(collider_height_bits(&app, &bindings), before_heights);
+        assert_eq!(snapshots(&app), bindings);
+        assert_eq!(
+            app.world().resource::<TerrainRuntimeState>().document(),
+            &target
+        );
+    }
+
+    #[test]
+    fn material_paint_corruption_restores_source_and_all_projections() {
+        let mut app = build_test_app(true);
+        app.insert_resource(CorruptTargetMeshOnce(false))
+            .add_systems(
+                FixedUpdate,
+                corrupt_target_mesh_once
+                    .after(PhysicsSet::Writeback)
+                    .before(TerrainRuntimeUpdateSet::Verify),
+            );
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let original = snapshot_source_runtime(&mut app);
+        let state = app.world().resource::<TerrainRuntimeState>();
+        let mut target = state.document().clone();
+        target.schema_version = 3;
+        target.revision = target.revision.next().unwrap();
+        target.material_overrides = vec![forge_project::TerrainMaterialOverride {
+            sample_x: 32,
+            sample_z: 32,
+            weights: vec![forge_project::TerrainMaterialWeight {
+                layer_id: target.material_layers[2].id.clone(),
+                weight: u16::MAX,
+            }],
+        }];
+        let request = TerrainPartialUpdateRequest {
+            base_revision: state.document().revision,
+            base_document_hash: state.cache().source_document_hash,
+            target_document: target,
+        };
+        app.world_mut().resource_mut::<CorruptTargetMeshOnce>().0 = true;
+        app.world_mut()
+            .resource_mut::<PendingTerrainPartialUpdate>()
+            .submit_authoring(request)
+            .unwrap();
+        app.world_mut().run_schedule(FixedUpdate);
+        app.world_mut().run_schedule(FixedUpdate);
+        let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+        assert!(outcome.report().is_none());
+        assert!(outcome.projection_failed());
+        assert!(outcome.rollback_verified(), "{:?}", outcome.error());
+        assert_source_runtime_restored(&mut app, &original);
+    }
+
+    #[test]
+    fn authoring_rename_and_elevation_preserve_bindings_and_update_rapier() {
+        let mut app = build_test_app(true);
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let original_bindings = snapshots(&app);
+        let original_meshes = mesh_payload_bits(&app, &original_bindings);
+        let handle = *app
+            .world()
+            .get::<RapierColliderHandle>(original_bindings[0].collider_entity)
+            .unwrap();
+        let initial_height = backend_raycast_height(&mut app, handle, 30.0);
+        for elevate in [false, true] {
+            let state = app.world().resource::<TerrainRuntimeState>();
+            let mut target = state.document().migrate_to_latest().unwrap();
+            target.revision = state.document().revision.next().unwrap();
+            if elevate {
+                target.height_sampling.base_elevation_m += 8.0;
+            } else {
+                target.name = "Nom édité".into();
+            }
+            let request = TerrainPartialUpdateRequest {
+                base_revision: state.document().revision,
+                base_document_hash: state.cache().source_document_hash,
+                target_document: target.clone(),
+            };
+            app.world_mut()
+                .resource_mut::<PendingTerrainPartialUpdate>()
+                .submit_authoring(request)
+                .unwrap();
+            app.world_mut().run_schedule(FixedUpdate);
+            let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+            assert!(outcome.error().is_none(), "{:?}", outcome.error());
+            let report = outcome.report().expect("backend proof must be available");
+            assert_eq!(report.mesh_chunks().len(), if elevate { 64 } else { 0 });
+            assert_eq!(
+                app.world().resource::<TerrainRuntimeState>().document(),
+                &target
+            );
+            assert_eq!(snapshots(&app), original_bindings);
+            if !elevate {
+                assert_eq!(mesh_payload_bits(&app, &original_bindings), original_meshes);
+            }
+        }
+        let final_height = backend_raycast_height(&mut app, handle, 30.0);
+        assert!((final_height - initial_height - 8.0).abs() < 1.0e-4);
     }
 
     #[test]

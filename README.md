@@ -1,6 +1,26 @@
 # OpenRPG Forge — branche Rust/WebGPU
 
+## État courant — Gate 1 clôturée le 12 septembre 2026
+
+**PASS automatisé local sous ADR-0006, avec les dérogations acceptées.**
+Dérogations saccades pendant les changements de qualité et kit : ADR-0013 ;
+comparaison Godot/Cadle validée explicitement. 738 tests PASS, 2 ignorés
+préexistants ; builds et replays natif/Studio PASS. Révision propre qualifiée
+`7386e00a1d9e8531470b57bcd8da190636a9e390`. [Rapport de clôture](docs/evidence/gate1/GATE1_CLOSURE_20260912.md).
+CI distante NOT RUN ; aucune publication ni qualification de distribution.
+Le travail Gate 2 est suivi séparément et ne fait pas partie de ce snapshot.
+Les états ouverts et attentes antérieurs ci-dessous sont historiques ;
+ils ne doivent pas rouvrir les décisions soldées par ce rapport.
+
+
 Cette branche est une réécriture indépendante et expérimentale d’OpenRPG Forge.
+
+Le résultat final visé est de **créer un RPG avec l'IA puis retoucher précisément son monde, ses
+personnages et son histoire dans le Studio, sans perdre ces corrections lors des régénérations**.
+Le parcours complet va jusqu'au jeu, à la sauvegarde et à la distribution ; l'édition reste possible
+sans IA. Les priorités et preuves attendues sont définies dans la vision de
+[`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) et déclinées dans la
+[`roadmap`](docs/planning/MIGRATION_ROADMAP.md). Cette cible n'est pas une déclaration de capacités livrées.
 
 Elle a été créée le **30 août 2026** comme branche orpheline vide, sans ancêtre commun avec `main`.
 Son objectif n’est pas de convertir mécaniquement le code C#/Godot existant, mais de reconstruire le

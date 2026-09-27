@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.veille-lueur-gobeline",
+  "name": "Veille-lueur gobeline",
+  "subtitle": "Cultivatrice de lumière et lectrice des galeries humides",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Profil original proposé pour diversifier le bestiaire. Cette Gobeline est une professionnelle sapiente dont les effets de lumière viennent de cultures, de mica et de mécanismes visibles, non d'un trait moral ou magique attribué à son ascendance. La fiche n'est pas implémentée dans le runtime Rust.",
+  "major": false,
+  "classification": {
+    "nature": "Humanoïde sapient",
+    "family": "Gobelins des ouvrages d’eau",
+    "rarity": "Peu commune hors des citernes et galeries cultivées",
+    "activity": "Alternance de rondes courtes adaptée aux cycles des cultures lumineuses",
+    "social": "Spécialiste de maintenance travaillant seule, en binôme ou pour une communauté de toute origine",
+    "threat": "moderee",
+    "threat_reason": "Elle contrôle ce qui reste visible dans un espace clos et peut révéler une approche furtive, mais ses poudres et ses volets obéissent au vent, à l'eau et aux lignes mécaniques."
+  },
+  "physique": {
+    "dimensions": "1,00 à 1,28 m debout ; harnais lumineux large de 0,85 m lorsque ses trois volets sont ouverts",
+    "mass_kg": [31, 47],
+    "locomotion": [
+      "marche bipède prudente",
+      "progression accroupie sous les conduites",
+      "escalade courte sur échelles et maçonnerie équipée"
+    ],
+    "center_of_gravity": "Centré mais légèrement arrière à cause du harnais ; un bâton de maintenance sert de troisième appui sur les dalles humides.",
+    "silhouette": "Petit humanoïde enveloppé d'un tablier sombre, trois lanternes organiques à pétales de mica déployées au-dessus des épaules et longue baguette terminée par une pince de volet.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles",
+        "description": "Des lunettes à lamelles protègent les yeux de l'éblouissement ; les oreilles restent découvertes pour écouter les galeries.",
+        "protection": 3
+      },
+      {
+        "zone": "Torse et tablier",
+        "description": "Le tablier de toile cirée résiste aux éclaboussures et aux frottements, sans arrêter un impact lourd.",
+        "protection": 7
+      },
+      {
+        "zone": "Harnais de lanternes",
+        "description": "Mica, osier et cuivre protègent les cultures lumineuses ; les charnières et câbles sont exposés.",
+        "protection": 9
+      },
+      {
+        "zone": "Bras et jambes",
+        "description": "Les membres restent légers afin de ramper et grimper dans les ouvrages étroits.",
+        "protection": 3
+      }
+    ]
+  },
+  "habitats": [
+    "citernes ventilées et encore accessibles",
+    "aqueducs abandonnés parcourus d'eau claire",
+    "grottes humides accueillant des cultures fongiques",
+    "réservoirs souterrains reliés à des puits de jour"
+  ],
+  "ecology": {
+    "diet": "Alimentation variée de communauté ; les champignons lumineux entretenus servent d'abord à l'éclairage et ne déterminent pas le régime des Gobelins.",
+    "lifecycle": "Veille-lueur est une qualification acquise après apprentissage des cultures, de la ventilation et des mécanismes de sécurité, pas un stade biologique.",
+    "reproduction": "Aucune particularité reproductive n'est établie ; les formes de parenté et de transmission des savoirs sont diverses et extérieures à ce profil professionnel.",
+    "behavior": "Elle surveille couleur, humidité et odeur des cultures, isole une moisissure malade puis règle les volets. Face à un intrus, elle éclaire d'abord ses mains et demande son intention.",
+    "niche": "Entretien d'un éclairage froid, détection précoce des gaz et observation des fuites dans les ouvrages souterrains.",
+    "environmental_impact": "Les cultures saines consomment du bois déjà décomposé et rendent les galeries praticables sans flamme. Une ventilation négligée disperse toutefois mica, spores et humidité vers des réserves fragiles."
+  },
+  "senses": [
+    "Vision entraînée aux faibles variations de couleur des cultures lumineuses.",
+    "Ouïe directionnelle adaptée aux gouttes, courants d'air et résonances de conduite.",
+    "Odorat attentif aux moisissures, à l'huile et aux gaz de galerie."
+  ],
+  "communication": [
+    "Parole, volets lumineux ouverts selon des motifs simples et tapotements de baguette transmis par les conduites."
+  ],
+  "signs": [
+    "Reflets pâles de mica sur les angles d'une galerie.",
+    "Petits paniers de culture suspendus au-dessus de la ligne d'eau.",
+    "Trois marques de nettoyage sans écriture autour d'une grille d'aération.",
+    "Odeur douce de champignon frais dans une citerne autrement minérale."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Préserver les cultures lumineuses et la ventilation du lieu.",
+      "Identifier un intrus avant qu'il n'atteigne une eau ou une réserve sensible."
+    ],
+    "fears": [
+      "Contamination des cultures par huile, sel ou moisissure concurrente.",
+      "Incendie ou gaz emprisonné dans une galerie fermée."
+    ],
+    "morale": "Assurée tant que le réseau de volets fonctionne ; elle préfère interrompre une ronde et négocier plutôt que sacrifier une culture ou enfermer des personnes dans le noir.",
+    "escalation": "Elle éclaire, avertit, répand une faible quantité de mica puis ferme les volets liés ; le contact physique reste un dernier recours défensif.",
+    "retreat": "Elle ferme son propre harnais, ouvre une voie de ventilation et rejoint une citerne éclairée indépendamment si deux lanternes ou le câble principal sont neutralisés."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 3,
+      "dexterity": 6,
+      "constitution": 5,
+      "intelligence": 7,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 6
+    },
+    "skills": {
+      "climbing": 35,
+      "polearms": 30,
+      "crafting": 50,
+      "mechanisms": 50,
+      "alchemy": 55,
+      "lore": 45,
+      "investigation": 45,
+      "persuasion": 35,
+      "vigilance": 60
+    },
+    "resources": {
+      "vitality": 96,
+      "stamina": 93,
+      "mana": 84,
+      "balance": 72,
+      "focus": 96
+    },
+    "movement": "5 m/s sur galerie sèche ; 3,5 m/s sur dalle humide ; franchit sans se baisser les conduites laissant 1,35 m de hauteur.",
+    "protections": [
+      "Lunettes à lamelles : protection localisée des yeux contre poussière et éclat frontal, inefficace de côté.",
+      "Tablier ciré : protection légère du torse contre eau et irritation, sans immunité aux gaz ni aux spores."
+    ],
+    "attacks": [
+      {
+        "name": "Baguette de volet",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 14,
+        "reach": "1,65 m en ligne ou en crochet court",
+        "stamina_cost": 7,
+        "preparation": "0,35 seconde pour retourner la pince de maintenance",
+        "telegraph": "La main descend sur la hampe, la pince quitte la lanterne et son crochet décrit l'axe de la poussée.",
+        "effect": "Contact contondant léger ou accrochage d'un vêtement et d'un petit objet ; l'outil n'impose aucune traction au-delà de ses appuis.",
+        "counterplay": "Saisir la hampe, entrer sous sa portée, dévier le crochet ou reculer jusqu'à ce que le harnais gêne la poursuite."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Poussière de mica",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "alchemy",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "cône de 4 m suivant le courant d'air",
+        "stamina_cost": 10,
+        "preparation": "0,8 seconde pour ouvrir un sachet et orienter un volet lumineux",
+        "telegraph": "Un sachet argenté est levé, le volet central s'ouvre et le courant d'air rend la première poussière visible.",
+        "effect": "Les particules adhèrent aux surfaces humides et rendent les mouvements plus faciles à suivre sous la lumière ; elles gênent la discrétion sans aveugler ni révéler à travers un obstacle.",
+        "counterplay": "Se placer hors du courant, couvrir la peau et l'équipement, rincer les particules ou éteindre et déplacer la source qui les fait briller."
+      },
+      {
+        "name": "Extinction calculée",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "son harnais et jusqu'à trois volets reliés dans un rayon de 8 m",
+        "stamina_cost": 12,
+        "preparation": "1,1 seconde pour tirer le câble principal et vérifier une issue éclairée",
+        "telegraph": "Les trois pétales de mica se ferment successivement et un câble tendu court vers les lampes préparées.",
+        "effect": "Les sources reliées sont physiquement occultées, créant des secteurs sombres selon leur position ; les lumières indépendantes et la perception non visuelle restent actives.",
+        "counterplay": "Couper ou bloquer le câble, porter sa propre lampe, ouvrir manuellement un volet ou suivre les sons et les courants d'air."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "éblouissement frontal bref",
+        "mechanism": "Les lamelles orientables limitent la lumière reçue de face ; un reflet latéral, une source prolongée ou des lunettes endommagées contourne cette protection."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "eau sur le mica et les poudres",
+        "mechanism": "L'humidité agglomère les particules, ternit les surfaces réfléchissantes et alourdit les charnières jusqu'à réduire les deux capacités de contrôle visuel."
+      },
+      {
+        "subject": "câbles et charnières exposés",
+        "mechanism": "Une pince, une coupe ou un objet coincé dans le mécanisme immobilise un volet et peut déséquilibrer le harnais sans blesser sa porteuse."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Jet d'eau ou forte condensation",
+        "result": "mica rabattu et reflets atténués",
+        "chain": "L'eau capture les particules en suspension, les dépose au sol puis ternit les volets ; la visibilité normale revient mais la dalle devient glissante."
+      },
+      {
+        "input": "Ventilation ouverte ou courant d'air inversé",
+        "result": "cône de poussière déplacé",
+        "chain": "Une grille ou une porte modifie la pression, le flux emporte le mica dans une autre direction et peut révéler une fuite ou une silhouette différente de la cible prévue."
+      },
+      {
+        "input": "Plaque métallique ou miroir mobile",
+        "result": "éclairage redirigé vers un nouveau secteur",
+        "chain": "La lanterne frappe la surface, le reflet suit son angle réel et rend visible une galerie latérale tout en pouvant gêner la Veille-lueur si ses lunettes sont mal orientées."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Les particules de mica ne rendent visible que ce qu'une lampe éclaire réellement ; un obstacle opaque conserve son occlusion."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "Chaque volet relié possède un câble matériel que l'on peut suivre, bloquer ou ouvrir à la main sans détruire la culture lumineuse."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Une variation verdâtre des lanternes paraît signaler un défaut d'air plutôt qu'une intention hostile de leur gardienne."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "La plus ancienne citerne possède une lampe indépendante qui indique une issue de secours même lorsque tout le réseau est fermé."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "soutien anti-discrétion",
+      "contrôle de visibilité par sources matérielles",
+      "guide potentiel des espaces souterrains"
+    ],
+    "telegraphs": [
+      "le sachet levé et le courant visible annoncent la Poussière de mica",
+      "la fermeture successive des trois lanternes annonce l'Extinction calculée",
+      "les câbles tendus montrent quelles lampes dépendent de son harnais"
+    ],
+    "noncombat_options": [
+      "annoncer son intention dans la lumière avant d'approcher des réserves",
+      "aider à ventiler une galerie ou isoler une culture malade",
+      "échanger une plaque de mica propre contre un guidage souterrain",
+      "suivre avec elle les signes d'une fuite plutôt que forcer le passage"
+    ],
+    "complications": [
+      "ouvrir une ventilation peut pousser le mica vers une réserve alimentaire",
+      "briser une lanterne libère une culture fragile au lieu de créer une explosion",
+      "l'obscurité peut masquer une dalle effondrée que la Veille-lueur cherchait à signaler"
+    ]
+  },
+  "salvage": [],
+  "plates": [
+    {
+      "image": "veille-lueur-gobeline-plate.png",
+      "alt": "Une Veille-lueur gobeline entière inspecte une citerne claire, trois lanternes à volets de mica ouvertes sur son harnais et une baguette de maintenance en main.",
+      "caption": "Elle ne commande pas l'ombre : elle sait quelles lampes ouvrir, fermer ou rediriger.",
+      "prompt_key": "veille-lueur-gobeline-plate"
+    }
+  ]
+}

@@ -1043,7 +1043,8 @@ mod tests {
         );
         assert_eq!(
             document.content_hash().unwrap().to_string(),
-            "8dc219ad88ba1472b0ebbb13d8f4beac13f3fae1eeff688c928abb044d96d0e2"
+            // Distant coverage: High 640 m / Ultra 768 m; density and near detail unchanged.
+            "91f44b501b80fef267d1f7af69db1b0c056e1679c09d43ebabb4be175007c03b"
         );
     }
 
@@ -1077,10 +1078,6 @@ mod tests {
                 vegetation.presentation.hlod_distance_m,
             ),
             (
-                high.vegetation.cull_distance_m,
-                vegetation.presentation.cull_distance_m,
-            ),
-            (
                 high.shadows.maximum_distance_m,
                 environment.sun.shadow_distance_m,
             ),
@@ -1095,6 +1092,16 @@ mod tests {
         ] {
             assert_eq!(actual.to_bits(), expected.to_bits());
         }
+        // A presentation preset may retain distant geometry beyond the unchanged
+        // base document; it must not rewrite authored placements or near detail.
+        assert_eq!(
+            vegetation.presentation.cull_distance_m.to_bits(),
+            384.0_f32.to_bits()
+        );
+        assert_eq!(
+            high.vegetation.cull_distance_m.to_bits(),
+            640.0_f32.to_bits()
+        );
         assert_eq!(
             high.vegetation.grass_blades_per_patch,
             vegetation.presentation.grass_blades_per_patch

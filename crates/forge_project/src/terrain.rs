@@ -7,9 +7,17 @@ use std::collections::HashSet;
 use std::fmt;
 use thiserror::Error;
 
+mod materials;
+mod sampled_source;
+pub use materials::{TerrainMaterialOverride, TerrainMaterialWeight};
+
 pub const TERRAIN_DOCUMENT_SCHEMA: &str = "forge.terrain";
 pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V1: u32 = 1;
 pub const TERRAIN_DOCUMENT_SCHEMA_VERSION: u32 = 2;
+/// Opt-in authoring format; legacy constructors retain v2 until explicit migration.
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V3: u32 = 3;
+/// Opt-in immutable raster source with the existing sparse author corrections.
+pub const TERRAIN_DOCUMENT_SCHEMA_VERSION_V4: u32 = 4;
 pub const MIN_TERRAIN_MATERIAL_LAYERS: usize = 1;
 pub const MAX_TERRAIN_MATERIAL_LAYERS: usize = 32;
 pub const MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS: u16 = 8_192;
@@ -52,8 +60,12 @@ pub struct TerrainDocument {
     pub seed: u64,
     pub extent_m: TerrainExtent,
     pub height_sampling: HeightSamplingParameters,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sampled_source: Option<crate::sampled_terrain::SampledTerrainSource>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub height_deltas: Vec<TerrainHeightDelta>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub material_overrides: Vec<TerrainMaterialOverride>,
     pub material_layers: Vec<TerrainMaterialLayer>,
 }
 
@@ -81,7 +93,9 @@ impl TerrainDocument {
             seed,
             extent_m,
             height_sampling,
+            sampled_source: None,
             height_deltas: Vec::new(),
+            material_overrides: Vec::new(),
             material_layers,
         }
     }
@@ -120,7 +134,8 @@ impl TerrainDocument {
     pub fn migrate_to_latest(&self) -> Result<Self, TerrainDocumentError> {
         self.validate()?;
         let mut migrated = self.clone();
-        migrated.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION;
+        // Preserve opt-in v3 documents; this legacy height migration never downgrades paint.
+        migrated.schema_version = self.schema_version.max(TERRAIN_DOCUMENT_SCHEMA_VERSION);
         Ok(migrated)
     }
 
@@ -130,6 +145,8 @@ impl TerrainDocument {
         }
         if self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V1
             && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION
+            && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V3
+            && self.schema_version != TERRAIN_DOCUMENT_SCHEMA_VERSION_V4
         {
             return Err(TerrainDocumentError::UnsupportedVersion(
                 self.schema_version,
@@ -154,6 +171,7 @@ impl TerrainDocument {
 
         self.extent_m.validate()?;
         self.height_sampling.validate(self.extent_m)?;
+        self.validate_sampled_source()?;
         self.validate_height_deltas()?;
 
         if self.material_layers.len() < MIN_TERRAIN_MATERIAL_LAYERS {
@@ -177,6 +195,7 @@ impl TerrainDocument {
             }
         }
 
+        self.validate_material_overrides()?;
         Ok(())
     }
 
@@ -313,6 +332,7 @@ impl TerrainExtent {
 #[serde(rename_all = "snake_case")]
 pub enum HeightSamplingAlgorithm {
     FractalValueNoiseV1,
+    SampledRasterV1,
 }
 
 /// Engine-neutral parameters needed to reproduce the terrain height source.
@@ -475,6 +495,10 @@ fn valid_logical_id(value: &str) -> bool {
 
 #[derive(Debug, Error)]
 pub enum TerrainDocumentError {
+    #[error("invalid sampled terrain source: {0}")]
+    SampledSource(String),
+    #[error("invalid authored terrain materials: {0}")]
+    MaterialOverrides(String),
     #[error("invalid terrain schema `{0}`")]
     InvalidSchema(String),
     #[error("unsupported terrain schema version {0}")]
@@ -617,10 +641,12 @@ mod tests {
     #[test]
     fn unsupported_versions_and_invalid_sampling_are_rejected() {
         let mut document = valid_document(42);
-        document.schema_version = 3;
+        document.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION_V3;
+        assert!(document.validate().is_ok());
+        document.schema_version = 999;
         assert!(matches!(
             document.validate(),
-            Err(TerrainDocumentError::UnsupportedVersion(3))
+            Err(TerrainDocumentError::UnsupportedVersion(999))
         ));
 
         document.schema_version = TERRAIN_DOCUMENT_SCHEMA_VERSION;

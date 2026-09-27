@@ -21,6 +21,16 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { color: var(--accent); font-size: 11px; letter-spacing: .18em; font-weight: 700; }
 h1 { margin: 3px 0 0; font-size: 22px; font-weight: 600; }
 .status-stack { display: grid; justify-items: end; gap: 5px; color: var(--muted); font-size: 12px; }
+.studio-return-editor { flex-shrink:0; color:#eee6d7; background:#30291f; border:1px solid #c9954c; border-radius:6px; padding:9px 14px; text-decoration:none; font-size:14px; }
+.studio-return-editor:hover { background:#4b3a24; }
+.studio-return-editor:focus-visible { outline:2px solid #f0c77b; outline-offset:3px; }
+.scene-navigation { position: relative; margin: 0 16px; font-size: 13px; }
+.scene-navigation summary { cursor: pointer; padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; }
+.scene-navigation nav { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: 300px; padding: 12px; z-index: 10; background: var(--surface-raised); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 32px #0008; }
+.scene-navigation p { margin: 0 0 8px; color: var(--muted); line-height: 1.5; }
+.scene-navigation a { display: block; padding: 10px; color: var(--text); border-radius: 4px; text-decoration: none; }
+.scene-navigation a:hover, .scene-navigation a[aria-current="page"] { background: var(--line); color: var(--accent); }
+.scene-navigation summary:focus-visible, .scene-navigation a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .status-ok, .status-error { padding: 4px 9px; border-radius: 999px; font-weight: 700; }
 .status-ok { color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
 .status-error { color: var(--error); background: color-mix(in srgb, var(--error) 12%, transparent); }
@@ -35,8 +45,22 @@ h1 { margin: 3px 0 0; font-size: 22px; font-weight: 600; }
 .viewport-panel { position: relative; display: grid; grid-template-rows: 38px minmax(0, 1fr); overflow: hidden; }
 .viewport-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 0 13px; color: var(--muted); background: #091321; border-bottom: 1px solid var(--line); font-size: 12px; }
 #forge-canvas { display: block; width: 100%; height: 100%; background: radial-gradient(circle at 50% 40%, #193456, #04080f 72%); }
+.viewport-controls { position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 1; padding: 8px 10px; color: var(--text); background: rgba(4, 8, 15, .82); border-radius: 5px; font-size: 12px; pointer-events: none; }
+.viewport-controls button { pointer-events: auto; }
 .webgpu-error { position: absolute; inset: 38px 0 0; display: grid; place-content: center; gap: 8px; text-align: center; color: var(--error); background: rgba(4, 8, 15, .92); }
 .webgpu-error span { color: var(--muted); }
+.render-warmup { position: absolute; inset: 38px 0 0; z-index: 1; display: grid; place-content: center; gap: 12px; padding: 32px; text-align: center; background: #0b1726; }
+.render-warmup[hidden] { display: none; }
+.render-warmup span { color: var(--muted); max-width: 560px; }
+.webgpu-error { z-index: 2; }
 .inspector label { display: grid; gap: 6px; margin-bottom: 15px; color: var(--muted); font-size: 12px; }
+.inspector { overflow-y: auto; }
+.weather-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 15px; }
+.weather-preview .hint, .weather-preview output { grid-column: 1 / -1; margin: 0; }
+.weather-preview > details { grid-column: 1 / -1; min-width: 0; }
+.weather-preview > details > output { display: block; margin-block: 8px; }
+.weather-preview button { padding: 7px; border: 1px solid var(--line); border-radius: 5px; color: var(--text); background: var(--surface-raised); cursor: pointer; }
+.weather-preview button:disabled { opacity: .45; cursor: default; }
+.weather-preview > .weather-preview { grid-column: 1 / -1; grid-template-columns: 1fr; }
 .inspector output { overflow-wrap: anywhere; padding: 9px; border: 1px solid var(--line); border-radius: 5px; color: var(--text); background: #081220; font-family: "Cascadia Mono", monospace; }
 .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }

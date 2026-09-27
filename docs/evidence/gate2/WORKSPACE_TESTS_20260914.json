@@ -1,0 +1,406 @@
+{
+  "schema": "forge.local-workspace-test-evidence",
+  "version": 1,
+  "date": "2026-09-14",
+  "branch": "Rust",
+  "head": "f786a38aca2023f08d708687f99a47d14f34e6d4",
+  "worktree": "dirty",
+  "qualification_scope": "Development workspace; not a clean gate qualification",
+  "command": "cargo test --workspace --offline --locked -j 2",
+  "exit_code": 0,
+  "compilation_seconds": 286,
+  "totals": {
+    "passed": 943,
+    "failed": 0,
+    "ignored": 3,
+    "suites": 55
+  },
+  "source_relation": "Before subsequent StudioCommand allocation fix; Studio consumers rechecked separately",
+  "suites": [
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_assets-398340e3e6fbe64b.exe)",
+      "status": "ok",
+      "passed": 25,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_cli-c866cc246ad1d6d7.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\main.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_cli-06ec53d244cfdeee.exe)",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\commands.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\commands-8392d3bfc92f5b04.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_core-93932f3d1883f221.exe)",
+      "status": "ok",
+      "passed": 17,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_engine-b830eb1f92266100.exe)",
+      "status": "ok",
+      "passed": 370,
+      "failed": 0,
+      "ignored": 2
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_project-686b284eba3c6240.exe)",
+      "status": "ok",
+      "passed": 88,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authored_paths.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authored_paths-d5688403d0553394.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authored_rivers.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authored_rivers-01772863db45197c.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authoring_catalog.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authoring_catalog-a4e82ec5fa0c72ce.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authoring_creation.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authoring_creation-37637b478116f25e.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authoring_history.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authoring_history-67248c13b7367e29.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authoring_recovery.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authoring_recovery-dab0912cc848b9ca.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\building_authoring.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\building_authoring-3880ae4e4ba26495.exe)",
+      "status": "ok",
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\density_inspection.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\density_inspection-224012199569b5ad.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\manual_placements.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\manual_placements-c23a7838b8f37e9b.exe)",
+      "status": "ok",
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\terrain_material_authoring.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\terrain_material_authoring-6600d3e881304c51.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_authoring.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_authoring-ac3c2a651edb5655.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_delta_archive.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_delta_archive-517dd67464775485.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 1
+    },
+    {
+      "target": "Running tests\\zone_file_session.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_file_session-62f1d69289ed4280.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_history.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_history-4c528d64f53d46a2.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_host.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_host-e262e7a8a34acbcf.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_migration.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_migration-131101c5e520ff82.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_regeneration.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_regeneration-5666847203b5cab2.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_session.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_session-c7ac460780821016.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\zone_start.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\zone_start-84f3c6ea1e0a65a8.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\main.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_runtime-e5235cfabe545b34.exe)",
+      "status": "ok",
+      "passed": 101,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\structured_logging.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\structured_logging-6f2cd1df61bc7faf.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_studio_frontend-84d1a74b897b179e.exe)",
+      "status": "ok",
+      "passed": 62,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\main.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_studio-c182c2d5c988c8f1.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running unittests src\\lib.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\forge_world-0fe6a85a4eaf5f28.exe)",
+      "status": "ok",
+      "passed": 143,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\authoring_terrain.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\authoring_terrain-2eddd81e02e7df01.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\editor_vegetation.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\editor_vegetation-4a6e130cd8b2bfd7.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_intersections.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_intersections-98211b48ddd344a8.exe)",
+      "status": "ok",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_placement.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_placement-b59180dc5e6779ae.exe)",
+      "status": "ok",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_stroke.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_stroke-c752be49b1f49b41.exe)",
+      "status": "ok",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_surface.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_surface-ae8e8c7a01cd0eb2.exe)",
+      "status": "ok",
+      "passed": 9,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_union.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_union-cc3ee1c414f8f2ff.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\path_vegetation.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\path_vegetation-e67509277517fdd2.exe)",
+      "status": "ok",
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\placement_snap_authoring.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\placement_snap_authoring-06b34c8bbc5a9bc9.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\placement_transform_authoring.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\placement_transform_authoring-768b93c316222011.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\river_carving.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\river_carving-2b59fa86d6844c3f.exe)",
+      "status": "ok",
+      "passed": 12,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\river_stroke.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\river_stroke-1df12db68c88c522.exe)",
+      "status": "ok",
+      "passed": 3,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\spline_edit.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\spline_edit-93b6bbb798020584.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\terrain_brush.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\terrain_brush-e48cfe6fcb93216b.exe)",
+      "status": "ok",
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\terrain_material_brush.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\terrain_material_brush-42dddb9360d968dc.exe)",
+      "status": "ok",
+      "passed": 2,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\terrain_material_paint.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\terrain_material_paint-0026479998734aa8.exe)",
+      "status": "ok",
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Running tests\\vegetation_density_brush.rs (E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906\\debug\\deps\\vegetation_density_brush-f08f852d3d6c79b3.exe)",
+      "status": "ok",
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_assets",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_cli",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_core",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_engine",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_project",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_studio_frontend",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "target": "Doc-tests forge_world",
+      "status": "ok",
+      "passed": 0,
+      "failed": 0,
+      "ignored": 0
+    }
+  ]
+}

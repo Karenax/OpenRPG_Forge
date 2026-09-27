@@ -1,6 +1,8 @@
+use crate::{PostProcessQualityObservation, PostProcessQualityRequest, post_process_quality};
 use crate::{VisualValleyTerrainMaterial, VisualValleyVegetationMaterial};
 use bevy::{
     asset::{RenderAssetUsages, embedded_asset},
+    core_pipeline::tonemapping::Tonemapping,
     light::{NotShadowCaster, NotShadowReceiver},
     mesh::Indices,
     pbr::{ExtendedMaterial, MaterialExtension},
@@ -18,6 +20,9 @@ use forge_project::{
 };
 use serde::Serialize;
 use std::{error::Error, fmt};
+
+#[cfg(test)]
+mod post_process_tests;
 
 const RAIN_SHADER_PATH: &str = "embedded://forge_engine/shaders/visual_valley_rain.wgsl";
 const RAIN_VERTICES_PER_DROP: usize = 8;
@@ -76,17 +81,25 @@ pub type VisualValleyRainMaterial = ExtendedMaterial<StandardMaterial, VisualVal
 /// Mutable execution state. The canonical weather profile remains immutable and renderer-neutral.
 #[derive(Clone, Debug, Resource)]
 pub struct WeatherRuntimeState {
+    requested_rain_quality: WeatherQualityTier,
     target_state: WeatherState,
     current_wetness: f32,
+    pub(super) sunlight_blend: f32,
     simulation_seconds: f64,
     previous_simulation_seconds: f64,
 }
 
 impl WeatherRuntimeState {
-    fn at_state(document: &WeatherProfileDocument, state: WeatherState) -> Self {
+    pub(super) fn at_state(document: &WeatherProfileDocument, state: WeatherState) -> Self {
         Self {
+            requested_rain_quality: document.rain.quality,
             target_state: state,
             current_wetness: document.wetness.target_for(state),
+            sunlight_blend: if state == WeatherState::Rain {
+                1.0
+            } else {
+                0.0
+            },
             simulation_seconds: 0.0,
             previous_simulation_seconds: 0.0,
         }
@@ -95,6 +108,11 @@ impl WeatherRuntimeState {
     /// Requests a deterministic transition toward clear or rain on subsequent Bevy updates.
     pub const fn request_state(&mut self, target_state: WeatherState) {
         self.target_state = target_state;
+    }
+
+    /// Changes only the derived rain mesh budget, not the authored profile or weather simulation.
+    pub const fn request_rain_quality(&mut self, quality: WeatherQualityTier) {
+        self.requested_rain_quality = quality;
     }
 
     #[must_use]
@@ -126,6 +144,7 @@ pub enum WeatherProjectionStatus {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize)]
 pub struct WeatherRainStats {
+    pub requested_quality: Option<WeatherQualityTier>,
     pub quality: Option<WeatherQualityTier>,
     pub requested_drops: u32,
     pub generated_drops: u32,
@@ -153,6 +172,8 @@ pub struct WeatherWetnessStats {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize)]
 pub struct WeatherPostProcessingStats {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<PostProcessQualityObservation>,
     pub camera_3d_entities: usize,
     pub active_camera_3d_entities: usize,
     pub bloom_requested: bool,
@@ -190,6 +211,7 @@ impl WeatherProjectionStats {
             target_state: state.target_state,
             gpu_execution_observed: false,
             rain: WeatherRainStats {
+                requested_quality: Some(state.requested_rain_quality),
                 quality: Some(plan.quality),
                 requested_drops: plan.drops,
                 generated_drops: plan.drops,
@@ -256,15 +278,18 @@ impl From<WeatherProfileError> for WeatherAdapterError {
 pub struct VisualValleyWeatherPlugin {
     document: WeatherProfileDocument,
     initial_state: WeatherState,
+    initial_rain_quality: WeatherQualityTier,
 }
 
 impl VisualValleyWeatherPlugin {
     #[must_use]
     pub fn new(document: WeatherProfileDocument) -> Self {
         let initial_state = document.initial_state;
+        let initial_rain_quality = document.rain.quality;
         Self {
             document,
             initial_state,
+            initial_rain_quality,
         }
     }
 
@@ -274,18 +299,25 @@ impl VisualValleyWeatherPlugin {
         self.initial_state = initial_state;
         self
     }
+
+    #[must_use]
+    pub const fn with_initial_rain_quality(mut self, quality: WeatherQualityTier) -> Self {
+        self.initial_rain_quality = quality;
+        self
+    }
 }
 
 impl Plugin for VisualValleyWeatherPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_rain_batch(&self.document)
+        let prepared = prepare_rain_batch_at_quality(&self.document, self.initial_rain_quality)
             .unwrap_or_else(|error| panic!("weather plugin requires a supported profile: {error}"));
         let source_hash = self
             .document
             .content_hash()
             .expect("a validated weather profile must have a canonical hash")
             .to_string();
-        let runtime_state = WeatherRuntimeState::at_state(&self.document, self.initial_state);
+        let mut runtime_state = WeatherRuntimeState::at_state(&self.document, self.initial_state);
+        runtime_state.request_rain_quality(self.initial_rain_quality);
         let initial_stats =
             WeatherProjectionStats::unobserved(source_hash.clone(), &runtime_state, prepared.plan);
 
@@ -304,6 +336,7 @@ impl Plugin for VisualValleyWeatherPlugin {
         .add_systems(
             Update,
             (
+                apply_rain_quality,
                 advance_weather_runtime,
                 project_rain_batch,
                 project_wetness_materials,
@@ -316,9 +349,9 @@ impl Plugin for VisualValleyWeatherPlugin {
 }
 
 #[derive(Clone, Debug, Resource)]
-struct VisualValleyWeatherProfile {
-    document: WeatherProfileDocument,
-    source_hash: String,
+pub(super) struct VisualValleyWeatherProfile {
+    pub(super) document: WeatherProfileDocument,
+    pub(super) source_hash: String,
 }
 
 #[derive(Clone, Copy, Debug, Resource)]
@@ -343,14 +376,19 @@ struct RainBatchMaterial(Handle<VisualValleyRainMaterial>);
 #[derive(Default, Resource)]
 struct WeatherCameraBinding(Option<Entity>);
 
+#[cfg(test)]
 fn prepare_rain_batch(
     document: &WeatherProfileDocument,
 ) -> Result<PreparedRainBatch, WeatherAdapterError> {
+    prepare_rain_batch_at_quality(document, document.rain.quality)
+}
+
+fn prepare_rain_batch_at_quality(
+    document: &WeatherProfileDocument,
+    quality: WeatherQualityTier,
+) -> Result<PreparedRainBatch, WeatherAdapterError> {
     document.validate()?;
-    let drops = document
-        .rain
-        .drop_budgets
-        .for_quality(document.rain.quality);
+    let drops = document.rain.drop_budgets.for_quality(quality);
     if drops > MAX_WEATHER_BATCH_DROPS {
         return Err(WeatherAdapterError::RainDropBudgetExceeded {
             requested: drops,
@@ -437,7 +475,7 @@ fn prepare_rain_batch(
     Ok(PreparedRainBatch {
         mesh,
         plan: RainBatchPlan {
-            quality: document.rain.quality,
+            quality,
             drops,
             vertices,
             triangles,
@@ -553,6 +591,51 @@ fn spawn_rain_batch(
 
 #[allow(
     clippy::needless_pass_by_value,
+    clippy::too_many_arguments,
+    reason = "Bevy system parameters"
+)]
+fn apply_rain_quality(
+    mut commands: Commands,
+    profile: Res<VisualValleyWeatherProfile>,
+    state: Res<WeatherRuntimeState>,
+    mut plan: ResMut<RainBatchPlan>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut batches: Query<(Entity, &Mesh3d, &mut Name), With<VisualValleyRainBatch>>,
+    mut rejected: Local<Option<WeatherQualityTier>>,
+) {
+    let requested = state.requested_rain_quality;
+    if requested == plan.quality || *rejected == Some(requested) {
+        return;
+    }
+    let Ok((entity, handle, mut name)) = batches.single_mut() else {
+        return;
+    };
+    let Some(mut mesh) = meshes.get_mut(&handle.0) else {
+        return;
+    };
+    match prepare_rain_batch_at_quality(&profile.document, requested) {
+        Ok(prepared) => {
+            // Update the same asset: entity, material, animation clock and source hash stay stable.
+            *mesh = prepared.mesh;
+            *plan = prepared.plan;
+            *name = Name::new(format!(
+                "Visual Valley procedural rain · {} drops · one batch",
+                plan.drops
+            ));
+            commands
+                .entity(entity)
+                .remove::<bevy::camera::primitives::Aabb>();
+            *rejected = None;
+        }
+        Err(error) => {
+            tracing::error!(event_kind = "rain_quality_rejected", %error, "rain budget remains unchanged");
+            *rejected = Some(requested);
+        }
+    }
+}
+
+#[allow(
+    clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
 )]
 fn advance_weather_runtime(
@@ -563,7 +646,7 @@ fn advance_weather_runtime(
     advance_runtime(&profile.document, &mut state, time.delta_secs());
 }
 
-fn advance_runtime(
+pub(super) fn advance_runtime(
     document: &WeatherProfileDocument,
     state: &mut WeatherRuntimeState,
     delta_seconds: f32,
@@ -572,6 +655,11 @@ fn advance_runtime(
         return;
     }
     state.previous_simulation_seconds = state.simulation_seconds;
+    if let Some(sunlight) = document.sunlight {
+        state.sunlight_blend = sunlight
+            .advance_blend(state.sunlight_blend, state.target_state, delta_seconds)
+            .expect("validated sunlight profile and finite Bevy delta preserve the lighting blend");
+    }
     state.simulation_seconds += f64::from(delta_seconds);
     state.current_wetness = document
         .advance_wetness(state.current_wetness, state.target_state, delta_seconds)
@@ -657,6 +745,7 @@ fn project_post_processing(
     state: Res<WeatherRuntimeState>,
     cameras: Query<(Entity, &Camera), With<Camera3d>>,
     mut binding: ResMut<WeatherCameraBinding>,
+    quality: Option<Res<PostProcessQualityRequest>>,
 ) {
     let mut active_cameras = cameras
         .iter()
@@ -676,10 +765,23 @@ fn project_post_processing(
 
     let precipitation = precipitation_factor(&profile.document, state.current_wetness);
     let grade = interpolated_grade(&profile.document, precipitation);
-    commands
-        .entity(camera)
-        .insert(color_grading_component(grade));
-    if profile.document.post_processing.bloom.enabled {
+    let settings = quality.as_deref().map(PostProcessQualityRequest::settings);
+    let grading = if settings.is_none_or(|settings| settings.color_grading_enabled) {
+        color_grading_component(grade)
+    } else {
+        ColorGrading::default()
+    };
+    commands.entity(camera).insert(grading);
+    if let Some(settings) = settings {
+        commands
+            .entity(camera)
+            .insert(post_process_quality::tonemapping(
+                settings.tonemapping_enabled,
+            ));
+    }
+    if profile.document.post_processing.bloom.enabled
+        && settings.is_none_or(|settings| settings.bloom_enabled)
+    {
         let bloom = profile.document.post_processing.bloom;
         commands.entity(camera).insert(Bloom {
             intensity: bloom.intensity,
@@ -717,6 +819,8 @@ fn observe_weather_projection(
     terrain_materials: Option<Res<Assets<VisualValleyTerrainMaterial>>>,
     vegetation_materials: Option<Res<Assets<VisualValleyVegetationMaterial>>>,
     mut projection: ResMut<WeatherProjectionStats>,
+    quality: Option<Res<PostProcessQualityRequest>>,
+    tonemappers: Query<(&Camera, &Tonemapping), With<Camera3d>>,
 ) {
     let camera_3d_entities = cameras.iter().count();
     let active = cameras
@@ -766,7 +870,10 @@ fn observe_weather_projection(
     );
     let status = if active_camera_3d_entities != 1 {
         WeatherProjectionStatus::InvalidCameraTopology
-    } else if batch_entities != 1 || !shader_animation_uniform_updated {
+    } else if batch_entities != 1
+        || !shader_animation_uniform_updated
+        || runtime.requested_rain_quality != plan.quality
+    {
         WeatherProjectionStatus::IncompleteRainBatch
     } else if !terrain_uniforms_match || !vegetation_uniforms_match {
         WeatherProjectionStatus::IncompleteMaterialProjection
@@ -781,8 +888,13 @@ fn observe_weather_projection(
         target_state: runtime.target_state,
         gpu_execution_observed: false,
         rain: WeatherRainStats {
+            requested_quality: Some(runtime.requested_rain_quality),
             quality: Some(plan.quality),
-            requested_drops: plan.drops,
+            requested_drops: profile
+                .document
+                .rain
+                .drop_budgets
+                .for_quality(runtime.requested_rain_quality),
             generated_drops: plan.drops,
             batch_entities,
             per_drop_entities: 0,
@@ -803,6 +915,33 @@ fn observe_weather_projection(
             clear_target_restored_exactly: restored_exactly,
         },
         post_processing: WeatherPostProcessingStats {
+            quality: quality.as_deref().map(|quality| {
+                let settings = quality.settings();
+                let expected_grade = if settings.color_grading_enabled {
+                    color_grading_component(interpolated_grade(&profile.document, precipitation))
+                } else {
+                    ColorGrading::default()
+                };
+                let bloom_matches = active.first().is_some_and(|(_, _, bloom, _)| {
+                    bloom.is_some()
+                        == (settings.bloom_enabled
+                            && profile.document.post_processing.bloom.enabled)
+                });
+                let tone_matches = tonemappers
+                    .iter()
+                    .find(|(camera, _)| camera.is_active)
+                    .is_some_and(|(_, tone)| {
+                        *tone == post_process_quality::tonemapping(settings.tonemapping_enabled)
+                    });
+                quality.observe(
+                    active_camera_3d_entities == 1
+                        && bloom_matches
+                        && tone_matches
+                        && grade.is_some_and(|actual| {
+                            post_process_quality::grading_matches(actual, &expected_grade)
+                        }),
+                )
+            }),
             camera_3d_entities,
             active_camera_3d_entities,
             bloom_requested: profile.document.post_processing.bloom.enabled,
@@ -891,19 +1030,37 @@ fn interpolated_grade(document: &WeatherProfileDocument, precipitation: f32) -> 
 }
 
 fn color_grading_component(grade: ColorGradeProfile) -> ColorGrading {
-    ColorGrading::with_identical_sections(
-        ColorGradingGlobal {
-            exposure: grade.exposure_ev,
-            temperature: grade.temperature,
-            tint: grade.tint,
-            post_saturation: grade.saturation,
+    // Bevy consumes CIE xy offsets, not normalized UI controls. A direct +/-1
+    // offset leaves the chromaticity domain and gives even mild grades a strong cast.
+    const MAX_CHROMATICITY_OFFSET: f32 = 0.05;
+    // Bevy's linear contrast above one subtracts light and clips the shadows.
+    // Use its existing gain/gamma operations for positive, pivot-preserving
+    // contrast instead: (pivot * (x / pivot)^contrast)^(1 / authored_gamma).
+    // Keep the non-clipping linear response for contrast <= 1, including zero.
+    const CONTRAST_PIVOT: f32 = 0.18;
+    let section = if grade.contrast > 1.0 {
+        ColorGradingSection {
+            contrast: 1.0,
+            gain: CONTRAST_PIVOT.powf(grade.contrast.recip() - 1.0),
+            gamma: grade.gamma / grade.contrast,
             ..default()
-        },
+        }
+    } else {
         ColorGradingSection {
             contrast: grade.contrast,
             gamma: grade.gamma,
             ..default()
+        }
+    };
+    ColorGrading::with_identical_sections(
+        ColorGradingGlobal {
+            exposure: grade.exposure_ev,
+            temperature: grade.temperature * MAX_CHROMATICITY_OFFSET,
+            tint: grade.tint * MAX_CHROMATICITY_OFFSET,
+            post_saturation: grade.saturation,
+            ..default()
         },
+        section,
     )
 }
 
@@ -1072,6 +1229,23 @@ mod tests {
 
         let component = color_grading_component(clear);
         assert_eq!(
+            component.global.temperature.to_bits(),
+            (clear.temperature * 0.05).to_bits()
+        );
+        assert_eq!(
+            component.global.tint.to_bits(),
+            (clear.tint * 0.05).to_bits()
+        );
+        for value in [-1.0, 0.0, 1.0] {
+            let bounded = color_grading_component(ColorGradeProfile {
+                temperature: value,
+                tint: value,
+                ..clear
+            });
+            assert!(bounded.global.temperature.abs() <= 0.05);
+            assert!(bounded.global.tint.abs() <= 0.05);
+        }
+        assert_eq!(
             component.global.exposure.to_bits(),
             clear.exposure_ev.to_bits()
         );
@@ -1079,13 +1253,78 @@ mod tests {
             component.global.post_saturation.to_bits(),
             clear.saturation.to_bits()
         );
+        assert_eq!(component.midtones.contrast.to_bits(), 1.0_f32.to_bits());
         assert_eq!(
-            component.midtones.contrast.to_bits(),
-            clear.contrast.to_bits()
+            component.midtones.gamma.to_bits(),
+            (clear.gamma / clear.contrast).to_bits()
         );
-        assert_eq!(component.midtones.gamma.to_bits(), clear.gamma.to_bits());
         assert_eq!(component.shadows, component.midtones);
         assert_eq!(component.highlights, component.midtones);
+    }
+
+    #[test]
+    fn weather_contrast_preserves_dark_detail_pivot_and_authored_gamma() {
+        let base = profile().post_processing.rain_grade;
+        for contrast in [1.0_f32, 1.06, 1.08, 1.5, 2.0] {
+            for gamma in [0.1_f32, 1.0, 4.0] {
+                let section = color_grading_component(ColorGradeProfile {
+                    contrast,
+                    gamma,
+                    ..base
+                })
+                .midtones;
+                let evaluate = |x: f32| {
+                    let linear = 0.5 + (x - 0.5) * section.contrast;
+                    (linear.max(0.0) * section.gain + section.lift).powf(section.gamma.recip())
+                };
+                let mut previous = 0.0;
+                // Stay above f32 underflow even at gamma 0.1 / contrast 2.
+                for x in [0.01_f32, 0.02, 0.037, 0.18, 0.5, 1.0, 4.0] {
+                    let actual = evaluate(x);
+                    let expected = (0.18 * (x / 0.18).powf(contrast)).powf(gamma.recip());
+                    assert!(actual.is_finite() && actual > previous);
+                    assert!((actual - expected).abs() <= expected.abs() * 0.001 + 1e-30);
+                    previous = actual;
+                }
+                assert_eq!(evaluate(0.0).to_bits(), 0.0_f32.to_bits());
+            }
+        }
+        // Contrast below one retains its previous intentional grey/flat response.
+        for contrast in [0.0_f32, 0.5, 1.0] {
+            let section = color_grading_component(ColorGradeProfile { contrast, ..base }).midtones;
+            assert_eq!(section.contrast.to_bits(), contrast.to_bits());
+            assert_eq!(section.gain.to_bits(), 1.0_f32.to_bits());
+            assert_eq!(section.gamma.to_bits(), base.gamma.to_bits());
+        }
+    }
+
+    #[test]
+    fn wet_roughness_contract_preserves_dry_materials_and_scales_microfacet_alpha() {
+        // CPU reference and shader source guards only; rendered proof is separate.
+        for dry in [0.2_f32, 0.5, 0.9, 1.0] {
+            for multiplier in [0.1_f32, 0.32, 0.8] {
+                let mut previous = dry;
+                for wetness in [0.0_f32, 0.25, 0.78, 1.0] {
+                    let alpha_multiplier = (multiplier - 1.0).mul_add(wetness, 1.0);
+                    let perceptual = dry * alpha_multiplier.sqrt();
+                    if wetness == 0.0 {
+                        assert_eq!(perceptual.to_bits(), dry.to_bits());
+                    }
+                    assert!(perceptual <= previous && perceptual > 0.0);
+                    assert!((perceptual * perceptual - dry * dry * alpha_multiplier).abs() < 1e-6);
+                    previous = perceptual;
+                }
+            }
+        }
+        let terrain = include_str!("shaders/visual_valley_terrain.wgsl");
+        assert!(terrain.contains("let wet_roughness_multiplier = sqrt(mix("));
+        let vegetation = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
+        assert_eq!(
+            vegetation
+                .matches("sqrt(mix(1.0, vegetation.wetness_parameters.y, wetness))")
+                .count(),
+            2
+        );
     }
 
     #[test]
@@ -1110,7 +1349,88 @@ mod tests {
     }
 
     #[test]
-    fn headless_plugin_projects_one_rain_batch_materials_and_camera_components() {
+    fn rain_quality_cycle_preserves_bindings_clock_source_and_reconstructs_high_exactly() {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<VisualValleyTerrainMaterial>();
+        app.init_asset::<VisualValleyVegetationMaterial>();
+        app.insert_resource(bevy::time::TimeUpdateStrategy::ManualDuration(
+            std::time::Duration::ZERO,
+        ));
+        app.world_mut().spawn((
+            Camera3d::default(),
+            Camera::default(),
+            Transform::default(),
+            GlobalTransform::default(),
+        ));
+        let document = profile();
+        let source_hash = document.content_hash().unwrap().to_string();
+        app.add_plugins(
+            VisualValleyWeatherPlugin::new(document.clone()).with_initial_state(WeatherState::Rain),
+        );
+        app.update();
+        app.world_mut()
+            .resource_mut::<WeatherRuntimeState>()
+            .simulation_seconds = 123.0;
+        let mut batches = app.world_mut().query_filtered::<(
+            Entity,
+            &Mesh3d,
+            &MeshMaterial3d<VisualValleyRainMaterial>,
+        ), With<VisualValleyRainBatch>>();
+        let (entity, mesh, material) = batches.single(app.world()).unwrap();
+        let binding = (entity, mesh.0.id(), material.0.id());
+        let original_positions = app
+            .world()
+            .resource::<Assets<Mesh>>()
+            .get(binding.1)
+            .unwrap()
+            .attribute(Mesh::ATTRIBUTE_POSITION)
+            .unwrap()
+            .clone();
+        for quality in [
+            WeatherQualityTier::Low,
+            WeatherQualityTier::Ultra,
+            WeatherQualityTier::Medium,
+            WeatherQualityTier::High,
+        ] {
+            app.world_mut()
+                .resource_mut::<WeatherRuntimeState>()
+                .request_rain_quality(quality);
+            app.update();
+            let (entity, mesh, material) = batches.single(app.world()).unwrap();
+            assert_eq!((entity, mesh.0.id(), material.0.id()), binding);
+            let stats = app.world().resource::<WeatherProjectionStats>();
+            let drops = document.rain.drop_budgets.for_quality(quality);
+            assert_eq!(stats.rain.requested_quality, Some(quality));
+            assert_eq!(stats.rain.quality, Some(quality));
+            assert_eq!(stats.rain.generated_drops, drops);
+            assert_eq!(stats.source_hash, source_hash);
+            let runtime = app.world().resource::<WeatherRuntimeState>();
+            assert_eq!(runtime.simulation_seconds.to_bits(), 123.0_f64.to_bits());
+            assert_eq!(
+                runtime.current_wetness.to_bits(),
+                document.wetness.rain_target.to_bits()
+            );
+            let meshes = app.world().resource::<Assets<Mesh>>();
+            assert_eq!(meshes.len(), 1);
+            assert_eq!(
+                meshes.get(binding.1).unwrap().count_vertices(),
+                usize::try_from(drops).unwrap() * RAIN_VERTICES_PER_DROP
+            );
+        }
+        assert_eq!(
+            app.world()
+                .resource::<Assets<Mesh>>()
+                .get(binding.1)
+                .unwrap()
+                .attribute(Mesh::ATTRIBUTE_POSITION),
+            Some(&original_positions)
+        );
+    }
+
+    #[test]
+    fn headless_plugin_cycles_weather_without_replacing_meshes_or_authored_sources() {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
@@ -1154,5 +1474,57 @@ mod tests {
         assert!(stats.post_processing.bloom_component_present);
         assert!(stats.post_processing.color_grading_component_present);
         assert!(!stats.gpu_execution_observed);
+
+        let source_hash = stats.source_hash.clone();
+        let mesh_ids = app
+            .world()
+            .resource::<Assets<Mesh>>()
+            .ids()
+            .collect::<Vec<_>>();
+        app.insert_resource(bevy::time::TimeUpdateStrategy::ManualDuration(
+            std::time::Duration::from_millis(100),
+        ));
+        for (target, steps) in [
+            (WeatherState::Clear, 120),
+            (WeatherState::Rain, 60),
+            (WeatherState::Clear, 120),
+        ] {
+            app.world_mut()
+                .resource_mut::<WeatherRuntimeState>()
+                .request_state(target);
+            for _ in 0..steps {
+                app.update();
+            }
+            let stats = app.world().resource::<WeatherProjectionStats>();
+            assert_eq!(stats.status, WeatherProjectionStatus::ObservedCpuProjection);
+            assert_eq!(stats.source_hash, source_hash);
+            assert_eq!(stats.rain.batch_entities, 1);
+            assert_eq!(stats.rain.visible, target == WeatherState::Rain);
+            assert_eq!(
+                stats.wetness.current.to_bits(),
+                profile().wetness.target_for(target).to_bits()
+            );
+            assert!(stats.wetness.terrain_uniforms_match);
+            assert!(stats.wetness.vegetation_uniforms_match);
+            let grade = profile().post_processing.grade_for(target);
+            assert_eq!(
+                stats.post_processing.mapped_temperature.unwrap().to_bits(),
+                (grade.temperature * 0.05).to_bits()
+            );
+            assert_eq!(
+                stats.post_processing.mapped_tint.unwrap().to_bits(),
+                (grade.tint * 0.05).to_bits()
+            );
+            if target == WeatherState::Clear {
+                assert_eq!(stats.wetness.clear_target_restored_exactly, Some(true));
+            }
+            assert_eq!(
+                app.world()
+                    .resource::<Assets<Mesh>>()
+                    .ids()
+                    .collect::<Vec<_>>(),
+                mesh_ids
+            );
+        }
     }
 }

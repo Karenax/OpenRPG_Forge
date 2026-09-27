@@ -1,0 +1,247 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.mirevent-gnolle",
+  "name": "Mirevent gnolle",
+  "subtitle": "Observatrice des rabattants et médiatrice des passages",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Proposition originale. Mirevent est une charge savante ouverte par formation au sein des Gnolls des Routes Hautes. Cette fiche décrit une personne et des pratiques professionnelles, sans attribuer prudence, violence ou intelligence à une origine biologique.",
+  "major": false,
+  "classification": {
+    "nature": "Humanoïde sapient",
+    "family": "Gnolls des Routes Hautes",
+    "rarity": "Peu commune, généralement attachée à un passage disputé",
+    "activity": "Diurne et crépusculaire selon les fronts météo",
+    "social": "Observatrice mandatée par plusieurs relais, souvent accompagnée de guides locaux",
+    "threat": "forte",
+    "threat_reason": "Sa lecture du vent, sa fronde et sa maîtrise des signaux lui permettent de contrôler les distances, mais elle privilégie l’évacuation et la négociation."
+  },
+  "physique": {
+    "dimensions": "1,70 à 1,95 m ; portée de bras avec fronde proche de 1,6 m",
+    "mass_kg": [65, 92],
+    "locomotion": [
+      "marche bipède stable",
+      "déplacement accroupi derrière les murets",
+      "escalade prudente des postes de guet"
+    ],
+    "center_of_gravity": "Centré au-dessus du bassin, avec pieds écartés et queue basse lorsqu’elle mesure une rafale ou prépare un tir.",
+    "silhouette": "Humanoïde à fourrure grise striée, oreilles larges, manteau court à pans lestés, fronde en fibre et instruments mécaniques de mesure sans inscriptions.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et pavillons auditifs",
+        "description": "Les oreilles très mobiles localisent les sons du col, mais le vent violent peut les saturer.",
+        "protection": 3
+      },
+      {
+        "zone": "Torse vêtu de laine",
+        "description": "Le manteau multicouche amortit pluie et petites projections, avec une faible protection contre les armes.",
+        "protection": 6
+      },
+      {
+        "zone": "Bras de mesure",
+        "description": "Libres pour manier fronde, rubans et instruments ; ils sont précis mais peu blindés.",
+        "protection": 4
+      },
+      {
+        "zone": "Jambes et queue d’équilibre",
+        "description": "Les appuis larges résistent aux rafales frontales, moins aux changements brusques de direction.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "belvédères des routes hautes",
+    "murets coupe-vent au bord des cols",
+    "ponts de corde et postes de signal",
+    "marchés saisonniers de vallée"
+  ],
+  "ecology": {
+    "diet": "Alimentation omnivore locale, complétée par des réserves de route et des échanges avec les vallées.",
+    "lifecycle": "La formation combine météorologie empirique, médiation, entretien des instruments et mémoire des accidents ; les Mirevents transmettent leurs observations à des apprentis volontaires.",
+    "reproduction": "Les liens familiaux sont variés et indépendants de la charge de Mirevent, qui n’est ni héréditaire ni réservée à un genre.",
+    "behavior": "Elle collecte des indices avant de conclure, place les personnes hors des couloirs de rafale et tente d’établir les responsabilités sans humilier les parties.",
+    "niche": "Prévision locale, arbitrage des passages et coordination des fermetures de route.",
+    "environmental_impact": "Ses équipes installent girouettes muettes, murets et drains réparables, puis retirent les dispositifs devenus dangereux."
+  },
+  "senses": [
+    "Ouïe fine des variations de corde, d’écho et de gravier déplacé.",
+    "Vision précise des poussières, nuages bas et mouvements d’herbe à distance.",
+    "Odorat utile pour distinguer pluie proche, fumée et ozone après un impact."
+  ],
+  "communication": [
+    "Parole articulée et protocole de médiation appris.",
+    "Rubans unis, miroirs non gravés et sifflets à motifs rythmiques locaux."
+  ],
+  "signs": [
+    "Trois rubans sans inscription tendus à des hauteurs différentes.",
+    "Petits tas de gravier triés selon leur déplacement par le vent.",
+    "Marque d’usure circulaire laissée par un instrument sur un muret.",
+    "Zone d’attente abritée dégagée de tout projectile léger."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Éviter qu’un groupe entre dans un couloir de rafale dangereux.",
+      "Résoudre un conflit de passage sans compromettre les relais."
+    ],
+    "fears": [
+      "Une décision publique fondée sur une observation incomplète.",
+      "La rupture d’un pont alors que des voyageurs s’y trouvent."
+    ],
+    "morale": "Ferme lorsqu’elle protège des personnes exposées ; disposée à suspendre le conflit dès qu’un dialogue contrôlé devient possible.",
+    "escalation": "Elle annonce le risque, ferme une trajectoire par un tir d’avertissement puis vise les objets dangereux plutôt que les corps.",
+    "retreat": "Elle rejoint un muret ou un poste de signal tout en guidant les tiers vers une zone abritée."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 7,
+      "willpower": 7,
+      "perception": 8,
+      "presence": 7
+    },
+    "skills": {
+      "survival": 50,
+      "throwing": 45,
+      "vigilance": 60,
+      "investigation": 45,
+      "lore": 40,
+      "empathy": 45,
+      "persuasion": 45,
+      "mechanisms": 35,
+      "tactics": 35
+    },
+    "resources": {
+      "vitality": 106,
+      "stamina": 101,
+      "mana": 90,
+      "balance": 84,
+      "focus": 100
+    },
+    "movement": "5,6 m/s sur terrain ouvert ; progression lente mais stable sous rafale ; escalade de poste à demi-vitesse.",
+    "protections": [
+      "Manteau de laine dense à pans lestés contre pluie, gravier et refroidissement.",
+      "Murets et relief constituent sa protection principale ; aucune armure lourde."
+    ],
+    "attacks": [
+      {
+        "name": "Galet de rabattant",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "8 à 24 m selon le vent et la visibilité",
+        "stamina_cost": 7,
+        "preparation": "0,7 s, fronde tendue et deux rotations croissantes",
+        "telegraph": "Le sifflement de la fronde monte nettement et son regard fixe la trajectoire avant le lâcher.",
+        "effect": "Impact contondant précis, souvent dirigé vers une arme, une attache ou le sol devant la cible.",
+        "counterplay": "Gagner un couvert, changer de hauteur pendant les rotations ou accepter la sommation."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Lecture des rabattants",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "vigilance",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "zone visible jusqu’à 30 m autour d’un relief",
+        "stamina_cost": 10,
+        "preparation": "1,2 s, attention portée aux rubans, poussières et sons du passage",
+        "telegraph": "Elle cesse de parler, relâche un peu de poussière et suit des yeux sa dérive.",
+        "effect": "Elle anticipe une rafale imminente et choisit un abri ou une trajectoire cohérente avec les indices présents.",
+        "counterplay": "Modifier réellement le flux par une porte ou un écran, attendre l’accalmie ou partager ses propres observations."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "rafales prévisibles",
+        "mechanism": "Ses appuis, vêtements lestés et observations réduisent les pertes d’équilibre lorsque le vent reste lisible."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "vents tourbillonnants en espace fermé",
+        "mechanism": "Les rebonds irréguliers rendent ses indices habituels contradictoires et dégradent ses prévisions immédiates."
+      },
+      {
+        "subject": "surcharge sonore",
+        "mechanism": "Des chocs répétés contre métal ou roche masquent les signaux fins utilisés pour surveiller cordes et pierres."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Rubans, poussière ou herbe libre",
+        "result": "rafale télégraphiée",
+        "chain": "Les matières légères révèlent le flux, la Mirevent annonce la fenêtre puis tous peuvent rejoindre le même abri."
+      },
+      {
+        "input": "Muret coupe-vent intact",
+        "result": "couvert stable mais local",
+        "chain": "Le relief casse la rafale, protège les corps bas et crée aussi un angle mort pour les tirs."
+      },
+      {
+        "input": "Corde de pont trop tendue",
+        "result": "rupture annoncée par le son",
+        "chain": "La note monte, la Mirevent suspend le passage puis relâche ou double l’attache avant la rupture."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Les rubans à plusieurs hauteurs servent à lire le vent et ne marquent ni territoire exclusif ni menace automatique."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Une Mirevent peut avoir mandat de plusieurs communautés rivales, ce qui explique une autorité locale sans commandement militaire."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Certaines fermetures de col contestées cachent moins une taxe qu’un défaut structurel qu’aucune autorité ne veut financer publiquement."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "contrôleuse de distance",
+      "médiatrice",
+      "source d’alerte environnementale"
+    ],
+    "telegraphs": [
+      "Les rubans et la poussière rendent ses prévisions vérifiables par les joueurs.",
+      "Deux rotations de fronde précèdent tout projectile.",
+      "Elle indique toujours un abri avant de fermer le passage."
+    ],
+    "noncombat_options": [
+      "Comparer les observations météo et attendre ensemble une fenêtre sûre.",
+      "Réparer une attache ou un instrument endommagé pour gagner son concours.",
+      "Accepter une médiation publique sur l’ordre de passage."
+    ],
+    "complications": [
+      "Un tiers interprète la fermeture comme une extorsion.",
+      "Une rafale arrive plus tôt parce qu’une porte de ruine a été ouverte en amont."
+    ]
+  },
+  "salvage": [
+    "Fronde et instruments de mesure uniquement s’ils sont abandonnés, cédés ou remplacés après réparation ; ce sont des outils professionnels, pas des trophées.",
+    "Manteau lesté uniquement s’il est abandonné ou cédé ; ses coutures indiquent plusieurs traditions de relais."
+  ],
+  "plates": [
+    {
+      "image": "mirevent-gnolle-plate.png",
+      "alt": "Mirevent gnolle entière sur un belvédère, fronde abaissée, rubans de mesure et manteau lesté lisibles dans le vent.",
+      "caption": "Elle ne commande pas au vent : elle rend ses risques observables et négociables.",
+      "prompt_key": "mirevent-gnolle-plate"
+    }
+  ]
+}

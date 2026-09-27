@@ -1,4 +1,5 @@
 mod dirty;
+mod lod;
 mod mesh;
 mod partial;
 mod sampling;
@@ -7,6 +8,7 @@ mod sampling;
 mod tests;
 
 pub use dirty::{TerrainDirtyChunk, TerrainDirtyPlan, TerrainSampleRegion};
+pub use lod::{TerrainLodError, TerrainLodMesh, TerrainLodTopology};
 pub use mesh::{
     GeneratedTerrain, TerrainChunkColliderData, TerrainChunkMesh, TerrainColliderTriangleOrder,
     TerrainColliderVertexOrder, TerrainMaterialWeights,
@@ -187,6 +189,22 @@ impl TerrainGenerationPlan {
         z_m: f32,
     ) -> Result<TerrainSurfaceSample, TerrainGenerationError> {
         sampling::sample_surface(self, x_m, z_m)
+    }
+
+    /// Samples collision data plus the normalized interpolation of the mesh's smooth vertex
+    /// normals. The extra normal is for presentation only; `surface.normal` remains geometric.
+    pub fn surface_with_shading_normal_at(
+        &self,
+        x_m: f32,
+        z_m: f32,
+    ) -> Result<(TerrainSurfaceSample, [f32; 3]), TerrainGenerationError> {
+        sampling::sample_surface_with_shading_normal(self, x_m, z_m)
+    }
+
+    /// Exact triangulated surface height, unlike `height_at` which samples the continuous recipe.
+    /// Avoids evaluating unused normals and material weights; no cache or approximation.
+    pub fn surface_height_at(&self, x_m: f32, z_m: f32) -> Result<f32, TerrainGenerationError> {
+        sampling::sample_surface_height(self, x_m, z_m)
     }
 
     fn chunk_id(&self, coordinate: TerrainChunkCoordinate) -> TerrainChunkId {

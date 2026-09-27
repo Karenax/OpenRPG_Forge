@@ -1,0 +1,23 @@
+{
+  "schema_version": "0.1",
+  "assets": [
+    {
+      "file": "cover.png",
+      "kind": "cover",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-08-30",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "42948F938B0DF9AB473EDFD298BF87324C6925DD00B90924FDAA4AF6E8D3EBB6",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": null,
+      "references": [],
+      "alt": "Une clairière lumineuse relie forêt, marais et ruines de cendre ; un jeune dragon plane au-dessus d'un gardien de braise, d'une mante-fougère et d'un cerf à ramure minérale.",
+      "prompt": "Create an original vertical book-cover illustration for a grounded adult fantasy creature bestiary, portrait 2:3 composition, no text, no letters, no logos, no watermark, no decorative border. Scene: a luminous temperate forest clearing at dawn merging toward distant ash-dark ruins and wetland mist. In the foreground, plausible tracks, shed feathers, charred moss, and a field-naturalist satchel suggest close observation. The creatures remain fully original: a massive ancient humanoid ash guardian of cracked basalt and ember-lit seams stands far back at the ruin threshold; a young moss-green woodland dragon glides high above; a large fern-mimicking mantis and a mirror-antlered deer are partially visible at the forest edge. Clear scale, coherent anatomy, believable centers of gravity, no humanoid heroes posing, no weapons. Editorial fantasy-natural-history look: detailed ink linework, textured gouache, restrained oil-paint modeling, realistic materials and atmosphere, bright limestone and fresh greens outdoors, forest green, slate, muted bronze, warm parchment highlights; danger is localized around the ash ruins. Sophisticated, legible negative space in the upper-middle and lower area for later typography, but do not draw any text. High detail, cinematic yet observational, suitable for an A4 French roleplaying-game bestiary."
+    }
+  ]
+}

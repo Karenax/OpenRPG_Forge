@@ -1,4 +1,5 @@
 use bevy::{
+    anti_alias::taa::TemporalAntiAliasing,
     asset::{RenderAssetUsages, embedded_asset},
     core_pipeline::prepass::DeferredPrepass,
     material::OpaqueRendererMethod,
@@ -9,15 +10,23 @@ use bevy::{
     shader::ShaderRef,
 };
 use forge_project::{
-    ResolvedWaterReflectionPath, ResolvedWaterRefractionPath, TerrainDocument, WaterDocument,
-    WaterDocumentError, WaterOpticsCapabilities, WaterOpticsCapabilityStatus,
-    WaterOpticsResolution, WaterReflectionProfile, WaterRefractionProfile,
+    ResolvedWaterReflectionPath, ResolvedWaterRefractionPath, RiverElevationPolicy,
+    TerrainDocument, WaterDocument, WaterDocumentError, WaterOpticsCapabilities,
+    WaterOpticsCapabilityStatus, WaterOpticsResolution, WaterReflectionProfile,
+    WaterRefractionProfile,
 };
 use forge_world::{
     RiverCenterlineSample, TerrainGenerationError, TerrainGenerationPlan, sample_river_centerline,
 };
 use serde::Serialize;
 use std::{error::Error, fmt};
+
+pub mod authoring;
+mod banks;
+#[cfg(test)]
+mod optical_depth_tests;
+pub(crate) mod quality;
+pub use quality::{ForwardReflectionObservation, WaterQualityObservation, WaterQualityRequest};
 
 /// Minimum Gate 1 adapter clearance used until the persistent water contract owns this value.
 pub const VISUAL_VALLEY_WATER_CLEARANCE_M: f32 = 0.14;
@@ -27,10 +36,19 @@ const WATER_SHADER_PHASE_WRAP_RADIANS: f64 = std::f64::consts::TAU;
 const WATER_IOR: f32 = 1.33;
 const WATER_REFLECTANCE: f32 = 0.36;
 
+/// Explicit unqualified optical candidate. Does not change authored sources or quality policy.
+#[derive(Resource)]
+pub struct WaterDepthOpticsPreview;
+
+/// Bounded native experiment; not an authored quality profile or a qualified SSR path.
+#[derive(Resource)]
+pub struct WaterReflectionOpticsPreview;
+
 const RIVER_LANE_COUNT: usize = 3;
 const RIVER_BANK_LANE_COUNT: usize = 2;
 const RIVER_BANK_VERTICES_PER_SECTION: usize = 4;
 const TRIANGLES_PER_SECTION_PAIR: usize = 4;
+const BANK_AND_BED_TRIANGLES_PER_SECTION_PAIR: usize = 6;
 const INDICES_PER_TRIANGLE: usize = 3;
 const WATER_CLEARANCE_ABOVE_WAVE_M: f32 = 0.02;
 const BANK_MESH_CLEARANCE_M: f32 = 0.015;
@@ -57,8 +75,14 @@ pub enum WaterRuntimeObservationStatus {
     reason = "serialized evidence keeps independent yes/no observations explicit"
 )]
 pub struct WaterProjectionStats {
+    pub optical_depth_preview: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub forward_reflection_quality: Option<ForwardReflectionObservation>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<WaterQualityObservation>,
     pub source_hash: String,
     pub terrain_source_hash: String,
+    pub road_surface_hash: Option<String>,
     pub authored_control_points: usize,
     pub centerline_samples: usize,
     pub terrain_surface_queries: usize,
@@ -76,6 +100,7 @@ pub struct WaterProjectionStats {
     pub terrain_clearance_m: f32,
     pub minimum_observed_clearance_m: f32,
     pub maximum_observed_clearance_m: f32,
+    pub elevation_policy: RiverElevationPolicy,
     pub terrain_projection_lifts: usize,
     pub downstream_monotone_lifts: usize,
     pub authored_centerline_monotone_downstream: bool,
@@ -164,6 +189,18 @@ pub struct VisualValleyWaterExtension {
     /// Requested opacity, authored roughness, water IOR, and non-metal reflectance.
     #[uniform(100)]
     pub optical_parameters: Vec4,
+    /// Linear absorption per metre; W explicitly selects the medium candidate.
+    #[uniform(100)]
+    pub absorption_medium: Vec4,
+    /// Linear scattering per metre; W reserved as zero.
+    #[uniform(100)]
+    pub scattering_medium: Vec4,
+    /// Experimental trace steps, maximum distance, depth tolerance, enabled flag.
+    #[uniform(100)]
+    pub reflection_preview: Vec4,
+    /// Experimental refracted trace: steps, path limit, hit tolerance, enabled.
+    #[uniform(100)]
+    pub refraction_preview: Vec4,
 }
 
 impl MaterialExtension for VisualValleyWaterExtension {
@@ -233,35 +270,79 @@ impl WaterRuntimeState {
 pub struct VisualValleyWaterPlugin {
     terrain: TerrainDocument,
     water: WaterDocument,
+    road_surface: Option<forge_world::RoadSurfaceProjection>,
 }
 
 impl VisualValleyWaterPlugin {
     #[must_use]
     pub fn new(terrain: TerrainDocument, water: WaterDocument) -> Self {
-        Self { terrain, water }
+        Self {
+            terrain,
+            water,
+            road_surface: None,
+        }
+    }
+
+    pub fn with_road_surface(
+        mut self,
+        surface: forge_world::RoadSurfaceProjection,
+    ) -> Result<Self, forge_world::RoadSurfaceError> {
+        surface.validate_terrain(&self.terrain)?;
+        self.road_surface = Some(surface);
+        Ok(self)
     }
 }
 
 impl Plugin for VisualValleyWaterPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
-            panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
-        });
+        let mut prepared =
+            prepare_water_surface(&self.terrain, &self.water).unwrap_or_else(|error| {
+                panic!("VisualValleyWaterPlugin requires compatible terrain and water: {error}")
+            });
+        if let Some(surface) = &self.road_surface {
+            prepared
+                .apply_road_surface(surface)
+                .unwrap_or_else(|error| {
+                    panic!("validated bank road surface projection failed: {error}")
+                });
+        }
+        if self.water.medium.is_some() {
+            app.insert_resource(WaterDepthOpticsPreview);
+        }
+        if app.world().contains_resource::<WaterDepthOpticsPreview>() {
+            prepared.enable_depth_optics_preview(&self.water);
+            tracing::warn!(
+                "Water depth optics preview: transmissive forward water; reflection path reported separately, authored SSR and full quality profiles NOT applied"
+            );
+        }
+        if prepared.stats.optical_depth_preview
+            && app
+                .world()
+                .contains_resource::<WaterReflectionOpticsPreview>()
+        {
+            prepared.water_material.extension.reflection_preview = Vec4::new(32.0, 64.0, 0.2, 1.0);
+            prepared.stats.forward_material_ssr_limit =
+                "experimental_forward_opaque_scene_reflections_not_qualified";
+        }
         let stats = prepared.stats.clone();
         let ssr = prepared.ssr.clone();
         let material_projection = prepared.water_material.extension.clone();
 
-        embedded_asset!(app, "shaders/visual_valley_water.wgsl");
+        register_water_assets(app);
         app.insert_resource(stats)
             .insert_resource(WaterRuntimeState::from_profile(&self.water))
             .insert_resource(WaterMaterialProjection(material_projection))
             .insert_resource(PreparedWaterSurface(Some(prepared)))
             .insert_resource(PreparedWaterCamera { ssr })
-            .add_plugins(MaterialPlugin::<VisualValleyWaterMaterial>::default())
             .add_systems(Startup, spawn_water_surface)
             .add_systems(
                 Update,
-                (advance_water_runtime, project_water_animation).chain(),
+                (
+                    advance_water_runtime,
+                    project_water_animation,
+                    quality::apply_water_quality,
+                )
+                    .chain(),
             )
             .add_systems(
                 PostStartup,
@@ -269,6 +350,18 @@ impl Plugin for VisualValleyWaterPlugin {
             )
             .add_systems(PostUpdate, observe_water_components);
     }
+}
+
+fn register_water_assets(app: &mut App) {
+    if app.is_plugin_added::<MaterialPlugin<VisualValleyWaterMaterial>>() {
+        return;
+    }
+    embedded_asset!(app, "shaders/visual_valley_water.wgsl");
+    embedded_asset!(app, "shaders/water_optical_depth.wgsl");
+    embedded_asset!(app, "shaders/water_flow_detail.wgsl");
+    embedded_asset!(app, "shaders/water_reflection_preview.wgsl");
+    crate::visual_valley::register_terrain_material(app);
+    app.add_plugins(MaterialPlugin::<VisualValleyWaterMaterial>::default());
 }
 
 #[derive(Debug)]
@@ -288,6 +381,7 @@ pub enum WaterAdapterError {
     },
     ArithmeticOverflow(&'static str),
     AllocationFailed(&'static str),
+    BankProjectionBudgetExceeded,
     InvalidProjectedVertex {
         sample_index: usize,
         lane: &'static str,
@@ -327,6 +421,10 @@ impl fmt::Display for WaterAdapterError {
             Self::AllocationFailed(label) => {
                 write!(formatter, "river mesh allocation failed for {label}")
             }
+            Self::BankProjectionBudgetExceeded => write!(
+                formatter,
+                "terrain-conforming bank projection exceeds its cell or vertex budget"
+            ),
             Self::InvalidProjectedVertex { sample_index, lane } => write!(
                 formatter,
                 "river sample {sample_index} {lane} projection is non-finite"
@@ -352,6 +450,7 @@ impl Error for WaterAdapterError {
             | Self::DegenerateTangent { .. }
             | Self::ArithmeticOverflow(_)
             | Self::AllocationFailed(_)
+            | Self::BankProjectionBudgetExceeded
             | Self::InvalidProjectedVertex { .. }
             | Self::DegenerateTriangle { .. } => None,
         }
@@ -383,9 +482,52 @@ struct PreparedWaterScene {
     water_geometry: RiverSurfaceGeometry,
     river_bank_geometry: RiverSurfaceGeometry,
     water_material: VisualValleyWaterMaterial,
-    river_bank_material: StandardMaterial,
+    river_bank_material: crate::VisualValleyTerrainMaterial,
     stats: WaterProjectionStats,
     ssr: Option<ScreenSpaceReflections>,
+}
+
+impl PreparedWaterScene {
+    fn enable_depth_optics_preview(&mut self, water: &WaterDocument) {
+        self.water_material.base.opaque_render_method = OpaqueRendererMethod::Forward;
+        self.water_material.base.specular_transmission = 1.0;
+        self.water_material.base.thickness = 1.0;
+        self.ssr = None;
+        self.stats.optical_depth_preview = true;
+        self.stats.opaque_renderer_method = "forward_transmissive_optical_preview";
+        self.stats.refraction_status = "experimental_scene_depth_transmission_not_qualified";
+        if water.medium.is_some() {
+            self.stats.refraction_status = "experimental_rgb_medium_transmission_not_qualified";
+            self.stats.opacity_status = "rgb_extinction_coefficients_replace_legacy_opacity";
+        }
+        self.stats.forward_material_ssr_limit = "preview_environment_only_no_water_ssr";
+        self.stats.requested_ssr_component_prepared = false;
+        if let WaterRefractionProfile::ScreenSpace { max_depth_m, .. } = water.optics.refraction {
+            self.water_material.extension.deep_color_max_depth.w = max_depth_m;
+        }
+    }
+
+    fn apply_road_surface(
+        &mut self,
+        road: &forge_world::RoadSurfaceProjection,
+    ) -> Result<(), forge_world::RoadSurfaceError> {
+        let bank = &mut self.river_bank_geometry;
+        let colors = bank
+            .colors
+            .as_mut()
+            .expect("prepared banks always have material weights");
+        for (position, weights) in bank.positions.iter().zip(colors) {
+            let coverage = road.coverage_at(position[0], position[2])?;
+            weights[0] *= 1.0 - coverage;
+            weights[1] = weights[1] * (1.0 - coverage) + coverage;
+            weights[2] *= 1.0 - coverage;
+        }
+        self.stats.road_surface_hash = Some(road.source_hash().to_string());
+        tracing::info!(event_kind = "bank_road_surface_projected",
+            road_surface_hash = %road.source_hash(), vertices = bank.positions.len(),
+            "road overlay applied to bank material weights; geometry and sources unchanged");
+        Ok(())
+    }
 }
 
 struct RiverSurfaceGeometry {
@@ -431,7 +573,7 @@ fn checked_bank_mesh_counts(sample_count: usize) -> Result<MeshCounts, WaterAdap
     checked_mesh_counts_for(
         sample_count,
         RIVER_BANK_VERTICES_PER_SECTION,
-        TRIANGLES_PER_SECTION_PAIR,
+        BANK_AND_BED_TRIANGLES_PER_SECTION_PAIR,
     )
 }
 
@@ -471,6 +613,26 @@ fn prepare_water_surface(
 ) -> Result<PreparedWaterScene, WaterAdapterError> {
     water.validate_identity(terrain.project_id, terrain.area_id, terrain.revision)?;
     let terrain_plan = TerrainGenerationPlan::from_document(terrain)?;
+    let origin = terrain_plan.origin_xz_m();
+    let clip_to_terrain = |center: [f32; 2], outer: [f32; 2]| {
+        let maximum = [
+            origin[0] + terrain.extent_m.size_x_m,
+            origin[1] + terrain.extent_m.size_z_m,
+        ];
+        let delta = [outer[0] - center[0], outer[1] - center[1]];
+        let mut fraction = 1.0_f32;
+        for axis in 0..2 {
+            if outer[axis] > maximum[axis] && delta[axis] > 0.0 {
+                fraction = fraction.min((maximum[axis] - center[axis]) / delta[axis]);
+            } else if outer[axis] < origin[axis] && delta[axis] < 0.0 {
+                fraction = fraction.min((origin[axis] - center[axis]) / delta[axis]);
+            }
+        }
+        [
+            center[0] + delta[0] * fraction,
+            center[1] + delta[1] * fraction,
+        ]
+    };
     let samples = sample_river_centerline(water)?;
     verify_authored_downstream_monotone(&samples)?;
     let water_counts = checked_mesh_counts(samples.len())?;
@@ -484,19 +646,13 @@ fn prepare_water_surface(
         .map_err(|_| WaterAdapterError::AllocationFailed("projected sections"))?;
     let mut tangent_fallbacks = 0;
     let mut terrain_projection_lifts = 0;
+    let preserve_authored_surface =
+        water.river.elevation_policy == RiverElevationPolicy::AuthoredSurfaceV1;
     for sample_index in 0..samples.len() {
         let (tangent, used_fallback) = robust_tangent(&samples, sample_index)?;
         tangent_fallbacks += usize::from(used_fallback);
         let sample = samples[sample_index];
         let half_width_m = sample.surface_width_m * 0.5;
-        let left_xz = [
-            sample.center_m.x - tangent[1] * half_width_m,
-            sample.center_m.z + tangent[0] * half_width_m,
-        ];
-        let right_xz = [
-            sample.center_m.x + tangent[1] * half_width_m,
-            sample.center_m.z - tangent[0] * half_width_m,
-        ];
         let bank_outer_offset_m = half_width_m + water.banks.shoulder_width_m;
         let bank_outer_xz = [
             [
@@ -508,7 +664,19 @@ fn prepare_water_surface(
                 sample.center_m.z - tangent[0] * bank_outer_offset_m,
             ],
         ];
-        let lane_xz = [left_xz, [sample.center_m.x, sample.center_m.z], right_xz];
+        // Fit each cross-section side along its ray, keeping a nonzero bank strip.
+        // Independent coordinate clamps can collapse water and bank vertices together.
+        // The authored center remains unmodified and still rejects an invalid path.
+        let center = [sample.center_m.x, sample.center_m.z];
+        let bank_outer_xz = bank_outer_xz.map(|outer| clip_to_terrain(center, outer));
+        let inner_fraction = half_width_m / bank_outer_offset_m;
+        let inner_xz = bank_outer_xz.map(|outer| {
+            [
+                center[0] + (outer[0] - center[0]) * inner_fraction,
+                center[1] + (outer[1] - center[1]) * inner_fraction,
+            ]
+        });
+        let lane_xz = [inner_xz[0], center, inner_xz[1]];
         let mut lanes = [ProjectedLane {
             position: [0.0; 3],
             terrain_height_m: 0.0,
@@ -523,8 +691,12 @@ fn prepare_water_surface(
                 }
             })?;
             let required_y = surface.height_m + water_clearance_m;
-            let projected_y = sample.center_m.y.max(required_y);
-            terrain_projection_lifts += usize::from(required_y > sample.center_m.y);
+            let projected_y = if preserve_authored_surface {
+                sample.center_m.y
+            } else {
+                sample.center_m.y.max(required_y)
+            };
+            terrain_projection_lifts += usize::from(projected_y > sample.center_m.y);
             if !projected_y.is_finite() {
                 return Err(WaterAdapterError::InvalidProjectedVertex { sample_index, lane });
             }
@@ -562,10 +734,22 @@ fn prepare_water_surface(
         });
     }
 
-    let downstream_monotone_lifts = apply_downstream_monotone_pass(&mut sections);
-    let (water_geometry, water_winding_corrections) = build_geometry(&sections, water_counts)?;
+    let downstream_monotone_lifts = if preserve_authored_surface {
+        0
+    } else {
+        apply_downstream_monotone_pass(&mut sections)
+    };
+    let (water_geometry, water_winding_corrections) =
+        build_geometry(&sections, water_counts, preserve_authored_surface)?;
     let (river_bank_geometry, river_bank_winding_corrections) =
         build_river_bank_geometry(&sections, river_bank_counts)?;
+    let (river_bank_geometry, clipped_winding_corrections) =
+        banks::conform(&river_bank_geometry, &terrain_plan)?;
+    let river_bank_counts = MeshCounts {
+        vertices: river_bank_geometry.positions.len(),
+        triangles: river_bank_geometry.indices.len() / 3,
+        indices: river_bank_geometry.indices.len(),
+    };
     let (minimum_observed_clearance_m, maximum_observed_clearance_m) = water_geometry
         .positions
         .iter()
@@ -594,9 +778,13 @@ fn prepare_water_surface(
     let flow_direction = downstream_flow_direction(&samples);
     let runtime_state = WaterRuntimeState::from_profile(water);
     let water_surface_queries = water_counts.vertices;
-    let river_bank_surface_queries = samples.len().checked_mul(RIVER_BANK_LANE_COUNT).ok_or(
-        WaterAdapterError::ArithmeticOverflow("river bank surface queries"),
-    )?;
+    let river_bank_surface_queries = samples
+        .len()
+        .checked_mul(RIVER_BANK_LANE_COUNT)
+        .and_then(|count| count.checked_add(river_bank_counts.vertices))
+        .ok_or(WaterAdapterError::ArithmeticOverflow(
+            "river bank surface queries",
+        ))?;
     let terrain_surface_queries = water_surface_queries
         .checked_add(river_bank_surface_queries)
         .ok_or(WaterAdapterError::ArithmeticOverflow(
@@ -612,10 +800,15 @@ fn prepare_water_surface(
         .ok_or(WaterAdapterError::ArithmeticOverflow("total triangles"))?;
     let winding_corrections = water_winding_corrections
         .checked_add(river_bank_winding_corrections)
+        .and_then(|count| count.checked_add(clipped_winding_corrections))
         .ok_or(WaterAdapterError::ArithmeticOverflow("winding corrections"))?;
     let stats = WaterProjectionStats {
+        optical_depth_preview: false,
+        forward_reflection_quality: None,
+        quality: None,
         source_hash: water.content_hash()?.to_string(),
         terrain_source_hash: terrain_plan.document_hash().to_string(),
+        road_surface_hash: None,
         authored_control_points: water.river.control_points.len(),
         centerline_samples: samples.len(),
         terrain_surface_queries,
@@ -634,6 +827,7 @@ fn prepare_water_surface(
         minimum_observed_clearance_m,
         maximum_observed_clearance_m,
         terrain_projection_lifts,
+        elevation_policy: water.river.elevation_policy,
         downstream_monotone_lifts,
         authored_centerline_monotone_downstream: true,
         projected_lanes_monotone_downstream: projected_lanes_are_monotone(&sections),
@@ -665,9 +859,9 @@ fn prepare_water_surface(
         bank_shoulder_status: "procedural_outer_strip_projected_from_shoulder_width",
         bank_blend_status: "deferred_no_terrain_carving_adapter",
         bank_wet_margin_status: "deferred_no_wet_edge_shader",
-        bank_slope_status: "deferred_strip_bridges_water_edge_to_projected_terrain",
+        bank_slope_status: "strip_clipped_to_canonical_terrain_triangles_no_water_edge_loft",
         bank_erosion_status: "deferred_no_terrain_carving_adapter",
-        bank_material_status: "opaque_deferred_placeholder_no_authored_bank_colour",
+        bank_material_status: "terrain_palette_and_detail_earth_to_canonical_weights",
         requested_reflection_intensity,
         requested_reflection_max_distance_m,
         reflection_intensity_status: "requested_not_mapped_by_bevy_ssr_component",
@@ -779,6 +973,7 @@ fn projected_lanes_are_monotone(sections: &[ProjectedSection]) -> bool {
 fn build_geometry(
     sections: &[ProjectedSection],
     counts: MeshCounts,
+    extend_under_banks: bool,
 ) -> Result<(RiverSurfaceGeometry, usize), WaterAdapterError> {
     let mut positions = Vec::new();
     let mut terrain_heights = Vec::new();
@@ -800,20 +995,45 @@ fn build_geometry(
         .try_reserve_exact(counts.indices)
         .map_err(|_| WaterAdapterError::AllocationFailed("indices"))?;
 
-    let denominator = sections.len().saturating_sub(1).max(1);
+    let mut distance_m = 0.0;
     for (sample_index, section) in sections.iter().enumerate() {
-        #[allow(clippy::cast_precision_loss)]
-        let v = sample_index as f32 / denominator as f32;
+        let center = Vec3::from_array(section.lanes[1].position).xz();
+        if sample_index > 0 {
+            let previous = Vec3::from_array(sections[sample_index - 1].lanes[1].position).xz();
+            distance_m += center.distance(previous);
+        }
+        let left = section.lanes[0].position;
+        let right = section.lanes[2].position;
+        // Cross-section orientation comes from the sampled river tangent, including bends.
+        // Reuse existing COLOR channels: no extra vertex stream or authored flow-map asset.
+        let flow = Vec2::new(left[2] - right[2], right[0] - left[0]).normalize_or_zero();
+        let across = Vec2::new(-flow.y, flow.x);
         for (lane_index, lane) in section.lanes.iter().enumerate() {
-            positions.push(lane.position);
-            terrain_heights.push(lane.terrain_height_m);
-            uvs.push([lane_uv(lane_index), v]);
+            // Authored water levels intersect the carved bank beyond the nominal
+            // channel width. Keep the level, extend the footprint under terrain,
+            // and let depth testing form the shoreline. Bank/collider geometry
+            // stays independent; the legacy terrain-lift policy is unchanged.
+            let projected = if extend_under_banks && lane_index != 1 {
+                let outer = section.bank_outer_lanes[lane_index / 2];
+                ProjectedLane {
+                    position: [outer.position[0], lane.position[1], outer.position[2]],
+                    terrain_height_m: outer.terrain_height_m,
+                }
+            } else {
+                *lane
+            };
+            positions.push(projected.position);
+            terrain_heights.push(projected.terrain_height_m);
+            // Metric river coordinates: invariant to world translation, continuous
+            // along the sampled route, including the under-bank extension.
+            let lateral_m = (Vec3::from_array(projected.position).xz() - center).dot(across);
+            uvs.push([distance_m, lateral_m]);
             let depth_m = if lane_index == 1 {
                 section.bed_depth_m
             } else {
                 0.0
             };
-            colors.push([depth_m, 0.0, 0.0, 1.0]);
+            colors.push([depth_m, flow.x, flow.y, 1.0]);
         }
     }
 
@@ -858,6 +1078,7 @@ fn build_river_bank_geometry(
     let mut positions = Vec::new();
     let mut terrain_heights = Vec::new();
     let mut uvs = Vec::new();
+    let mut colors = Vec::new();
     let mut indices = Vec::new();
     positions
         .try_reserve_exact(counts.vertices)
@@ -867,6 +1088,9 @@ fn build_river_bank_geometry(
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank terrain heights"))?;
     uvs.try_reserve_exact(counts.vertices)
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank UVs"))?;
+    colors
+        .try_reserve_exact(counts.vertices)
+        .map_err(|_| WaterAdapterError::AllocationFailed("river bank colors"))?;
     indices
         .try_reserve_exact(counts.indices)
         .map_err(|_| WaterAdapterError::AllocationFailed("river bank indices"))?;
@@ -885,6 +1109,10 @@ fn build_river_bank_geometry(
             positions.push(vertex.position);
             terrain_heights.push(vertex.terrain_height_m);
             uvs.push([bank_lane_uv(vertex_index), v]);
+            colors.push(bank_vertex_color(
+                vertex.position,
+                matches!(vertex_index, 0 | 3),
+            ));
         }
     }
 
@@ -898,7 +1126,11 @@ fn build_river_bank_geometry(
         let next_row = row.checked_add(RIVER_BANK_VERTICES_PER_SECTION).ok_or(
             WaterAdapterError::ArithmeticOverflow("river bank next-row vertex offset"),
         )?;
-        for strip_start in [0, 2] {
+        // Include the bed between the inner banks. Both inner vertices carry
+        // full earth weight, so transparent water cannot expose a grass gap.
+        // The subsequent terrain-grid clipping keeps this coating conforming;
+        // it does not flatten the river bed or change collider heights.
+        for strip_start in [0, 1, 2] {
             let a = row + strip_start;
             let b = next_row + strip_start;
             let c = row + strip_start + 1;
@@ -915,7 +1147,7 @@ fn build_river_bank_geometry(
             terrain_heights,
             normals,
             uvs,
-            colors: None,
+            colors: Some(colors),
             indices,
         },
         winding_corrections,
@@ -1110,6 +1342,14 @@ fn water_extension(
             WATER_IOR,
             WATER_REFLECTANCE,
         ),
+        absorption_medium: water.medium.map_or(Vec4::ZERO, |medium| {
+            Vec3::from_array(medium.absorption_per_m).extend(1.0)
+        }),
+        scattering_medium: water.medium.map_or(Vec4::ZERO, |medium| {
+            Vec3::from_array(medium.scattering_per_m).extend(0.0)
+        }),
+        reflection_preview: Vec4::ZERO,
+        refraction_preview: Vec4::ZERO,
     }
 }
 
@@ -1133,15 +1373,25 @@ fn downstream_flow_direction(samples: &[RiverCenterlineSample]) -> Vec2 {
     }
 }
 
-fn river_bank_material() -> StandardMaterial {
-    StandardMaterial {
-        base_color: Color::srgb(0.16, 0.12, 0.075),
-        alpha_mode: AlphaMode::Opaque,
-        metallic: 0.0,
-        perceptual_roughness: 0.86,
-        opaque_render_method: OpaqueRendererMethod::Deferred,
-        ..default()
+fn river_bank_material() -> crate::VisualValleyTerrainMaterial {
+    crate::VisualValleyTerrainMaterial {
+        base: StandardMaterial {
+            // Vertex RGB carries logical grass/earth/rock weights, like the terrain.
+            base_color: Color::WHITE,
+            alpha_mode: AlphaMode::Opaque,
+            metallic: 0.0,
+            perceptual_roughness: 0.86,
+            opaque_render_method: OpaqueRendererMethod::Deferred,
+            ..default()
+        },
+        extension: default(),
     }
+}
+
+fn bank_vertex_color(_position: [f32; 3], outer: bool) -> [f32; 4] {
+    // Temporary clipping attribute: red is the distance fraction toward the water.
+    // The conforming projection resolves it to terrain material weights.
+    [if outer { 0.0 } else { 1.0 }, 0.0, 0.0, 1.0]
 }
 
 fn requested_reflection_parameters(water: &WaterDocument) -> (Option<f32>, Option<f32>) {
@@ -1210,14 +1460,6 @@ fn bank_lane_label(index: usize) -> &'static str {
     }
 }
 
-fn lane_uv(index: usize) -> f32 {
-    match index {
-        1 => 0.5,
-        2 => 1.0,
-        _ => 0.0,
-    }
-}
-
 fn bank_lane_uv(index: usize) -> f32 {
     match index {
         1 | 3 => 1.0,
@@ -1230,9 +1472,10 @@ fn spawn_water_surface(
     mut prepared: ResMut<PreparedWaterSurface>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut water_materials: ResMut<Assets<VisualValleyWaterMaterial>>,
-    mut standard_materials: ResMut<Assets<StandardMaterial>>,
+    mut bank_materials: ResMut<Assets<crate::VisualValleyTerrainMaterial>>,
+    mut images: ResMut<Assets<Image>>,
 ) {
-    let prepared = prepared
+    let mut prepared = prepared
         .0
         .take()
         .expect("water preparation is consumed exactly once at startup");
@@ -1240,18 +1483,25 @@ fn spawn_water_surface(
     let river_bank_mesh = mesh_from_geometry(prepared.river_bank_geometry);
     let river_bank_name = format!("{} banks", prepared.name);
     let water_material = water_materials.add(prepared.water_material);
-    commands.spawn((
+    prepared.river_bank_material.extension.detail_texture =
+        images.add(crate::visual_valley::terrain_detail_image());
+    let mut water_entity = commands.spawn((
         Name::new(prepared.name),
         VisualValleyWaterSurface,
         Mesh3d(meshes.add(water_mesh)),
         MeshMaterial3d(water_material.clone()),
         Transform::IDENTITY,
     ));
+    if prepared.stats.optical_depth_preview {
+        // The opaque shadow atlas cannot represent transmission through water.
+        // Do not black out the visible riverbed; keep receiving scene shadows.
+        water_entity.insert(bevy::light::NotShadowCaster);
+    }
     commands.spawn((
         Name::new(river_bank_name),
         VisualValleyRiverBankSurface,
         Mesh3d(meshes.add(river_bank_mesh)),
-        MeshMaterial3d(standard_materials.add(prepared.river_bank_material)),
+        MeshMaterial3d(bank_materials.add(prepared.river_bank_material)),
         Transform::IDENTITY,
     ));
     commands.insert_resource(WaterSurfaceMaterial(water_material));
@@ -1316,22 +1566,72 @@ fn project_water_animation(
 )]
 fn configure_water_cameras(
     mut commands: Commands,
-    cameras: Query<Entity, With<Camera3d>>,
+    cameras: Query<(Entity, &Camera), With<Camera3d>>,
     prepared: Res<PreparedWaterCamera>,
+    preview: Option<Res<WaterDepthOpticsPreview>>,
 ) {
-    for camera in &cameras {
-        let mut entity = commands.entity(camera);
+    let mut active = cameras.iter().filter(|(_, camera)| camera.is_active);
+    let Some((camera, _)) = active.next() else {
+        return;
+    };
+    if active.next().is_some() {
+        // Match hot quality changes: never choose an arbitrary view or rewrite auxiliary optics.
+        return;
+    }
+    let mut entity = commands.entity(camera);
+    entity.insert((
+        Msaa::Off,
+        DeferredPrepass,
+        ScreenSpaceTransmission {
+            steps: usize::from(preview.is_some()),
+            ..default()
+        },
+    ));
+    if preview.is_some() {
         entity.insert((
-            Msaa::Off,
-            DeferredPrepass,
-            ScreenSpaceTransmission {
-                steps: 0,
-                ..default()
-            },
+            bevy::core_pipeline::prepass::DepthPrepass,
+            TemporalAntiAliasing::default(),
         ));
-        if let Some(ssr) = &prepared.ssr {
-            entity.insert(ssr.clone());
-        }
+        entity.remove::<ScreenSpaceReflections>();
+    }
+    if let Some(ssr) = &prepared.ssr {
+        // SSR samples a stochastic specular ray per pixel. Accumulate it across frames;
+        // water and vegetation shaders already supply previous deformed positions.
+        entity.insert((ssr.clone(), TemporalAntiAliasing::default()));
+    }
+}
+
+type WaterQualityCameraData = (
+    &'static Camera,
+    Option<&'static ScreenSpaceReflections>,
+    Option<&'static bevy::light::EnvironmentMapLight>,
+);
+
+type WaterTransmissionCameraData = (
+    &'static ScreenSpaceTransmission,
+    Option<&'static bevy::core_pipeline::prepass::DepthPrepass>,
+    Option<&'static TemporalAntiAliasing>,
+);
+
+fn camera_optics_match(
+    stats: &WaterProjectionStats,
+    cameras: &Query<WaterTransmissionCameraData, With<Camera3d>>,
+) -> bool {
+    if stats.optical_depth_preview {
+        stats.ssr_camera_entities == 0
+            && cameras.iter().count() == stats.camera_3d_entities
+            && cameras.iter().all(|(transmission, depth, taa)| {
+                transmission.steps == 1 && depth.is_some() && taa.is_some()
+            })
+    } else {
+        stats.transmission_disabled_camera_entities == stats.camera_3d_entities
+            && stats.quality.as_ref().map_or_else(
+                || {
+                    !stats.requested_ssr_component_prepared
+                        || stats.ssr_camera_entities == stats.camera_3d_entities
+                },
+                |quality| quality.ssr_budget_projected,
+            )
     }
 }
 
@@ -1339,6 +1639,10 @@ fn configure_water_cameras(
     clippy::too_many_arguments,
     clippy::needless_pass_by_value,
     reason = "Bevy system wrappers and independent ECS queries keep evidence auditable"
+)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "Single observation joins legacy and forward evidence from the same frame"
 )]
 fn observe_water_components(
     surfaces: Query<Entity, With<VisualValleyWaterSurface>>,
@@ -1351,13 +1655,61 @@ fn observe_water_components(
     deferred_cameras: Query<Entity, (With<Camera3d>, With<DeferredPrepass>)>,
     ssr_cameras: Query<Entity, (With<Camera3d>, With<ScreenSpaceReflections>)>,
     msaa_cameras: Query<&Msaa, With<Camera3d>>,
-    transmission_cameras: Query<&ScreenSpaceTransmission, With<Camera3d>>,
+    transmission_cameras: Query<WaterTransmissionCameraData, With<Camera3d>>,
     materials: Res<Assets<VisualValleyWaterMaterial>>,
     projection: Res<WaterMaterialProjection>,
     runtime: Res<WaterRuntimeState>,
     mut stats: ResMut<WaterProjectionStats>,
+    quality: Option<Res<WaterQualityRequest>>,
+    prepared: Res<PreparedWaterCamera>,
+    quality_cameras: Query<WaterQualityCameraData, With<Camera3d>>,
+    images: Option<Res<Assets<Image>>>,
 ) {
+    let mut active_cameras = quality_cameras
+        .iter()
+        .filter(|(camera, ..)| camera.is_active);
+    let active_camera = active_cameras.next();
+    let unique_active_camera = if active_cameras.next().is_none() {
+        active_camera
+    } else {
+        None
+    };
+    let surface_material = surface_materials
+        .single()
+        .ok()
+        .and_then(|handle| materials.get(&handle.0));
+    stats.quality = quality
+        .as_deref()
+        .filter(|_| !stats.optical_depth_preview)
+        .map(|request| {
+            let map = unique_active_camera.and_then(|(_, _, map)| map);
+            quality::observe(
+                request,
+                &prepared,
+                unique_active_camera.map(|(camera, ssr, _)| (camera, ssr)),
+                &projection.0,
+                surface_material,
+                quality::environment_images_available(map, images.as_deref()),
+                map.map(|map| map.intensity),
+            )
+        });
     stats.water_mesh_entities = surfaces.iter().count();
+    stats.forward_reflection_quality = (projection.0.reflection_preview.w > 0.0).then(|| {
+        let mut observation = quality::observe_forward_reflection(
+            quality.as_deref(),
+            unique_active_camera.is_some(),
+            projection.0.optical_parameters.w,
+            projection.0.shallow_color_surface_tint.w,
+            surface_material,
+        );
+        let map = unique_active_camera.and_then(|(_, _, map)| map);
+        observation.observe_view(
+            unique_active_camera.map(|(camera, ..)| camera),
+            map,
+            images.as_deref(),
+        );
+        observation
+    });
     stats.river_bank_mesh_entities = river_banks.iter().count();
     stats.camera_3d_entities = cameras.iter().count();
     stats.deferred_camera_entities = deferred_cameras.iter().count();
@@ -1368,16 +1720,25 @@ fn observe_water_components(
         .count();
     stats.transmission_disabled_camera_entities = transmission_cameras
         .iter()
-        .filter(|transmission| transmission.steps == 0)
+        .filter(|(transmission, ..)| transmission.steps == 0)
         .count();
     stats.shader_material_assets = materials.len();
     stats.shader_material_entities = surface_materials.iter().count();
-    let expected_extension = projected_water_extension(&projection.0, &runtime);
+    let expected_extension = quality::expected_extension(
+        &projection.0,
+        &runtime,
+        quality.as_deref(),
+        unique_active_camera.is_some(),
+        stats.optical_depth_preview,
+    );
     stats.shader_uniforms_match_profile = stats.shader_material_entities == 1
         && surface_materials.iter().all(|handle| {
-            materials
-                .get(&handle.0)
-                .is_some_and(|material| material.extension == expected_extension)
+            materials.get(&handle.0).is_some_and(|material| {
+                material.extension == expected_extension
+                    && (!stats.optical_depth_preview
+                        || (material.base.opaque_render_method == OpaqueRendererMethod::Forward
+                            && material.base.specular_transmission.to_bits() == 1.0_f32.to_bits()))
+            })
         });
     stats.animation_updates = runtime.updates;
     stats.animation_uniform_status = if stats.shader_uniforms_match_profile {
@@ -1390,6 +1751,7 @@ fn observe_water_components(
     } else {
         "cpu_material_asset_incomplete_or_not_observed"
     };
+    let camera_optics_match = camera_optics_match(&stats, &transmission_cameras);
     stats.runtime_observation = if stats.water_mesh_entities == 1
         && stats.river_bank_mesh_entities == 1
         && stats.shader_material_entities == 1
@@ -1397,9 +1759,7 @@ fn observe_water_components(
         && stats.camera_3d_entities > 0
         && stats.deferred_camera_entities == stats.camera_3d_entities
         && stats.msaa_off_camera_entities == stats.camera_3d_entities
-        && stats.transmission_disabled_camera_entities == stats.camera_3d_entities
-        && (!stats.requested_ssr_component_prepared
-            || stats.ssr_camera_entities == stats.camera_3d_entities)
+        && camera_optics_match
     {
         WaterRuntimeObservationStatus::ObservedMainWorldComponents
     } else {
@@ -1436,10 +1796,365 @@ mod tests {
         embedded_visual_valley_terrain_document, embedded_visual_valley_water_document,
     };
 
+    #[test]
+    fn mineral_coating_covers_bed_without_changing_terrain_surface() {
+        let sections = [0.0, 8.0].map(|z| {
+            let lane = |x| ProjectedLane {
+                position: [x, 50.0, z],
+                terrain_height_m: 0.0,
+            };
+            ProjectedSection {
+                lanes: [-4.0, 0.0, 4.0].map(lane),
+                bank_outer_lanes: [-8.0, 8.0].map(lane),
+                bed_depth_m: 2.0,
+            }
+        });
+        let counts = checked_bank_mesh_counts(sections.len()).unwrap();
+        let (ribbon, _) = build_river_bank_geometry(&sections, counts).unwrap();
+        assert_eq!(ribbon.indices.len(), counts.indices);
+        assert_eq!(counts.triangles, 6);
+        let terrain = TerrainGenerationPlan::from_document(
+            &embedded_visual_valley_terrain_document().unwrap(),
+        )
+        .unwrap();
+        let (coating, _) = banks::conform(&ribbon, &terrain).unwrap();
+        let colors = coating.colors.as_ref().unwrap();
+        let mut bed_area = 0.0;
+        for triangle in coating.indices.as_chunks::<3>().0 {
+            let points = triangle.map(|index| coating.positions[index as usize]);
+            let center_x = points.iter().map(|p| p[0]).sum::<f32>() / 3.0;
+            if center_x.abs() < 4.0 {
+                bed_area += triangle_normal_y(&points, [0, 1, 2]) * 0.5;
+                for index in triangle {
+                    let index = *index as usize;
+                    assert!(colors[index][0] < 1.0e-6, "grass gap in bed");
+                    assert!(colors[index][1] > 0.99999, "bed must join earth banks");
+                }
+            }
+        }
+        assert!((bed_area - 64.0).abs() < 1.0e-5, "missing bed footprint");
+        for point in &coating.positions {
+            let expected = terrain.surface_height_at(point[0], point[2]).unwrap();
+            assert!((point[1] - expected - BANK_MESH_CLEARANCE_M).abs() < 1.0e-5);
+        }
+    }
+
     fn prepared() -> PreparedWaterScene {
         let terrain = embedded_visual_valley_terrain_document().unwrap();
         let water = embedded_visual_valley_water_document().unwrap();
         prepare_water_surface(&terrain, &water).unwrap()
+    }
+
+    #[test]
+    fn river_coordinates_are_metric_and_translation_invariant_through_a_bend() {
+        let section = |center: Vec2, flow: Vec2| {
+            let across = Vec2::new(-flow.y, flow.x);
+            let lane = |offset: f32| {
+                let point = center + across * offset;
+                ProjectedLane {
+                    position: [point.x, 2.0, point.y],
+                    terrain_height_m: 0.0,
+                }
+            };
+            ProjectedSection {
+                lanes: [lane(2.0), lane(0.0), lane(-2.0)],
+                bank_outer_lanes: [lane(4.0), lane(-4.0)],
+                bed_depth_m: 2.0,
+            }
+        };
+        let source = [
+            section(Vec2::ZERO, Vec2::new(0.6, 0.8)),
+            section(Vec2::new(3.0, 4.0), Vec2::X),
+            section(Vec2::new(8.0, 4.0), Vec2::X),
+        ];
+        let mut shifted = source;
+        for section in &mut shifted {
+            for lane in section
+                .lanes
+                .iter_mut()
+                .chain(section.bank_outer_lanes.iter_mut())
+            {
+                lane.position[0] += 1024.0;
+                lane.position[2] -= 2048.0;
+            }
+        }
+        for extended in [false, true] {
+            let counts = checked_mesh_counts(3).unwrap();
+            let (original, _) = build_geometry(&source, counts, extended).unwrap();
+            let (translated, _) = build_geometry(&shifted, counts, extended).unwrap();
+            let lateral = if extended { 4.0 } else { 2.0 };
+            for (row, expected_along) in [0.0, 5.0, 10.0].into_iter().enumerate() {
+                for (lane, expected_across) in [lateral, 0.0, -lateral].into_iter().enumerate() {
+                    let index = row * 3 + lane;
+                    for uv in [original.uvs[index], translated.uvs[index]] {
+                        assert!((uv[0] - expected_along).abs() < 0.001);
+                        assert!((uv[1] - expected_across).abs() < 0.001);
+                    }
+                }
+            }
+            assert_eq!(original.indices, translated.indices);
+        }
+    }
+
+    #[test]
+    fn authored_water_extends_under_banks_without_lifting_or_mutating_them() {
+        let section = |z| ProjectedSection {
+            lanes: [
+                ProjectedLane {
+                    position: [-3.0, 2.0, z],
+                    terrain_height_m: 1.1,
+                },
+                ProjectedLane {
+                    position: [0.0, 2.0, z],
+                    terrain_height_m: -0.8,
+                },
+                ProjectedLane {
+                    position: [3.0, 2.0, z],
+                    terrain_height_m: 1.1,
+                },
+            ],
+            bank_outer_lanes: [
+                ProjectedLane {
+                    position: [-6.0, 3.515, z],
+                    terrain_height_m: 3.5,
+                },
+                ProjectedLane {
+                    position: [6.0, 3.515, z],
+                    terrain_height_m: 3.5,
+                },
+            ],
+            bed_depth_m: 2.8,
+        };
+        let sections = [section(0.0), section(4.0)];
+        let counts = checked_mesh_counts(2).unwrap();
+        let (legacy, _) = build_geometry(&sections, counts, false).unwrap();
+        let (authored, _) = build_geometry(&sections, counts, true).unwrap();
+        assert_eq!(authored.indices, legacy.indices);
+        assert_eq!(authored.positions.len(), legacy.positions.len());
+        for (row, source) in sections.iter().enumerate() {
+            for lane in 0..3 {
+                let index = row * 3 + lane;
+                assert_eq!(
+                    legacy.positions[index].map(f32::to_bits),
+                    source.lanes[lane].position.map(f32::to_bits)
+                );
+                assert_eq!(authored.positions[index][1].to_bits(), 2.0_f32.to_bits());
+                if lane == 1 {
+                    assert_eq!(
+                        authored.positions[index].map(f32::to_bits),
+                        legacy.positions[index].map(f32::to_bits)
+                    );
+                } else {
+                    let outer = source.bank_outer_lanes[lane / 2];
+                    assert_eq!(
+                        authored.positions[index][0].to_bits(),
+                        outer.position[0].to_bits()
+                    );
+                    assert_eq!(
+                        authored.terrain_heights[index].to_bits(),
+                        outer.terrain_height_m.to_bits()
+                    );
+                    assert!(authored.positions[index][1] < authored.terrain_heights[index]);
+                    // The old edge was suspended above the bed, not at the shore.
+                    assert!(legacy.positions[index][1] > legacy.terrain_heights[index]);
+                }
+            }
+        }
+        assert_geometry_has_positive_winding(&authored);
+    }
+
+    #[test]
+    fn carved_world_sketch_water_clips_banks_but_rejects_outside_centerline() {
+        let compiled = forge_world::compile_world_sketch(
+            &forge_world::embedded_visual_valley_world_sketch().unwrap(),
+        )
+        .unwrap();
+        let spline = compiled
+            .spline_carving
+            .splines
+            .iter()
+            .find(|spline| spline.kind == forge_world::WorldSketchSplineKind::River)
+            .unwrap();
+        let mut water = forge_world::water_from_carved_spline(
+            embedded_visual_valley_water_document().unwrap(),
+            spline,
+        )
+        .unwrap();
+        water.revision = compiled.carved_terrain.revision;
+        let mut prepared = prepare_water_surface(&compiled.carved_terrain, &water).unwrap();
+        let road = forge_world::RoadSurfaceProjection::from_compiled(&compiled).unwrap();
+        let original_positions = prepared.river_bank_geometry.positions.clone();
+        let original_colors = prepared.river_bank_geometry.colors.clone().unwrap();
+        let original_indices = prepared.river_bank_geometry.indices.clone();
+        let original_normals = prepared.river_bank_geometry.normals.clone();
+        prepared.apply_road_surface(&road).unwrap();
+        assert_eq!(
+            prepared.stats.road_surface_hash,
+            Some(road.source_hash().to_string())
+        );
+        assert_eq!(prepared.river_bank_geometry.positions, original_positions);
+        assert_eq!(prepared.river_bank_geometry.indices, original_indices);
+        assert_eq!(prepared.river_bank_geometry.normals, original_normals);
+        let changed = original_colors
+            .iter()
+            .zip(prepared.river_bank_geometry.colors.as_ref().unwrap())
+            .filter(|(a, b)| a.map(f32::to_bits) != b.map(f32::to_bits))
+            .count();
+        assert!(
+            changed > 0,
+            "roads must also project onto overlapping banks"
+        );
+        println!("bank road overlay changed {changed} vertices without geometry changes");
+        for ((position, before), after) in original_positions
+            .iter()
+            .zip(&original_colors)
+            .zip(prepared.river_bank_geometry.colors.as_ref().unwrap())
+        {
+            let coverage = road.coverage_at(position[0], position[2]).unwrap();
+            assert!(after[1] >= before[1] - 1e-6);
+            assert!((after[0] + after[1] + after[2] - 1.0).abs() < 1e-6);
+            if coverage.to_bits() == 0.0_f32.to_bits() {
+                assert_eq!(before.map(f32::to_bits), after.map(f32::to_bits));
+            }
+            if coverage.to_bits() == 1.0_f32.to_bits() {
+                assert_eq!(
+                    after.map(f32::to_bits),
+                    [0.0_f32, 1.0, 0.0, 1.0].map(f32::to_bits)
+                );
+            }
+        }
+        assert_eq!(prepared.stats.terrain_projection_lifts, 0);
+        assert_eq!(prepared.stats.downstream_monotone_lifts, 0);
+        for (lanes, sample) in prepared
+            .water_geometry
+            .positions
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .zip(sample_river_centerline(&water).unwrap())
+        {
+            for lane in lanes {
+                assert_eq!(lane[1].to_bits(), sample.center_m.y.to_bits());
+            }
+        }
+        for geometry in [&prepared.water_geometry, &prepared.river_bank_geometry] {
+            for position in &geometry.positions {
+                assert!((-256.0..=256.0).contains(&position[0]));
+                assert!((-256.0..=256.0).contains(&position[2]));
+            }
+            assert_geometry_has_positive_winding(geometry);
+        }
+        assert!(
+            prepared
+                .river_bank_geometry
+                .positions
+                .iter()
+                .any(|p| p[2].to_bits() == 256.0_f32.to_bits())
+        );
+        water.river.control_points[0].center_m.z = 257.0;
+        assert!(matches!(
+            prepare_water_surface(&compiled.carved_terrain, &water),
+            Err(WaterAdapterError::SurfaceProjection { .. })
+        ));
+    }
+
+    #[test]
+    fn bank_triangles_conform_to_canonical_surface() {
+        let compiled = forge_world::compile_world_sketch(
+            &forge_world::embedded_visual_valley_world_sketch().unwrap(),
+        )
+        .unwrap();
+        let spline = compiled
+            .spline_carving
+            .splines
+            .iter()
+            .find(|spline| spline.kind == forge_world::WorldSketchSplineKind::River)
+            .unwrap();
+        let mut water = forge_world::water_from_carved_spline(
+            embedded_visual_valley_water_document().unwrap(),
+            spline,
+        )
+        .unwrap();
+        water.revision = compiled.carved_terrain.revision;
+        let prepared = prepare_water_surface(&compiled.carved_terrain, &water).unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&compiled.carved_terrain).unwrap();
+        let geometry = prepared.river_bank_geometry;
+        for (position, normal) in geometry.positions.iter().zip(&geometry.normals) {
+            let (_, expected) = terrain
+                .surface_with_shading_normal_at(position[0], position[2])
+                .unwrap();
+            assert_eq!(normal.map(f32::to_bits), expected.map(f32::to_bits));
+        }
+        let mut below = 0;
+        let mut minimum = f32::INFINITY;
+        let mut maximum = f32::NEG_INFINITY;
+        for triangle in geometry.indices.as_chunks::<3>().0 {
+            let vertices =
+                triangle.map(|index| Vec3::from_array(geometry.positions[index as usize]));
+            for weights in [
+                [1.0 / 3.0; 3],
+                [0.5, 0.5, 0.0],
+                [0.0, 0.5, 0.5],
+                [0.5, 0.0, 0.5],
+                [0.6, 0.2, 0.2],
+                [0.2, 0.6, 0.2],
+                [0.2, 0.2, 0.6],
+            ] {
+                let point =
+                    vertices[0] * weights[0] + vertices[1] * weights[1] + vertices[2] * weights[2];
+                let height = terrain.surface_at(point.x, point.z).unwrap().height_m;
+                let clearance = point.y - height;
+                assert!(
+                    (clearance - BANK_MESH_CLEARANCE_M).abs() < 0.001,
+                    "nonconforming bank at {point:?}: {clearance}"
+                );
+                below += usize::from(clearance < -0.001);
+                minimum = minimum.min(clearance);
+                maximum = maximum.max(clearance);
+            }
+        }
+        eprintln!(
+            "BANK_SURFACE triangles={} samples_per_triangle=7 below_terrain={} minimum_m={} maximum_m={}",
+            geometry.indices.len() / 3,
+            below,
+            minimum,
+            maximum
+        );
+    }
+
+    #[test]
+    fn bank_colors_are_deterministic_bounded_and_opaque() {
+        let first = prepared();
+        let second = prepared();
+        let colors = first.river_bank_geometry.colors.as_ref().unwrap();
+        assert_eq!(colors.len(), first.river_bank_geometry.positions.len());
+        assert_eq!(Some(colors), second.river_bank_geometry.colors.as_ref());
+        assert_eq!(
+            first.river_bank_geometry.positions,
+            second.river_bank_geometry.positions
+        );
+        assert_eq!(
+            first.river_bank_geometry.indices,
+            second.river_bank_geometry.indices
+        );
+        for color in colors {
+            assert!(
+                color
+                    .iter()
+                    .all(|value| value.is_finite() && (0.0..=1.0).contains(value))
+            );
+            assert_eq!(color[3].to_bits(), 1.0_f32.to_bits());
+        }
+        // Interpolated clipped vertices retain both ends of the authored gradient.
+        assert!(colors.iter().any(|color| color[1] > color[0]));
+        assert!(colors.iter().any(|color| color[0] > color[1]));
+        assert!(
+            colors
+                .windows(8)
+                .any(|rows| rows[0].map(f32::to_bits) != rows[4].map(f32::to_bits))
+        );
+        assert_eq!(first.river_bank_material.base.base_color, Color::WHITE);
+        assert_eq!(first.river_bank_material.base.alpha_mode, AlphaMode::Opaque);
     }
 
     #[test]
@@ -1454,7 +2169,7 @@ mod tests {
         assert_eq!(stats.water_surface_queries, stats.centerline_samples * 3);
         assert_eq!(
             stats.river_bank_surface_queries,
-            stats.centerline_samples * 2
+            stats.centerline_samples * 2 + stats.river_bank_vertices
         );
         assert_eq!(
             stats.terrain_surface_queries,
@@ -1462,10 +2177,13 @@ mod tests {
         );
         assert_eq!(stats.water_vertices, stats.centerline_samples * 3);
         assert_eq!(stats.water_triangles, (stats.centerline_samples - 1) * 4);
-        assert_eq!(stats.river_bank_vertices, stats.centerline_samples * 4);
+        assert_eq!(
+            stats.river_bank_vertices,
+            prepared.river_bank_geometry.positions.len()
+        );
         assert_eq!(
             stats.river_bank_triangles,
-            (stats.centerline_samples - 1) * 4
+            prepared.river_bank_geometry.indices.len() / 3
         );
         assert_eq!(
             stats.vertices,
@@ -1551,9 +2269,80 @@ mod tests {
     }
 
     #[test]
+    fn depth_preview_changes_optics_without_touching_sources_or_geometry() {
+        let mut scene = prepared();
+        let water = embedded_visual_valley_water_document().unwrap();
+        let source_hash = scene.stats.source_hash.clone();
+        let positions = scene.water_geometry.positions.clone();
+        let indices = scene.water_geometry.indices.clone();
+        scene.enable_depth_optics_preview(&water);
+        assert!(scene.stats.optical_depth_preview);
+        assert_eq!(scene.stats.source_hash, source_hash);
+        assert_eq!(scene.water_geometry.positions, positions);
+        assert_eq!(scene.water_geometry.indices, indices);
+        assert!(scene.ssr.is_none());
+        assert!(!scene.stats.requested_ssr_component_prepared);
+        assert_eq!(
+            scene.water_material.base.opaque_render_method,
+            OpaqueRendererMethod::Forward
+        );
+        assert_eq!(
+            scene.water_material.base.specular_transmission.to_bits(),
+            1.0_f32.to_bits()
+        );
+        assert!(!scene.stats.gpu_pass_observed);
+    }
+
+    #[test]
+    fn authored_medium_selects_transmission_and_projects_linear_coefficients() {
+        let mut water = embedded_visual_valley_water_document().unwrap();
+        water.medium = Some(forge_project::WaterMediumProfile {
+            absorption_per_m: [0.8, 0.2, 0.1],
+            scattering_per_m: [0.1, 0.2, 0.3],
+        });
+        let source_hash = water.content_hash().unwrap().to_string();
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
+        app.init_asset::<Image>();
+        let camera = app.world_mut().spawn(Camera3d::default()).id();
+        app.add_plugins(VisualValleyWaterPlugin::new(
+            embedded_visual_valley_terrain_document().unwrap(),
+            water,
+        ));
+        assert!(app.world().contains_resource::<WaterDepthOpticsPreview>());
+        let projection = &app.world().resource::<WaterMaterialProjection>().0;
+        assert_eq!(projection.absorption_medium, Vec4::new(0.8, 0.2, 0.1, 1.0));
+        assert_eq!(projection.scattering_medium, Vec4::new(0.1, 0.2, 0.3, 0.0));
+        let stats = app.world().resource::<WaterProjectionStats>();
+        assert_eq!(stats.source_hash, source_hash);
+        assert!(stats.optical_depth_preview);
+        assert_eq!(
+            stats.refraction_status,
+            "experimental_rgb_medium_transmission_not_qualified"
+        );
+        assert!(!stats.gpu_pass_observed);
+        app.update();
+        let camera = app.world().entity(camera);
+        assert!(camera.contains::<bevy::core_pipeline::prepass::DepthPrepass>());
+        assert_eq!(camera.get::<ScreenSpaceTransmission>().unwrap().steps, 1);
+        assert!(!camera.contains::<ScreenSpaceReflections>());
+    }
+
+    #[test]
     fn material_extension_maps_profile_and_keeps_deferred_surface_opaque() {
         let prepared = prepared();
+        assert!(!prepared.stats.optical_depth_preview);
         assert_eq!(prepared.water_material.base.alpha_mode, AlphaMode::Opaque);
+        assert_eq!(
+            prepared.water_material.base.clearcoat.to_bits(),
+            0.0_f32.to_bits()
+        );
+        assert_eq!(
+            prepared.water_material.base.metallic.to_bits(),
+            0.0_f32.to_bits()
+        );
         assert_eq!(
             prepared.water_material.base.opaque_render_method,
             OpaqueRendererMethod::Deferred
@@ -1574,13 +2363,18 @@ mod tests {
             prepared.water_material.base.reflectance.to_bits(),
             WATER_REFLECTANCE.to_bits()
         );
-        assert_eq!(prepared.river_bank_material.alpha_mode, AlphaMode::Opaque);
+        assert_eq!(
+            prepared.river_bank_material.base.alpha_mode,
+            AlphaMode::Opaque
+        );
         assert_eq!(prepared.stats.applied_surface_tint_strength, Some(0.18));
         let tint = prepared.water_material.base.base_color.to_srgba();
         assert!((tint.red - (0.12 * 0.82 + 0.02 * 0.18)).abs() < 1.0e-6);
         assert!((tint.green - (0.42 * 0.82 + 0.13 * 0.18)).abs() < 1.0e-6);
         assert!((tint.blue - (0.46 * 0.82 + 0.21 * 0.18)).abs() < 1.0e-6);
         let extension = &prepared.water_material.extension;
+        assert_eq!(extension.absorption_medium, Vec4::ZERO);
+        assert_eq!(extension.scattering_medium, Vec4::ZERO);
         assert_eq!(extension.wave_parameters, Vec4::new(0.12, 5.5, 0.72, 0.62));
         assert_eq!(
             extension.shallow_color_surface_tint.w.to_bits(),
@@ -1681,6 +2475,7 @@ mod tests {
         app.add_plugins((MinimalPlugins, AssetPlugin::default()));
         app.init_asset::<Mesh>();
         app.init_asset::<StandardMaterial>();
+        app.init_asset::<Image>();
         app.world_mut().spawn(Camera3d::default());
         app.add_plugins(VisualValleyWaterPlugin::new(terrain, water));
         app.update();
@@ -1695,6 +2490,12 @@ mod tests {
         assert_eq!(stats.ssr_camera_entities, 1);
         assert_eq!(stats.msaa_off_camera_entities, 1);
         assert_eq!(stats.transmission_disabled_camera_entities, 1);
+        let world = app.world_mut();
+        assert_eq!(
+            world.query::<&TemporalAntiAliasing>().iter(world).count(),
+            1
+        );
+        let stats = world.resource::<WaterProjectionStats>();
         assert_eq!(stats.shader_material_assets, 1);
         assert_eq!(stats.shader_material_entities, 1);
         assert!(stats.shader_uniforms_match_profile);
@@ -1707,13 +2508,156 @@ mod tests {
     }
 
     #[test]
+    fn transmissive_water_does_not_cast_opaque_shadows_but_still_receives_them() {
+        for preview in [false, true] {
+            let mut app = App::new();
+            app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+            app.init_asset::<Mesh>();
+            app.init_asset::<StandardMaterial>();
+            app.init_asset::<Image>();
+            if preview {
+                app.insert_resource(WaterDepthOpticsPreview);
+            }
+            app.add_plugins(VisualValleyWaterPlugin::new(
+                embedded_visual_valley_terrain_document().unwrap(),
+                embedded_visual_valley_water_document().unwrap(),
+            ));
+            app.update();
+            let world = app.world_mut();
+            let water = world
+                .query_filtered::<EntityRef, With<VisualValleyWaterSurface>>()
+                .single(world)
+                .unwrap();
+            assert_eq!(water.contains::<bevy::light::NotShadowCaster>(), preview);
+            assert!(!water.contains::<bevy::light::NotShadowReceiver>());
+            let bank = world
+                .query_filtered::<EntityRef, With<VisualValleyRiverBankSurface>>()
+                .single(world)
+                .unwrap();
+            assert!(!bank.contains::<bevy::light::NotShadowCaster>());
+            assert!(!bank.contains::<bevy::light::NotShadowReceiver>());
+        }
+    }
+
+    #[test]
+    fn optical_preview_observation_requires_its_actual_camera_and_material_contract() {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()));
+        app.init_asset::<Mesh>();
+        app.init_asset::<StandardMaterial>();
+        app.init_asset::<Image>();
+        app.insert_resource(WaterDepthOpticsPreview);
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let policy = forge_project::VisualValleyQualityProfileDocument::from_json(include_str!(
+            "../../../examples/visual_valley/quality-profile.v1.json"
+        ))
+        .unwrap();
+        app.insert_resource(
+            WaterQualityRequest::new(&terrain, policy, forge_project::VisualQualityTier::High)
+                .unwrap(),
+        );
+        let camera = app.world_mut().spawn(Camera3d::default()).id();
+        app.add_plugins(VisualValleyWaterPlugin::new(
+            terrain,
+            embedded_visual_valley_water_document().unwrap(),
+        ));
+        app.update();
+        let complete = WaterRuntimeObservationStatus::ObservedMainWorldComponents;
+        let incomplete = WaterRuntimeObservationStatus::ObservedIncompleteComponents;
+        let observation = |app: &App| {
+            app.world()
+                .resource::<WaterProjectionStats>()
+                .runtime_observation
+        };
+        assert_eq!(observation(&app), complete);
+        assert!(
+            app.world()
+                .resource::<WaterProjectionStats>()
+                .quality
+                .is_none()
+        );
+        app.world_mut()
+            .resource_mut::<WaterQualityRequest>()
+            .preview_surface_tint(Some(false));
+        app.update();
+        assert_eq!(observation(&app), complete);
+        app.world_mut()
+            .entity_mut(camera)
+            .get_mut::<ScreenSpaceTransmission>()
+            .unwrap()
+            .steps = 0;
+        app.update();
+        assert_eq!(observation(&app), incomplete);
+        app.world_mut()
+            .entity_mut(camera)
+            .get_mut::<ScreenSpaceTransmission>()
+            .unwrap()
+            .steps = 1;
+        app.world_mut()
+            .entity_mut(camera)
+            .remove::<bevy::core_pipeline::prepass::DepthPrepass>();
+        app.update();
+        assert_eq!(observation(&app), incomplete);
+        app.world_mut()
+            .entity_mut(camera)
+            .insert(bevy::core_pipeline::prepass::DepthPrepass);
+        app.world_mut()
+            .entity_mut(camera)
+            .insert(ScreenSpaceReflections::default());
+        app.update();
+        assert_eq!(observation(&app), incomplete);
+        app.world_mut()
+            .entity_mut(camera)
+            .remove::<ScreenSpaceReflections>();
+        app.world_mut()
+            .entity_mut(camera)
+            .remove::<TemporalAntiAliasing>();
+        app.update();
+        assert_eq!(observation(&app), incomplete);
+        app.world_mut()
+            .entity_mut(camera)
+            .insert(TemporalAntiAliasing::default());
+        app.update();
+        assert_eq!(observation(&app), complete);
+        let handle = app.world().resource::<WaterSurfaceMaterial>().0.clone();
+        app.world_mut()
+            .resource_mut::<Assets<VisualValleyWaterMaterial>>()
+            .get_mut(&handle)
+            .unwrap()
+            .base
+            .specular_transmission = 0.0;
+        app.update();
+        assert_eq!(observation(&app), incomplete);
+    }
+
+    #[test]
+    fn depth_preview_keeps_temporal_antialiasing_and_enables_one_transmission_layer() {
+        let mut app = App::new();
+        app.insert_resource(PreparedWaterCamera { ssr: None });
+        app.insert_resource(WaterDepthOpticsPreview);
+        let camera = app.world_mut().spawn(Camera3d::default()).id();
+        app.add_systems(Update, configure_water_cameras);
+        app.update();
+        let entity = app.world().entity(camera);
+        assert!(entity.contains::<TemporalAntiAliasing>());
+        assert!(entity.contains::<bevy::core_pipeline::prepass::DepthPrepass>());
+        assert!(!entity.contains::<ScreenSpaceReflections>());
+        assert_eq!(entity.get::<ScreenSpaceTransmission>().unwrap().steps, 1);
+    }
+
+    #[test]
     fn bed_depth_is_encoded_at_each_center_lane_without_changing_projection() {
         let water = embedded_visual_valley_water_document().unwrap();
         let samples = sample_river_centerline(&water).unwrap();
         let prepared = prepared();
         let colors = prepared.water_geometry.colors.as_ref().unwrap();
         assert_eq!(colors.len(), samples.len() * RIVER_LANE_COUNT);
-        for (sample, lanes) in samples.iter().zip(colors.as_chunks::<3>().0) {
+        for (index, (sample, lanes)) in samples.iter().zip(colors.as_chunks::<3>().0).enumerate() {
+            let (tangent, _) = robust_tangent(&samples, index).unwrap();
+            for color in lanes {
+                assert!((color[1] - tangent[0]).abs() < 0.0001);
+                assert!((color[2] - tangent[1]).abs() < 0.0001);
+            }
             assert_eq!(lanes[0][0].to_bits(), 0.0_f32.to_bits());
             assert_eq!(lanes[1][0].to_bits(), sample.bed_depth_m.to_bits());
             assert_eq!(lanes[2][0].to_bits(), 0.0_f32.to_bits());
@@ -1723,12 +2667,20 @@ mod tests {
                     .all(|color| color[3].to_bits() == 1.0_f32.to_bits())
             );
         }
-        assert!(prepared.river_bank_geometry.colors.is_none());
+        assert_eq!(
+            prepared.river_bank_geometry.colors.as_ref().unwrap().len(),
+            prepared.river_bank_geometry.positions.len()
+        );
     }
 
     #[test]
     fn shader_contract_contains_profile_waves_depth_normals_and_deferred_output() {
         let shader = include_str!("shaders/visual_valley_water.wgsl");
+        assert!(
+            shader
+                .replace("\r\n", "\n")
+                .contains("#ifdef PREPASS_PIPELINE\n#ifdef MOTION_VECTOR_PREPASS")
+        );
         for required in [
             "struct VisualValleyWaterExtension",
             "fn wave_response",

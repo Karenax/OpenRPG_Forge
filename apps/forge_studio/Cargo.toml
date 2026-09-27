@@ -30,6 +30,7 @@ web = [
     "dep:web-sys",
     "dep:serde-wasm-bindgen",
     "forge_engine/web",
+    "forge_engine/qualification",
 ]
 
 [dependencies]
@@ -38,11 +39,13 @@ forge_project.workspace = true
 forge_world.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tauri = { version = "=2.11.5", optional = true , features = [] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+forge_assets.workspace = true
 bevy = { workspace = true, features = ["webgpu"], optional = true }
 console_error_panic_hook = { workspace = true, optional = true }
 forge_engine = { workspace = true, optional = true }
@@ -51,7 +54,7 @@ leptos = { workspace = true, optional = true }
 serde-wasm-bindgen = { workspace = true, optional = true }
 wasm-bindgen = { workspace = true, optional = true }
 wasm-bindgen-futures = { workspace = true, optional = true }
-web-sys = { workspace = true, features = ["console", "CustomEvent", "CustomEventInit", "Document", "Element", "EventTarget", "Location", "Navigator", "Node", "Performance", "Window"], optional = true }
+web-sys = { workspace = true, features = ["console", "Storage", "Blob", "Url", "HtmlElement", "HtmlDialogElement", "DragEvent", "DataTransfer", "CustomEvent", "CustomEventInit", "Document", "Element", "EventTarget", "Location", "Navigator", "Node", "Performance", "Window", "Request", "RequestInit", "RequestRedirect", "RequestCache", "Response", "AbortController", "AbortSignal", "ReadableStream", "ReadableStreamDefaultReader", "HtmlCanvasElement", "CanvasRenderingContext2d", "ImageData"], optional = true }
 
 [build-dependencies]
 tauri-build = "=2.6.3"

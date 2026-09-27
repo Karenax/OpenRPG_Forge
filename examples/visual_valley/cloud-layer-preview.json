@@ -1,0 +1,8 @@
+{
+  "seed": 1337,
+  "altitude_m": 1500.0,
+  "pattern_scale_m": 4000.0,
+  "coverage": 0.52,
+  "opacity": 0.85,
+  "wind_xz_m_per_second": [10.0, -5.0]
+}

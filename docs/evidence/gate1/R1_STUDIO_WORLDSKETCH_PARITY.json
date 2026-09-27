@@ -1,0 +1,30 @@
+{
+  "schema": "forge.studio-world-sketch-parity-evidence",
+  "schema_version": 1,
+  "extraction": "selected fields from actual Chrome scene ledger and native metrics; not complete raw ledgers",
+  "source_file_sha256": "87b901540a5f8f6f2faaa431721f120e1a48e2351458ca371caad914c1bae6ee",
+  "wasm_sha256": "1ec78e07710c025a66002f885907714433acac3dd7edef8b7ad1c727ec9de053",
+  "scene": "world_sketch_visual_valley",
+  "browser_selected_runtime_parity": "source_manifest_matched",
+  "shared_native_browser_hashes": {
+    "terrain": "f47294def69f86f2d3c7e1fd52c522cab0b1a595e6e292bb7af724742e4ddb16",
+    "vegetation": "e71a147524fbb98cefc87e19a355a079fbe050c7bce6501a185e3d02184042e0",
+    "environment": "4b252f036887ec6dbe6ae0942862d15bdba589e7deab92e62a9091e21b6cdd6f",
+    "water": "753ec0398fa88a460b8d59ac77129b6fb92f6e1e9385c8543c4d8aef8945f17e",
+    "weather": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e"
+  },
+  "browser_player_profile_hash": "941eceefb29835c0949a9801f83f421839bcb5b0cd79583899c22d6832a74f90",
+  "browser_world_starts": 1,
+  "browser_active_cameras": 1,
+  "browser_render_size_px": [2048, 1101],
+  "browser_first_real_frame_ms": 3278.600000023842,
+  "browser_runtime_ready_ms": 3278.7000000178814,
+  "gpu_presentation_probe": "not_observed",
+  "native_exit_code": 0,
+  "native_frames": 240,
+  "native_minimum_water_clearance_m": -28.309752,
+  "native_metrics_sha256": "41403887935958045c02807969237ae0d7552ab5ee6a7657a09cd9378407ce3e",
+  "native_log_sha256": "57ded999c93f15142e6eb56cbec6d08bb9d0e2f6a21ae094a0521bf264cea206",
+  "artistic_qualification": "not_qualified",
+  "river_candidate_promoted": false
+}

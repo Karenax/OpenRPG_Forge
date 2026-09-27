@@ -1,0 +1,246 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.cours-de-bise-gnoll",
+  "name": "Cours-de-bise gnoll",
+  "subtitle": "Messager des cols et gardien des relais d’altitude",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Proposition originale pour diversifier les sociétés sapientes du Bestiaire. Le Cours-de-bise désigne une fonction acquise par apprentissage parmi les Gnolls des Routes Hautes, jamais un tempérament inné ni une vocation imposée par l’ascendance.",
+  "major": false,
+  "classification": {
+    "nature": "Humanoïde sapient",
+    "family": "Gnolls des Routes Hautes",
+    "rarity": "Peu commun hors des cols entretenus",
+    "activity": "Diurne, avec départs avant l’aube",
+    "social": "Messager assermenté travaillant seul entre des relais collectifs",
+    "threat": "moderee",
+    "threat_reason": "Son endurance, sa maîtrise des corniches et sa hampe de marche le rendent difficile à arrêter sans préparation, mais sa mission prime généralement sur l’affrontement."
+  },
+  "physique": {
+    "dimensions": "1,75 à 2,05 m debout ; foulée allongée jusqu’à 1,35 m",
+    "mass_kg": [70, 105],
+    "locomotion": [
+      "course bipède d’endurance",
+      "franchissement latéral de corniche",
+      "escalade courte assistée par une hampe"
+    ],
+    "center_of_gravity": "Bas et légèrement avancé, avec genoux souples et longue queue d’équilibre tenue près du corps dans les passages étroits.",
+    "silhouette": "Humanoïde élancé à fourrure courte, museau large, oreilles mobiles et jambes puissantes, équipé d’un mantelet de pluie, d’une sacoche scellée sans inscription et d’une longue hampe de marche.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles",
+        "description": "Le museau et les oreilles orientables favorisent la lecture du vent, mais restent peu protégés.",
+        "protection": 3
+      },
+      {
+        "zone": "Torse sous mantelet",
+        "description": "Plusieurs couches de laine huilée amortissent les éraflures et le froid, pas les impacts lourds.",
+        "protection": 7
+      },
+      {
+        "zone": "Avant-bras et mains",
+        "description": "Des bandes de cuir protègent la prise sur la hampe tout en laissant les articulations libres.",
+        "protection": 5
+      },
+      {
+        "zone": "Jambes de course",
+        "description": "Les muscles et tendons sont puissants, mais les chevilles exposées craignent les prises latérales.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "routes en lacets des hautes vallées",
+    "corniches balisées par des cairns",
+    "relais de pierre sous les cols",
+    "ponts suspendus au-dessus des ravines"
+  ],
+  "ecology": {
+    "diet": "Régime omnivore de voyage : galettes de céréales, fruits secs, racines, fromage et viande conservée selon les échanges disponibles.",
+    "lifecycle": "Le métier commence après une formation à l’orientation, aux premiers secours et aux usages diplomatiques des relais ; il peut être quitté sans perte de statut.",
+    "reproduction": "La reproduction relève de la vie privée des communautés gnolles et ne détermine ni profession, ni autorité, ni aptitude particulière.",
+    "behavior": "Il observe la météo, vérifie les appuis et privilégie la vitesse régulière. Face à des inconnus, il annonce sa mission avant de défendre sa sacoche.",
+    "niche": "Transmission urgente, reconnaissance des routes et première alerte lors d’un éboulement ou d’une fermeture de col.",
+    "environmental_impact": "Ses passages entretiennent cairns, cordes de sécurité et abris légers, ce qui profite aussi aux voyageurs étrangers."
+  },
+  "senses": [
+    "Ouïe directionnelle attentive aux chutes de pierres et aux cordes sous tension.",
+    "Odorat sensible à la pluie, à la fumée et aux passages récents.",
+    "Vision adaptée aux reliefs contrastés et aux longues distances par temps clair."
+  ],
+  "communication": [
+    "Sifflements courts convenus entre relais, sans portée universelle.",
+    "Parole articulée, gestes de route et fanions unis dépourvus d’écriture."
+  ],
+  "signs": [
+    "Empreintes longues espacées régulièrement malgré la pente.",
+    "Petite pierre claire ajoutée au sommet d’un cairn récemment vérifié.",
+    "Nœud de sécurité neuf sur une corde ancienne de corniche.",
+    "Abri sommaire laissé propre avec du combustible sec pour le suivant."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Livrer sa charge sans exposer les autres voyageurs.",
+      "Maintenir ouverte une route sûre entre deux relais."
+    ],
+    "fears": [
+      "Déclencher une chute de pierres sur des personnes en contrebas.",
+      "Perdre la sacoche confiée ou transmettre un avertissement trop tard."
+    ],
+    "morale": "Prudent et tenace tant qu’une retraite vers la route demeure possible ; il ne recherche pas un duel prolongé.",
+    "escalation": "Il avertit, se décale vers un appui sûr, utilise sa hampe pour créer de la distance puis tente de repartir.",
+    "retreat": "Il rompt le contact vers le relais le plus proche ou abandonne temporairement la sacoche si une vie immédiate est en jeu."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 8,
+      "constitution": 7,
+      "intelligence": 5,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 5
+    },
+    "skills": {
+      "athletics": 55,
+      "acrobatics": 45,
+      "climbing": 50,
+      "survival": 50,
+      "polearms": 40,
+      "vigilance": 45,
+      "tracking": 35,
+      "medicine": 25
+    },
+    "resources": {
+      "vitality": 114,
+      "stamina": 103,
+      "mana": 76,
+      "balance": 92,
+      "focus": 92
+    },
+    "movement": "7,2 m/s sur chemin stable ; 4 m/s sur corniche ; franchissement sûr d’un intervalle de 1,8 m avec élan et hampe.",
+    "protections": [
+      "Mantelet de laine huilée et cuir souple contre froid, pluie et abrasions.",
+      "Aucune protection uniforme : tête, chevilles et flancs restent accessibles."
+    ],
+    "attacks": [
+      {
+        "name": "Écart de hampe",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 19,
+        "reach": "1,8 m en poussée ou balayage bas",
+        "stamina_cost": 8,
+        "preparation": "0,35 s, main arrière descendue et pointe opposée au vide",
+        "telegraph": "La hampe racle la pierre puis les épaules s’alignent clairement avec la direction de poussée.",
+        "effect": "Repousse ou déstabilise davantage qu’elle ne blesse ; près d’un bord, le danger vient surtout du terrain.",
+        "counterplay": "Entrer à l’intérieur de la portée, bloquer la hampe contre une paroi ou lui laisser une voie de départ."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Pas de corniche",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "acrobatics",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "déplacement de 5 m le long d’un relief praticable",
+        "stamina_cost": 12,
+        "preparation": "0,6 s, trois appuis successifs repérés du regard",
+        "telegraph": "Ses oreilles se fixent vers l’avant et la hampe touche brièvement chacun des appuis choisis.",
+        "effect": "Il traverse rapidement une portion étroite sans ignorer les ruptures, obstacles ou surfaces réellement instables.",
+        "counterplay": "Occuper un appui, tendre une corde de sécurité ou rendre la route préférable à la poursuite."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "froid humide et vent soutenu",
+        "mechanism": "La fourrure courte et les couches huilées retardent la perte de chaleur sans protéger d’une exposition prolongée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "sol meuble et prises latérales",
+        "mechanism": "Sa foulée longue perd son avantage dans la boue profonde ou lorsque les chevilles sont contraintes de côté."
+      },
+      {
+        "subject": "charge et mission visibles",
+        "mechanism": "Protéger sa sacoche et les voyageurs peut détourner son attention d’un affrontement direct."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Corniche sèche et cairns intacts",
+        "result": "route rapide et lisible",
+        "chain": "Il repère les cairns, choisit trois appuis puis traverse avant qu’un poursuivant non préparé ne puisse l’encercler."
+      },
+      {
+        "input": "Corde de sécurité accessible",
+        "result": "chute interrompue ou passage partagé",
+        "chain": "Une corde fixée transforme le bord en risque récupérable et ouvre une coopération immédiate plutôt qu’un combat."
+      },
+      {
+        "input": "Pierres instables frappées par la hampe",
+        "result": "alerte sonore et éboulis local",
+        "chain": "Le contact révèle le danger ; insister avec force peut toutefois déclencher une chute qui menace tous les présents."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Une foulée régulière et des cairns fraîchement corrigés indiquent un Cours-de-bise en mission, pas une bande en chasse."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La sacoche scellée peut contenir aussi bien un contrat, un remède ou un avertissement ; son porteur n’en connaît pas toujours tout le contenu."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Certains relais entretiennent des itinéraires de secours partagés avec des communautés non gnolles, malgré des autorités locales opposées à ces alliances."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "messager pressé",
+      "guide de corniche",
+      "défenseur mobile"
+    ],
+    "telegraphs": [
+      "Les cairns remis d’aplomb et les nœuds neufs annoncent son passage utile.",
+      "Le raclement de la hampe précède une poussée ou un test d’appui.",
+      "Son regard parcourt toujours une voie de repli avant l’accélération."
+    ],
+    "noncombat_options": [
+      "Présenter un besoin urgent et demander un accompagnement jusqu’au prochain relais.",
+      "Aider à sécuriser une corde ou dégager un passage effondré.",
+      "Garantir que la sacoche sera remise intacte à son destinataire."
+    ],
+    "complications": [
+      "Une tempête ferme la route pendant la négociation.",
+      "Le message avertit d’un danger qui oblige les deux groupes à changer de priorité."
+    ]
+  },
+  "salvage": [
+    "Hampe de frêne et corde de sécurité uniquement si elles sont abandonnées ou cédées ; sinon, elles sont à restituer au réseau de relais.",
+    "Pièces de fixation remplaçables cédées après réparation ; la sacoche et son contenu ne constituent jamais une récupération."
+  ],
+  "plates": [
+    {
+      "image": "cours-de-bise-gnoll-plate.png",
+      "alt": "Cours-de-bise gnoll entier sur une corniche claire, hampe de marche, mantelet huilé et sacoche de messager visibles.",
+      "caption": "La route est son outil : chaque appui vérifié peut devenir une issue partagée.",
+      "prompt_key": "cours-de-bise-gnoll-plate"
+    }
+  ]
+}

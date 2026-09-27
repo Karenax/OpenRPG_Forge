@@ -1,7 +1,7 @@
 #[cfg(feature = "physics-rapier")]
 use crate::{PlayerControllerSet, PlayerRuntimeSnapshot};
 use bevy::{
-    asset::{RenderAssetUsages, embedded_asset},
+    asset::RenderAssetUsages,
     camera::{
         primitives::Aabb,
         visibility::{
@@ -18,6 +18,7 @@ use bevy::{
         RenderApp,
         batching::gpu_preprocessing::{GpuPreprocessingMode, GpuPreprocessingSupport},
         render_resource::{AsBindGroup, PrimitiveTopology},
+        storage::ShaderBuffer,
         view::NoIndirectDrawing,
     },
     shader::ShaderRef,
@@ -31,13 +32,39 @@ use forge_world::{
     VegetationGenerationPlan, VegetationInstance, VegetationInstanceId, VegetationKindCounts,
 };
 use serde::Serialize;
+#[cfg(feature = "physics-rapier")]
+mod collision;
+#[cfg(feature = "physics-rapier")]
+mod far_batches;
+#[cfg(feature = "physics-rapier")]
+pub use far_batches::GovernedFarBatchPreview;
+#[cfg(feature = "physics-rapier")]
+mod prototype_projection;
+mod quality;
+mod telemetry;
+#[cfg(feature = "physics-rapier")]
+pub(crate) use prototype_projection::quality_ready as governed_quality_ready;
+#[cfg(feature = "physics-rapier")]
+pub use prototype_projection::{
+    VegetationPrototypeForestPreview, governed_forest_ready, stop_governed_forest,
+};
+#[cfg(not(feature = "physics-rapier"))]
+pub(crate) fn governed_quality_ready(_world: &World) -> bool {
+    false
+}
+pub use quality::{
+    VegetationQualityObservation, VegetationQualityRequest, update_vegetation_sources,
+    update_vegetation_sources_with_buildings, update_vegetation_sources_with_paths,
+    update_vegetation_sources_with_promotions, update_vegetation_sources_with_waterways,
+};
 use std::{any::TypeId, collections::HashMap, error::Error, fmt};
+pub use telemetry::VegetationLiveMeshStats;
 
 const VEGETATION_SHADER_PATH: &str =
     "embedded://forge_engine/shaders/visual_valley_vegetation_deform.wgsl";
 const MAX_WIND_AMPLITUDE_M: f32 = 0.55;
 const MAX_INTERACTION_AMPLITUDE_M: f32 = 0.45;
-const GRASS_PATCH_RADIUS_M: f32 = 1.15;
+const GRASS_PATCH_RADIUS_M: f32 = 0.8;
 const GOLDEN_ANGLE_RADIANS: f32 = 2.399_963_1;
 const TAG_PHASE_MASK: u32 = 0x00ff_ffff;
 const TAG_PHASE_SCALE: f32 = 16_777_215.0;
@@ -75,8 +102,33 @@ pub enum VegetationMeshKey {
 #[derive(Clone, Component, Debug, Eq, PartialEq)]
 pub struct VegetationPlacementMarker {
     pub id: VegetationInstanceId,
+    pub layer_id: forge_project::VegetationLayerId,
     pub kind: VegetationKind,
     pub lod: VegetationProjectionLod,
+}
+
+/// Render-only marker, also available to common native/Web telemetry without physics.
+#[derive(Component)]
+pub struct GovernedTreePrimitive {
+    pub placement_id: VegetationInstanceId,
+    pub lod: u8,
+}
+
+/// Read-only view of the exact generated projection used by the current quality tier.
+/// This shares the generation result, rather than regenerating poses for a second renderer.
+#[derive(Clone, Resource)]
+pub struct VegetationScatterProjection {
+    generated: std::sync::Arc<forge_world::GeneratedVegetation>,
+}
+
+impl VegetationScatterProjection {
+    pub fn trees(&self) -> impl Iterator<Item = &VegetationInstance> {
+        self.generated
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .filter(|instance| instance.kind == VegetationKind::Tree)
+    }
 }
 
 /// Derived marker for a chunk mesh. One batch can cover many logical placements.
@@ -87,6 +139,10 @@ pub struct VegetationChunkBatchMarker {
     pub lod: VegetationProjectionLod,
     pub logical_placements: u32,
 }
+
+/// Separate from quality-owned procedural batches: never reconciled as a recipe binding.
+#[derive(Component)]
+pub struct GovernedFarBatch;
 
 /// Interaction published by gameplay and consumed only by the presentation adapter.
 ///
@@ -257,9 +313,27 @@ pub struct VegetationTriangleStats {
 }
 
 /// Machine-readable vegetation adapter evidence. No field is a draw-call estimate.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct VegetationPrototypePreviewStats {
+    pub trees: u32,
+    pub primitive_entities: usize,
+    pub procedural_geometry_counts_valid: bool,
+}
+
+/// Machine-readable vegetation adapter evidence. No field is a draw-call estimate.
 #[derive(Clone, Debug, Default, Eq, PartialEq, Resource, Serialize)]
 pub struct VegetationProjectionStats {
+    /// Live meshes for the single active camera; None when visibility is unavailable.
+    pub live_meshes: Option<VegetationLiveMeshStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prototype_preview_error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prototype_preview: Option<VegetationPrototypePreviewStats>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quality: Option<VegetationQualityObservation>,
     pub terrain_document_hash: String,
+    /// Source document hash without paths; versioned composite projection identity
+    /// when accepted authoring paths contribute derived clearances.
     pub vegetation_document_hash: String,
     pub placements: VegetationPlacementStats,
     pub projection: VegetationProjectionCounts,
@@ -270,6 +344,22 @@ pub struct VegetationProjectionStats {
 
 impl VegetationProjectionStats {
     pub(crate) fn overlay_details(&self) -> String {
+        if let Some(error) = &self.prototype_preview_error {
+            return format!(
+                "APERÇU forêt en échec : {error}\nConsulter le diagnostic de reprise ; aperçu non qualifié"
+            );
+        }
+        if let Some(preview) = &self.prototype_preview {
+            let observed = self.live_meshes.as_ref().map_or_else(
+                || "visibilité indisponible sans caméra unique".to_owned(),
+                |meshes| format!("végétation réelle : {} meshes · {} triangles visibles CPU · {} meshes non comptables",
+                    meshes.mesh_entities, meshes.cpu_visible_triangles, meshes.uncountable_mesh_assets),
+            );
+            return format!(
+                "APERÇU forêt : {} arbres · {} primitives LOD\n{}\nBudgets procéduraux invalides pour cet aperçu ; pas des draw calls GPU",
+                preview.trees, preview.primitive_entities, observed
+            );
+        }
         let visibility = match self.visibility.status {
             VegetationVisibilityObservationStatus::ObservedSingleActiveCamera => format!(
                 "caméra : {} visibles · {} hors plage · {} exclus CPU après plage",
@@ -304,10 +394,26 @@ pub struct VegetationLodRanges {
 }
 
 impl VegetationLodRanges {
+    /// Shared governed-mesh policy for projection, shadow uniforms and capture traces.
+    pub(crate) fn from_governed_profile(profile: VegetationPresentationProfile) -> Self {
+        let mut ranges = Self::from_profile(profile);
+        let transition = profile.near_lod_distance_m
+            ..(profile.near_lod_distance_m + 8.0).min(profile.medium_lod_distance_m);
+        ranges.near.end_margin = transition.clone();
+        ranges.medium.start_margin = transition;
+        ranges
+    }
+
     #[must_use]
     pub fn from_profile(profile: VegetationPresentationProfile) -> Self {
-        let near_to_medium = profile.near_lod_distance_m..profile.medium_lod_distance_m;
-        let medium_to_hlod = profile.medium_lod_distance_m..profile.hlod_distance_m;
+        let near_to_medium = profile
+            .near_lod_distance_m
+            .max(profile.medium_lod_distance_m - 8.0)
+            ..profile.medium_lod_distance_m;
+        let medium_to_hlod = profile
+            .medium_lod_distance_m
+            .max(profile.hlod_distance_m - 8.0)
+            ..profile.hlod_distance_m;
         Self {
             near: VisibilityRange {
                 start_margin: 0.0..0.0,
@@ -326,13 +432,18 @@ impl VegetationLodRanges {
             },
             grass: VisibilityRange {
                 start_margin: 0.0..0.0,
-                end_margin: near_to_medium,
+                // A chunk must not spend most of its near range stippled. Keep the same
+                // cull distance, with at most eight metres of terminal fade for grass.
+                end_margin: profile
+                    .near_lod_distance_m
+                    .max(profile.medium_lod_distance_m - 8.0)
+                    ..profile.medium_lod_distance_m,
                 use_aabb: true,
             },
             hlod: VisibilityRange {
                 start_margin: medium_to_hlod,
                 end_margin: profile.cull_distance_m..profile.cull_distance_m,
-                use_aabb: true,
+                use_aabb: false,
             },
         }
     }
@@ -361,9 +472,23 @@ pub struct VisualValleyVegetationExtension {
     /// XYZ is a normalized horizontal wind direction.
     #[uniform(100)]
     pub wind_direction: Vec4,
-    /// X is scalar wetness; Y/Z are the full-wet roughness/albedo multipliers.
+    /// X is scalar wetness; Y/Z are full-wet microfacet-alpha/albedo multipliers.
     #[uniform(100)]
     pub wetness_parameters: Vec4,
+    /// HLOD per-placement fade-in start/end and true far cutoff. CPU batch ranges are conservative.
+    #[uniform(100)]
+    pub hlod_distances: Vec4,
+    /// X enables governed PBR; Y is inverse normalized prototype height. Zero keeps procedural mode.
+    #[uniform(100)]
+    pub prototype_parameters: Vec4,
+    /// Governed medium-LOD shadow fade start/end; matches the CPU caster cutoff.
+    #[uniform(100)]
+    pub shadow_fade_distances: Vec4,
+    /// X enables the shared temporal LOD table; Y selects static authored kit materials.
+    #[uniform(100)]
+    pub temporal_parameters: Vec4,
+    #[storage(101, read_only)]
+    pub temporal_lod_buffer: Handle<ShaderBuffer>,
 }
 
 impl Default for VisualValleyVegetationExtension {
@@ -381,17 +506,42 @@ impl Default for VisualValleyVegetationExtension {
             wind_direction: Vec4::new(0.82, 0.0, 0.57, 0.0),
             // A zero wetness scalar is an exact identity for the original material output.
             wetness_parameters: Vec4::new(0.0, 1.0, 1.0, 0.0),
+            hlod_distances: Vec4::ZERO,
+            prototype_parameters: Vec4::ZERO,
+            shadow_fade_distances: Vec4::ZERO,
+            temporal_parameters: Vec4::ZERO,
+            temporal_lod_buffer: crate::temporal_lod::render::BUFFER,
         }
     }
 }
 
 impl VisualValleyVegetationExtension {
+    /// Use only with root-normalized meshes, preserving their authored UVs and vertex colors.
+    pub fn with_governed_prototype_height(mut self, height_m: f32) -> Result<Self, &'static str> {
+        if !height_m.is_finite() || !(0.01..=1000.0).contains(&height_m) {
+            return Err("governed vegetation height must be finite and within 0.01..1000 metres");
+        }
+        self.prototype_parameters = Vec4::new(1.0, height_m.recip(), 0.0, 0.0);
+        Ok(self)
+    }
+
     #[must_use]
     pub fn from_profile_and_interaction(
         profile: VegetationPresentationProfile,
         interaction: VegetationInteractionField,
     ) -> Self {
+        let ranges = VegetationLodRanges::from_profile(profile);
+        let shadow_range = VegetationLodRanges::from_governed_profile(profile)
+            .medium
+            .end_margin;
         Self {
+            shadow_fade_distances: Vec4::new(shadow_range.start, shadow_range.end, 0.0, 0.0),
+            hlod_distances: Vec4::new(
+                ranges.hlod.start_margin.start,
+                ranges.hlod.start_margin.end,
+                profile.cull_distance_m,
+                0.0,
+            ),
             wind_parameters: Vec4::new(
                 profile.wind_strength * MAX_WIND_AMPLITUDE_M,
                 profile.wind_speed_hz,
@@ -411,6 +561,54 @@ impl VisualValleyVegetationExtension {
 }
 
 impl MaterialExtension for VisualValleyVegetationExtension {
+    fn specialize(
+        _pipeline: &bevy::pbr::MaterialExtensionPipeline,
+        descriptor: &mut bevy::render::render_resource::RenderPipelineDescriptor,
+        layout: &bevy::mesh::MeshVertexBufferLayoutRef,
+        key: bevy::pbr::MaterialExtensionKey<Self>,
+    ) -> Result<(), bevy::material::specialize::SpecializedMeshPipelineError> {
+        use crate::vegetation_far_geometry::{ROOT_SCALE, WIND_DATA};
+        use bevy::pbr::MeshPipelineKey;
+        // Directional shadow passes have no normal/motion/deferred outputs.
+        // Compute the fade from the LOD view origin, without depending on a
+        // visibility-range storage binding absent from Bevy's shadow layout.
+        if key.mesh_key.contains(MeshPipelineKey::DEPTH_PREPASS)
+            && !key.mesh_key.intersects(
+                MeshPipelineKey::NORMAL_PREPASS
+                    | MeshPipelineKey::MOTION_VECTOR_PREPASS
+                    | MeshPipelineKey::DEFERRED_PREPASS,
+            )
+        {
+            descriptor
+                .vertex
+                .shader_defs
+                .push("VERTEX_OUTPUT_INSTANCE_INDEX".into());
+            descriptor
+                .vertex
+                .shader_defs
+                .push("FORGE_SHADOW_FADE".into());
+            descriptor.fragment = Some(bevy::render::render_resource::FragmentState {
+                shader: descriptor.vertex.shader.clone(),
+                shader_defs: descriptor.vertex.shader_defs.clone(),
+                entry_point: Some("shadow_fragment".into()),
+                targets: vec![],
+            });
+        }
+        if layout.0.contains(ROOT_SCALE) || layout.0.contains(WIND_DATA) {
+            let extra = layout.0.get_layout(&[
+                ROOT_SCALE.at_shader_location(10),
+                WIND_DATA.at_shader_location(11),
+            ])?;
+            // StandardMaterial specialization runs first and installs the mesh buffer.
+            let buffer = descriptor.vertex.buffers.first_mut().expect(
+                "StandardMaterial installs its vertex buffer before extension specialization",
+            );
+            buffer.attributes.extend(extra.attributes);
+            descriptor.vertex.shader_defs.push("FORGE_FAR_BATCH".into());
+        }
+        Ok(())
+    }
+
     fn vertex_shader() -> ShaderRef {
         VEGETATION_SHADER_PATH.into()
     }
@@ -427,10 +625,42 @@ impl MaterialExtension for VisualValleyVegetationExtension {
 pub type VisualValleyVegetationMaterial =
     ExtendedMaterial<StandardMaterial, VisualValleyVegetationExtension>;
 
+pub(crate) fn install_temporal_material(app: &mut App) {
+    bevy::asset::embedded_asset!(app, "shaders/visual_valley_vegetation_deform.wgsl");
+    app.add_plugins(MaterialPlugin::<VisualValleyVegetationMaterial>::default())
+        .add_systems(Update, configure_vegetation_prepass);
+}
+
+// Bevy 0.19's opaque depth-only prepass has no fragment stage for visibility dither.
+// A normal prepass invokes the standard fragment rejection in both depth and color,
+// avoiding depth-only silhouettes left behind when the forward pass discards pixels.
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameter wrappers"
+)]
+pub(crate) fn configure_vegetation_prepass(
+    mut commands: Commands,
+    cameras: Query<
+        Entity,
+        (
+            With<Camera3d>,
+            Without<bevy::core_pipeline::prepass::NormalPrepass>,
+        ),
+    >,
+) {
+    for camera in &cameras {
+        commands
+            .entity(camera)
+            .insert(bevy::core_pipeline::prepass::NormalPrepass);
+    }
+}
+
 /// Compact, renderer-facing placement used by the procedural mesh builders.
 /// Positions are relative to the owning chunk for grass and HLOD batches.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct ProceduralVegetationPlacement {
+    /// Stable variation derived from the canonical placement ID, never its batch index.
+    pub variation_seed: u64,
     pub position_m: Vec3,
     pub yaw_radians: f32,
     pub scale: f32,
@@ -592,73 +822,127 @@ pub(crate) fn maximum_deformation_m(profile: VegetationPresentationProfile) -> f
 pub(crate) fn build_tree_near_mesh(
     deformation_margin_m: f32,
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
-    build_tree_mesh(
-        8,
-        &[(1.75, 3.8, 1.35), (2.65, 4.8, 1.12), (3.55, 5.65, 0.86)],
-        deformation_margin_m,
-    )
+    build_tree_mesh(8, 8, 7, deformation_margin_m)
 }
 
 pub(crate) fn build_tree_medium_mesh(
     deformation_margin_m: f32,
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
-    build_tree_mesh(
-        5,
-        &[(1.8, 4.35, 1.25), (3.0, 5.5, 0.82)],
-        deformation_margin_m,
-    )
+    build_tree_mesh(5, 5, 5, deformation_margin_m)
 }
 
 fn build_tree_mesh(
     trunk_segments: u16,
-    canopy_layers: &[(f32, f32, f32)],
+    tiers: u16,
+    branches: u16,
     deformation_margin_m: f32,
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
     let mut mesh = MeshAccumulator::default();
     append_cylinder(
         &mut mesh,
         Vec3::ZERO,
-        0.22,
-        2.9,
+        0.12,
+        5.3,
         trunk_segments,
         bark_color(0.0),
         bark_color(0.22),
     )?;
-    for (layer_index, &(base_y, tip_y, radius)) in canopy_layers.iter().enumerate() {
-        append_cone(
-            &mut mesh,
-            Vec3::new(0.0, base_y, 0.0),
-            radius,
-            tip_y,
-            trunk_segments + 1,
-            leaf_color(layer_index, 0.35),
-            leaf_color(layer_index + 1, 1.0),
+    for tier in 0..tiers {
+        let fraction = f32::from(tier) / f32::from(tiers - 1);
+        let height = 1.85 + fraction * 3.1;
+        let envelope = 1.35 * (1.0 - fraction * 0.8);
+        let thickness = 1.0 - fraction * 0.4;
+        for branch in 0..branches {
+            let noise = unit_noise(u64::from(tier), branch, 71);
+            let angle = f32::from(branch) * std::f32::consts::TAU / f32::from(branches)
+                + f32::from(tier) * GOLDEN_ANGLE_RADIANS
+                + (noise - 0.5) * 0.3;
+            let direction = Vec3::new(angle.cos(), 0.0, angle.sin());
+            let side = Vec3::new(-direction.z, 0.0, direction.x);
+            let length = envelope * (0.78 + 0.22 * noise);
+            let base = Vec3::Y * (height + (noise - 0.5) * 0.16);
+            // Unequal, rotated sprays leave real gaps rather than a continuous cone surface.
+            let points = [
+                base + direction * 0.08 + Vec3::Y * (0.65 * thickness),
+                base + direction * length + Vec3::Y * 0.02,
+                base + direction * (length * 0.60) - side * (length * 0.40)
+                    + Vec3::Y * (0.12 * thickness),
+                base + direction * (length * 0.56)
+                    + side * (length * 0.43)
+                    + Vec3::Y * (0.50 * thickness),
+            ];
+            append_foliage_spray(&mut mesh, points, usize::from(tier + branch))?;
+        }
+    }
+    append_cone(
+        &mut mesh,
+        Vec3::new(0.0, 4.9, 0.0),
+        0.25,
+        5.65,
+        trunk_segments + 1,
+        leaf_color(0, 0.7),
+        leaf_color(1, 1.0),
+    )?;
+    mesh.finish(deformation_margin_m)
+}
+
+fn append_foliage_spray(
+    mesh: &mut MeshAccumulator,
+    points: [Vec3; 4],
+    variation: usize,
+) -> Result<(), VegetationMeshError> {
+    let center = (points[0] + points[1] + points[2] + points[3]) * 0.25;
+    let colors = [
+        leaf_color(variation, 0.35),
+        leaf_color(variation + 1, 1.0),
+        leaf_color(variation, 0.7),
+        leaf_color(variation + 1, 0.8),
+    ];
+    for mut indices in [[0, 1, 2], [0, 3, 1], [0, 2, 3], [1, 3, 2]] {
+        let normal = triangle_normal(points[indices[0]], points[indices[1]], points[indices[2]])?;
+        if normal.dot(points[indices[0]] - center) < 0.0 {
+            indices.swap(1, 2);
+        }
+        mesh.push_triangle(
+            indices.map(|index| points[index]),
+            indices.map(|index| colors[index]),
         )?;
     }
-    mesh.finish(deformation_margin_m)
+    Ok(())
 }
 
 pub(crate) fn build_shrub_mesh(
     deformation_margin_m: f32,
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
     let mut mesh = MeshAccumulator::default();
-    for (index, offset) in [
-        Vec3::new(-0.28, 0.0, 0.04),
-        Vec3::new(0.28, 0.0, 0.09),
-        Vec3::new(0.0, 0.0, -0.24),
-    ]
-    .into_iter()
-    .enumerate()
-    {
-        append_cone(
-            &mut mesh,
-            offset,
-            0.58,
-            [1.25, 1.33, 1.41][index],
-            7,
-            leaf_color(index, 0.0),
-            leaf_color(index + 1, 1.0),
-        )?;
+    // A porous, rounded crown of discrete leaves instead of three solid cone silhouettes.
+    // This shared render mesh does not change canonical placement poses or scatter density.
+    for ring in 0..4_u16 {
+        let height = 0.20 + f32::from(ring) * 0.29;
+        let radius = [0.40, 0.62, 0.51, 0.24][usize::from(ring)];
+        for leaf in 0..12_u16 {
+            let noise = unit_noise(u64::from(ring), leaf, 193);
+            let angle = f32::from(leaf) * std::f32::consts::TAU / 12.0
+                + f32::from(ring) * GOLDEN_ANGLE_RADIANS;
+            let outward = Vec3::new(angle.cos(), 0.0, angle.sin());
+            let side = Vec3::new(-outward.z, 0.0, outward.x);
+            let center = outward * (radius * (0.8 + noise * 0.2))
+                + Vec3::Y * (height + (noise - 0.5) * 0.12);
+            let axis = (outward * 0.75 + Vec3::Y * (0.25 + noise * 0.5)).normalize();
+            let length = 0.20 + noise * 0.09;
+            let width = length * 0.60;
+            // Keep the lowest crown fixed; flexibility increases toward the top.
+            let weight = f32::from(ring) / 3.0;
+            mesh.push_quad(
+                [
+                    center - axis * length,
+                    center - side * width,
+                    center + axis * length,
+                    center + side * width,
+                ],
+                [leaf_color(usize::from(leaf), weight); 4],
+            )?;
+        }
     }
     mesh.finish(deformation_margin_m)
 }
@@ -670,19 +954,51 @@ pub(crate) fn build_fern_mesh(
     for leaf in 0..7_u16 {
         let angle = f32::from(leaf) * std::f32::consts::TAU / 7.0;
         let outward = Vec3::new(angle.cos(), 0.0, angle.sin());
-        let right = Vec3::new(-outward.z, 0.0, outward.x) * 0.10;
+        let right = Vec3::new(-outward.z, 0.0, outward.x);
         let base = Vec3::new(0.0, 0.04, 0.0);
-        let shoulder = outward * 0.72 + Vec3::Y * 0.44;
+        let shoulder = outward * 0.55 + Vec3::Y * 0.44;
         let tip = outward * 1.05 + Vec3::Y * 0.16;
-        mesh.push_quad(
-            [base - right, base + right, shoulder + right * 0.35, tip],
-            [
-                leaf_color(usize::from(leaf), 0.0),
-                leaf_color(usize::from(leaf), 0.0),
-                leaf_color(usize::from(leaf) + 1, 0.72),
-                leaf_color(usize::from(leaf) + 1, 1.0),
-            ],
-        )?;
+        // Two narrow rachis segments support separate paired leaflets, not one solid flag.
+        for (start, end, weight) in [(base, shoulder, 0.0), (shoulder, tip, 0.5)] {
+            mesh.push_quad(
+                [
+                    start - right * 0.012,
+                    start + right * 0.012,
+                    end + right * 0.007,
+                    end - right * 0.007,
+                ],
+                [
+                    leaf_color(usize::from(leaf), weight),
+                    leaf_color(usize::from(leaf), weight),
+                    leaf_color(usize::from(leaf), weight + 0.5),
+                    leaf_color(usize::from(leaf), weight + 0.5),
+                ],
+            )?;
+        }
+        for pair in 0..3_u16 {
+            let t = 0.22 + f32::from(pair) * 0.25;
+            let center = if t < 0.5 {
+                base.lerp(shoulder, t * 2.0)
+            } else {
+                shoulder.lerp(tip, (t - 0.5) * 2.0)
+            };
+            for sign in [-1.0, 1.0] {
+                let length =
+                    (0.26 - t * 0.12) * (0.85 + unit_noise(u64::from(leaf), pair, 211) * 0.15);
+                let direction = right * sign + outward * 0.40;
+                let end = center + direction * length - Vec3::Y * 0.035;
+                let middle = center.lerp(end, 0.5);
+                mesh.push_quad(
+                    [
+                        center,
+                        middle - outward * 0.045,
+                        end,
+                        middle + outward * 0.045,
+                    ],
+                    [leaf_color(usize::from(leaf + pair), t); 4],
+                )?;
+            }
+        }
     }
     mesh.finish(deformation_margin_m)
 }
@@ -698,45 +1014,53 @@ pub(crate) fn build_grass_chunk_mesh(
         return Err(VegetationMeshError::GrassBladeCountIsZero);
     }
     let mut mesh = MeshAccumulator::default();
-    for (patch_index, patch) in patches.iter().enumerate() {
+    for patch in patches {
         if patch.kind != VegetationKind::Grass {
             continue;
         }
         for blade in 0..grass_blades_per_patch {
-            let radial = ((f32::from(blade) + 0.5) / f32::from(grass_blades_per_patch)).sqrt();
+            // Uneven lobes join into a tuft instead of drawing a regular circular disc.
+            let radial = unit_noise(patch.variation_seed, blade, 4).sqrt();
             let angle = patch.wind_phase_radians
                 + f32::from(blade) * GOLDEN_ANGLE_RADIANS
-                + unit_noise(patch_index, blade, 0) * 0.45;
-            let radius = radial * GRASS_PATCH_RADIUS_M * patch.scale;
+                + unit_noise(patch.variation_seed, blade, 0) * 0.45;
+            let outline = 0.72 + 0.28 * (angle * 3.0 + patch.yaw_radians).sin();
+            let radius = radial * outline * GRASS_PATCH_RADIUS_M * patch.scale;
             let local_x = patch.position_m.x + angle.cos() * radius;
             let local_z = patch.position_m.z + angle.sin() * radius;
             let world_x =
                 (chunk_center.x + local_x).clamp(-TERRAIN_HALF_EXTENT_M, TERRAIN_HALF_EXTENT_M);
             let world_z =
                 (chunk_center.z + local_z).clamp(-TERRAIN_HALF_EXTENT_M, TERRAIN_HALF_EXTENT_M);
-            let surface = terrain
-                .surface_at(world_x, world_z)
+            let height_m = terrain
+                .surface_height_at(world_x, world_z)
                 .map_err(|_| VegetationMeshError::GrassBladeSurfaceProjectionFailed)?;
-            let base = Vec3::new(
-                world_x - chunk_center.x,
-                surface.height_m,
-                world_z - chunk_center.z,
-            );
-            let blade_yaw = angle + unit_noise(patch_index, blade, 1) * 1.2;
-            let width = (0.025 + unit_noise(patch_index, blade, 2) * 0.025) * patch.scale;
-            let height = (0.38 + unit_noise(patch_index, blade, 3) * 0.48) * patch.scale;
+            let base = Vec3::new(world_x - chunk_center.x, height_m, world_z - chunk_center.z);
+            let blade_yaw = angle + unit_noise(patch.variation_seed, blade, 1) * 1.2;
+            // Slender blades in a tighter tuft, without extra geometry or authored placements.
+            let width = (0.025 + unit_noise(patch.variation_seed, blade, 2) * 0.03) * patch.scale;
+            let height = (0.22 + unit_noise(patch.variation_seed, blade, 3) * 0.43) * patch.scale;
             let right = Vec3::new(blade_yaw.cos(), 0.0, -blade_yaw.sin()) * (width * 0.5);
-            let top = base + Vec3::Y * height;
+            let lean = Vec3::new(blade_yaw.sin(), 0.0, blade_yaw.cos())
+                * height
+                * (0.25 + unit_noise(patch.variation_seed, blade, 5) * 0.45);
+            let middle = base + Vec3::Y * (height * 0.58) + lean * 0.25;
+            let top = base + Vec3::Y * height + lean;
             let bottom_color = grass_color(blade, 0.0);
+            let middle_color = grass_color(blade, patch.wind_response * 0.4);
             let top_color = grass_color(blade, patch.wind_response);
             mesh.push_quad(
                 [
                     base - right,
                     base + right,
-                    top + right * 0.18,
-                    top - right * 0.18,
+                    middle + right * 0.65,
+                    middle - right * 0.65,
                 ],
-                [bottom_color, bottom_color, top_color, top_color],
+                [bottom_color, bottom_color, middle_color, middle_color],
+            )?;
+            mesh.push_triangle(
+                [middle - right * 0.65, middle + right * 0.65, top],
+                [middle_color, middle_color, top_color],
             )?;
         }
     }
@@ -748,27 +1072,60 @@ pub(crate) fn build_hlod_chunk_mesh(
     deformation_margin_m: f32,
 ) -> Result<DerivedVegetationMesh, VegetationMeshError> {
     let mut mesh = MeshAccumulator::default();
+    let mut root_heights = Vec::new();
     for placement in placements {
-        if placement.kind == VegetationKind::Grass {
-            continue;
+        let first_vertex = mesh.positions.len();
+        if placement.kind == VegetationKind::Tree {
+            append_crossed_tree_silhouette(&mut mesh, placement)?;
+        } else {
+            let (width, height, bottom, top) = match placement.kind {
+                VegetationKind::Shrub => (1.15, 1.35, leaf_color(0, 0.0), leaf_color(1, 0.72)),
+                // Match the near fern's spreading fronds rather than a tall diamond.
+                VegetationKind::Fern => (2.1, 0.44, leaf_color(1, 0.0), leaf_color(0, 0.9)),
+                VegetationKind::Tree | VegetationKind::Grass => continue,
+            };
+            append_low_growth_silhouette(
+                &mut mesh,
+                placement.position_m,
+                placement.yaw_radians,
+                width * placement.scale,
+                height * placement.scale,
+                bottom,
+                with_wind_weight(top, placement.wind_response),
+            )?;
         }
-        let (width, height, bottom, top) = match placement.kind {
-            VegetationKind::Tree => (1.55, 5.25, bark_color(0.0), leaf_color(0, 0.82)),
-            VegetationKind::Shrub => (1.15, 1.35, leaf_color(0, 0.0), leaf_color(1, 0.72)),
-            VegetationKind::Fern => (0.9, 0.82, leaf_color(1, 0.0), leaf_color(0, 0.9)),
-            VegetationKind::Grass => continue,
-        };
-        append_crossed_silhouette(
-            &mut mesh,
-            placement.position_m,
-            placement.yaw_radians,
-            width * placement.scale,
-            height * placement.scale,
-            bottom,
-            with_wind_weight(top, placement.wind_response),
-        )?;
+        // This procedural material has no sampled textures. HLOD-only UV0/UV1 encode
+        // the undeformed local placement root, identical for every vertex of its silhouette.
+        // Individual meshes retain their normal UVs and have no UV1 attribute.
+        for uv in &mut mesh.uvs[first_vertex..] {
+            *uv = [placement.position_m.x, placement.position_m.z];
+        }
+        root_heights.resize(mesh.positions.len(), [placement.position_m.y, 0.0]);
     }
-    mesh.finish(deformation_margin_m)
+    let mut derived = mesh.finish(deformation_margin_m)?;
+    derived
+        .mesh
+        .insert_attribute(Mesh::ATTRIBUTE_UV_1, root_heights);
+    Ok(derived)
+}
+
+/// Cull the whole batch only if no placement can be in its shader-visible range.
+/// The GPU fades each silhouette at its own root, not at this batch's model origin.
+fn hlod_batch_visibility_range(
+    placements: &[ProceduralVegetationPlacement],
+    nominal: &VisibilityRange,
+) -> VisibilityRange {
+    let radius = placements
+        .iter()
+        .map(|placement| placement.position_m.length())
+        .fold(0.0_f32, f32::max);
+    let start = (nominal.start_margin.start - radius).max(0.0);
+    VisibilityRange {
+        // Keep a non-abrupt margin so Bevy enables the dither varying in both passes.
+        start_margin: start..start + (nominal.start_margin.end - nominal.start_margin.start),
+        end_margin: nominal.end_margin.end + radius..nominal.end_margin.end + radius,
+        use_aabb: false,
+    }
 }
 
 #[allow(
@@ -791,10 +1148,10 @@ fn append_cylinder(
         let radial_b = Vec3::new(angle_b.cos(), 0.0, angle_b.sin()) * radius;
         mesh.push_quad(
             [
-                base + radial_a,
                 base + radial_b,
-                base + radial_b + Vec3::Y * height,
+                base + radial_a,
                 base + radial_a + Vec3::Y * height,
+                base + radial_b + Vec3::Y * height,
             ],
             [bottom_color, bottom_color, top_color, top_color],
         )?;
@@ -821,12 +1178,56 @@ fn append_cone(
         let angle_b = f32::from(segment + 1) * std::f32::consts::TAU / f32::from(segments);
         let first = base + Vec3::new(angle_a.cos() * radius, 0.0, angle_a.sin() * radius);
         let second = base + Vec3::new(angle_b.cos() * radius, 0.0, angle_b.sin() * radius);
-        mesh.push_triangle([first, second, tip], [base_color, base_color, tip_color])?;
+        // Counter-clockwise from outside: foliage normals point outward and upward.
+        mesh.push_triangle([second, first, tip], [base_color, base_color, tip_color])?;
     }
     Ok(())
 }
 
-fn append_crossed_silhouette(
+fn append_crossed_tree_silhouette(
+    mesh: &mut MeshAccumulator,
+    placement: &ProceduralVegetationPlacement,
+) -> Result<(), VegetationMeshError> {
+    for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
+        let angle = placement.yaw_radians + quarter_turn;
+        let right = Vec3::new(angle.cos(), 0.0, -angle.sin()) * placement.scale;
+        let up = Vec3::Y * placement.scale;
+        let base = placement.position_m;
+        mesh.push_quad(
+            [
+                base - right * 0.22,
+                base + right * 0.22,
+                base + up * 2.9 + right * 0.22,
+                base + up * 2.9 - right * 0.22,
+            ],
+            [
+                bark_color(0.0),
+                bark_color(0.0),
+                bark_color(0.22),
+                bark_color(0.22),
+            ],
+        )?;
+        for (index, (bottom, tip, radius)) in
+            [(1.75, 3.8, 1.35), (2.65, 4.8, 1.12), (3.55, 5.65, 0.86)]
+                .into_iter()
+                .enumerate()
+        {
+            let lower_color = leaf_color(index, 0.35 * placement.wind_response);
+            let upper_color = leaf_color(index + 1, placement.wind_response);
+            mesh.push_triangle(
+                [
+                    base + up * bottom - right * radius,
+                    base + up * bottom + right * radius,
+                    base + up * tip,
+                ],
+                [lower_color, lower_color, upper_color],
+            )?;
+        }
+    }
+    Ok(())
+}
+
+fn append_low_growth_silhouette(
     mesh: &mut MeshAccumulator,
     base: Vec3,
     yaw: f32,
@@ -838,11 +1239,36 @@ fn append_crossed_silhouette(
     for quarter_turn in [0.0, std::f32::consts::FRAC_PI_2] {
         let angle = yaw + quarter_turn;
         let right = Vec3::new(angle.cos(), 0.0, -angle.sin()) * (width * 0.5);
-        let top = base + Vec3::Y * height;
-        mesh.push_quad(
-            [base - right, base + right, top + right, top - right],
-            [bottom_color, bottom_color, top_color, top_color],
-        )?;
+        // Convex six-point crown, rooted across its base rather than balanced on a tip.
+        // Two crossed planes still batch all distant plants; no extra entity or texture.
+        let outline = [
+            (-0.45, 0.0),
+            (0.45, 0.0),
+            (1.0, 0.38),
+            (0.50, 0.88),
+            (-0.24, 1.0),
+            (-1.0, 0.45),
+        ];
+        let normal = Vec3::new(angle.sin(), 0.0, angle.cos());
+        let first = u32::try_from(mesh.positions.len())
+            .map_err(|_| VegetationMeshError::VertexCountOverflow)?;
+        for (horizontal, vertical) in outline {
+            let color = if vertical == 0.0 {
+                bottom_color
+            } else {
+                top_color
+            };
+            mesh.push_vertex(
+                base + right * horizontal + Vec3::Y * (height * vertical),
+                normal,
+                color,
+                [0.0, 0.0],
+            )?;
+        }
+        for offset in 1..5_u32 {
+            mesh.indices
+                .extend_from_slice(&[first, first + offset, first + offset + 1]);
+        }
     }
     Ok(())
 }
@@ -891,9 +1317,8 @@ fn finite_clamp(value: f32, minimum: f32, maximum: f32) -> f32 {
     clippy::cast_precision_loss,
     reason = "the 23-bit mantissa is exactly representable as f32"
 )]
-fn unit_noise(patch_index: usize, blade: u16, stream: u32) -> f32 {
-    let patch = u64::try_from(patch_index).unwrap_or(u64::MAX);
-    let mut value = patch
+fn unit_noise(seed: u64, blade: u16, stream: u32) -> f32 {
+    let mut value = seed
         .wrapping_mul(0x9e37_79b9_7f4a_7c15)
         .wrapping_add(u64::from(blade).wrapping_mul(0xbf58_476d_1ce4_e5b9))
         .wrapping_add(u64::from(stream).wrapping_mul(0x94d0_49bb_1331_11eb));
@@ -933,8 +1358,12 @@ impl VisualValleyVegetationPlugin {
 
 impl Plugin for VisualValleyVegetationPlugin {
     fn build(&self, app: &mut App) {
-        let prepared = prepare_vegetation_projection(&self.terrain, &self.vegetation)
-            .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
+        let prepared = prepare_vegetation_projection_with_quality(
+            &self.terrain,
+            &self.vegetation,
+            app.world().get_resource::<VegetationQualityRequest>(),
+        )
+        .unwrap_or_else(|error| panic!("vegetation plugin requires valid documents: {error}"));
         let stats = prepared.stats.clone();
         let profile = prepared.profile;
         let interaction = VegetationInteractionField::bounded(
@@ -945,19 +1374,48 @@ impl Plugin for VisualValleyVegetationPlugin {
             profile,
         );
 
-        embedded_asset!(app, "shaders/visual_valley_vegetation_deform.wgsl");
+        crate::temporal_lod::render::install(app);
+        if app.world().contains_resource::<VegetationQualityRequest>() {
+            let bindings = quality::VegetationQualityBindings::new(
+                self.terrain.clone(),
+                self.vegetation.clone(),
+            );
+            #[cfg(not(target_arch = "wasm32"))]
+            let bindings = {
+                let mut bindings = bindings;
+                if app.get_sub_app(bevy::render::RenderApp).is_some() {
+                    bindings.enable_background();
+                }
+                bindings
+            };
+            app.insert_resource(bindings);
+            quality::install_mesh_staging(app);
+            app.add_systems(Update, quality::apply_quality);
+        }
         app.insert_resource(stats)
             .insert_resource(VegetationPresentation(profile))
             .insert_resource(interaction)
             .insert_resource(PreparedVegetation(Some(prepared)))
-            .add_plugins(MaterialPlugin::<VisualValleyVegetationMaterial>::default())
             .add_systems(Startup, spawn_vegetation_projection)
-            .add_systems(Update, update_vegetation_interaction_uniform)
+            .add_systems(
+                Update,
+                update_vegetation_interaction_uniform.after(quality::apply_quality),
+            )
             .add_systems(
                 PostUpdate,
                 observe_vegetation_visibility.after(VisibilitySystems::CheckVisibility),
             );
 
+        #[cfg(feature = "physics-rapier")]
+        app.add_systems(
+            Update,
+            prototype_projection::project.after(quality::apply_quality),
+        );
+        #[cfg(feature = "physics-rapier")]
+        app.add_systems(
+            FixedUpdate,
+            collision::update_activation.before(bevy_rapier3d::prelude::PhysicsSet::SyncBackend),
+        );
         #[cfg(feature = "physics-rapier")]
         app.add_systems(
             FixedUpdate,
@@ -1060,15 +1518,41 @@ impl From<VegetationGenerationError> for VegetationAdapterError {
 struct PreparedVegetation(Option<PreparedVegetationProjection>);
 
 struct PreparedVegetationProjection {
+    scatter: VegetationScatterProjection,
     profile: VegetationPresentationProfile,
     meshes: Vec<PreparedMeshAsset>,
     entities: Vec<PreparedProjectionEntity>,
     stats: VegetationProjectionStats,
+    #[cfg(feature = "physics-rapier")]
+    tree_colliders: Vec<collision::TreeTrunkProjection>,
 }
 
 struct PreparedMeshAsset {
     key: VegetationMeshKey,
     value: DerivedVegetationMesh,
+}
+
+// A single preparation owns this transfer queue. Draining moves meshes, never clones them.
+#[derive(Default)]
+struct PreparedMeshStream(std::sync::Mutex<Vec<PreparedMeshAsset>>);
+
+impl PreparedMeshStream {
+    #[cfg(any(target_arch = "wasm32", test))]
+    fn drain(&self) -> Vec<PreparedMeshAsset> {
+        std::mem::take(
+            &mut *self
+                .0
+                .lock()
+                .expect("mesh stream lock is not held across user code"),
+        )
+    }
+
+    fn append(&self, meshes: &mut Vec<PreparedMeshAsset>) {
+        self.0
+            .lock()
+            .expect("mesh stream lock is not held across user code")
+            .append(meshes);
+    }
 }
 
 struct PreparedProjectionEntity {
@@ -1101,7 +1585,112 @@ fn prepare_vegetation_projection(
     terrain: &TerrainDocument,
     vegetation: &VegetationDocument,
 ) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    prepare_vegetation_projection_with_quality(terrain, vegetation, None)
+}
+
+#[allow(
+    clippy::similar_names,
+    clippy::too_many_lines,
+    reason = "one preparation pass validates correlated mesh, entity, LOD and evidence counts"
+)]
+fn prepare_vegetation_projection_with_quality(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    quality: Option<&VegetationQualityRequest>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    // The synchronous path never yields; native workers and initial loading retain
+    // their existing contract. Browser quality changes poll the staged path per frame.
+    bevy::tasks::block_on(prepare_vegetation_projection_staged(
+        terrain, vegetation, quality, false,
+    ))
+}
+
+#[allow(
+    clippy::similar_names,
+    clippy::too_many_lines,
+    reason = "one shared geometry preparation preserves the synchronous projection contract"
+)]
+async fn prepare_vegetation_projection_staged(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    quality: Option<&VegetationQualityRequest>,
+    staged: bool,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
     let plan = VegetationGenerationPlan::from_documents(terrain, vegetation)?;
+    prepare_vegetation_projection_from_plan(&plan, quality, staged, None).await
+}
+
+#[cfg(test)]
+fn prepare_vegetation_projection_with_paths(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+    quality: Option<&VegetationQualityRequest>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    prepare_vegetation_projection_with_waterways(terrain, vegetation, paths, &[], quality)
+}
+
+#[cfg(test)]
+fn prepare_vegetation_projection_with_waterways(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+    rivers: &[forge_project::zone_authoring::rivers::AuthoredRiver],
+    quality: Option<&VegetationQualityRequest>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    prepare_vegetation_projection_with_buildings(terrain, vegetation, paths, rivers, &[], quality)
+}
+
+#[cfg(test)]
+fn prepare_vegetation_projection_with_buildings(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+    rivers: &[forge_project::zone_authoring::rivers::AuthoredRiver],
+    buildings: &[forge_project::zone_authoring::buildings::AuthoredBuilding],
+    quality: Option<&VegetationQualityRequest>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    prepare_vegetation_projection_with_promotions(
+        terrain,
+        vegetation,
+        paths,
+        rivers,
+        buildings,
+        &[],
+        quality,
+    )
+}
+
+fn prepare_vegetation_projection_with_promotions(
+    terrain: &TerrainDocument,
+    vegetation: &VegetationDocument,
+    paths: &[forge_project::zone_authoring::paths::AuthoredPath],
+    rivers: &[forge_project::zone_authoring::rivers::AuthoredRiver],
+    buildings: &[forge_project::zone_authoring::buildings::AuthoredBuilding],
+    promotions: &[forge_project::zone_authoring::promotion::PromotedInstance],
+    quality: Option<&VegetationQualityRequest>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    let plan = VegetationGenerationPlan::from_documents_with_buildings(
+        terrain, vegetation, paths, rivers, buildings,
+    )?
+    .with_promotions(promotions)?;
+    bevy::tasks::block_on(prepare_vegetation_projection_from_plan(
+        &plan, quality, false, None,
+    ))
+}
+
+#[allow(
+    clippy::similar_names,
+    clippy::too_many_lines,
+    reason = "shared geometry preparation preserves the synchronous projection contract"
+)]
+async fn prepare_vegetation_projection_from_plan(
+    plan: &VegetationGenerationPlan,
+    quality: Option<&VegetationQualityRequest>,
+    staged: bool,
+    mesh_stream: Option<&PreparedMeshStream>,
+) -> Result<PreparedVegetationProjection, VegetationAdapterError> {
+    let vegetation = plan.vegetation();
     let cells_per_axis = u64::from(plan.cells_per_axis());
     let attempts_per_cell = vegetation
         .layers
@@ -1118,8 +1707,29 @@ fn prepare_vegetation_projection(
         MAX_VEGETATION_CANDIDATE_ATTEMPTS,
     )?;
 
-    let generated = plan.generate()?;
-    let profile = vegetation.presentation;
+    let canonical = plan.generate()?;
+    let generated = if let Some(request) = quality {
+        std::sync::Arc::new(
+            plan.generate_render_density(
+                request
+                    .document
+                    .preset(request.tier)
+                    .vegetation
+                    .density_multiplier,
+            )?
+            .generated,
+        )
+    } else {
+        canonical.clone()
+    };
+    let profile = quality.map_or(vegetation.presentation, |request| {
+        request.profile(vegetation.presentation)
+    });
+    let mut validation_copy = vegetation.clone();
+    validation_copy.presentation = profile;
+    validation_copy
+        .validate()
+        .map_err(VegetationGenerationError::from)?;
     let kind_counts = generated.kind_counts;
     let trees = u64::from(kind_counts.trees);
     let shrubs = u64::from(kind_counts.shrubs);
@@ -1315,7 +1925,7 @@ fn prepare_vegetation_projection(
                 mesh_key: key,
                 transform: Transform::from_translation(chunk_center),
                 mesh_tag: chunk_mesh_tag(chunk_x, chunk_z, 0x0048_0000),
-                visibility_range: ranges.hlod.clone(),
+                visibility_range: hlod_batch_visibility_range(&woody, &ranges.hlod),
                 marker: PreparedProjectionMarker::Batch(VegetationChunkBatchMarker {
                     chunk_x,
                     chunk_z,
@@ -1328,6 +1938,14 @@ fn prepare_vegetation_projection(
 
         for instance in &chunk.instances {
             append_individual_projection(instance, &ranges, &mut entities);
+        }
+        if staged {
+            if let Some(stream) = mesh_stream {
+                stream.append(&mut meshes);
+            }
+            // The browser owner polls a bounded batch per frame, not a microtask loop.
+            // No live ECS/asset binding is modified while these chunks are prepared.
+            bevy::tasks::futures_lite::future::yield_now().await;
         }
     }
 
@@ -1358,6 +1976,10 @@ fn prepare_vegetation_projection(
         VegetationAdapterError::CountOverflow("shadow_opt_out_entities"),
     )?;
     let stats = VegetationProjectionStats {
+        live_meshes: None,
+        prototype_preview_error: None,
+        prototype_preview: None,
+        quality: quality.map(|request| request.observation(canonical.kind_counts.total())),
         terrain_document_hash: generated.terrain_document_hash.to_string(),
         vegetation_document_hash: generated.vegetation_document_hash.to_string(),
         placements: VegetationPlacementStats {
@@ -1394,10 +2016,20 @@ fn prepare_vegetation_projection(
     debug_assert_eq!(u64::try_from(entities.len()).ok(), Some(total_entities));
 
     Ok(PreparedVegetationProjection {
+        scatter: VegetationScatterProjection { generated },
         profile,
         meshes,
         entities,
         stats,
+        #[cfg(feature = "physics-rapier")]
+        tree_colliders: canonical
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .filter_map(|instance| {
+                collision::TreeTrunkProjection::from_instance(instance, vegetation)
+            })
+            .collect(),
     })
 }
 
@@ -1429,6 +2061,7 @@ fn append_individual_projection(
                 visibility_range: ranges.near.clone(),
                 marker: PreparedProjectionMarker::Placement(VegetationPlacementMarker {
                     id: instance.id,
+                    layer_id: instance.layer_id.clone(),
                     kind: instance.kind,
                     lod: VegetationProjectionLod::Near,
                 }),
@@ -1442,6 +2075,7 @@ fn append_individual_projection(
                 visibility_range: ranges.medium.clone(),
                 marker: PreparedProjectionMarker::Placement(VegetationPlacementMarker {
                     id: instance.id,
+                    layer_id: instance.layer_id.clone(),
                     kind: instance.kind,
                     lod: VegetationProjectionLod::Medium,
                 }),
@@ -1462,6 +2096,7 @@ fn append_individual_projection(
                 visibility_range: ranges.individual.clone(),
                 marker: PreparedProjectionMarker::Placement(VegetationPlacementMarker {
                     id: instance.id,
+                    layer_id: instance.layer_id.clone(),
                     kind: instance.kind,
                     lod: VegetationProjectionLod::Near,
                 }),
@@ -1478,6 +2113,15 @@ fn procedural_placement(
     chunk_center: Vec3,
 ) -> ProceduralVegetationPlacement {
     ProceduralVegetationPlacement {
+        variation_seed: instance
+            .id
+            .as_entity_id()
+            .as_uuid()
+            .as_bytes()
+            .iter()
+            .fold(0xcbf2_9ce4_8422_2325_u64, |hash, byte| {
+                (hash ^ u64::from(*byte)).wrapping_mul(0x0100_0000_01b3)
+            }),
         position_m: Vec3::new(
             instance.position_m.x - chunk_center.x,
             instance.position_m.y,
@@ -1502,12 +2146,17 @@ fn spawn_vegetation_projection(
     interaction: Res<VegetationInteractionField>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<VisualValleyVegetationMaterial>>,
+    bindings: Option<ResMut<quality::VegetationQualityBindings>>,
 ) {
     let prepared = prepared
         .0
         .take()
         .expect("vegetation projection preparation is consumed exactly once");
     let projection_stats = prepared.stats.clone();
+    commands.insert_resource(prepared.scatter);
+    // Physics comes from canonical placements, never from visibility or render density.
+    #[cfg(feature = "physics-rapier")]
+    collision::spawn_tree_trunks(&mut commands, prepared.tree_colliders);
     let material = materials.add(VisualValleyVegetationMaterial {
         base: StandardMaterial {
             base_color: Color::WHITE,
@@ -1532,7 +2181,9 @@ fn spawn_vegetation_projection(
         mesh_handles.insert(prepared_mesh.key, (handle, aabb));
     }
 
+    let mut bindings = bindings;
     for prepared_entity in prepared.entities {
+        let binding_key = quality::VegetationQualityBindings::key(&prepared_entity.marker);
         let Some((mesh, aabb)) = mesh_handles.get(&prepared_entity.mesh_key) else {
             panic!(
                 "{}",
@@ -1560,6 +2211,12 @@ fn spawn_vegetation_projection(
         if !prepared_entity.casts_shadow {
             entity.insert(NotShadowCaster);
         }
+        if let Some(bindings) = bindings.as_mut() {
+            bindings.entities.insert(binding_key, entity.id());
+        }
+    }
+    if let Some(bindings) = bindings.as_mut() {
+        bindings.meshes = mesh_handles;
     }
     commands.insert_resource(VegetationMaterialHandle(material));
     info!(
@@ -1589,12 +2246,7 @@ fn update_vegetation_interaction_uniform(
     material: Option<Res<VegetationMaterialHandle>>,
     mut materials: ResMut<Assets<VisualValleyVegetationMaterial>>,
 ) {
-    let Some(material) = material else {
-        return;
-    };
-    let Some(mut material) = materials.get_mut(&material.0) else {
-        return;
-    };
+    let procedural_id = material.as_ref().map(|material| material.0.id());
     let bounded = VegetationInteractionField::bounded(
         interaction.center_m,
         interaction.push_direction_xz,
@@ -1604,14 +2256,27 @@ fn update_vegetation_interaction_uniform(
     );
     let mut extension =
         VisualValleyVegetationExtension::from_profile_and_interaction(profile.0, bounded);
-    extension.wetness_parameters = material.extension.wetness_parameters;
     let wrap_period = time.wrap_period().as_secs_f32();
     let current_time = finite_clamp(time.elapsed_secs_wrapped(), 0.0, wrap_period);
     let previous_time =
         (current_time - finite_clamp(time.delta_secs(), 0.0, wrap_period)).rem_euclid(wrap_period);
     extension.wind_parameters.z = current_time;
     extension.wind_parameters.w = previous_time;
-    material.extension = extension;
+    for (id, material) in materials.iter_mut() {
+        // Static kit materials retain authored PBR and do not inherit forest weather/wind.
+        if material.extension.temporal_parameters.y > 0.5 {
+            continue;
+        }
+        if Some(id) != procedural_id && material.extension.prototype_parameters.x <= 0.5 {
+            continue;
+        }
+        let mut next = extension.clone();
+        next.wetness_parameters = material.extension.wetness_parameters;
+        next.prototype_parameters = material.extension.prototype_parameters;
+        next.temporal_parameters = material.extension.temporal_parameters;
+        next.temporal_lod_buffer = material.extension.temporal_lod_buffer.clone();
+        material.extension = next;
+    }
 }
 
 #[cfg(feature = "physics-rapier")]
@@ -1669,18 +2334,26 @@ fn observe_vegetation_visibility(
     projections: Query<
         (
             Entity,
+            &Mesh3d,
             Option<&VegetationPlacementMarker>,
             Option<&VegetationChunkBatchMarker>,
+            Option<&GovernedTreePrimitive>,
+            Has<GovernedFarBatch>,
         ),
         Or<(
             With<VegetationPlacementMarker>,
             With<VegetationChunkBatchMarker>,
+            With<GovernedTreePrimitive>,
+            With<GovernedFarBatch>,
         )>,
     >,
     visible_ranges: Res<VisibleEntityRanges>,
     mut visible_meshes: Local<EntityHashSet>,
     mut stats: ResMut<VegetationProjectionStats>,
+    meshes: Res<Assets<Mesh>>,
+    mut mesh_counts: Local<HashMap<bevy::asset::AssetId<Mesh>, Option<u64>>>,
 ) {
+    stats.live_meshes = None;
     let observation_frames = stats.visibility.observation_frames.saturating_add(1);
     let mut active_cameras = cameras.iter().filter(|(_, camera, _, _)| camera.is_active);
     let active_camera = active_cameras.next();
@@ -1717,28 +2390,51 @@ fn observe_vegetation_visibility(
             .iter(TypeId::of::<Mesh3d>())
             .copied(),
     );
-    for (entity, placement, batch) in &projections {
+    mesh_counts.clear();
+    let mut live_meshes = VegetationLiveMeshStats::default();
+    for (entity, mesh, placement, batch, governed, far_batch) in &projections {
         let in_range = visible_ranges.entity_is_in_range_of_view(entity, camera_entity);
         let cpu_visible_for_camera = visible_meshes.contains(&entity);
+        telemetry::count_mesh(
+            &mut live_meshes,
+            &mut mesh_counts,
+            &meshes,
+            &mesh.0,
+            cpu_visible_for_camera,
+        );
         if cpu_visible_for_camera && !in_range {
             observation.visible_outside_range_inconsistencies = observation
                 .visible_outside_range_inconsistencies
                 .saturating_add(1);
         }
         observation.total.observe(in_range, cpu_visible_for_camera);
+        if far_batch {
+            observation.hlod.observe(in_range, cpu_visible_for_camera);
+            continue;
+        }
         let bucket = match (
             placement.map(|marker| marker.lod),
             batch.map(|marker| marker.lod),
+            governed.map(|marker| marker.lod),
         ) {
-            (Some(VegetationProjectionLod::Near), None) => &mut observation.near,
-            (Some(VegetationProjectionLod::Medium), None) => &mut observation.medium,
-            (None, Some(VegetationProjectionLod::Hlod)) => &mut observation.hlod,
-            (None, Some(VegetationProjectionLod::GrassBatch)) => &mut observation.grass_batches,
+            (Some(VegetationProjectionLod::Near), None, None) | (None, None, Some(0)) => {
+                &mut observation.near
+            }
+            (Some(VegetationProjectionLod::Medium), None, None) | (None, None, Some(1)) => {
+                &mut observation.medium
+            }
+            (None, Some(VegetationProjectionLod::Hlod), None) | (None, None, Some(2)) => {
+                &mut observation.hlod
+            }
+            (None, Some(VegetationProjectionLod::GrassBatch), None) => {
+                &mut observation.grass_batches
+            }
             _ => continue,
         };
         bucket.observe(in_range, cpu_visible_for_camera);
     }
     stats.visibility = observation;
+    stats.live_meshes = Some(live_meshes);
     stats.render_path.active_camera_gpu_preprocessing = resolve_camera_preprocessing(
         stats.render_path.maximum_gpu_preprocessing,
         no_indirect_drawing,
@@ -1825,6 +2521,26 @@ fn projection_policy_markers() -> (NoAutoAabb, NotShadowCaster) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn vegetation_installs_normal_prepass_once_and_covers_later_cameras() {
+        use bevy::core_pipeline::prepass::NormalPrepass;
+        let mut app = App::new();
+        app.add_systems(Update, configure_vegetation_prepass);
+        let first = app.world_mut().spawn(Camera3d::default()).id();
+        let other = app.world_mut().spawn_empty().id();
+        app.update();
+        assert!(app.world().entity(first).contains::<NormalPrepass>());
+        assert!(!app.world().entity(other).contains::<NormalPrepass>());
+        let second = app.world_mut().spawn(Camera3d::default()).id();
+        app.update();
+        assert!(app.world().entity(second).contains::<NormalPrepass>());
+        app.update();
+        let mut cameras = app
+            .world_mut()
+            .query_filtered::<Entity, With<NormalPrepass>>();
+        assert_eq!(cameras.iter(app.world()).count(), 2);
+    }
     use bevy::mesh::VertexAttributeValues;
     use forge_world::{
         embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
@@ -1848,6 +2564,7 @@ mod tests {
 
     fn placement(kind: VegetationKind, x: f32, z: f32) -> ProceduralVegetationPlacement {
         ProceduralVegetationPlacement {
+            variation_seed: u64::from(x.to_bits()) ^ u64::from(z.to_bits()).rotate_left(32),
             position_m: Vec3::new(x, 1.25, z),
             yaw_radians: 0.37,
             scale: 1.1,
@@ -1894,6 +2611,78 @@ mod tests {
     }
 
     #[test]
+    fn volumetric_vegetation_faces_point_outward() {
+        let mut trunk = MeshAccumulator::default();
+        append_cylinder(
+            &mut trunk,
+            Vec3::ZERO,
+            0.22,
+            2.9,
+            8,
+            bark_color(0.0),
+            bark_color(0.22),
+        )
+        .unwrap();
+        let mut canopy = MeshAccumulator::default();
+        append_cone(
+            &mut canopy,
+            Vec3::ZERO,
+            1.35,
+            3.8,
+            9,
+            leaf_color(0, 0.35),
+            leaf_color(1, 1.0),
+        )
+        .unwrap();
+        for mesh in [&trunk, &canopy] {
+            for (position, normal) in mesh.positions.iter().zip(&mesh.normals) {
+                let radial = Vec3::new(position[0], 0.0, position[2]);
+                if radial.length_squared() > 1.0e-6 {
+                    assert!(
+                        radial.dot(Vec3::from_array(*normal)) > 0.0,
+                        "surface normal must face away from the trunk axis"
+                    );
+                }
+            }
+        }
+        assert!(canopy.normals.iter().all(|normal| normal[1] > 0.0));
+    }
+
+    #[test]
+    fn branched_tree_meshes_are_repeatable_and_sprays_face_outward() {
+        for builder in [build_tree_near_mesh, build_tree_medium_mesh] {
+            let first = builder(0.0).unwrap();
+            let second = builder(0.0).unwrap();
+            for attribute in [
+                Mesh::ATTRIBUTE_POSITION,
+                Mesh::ATTRIBUTE_NORMAL,
+                Mesh::ATTRIBUTE_COLOR,
+            ] {
+                assert_eq!(
+                    first.mesh.attribute(attribute),
+                    second.mesh.attribute(attribute)
+                );
+            }
+            assert_eq!(first.aabb.max().y.to_bits(), 5.65_f32.to_bits());
+            assert!(first.aabb.half_extents.x <= 1.35);
+            assert!(first.aabb.half_extents.z <= 1.35);
+        }
+        let points = [
+            Vec3::new(0.1, 2.0, 0.0),
+            Vec3::new(1.2, 1.8, 0.0),
+            Vec3::new(0.5, 1.8, -0.3),
+            Vec3::new(0.6, 2.1, 0.4),
+        ];
+        let center = points.into_iter().sum::<Vec3>() * 0.25;
+        let mut spray = MeshAccumulator::default();
+        append_foliage_spray(&mut spray, points, 3).unwrap();
+        assert_eq!(spray.indices.len(), 12);
+        for (position, normal) in spray.positions.iter().zip(&spray.normals) {
+            assert!((Vec3::from_array(*position) - center).dot(Vec3::from_array(*normal)) > 0.0);
+        }
+    }
+
+    #[test]
     fn shared_meshes_have_complete_finite_indexed_payloads() {
         let margin = maximum_deformation_m(profile());
         let near = build_tree_near_mesh(margin).unwrap();
@@ -1907,10 +2696,10 @@ mod tests {
             assert!(mesh.aabb.half_extents.y < 16.0);
             assert!(mesh.aabb.half_extents.z < 16.0);
         }
-        assert_eq!((near.mesh.count_vertices(), near.triangles), (113, 43));
-        assert_eq!((medium.mesh.count_vertices(), medium.triangles), (56, 22));
-        assert_eq!((shrub.mesh.count_vertices(), shrub.triangles), (63, 21));
-        assert_eq!((fern.mesh.count_vertices(), fern.triangles), (28, 14));
+        assert_eq!((near.mesh.count_vertices(), near.triangles), (731, 249));
+        assert_eq!((medium.mesh.count_vertices(), medium.triangles), (338, 116));
+        assert_eq!((shrub.mesh.count_vertices(), shrub.triangles), (192, 96));
+        assert_eq!((fern.mesh.count_vertices(), fern.triangles), (224, 112));
     }
 
     #[test]
@@ -1931,18 +2720,27 @@ mod tests {
         .unwrap();
 
         assert_complete_mesh(&mesh);
-        assert_eq!(mesh.mesh.count_vertices(), 2 * 12 * 4);
-        assert_eq!(mesh.triangles, 2 * 12 * 2);
+        assert_eq!(mesh.mesh.count_vertices(), 2 * 12 * 7);
+        assert_eq!(mesh.triangles, 2 * 12 * 3);
         let positions = match mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
             Some(VertexAttributeValues::Float32x3(values)) => values,
             other => panic!("unexpected grass positions: {other:?}"),
         };
-        for blade in positions.as_chunks::<4>().0 {
+        for blade in positions.as_chunks::<7>().0 {
             let base_x = f32::midpoint(blade[0][0], blade[1][0]);
             let base_y = f32::midpoint(blade[0][1], blade[1][1]);
             let base_z = f32::midpoint(blade[0][2], blade[1][2]);
             let surface = terrain.surface_at(base_x, base_z).unwrap();
             assert!((base_y - surface.height_m).abs() <= 1.0e-4);
+            let tip = Vec3::from_array(blade[6]);
+            let base = Vec3::new(base_x, base_y, base_z);
+            assert!((0.2199..=0.6501).contains(&((tip.y - base.y) / patches[0].scale)));
+            let width = Vec3::from_array(blade[0]).distance(Vec3::from_array(blade[1]));
+            assert!((0.0249..=0.0551).contains(&(width / patches[0].scale)));
+            assert!((tip - base).xz().length() > 0.05);
+            // Both mesh sections meet exactly: no detached tip or duplicate flat blade.
+            assert_eq!(blade[3].map(f32::to_bits), blade[4].map(f32::to_bits));
+            assert_eq!(blade[2].map(f32::to_bits), blade[5].map(f32::to_bits));
         }
 
         let duplicate = build_grass_chunk_mesh(
@@ -1965,6 +2763,151 @@ mod tests {
     }
 
     #[test]
+    fn grass_variation_seed_uses_canonical_identity_not_transform_or_chunk() {
+        let terrain = embedded_visual_valley_terrain_document().unwrap();
+        let vegetation = forge_world::embedded_visual_valley_vegetation_document().unwrap();
+        let generated = VegetationGenerationPlan::from_documents(&terrain, &vegetation)
+            .unwrap()
+            .generate()
+            .unwrap();
+        let mut grass = generated
+            .chunks
+            .iter()
+            .flat_map(|chunk| &chunk.instances)
+            .filter(|instance| instance.kind == VegetationKind::Grass);
+        let mut first = grass.next().unwrap().clone();
+        let second = grass.next().unwrap();
+        let seed = procedural_placement(&first, Vec3::ZERO).variation_seed;
+        first.position_m.x += 4.0;
+        first.yaw_radians += 0.5;
+        first.scale *= 1.1;
+        assert_eq!(
+            seed,
+            procedural_placement(&first, Vec3::new(64.0, 0.0, 32.0)).variation_seed
+        );
+        first.id = second.id;
+        assert_ne!(
+            seed,
+            procedural_placement(&first, Vec3::ZERO).variation_seed
+        );
+    }
+
+    #[test]
+    fn grass_geometry_survives_patch_reordering_and_density_subsets() {
+        let terrain = TerrainGenerationPlan::from_document(
+            &embedded_visual_valley_terrain_document().unwrap(),
+        )
+        .unwrap();
+        let a = placement(VegetationKind::Grass, -3.0, 0.0);
+        let b = placement(VegetationKind::Grass, 3.0, 0.0);
+        let positions = |patches: &[ProceduralVegetationPlacement], blades| {
+            let built = build_grass_chunk_mesh(&terrain, Vec3::ZERO, patches, blades, 0.0).unwrap();
+            let Some(VertexAttributeValues::Float32x3(values)) =
+                built.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            else {
+                panic!("expected positions");
+            };
+            values
+                .iter()
+                .map(|position| position.map(f32::to_bits))
+                .collect::<Vec<_>>()
+        };
+        let original = positions(&[a, b], 12);
+        let reordered = positions(&[b, a], 12);
+        assert_eq!(
+            &original[..84],
+            &reordered[84..],
+            "unaffected patch A changed after reorder"
+        );
+        assert_eq!(
+            &original[84..],
+            &reordered[..84],
+            "unaffected patch B changed after reorder"
+        );
+        assert_eq!(
+            &original[84..],
+            positions(&[b], 12),
+            "remaining patch changed after density filtering"
+        );
+        assert_eq!(
+            &original[..42],
+            positions(&[a], 6),
+            "surviving blades changed at lower blade budget"
+        );
+    }
+
+    #[test]
+    fn grass_fade_is_terminal_without_extending_the_visibility_budget() {
+        let source = profile();
+        let ranges = VegetationLodRanges::from_profile(source);
+        assert_eq!(ranges.grass.end_margin.start.to_bits(), 50.0_f32.to_bits());
+        assert_eq!(
+            ranges.grass.end_margin.end.to_bits(),
+            source.medium_lod_distance_m.to_bits()
+        );
+        assert!(ranges.grass.use_aabb);
+        let narrow = VegetationLodRanges::from_profile(VegetationPresentationProfile {
+            near_lod_distance_m: 56.0,
+            ..source
+        });
+        assert_eq!(narrow.grass.end_margin.start.to_bits(), 56.0_f32.to_bits());
+        assert_eq!(narrow.near.end_margin.start.to_bits(), 56.0_f32.to_bits());
+        assert_eq!(narrow.medium.start_margin, narrow.near.end_margin);
+    }
+
+    #[test]
+    fn world_sketch_grass_roots_follow_carved_terrain_in_translated_chunks() {
+        let sketch = forge_world::embedded_visual_valley_world_sketch().unwrap();
+        let compiled = forge_world::compile_world_sketch(&sketch).unwrap();
+        let terrain = TerrainGenerationPlan::from_document(&compiled.carved_terrain).unwrap();
+        let prepared =
+            prepare_vegetation_projection(&compiled.carved_terrain, &compiled.vegetation).unwrap();
+        let mut roots = 0;
+        for entity in &prepared.entities {
+            if !matches!(entity.mesh_key, VegetationMeshKey::GrassChunk { .. }) {
+                continue;
+            }
+            let mesh = &prepared
+                .meshes
+                .iter()
+                .find(|mesh| mesh.key == entity.mesh_key)
+                .unwrap()
+                .value
+                .mesh;
+            let Some(VertexAttributeValues::Float32x3(positions)) =
+                mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            else {
+                panic!("grass mesh must have positions");
+            };
+            for blade in positions.as_chunks::<7>().0 {
+                let base = (Vec3::from_array(blade[0]) + Vec3::from_array(blade[1])) * 0.5;
+                let world = entity.transform.transform_point(base);
+                let surface = terrain.surface_at(world.x, world.z).unwrap();
+                assert!(
+                    (world.y - surface.height_m).abs() < 0.001,
+                    "root={world:?} terrain={}",
+                    surface.height_m
+                );
+                roots += 1;
+            }
+        }
+        assert!(roots > 1_000);
+        let camera = sketch
+            .validation_cameras
+            .iter()
+            .find(|camera| camera.id == "human_bridge")
+            .unwrap();
+        let ground = terrain
+            .surface_at(camera.position_m[0], camera.position_m[2])
+            .unwrap();
+        let clearance = camera.position_m[1] - ground.height_m;
+        assert!(
+            (1.6..=1.8).contains(&clearance),
+            "human camera clearance={clearance}"
+        );
+    }
+
+    #[test]
     fn hlod_is_one_mesh_and_ignores_grass_placements() {
         let woody = [
             placement(VegetationKind::Tree, -2.0, 1.0),
@@ -1975,8 +2918,198 @@ mod tests {
         let mesh = build_hlod_chunk_mesh(&woody, maximum_deformation_m(profile())).unwrap();
 
         assert_complete_mesh(&mesh);
-        assert_eq!(mesh.mesh.count_vertices(), 3 * 2 * 4);
-        assert_eq!(mesh.triangles, 3 * 2 * 2);
+        assert_eq!(mesh.mesh.count_vertices(), 26 + 12 + 12);
+        assert_eq!(mesh.triangles, 10 + 8 + 8);
+    }
+
+    #[test]
+    fn low_growth_hlod_is_rooted_bounded_and_has_no_diamond_tip() {
+        for (kind, height, width) in [
+            (VegetationKind::Shrub, 1.35_f32, 1.15_f32),
+            (VegetationKind::Fern, 0.44_f32, 2.1_f32),
+        ] {
+            let mut plant = placement(kind, 0.0, 0.0);
+            plant.position_m = Vec3::ZERO;
+            plant.scale = 1.0;
+            plant.yaw_radians = 0.0;
+            let mesh = build_hlod_chunk_mesh(&[plant], 0.0).unwrap();
+            assert_complete_mesh(&mesh);
+            assert_eq!(mesh.triangles, 8);
+            assert_eq!(mesh.mesh.count_vertices(), 12);
+            assert_eq!(mesh.aabb.min().y.to_bits(), 0.0_f32.to_bits());
+            assert!((mesh.aabb.max().y - height).abs() < 1e-6);
+            assert!((mesh.aabb.max().x - mesh.aabb.min().x - width).abs() < 1e-6);
+            let Some(VertexAttributeValues::Float32x3(positions)) =
+                mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            else {
+                panic!("positions");
+            };
+            for plane in positions.as_chunks::<6>().0 {
+                assert_eq!(plane[0][1].to_bits(), 0.0_f32.to_bits());
+                assert_eq!(plane[1][1].to_bits(), 0.0_f32.to_bits());
+                assert!(
+                    Vec3::from_array(plane[0]).distance(Vec3::from_array(plane[1])) > width * 0.4
+                );
+            }
+            let Some(VertexAttributeValues::Float32x3(normals)) =
+                mesh.mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
+            else {
+                panic!("normals");
+            };
+            let Some(Indices::U32(indices)) = mesh.mesh.indices() else {
+                panic!("indices");
+            };
+            for triangle in indices.as_chunks::<3>().0 {
+                let points = [triangle[0], triangle[1], triangle[2]]
+                    .map(|index| Vec3::from_array(positions[usize::try_from(index).unwrap()]));
+                assert!(
+                    (points[1] - points[0])
+                        .cross(points[2] - points[0])
+                        .dot(Vec3::from_array(
+                            normals[usize::try_from(triangle[0]).unwrap()]
+                        ))
+                        > 0.0
+                );
+            }
+            let replay = build_hlod_chunk_mesh(&[plant], 0.0).unwrap();
+            assert_eq!(
+                mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION),
+                replay.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            );
+            assert_eq!(mesh.mesh.indices(), replay.mesh.indices());
+        }
+    }
+
+    #[test]
+    fn hlod_vertices_retain_the_exact_placement_root_for_distance_fades() {
+        let mut woody = [
+            placement(VegetationKind::Tree, -31.0, 30.0),
+            placement(VegetationKind::Shrub, 12.0, -30.0),
+            placement(VegetationKind::Fern, 31.0, 10.0),
+        ];
+        for (index, height) in [40.0, -20.0, 8.0].into_iter().enumerate() {
+            woody[index].position_m.y = height;
+        }
+        let mesh = build_hlod_chunk_mesh(&woody, 0.0).unwrap();
+        let Some(VertexAttributeValues::Float32x2(xz)) = mesh.mesh.attribute(Mesh::ATTRIBUTE_UV_0)
+        else {
+            panic!("root XZ");
+        };
+        let Some(VertexAttributeValues::Float32x2(y)) = mesh.mesh.attribute(Mesh::ATTRIBUTE_UV_1)
+        else {
+            panic!("root Y");
+        };
+        assert_eq!(xz.len(), mesh.mesh.count_vertices());
+        assert_eq!(y.len(), xz.len());
+        let mut start = 0;
+        for (placement, count) in woody.iter().zip([26, 12, 12]) {
+            for index in start..start + count {
+                assert_eq!(
+                    [xz[index][0], y[index][0], xz[index][1]].map(f32::to_bits),
+                    placement.position_m.to_array().map(f32::to_bits)
+                );
+            }
+            start += count;
+        }
+        assert!(
+            build_tree_near_mesh(0.0)
+                .unwrap()
+                .mesh
+                .attribute(Mesh::ATTRIBUTE_UV_1)
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn hlod_cpu_batch_range_cannot_drop_a_shader_visible_placement() {
+        let mut woody = [
+            placement(VegetationKind::Tree, -31.0, -31.0),
+            placement(VegetationKind::Tree, 31.0, 31.0),
+        ];
+        woody[0].position_m.y = -40.0;
+        woody[1].position_m.y = 60.0;
+        let nominal = VegetationLodRanges::from_profile(profile()).hlod;
+        let broad = hlod_batch_visibility_range(&woody, &nominal);
+        assert!(!broad.use_aabb);
+        assert!(!broad.is_abrupt());
+        for placement in woody {
+            for direction in [
+                Vec3::X,
+                Vec3::NEG_X,
+                Vec3::Y,
+                Vec3::NEG_Y,
+                Vec3::Z,
+                Vec3::NEG_Z,
+                Vec3::ONE.normalize(),
+            ] {
+                for distance in [
+                    nominal.start_margin.start + 0.01,
+                    nominal.start_margin.end,
+                    nominal.end_margin.end - 0.01,
+                ] {
+                    let camera = placement.position_m + direction * distance;
+                    assert!(camera.length() >= broad.start_margin.start);
+                    assert!(camera.length() < broad.end_margin.end);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn tree_transitions_are_short_complementary_and_profile_bounded() {
+        let source = forge_world::VisualValleyVegetationRecipe::default()
+            .build()
+            .unwrap()
+            .presentation;
+        let ranges = VegetationLodRanges::from_profile(source);
+        assert_eq!(ranges.near.end_margin, 64.0..72.0);
+        assert_eq!(ranges.medium.start_margin, ranges.near.end_margin);
+        assert_eq!(ranges.medium.end_margin, 172.0..180.0);
+        assert_eq!(ranges.hlod.start_margin, ranges.medium.end_margin);
+        let extension = VisualValleyVegetationExtension::from_profile_and_interaction(
+            source,
+            VegetationInteractionField::default(),
+        );
+        assert_eq!(
+            extension.hlod_distances.to_array().map(f32::to_bits),
+            [172.0_f32, 180.0, 384.0, 0.0].map(f32::to_bits)
+        );
+    }
+
+    #[test]
+    fn far_tree_keeps_a_narrow_bark_trunk_and_the_near_canopy_envelope() {
+        let mut tree = placement(VegetationKind::Tree, 0.0, 0.0);
+        tree.position_m = Vec3::ZERO;
+        tree.scale = 1.0;
+        tree.yaw_radians = 0.0;
+        let mesh = build_hlod_chunk_mesh(&[tree], 0.0).unwrap();
+        let near = build_tree_near_mesh(0.0).unwrap();
+        assert_eq!(mesh.aabb.max().y.to_bits(), near.aabb.max().y.to_bits());
+        assert_eq!(mesh.triangles, 10);
+        let Some(VertexAttributeValues::Float32x3(positions)) =
+            mesh.mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+        else {
+            panic!("positions");
+        };
+        let Some(VertexAttributeValues::Float32x4(colors)) =
+            mesh.mesh.attribute(Mesh::ATTRIBUTE_COLOR)
+        else {
+            panic!("colors");
+        };
+        let mut bark = 0;
+        let mut leaves = 0;
+        for (position, color) in positions.iter().zip(colors) {
+            if color[2] > 0.5 {
+                assert!(position[0].hypot(position[2]) <= 0.221);
+                assert!(position[1] <= 2.9);
+                bark += 1;
+            } else {
+                assert!(position[1] >= 1.75);
+                assert!(color[3] <= tree.wind_response);
+                leaves += 1;
+            }
+        }
+        assert_eq!((bark, leaves), (8, 18));
     }
 
     #[test]
@@ -2001,7 +3134,11 @@ mod tests {
         assert_eq!(ranges.near.end_margin, ranges.medium.start_margin);
         assert_eq!(ranges.medium.end_margin, ranges.hlod.start_margin);
         assert_eq!(ranges.individual.end_margin, ranges.hlod.start_margin);
-        assert_eq!(ranges.grass.end_margin, ranges.medium.start_margin);
+        assert_eq!(
+            ranges.grass.end_margin.end.to_bits(),
+            ranges.medium.start_margin.end.to_bits()
+        );
+        assert!(ranges.grass.end_margin.start >= ranges.medium.start_margin.start);
         assert_eq!(ranges.hlod.end_margin, 420.0..420.0);
         assert!(!ranges.near.is_abrupt());
         assert!(!ranges.medium.is_abrupt());
@@ -2138,8 +3275,162 @@ mod tests {
     }
 
     #[test]
+    fn temporal_shadow_helper_parses_and_validates_as_fragment_wgsl() {
+        let shader = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
+        let start = shader.find("fn temporal_shadow_discard(").unwrap();
+        let end = start + shader[start..].find("@fragment").unwrap();
+        let source = format!(
+            "const DITHER_THRESHOLD_MAP: vec4<u32> = vec4(0x0a020800u,0x060e040cu,0x09010b03u,0x050d070fu);\n{}\n@fragment fn proof() -> @location(0) vec4<f32> {{ temporal_shadow_discard(vec4(1.0), 8); return vec4(1.0); }}",
+            &shader[start..end]
+        );
+        let module = naga::front::wgsl::parse_str(&source).unwrap();
+        naga::valid::Validator::new(
+            naga::valid::ValidationFlags::all(),
+            naga::valid::Capabilities::empty(),
+        )
+        .validate(&module)
+        .unwrap();
+    }
+
+    #[test]
+    fn governed_wind_parameters_are_explicit_and_height_bounded() {
+        let original = VisualValleyVegetationExtension::default();
+        assert_eq!(original.prototype_parameters, Vec4::ZERO);
+        let governed = original
+            .clone()
+            .with_governed_prototype_height(5.65)
+            .unwrap();
+        assert_eq!(governed.prototype_parameters.x.to_bits(), 1_f32.to_bits());
+        assert_eq!(
+            governed.prototype_parameters.y.to_bits(),
+            5.65_f32.recip().to_bits()
+        );
+        assert_eq!(governed.wind_parameters, original.wind_parameters);
+        for height in [0.0, -1.0, f32::NAN, f32::INFINITY, 1001.0] {
+            assert!(
+                original
+                    .clone()
+                    .with_governed_prototype_height(height)
+                    .is_err()
+            );
+        }
+        let shader = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
+        assert!(shader.contains("height_fraction * height_fraction"));
+        assert!(shader.contains("vertex.position.y * vegetation.prototype_parameters.y"));
+        assert!(shader.contains("if vegetation.prototype_parameters.x <= 0.5"));
+        // Source-contract guard only; native shader compilation and a rendered prototype
+        // are separate evidence, not established by these text checks.
+    }
+
+    #[test]
+    fn governed_material_clock_preserves_height_wetness_and_foreign_materials() {
+        use bevy::ecs::system::RunSystemOnce;
+        let mut world = World::new();
+        let mut time = Time::<()>::default();
+        time.advance_by(std::time::Duration::from_secs(2));
+        world.insert_resource(time);
+        world.insert_resource(VegetationInteractionField::default());
+        world.insert_resource(VegetationPresentation(
+            forge_world::VisualValleyVegetationRecipe::default()
+                .build()
+                .unwrap()
+                .presentation,
+        ));
+        let mut materials = Assets::<VisualValleyVegetationMaterial>::default();
+        let mut extension = VisualValleyVegetationExtension::default()
+            .with_governed_prototype_height(5.65)
+            .unwrap();
+        extension.wetness_parameters = Vec4::new(0.7, 0.4, 0.8, 0.0);
+        extension.temporal_parameters = Vec4::X;
+        let original = extension.clone();
+        let governed = materials.add(VisualValleyVegetationMaterial {
+            base: StandardMaterial::default(),
+            extension,
+        });
+        let foreign = materials.add(VisualValleyVegetationMaterial {
+            base: StandardMaterial::default(),
+            extension: VisualValleyVegetationExtension::default(),
+        });
+        let static_extension = VisualValleyVegetationExtension {
+            prototype_parameters: Vec4::X,
+            temporal_parameters: Vec4::new(1.0, 1.0, 0.0, 0.0),
+            ..VisualValleyVegetationExtension::default()
+        };
+        let static_kit = materials.add(VisualValleyVegetationMaterial {
+            base: StandardMaterial::default(),
+            extension: static_extension.clone(),
+        });
+        world.insert_resource(materials);
+        world
+            .run_system_once(update_vegetation_interaction_uniform)
+            .unwrap();
+        let materials = world.resource::<Assets<VisualValleyVegetationMaterial>>();
+        let updated = &materials.get(&governed).unwrap().extension;
+        assert_eq!(updated.wind_parameters.z.to_bits(), 2_f32.to_bits());
+        assert_eq!(updated.wind_parameters.w.to_bits(), 0_f32.to_bits());
+        assert_eq!(updated.prototype_parameters, original.prototype_parameters);
+        assert_eq!(updated.wetness_parameters, original.wetness_parameters);
+        assert_eq!(updated.temporal_parameters, original.temporal_parameters);
+        assert_eq!(updated.temporal_lod_buffer, original.temporal_lod_buffer);
+        let static_updated = &materials.get(&static_kit).unwrap().extension;
+        assert_eq!(
+            static_updated.wind_parameters,
+            static_extension.wind_parameters
+        );
+        assert_eq!(
+            static_updated.temporal_parameters,
+            static_extension.temporal_parameters
+        );
+        assert_eq!(
+            static_updated.wetness_parameters,
+            static_extension.wetness_parameters
+        );
+        assert_eq!(
+            materials.get(&foreign).unwrap().extension.wind_parameters,
+            Vec4::ZERO
+        );
+    }
+
+    #[test]
+    fn temporal_shader_contract_preserves_fallback_and_all_render_passes() {
+        let shader = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
+        assert!(shader.contains("@binding(101)"));
+        assert!(shader.contains("slot < arrayLength(&temporal_lods)"));
+        assert!(shader.contains("temporal_lods[slot].metadata.y"));
+        assert!(shader.contains("temporal_lods[slot].metadata.x == 1u"));
+        assert!(shader.contains("return spatial_fallback;"));
+        assert!(shader.contains("temporal_code(u32(far_wind.w), 2u"));
+        assert!(
+            shader
+                .contains("temporal_shadow_discard(in.position, temporal_code(slot, tag % 4u, 0))")
+        );
+        assert_eq!(
+            shader
+                .matches("pbr_prepass_functions::prepass_alpha_discard(in);")
+                .count(),
+            1
+        );
+        // Exhaustive signed endpoint contract; a stopped fade ends at solid/hidden,
+        // and every intermediate texel belongs to exactly one LOD.
+        for progress in 0..=16_i32 {
+            for rank in 0..16_i32 {
+                let outgoing = progress == 0 || (progress < 16 && rank < 16 - progress);
+                let incoming_code = progress - 16;
+                let incoming =
+                    incoming_code == 0 || (incoming_code > -16 && rank >= -incoming_code);
+                assert_ne!(outgoing, incoming);
+            }
+        }
+    }
+
+    #[test]
     fn shader_uses_material_time_mesh_tag_dither_and_forward_pbr_without_external_assets() {
         let shader = include_str!("shaders/visual_valley_vegetation_deform.wgsl");
+        assert!(
+            shader
+                .replace("\r\n", "\n")
+                .contains("#ifdef PREPASS_PIPELINE\n#ifdef MOTION_VECTOR_PREPASS")
+        );
         assert!(!shader.contains("mesh_view_bindings::globals"));
         assert!(shader.contains("vegetation.wind_parameters.z"));
         assert!(shader.contains("vegetation.wind_parameters.w"));
@@ -2159,8 +3450,11 @@ mod tests {
         let alpha_discard = shader
             .find("pbr_input.material.base_color = alpha_discard")
             .unwrap();
-        assert!(dither < pbr_input);
+        assert!(pbr_input < dither);
         assert!(pbr_input < alpha_discard);
+        assert!(shader.contains("pbr_types::STANDARD_MATERIAL_FLAGS_ALPHA_MODE_BLEND"));
+        assert!(shader.contains("1.0 - abs(f32(in.visibility_range_dither)) / 16.0"));
+        assert!(shader.contains("pbr_input.material.base_color.a *= lod_opacity"));
         assert!(shader.contains("bounded_deformation"));
         assert!(shader.contains("maximum_displacement"));
         assert!(shader.contains("pbr_input_from_standard_material"));

@@ -1,0 +1,291 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.sangsue-d-orage",
+  "name": "Sangsue d'orage",
+  "subtitle": "L'anneau vivant qui attend la foudre dans les roseaux",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée pour le volume I. Son électrophysiologie fantastique reste fondée sur des organes visibles, des conditions météorologiques et des contre-jeux physiques ; elle n'est pas encore implémentée.",
+  "major": false,
+  "classification": {
+    "nature": "Annélide amphibie à organes électrogènes et électrorécepteurs",
+    "family": "Hématophages des eaux de crue",
+    "rarity": "Rare hors des bassins orageux, saisonnièrement commune dans certaines roselières",
+    "activity": "Principalement nocturne ; activité maximale avant et pendant les orages",
+    "social": "Agrégats de trois à vingt individus sans hiérarchie durable",
+    "threat": "forte",
+    "threat_reason": "Un individu isolé se détache facilement, mais un agrégat exploite l'eau, le métal et les contacts entre victimes pour propager des décharges, épuiser l'Équilibre et rendre une rive dangereuse en quelques secondes."
+  },
+  "physique": {
+    "dimensions": "35 à 62 cm au repos ; jusqu'à 90 cm étirée ; disque oral de 8 à 15 cm",
+    "mass_kg": [1.4, 4.8],
+    "locomotion": [
+      "nage ondulatoire dans l'eau douce",
+      "reptation par alternance des deux ventouses",
+      "bond galvanique court vers une masse conductrice"
+    ],
+    "center_of_gravity": "Réparti sur toute la longueur ; une sangsue fixée devient très difficile à arracher dans l'axe, mais se décolle si son bord est soulevé progressivement.",
+    "silhouette": "Un ruban bleu-noir annelé, bordé de vésicules translucides qui palpitent d'une lueur froide ; la ventouse antérieure forme une couronne de petites dents nacrées.",
+    "anatomy_zones": [
+      {
+        "zone": "Disque oral",
+        "description": "Ventouse musculeuse entourant les pièces buccales ; sa marge est souple, sensible au sel et doit rester étanche pour maintenir la prise.",
+        "protection": 3
+      },
+      {
+        "zone": "Anneaux musculaires",
+        "description": "Segments élastiques riches en eau qui dispersent les chocs et permettent à l'animal de s'allonger sans déchirer ses organes.",
+        "protection": 6
+      },
+      {
+        "zone": "Vésicules d'orage",
+        "description": "Poches latérales bleu pâle où des plaques d'électrocytes accumulent une différence de potentiel ; elles sont visibles et fragiles lorsqu'elles sont chargées.",
+        "protection": 2
+      },
+      {
+        "zone": "Ventouse caudale",
+        "description": "Large disque d'ancrage muni de soies minérales ; il assure la retraite et la mise à la terre après une décharge.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "roselières de lacs peu profonds frappés par des orages fréquents",
+    "bras morts, fossés de tourbière et prairies temporairement inondées",
+    "ruines dont les grilles et chaînes plongent dans l'eau",
+    "abreuvoirs de migration situés sous des crêtes riches en minerai"
+  ],
+  "ecology": {
+    "diet": "Sang de grands vertébrés, fluides riches en sels et petits invertébrés aquatiques. Une charge électrique ne la nourrit pas directement : elle alimente ses électrocytes et lui permet d'anesthésier une proie assez longtemps pour boire.",
+    "lifecycle": "Les juvéniles sont aquatiques, translucides et presque incapables de produire une décharge. Après trois saisons de crue, leurs vésicules se minéralisent. Un adulte peut vivre huit à douze ans s'il survit aux sécheresses et aux hérons.",
+    "reproduction": "Deux adultes échangent des capsules reproductives après une forte chute de pression. Les cocons sont cimentés sous des racines noyées ; le premier front orageux chaud du printemps déclenche une éclosion synchronisée.",
+    "behavior": "Elle attend fixée sous une feuille, une poutre ou une pierre conductrice. Elle approche une vibration régulière, teste le champ électrique de la cible puis se retire si elle rencontre une peau sèche et épaisse. Les individus chargés se répartissent autour d'une même proie afin d'éviter une décharge mutuelle prématurée.",
+    "niche": "Parasite des grands herbivores et prédateur d'invertébrés. Elle concentre dans ses tissus le cuivre et le fer dissous, nourrit plusieurs oiseaux spécialisés et signale une eau riche en minéraux mais encore oxygénée.",
+    "environmental_impact": "Un agrégat modéré détourne les troupeaux sans les décimer. Une prolifération autour d'un ouvrage métallique peut électrifier les passerelles mouillées, tuer des poissons par décharges répétées et rendre un point d'eau inutilisable jusqu'à la saison sèche."
+  },
+  "senses": [
+    "électroréception précise dans l'eau et à courte portée sur un métal continu",
+    "détection des vibrations et de la chaleur par les anneaux antérieurs",
+    "sensibilité aux variations de pression annonçant un front orageux"
+  ],
+  "communication": [
+    "impulsions électriques faibles transmises dans l'eau entre individus proches",
+    "frémissements synchronisés des vésicules avant une décharge collective",
+    "traînées de mucus minéral marquant un abri déjà occupé"
+  ],
+  "signs": [
+    "minces traces bleuâtres qui relient l'eau à une pièce métallique basse",
+    "poissons étourdis mais non mordus flottant près des roseaux après un orage",
+    "odeur d'ozone et picotement sur la peau au-dessus d'une eau apparemment calme",
+    "petites marques circulaires bordées de sang coagulé sur les pattes du bétail",
+    "grésillement intermittent dans une chaîne, une grille ou un ponton mouillé"
+  ],
+  "demeanor": {
+    "objectives": [
+      "se charger avant l'arrivée d'un grand hôte",
+      "se fixer assez longtemps pour prélever un repas sans être écrasée",
+      "regagner l'eau ou une anfractuosité humide après la décharge"
+    ],
+    "fears": [
+      "dessiccation, sel concentré et sable chaud",
+      "prédateurs à bec isolant capables de la saisir par le milieu",
+      "surfaces sèches dépourvues de chemin de retour"
+    ],
+    "morale": "Opportuniste. Une sangsue chargée insiste jusqu'à sa première décharge ; une sangsue vide évite le combat et cherche l'eau. L'agrégat se disperse dès que plusieurs individus perdent leur ventouse caudale.",
+    "escalation": "Elle suit d'abord les vibrations, touche la cible du bord de sa ventouse, se fixe puis mord. Les vésicules ne deviennent lumineuses qu'avant une décharge : le danger électrique n'est jamais silencieux.",
+    "retreat": "Elle se laisse tomber, contracte ses anneaux et bondit vers l'eau, une chaîne basse ou un sol détrempé lorsque sa charge est dissipée, que le support sèche ou qu'un bord de ventouse est décollé."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 2,
+      "dexterity": 7,
+      "constitution": 5,
+      "intelligence": 2,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 1
+    },
+    "skills": {
+      "swimming": 60,
+      "stealth": 55,
+      "unarmed": 45,
+      "vigilance": 65,
+      "elementalism": 55,
+      "survival": 40
+    },
+    "resources": {
+      "vitality": 94,
+      "stamina": 93,
+      "mana": 64,
+      "balance": 68,
+      "focus": 96
+    },
+    "movement": "1,2 m/s en reptation, 3,5 m/s à la nage ; bond galvanique jusqu'à 5 m uniquement vers une masse conductrice perçue.",
+    "protections": [
+      "Anneaux musculaires : 6 contre le tranchant, 8 contre le contondant et 4 contre le perforant.",
+      "Disque oral : 3 contre les contacts physiques ; sa prise donne de la stabilité mais pas de protection supplémentaire.",
+      "Vésicules chargées : 2 contre tous les contacts et réaction aggravée au perforant si une vésicule est pleine.",
+      "Ventouse caudale : 5 contre le tranchant et le perforant, 9 contre l'arrachement dans l'axe."
+    ],
+    "attacks": [
+      {
+        "name": "Morsure à ventouse",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 12,
+        "reach": "contact, après fixation de la ventouse",
+        "stamina_cost": 8,
+        "preparation": "0,45 seconde pour évaser puis fermer le disque oral",
+        "telegraph": "La tête s'aplatit en cercle, les dents nacrées deviennent visibles et l'animal cesse brièvement d'onduler avant de claquer sa ventouse.",
+        "effect": "Perforation localisée et fixation physique ; si elle reste attachée, la sangsue prélève du sang et entretient un saignement mineur au lieu de répéter automatiquement le Trauma initial.",
+        "counterplay": "Interposer une matière épaisse, esquiver le claquement, soulever progressivement le bord de la ventouse ou appliquer du sel autour de la marge sans tirer brutalement sur la plaie."
+      },
+      {
+        "name": "Décharge de contact",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 18,
+        "reach": "contact ; arc secondaire de 1,5 m sur eau ou métal continus",
+        "stamina_cost": 14,
+        "preparation": "0,7 seconde de synchronisation des vésicules",
+        "telegraph": "Les poches latérales passent du bleu sombre au blanc, les muscles se figent et un crépitement parcourt le support avant la fermeture du circuit.",
+        "effect": "Impact électrique, accumulation de choc et perte d'Équilibre ; l'arc secondaire produit moins de Trauma mais peut interrompre une préparation ou provoquer un lâcher de prise.",
+        "counterplay": "Rompre le contact, quitter la surface conductrice, placer un isolant sec, dissiper la charge vers une masse mise à la terre ou frapper avant que les vésicules blanchissent."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Bond galvanique",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "acrobatics",
+        "attribute_id": "dexterity",
+        "impact": 4,
+        "reach": "jusqu'à 5 m vers eau, métal ou organisme humide",
+        "stamina_cost": 16,
+        "preparation": "0,6 seconde en boucle serrée",
+        "telegraph": "La sangsue colle ses deux ventouses, arque son corps en anneau et fait courir une étincelle vers la destination avant de se détendre.",
+        "effect": "Déplacement brusque accompagné d'un faible contact électrique à l'arrivée ; il sert surtout à rejoindre une cible, changer de support ou fuir vers l'eau.",
+        "counterplay": "Éloigner ou sécher les conducteurs proches, présenter un leurre métallique mis à la terre ou quitter l'axe indiqué par l'étincelle exploratoire."
+      },
+      {
+        "name": "Appel du front noir",
+        "kind": "ability",
+        "visibility": "secrete",
+        "skill_id": "elementalism",
+        "attribute_id": "perception",
+        "impact": 30,
+        "reach": "conducteur visible dans un rayon de 8 m, uniquement sous un orage actif",
+        "stamina_cost": 28,
+        "preparation": "2,4 secondes d'immobilité avec toutes les vésicules exposées",
+        "telegraph": "Les vésicules se dressent comme des perles, les cheveux et roseaux voisins se soulèvent, puis une lueur rampe vers le point conducteur choisi.",
+        "effect": "La sangsue ne crée pas la foudre : elle favorise un chemin vers une charge atmosphérique déjà présente. La frappe consume toute sa réserve, affecte le conducteur et peut se propager dans l'eau environnante.",
+        "counterplay": "Quitter l'eau, rompre les conducteurs, abaisser les objets métalliques, interrompre l'immobilité ou offrir à distance une pointe de décharge mieux reliée à la terre."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Électricité",
+        "mechanism": "Des couches isolantes séparent les électrocytes des organes vitaux et dirigent une partie du courant vers la ventouse caudale ; une surcharge reste néanmoins dangereuse."
+      },
+      {
+        "subject": "Trauma contondant dans l'eau",
+        "mechanism": "Le corps souple se déforme et l'eau répartit les chocs larges, à condition que l'animal ne soit pas tendu entre deux points d'ancrage."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Sel et dessiccation",
+        "mechanism": "La peau respiratoire perd rapidement son eau, les ventouses se décollent et les électrocytes ne maintiennent plus leur gradient ionique."
+      },
+      {
+        "subject": "Perforation des vésicules chargées",
+        "mechanism": "Une poche pleine libère sa charge sans circuit contrôlé, blessant la sangsue et tout être qui la tient directement."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Eau continue autour d'une décharge",
+        "result": "Arc étendu avec intensité décroissante",
+        "chain": "La sangsue ferme son circuit, l'eau minéralisée distribue le courant aux corps immergés, puis les points de contact métalliques ou les plaies humides concentrent localement l'effet."
+      },
+      {
+        "input": "Conducteur relié à une terre sèche",
+        "result": "Charge drainée et vésicules assombries",
+        "chain": "Un crochet, une chaîne ou une pointe offre un chemin moins résistant ; la réserve quitte les électrocytes sans traverser une victime et la sangsue doit se recharger avant une nouvelle attaque électrique."
+      },
+      {
+        "input": "Sable sec, cendre froide ou tissu isolant",
+        "result": "Bond impossible et propagation interrompue",
+        "chain": "La rupture du film humide supprime le chemin détectable, force l'animal à ramper et transforme sa mobilité explosive en retraite lente et lisible."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Une traînée de mucus bleuté menant vers du métal indique presque toujours une sangsue chargée ; une traînée transparente signale plutôt un individu vidé et fuyant."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "animal_handling",
+      "difficulty": 18,
+      "fact": "On retire la ventouse en soulevant son bord et non en tirant sur le corps ; l'arrachement brutal agrandit la plaie et peut déclencher une décharge défensive."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les faibles impulsions d'un agrégat semblent répartir les individus autour d'une proie selon sa conductivité plutôt que selon une véritable coordination sociale."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Sous un front très chargé, plusieurs adultes peuvent préparer des chemins concurrents et détourner une frappe atmosphérique vers le conducteur qu'elles ont collectivement balisé."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "danger environnemental mobile dans l'eau ou sur une structure métallique",
+      "parasite de contact qui oblige à secourir plutôt qu'à concentrer les dégâts",
+      "indicateur vivant d'un orage imminent et d'une eau riche en minéraux"
+    ],
+    "telegraphs": [
+      "les vésicules blanchissent avant toute décharge dangereuse",
+      "une étincelle exploratoire montre la destination d'un bond galvanique",
+      "roseaux dressés, picotement de peau et lumière rampante précèdent l'appel du front noir"
+    ],
+    "noncombat_options": [
+      "assécher une bande de rive et ouvrir un passage isolant",
+      "leur offrir une armature mise à la terre pour vider l'agrégat sans le tuer",
+      "détourner le bétail jusqu'à la chute de pression suivante",
+      "recueillir les individus vidés avec des pinces isolées et les relâcher dans un bassin éloigné"
+    ],
+    "complications": [
+      "une armure métallique ou un allié immergé prolonge involontairement le circuit",
+      "tuer plusieurs sangsues chargées dans l'eau libère des décharges désordonnées",
+      "l'agrégat protège un site de ponte rare dont dépendent des oiseaux migrateurs"
+    ]
+  },
+  "salvage": [
+    "Vésicule entièrement déchargée : membrane d'étude électrophysiologique, à conserver dans une solution saline non conductrice.",
+    "Soies minérales de ventouse caudale : indicateur de cuivre et de fer dissous dans un bassin.",
+    "Mucus stabilisé prélevé sur une trace abandonnée : gel conducteur pour mécanismes de faible puissance, inutilisable s'il reste chargé."
+  ],
+  "plates": [
+    {
+      "image": "sangsue-d-orage-plate.png",
+      "alt": "Une grande sangsue bleu-noir s'enroule autour d'une chaîne au-dessus d'une roselière nocturne ; ses vésicules translucides blanchissent tandis qu'un orage illumine l'eau et révèle plusieurs individus cachés.",
+      "caption": "Quand les vésicules pâlissent, l'eau et le métal cessent d'être des refuges.",
+      "prompt_key": "sangsue-d-orage-plate"
+    }
+  ]
+}

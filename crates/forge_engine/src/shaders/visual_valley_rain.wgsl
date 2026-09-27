@@ -84,14 +84,9 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     out.color = vertex.color;
 #endif
 
-#ifdef MOTION_VECTOR_PREPASS
-    let previous_world_from_local = mesh_functions::get_previous_world_from_local(vertex.instance_index);
-    let previous_local_position = animated_local_position(vertex, max(rain.time_fall.y, 0.0));
-    out.previous_world_position = mesh_functions::mesh_position_local_to_world(
-        previous_world_from_local,
-        vec4(previous_local_position, 1.0),
-    );
-#endif
+// This alpha-blended material uses forward_io only: its VertexOutput has no
+// previous_world_position, even when the camera enables MOTION_VECTOR_PREPASS.
+// This is not a claim that transparent rain contributes motion vectors.
 
 #ifdef VERTEX_OUTPUT_INSTANCE_INDEX
     out.instance_index = vertex.instance_index;

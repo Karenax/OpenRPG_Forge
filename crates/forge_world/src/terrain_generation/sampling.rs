@@ -63,11 +63,7 @@ pub fn sample_height(
     clippy::many_single_char_names,
     reason = "a/b/c/d and u/v mirror the versioned terrain triangle contract"
 )]
-pub(super) fn sample_surface(
-    plan: &TerrainGenerationPlan,
-    x_m: f32,
-    z_m: f32,
-) -> Result<TerrainSurfaceSample, TerrainGenerationError> {
+fn surface_coordinates(x_m: f32, z_m: f32) -> Result<(u16, u16, f32, f32), TerrainGenerationError> {
     if !x_m.is_finite() || !z_m.is_finite() {
         return Err(TerrainGenerationError::NonFiniteSampleCoordinate);
     }
@@ -86,6 +82,61 @@ pub(super) fn sample_surface(
     let cell_z = (grid_z.floor() as u16).min(maximum_cell);
     let u = (grid_x - f32::from(cell_x)).clamp(0.0, 1.0);
     let v = (grid_z - f32::from(cell_z)).clamp(0.0, 1.0);
+
+    Ok((cell_x, cell_z, u, v))
+}
+
+/// Height-only projection onto the same triangle, without normals or material evaluation.
+#[allow(
+    clippy::many_single_char_names,
+    reason = "versioned triangle coordinates"
+)]
+pub(super) fn sample_surface_height(
+    plan: &TerrainGenerationPlan,
+    x_m: f32,
+    z_m: f32,
+) -> Result<f32, TerrainGenerationError> {
+    let (x, z, u, v) = surface_coordinates(x_m, z_m)?;
+    let (samples, weights) = if u + v <= 1.0 {
+        ([(x, z), (x, z + 1), (x + 1, z)], [1.0 - u - v, v, u])
+    } else {
+        (
+            [(x + 1, z), (x, z + 1), (x + 1, z + 1)],
+            [1.0 - v, 1.0 - u, u + v - 1.0],
+        )
+    };
+    let heights = samples.map(|(x, z)| {
+        sample_height_unchecked(
+            plan.document(),
+            -TERRAIN_HALF_EXTENT_M + f32::from(x) * TERRAIN_SAMPLE_SPACING_M,
+            -TERRAIN_HALF_EXTENT_M + f32::from(z) * TERRAIN_SAMPLE_SPACING_M,
+        )
+    });
+    interpolate_height(heights[0], heights[1], heights[2], weights)
+}
+
+#[allow(
+    clippy::many_single_char_names,
+    reason = "versioned triangle coordinates"
+)]
+pub(super) fn sample_surface(
+    plan: &TerrainGenerationPlan,
+    x_m: f32,
+    z_m: f32,
+) -> Result<TerrainSurfaceSample, TerrainGenerationError> {
+    sample_surface_with_shading_normal(plan, x_m, z_m).map(|(surface, _)| surface)
+}
+
+#[allow(
+    clippy::many_single_char_names,
+    reason = "versioned triangle coordinates"
+)]
+pub(super) fn sample_surface_with_shading_normal(
+    plan: &TerrainGenerationPlan,
+    x_m: f32,
+    z_m: f32,
+) -> Result<(TerrainSurfaceSample, [f32; 3]), TerrainGenerationError> {
+    let (cell_x, cell_z, u, v) = surface_coordinates(x_m, z_m)?;
 
     let a = surface_vertex(plan.document(), cell_x, cell_z);
     let b = surface_vertex(plan.document(), cell_x + 1, cell_z);
@@ -125,12 +176,23 @@ pub(super) fn sample_surface(
     };
     let material_weights = normalized_material_weights(raw_weights);
     let (normal, slope_gradient_squared) = triangle_geometry(vertices);
-    Ok(TerrainSurfaceSample {
-        height_m,
-        normal,
-        slope_gradient_squared,
-        material_weights,
-    })
+    let shading_normal = normalize(std::array::from_fn(|axis| {
+        f64::from(interpolate(
+            vertices[0].shading_normal[axis],
+            vertices[1].shading_normal[axis],
+            vertices[2].shading_normal[axis],
+            barycentric,
+        ))
+    }));
+    Ok((
+        TerrainSurfaceSample {
+            height_m,
+            normal,
+            slope_gradient_squared,
+            material_weights,
+        },
+        shading_normal,
+    ))
 }
 
 #[derive(Clone, Copy)]
@@ -138,6 +200,7 @@ struct SurfaceVertex {
     position_m: [f32; 3],
     height_m: f32,
     material_weights: TerrainMaterialWeights,
+    shading_normal: [f32; 3],
 }
 
 #[must_use]
@@ -149,7 +212,8 @@ fn surface_vertex(document: &TerrainDocument, sample_x: u16, sample_z: u16) -> S
     SurfaceVertex {
         position_m: [x_m, height_m, z_m],
         height_m,
-        material_weights: material_weights_for(document, height_m, normal[1]),
+        material_weights: material_weights_for(document, height_m, normal[1], sample_x, sample_z),
+        shading_normal: normal,
     }
 }
 
@@ -331,7 +395,29 @@ pub(super) fn material_weights_for(
     document: &TerrainDocument,
     height_m: f32,
     normal_y: f32,
+    sample_x: u16,
+    sample_z: u16,
 ) -> TerrainMaterialWeights {
+    if let Ok(index) = document
+        .material_overrides
+        .binary_search_by_key(&(sample_z, sample_x), |sample| {
+            (sample.sample_z, sample.sample_x)
+        })
+    {
+        let sample = &document.material_overrides[index];
+        let weights: [f32; 3] = std::array::from_fn(|slot| {
+            sample
+                .weights
+                .iter()
+                .find(|weight| weight.layer_id == document.material_layers[slot].id)
+                .map_or(0.0, |weight| f32::from(weight.weight) / f32::from(u16::MAX))
+        });
+        return TerrainMaterialWeights {
+            grass: weights[0],
+            earth: weights[1],
+            rock: weights[2],
+        };
+    }
     let parameters = document.height_sampling;
     let amplitude = f64::from(parameters.amplitude_m);
     let elevation_range = (2.0 * amplitude).max(f64::from(f32::EPSILON));

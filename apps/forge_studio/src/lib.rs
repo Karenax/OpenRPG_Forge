@@ -21,10 +21,22 @@ use forge_world::{
     embedded_visual_valley_terrain_document, embedded_visual_valley_vegetation_document,
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod audit_labels;
+pub mod promotion_preview_gate;
+pub mod reconciliation_protocol;
+pub mod asset_library_protocol;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod asset_library_native;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod asset_library_ui;
 
 const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
 const STUDIO_WEATHER_QUERY_KEY: &str = "forge_weather";
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod input_key_observation;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -32,6 +44,7 @@ pub enum StudioScene {
     #[default]
     Gate0,
     VisualValley,
+    WorldSketchVisualValley,
 }
 
 impl StudioScene {
@@ -39,7 +52,9 @@ impl StudioScene {
     pub const fn mode(self) -> StudioViewportMode {
         match self {
             Self::Gate0 => StudioViewportMode::Gate0SceneProof,
-            Self::VisualValley => StudioViewportMode::Gate1VisualValley,
+            Self::VisualValley | Self::WorldSketchVisualValley => {
+                StudioViewportMode::Gate1VisualValley
+            }
         }
     }
 
@@ -48,6 +63,26 @@ impl StudioScene {
         match self {
             Self::Gate0 => "gate0",
             Self::VisualValley => "visual-valley",
+            Self::WorldSketchVisualValley => "world-sketch-visual-valley",
+        }
+    }
+
+    #[must_use]
+    pub const fn is_visual_valley(self) -> bool {
+        !matches!(self, Self::Gate0)
+    }
+
+    /// Reload the same local page with only the selected scene, clearing transient proof modes.
+    #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+    fn preview_href(self) -> String {
+        format!("?{STUDIO_SCENE_QUERY_KEY}={}", self.query_value())
+    }
+
+    #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+    const fn valley_display_name(self) -> &'static str {
+        match self {
+            Self::WorldSketchVisualValley => "Visual Valley · WorldSketch verrouillé",
+            Self::Gate0 | Self::VisualValley => "Visual Valley",
         }
     }
 }
@@ -93,6 +128,11 @@ pub fn parse_studio_scene_selection(search: &str) -> StudioSceneSelection {
         },
         Some("visual-valley") => StudioSceneSelection {
             scene: StudioScene::VisualValley,
+            source: StudioSceneSelectionSource::QueryString,
+            requested_value,
+        },
+        Some("world-sketch-visual-valley") => StudioSceneSelection {
+            scene: StudioScene::WorldSketchVisualValley,
             source: StudioSceneSelectionSource::QueryString,
             requested_value,
         },
@@ -175,7 +215,7 @@ pub fn parse_studio_weather_selection(
 
     match requested_values.as_slice() {
         [] => Ok(StudioWeatherSelection::default()),
-        [_] if scene != StudioScene::VisualValley => {
+        [_] if !scene.is_visual_valley() => {
             Err(StudioWeatherQueryError::NotApplicableToScene { scene })
         }
         [requested_value] => {
@@ -404,7 +444,7 @@ fn validate_runtime_contract(
             selected.expected_active_camera_count
         ));
     }
-    if selected.scene == StudioScene::VisualValley {
+    if selected.scene.is_visual_valley() {
         if observation.water_observation.as_deref() != Some("observed_main_world_components") {
             return Err(format!(
                 "projection eau invalide : {}",
@@ -465,12 +505,16 @@ enum LoadedStudioScene {
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 #[derive(Clone, Debug)]
 struct LoadedVisualValley {
+    scene: StudioScene,
     terrain: TerrainDocument,
     vegetation: VegetationDocument,
     environment: EnvironmentProfileDocument,
     player_controller: PlayerControllerProfileDocument,
     water: WaterDocument,
     weather: WeatherProfileDocument,
+    bridge: Option<forge_world::WorldSketchBridgePlacementDocument>,
+    player_spawn: Option<[f32; 3]>,
+    road_surface: Option<forge_world::RoadSurfaceProjection>,
 }
 
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -480,13 +524,14 @@ impl LoadedStudioScene {
             StudioScene::Gate0 => embedded_gate0_proof_document()
                 .map(Self::Gate0)
                 .map_err(|error| format!("invalid embedded Gate 0 scene: {error}")),
-            StudioScene::VisualValley => {
-                let terrain = embedded_visual_valley_terrain_document()
+            StudioScene::VisualValley | StudioScene::WorldSketchVisualValley => {
+                let mut terrain = embedded_visual_valley_terrain_document()
                     .map_err(|error| format!("invalid embedded Visual Valley terrain: {error}"))?;
-                let vegetation = embedded_visual_valley_vegetation_document().map_err(|error| {
-                    format!("invalid embedded Visual Valley vegetation: {error}")
-                })?;
-                let environment =
+                let mut vegetation =
+                    embedded_visual_valley_vegetation_document().map_err(|error| {
+                        format!("invalid embedded Visual Valley vegetation: {error}")
+                    })?;
+                let mut environment =
                     embedded_visual_valley_environment_profile().map_err(|error| {
                         format!("invalid embedded Visual Valley environment: {error}")
                     })?;
@@ -494,10 +539,54 @@ impl LoadedStudioScene {
                     .map_err(|error| {
                         format!("invalid embedded Visual Valley player controller: {error}")
                     })?;
-                let water = embedded_visual_valley_water_document()
+                let mut water = embedded_visual_valley_water_document()
                     .map_err(|error| format!("invalid embedded Visual Valley water: {error}"))?;
-                let weather = embedded_visual_valley_weather_profile()
+                let mut weather = embedded_visual_valley_weather_profile()
                     .map_err(|error| format!("invalid embedded Visual Valley weather: {error}"))?;
+                let mut bridge = None;
+                let mut player_spawn = None;
+                let mut road_surface = None;
+
+                if scene == StudioScene::WorldSketchVisualValley {
+                    let sketch = forge_world::embedded_visual_valley_world_sketch()
+                        .map_err(|error| format!("invalid locked WorldSketch: {error}"))?;
+                    let compiled = forge_world::compile_world_sketch(&sketch)
+                        .map_err(|error| format!("cannot compile locked WorldSketch: {error}"))?;
+                    let rivers: Vec<_> = compiled
+                        .spline_carving
+                        .splines
+                        .iter()
+                        .filter(|spline| spline.kind == forge_world::WorldSketchSplineKind::River)
+                        .collect();
+                    if rivers.len() != 1 {
+                        return Err(
+                            "WorldSketch runtime requires exactly one primary river".to_owned()
+                        );
+                    }
+                    // Derive revision-bound copies; retain the project/area checks below.
+                    environment.revision = sketch.revision;
+                    water.revision = sketch.revision;
+                    weather.revision = sketch.revision;
+                    water = forge_world::water_from_carved_spline(water, rivers[0])
+                        .map_err(|error| format!("invalid carved river water: {error}"))?;
+                    player_spawn = Some(
+                        forge_world::world_sketch_player_spawn(
+                            &sketch,
+                            &compiled.carved_terrain,
+                            &player_controller,
+                        )
+                        .map_err(|error| format!("invalid WorldSketch player spawn: {error}"))?,
+                    );
+                    road_surface = Some(
+                        forge_world::RoadSurfaceProjection::from_compiled(&compiled)
+                            .map_err(|error| format!("invalid compiled road surface: {error}"))?,
+                    );
+                    terrain = compiled.carved_terrain;
+                    vegetation = compiled.vegetation;
+                    if !compiled.bridge_placements.placements.is_empty() {
+                        bridge = Some(compiled.bridge_placements);
+                    }
+                }
 
                 TerrainGenerationPlan::from_document(&terrain)
                     .map_err(|error| format!("unsupported Visual Valley terrain: {error}"))?;
@@ -514,12 +603,16 @@ impl LoadedStudioScene {
                     .map_err(|error| format!("incompatible Visual Valley weather: {error}"))?;
 
                 Ok(Self::VisualValley(Box::new(LoadedVisualValley {
+                    scene,
                     terrain,
                     vegetation,
                     environment,
                     player_controller,
                     water,
                     weather,
+                    bridge,
+                    player_spawn,
+                    road_surface,
                 })))
             }
         }
@@ -550,17 +643,26 @@ impl LoadedStudioScene {
             }),
             Self::VisualValley(loaded) => {
                 let LoadedVisualValley {
+                    scene,
                     terrain,
                     vegetation,
                     environment,
                     player_controller,
                     water,
                     weather,
+                    bridge: _,
+                    player_spawn: _,
+                    road_surface,
                 } = loaded.as_ref();
+                if let Some(surface) = road_surface {
+                    surface
+                        .validate_terrain(terrain)
+                        .map_err(|error| format!("invalid road surface: {error}"))?;
+                }
                 Ok(StudioSceneManifest {
                     mode: StudioViewportMode::Gate1VisualValley,
-                    scene: StudioScene::VisualValley,
-                    display_name: "Visual Valley".to_owned(),
+                    scene: *scene,
+                    display_name: scene.valley_display_name().to_owned(),
                     source_hashes: StudioSceneSourceHashes {
                         scene_proof: None,
                         terrain: Some(
@@ -672,16 +774,188 @@ const fn scene_proof_kind_glyph(kind: &SceneProofKind) -> &'static str {
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod telemetry;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_building_projection;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_building_view;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_buildings;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_controls;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_density;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_density_inspector;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_density_review;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_draft_scope;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_exclusions;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_index_page;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_lighting;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_path_guides;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_path_projection;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_paths;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_placement_reuse;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_playtest;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_playtest_controls;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_projection_diagnostics;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_regeneration_review;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_rivers;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_scene;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_scene_index;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_species;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_start_label;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_start_pick;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_vegetation;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_vegetation_recipe;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_viewport;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_zone;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_zone_information;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod workspace_controls;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_input;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_brush;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_brush_pointer;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_materials;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_preview;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_camera;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_compass;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_catalog;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_history;
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod editor_shortcut;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_shortcuts;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_assets;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_raster;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_imported_population;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_imported_plants;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_imported_terrain;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_imported_shadows;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "command", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioCommand {
-    SelectEntity { entity_id: EntityId },
+    ReadVegetationSource {
+        expected_head: forge_core::ContentHash,
+        block_index: usize,
+        offset: usize,
+    },
+    ReadTerrainSource {
+        expected_document: forge_core::ContentHash,
+        offset: usize,
+    },
+    Atelier {
+        request: Box<atelier_protocol::Request>,
+    },
+    /// Explicit response to the native-window close confirmation, not a zone edit.
+    CloseWindow {
+        discard_unsaved: bool,
+    },
+    Reconciliation {
+        query: Box<reconciliation_protocol::Query>,
+    },
+    Workspace {
+        request: Box<forge_project::authoring::workspace::WorkspaceHostRequest>,
+    },
+    Authoring {
+        request: Box<forge_project::authoring::AuthoringRequest>,
+    },
+    SelectEntity {
+        entity_id: EntityId,
+    },
     SceneSummary,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_close;
+
+pub mod atelier_drafts;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod atelier_inspector;
+pub mod atelier_protocol;
+pub mod atelier_transform;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod atelier_ui;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_dock;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_feedback;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod panel_layout;
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    VegetationSource {
+        chunk: forge_project::authoring::vegetation_source::VegetationSourceChunk,
+    },
+    TerrainSource {
+        chunk: forge_project::authoring::terrain_source::TerrainSourceChunk,
+    },
+    Atelier {
+        state: Box<atelier_protocol::Reply>,
+    },
+    Reconciliation {
+        page: Box<reconciliation_protocol::Page>,
+    },
+    Workspace {
+        state: Box<forge_project::authoring::workspace::WorkspaceHostState>,
+    },
+    Authoring {
+        state: Box<forge_project::authoring::AuthoringState>,
+    },
     SelectionAccepted {
         entity_id: EntityId,
     },
@@ -692,6 +966,20 @@ pub enum StudioResponse {
     Rejected {
         reason: String,
     },
+}
+
+/// Keep every nested integer out of JavaScript's lossy `Number` representation.
+///
+/// Tauri transports this JSON as one string. Documents retain their canonical JSON
+/// representation, including numeric `u64` fields in archives.
+pub fn encode_tauri_wire<T: Serialize>(value: &T) -> Result<String, String> {
+    serde_json::to_string(value)
+        .map_err(|error| format!("Payload Tauri non sérialisable : {error}"))
+}
+
+/// Decode the lossless JSON string carried by the Tauri command boundary.
+pub fn decode_tauri_wire<T: DeserializeOwned>(payload: &str) -> Result<T, String> {
+    serde_json::from_str(payload).map_err(|error| format!("Payload Tauri invalide : {error}"))
 }
 
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -709,14 +997,56 @@ fn validate_selection_response(
         StudioResponse::Rejected { reason } => {
             Err(format!("Commande rejetée par Tauri : {reason}"))
         }
-        StudioResponse::SceneSummary { .. } => {
+        StudioResponse::SceneSummary { .. }
+        | StudioResponse::TerrainSource { .. }
+        | StudioResponse::VegetationSource { .. }
+        | StudioResponse::Atelier { .. }
+        | StudioResponse::Reconciliation { .. }
+        | StudioResponse::Authoring { .. }
+        | StudioResponse::Workspace { .. } => {
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
         }
     }
 }
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod bridge_probe;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod cloud_preview;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod effective_quality_status;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod fixed_proof_view;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod governed_kit;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod governed_kit_request;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod gpu_memory_preview;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod input_capture;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod proof_export;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod quality_motion_probe;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod quality_motion_trace;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod quality_preview;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod render_warmup;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod shadow_candidate;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod water_optics_request;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod water_preview;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod weather_input;
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod web {
+    use super::quality_preview::QualityControls;
     use super::telemetry::{
         AllowedCommandProbeStatus, BrowserMemoryObservation, DeniedCommandProbeStatus,
         FRAME_MEASURED_SAMPLES, FRAME_WARMUP_SAMPLES, FrameDistribution, Gate0ProbeMode,
@@ -740,11 +1070,12 @@ mod web {
         window::{PresentMode, WindowResolution},
     };
     use forge_engine::{
-        EnvironmentProjectionStats, EnvironmentProjectionStatus, PlayerRuntimeSnapshot, ProofScene,
-        ProofScenePlugin, ProofSelection, VegetationProjectionStats, VisualValleyEnvironmentPlugin,
-        VisualValleyPlugin, VisualValleyStats, VisualValleyVegetationPlugin,
-        VisualValleyWaterPlugin, VisualValleyWeatherPlugin, WaterProjectionStats,
-        WaterRuntimeObservationStatus, WeatherProjectionStats, WeatherProjectionStatus,
+        EnvironmentProjectionStats, EnvironmentProjectionStatus, PlayerInputFocus,
+        PlayerRuntimeSnapshot, ProofScene, ProofScenePlugin, ProofSelection,
+        VegetationProjectionStats, VisualValleyEnvironmentPlugin, VisualValleyPlugin,
+        VisualValleyStats, VisualValleyVegetationPlugin, VisualValleyWaterPlugin,
+        VisualValleyWeatherPlugin, WaterProjectionStats, WaterRuntimeObservationStatus,
+        WeatherProjectionStats, WeatherProjectionStatus, WeatherRuntimeState,
     };
     use leptos::prelude::Update as LeptosUpdate;
     use leptos::prelude::*;
@@ -764,6 +1095,10 @@ mod web {
 
     thread_local! {
         static INITIAL_CANVAS: RefCell<Option<web_sys::Element>> = const { RefCell::new(None) };
+        static WEATHER_PREVIEW_REQUEST: RefCell<Option<super::WeatherState>> = const { RefCell::new(None) };
+        static WEATHER_PREVIEW_OUTPUT: RefCell<Option<WriteSignal<String>>> = const { RefCell::new(None) };
+        static WEATHER_PREVIEW_LEDGER: RefCell<Option<WriteSignal<String>>> = const { RefCell::new(None) };
+        static BRIDGE_PROJECTION_LEDGER: RefCell<Option<WriteSignal<String>>> = const { RefCell::new(None) };
     }
 
     #[derive(Clone, Debug, Eq, PartialEq)]
@@ -779,7 +1114,13 @@ mod web {
     #[wasm_bindgen(start)]
     pub fn start() {
         console_error_panic_hook::set_once();
-        mount_to_body(|| view! { <Studio/> });
+        if super::atelier_ui::requested() {
+            mount_to_body(|| view! { <super::atelier_ui::SecondaryWorkspace/> });
+        } else if super::authoring_viewport::requested() {
+            mount_to_body(|| view! { <super::authoring_viewport::AuthoringWorkspace/> });
+        } else {
+            mount_to_body(|| view! { <Studio/> });
+        }
     }
 
     #[component]
@@ -792,7 +1133,7 @@ mod web {
         let selected_weather_state = weather_selection
             .as_ref()
             .ok()
-            .filter(|_| selected_scene == StudioScene::VisualValley)
+            .filter(|_| selected_scene.is_visual_valley())
             .map(|selection| selection.state);
         let loaded_scene = LoadedStudioScene::load(selected_scene)
             .expect("embedded Studio scene documents must remain valid and compatible");
@@ -812,12 +1153,8 @@ mod web {
                 |reason| format!("ERREUR · {reason}"),
             ),
             (StudioScene::Gate0, Some(_)) => "hors scène Gate 0".to_owned(),
-            (StudioScene::VisualValley, Some(super::WeatherState::Clear)) => {
-                "clair · adapter installé".to_owned()
-            }
-            (StudioScene::VisualValley, Some(super::WeatherState::Rain)) => {
-                "pluie · adapter installé".to_owned()
-            }
+            (_, Some(super::WeatherState::Clear)) => "clair · adapter installé".to_owned(),
+            (_, Some(super::WeatherState::Rain)) => "pluie · adapter installé".to_owned(),
         };
         let hierarchy = loaded_scene.hierarchy();
         let initial_selection = hierarchy
@@ -839,6 +1176,14 @@ mod web {
             initial_scene_telemetry.fail_configuration(reason.clone());
         }
         let (scene_telemetry, set_scene_telemetry) = signal(initial_scene_telemetry);
+        let (weather_preview, set_weather_preview) = signal("Runtime non observé".to_owned());
+        let (weather_preview_ledger, set_weather_preview_ledger) = signal(String::new());
+        let (weather_input_status, set_weather_input_status) =
+            signal("Profil météo en attente de vérification".to_owned());
+        let (bridge_ledger, set_bridge_ledger) = signal(String::new());
+        BRIDGE_PROJECTION_LEDGER.with(|output| *output.borrow_mut() = Some(set_bridge_ledger));
+        WEATHER_PREVIEW_OUTPUT.with(|output| output.replace(Some(set_weather_preview)));
+        WEATHER_PREVIEW_LEDGER.with(|output| output.replace(Some(set_weather_preview_ledger)));
 
         install_viewport_selection_listener(
             set_selected,
@@ -858,11 +1203,79 @@ mod web {
                 set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
                 return;
             }
+            let mut loaded_scene = loaded_scene;
+            if let Err(reason) = super::shadow_candidate::from_location(selected_scene) {
+                LeptosUpdate::update(&set_scene_telemetry, |ledger| {
+                    ledger.fail_configuration(reason.clone());
+                });
+                set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                return;
+            }
+            if let Err(reason) =
+                super::water_optics_request::load(&mut loaded_scene, selected_scene)
+            {
+                LeptosUpdate::update(&set_scene_telemetry, |ledger| {
+                    ledger.fail_configuration(reason.clone());
+                });
+                set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                return;
+            }
+            match super::weather_input::load(&mut loaded_scene, selected_scene).await {
+                Ok(status) => set_weather_input_status.set(status),
+                Err(reason) => {
+                    set_weather_input_status.set(reason.clone());
+                    LeptosUpdate::update(&set_scene_telemetry, |ledger| {
+                        ledger.fail_configuration(reason.clone());
+                    });
+                    set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                    return;
+                }
+            }
+            let manifest = match loaded_scene.manifest(selected_weather_state) {
+                Ok(manifest) => manifest,
+                Err(reason) => {
+                    set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                    return;
+                }
+            };
+            LeptosUpdate::update(&set_scene_telemetry, |ledger| {
+                ledger.selected_manifest = manifest;
+            });
             match preflight_webgpu(probe_mode).await {
                 Ok(()) => {
+                    let probe_configuration =
+                        super::bridge_probe::requested().and_then(|requested| {
+                            if requested && selected_scene != StudioScene::WorldSketchVisualValley {
+                                Err("Le parcours requiert la vallée WorldSketch".to_owned())
+                            } else {
+                                Ok(())
+                            }
+                        });
+                    if let Err(reason) = probe_configuration {
+                        set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                        return;
+                    }
+                    let kit = match super::governed_kit::load(&loaded_scene).await {
+                        Ok(kit) => kit,
+                        Err(reason) => {
+                            super::governed_kit::report_failure(&reason);
+                            set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                            return;
+                        }
+                    };
+                    let fixed_view = match super::fixed_proof_view::prepare(selected_scene).await {
+                        Ok(view) => view,
+                        Err(reason) => {
+                            set_webgpu_status.set(WebGpuStatus::ConfigurationError(reason));
+                            return;
+                        }
+                    };
                     start_viewport_once(
                         selected_scene,
                         selected_weather_state.unwrap_or(super::WeatherState::Clear),
+                        loaded_scene,
+                        kit,
+                        fixed_view,
                     );
                 }
                 Err(reason) => {
@@ -889,6 +1302,40 @@ mod web {
                         <span class="eyebrow">"OPENRPG FORGE · RUST"</span>
                         <h1>"Visual Workspace"</h1>
                     </div>
+                    <a class="studio-return-editor" href="?authoring=1"
+                        title="Revenir au Studio ; rouvrir ensuite la zone sauvegardée">
+                        "← Retour à l’éditeur"
+                    </a>
+                    <super::authoring_controls::AuthoringControls/>
+                    <details class="scene-navigation">
+                        <summary>"Scènes de preuve"</summary>
+                        <nav aria-label="Choisir une scène de preuve">
+                            <p>"Ouvrir une scène recharge la vue et réinitialise les aperçus. Aucun projet n’est modifié."</p>
+                            {[
+                                (StudioScene::WorldSketchVisualValley, "Vallée WorldSketch"),
+                                (StudioScene::VisualValley, "Vallée de référence"),
+                                (StudioScene::Gate0, "Scène technique Gate 0"),
+                            ].into_iter().map(move |(scene, label)| view! {
+                                <a href=scene.preview_href()
+                                    aria-current=if scene == selected_scene { Some("page") } else { None }
+                                >{label}</a>
+                            }).collect_view()}
+                            <a href=super::governed_kit_request::FOREST_PREVIEW_HREF>
+                                "Vallée avec kit et forêt · candidat expérimental"
+                            </a>
+                            <p>"Ce candidat requiert le kit local déployé. Les fichiers et leurs hashes sont contrôlés avant chargement ; aucun asset n’est promu ni modifié."</p>
+                            <a href=super::cloud_preview::PREVIEW_HREF>"Vallée avec ciel expérimental"</a>
+                            <a href=super::cloud_preview::INTEGRATED_PREVIEW_HREF>"Candidat complet · kit, forêt, eau et ciel"</a>
+                            <p>"Le candidat complet requiert le kit local. Il réunit les aperçus expérimentaux sans valider leur qualité ni sauvegarder le projet."</p>
+                            <a href=super::water_optics_request::PREVIEW_HREF>"Vallée avec eau transmissive · candidat expérimental"</a>
+                            <a href=super::water_optics_request::MEDIUM_HREF>"Vallée avec eau claire RGB · candidat expérimental"</a>
+                            <a href=super::water_optics_request::REFLECTION_HREF>"Vallée avec eau claire et reflets du décor · candidat expérimental"</a>
+                            <a href=super::shadow_candidate::HREF>"Vallée avec ombres équilibrées · candidat expérimental"</a>
+                            <output id="studio-water-optics-status">"Candidat optique non demandé"</output>
+                            <output id="studio-cloud-preview-status">"Ciel expérimental non demandé"</output>
+                            <pre id="studio-cloud-preview-ledger" hidden></pre>
+                        </nav>
+                    </details>
                     <div class="status-stack">
                         <span
                             class:status-ok=move || matches!(webgpu_status.get(), WebGpuStatus::Ready)
@@ -949,9 +1396,49 @@ mod web {
                     </aside>
                     <section class="viewport-panel" aria-label="Viewport 3D">
                         <div class="viewport-toolbar">
-                            <span>"Perspective"</span><span>"1920 × 1080"</span>
+                            <span>"Perspective"</span>
+                            <span id="studio-viewport-resolution">{move || telemetry.get().viewport.resolution_summary()}</span>
                         </div>
-                        <canvas id="forge-canvas" data-testid="forge-webgpu-canvas"></canvas>
+                        { (selected_scene.is_visual_valley() && !super::bridge_probe::requested().unwrap_or(false) && !super::fixed_proof_view::is_requested()).then(|| view! {
+                            <div class="viewport-controls" id="studio-explore-help">
+                                <super::input_capture::InputCaptureStatus/>
+                                <br/>
+                                "Cliquer dans la vue pour explorer · ZQSD/WASD · Maj : courir · Espace : sauter · V : caméra · Échap : libérer"
+                            </div>
+                        }) }
+                        { super::fixed_proof_view::is_requested().then(|| view! {
+                            <div class="viewport-controls"><super::fixed_proof_view::Status/></div>
+                        }) }
+                        { super::bridge_probe::requested().unwrap_or(false).then(|| view! {
+                            <div class="viewport-controls">"Parcours de qualification automatique · commandes manuelles désactivées · recharger sans forge_probe pour explorer"</div>
+                        }) }
+                        <canvas id="forge-canvas" data-testid="forge-webgpu-canvas" tabindex="0"
+                            on:keydown=move |event| {
+                                if selected_scene.is_visual_valley() {
+                                    super::input_capture::observe_key(&event.code());
+                                }
+                                if selected_scene.is_visual_valley()
+                                    && let Some(document) = web_sys::window().and_then(|window| window.document())
+                                    && document.pointer_lock_element().is_some()
+                                {
+                                    if event.key() == "Escape" {
+                                        document.exit_pointer_lock();
+                                    }
+                                    if event.code() == "Space" {
+                                        event.prevent_default();
+                                    }
+                                }
+                            }
+                            on:click=move |_| {
+                                if selected_scene.is_visual_valley()
+                                    && !super::fixed_proof_view::is_requested()
+                                    && let Some(canvas) = current_canvas()
+                                {
+                                    super::input_capture::begin_request();
+                                    canvas.request_pointer_lock();
+                                }
+                            }></canvas>
+                        {selected_scene.is_visual_valley().then(|| view! { <super::render_warmup::Loading/> })}
                         {move || match webgpu_status.get() {
                             WebGpuStatus::Unavailable(reason) => Some(view! {
                                 <div class="webgpu-error" role="alert" data-testid="webgpu-unavailable">
@@ -962,9 +1449,9 @@ mod web {
                             }.into_any()),
                             WebGpuStatus::ConfigurationError(reason) => Some(view! {
                                 <div class="webgpu-error" role="alert" data-testid="forge-weather-query-error">
-                                    <strong>"Paramètre météo invalide."</strong>
+                                    <strong>"Configuration de démarrage invalide."</strong>
                                     <span>{reason}</span>
-                                    <span>"Utilisez forge_weather=clear ou forge_weather=rain avec forge_scene=visual-valley."</span>
+                                    <span>"Vérifiez les paramètres de scène/météo et les fichiers du kit local, puis rechargez le Studio."</span>
                                 </div>
                             }.into_any()),
                             WebGpuStatus::RuntimeFailure(reason) => Some(view! {
@@ -985,8 +1472,36 @@ mod web {
                         <label>"Scène"<output>{scene_name}</output></label>
                         <label>"Sources"<output>{scene_source_label}</output></label>
                         <label>"Eau"<output>{water_status_label}</output></label>
-                        <label>"Météo"<output>{weather_status_label}</output></label>
-                        <label>"Parité scène"<output id="studio-scene-parity-summary">{move || scene_parity_summary(&scene_telemetry.get())}</output></label>
+                        <label>"Météo au démarrage"<output>{weather_status_label}</output></label>
+                        {selected_scene.is_visual_valley().then(|| view! { <QualityControls/> })}
+                        <super::proof_export::ProofExportControls/>
+                        {(selected_scene == StudioScene::WorldSketchVisualValley).then(|| view! { <super::governed_kit::KitStatus/> })}
+                        {(selected_scene == StudioScene::WorldSketchVisualValley).then(|| view! { <super::bridge_probe::ProbeStatus/> })}
+                        {selected_scene.is_visual_valley().then(|| view! {
+                            <div class="weather-preview" aria-label="Aperçu météo sans sauvegarde">
+                                <p class="hint">"Aperçu météo · ne modifie pas le projet"</p>
+                                <output id="studio-weather-input-status">{move || weather_input_status.get()}</output>
+                                <button type="button"
+                                    disabled=move || scene_telemetry.get().parity_status != StudioSceneParityStatus::SourceManifestMatched
+                                    on:click=move |_| { WEATHER_PREVIEW_REQUEST.with(|request| request.replace(Some(super::WeatherState::Clear))); }
+                                >"Aperçu clair"</button>
+                                <button type="button"
+                                    disabled=move || scene_telemetry.get().parity_status != StudioSceneParityStatus::SourceManifestMatched
+                                    on:click=move |_| { WEATHER_PREVIEW_REQUEST.with(|request| request.replace(Some(super::WeatherState::Rain))); }
+                                >"Aperçu pluie"</button>
+                                <output id="studio-weather-preview-status">{move || weather_preview.get()}</output>
+                                <pre id="studio-weather-preview-ledger" hidden>{move || weather_preview_ledger.get()}</pre>
+                            </div>
+                        })}
+                        <label>"Parité au démarrage"<output id="studio-scene-parity-summary">{move || scene_parity_summary(&scene_telemetry.get())}</output></label>
+                        {(selected_scene == StudioScene::WorldSketchVisualValley).then(|| view! {
+                            <label>"Pont dérivé"<output id="studio-bridge-summary">{move || if bridge_ledger.get().is_empty() {
+                                "Projection non observée"
+                            } else {
+                                "Pont et colliders créés · parcours automatique : voir son verdict · revue humaine non vérifiée"
+                            }}</output></label>
+                            <pre id="studio-bridge-projection-ledger" hidden>{move || bridge_ledger.get()}</pre>
+                        })}
                         <label>"Rerenders UI"<output>{move || rerenders.get()}</output></label>
                         <label>"IPC Rust"<output>{move || ipc_status.get()}</output></label>
                         <label>"Frames Web"<output id="gate0-frame-summary">{move || frame_summary(&telemetry.get())}</output></label>
@@ -1505,14 +2020,20 @@ mod web {
         }
     }
 
-    async fn invoke_tauri(command: &StudioCommand) -> Result<StudioResponse, String> {
+    pub(super) async fn invoke_tauri(command: &StudioCommand) -> Result<StudioResponse, String> {
         let arguments = js_sys::Object::new();
-        let payload = serde_wasm_bindgen::to_value(command)
-            .map_err(|error| format!("Commande Tauri non sérialisable : {error}"))?;
-        js_sys::Reflect::set(&arguments, &JsValue::from_str("command"), &payload)
-            .map_err(|error| format!("Arguments Tauri invalides : {}", js_error(&error)))?;
+        let payload = super::encode_tauri_wire(command)?;
+        js_sys::Reflect::set(
+            &arguments,
+            &JsValue::from_str("command"),
+            &JsValue::from_str(&payload),
+        )
+        .map_err(|error| format!("Arguments Tauri invalides : {}", js_error(&error)))?;
         let response = invoke_tauri_raw("execute_studio_command", arguments.as_ref()).await?;
-        serde_wasm_bindgen::from_value(response)
+        let payload = response
+            .as_string()
+            .ok_or("Réponse Tauri invalide : payload texte attendu")?;
+        super::decode_tauri_wire(&payload)
             .map_err(|error| format!("Réponse Tauri invalide : {error}"))
     }
 
@@ -1675,18 +2196,28 @@ mod web {
         value.as_string().unwrap_or_else(|| format!("{value:?}"))
     }
 
-    fn start_viewport_once(scene: StudioScene, weather_state: super::WeatherState) {
+    fn start_viewport_once(
+        scene: StudioScene,
+        weather_state: super::WeatherState,
+        loaded_scene: LoadedStudioScene,
+        kit: Option<super::governed_kit::LoadedKit>,
+        fixed_view: Option<super::fixed_proof_view::PreparedView>,
+    ) {
         if !VIEWPORT_LAUNCH_REQUESTED.swap(true, Ordering::SeqCst) {
             INITIAL_CANVAS.with(|initial| initial.replace(current_canvas()));
-            start_viewport(scene, weather_state);
+            start_viewport(scene, weather_state, loaded_scene, kit, fixed_view);
         }
     }
 
-    fn start_viewport(scene: StudioScene, weather_state: super::WeatherState) {
-        let loaded_scene = LoadedStudioScene::load(scene)
-            .expect("embedded Studio scene documents must remain valid and compatible");
+    fn start_viewport(
+        scene: StudioScene,
+        weather_state: super::WeatherState,
+        loaded_scene: LoadedStudioScene,
+        kit: Option<super::governed_kit::LoadedKit>,
+        fixed_view: Option<super::fixed_proof_view::PreparedView>,
+    ) {
         let scene_manifest = loaded_scene
-            .manifest((scene == StudioScene::VisualValley).then_some(weather_state))
+            .manifest(scene.is_visual_valley().then_some(weather_state))
             .expect("validated embedded Studio scene documents must remain hashable");
         let render_plugin = RenderPlugin {
             render_creation: RenderCreation::Automatic(Box::new(WgpuSettings {
@@ -1697,6 +2228,13 @@ mod web {
         };
         let window_title = format!("OpenRPG Forge WebGPU · {}", scene_manifest.display_name);
         let mut app = App::new();
+        if let Err(error) = super::water_optics_request::install(&mut app, scene) {
+            report_runtime_failure(&mut BrowserFrameCollector::new(scene), 0.0, error);
+            return;
+        }
+        if let Some(kit) = &kit {
+            kit.register_source(&mut app);
+        }
         app.insert_resource(ClearColor(Color::srgb(0.015, 0.025, 0.055)))
             .insert_non_send(BrowserFrameCollector::new(scene))
             .add_plugins(
@@ -1716,15 +2254,32 @@ mod web {
                     .set(render_plugin),
             );
 
+        if let Some(kit) = kit {
+            kit.install(&mut app);
+        }
+
+        if let Err(error) = super::cloud_preview::install(&mut app, scene.is_visual_valley()) {
+            report_runtime_failure(&mut BrowserFrameCollector::new(scene), 0.0, error);
+            return;
+        }
+        if scene.is_visual_valley() {
+            super::render_warmup::install(&mut app);
+        }
+        super::fixed_proof_view::install(&mut app, fixed_view);
         match loaded_scene {
             LoadedStudioScene::Gate0(document) => {
                 app.add_plugins(ProofScenePlugin::new(document))
                     .add_systems(Update, publish_viewport_selection);
             }
             LoadedStudioScene::VisualValley(loaded) => {
-                install_visual_valley_plugins(&mut app, *loaded, weather_state);
+                if let Err(error) = install_visual_valley_plugins(&mut app, *loaded, weather_state)
+                {
+                    report_runtime_failure(&mut BrowserFrameCollector::new(scene), 0.0, error);
+                    return;
+                }
             }
         }
+        super::proof_export::install(&mut app);
         app.add_systems(Update, collect_browser_frame_telemetry)
             .run();
     }
@@ -1733,26 +2288,203 @@ mod web {
         app: &mut App,
         loaded: super::LoadedVisualValley,
         weather_state: super::WeatherState,
-    ) {
+    ) -> Result<(), String> {
         let super::LoadedVisualValley {
+            scene: _,
             terrain,
             vegetation,
             environment,
             player_controller,
             water,
             weather,
+            bridge,
+            player_spawn,
+            road_surface,
         } = loaded;
-        let water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water);
+        super::quality_preview::install(app, &terrain, &vegetation)?;
+        let probe = if super::bridge_probe::requested()? {
+            Some(
+                forge_engine::BridgeCrossingProbePlugin::new(
+                    &terrain,
+                    bridge.as_ref().ok_or("Pont absent pour le parcours")?,
+                    &player_controller,
+                )?
+                .in_viewport()
+                .with_temporal_lod_probe(super::bridge_probe::temporal_requested()?),
+            )
+        } else {
+            None
+        };
+        if let Some(bridge) = bridge {
+            app.insert_resource(StudioBridgeSource(bridge.clone()));
+            // The private loaded scene holds the compiler's validated, terrain-bound result.
+            app.add_plugins(
+                forge_engine::WorldSketchBridgePlugin::new(&terrain, bridge)
+                    .expect("compiled Studio bridge matches its carved terrain"),
+            );
+            app.add_systems(Last, publish_bridge_projection);
+        }
+        let mut water_plugin = VisualValleyWaterPlugin::new(terrain.clone(), water);
         let weather_plugin =
             VisualValleyWeatherPlugin::new(weather).with_initial_state(weather_state);
-        let visual_valley = VisualValleyPlugin::new(terrain.clone())
+        let mut visual_valley = VisualValleyPlugin::new(terrain.clone())
             .with_player_controller(player_controller)
-            .with_player_interactive_input(false);
-        app.add_plugins(visual_valley)
+            .with_player_interactive_input(
+                probe.is_none()
+                    && !app
+                        .world()
+                        .contains_resource::<forge_engine::FixedProofViewStatus>(),
+            );
+        if let Some(surface) = road_surface {
+            water_plugin = water_plugin
+                .with_road_surface(surface.clone())
+                .map_err(|error| format!("invalid bank road surface: {error}"))?;
+            visual_valley = visual_valley
+                .with_road_surface(surface)
+                .map_err(|error| format!("invalid road surface: {error}"))?;
+        }
+        if let Some(probe) = probe {
+            let probe = if super::quality_motion_probe::install(app)? {
+                probe.after_profile_warmup()
+            } else {
+                probe
+            };
+            visual_valley = visual_valley
+                .with_player_spawn_position(probe.spawn_position())
+                .with_player_camera_target(probe.camera_target());
+            app.add_plugins(probe)
+                .add_systems(Last, super::bridge_probe::publish);
+        } else if let Some(position) = player_spawn {
+            // WorldSketch zones are centred at the origin; do not edit the source landmark.
+            visual_valley = visual_valley
+                .with_player_spawn_position(Vec3::from_array(position))
+                .with_player_camera_target(Vec3::ZERO);
+        }
+        app.insert_resource(PlayerInputFocus(false))
+            .add_plugins(visual_valley)
             .add_plugins(VisualValleyEnvironmentPlugin::new(environment))
             .add_plugins(VisualValleyVegetationPlugin::new(terrain, vegetation))
             .add_plugins(water_plugin)
-            .add_plugins(weather_plugin);
+            .add_plugins(weather_plugin)
+            .add_systems(PreUpdate, apply_weather_preview_request)
+            .add_systems(Last, publish_weather_preview)
+            .add_systems(
+                PreUpdate,
+                update_viewport_input_focus.before(bevy::input::InputSystems),
+            );
+        Ok(())
+    }
+
+    fn apply_weather_preview_request(mut state: ResMut<WeatherRuntimeState>) {
+        if let Some(target) = WEATHER_PREVIEW_REQUEST.with(|request| request.borrow_mut().take()) {
+            state.request_state(target);
+        }
+    }
+
+    #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+    fn publish_bridge_projection(
+        stats: Res<forge_engine::WorldSketchBridgeStats>,
+        source: Res<StudioBridgeSource>,
+        mut published: Local<bool>,
+    ) {
+        if *published || stats.deck_colliders == 0 {
+            return;
+        }
+        let ledger = serde_json::json!({
+            "schema": "forge.studio-bridge-projection",
+            "schema_version": 1,
+            "recorded_at_utc": recorded_at_utc(),
+            "evidence_source": "engine_cpu_spawn_counts_not_browser_crossing",
+            "browser_crossing_verified": false,
+            "projection": &*stats,
+            "compiled_document": &source.0,
+        })
+        .to_string();
+        BRIDGE_PROJECTION_LEDGER.with(|output| {
+            if let Some(output) = *output.borrow() {
+                output.set(ledger);
+            }
+        });
+        *published = true;
+    }
+
+    use bevy::ecs as bevy_ecs;
+
+    #[derive(Resource)]
+    struct StudioBridgeSource(forge_world::WorldSketchBridgePlacementDocument);
+
+    #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
+    fn publish_weather_preview(
+        stats: Res<WeatherProjectionStats>,
+        environment: Option<Res<forge_engine::EnvironmentProjectionStats>>,
+        time: Res<Time<Real>>,
+        mut last_observation_seconds: Local<f64>,
+    ) {
+        let now = time.elapsed_secs_f64();
+        if now - *last_observation_seconds < 0.25 {
+            return;
+        }
+        *last_observation_seconds = now;
+        let sunlight = environment
+            .as_ref()
+            .map(|environment| &environment.sun.weather_response);
+        let sun_label = environment
+            .as_ref()
+            .and_then(|environment| environment.sun.illuminance_lux)
+            .map_or_else(
+                || "soleil non observé".to_owned(),
+                |lux| format!("soleil {lux:.0} lx"),
+            );
+        let summary = format!(
+            "{} · humidité {:.2} · pluie {} · {} · observation CPU",
+            weather_state_label(stats.target_state),
+            stats.wetness.current,
+            if stats.rain.visible {
+                "visible"
+            } else {
+                "masquée"
+            },
+            sun_label,
+        );
+        WEATHER_PREVIEW_OUTPUT.with(|output| {
+            if let Some(output) = *output.borrow() {
+                output.set(summary);
+            }
+        });
+        let ledger = serde_json::json!({
+            "schema": "forge.studio-weather-preview",
+            "schema_version": 1,
+            "recorded_at_utc": recorded_at_utc(),
+            "preview_only": true,
+            "projection": &*stats,
+            "sunlight": sunlight,
+        })
+        .to_string();
+        WEATHER_PREVIEW_LEDGER.with(|output| {
+            if let Some(output) = *output.borrow() {
+                output.set(ledger);
+            }
+        });
+    }
+
+    #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameter")]
+    fn update_viewport_input_focus(
+        mut focus: ResMut<PlayerInputFocus>,
+        kit: Option<Res<forge_engine::GovernedAssetKitReadiness>>,
+    ) {
+        focus.0 = web_sys::window()
+            .and_then(|window| window.document())
+            .is_some_and(|document| {
+                document.has_focus().unwrap_or(false)
+                    && document
+                        .pointer_lock_element()
+                        .is_some_and(|element| element.id() == "forge-canvas")
+            });
+        focus.0 &= kit.is_none_or(|kit| kit.ready);
+        let focused = web_sys::window()
+            .and_then(|window| window.document())
+            .is_some_and(|document| document.has_focus().unwrap_or(false));
+        super::input_capture::observe(focus.0, focused);
     }
 
     struct BrowserFrameCollector {
@@ -1840,12 +2572,15 @@ mod web {
                     weather_target_state: None,
                 })
             }
-            StudioScene::VisualValley => observe_visual_valley_runtime(resources),
+            StudioScene::VisualValley | StudioScene::WorldSketchVisualValley => {
+                observe_visual_valley_runtime(resources, scene)
+            }
         }
     }
 
     fn observe_visual_valley_runtime(
         resources: &RuntimeSceneResources<'_>,
+        scene: StudioScene,
     ) -> RuntimeSceneProgress {
         if let Err(reason) = validate_visual_valley_projection_statuses(resources) {
             return RuntimeSceneProgress::Failed(reason);
@@ -1897,8 +2632,8 @@ mod web {
         RuntimeSceneProgress::Ready(ObservedRuntimeScene {
             manifest: StudioSceneManifest {
                 mode: StudioViewportMode::Gate1VisualValley,
-                scene: StudioScene::VisualValley,
-                display_name: "Visual Valley".to_owned(),
+                scene,
+                display_name: scene.valley_display_name().to_owned(),
                 source_hashes: StudioSceneSourceHashes {
                     scene_proof: None,
                     terrain: Some(terrain.source_hash.clone()),
@@ -2195,6 +2930,14 @@ mod web {
             canvas_height_px: canvas
                 .as_ref()
                 .and_then(|element| u32::try_from(element.client_height()).ok()),
+            render_width_px: canvas
+                .as_ref()
+                .and_then(|element| element.get_attribute("width"))
+                .and_then(|value| value.parse().ok()),
+            render_height_px: canvas
+                .as_ref()
+                .and_then(|element| element.get_attribute("height"))
+                .and_then(|value| value.parse().ok()),
         }
     }
 
@@ -2287,6 +3030,37 @@ mod tests {
     use super::*;
 
     #[test]
+    fn boxed_authoring_command_preserves_the_wire_contract() {
+        let json = serde_json::json!({"command":"authoring","request":{"action":"inspect"}});
+        let command: StudioCommand = serde_json::from_value(json.clone()).unwrap();
+        assert_eq!(serde_json::to_value(&command).unwrap(), json);
+        let StudioCommand::Authoring { request } = command else {
+            panic!("authoring command")
+        };
+        assert_eq!(
+            *request,
+            forge_project::authoring::AuthoringRequest::Inspect
+        );
+    }
+
+    #[test]
+    fn scene_navigation_targets_only_explicit_local_scenes() {
+        for scene in [
+            StudioScene::Gate0,
+            StudioScene::VisualValley,
+            StudioScene::WorldSketchVisualValley,
+        ] {
+            let href = scene.preview_href();
+            assert!(href.starts_with("?forge_scene="));
+            assert!(!href.contains('&'));
+            assert!(!href.contains('#'));
+            let parsed = parse_studio_scene_selection(&href);
+            assert_eq!(parsed.scene, scene);
+            assert_eq!(parsed.source, StudioSceneSelectionSource::QueryString);
+        }
+    }
+
+    #[test]
     fn typed_command_and_response_round_trip() {
         let id = EntityId::deterministic("selected-cube");
         let command = StudioCommand::SelectEntity { entity_id: id };
@@ -2298,6 +3072,20 @@ mod tests {
         let encoded = serde_json::to_string(&response).unwrap();
         let decoded: StudioResponse = serde_json::from_str(&encoded).unwrap();
         assert_eq!(decoded, response);
+    }
+
+    #[test]
+    fn tauri_wire_preserves_u64_beyond_javascript_safe_integer() {
+        let water = WaterDocument::from_json(include_str!(
+            "../../../examples/visual_valley/water.v1.json"
+        ))
+        .unwrap();
+        assert!(water.seed > 9_007_199_254_740_991);
+
+        let encoded = encode_tauri_wire(&water).unwrap();
+        assert!(encoded.contains("5929365240144680497"));
+        let decoded: WaterDocument = decode_tauri_wire(&encoded).unwrap();
+        assert_eq!(decoded, water);
     }
 
     #[test]
@@ -2416,6 +3204,67 @@ mod tests {
     }
 
     #[test]
+    fn world_sketch_scene_is_explicit_and_uses_locked_compiler_outputs() {
+        let selection = parse_studio_scene_selection("?forge_scene=world-sketch-visual-valley");
+        assert_eq!(selection.scene, StudioScene::WorldSketchVisualValley);
+        assert_eq!(selection.source, StudioSceneSelectionSource::QueryString);
+        assert_eq!(selection.scene.query_value(), "world-sketch-visual-valley");
+        assert_eq!(parse_studio_scene_selection("").scene, StudioScene::Gate0);
+        assert_eq!(
+            parse_studio_weather_selection("?forge_weather=rain", selection.scene)
+                .unwrap()
+                .state,
+            WeatherState::Rain
+        );
+        let sketch = forge_world::embedded_visual_valley_world_sketch().unwrap();
+        let source_before = sketch.content_hash().unwrap();
+        let compiled = forge_world::compile_world_sketch(&sketch).unwrap();
+        let loaded = LoadedStudioScene::load(selection.scene).unwrap();
+        let manifest = loaded.manifest(Some(WeatherState::Clear)).unwrap();
+        assert_eq!(manifest.scene, selection.scene);
+        assert_eq!(
+            manifest.source_hashes.terrain,
+            Some(compiled.report.carved_terrain_sha256.to_string())
+        );
+        assert_eq!(
+            manifest.source_hashes.vegetation,
+            Some(compiled.report.vegetation_sha256.to_string())
+        );
+        let river = compiled
+            .spline_carving
+            .splines
+            .iter()
+            .find(|spline| spline.kind == forge_world::WorldSketchSplineKind::River)
+            .unwrap();
+        let mut expected_water = forge_world::water_from_carved_spline(
+            embedded_visual_valley_water_document().unwrap(),
+            river,
+        )
+        .unwrap();
+        expected_water.revision = sketch.revision;
+        assert_eq!(
+            manifest.source_hashes.water,
+            Some(expected_water.content_hash().unwrap().to_string())
+        );
+        assert_ne!(
+            manifest.source_hashes.terrain,
+            LoadedStudioScene::load(StudioScene::VisualValley)
+                .unwrap()
+                .manifest(Some(WeatherState::Clear))
+                .unwrap()
+                .source_hashes
+                .terrain
+        );
+        assert_eq!(sketch.content_hash().unwrap(), source_before);
+        assert_eq!(manifest.source_hashes.populated_count(), 6);
+        let encoded = serde_json::to_string(&manifest).unwrap();
+        assert_eq!(
+            serde_json::from_str::<StudioSceneManifest>(&encoded).unwrap(),
+            manifest
+        );
+    }
+
+    #[test]
     fn visual_valley_manifest_exposes_the_six_canonical_source_hashes() {
         let loaded = LoadedStudioScene::load(StudioScene::VisualValley).unwrap();
         let manifest = loaded.manifest(Some(WeatherState::Rain)).unwrap();
@@ -2428,7 +3277,7 @@ mod tests {
         );
         assert_eq!(
             manifest.source_hashes.vegetation.as_deref(),
-            Some("5c7619a6ee04533accbf998e3c12077363e4e3b06c86d28e9a62b76bae80a5b8")
+            Some("b26f8ec68b996f41887bda3eddd9d641e861cc8bbd00645c0de2df6739e51b5c")
         );
         assert_eq!(
             manifest.source_hashes.environment.as_deref(),
@@ -2467,6 +3316,47 @@ mod tests {
         assert_eq!(unique_ids.len(), hierarchy.len());
         assert!(hierarchy.iter().all(|entry| !entry.name.is_empty()));
         assert!(hierarchy.iter().all(|entry| !entry.glyph.is_empty()));
+    }
+
+    #[test]
+    fn world_sketch_studio_keeps_the_compiled_bridge_bound_to_its_terrain() {
+        let loaded = LoadedStudioScene::load(StudioScene::WorldSketchVisualValley).unwrap();
+        let LoadedStudioScene::VisualValley(loaded) = loaded else {
+            panic!("wrong scene");
+        };
+        let bridge = loaded.bridge.as_ref().unwrap();
+        bridge.validate().unwrap();
+        assert_eq!(
+            bridge.source_carved_terrain_sha256,
+            loaded.terrain.content_hash().unwrap()
+        );
+        let compiled = forge_world::compile_world_sketch(
+            &forge_world::embedded_visual_valley_world_sketch().unwrap(),
+        )
+        .unwrap();
+        assert_eq!(bridge, &compiled.bridge_placements);
+        assert_eq!(bridge.placements.len(), 1);
+        assert_eq!(bridge.placements[0].landmark_id, "bridge_south");
+        let spawn = loaded.player_spawn.unwrap();
+        assert_eq!(spawn[0].to_bits(), 15.0_f32.to_bits());
+        assert_eq!(spawn[2].to_bits(), (-225.0_f32).to_bits());
+        assert_eq!(
+            spawn.map(f32::to_bits),
+            forge_world::world_sketch_player_spawn(
+                &forge_world::embedded_visual_valley_world_sketch().unwrap(),
+                &loaded.terrain,
+                &loaded.player_controller,
+            )
+            .unwrap()
+            .map(f32::to_bits)
+        );
+        let LoadedStudioScene::VisualValley(legacy) =
+            LoadedStudioScene::load(StudioScene::VisualValley).unwrap()
+        else {
+            panic!("wrong scene");
+        };
+        assert!(legacy.bridge.is_none());
+        assert!(legacy.player_spawn.is_none());
     }
 
     #[test]

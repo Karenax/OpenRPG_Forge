@@ -1,9 +1,9 @@
 use forge_core::{AreaId, ProjectId, Revision, Vec3};
 use forge_project::{
-    RiverBankProfile, RiverControlPoint, RiverPathAlgorithm, RiverProfile, WaterDocument,
-    WaterDocumentError, WaterOpticsProfile, WaterQualityTier, WaterReflectionFallback,
-    WaterReflectionProfile, WaterRefractionFallback, WaterRefractionProfile, WaterSrgbColor,
-    WaterSurfaceProfile,
+    RiverBankProfile, RiverControlPoint, RiverElevationPolicy, RiverPathAlgorithm, RiverProfile,
+    WaterDocument, WaterDocumentError, WaterOpticsProfile, WaterQualityTier,
+    WaterReflectionFallback, WaterReflectionProfile, WaterRefractionFallback,
+    WaterRefractionProfile, WaterSrgbColor, WaterSurfaceProfile,
 };
 use serde::Serialize;
 
@@ -39,6 +39,7 @@ impl VisualValleyWaterRecipe {
             self.seed,
             RiverProfile {
                 algorithm: RiverPathAlgorithm::CentripetalCatmullRomV1,
+                elevation_policy: RiverElevationPolicy::default(),
                 sample_spacing_m: 2.0,
                 control_points: vec![
                     control_point(96.0, 21.821, 160.0, 3.0, 0.800),
@@ -213,13 +214,20 @@ pub fn sample_river_centerline(
         for interval_index in 1..=interval_count {
             #[allow(clippy::cast_precision_loss)]
             let segment_fraction = interval_index as f32 / interval_count as f32;
-            let curved_center_m = centripetal_catmull_rom(
-                previous,
-                start.center_m,
-                end.center_m,
-                next,
-                segment_fraction,
-            );
+            let curved_center_m = match document.river.algorithm {
+                RiverPathAlgorithm::CentripetalCatmullRomV1 => centripetal_catmull_rom(
+                    previous,
+                    start.center_m,
+                    end.center_m,
+                    next,
+                    segment_fraction,
+                ),
+                RiverPathAlgorithm::PiecewiseLinearV1 => Vec3::new(
+                    linear_interpolate(start.center_m.x, end.center_m.x, segment_fraction),
+                    linear_interpolate(start.center_m.y, end.center_m.y, segment_fraction),
+                    linear_interpolate(start.center_m.z, end.center_m.z, segment_fraction),
+                ),
+            };
             let center_m = if interval_index == interval_count {
                 end.center_m
             } else {
@@ -253,6 +261,46 @@ pub fn sample_river_centerline(
         usize::try_from(requested_sample_count).unwrap_or(usize::MAX)
     );
     Ok(samples)
+}
+
+/// Reuse the exact carved water polyline while retaining the selected optical profile.
+pub fn water_from_carved_spline(
+    mut document: WaterDocument,
+    spline: &crate::WorldSketchCarvedSpline,
+) -> Result<WaterDocument, WaterDocumentError> {
+    if !matches!(
+        spline.kind,
+        crate::WorldSketchSplineKind::River | crate::WorldSketchSplineKind::Creek
+    ) {
+        return Err(WaterDocumentError::InvalidProfileRelation(
+            "water requires a river or creek carving",
+        ));
+    }
+    document.river.algorithm = RiverPathAlgorithm::PiecewiseLinearV1;
+    document.river.elevation_policy = RiverElevationPolicy::AuthoredSurfaceV1;
+    document.river.control_points = spline
+        .centerline_samples
+        .iter()
+        .map(|sample| {
+            control_point(
+                sample.x_m,
+                sample.surface_height_m,
+                sample.z_m,
+                spline.authored_width_m,
+                spline.bed_depth_m,
+            )
+        })
+        .collect();
+    document.banks.shoulder_width_m = spline.shoulder_width_m;
+    if let WaterRefractionProfile::ScreenSpace {
+        ref mut max_depth_m,
+        ..
+    } = document.optics.refraction
+    {
+        *max_depth_m = max_depth_m.min(spline.bed_depth_m);
+    }
+    document.validate()?;
+    Ok(document)
 }
 
 fn extrapolate_before(start: Vec3, end: Vec3) -> Vec3 {
@@ -373,6 +421,68 @@ mod tests {
         environment
             .validate_identity(terrain.project_id, terrain.area_id, terrain.revision)
             .unwrap();
+    }
+
+    #[test]
+    fn carved_river_preserves_every_control_and_linear_segment() {
+        let compiled =
+            crate::compile_world_sketch(&crate::embedded_visual_valley_world_sketch().unwrap())
+                .unwrap();
+        let spline = compiled
+            .spline_carving
+            .splines
+            .iter()
+            .find(|s| s.kind == crate::WorldSketchSplineKind::River)
+            .unwrap();
+        let water =
+            water_from_carved_spline(VisualValleyWaterRecipe::default().build().unwrap(), spline)
+                .unwrap();
+        assert_eq!(
+            water.river.control_points.len(),
+            spline.centerline_samples.len()
+        );
+        let reopened = WaterDocument::from_json(&serde_json::to_string(&water).unwrap()).unwrap();
+        assert_eq!(
+            water.content_hash().unwrap(),
+            reopened.content_hash().unwrap()
+        );
+        for (control, carved) in water
+            .river
+            .control_points
+            .iter()
+            .zip(&spline.centerline_samples)
+        {
+            assert_eq!(
+                control.center_m,
+                Vec3::new(carved.x_m, carved.surface_height_m, carved.z_m)
+            );
+            assert_eq!(
+                control.surface_width_m.to_bits(),
+                spline.authored_width_m.to_bits()
+            );
+        }
+        for sample in sample_river_centerline(&water).unwrap() {
+            let index = usize::from(sample.source_segment_index);
+            let start = water.river.control_points[index].center_m;
+            let end = water.river.control_points[index + 1].center_m;
+            assert!(
+                (sample.center_m.x - linear_interpolate(start.x, end.x, sample.segment_fraction))
+                    .abs()
+                    < 0.0001
+            );
+            assert!(
+                (sample.center_m.z - linear_interpolate(start.z, end.z, sample.segment_fraction))
+                    .abs()
+                    < 0.0001
+            );
+        }
+        let road = compiled
+            .spline_carving
+            .splines
+            .iter()
+            .find(|s| s.kind == crate::WorldSketchSplineKind::Road)
+            .unwrap();
+        assert!(water_from_carved_spline(water, road).is_err());
     }
 
     #[test]

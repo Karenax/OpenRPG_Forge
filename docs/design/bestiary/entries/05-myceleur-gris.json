@@ -1,0 +1,291 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.myceleur-gris",
+  "name": "Mycèleur gris",
+  "subtitle": "La colonie qui marche lorsque le sous-bois ne suffit plus",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée pour le volume I. Sa biologie, ses valeurs et ses capacités sont des données de conception compatibles avec le manuel, non une fonction déjà implémentée.",
+  "major": false,
+  "classification": {
+    "nature": "Colonie fongique mobile à conscience distribuée",
+    "family": "Décomposeurs mycéliaux",
+    "rarity": "Peu commune, mais localement abondante autour des vieux massifs",
+    "activity": "Crépusculaire et nocturne, avec sorties diurnes après une pluie longue",
+    "social": "Solitaire en surface, relié à plusieurs colonies immobiles sous terre",
+    "threat": "moderee",
+    "threat_reason": "Il évite normalement les êtres vivants, mais défend avec force une fructification, sature les espaces clos de spores irritantes et peut immobiliser un intrus dans ses filaments d'ancrage."
+  },
+  "physique": {
+    "dimensions": "1,35 à 1,75 m dressé ; chapeau large de 0,6 à 1,1 m ; filaments traînants jusqu'à 2,5 m",
+    "mass_kg": [55, 92],
+    "locomotion": [
+      "marche lente sur quatre à six stipes porteurs",
+      "reptation par contraction des filaments dans les sols meubles",
+      "ancrage immobile pour l'alimentation et la récupération"
+    ],
+    "center_of_gravity": "Bas et changeant : la masse humide descend vers les stipes qui touchent le sol, ce qui rend la colonie stable mais lente à pivoter.",
+    "silhouette": "Un large chapeau gris perle surmonte un tronc fibreux sans visage ; des plis respiratoires s'ouvrent sous la couronne et des cordons mycéliens sondent le sol comme des doigts.",
+    "anatomy_zones": [
+      {
+        "zone": "Chapeau fibreux",
+        "description": "Couronne stratifiée qui protège les poches à spores et détourne les pluies ; elle plie sous le choc au lieu de se fendre net.",
+        "protection": 12
+      },
+      {
+        "zone": "Stipe central",
+        "description": "Faisceau dense de fibres hydratées contenant les nœuds de coordination de surface ; une coupe profonde désorganise les mouvements sans tuer toute la colonie.",
+        "protection": 9
+      },
+      {
+        "zone": "Plis sporifères",
+        "description": "Lamelles pâles et très vascularisées sous le chapeau, sensibles à la chaleur sèche, au sel et aux traumatismes perforants.",
+        "protection": 3
+      },
+      {
+        "zone": "Stipes porteurs et filaments",
+        "description": "Membres remplaçables, robustes en traction mais faciles à sectionner lorsqu'ils sont tendus sur une pierre ou une racine.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "hêtraies anciennes riches en bois mort",
+    "ravins humides et caves naturelles ventilées",
+    "lisières ayant subi un chablis ou une mortalité massive d'arbres",
+    "galeries abandonnées où l'eau ne stagne pas complètement"
+  ],
+  "ecology": {
+    "diet": "Bois mort, feuilles lignifiées, carcasses déjà ouvertes et minéraux dissous. Le Mycèleur ne chasse pas : il accélère une décomposition commencée et abandonne un corps encore chaud si aucun tissu n'est nécrosé.",
+    "lifecycle": "La colonie passe plusieurs années sous forme de réseau souterrain. Lorsque le substrat s'épuise ou se noie, elle rassemble une partie de ses réserves dans un corps mobile, marche jusqu'à un milieu favorable, puis s'y désagrège pour fonder de nouveaux nœuds. Un individu de surface vit généralement deux à onze semaines.",
+    "reproduction": "Après une pluie régulière, les plis du chapeau libèrent des spores lourdes qui adhèrent au bois humide. Deux réseaux compatibles doivent ensuite se rencontrer dans le sol ; la forme mobile transporte donc du matériel reproductif, mais ne constitue pas à elle seule une nouvelle colonie viable.",
+    "behavior": "Il suit l'humidité, les gradients de matière morte et les vibrations lentes des grands herbivores. Il contourne les feux, les salines et les zones piétinées. Menacé, il s'ancre d'abord, présente son chapeau et n'émet sa nuée que si l'intrus continue d'avancer.",
+    "niche": "Décomposeur de gros bois et redistributeur de phosphore. Ses galeries de filaments aèrent les sols compacts et nourrissent des mousses, des collemboles et plusieurs coléoptères spécialisés.",
+    "environmental_impact": "Une colonie saine transforme un chablis en clairière fertile. Une colonie enfermée dans une mine peut toutefois fragiliser les étais, consommer l'oxygène d'une galerie et couvrir les réserves de spores irritantes. Sa disparition brutale laisse un sol pauvre et une accumulation de bois sec propice aux incendies."
+  },
+  "senses": [
+    "détecte l'humidité, le dioxyde de carbone et les composés de putréfaction à travers ses plis",
+    "perçoit les vibrations du sol par les filaments sur une quinzaine de mètres en terrain continu",
+    "distingue grossièrement les sources chaudes, sans former d'image visuelle"
+  ],
+  "communication": [
+    "impulsions chimiques transmises aux réseaux fongiques du sol",
+    "claquements secs des lamelles pour avertir d'une dessiccation ou d'un choc",
+    "variations lentes de phosphorescence grise visibles sous le chapeau"
+  ],
+  "signs": [
+    "empreintes en étoile entourées d'un fin duvet blanc sur la terre humide",
+    "bois mort évidé de l'intérieur mais encore couvert d'une écorce intacte",
+    "odeur de pierre mouillée et de poire fermentée dans un air sans vent",
+    "cordons gris tendus entre des racines à hauteur de cheville",
+    "petits cercles de mousse exceptionnellement verte autour d'une souche noire"
+  ],
+  "demeanor": {
+    "objectives": [
+      "atteindre un substrat humide riche en matière morte",
+      "protéger les plis sporifères jusqu'à la dispersion",
+      "maintenir un contact avec le sol et les réseaux voisins"
+    ],
+    "fears": [
+      "flamme ouverte et air très sec",
+      "sel, chaux vive et cendres fortement alcalines",
+      "immersion prolongée qui prive les filaments d'oxygène"
+    ],
+    "morale": "Patiente tant qu'elle reste ancrée. La colonie ne poursuit pas un adversaire et accepte la perte de stipes secondaires pour préserver son chapeau et son noyau central.",
+    "escalation": "Elle se tasse d'abord, dresse le bord du chapeau, tend ses filaments en travers du passage puis frappe. La nuée grise n'arrive qu'après rupture d'un filament ou intrusion dans la zone de fructification.",
+    "retreat": "Elle rompt volontairement ses filaments périphériques et rampe vers la terre la plus humide dès que son stipe central est entamé, que deux appuis sont sectionnés ou qu'une source de chaleur persistante approche."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 3,
+      "constitution": 8,
+      "intelligence": 4,
+      "willpower": 7,
+      "perception": 6,
+      "presence": 3
+    },
+    "skills": {
+      "unarmed": 45,
+      "survival": 60,
+      "stealth": 35,
+      "vigilance": 45,
+      "tracking": 40,
+      "vitality_magic": 55
+    },
+    "resources": {
+      "vitality": 120,
+      "stamina": 111,
+      "mana": 78,
+      "balance": 96,
+      "focus": 92
+    },
+    "movement": "2,8 m/s en marche ; 1,4 m/s en reptation ; ne peut ni sauter ni sprinter, mais ignore les pénalités ordinaires des broussailles basses.",
+    "protections": [
+      "Chapeau : 12 contre le tranchant, 8 contre le perforant et 10 contre le contondant.",
+      "Stipe central : 9 contre le tranchant, 7 contre le perforant et 12 contre le contondant.",
+      "Plis sporifères : 3 contre tous les contacts physiques ; aucune réduction contre la chaleur ou la dessiccation.",
+      "Stipes porteurs : 5 contre le tranchant et le perforant, 9 contre le contondant tant qu'au moins trois appuis restent ancrés."
+    ],
+    "attacks": [
+      {
+        "name": "Masse de stipe",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 22,
+        "reach": "arc frontal de 1,6 m",
+        "stamina_cost": 16,
+        "preparation": "0,65 seconde pour gonfler et lever le stipe",
+        "telegraph": "Le pied d'appui s'écrase dans le sol, le chapeau s'incline à l'opposé et le membre frappeur blanchit en se gorgeant d'eau.",
+        "effect": "Contact contondant lourd ; sur une marge propre ou décisive, la cible perd aussi de l'Équilibre et peut être rabattue vers les filaments tendus.",
+        "counterplay": "Sortir latéralement de l'arc, frapper le stipe pendant son gonflement ou forcer la colonie à pivoter sur un sol pierreux."
+      },
+      {
+        "name": "Vrille d'ancrage",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 8,
+        "reach": "ligne au sol de 3 m",
+        "stamina_cost": 12,
+        "preparation": "0,8 seconde pour tendre un filament déjà posé",
+        "telegraph": "Le duvet du sol se hérisse puis un cordon gris se tend entre deux racines avant de fouetter la cheville.",
+        "effect": "Le faible Trauma accompagne une entrave physique : course interrompue, appui compromis et perte d'Équilibre tant que le filament reste tendu.",
+        "counterplay": "Lever le pied avant la tension, couper le cordon, brûler localement l'attache ou reculer sans tirer contre le réseau."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Nuée grise",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "vitality_magic",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "cône de 4 m, persistant environ 6 secondes en air calme",
+        "stamina_cost": 18,
+        "preparation": "1,4 seconde de contraction des plis",
+        "telegraph": "Les lamelles deviennent argentées, le chapeau tremble par vagues concentriques et une odeur fermentée s'intensifie nettement.",
+        "effect": "Les spores irritent les yeux et les voies respiratoires, accélèrent la détection de toxicité et gênent la Vigilance ; elles ne traversent pas un masque étanche et ne causent pas de Trauma direct.",
+        "counterplay": "Rompre la ligne du cône, se placer au vent, couvrir bouche et yeux, ventiler l'espace ou mouiller les spores pour les plaquer au sol."
+      },
+      {
+        "name": "Reprise par le réseau",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "survival",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "contact avec un sol vivant dans un rayon de 1 m",
+        "stamina_cost": 20,
+        "preparation": "4 secondes d'immobilité complète et d'ancrage visible",
+        "telegraph": "Les stipes s'enfoncent, la phosphorescence quitte le chapeau et des filaments voisins convergent sous la litière.",
+        "effect": "La colonie transfère eau et sucres depuis un réseau sain, stabilise une blessure et récupère progressivement de l'Endurance ; l'effet cesse sur pierre nue, sol brûlé ou réseau sectionné.",
+        "counterplay": "L'obliger à se déplacer, isoler la motte de terre, couper les cordons convergents ou dessécher localement le substrat."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Poison organique et maladie ordinaire",
+        "mechanism": "La colonie répartit les tissus contaminés entre plusieurs stipes et peut condamner une zone atteinte ; l'accumulation est ralentie mais jamais annulée."
+      },
+      {
+        "subject": "Trauma contondant diffus",
+        "mechanism": "Les fibres hydratées se déforment et redistribuent un choc large, surtout lorsque trois appuis ou davantage restent ancrés dans un sol meuble."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Chaleur sèche et flamme",
+        "mechanism": "La dessiccation contracte les plis, détruit les filaments fins et peut enflammer une nuée de spores concentrée."
+      },
+      {
+        "subject": "Sel et substances alcalines",
+        "mechanism": "Le gradient osmotique retire rapidement l'eau des tissus exposés et rompt la communication chimique entre les stipes."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Flamme dans une nuée grise dense",
+        "result": "Déflagration brève de poussières puis zone de spores détruite",
+        "chain": "La nuée s'accumule en air calme, une flamme fournit l'amorce, l'éclair thermique blesse tout être proche puis laisse le Mycèleur desséché et incapable de réémettre immédiatement."
+      },
+      {
+        "input": "Pluie forte ou jet d'eau",
+        "result": "Spores rabattues et mobilité accrue sur le sol humide",
+        "chain": "L'eau nettoie l'air et protège d'abord les voyageurs, mais hydrate ensuite les stipes ; la colonie peut alors rompre son ancrage et rejoindre plus vite un couvert voisin."
+      },
+      {
+        "input": "Sol décapé, dalle ou cercle de cendre alcaline",
+        "result": "Réseau souterrain interrompu et reprise impossible",
+        "chain": "L'absence de litière coupe les filaments nourriciers, prive la colonie de son transfert d'eau et transforme son immobilisation défensive en véritable faiblesse."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Les empreintes étoilées et le duvet blanc annoncent un passage récent ; un duvet encore humide indique que le corps mobile se trouve probablement à moins d'une heure."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 18,
+      "fact": "Le Mycèleur n'est pas un prédateur et protège surtout ses fructifications ; laisser un passage autour d'elles évite la plupart des confrontations."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les claquements de lamelles semblent transmettre à d'autres colonies la direction d'une source de chaleur, mais leur portée exacte reste débattue."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Une part de la mémoire spatiale du corps mobile persiste dans le réseau qu'il fonde : des colonies séparées reproduisent parfois le même détour des années après un incendie."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle territorial lisible plutôt qu'ennemi de poursuite",
+      "contrôleur d'espace par filaments et nuée",
+      "indice écologique révélant un sol malade ou une galerie instable"
+    ],
+    "telegraphs": [
+      "l'inclinaison du chapeau annonce la direction d'une masse de stipe",
+      "le blanchiment des lamelles et l'odeur fermentée précèdent toujours la nuée grise",
+      "les filaments du sol se hérissent avant toute tentative d'entrave"
+    ],
+    "noncombat_options": [
+      "ouvrir un chemin en déplaçant le bois mort vers une zone humide sûre",
+      "ventiler ou mouiller la fructification avant de traverser",
+      "interpréter ses signaux chimiques avec Érudition ou Survie et contourner le réseau",
+      "restaurer un chablis voisin afin d'attirer durablement la colonie hors d'une mine"
+    ],
+    "complications": [
+      "un feu employé trop vite enflamme les poussières et le bois sec accumulé",
+      "la colonie soutient peut-être les racines d'un arbre qui retient une pente",
+      "des spores sur les vêtements peuvent contaminer des réserves humides sans rendre les voyageurs malades"
+    ]
+  },
+  "salvage": [
+    "Fibres de stipe prélevées sur un membre abandonné : liant absorbant, compost ou pansement d'urgence après stérilisation.",
+    "Spores recueillies sans brûler la colonie : inoculum de compost, à conserver dans un récipient ventilé et clairement marqué.",
+    "Plaque de chapeau naturellement muée : matériau léger pour filtres et isolants, inutilisable si elle porte encore une phosphorescence active."
+  ],
+  "plates": [
+    {
+      "image": "myceleur-gris-plate.png",
+      "alt": "Un Mycèleur gris avance dans un sous-bois humide sur plusieurs stipes fibreux, tandis que son large chapeau perle de pluie et que des filaments pâles relient ses appuis aux racines.",
+      "caption": "Le marcheur n'est que la partie voyageuse d'un réseau beaucoup plus vaste.",
+      "prompt_key": "myceleur-gris-plate"
+    }
+  ]
+}

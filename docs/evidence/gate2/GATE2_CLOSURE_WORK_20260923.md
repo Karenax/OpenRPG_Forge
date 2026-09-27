@@ -1,0 +1,59 @@
+# Gate 2 — qualification locale du candidat v9b, 23 septembre 2026
+
+Verdict : **qualification locale partielle**, `gate_qualified=false`. Le candidat et les fixtures sont restés sur E:, branche `Rust` ; aucune publication ou fusion n'est déduite. Le propriétaire a validé la capture visuelle présentée, mais a précisé n'avoir effectué **que cette revue de capture**, sans parcours Studio chronométré. Cette validation ne couvre ni le rendu en direct, ni l'effort auteur, ni la performance interactive. CI distante : `NOT RUN — infrastructure billing`.
+Roadmap : 50 critères R2 cochés sur 52 ; `R2-050` et `R2-052` restent ouverts. Les sept conditions de passage de Gate 2 restent distinctes et non cochées.
+
+## Complément UX — candidat à faire essayer au propriétaire
+
+Après le retour du propriétaire sur la surcharge de l'interface, Studio présente six onglets (`Projet`, `Terrain`, `Nature`, `Tracés & eau`, `Objets`, `Tester & suivi`), une barre d'actions fixe, des diagnostics avancés repliés et des historiques à défilement borné. Le changement d'onglet remonte en haut du panneau. Le candidat local est `E:/OpenRPG_Forge/.gate2-evidence/gate2-ux-20260923/candidate/forge-studio-candidate.exe`, SHA-256 `AC2CD3FD88B33AA88BEA9E012ECCB2BF25531996049A8E210FD847BC48A1DE28`, WASM `74B1BE8757D7EDCD66543C3FC635941836C7F3F378E700B7A0776A195CD48D70`. Il est distinct du v9b validé sur capture : l'approbation visuelle de v9b ne se transfère pas automatiquement au nouvel écran.
+
+Sur ce SHA exact, `route-proof-v2` a rejoué le parcours `FullAuthorRoute` sur copie isolée : R2-043 9/9 étapes PASS, R2-037 workspace et R2-049 rivière acceptée PASS, source hash/octets/mtime inchangés, processus et CDP fermés. La capture finale `route-proof-v2/full-author-route/full-author-route-final.png` montre Terrain avec les commandes et onglets visibles. Le statut global du harness reste `failed_closed` pour R2-052 : aucune mesure humaine ni série de cinq copies n'a été effectuée sur ce nouveau binaire. Un premier essai `route-proof` s'est arrêté avant le parcours sur un sélecteur de contrôle automatisé déplacé dans l'onglet Projet ; le harness a été adapté et validé sur la relance, sans recompilation du candidat. `cargo fmt --all -- --check`, contrôle WASM ciblé et auto-test du harness PASS. Aucun push.
+
+Pour l'essai humain, double-cliquer `scripts/Start-Gate2HumanReview.cmd` : le lanceur vérifie les SHA, crée une seule copie de la fixture sous `E:/OpenRPG_Forge/.gate2-evidence/gate2-ux-20260923/human-review/authoring-root`, puis ouvre Studio avec une fenêtre visible. Il ne remplace jamais une copie existante. Dans `Projet`, actualiser la liste et ouvrir `R2-004 Final B` ; l'onglet `Terrain` s'active. Les autres outils se trouvent dans `Nature`, `Tracés & eau`, `Objets` et `Tester & suivi`. La barre supérieure garde `Appliquer`, `Annuler`, `Rétablir` et `Sauvegarder` accessibles. À la fermeture, le lanceur affiche la durée totale, attentes incluses ; relever à part le temps actif et les attentes ressenties.
+
+État Git constaté le 23 septembre : HEAD `f786a38aca2023f08d708687f99a47d14f34e6d4`, branche `Rust`, divergence `HEAD...origin/Rust = 0/103` (103 commits de retard), worktree modifié et non qualifié comme révision exacte. Les preuves ci-dessous épinglent le binaire et les fixtures, pas un commit propre.
+
+## Identité et contrôles de code
+
+- Candidat : `artifacts/forge-runtime/gate2-resume-20260919/gate2-closure-candidate-20260923-v9b/forge-studio-candidate.exe`, SHA-256 `0B7C158E0AA39DD07397AC6B69EC171E997E550757BDA2BE5157037379445F5D`.
+- Frontend WASM : SHA-256 `F5AC08EDC314DAB3B36F5108EFB5BAF6A98ABD526CED3C155F4FFD931B9EB406`. Construction Trunk release `--locked --offline` et packaging Tauri réussis ; le manifeste reste `BUILD_ONLY`, `runtime_verified=false`, `gate_qualified=false`.
+- `cargo fmt --all -- --check` et `git diff --check` réussis (avertissements CRLF seulement pour des fichiers préexistants). Clippy natif strict `forge_engine` + `forge_studio` all-targets, puis Clippy `forge_studio` Web WASM strict, réussis avec cache et temporaires sur E:.
+- Tests ciblés : `forge_engine authoring_buildings` 6/6 ; `forge_engine manual_projection_rejects_preview_stale_backend_and_wrong_source` 1/1 (source, pose enfant et backend Rapier périmés refusés) ; `forge_studio authoring_projection_diagnostics` 2/2 ; `forge_project playtest` 3/3 (hash attendu périmé refusé). Le test Web de `same_count_reprojection_restores_registered_status` n'est pas exécuté par un `cargo test` natif (module sous `cfg(web)`), mais le parcours v9b R2-051 observe le correctif dans le candidat réel.
+- Harness `scripts/Invoke-Gate2WorldEditingProof.ps1 -SelfTest` : PASS sous PowerShell 7 et Windows PowerShell 5.1.
+- Un essai de `cargo test --workspace --locked --offline` a été interrompu avant tout verdict : la recompilation de dépendances remplissait rapidement E:. Les caches partiels ne constituent pas une preuve de test. Après nettoyage par le propriétaire, aucune compilation globale n'est relancée sans budget d'espace et stratégie de cache convenus.
+
+## Parcours sur l'EXE exact
+
+| Preuve | Résultat acquis | Limite |
+|---|---|---|
+| `transversal-v9b-20260923-v7` | R2-037 auteur 32+12 pages ; R2-042 ; R2-046 ; R2-047 ; R2-048 grille/pivot externe/180°/Undo/Redo ; R2-049 inspecteurs hors rivière acceptée ; R2-051 geste/saisie/retry : tous les cas automatisés PASS. Capture après orbite et panoramique avec arche et anneaux visibles ; Luna max a relu la capture v6 après orbite et confirmé cible/pivot lisibles. | Pagination workspace et rivière acceptée acquises séparément ; pas de revue visuelle humaine, la symétrie de l'arche ne permet pas de lire 180° sur l'image seule. |
+| `full-author-route-v9b-20260923-v17` | R2-043 : 9/9 opérations par contrôles Studio, vallée, forêt, chemin, rivière, maison, clairière, seed 43, Save/Close/Open exact, Jouer/Retour. Le chemin X=-5…5 est dégagé ; la maison (12 ; 5,2 ; 0) et ses murs/porte sont visibles à côté, la rivière Z=40 derrière elle. R2-049 rivière acceptée en lecture seule. R2-037 workspace : 12→21 opérations, pages 1–20 puis 21 puis retour, IDs disjoints, source intacte et captures cadrées. | `failed_closed` global uniquement pour R2-052 ; aucune mesure d'effort humain ni confirmation de frame GPU. |
+| `projection-incremental-v9b-20260923-v8` | R2-050 partiel : 71 placements non touchés conservent entité, mesh, matériau et handle Rapier ; bâtiment déplacé puis retouche de porte conservent huit identités de parties ; Jouer/Retour après réconciliation concordante, source intacte ; 4/4 cas PASS. | Diagnostic d'identité, non de géométrie/GPU ; refus délibéré du périmé par l'interface et performance interactive pas encore qualifiés. |
+
+Chaque scénario utilise une copie fraîche, épingle le SHA du candidat, compare hash/octets/mtime de sa source et ferme son processus/CDP. Les mutations passent par les contrôles Studio ; les captures n'attestent pas, à elles seules, une frame GPU ou une revue humaine. Le scénario `FullAuthorRoute` global demeure `failed_closed` parce que R2-052 n'est pas clos, malgré ses sous-cas R2-037/043/049 acquis.
+
+## Attente automatisée, cinq copies indépendantes
+
+Référence : AMD Ryzen 5 7600 (12 threads), 64 Gio RAM, AMD Radeon RX 7800 XT (pilote `32.0.31041.1004`), Windows. Copie source UI vierge épinglée au SHA-256 `89E0DCB892A81B9589A604459DE1AA1F97690CD502737F81ECAE0782E84118D7`. Candidat identique, géométrie finale chemin X=-5…5/Z=0, maison X=12/Y=5,2/Z=0, rivière Z=40 ; cinq copies indépendantes `full-author-route-v9b-20260923-v17` à `v21`. Chacune a 9/9 étapes R2-043, R2-037 et R2-049 PASS, source hash/octets/mtime intacts et processus/CDP fermés. Les premiers essais v4–v8 plaçaient la maison sous le sol et ne servent pas à la qualification visuelle. Une tentative de rivière Z=20 a été refusée sans mutation pour conflit avec les échantillons manuels du terrain (v16), comportement attendu.
+
+Temps cumulés des neuf étapes, en millisecondes et dans l'ordre v17–v21 : `39968`, `39104`, `39087`, `38373`, `39451` ; médiane `39104`, p95 empirique (rang supérieur sur cinq) `39968`. Durée totale des scénarios, nettoyage inclus : `51587`, `50744`, `50527`, `49710`, `50940` ms. Les étapes incluent les gestes CDP, attentes IPC/projection et huit secondes de temporisation de captures dans Jouer/Retour. Elles ne mesurent ni l'effort d'un auteur humain ni l'input-to-photon ; R2-052 et la condition « performance interactive » restent ouverts.
+
+Sur les entrées `invoke_audit.entries` résolues des cinq ledgers v17–v21, durée `completed_at_ms - started_at_ms` du fetch dans la WebView, p95 par rang supérieur : `preview_zone` 35 appels, médiane 84,9 ms / p95 191,7 ms ; `apply_zone` 105 appels, 79,2 / 172,9 ms ; `save` 5 appels, 118,2 / 145,8 ms ; `open` 5 appels, 369,1 / 430,5 ms ; `start_playtest` 5 appels, 117,2 / 320,2 ms ; `stop_playtest` 5 appels, 24,1 / 27,7 ms. Ces mesures couvrent l'appel IPC résolu, pas la disponibilité du rendu après projection, le rechargement de la page, le mouvement humain ou la latence image-écran.
+
+## État à terminer avant clôture
+
+- R2-050 : le jeu démarre après réconciliation, mais il reste à provoquer et observer le refus d'une projection périmée côté Studio ; les tests natifs couvrent séparément le refus d'un hash attendu périmé et la préparation moteur. Ne pas déduire une preuve GPU ou une performance interactive du diagnostic DOM.
+- R2-052 : mesure de l'effort humain réel et attente auteur selon paramètres de référence. Les cinq mesures ci-dessus sont un proxy automatisé, pas ce verdict ; le propriétaire a confirmé que sa validation portait seulement sur la capture visuelle.
+- Gate 2 formelle : la capture montrée est acceptée par le propriétaire, mais le parcours humain dans Studio, la performance interactive et le rendu en direct restent à qualifier ; il faut ensuite qualifier selon ADR-0006 un commit/arbre exacts propres avec tests workspace, non-régressions des gates passées, builds/smokes Windows et WASM, contrôles de licences/advisories/chaîne d'approvisionnement applicables. Aucun de ces contrôles non rejoués n'est déclaré PASS par ce dossier. CI externe explicitement `NOT RUN — infrastructure billing`. Le worktree actuel est modifié ; le push est autorisé par le propriétaire seulement si Gate 2 est effectivement terminée, condition non remplie ici.
+
+## Relevé humain à compléter
+
+Mise à jour après la seconde passe UX : utiliser désormais le candidat
+`D01F0005D8B9346E6235C9D9ACF423F24E847A4219B05DDD1AE5D7363B76E080`,
+via `scripts/Start-Gate2HumanReview.cmd`. Le candidat `AC2CD3FD…1DE28`
+cité ci-dessous est remplacé pour ce nouvel essai. Revue, changements et preuves :
+[STUDIO_UX_REVIEW_20260923.md](STUDIO_UX_REVIEW_20260923.md).
+Le parcours final automatisé repasse 9/9 étapes R2-043 et les contrôles UX des six
+onglets ; aucune validation humaine ni clôture de gate n’en est déduite.
+
+Sur le nouveau candidat UX `AC2CD3FD…1DE28` et une copie fraîche de la fixture indiquée ci-dessus, chronométrer le temps actif d'un auteur du premier geste à Jouer/Retour : vallée, forêt seed 42, chemin X=-5…5/Z=0, rivière Z=40, maison X=12/Y=5,2/Z=0, clairière locale, régénération seed 43 conservant la retouche, Save/Close/Open, Jouer/Retour. Noter séparément les attentes visibles après Apply, Save/Open et Jouer, les reprises ou erreurs, et la lisibilité du terrain, de la rivière, du chemin et de la maison. Les captures `full-author-route-v9b-20260923-v17` restent des repères de scène, non une validation de la nouvelle interface ; la capture `route-proof-v2` illustre le nouvel écran, pas le verdict humain. Ne pas modifier la fixture source : utiliser une copie isolée et joindre son hash initial/final. Le verdict doit indiquer matériel, résolution, réglages, temps actif, attente et éventuels défauts bloquants, ou déclarer la mesure non réalisée.

@@ -1,0 +1,228 @@
+{
+  "schema": "forge-gate1-renderdoc-action-rejections/v2",
+  "cases": [
+    {
+      "name": "triangle_strip",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "TriangleStrip"
+      }
+    },
+    {
+      "name": "triangle_fan",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "TriangleFan"
+      }
+    },
+    {
+      "name": "line_strip",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "LineStrip"
+      }
+    },
+    {
+      "name": "triangle_adjacency",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "TriangleListAdjacency"
+      }
+    },
+    {
+      "name": "patch_list",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "PatchList"
+      }
+    },
+    {
+      "name": "unknown_topology",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": "Unknown"
+      }
+    },
+    {
+      "name": "missing_topology",
+      "expected_code": "unsupported_topology",
+      "overrides": {
+        "topology": null
+      }
+    },
+    {
+      "name": "triangle_not_divisible",
+      "expected_code": "triangle_count_not_divisible",
+      "overrides": {
+        "num_indices": 4
+      }
+    },
+    {
+      "name": "line_not_divisible",
+      "expected_code": "line_count_not_divisible",
+      "overrides": {
+        "topology": "LineList",
+        "num_indices": 5
+      }
+    },
+    {
+      "name": "unresolved_indirect",
+      "expected_code": "unresolved_indirect",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Indirect"
+        ],
+        "indirect": true,
+        "indirect_resolved": false
+      }
+    },
+    {
+      "name": "indirect_metadata_mismatch",
+      "expected_code": "indirect_metadata_mismatch",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Indirect"
+        ],
+        "indirect": false
+      }
+    },
+    {
+      "name": "geometry_stage",
+      "expected_code": "unsupported_shader_stage",
+      "overrides": {
+        "active_stages": [
+          "Vertex",
+          "Geometry",
+          "Fragment"
+        ]
+      }
+    },
+    {
+      "name": "tessellation_stages",
+      "expected_code": "unsupported_shader_stage",
+      "overrides": {
+        "active_stages": [
+          "Vertex",
+          "TessellationControl",
+          "TessellationEvaluation",
+          "Fragment"
+        ]
+      }
+    },
+    {
+      "name": "mesh_stage",
+      "expected_code": "unsupported_shader_stage",
+      "overrides": {
+        "active_stages": [
+          "Mesh",
+          "Fragment"
+        ]
+      }
+    },
+    {
+      "name": "task_stage",
+      "expected_code": "unsupported_shader_stage",
+      "overrides": {
+        "active_stages": [
+          "Task",
+          "Mesh",
+          "Fragment"
+        ]
+      }
+    },
+    {
+      "name": "unknown_stage",
+      "expected_code": "unsupported_shader_stage",
+      "overrides": {
+        "active_stages": [
+          "Vertex",
+          "Unknown"
+        ]
+      }
+    },
+    {
+      "name": "missing_vertex_stage",
+      "expected_code": "missing_vertex_stage",
+      "overrides": {
+        "active_stages": [
+          "Fragment"
+        ]
+      }
+    },
+    {
+      "name": "unexpanded_multiaction",
+      "expected_code": "unexpanded_multiaction",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "MultiAction"
+        ]
+      }
+    },
+    {
+      "name": "primitive_multiplication_overflow",
+      "expected_code": "integer_overflow",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Instanced"
+        ],
+        "num_indices": 6,
+        "num_instances": 18446744073709551615,
+        "instanced": true
+      }
+    },
+    {
+      "name": "instanced_flag_without_boolean",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Instanced"
+        ],
+        "instanced": false
+      }
+    },
+    {
+      "name": "instanced_boolean_without_flag",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "instanced": true
+      }
+    },
+    {
+      "name": "non_instanced_nonzero_sentinel",
+      "expected_code": "instance_metadata_mismatch",
+      "overrides": {
+        "num_instances": 1,
+        "instanced": false
+      }
+    },
+    {
+      "name": "present_drawcall_conflict",
+      "expected_code": "present_drawcall_conflict",
+      "overrides": {
+        "flags": [
+          "Drawcall",
+          "Present"
+        ]
+      }
+    },
+    {
+      "name": "integer_out_of_range",
+      "expected_code": "integer_out_of_range",
+      "overrides": {
+        "num_indices": 18446744073709551616
+      }
+    },
+    {
+      "name": "boolean_is_not_integer",
+      "expected_code": "invalid_type",
+      "overrides": {
+        "num_indices": true
+      }
+    }
+  ]
+}

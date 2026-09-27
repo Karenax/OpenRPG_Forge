@@ -1,0 +1,27 @@
+{
+  "evidence_type": "extracted_browser_ledger_and_native_probe_not_raw_tool_output",
+  "recorded_at_utc": "2026-09-05T18:39:40.097Z",
+  "scene": "world_sketch_visual_valley",
+  "browser_bridge_hash": "6295913b59a4627d8691bb9da5ad6ed946056b0f060c20fbddcba34eb4bf0936",
+  "native_bridge_hash": "6295913b59a4627d8691bb9da5ad6ed946056b0f060c20fbddcba34eb4bf0936",
+  "source_manifest_matched": true,
+  "active_cameras": 1,
+  "browser_cpu_projection": {
+    "placements": 1,
+    "visual_mesh_instances": 201,
+    "deck_colliders": 1,
+    "parapet_colliders": 2,
+    "support_colliders": 2,
+    "preview_water_instances": 0
+  },
+  "native_crossing": {
+    "exit_code": 0,
+    "crossing_ticks": 518,
+    "grounded_ticks": 518,
+    "deck_collision_ticks": 435,
+    "maximum_ungrounded_run": 0
+  },
+  "browser_crossing_verified": false,
+  "human_acceptance": false,
+  "gate_1": "open"
+}

@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.cerf-miroir",
+  "name": "Cerf-miroir",
+  "subtitle": "Le veilleur prismatique des clairières hautes",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée : un grand cervidé dont la ramure minéralisée produit des phénomènes optiques limités par la lumière et la matière.",
+  "major": false,
+  "classification": {
+    "nature": "animal à symbiose minérale et magique",
+    "family": "cervidé prismatique",
+    "rarity": "rare et migrateur",
+    "activity": "diurne, surtout aux premières et dernières lumières",
+    "social": "hardes saisonnières conduites par plusieurs adultes vigilants",
+    "threat": "forte",
+    "threat_reason": "Pacifique à distance, il devient dangereux lorsqu'une harde est encerclée : ruades, ramure et reflets coordonnés désorientent sans abolir les lignes de vue."
+  },
+  "physique": {
+    "dimensions": "2 à 2,4 m de long ; 1,4 à 1,7 m au garrot, ramure jusqu'à 1,3 m de large",
+    "mass_kg": [180, 260],
+    "locomotion": ["trot silencieux", "galop", "bond de pente"],
+    "center_of_gravity": "Haut au repos, abaissé avant le bond ; la large ramure déplace l'équilibre pendant les rotations serrées.",
+    "silhouette": "Grand cervidé gris pâle dont les bois translucides portent des facettes naturelles semblables à du quartz fumé.",
+    "anatomy_zones": [
+      {
+        "zone": "ramure",
+        "description": "Os minéralisé dur mais cassant sous un choc contondant transversal.",
+        "protection": 24
+      },
+      {
+        "zone": "tête et encolure",
+        "description": "Crâne étroit et muscles puissants couverts d'une courte crinière réfléchissante.",
+        "protection": 8
+      },
+      {
+        "zone": "torse",
+        "description": "Cage thoracique profonde sous une peau dense mais sans armure naturelle.",
+        "protection": 6
+      },
+      {
+        "zone": "pattes",
+        "description": "Membres longs et tendons exposés, conçus pour le bond plutôt que l'impact latéral.",
+        "protection": 3
+      }
+    ]
+  },
+  "habitats": [
+    "clairières d'altitude bordées de bouleaux",
+    "plateaux calcaires riches en veines de quartz",
+    "forêts claires traversées par des ruisseaux peu profonds"
+  ],
+  "ecology": {
+    "diet": "Herbes fines, jeunes feuilles, lichens minéraux et eau chargée en silice.",
+    "lifecycle": "Le faon porte un pelage mat ; les premiers dépôts translucides apparaissent à deux ans et la ramure pleinement facettée après cinq saisons.",
+    "reproduction": "Un faon, rarement deux, naît au début de l'été ; la mère choisit une clairière où l'aube atteint rapidement le sol humide.",
+    "behavior": "La harde alterne pâture et longues stations d'observation. Un adulte détourne la lumière pour signaler une voie de fuite avant tout contact.",
+    "niche": "Grand brouteur qui maintient des clairières ouvertes et transporte les graines entre plateaux isolés.",
+    "environmental_impact": "Les frottis de ramure laissent une poussière minérale sur les troncs ; mousses et insectes spécialisés colonisent ces marques."
+  },
+  "senses": [
+    "vision panoramique très sensible au mouvement et à la polarisation de la lumière",
+    "audition fine capable d'isoler un pas dans le ruissellement",
+    "odorat précis mais perturbé par les poussières calcaires sèches"
+  ],
+  "communication": [
+    "éclats brefs orientés par la ramure entre adultes visibles",
+    "frappes de sabot transmettant l'alerte au groupe proche",
+    "brames graves lors de la reproduction et des séparations"
+  ],
+  "signs": [
+    "frottis nacrés sur un tronc à hauteur d'épaule",
+    "empreintes profondes séparées par de longues foulées",
+    "poils pâles donnant un reflet froid sous deux angles différents",
+    "zones de pâture entourées de petits éclats de bois minéralisé"
+  ],
+  "demeanor": {
+    "objectives": ["maintenir une voie de fuite éclairée", "protéger les faons", "rejoindre les pâtures minérales"],
+    "fears": ["encerclement", "ramure entravée", "fumée opaque et bruit sans source visible"],
+    "morale": "La harde évite le combat ; un adulte isolé tient quelques secondes pour ouvrir une fuite, puis rejoint le groupe s'il le peut.",
+    "escalation": "Signal lumineux, regroupement des faons, feinte de charge, puis frappe réelle seulement si une sortie reste bloquée.",
+    "retreat": "Le groupe bondit vers une pente connue en utilisant les reflets pour masquer le premier changement de direction, pas pour devenir invisible."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 4,
+      "willpower": 7,
+      "perception": 9,
+      "presence": 8
+    },
+    "skills": {
+      "athletics": 50,
+      "acrobatics": 42,
+      "survival": 55,
+      "stealth": 45,
+      "unarmed": 46,
+      "leadership": 38,
+      "vigilance": 68,
+      "tracking": 45,
+      "illusion": 45,
+      "spirit": 38
+    },
+    "resources": {
+      "vitality": 110,
+      "stamina": 101,
+      "mana": 78,
+      "balance": 92,
+      "focus": 104
+    },
+    "movement": "Trot 6 m/s, galop 13 m/s, bond de 4 m en longueur ou 1,6 m en hauteur avec appui ferme.",
+    "protections": [
+      "La ramure dévie certains projectiles uniquement lorsqu'elle intercepte réellement leur trajectoire.",
+      "Le pelage clair disperse la chaleur solaire, mais n'arrête ni lame ni projectile."
+    ],
+    "attacks": [
+      {
+        "name": "Balayage de ramure",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 25,
+        "reach": "arc frontal de 2,2 m",
+        "stamina_cost": 16,
+        "preparation": "0,65 seconde, tête inclinée hors de l'axe",
+        "telegraph": "Les facettes cessent de scintiller lorsque toute la ramure se tourne de profil.",
+        "effect": "Contact contondant et perforant selon la branche touchée ; forte perte d'Équilibre sur un flanc exposé.",
+        "counterplay": "Reculer hors de l'arc, entrer près de l'épaule après le passage ou interposer un tronc capable de supporter le choc."
+      },
+      {
+        "name": "Ruade de fuite",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 22,
+        "reach": "1,3 m derrière la croupe",
+        "stamina_cost": 12,
+        "preparation": "0,35 seconde avant le premier bond de retraite",
+        "telegraph": "Le poids passe sur les antérieurs, la queue se plaque et les deux sabots arrière se rapprochent.",
+        "effect": "Impact contondant qui ouvre une distance de fuite ; il ne traverse pas une garde ou une couverture placée derrière l'animal.",
+        "counterplay": "Quitter l'axe arrière, ne pas saisir la croupe et laisser volontairement une voie de retraite."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Dédoublement spéculaire",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "illusion",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "une fausse silhouette dans un rayon de 18 m et en ligne de vue",
+        "stamina_cost": 8,
+        "preparation": "1,2 seconde ; consomme aussi 12 Mana à l'émission",
+        "telegraph": "La ramure devient laiteuse, puis une bande de lumière converge vers une surface claire.",
+        "effect": "Produit un reflet mobile sans odeur, masse ni traces ; il détourne l'attention mais ne bloque aucun passage et disparaît dans l'ombre profonde.",
+        "counterplay": "Observer les empreintes, rompre la ligne de lumière, créer de la brume ou suivre la silhouette qui déplace réellement la végétation."
+      },
+      {
+        "name": "Signal d'horizon",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "leadership",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "60 m entre individus disposant d'une ligne de vue",
+        "stamina_cost": 6,
+        "preparation": "0,8 seconde face à une source lumineuse",
+        "telegraph": "Trois éclats réguliers courent de la base vers les pointes de la ramure.",
+        "effect": "Transmet à la harde une direction de danger et une voie de regroupement ; aucune information ne traverse un obstacle opaque.",
+        "counterplay": "Couper les lignes de vue, déplacer la menace après le signal ou laisser ouverte la voie indiquée."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "éblouissement ordinaire",
+        "mechanism": "Les membranes oculaires filtrent les variations lumineuses que la ramure produit elle-même."
+      },
+      {
+        "subject": "chaleur solaire",
+        "mechanism": "Le pelage clair et la circulation de la ramure dissipent une partie de la chaleur reçue en plein jour."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "impact contondant transversal sur la ramure",
+        "mechanism": "La minéralisation résiste à la compression mais propage les fissures entre deux facettes."
+      },
+      {
+        "subject": "ombre profonde, suie et boue mate",
+        "mechanism": "Sans lumière exploitable ou avec les facettes couvertes, les capacités spéculaires perdent leur support physique."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "soleil bas ou lumière rasante",
+        "result": "portée et lisibilité accrues des signaux",
+        "chain": "La lumière frappe davantage de facettes et produit des éclats orientables entre les troncs."
+      },
+      {
+        "input": "brume, fumée ou pluie dense",
+        "result": "dédoublement révélé ou dispersé",
+        "chain": "Les gouttelettes rendent visible le trajet lumineux et empêchent une image nette de se former."
+      },
+      {
+        "input": "ramure couverte de boue ou de suie",
+        "result": "capacités optiques suspendues jusqu'au nettoyage",
+        "chain": "La couche mate absorbe et diffuse la lumière avant qu'elle ne parcoure les facettes minérales."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "La véritable harde laisse poids, odeur et empreintes ; ses doubles lumineux ne plient jamais les herbes."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La croissance des facettes dépendrait moins de l'âge que de l'accès saisonnier aux sources riches en silice."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Les éclats de ramure trouvés sur certains arbres forment une carte involontaire des anciennes routes de migration."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["sentinelle mobile", "protecteur de harde", "source d'illusion environnementale"],
+    "telegraphs": [
+      "Un reflet se déplace entre les troncs avant que les sabots ne changent de direction.",
+      "La ramure s'opacifie nettement avant toute projection de double."
+    ],
+    "noncombat_options": [
+      "S'immobiliser et laisser une voie de fuite assez large pour les faons.",
+      "Employer Dressage pour réduire la menace perçue sans chercher à toucher la ramure.",
+      "Observer à distance ou suivre les éclats naturellement perdus au lieu de poursuivre la harde."
+    ],
+    "complications": [
+      "Une fausse silhouette peut attirer le groupe vers une pente réelle mais mal observée.",
+      "Briser une ramure dominante désorganise la migration et modifie les pâtures de la région."
+    ]
+  },
+  "salvage": [
+    "Éclats de ramure naturellement tombés, utilisables comme prismes après vérification de provenance.",
+    "Poils de mue qui conservent un léger reflet mais aucune propriété illusoire durable."
+  ],
+  "plates": [
+    {
+      "image": "cerf-miroir-plate.png",
+      "alt": "Un grand cerf gris à la ramure translucide se tient dans une clairière d'altitude, tandis qu'un reflet incomplet apparaît entre deux bouleaux.",
+      "caption": "La lumière crée le doute, mais seules la masse, les traces et la végétation révèlent le corps véritable.",
+      "prompt_key": "cerf-miroir"
+    }
+  ]
+}

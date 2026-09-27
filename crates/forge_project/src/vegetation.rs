@@ -10,6 +10,7 @@ use thiserror::Error;
 
 pub const VEGETATION_DOCUMENT_SCHEMA: &str = "forge.vegetation";
 pub const VEGETATION_DOCUMENT_SCHEMA_VERSION: u32 = 1;
+pub const VEGETATION_DOCUMENT_SCHEMA_VERSION_V2: u32 = 2;
 pub const VEGETATION_EXTENT_M: f32 = 512.0;
 pub const VEGETATION_CHUNK_SIZE_M: f32 = 64.0;
 pub const MIN_VEGETATION_CELLS_PER_CHUNK_AXIS: u16 = 1;
@@ -42,6 +43,8 @@ pub struct VegetationDocument {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub exclusions: Vec<VegetationExclusion>,
     pub presentation: VegetationPresentationProfile,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imported_source: Option<crate::imported_vegetation::ImportedVegetationSource>,
 }
 
 impl VegetationDocument {
@@ -73,6 +76,7 @@ impl VegetationDocument {
             layers,
             exclusions,
             presentation,
+            imported_source: None,
         }
     }
 
@@ -80,7 +84,11 @@ impl VegetationDocument {
         if self.schema != VEGETATION_DOCUMENT_SCHEMA {
             return Err(VegetationDocumentError::InvalidSchema(self.schema.clone()));
         }
-        if self.schema_version != VEGETATION_DOCUMENT_SCHEMA_VERSION {
+        if !((self.schema_version == VEGETATION_DOCUMENT_SCHEMA_VERSION
+            && self.imported_source.is_none())
+            || (self.schema_version == VEGETATION_DOCUMENT_SCHEMA_VERSION_V2
+                && self.imported_source.is_some()))
+        {
             return Err(VegetationDocumentError::UnsupportedVersion(
                 self.schema_version,
             ));
@@ -96,7 +104,13 @@ impl VegetationDocument {
             return Err(VegetationDocumentError::NameTooLong(self.name.len()));
         }
 
-        self.extent_m.validate()?;
+        if let Some(source) = &self.imported_source {
+            source
+                .validate(self.extent_m, &self.layers)
+                .map_err(VegetationDocumentError::ImportedSource)?;
+        } else {
+            self.extent_m.validate()?;
+        }
         validate_cells_per_chunk_axis(self.cells_per_chunk_axis)?;
         if self.layers.is_empty() {
             return Err(VegetationDocumentError::NoLayers);
@@ -129,7 +143,9 @@ impl VegetationDocument {
             }
         }
         self.presentation.validate()?;
-        self.validate_work_budget()?;
+        if self.imported_source.is_none() {
+            self.validate_work_budget()?;
+        }
         for layer in &self.layers {
             if let Some(collision) = layer.collision
                 && collision.activation_distance_m > self.presentation.cull_distance_m
@@ -307,6 +323,14 @@ impl VegetationMaterialFilter {
     }
 }
 
+/// Row-major density weights over the document extent, independent of renderer and map identity.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationDensityMask {
+    pub vertices_per_axis: u16,
+    pub samples_u8: Vec<u8>,
+}
+
 /// Bounded placement rules for one logical vegetation layer.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -316,6 +340,11 @@ pub struct VegetationLayer {
     pub kind: VegetationKind,
     /// Explicit probability that one deterministic attempt becomes a candidate.
     pub acceptance_probability: f32,
+    /// Optional world-space variation; absent means the original uniform scatter.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub density_pattern: Option<VegetationDensityPattern>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub density_mask: Option<VegetationDensityMask>,
     pub attempts_per_cell: u8,
     pub minimum_spacing_m: f32,
     pub minimum_scale: f32,
@@ -354,6 +383,8 @@ impl VegetationLayer {
             display_name: display_name.into(),
             kind,
             acceptance_probability,
+            density_pattern: None,
+            density_mask: None,
             attempts_per_cell,
             minimum_spacing_m,
             minimum_scale,
@@ -386,6 +417,28 @@ impl VegetationLayer {
             return Err(VegetationDocumentError::InvalidLayerValue {
                 id,
                 field: "acceptance_probability",
+            });
+        }
+        if let Some(pattern) = self.density_pattern
+            && (!pattern.patch_size_m.is_finite()
+                || !(4.0..=512.0).contains(&pattern.patch_size_m)
+                || !pattern.minimum_multiplier.is_finite()
+                || !pattern.maximum_multiplier.is_finite()
+                || !(0.0..=2.0).contains(&pattern.minimum_multiplier)
+                || !(pattern.minimum_multiplier..=2.0).contains(&pattern.maximum_multiplier))
+        {
+            return Err(VegetationDocumentError::InvalidLayerValue {
+                id,
+                field: "density_pattern",
+            });
+        }
+        if let Some(mask) = &self.density_mask
+            && (!(2..=257).contains(&mask.vertices_per_axis)
+                || mask.samples_u8.len() != usize::from(mask.vertices_per_axis).pow(2))
+        {
+            return Err(VegetationDocumentError::InvalidLayerValue {
+                id,
+                field: "density_mask",
             });
         }
         if !(1..=MAX_VEGETATION_ATTEMPTS_PER_CELL).contains(&self.attempts_per_cell) {
@@ -446,6 +499,15 @@ impl VegetationLayer {
         }
         Ok(())
     }
+}
+
+/// Bounded spatial variation of candidate acceptance, evaluated in world coordinates.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct VegetationDensityPattern {
+    pub patch_size_m: f32,
+    pub minimum_multiplier: f32,
+    pub maximum_multiplier: f32,
 }
 
 /// Logical collision primitive interpreted later by a physics adapter.
@@ -514,6 +576,12 @@ impl fmt::Display for VegetationExclusionId {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "shape", rename_all = "snake_case", deny_unknown_fields)]
 pub enum VegetationExclusion {
+    /// A bounded sampled path. The footprint is clipped naturally by the generation extent.
+    PolylineCorridor {
+        id: VegetationExclusionId,
+        points_xz_m: Vec<[f32; 2]>,
+        half_width_m: f32,
+    },
     Circle {
         id: VegetationExclusionId,
         center_x_m: f32,
@@ -534,7 +602,9 @@ impl VegetationExclusion {
     #[must_use]
     pub fn id(&self) -> &VegetationExclusionId {
         match self {
-            Self::Circle { id, .. } | Self::CorridorSegment { id, .. } => id,
+            Self::Circle { id, .. }
+            | Self::CorridorSegment { id, .. }
+            | Self::PolylineCorridor { id, .. } => id,
         }
     }
 
@@ -547,6 +617,28 @@ impl VegetationExclusion {
         let half_x = extent.size_x_m * 0.5;
         let half_z = extent.size_z_m * 0.5;
         match self {
+            Self::PolylineCorridor {
+                points_xz_m,
+                half_width_m,
+                ..
+            } => {
+                if !(2..=2048).contains(&points_xz_m.len())
+                    || !positive_finite(*half_width_m)
+                    || *half_width_m > half_x.min(half_z)
+                    || points_xz_m
+                        .iter()
+                        .any(|p| !inside_axis(p[0], 0.0, half_x) || !inside_axis(p[1], 0.0, half_z))
+                    || points_xz_m.windows(2).any(|pair| {
+                        let dx = f64::from(pair[1][0]) - f64::from(pair[0][0]);
+                        let dz = f64::from(pair[1][1]) - f64::from(pair[0][1]);
+                        dx * dx + dz * dz <= 0.0
+                    })
+                {
+                    return Err(VegetationDocumentError::InvalidExclusionGeometry(
+                        self.id().to_string(),
+                    ));
+                }
+            }
             Self::Circle {
                 center_x_m,
                 center_z_m,
@@ -687,6 +779,8 @@ fn valid_logical_id(value: &str) -> bool {
 
 #[derive(Debug, Error)]
 pub enum VegetationDocumentError {
+    #[error("invalid imported vegetation: {0}")]
+    ImportedSource(String),
     #[error("invalid vegetation schema `{0}`")]
     InvalidSchema(String),
     #[error("unsupported vegetation schema version {0}")]
@@ -763,6 +857,63 @@ pub enum VegetationDocumentError {
 mod tests {
     use super::*;
 
+    #[test]
+    fn density_pattern_is_optional_round_trippable_and_bounded() {
+        let mut document = valid_document(1337);
+        let old_json = document.to_pretty_json().unwrap();
+        assert!(!old_json.contains("density_pattern"));
+        assert_eq!(VegetationDocument::from_json(&old_json).unwrap(), document);
+        let pattern = VegetationDensityPattern {
+            patch_size_m: 32.0,
+            minimum_multiplier: 0.15,
+            maximum_multiplier: 1.6,
+        };
+        document.layers[3].density_pattern = Some(pattern);
+        assert_eq!(
+            VegetationDocument::from_json(&document.to_pretty_json().unwrap()).unwrap(),
+            document
+        );
+        for invalid in [
+            VegetationDensityPattern {
+                patch_size_m: 0.0,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                patch_size_m: f32::NAN,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                patch_size_m: 513.0,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                minimum_multiplier: -0.1,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                minimum_multiplier: 1.8,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                maximum_multiplier: f32::INFINITY,
+                ..pattern
+            },
+            VegetationDensityPattern {
+                maximum_multiplier: 2.1,
+                ..pattern
+            },
+        ] {
+            document.layers[3].density_pattern = Some(invalid);
+            assert!(matches!(
+                document.validate(),
+                Err(VegetationDocumentError::InvalidLayerValue {
+                    field: "density_pattern",
+                    ..
+                })
+            ));
+        }
+    }
+
     fn presentation() -> VegetationPresentationProfile {
         VegetationPresentationProfile {
             near_lod_distance_m: 24.0,
@@ -776,6 +927,30 @@ mod tests {
             interaction_strength: 0.7,
             grass_blades_per_patch: 24,
         }
+    }
+
+    #[test]
+    fn density_mask_is_optional_bounded_and_round_trips() {
+        let mut layer = valid_layer("trees", VegetationKind::Tree);
+        assert!(
+            !serde_json::to_string(&layer)
+                .unwrap()
+                .contains("density_mask")
+        );
+        layer.density_mask = Some(VegetationDensityMask {
+            vertices_per_axis: 2,
+            samples_u8: vec![0, 128, 255, 0],
+        });
+        layer.validate().unwrap();
+        let json = serde_json::to_string(&layer).unwrap();
+        assert_eq!(
+            serde_json::from_str::<VegetationLayer>(&json).unwrap(),
+            layer
+        );
+        layer.density_mask.as_mut().unwrap().samples_u8.pop();
+        assert!(layer.validate().is_err());
+        layer.density_mask.as_mut().unwrap().vertices_per_axis = 258;
+        assert!(layer.validate().is_err());
     }
 
     fn valid_layer(id: &str, kind: VegetationKind) -> VegetationLayer {
@@ -1062,5 +1237,38 @@ mod tests {
                 ..
             })
         ));
+    }
+
+    #[test]
+    fn polyline_exclusions_are_bounded_and_allow_clipped_edge_footprints() {
+        let make = |points_xz_m, half_width_m| VegetationExclusion::PolylineCorridor {
+            id: VegetationExclusionId::new("river"),
+            points_xz_m,
+            half_width_m,
+        };
+        let valid_points = vec![[250.0, 250.0], [245.0, 230.0]];
+        let mut document = valid_document(42);
+        document.exclusions.push(make(valid_points.clone(), 16.0));
+        document.validate().unwrap();
+        assert_eq!(
+            document,
+            VegetationDocument::from_json(&document.to_pretty_json().unwrap()).unwrap()
+        );
+        for invalid in [
+            make(vec![], 16.0),
+            make(vec![[0.0, 0.0]; 2049], 16.0),
+            make(vec![[0.0, 0.0], [-0.0, 0.0]], 16.0),
+            make(vec![[f32::NAN, 0.0], [1.0, 1.0]], 16.0),
+            make(vec![[257.0, 0.0], [1.0, 1.0]], 16.0),
+            make(valid_points.clone(), 0.0),
+            make(valid_points.clone(), f32::INFINITY),
+            make(valid_points, 257.0),
+        ] {
+            *document.exclusions.last_mut().unwrap() = invalid;
+            assert!(matches!(
+                document.validate(),
+                Err(VegetationDocumentError::InvalidExclusionGeometry(_))
+            ));
+        }
     }
 }

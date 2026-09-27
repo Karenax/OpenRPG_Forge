@@ -1,0 +1,265 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.sanglier-de-tourbe",
+  "name": "Sanglier de tourbe",
+  "subtitle": "Le fouisseur cuirassé des terres noyées",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée à partir d'une écologie de grand suidé de tourbière, sans comportement spécial lié à un module.",
+  "major": false,
+  "classification": {
+    "nature": "animal",
+    "family": "suidé palustre",
+    "rarity": "commun dans les tourbières intactes",
+    "activity": "aube, crépuscule et nuits douces",
+    "social": "adultes mâles solitaires ; femelles et jeunes en compagnies",
+    "threat": "forte",
+    "threat_reason": "Sa masse, son ancrage dans la vase et ses charges courtes rendent toute approche frontale dangereuse, surtout sur une berge étroite."
+  },
+  "physique": {
+    "dimensions": "1,7 à 2,2 m de long ; 0,9 à 1,2 m au garrot",
+    "mass_kg": [150, 280],
+    "locomotion": ["marche dans la vase", "charge courte", "nage de chenal"],
+    "center_of_gravity": "Très bas entre les épaules ; la masse avant assure l'ancrage mais rend le demi-tour lent sur sol ferme.",
+    "silhouette": "Garrot bossu, cou presque absent, soies chargées de tourbe et défenses courtes dirigées vers l'extérieur.",
+    "anatomy_zones": [
+      {
+        "zone": "hure et épaules",
+        "description": "Plaque de tissu fibreux, graisse et boue séchée protégeant le front et le haut du thorax.",
+        "protection": 18
+      },
+      {
+        "zone": "flancs",
+        "description": "Peau épaisse sous des soies rudes, moins protégée derrière la dernière côte.",
+        "protection": 10
+      },
+      {
+        "zone": "ventre",
+        "description": "Zone souple tenue près du sol et rarement accessible depuis l'avant.",
+        "protection": 4
+      },
+      {
+        "zone": "pattes",
+        "description": "Membres courts aux sabots écartables, robustes dans la tourbe mais exposés sur pierre.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "tourbières à sphaignes et mares brunes",
+    "aulnaies inondables",
+    "berges boueuses proches de roselières"
+  ],
+  "ecology": {
+    "diet": "Rhizomes, tubercules, glands, larves, mollusques, œufs et charognes accessibles.",
+    "lifecycle": "Les marcassins rayés suivent leur mère durant dix mois ; les adultes vivent douze à seize ans si les hivers restent humides.",
+    "reproduction": "Trois à cinq petits naissent au printemps dans un nid de roseaux surélevé au-dessus de la nappe d'eau.",
+    "behavior": "Il fouille méthodiquement les bordures, mémorise les passages portants et charge seulement après grognements, piétinement et fausse avancée.",
+    "niche": "Grand omnivore qui retourne la tourbe, ouvre des mares temporaires et disperse graines et spores dans ses soies.",
+    "environmental_impact": "Ses bauges diversifient les microhabitats, mais une compagnie nombreuse peut éventrer une digue ou ruiner une réserve de racines."
+  },
+  "senses": [
+    "odorat capable de trouver des tubercules sous trente centimètres de tourbe",
+    "audition sensible aux vibrations de berge",
+    "vision frontale médiocre mais bonne détection des mouvements latéraux"
+  ],
+  "communication": [
+    "grognements graves transmis par le sol humide",
+    "claquement de défenses lors d'une menace rapprochée",
+    "marquages de boue et d'odeur sur les troncs bas"
+  ],
+  "signs": [
+    "sol retourné en sillons larges terminés par une empreinte fendue",
+    "soies noires collées à la résine des aulnes",
+    "bauge ovale dont un bord est poli par les épaules",
+    "racines sectionnées net puis mâchonnées"
+  ],
+  "demeanor": {
+    "objectives": ["garder l'accès aux bauges", "protéger les marcassins", "atteindre une zone de fouille riche"],
+    "fears": ["feu vif", "sol qui cède sous tout le groupe", "sons métalliques répétés au-dessus de lui"],
+    "morale": "Un solitaire fuit volontiers après une blessure grave ; une femelle défendant des petits combat jusqu'à leur mise à couvert.",
+    "escalation": "Souffle bruyant, présentation du flanc, piétinement, fausse charge puis charge réelle si la voie de retrait demeure occupée.",
+    "retreat": "Il gagne la vase profonde ou un chenal connu, où sa portance et sa mémoire du terrain lui rendent l'avantage."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 4,
+      "constitution": 8,
+      "intelligence": 3,
+      "willpower": 7,
+      "perception": 6,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 55,
+      "swimming": 42,
+      "survival": 58,
+      "stealth": 25,
+      "unarmed": 58,
+      "armor": 40,
+      "intimidation": 45,
+      "vigilance": 48,
+      "tracking": 34
+    },
+    "resources": {
+      "vitality": 124,
+      "stamina": 111,
+      "mana": 74,
+      "balance": 104,
+      "focus": 92
+    },
+    "movement": "Marche 4 m/s, charge 9 m/s sur 8 m, nage 3 m/s ; ignore la première couche de tourbe molle mais pas une fosse sans fond porteur.",
+    "protections": [
+      "La hure protège fortement le tranchant frontal, moins le contondant transmis au crâne.",
+      "Une croûte de tourbe sèche protège superficiellement le dos mais se détache sous l'eau ou après plusieurs impacts."
+    ],
+    "attacks": [
+      {
+        "name": "Charge de sape",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 32,
+        "reach": "couloir de 8 m, large de 1,5 m",
+        "stamina_cost": 22,
+        "preparation": "1 seconde de piétinement puis accélération",
+        "telegraph": "Le sanglier abaisse la hure, chasse l'air par les naseaux et gratte deux fois le même appui.",
+        "effect": "Contact contondant et perforant par les défenses ; pousse selon masse et Équilibre, puis creuse un sillon qui dégrade l'appui.",
+        "counterplay": "Sortir latéralement après le second piétinement, placer un obstacle solide ou l'attirer vers une berge qui ne porte pas sa masse."
+      },
+      {
+        "name": "Boutoir ascendant",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 26,
+        "reach": "1,4 m devant et légèrement sur le côté",
+        "stamina_cost": 14,
+        "preparation": "0,45 seconde depuis une posture basse",
+        "telegraph": "Une épaule recule tandis que la défense opposée disparaît sous le museau.",
+        "effect": "Soulève ou dévie une cible légère ; une jambe touchée perd de l'Équilibre sans annuler le contact contre une armure.",
+        "counterplay": "Garder la distance, protéger les jambes avec un obstacle bas ou pivoter vers l'épaule qui recule."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ancrage de bauge",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "athletics",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "soi-même sur au moins 30 cm de vase",
+        "stamina_cost": 12,
+        "preparation": "1,5 seconde à enfoncer les quatre sabots",
+        "telegraph": "Le ventre descend, les sabots s'écartent et une couronne d'eau sombre remonte autour des pattes.",
+        "effect": "Augmente fortement la résistance aux poussées frontales, mais réduit de moitié la vitesse de rotation et interdit la charge.",
+        "counterplay": "Changer d'angle, geler ou assécher l'appui, viser les flancs ou attendre qu'il arrache ses pattes de la vase."
+      },
+      {
+        "name": "Écran de tourbe",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 8,
+        "reach": "cône de 4 m devant la hure",
+        "stamina_cost": 10,
+        "preparation": "0,6 seconde, museau plongé dans un sol meuble",
+        "telegraph": "Le sanglier racle la tourbe en reculant la tête sous la surface.",
+        "effect": "Projette eau, fibres et boue ; réduit brièvement la visibilité et rend le sol plus glissant sans traverser une couverture réelle.",
+        "counterplay": "Reculer hors du cône, se placer sur roche ou employer un bouclier pour intercepter les débris."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "froid de surface",
+        "mechanism": "La graisse et la croûte de boue ralentissent le refroidissement tant que l'animal peut maintenir son corps hors de l'eau."
+      },
+      {
+        "subject": "poussée frontale",
+        "mechanism": "La masse portée sur les épaules et les sabots écartés distribuent l'impulsion dans un sol meuble."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "flanc arrière",
+        "mechanism": "La hure ne couvre pas l'arrière des côtes et le demi-tour reste lent après une charge manquée."
+      },
+      {
+        "subject": "glace mince et croûte sèche",
+        "mechanism": "Sa masse perce les surfaces qui porteraient une créature légère et peut immobiliser une patte."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "tourbe profonde",
+        "result": "ancrage accru mais rotation et retrait ralentis",
+        "chain": "Les sabots s'écartent et portent la masse jusqu'à ce qu'un effort latéral brise la poche de vase."
+      },
+      {
+        "input": "feu sur tourbe sèche",
+        "result": "panique, fumée dense et fuite vers l'eau",
+        "chain": "Les soies retiennent la chaleur tandis que la combustion souterraine coupe les voies habituelles."
+      },
+      {
+        "input": "berge fragilisée",
+        "result": "effondrement sous une charge ou une poussée",
+        "chain": "La masse concentrée sur l'avant rompt la rive et entraîne animal, cible et débris dans le chenal."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Deux sillons parallèles devant les empreintes annoncent une hure large et une charge probablement frontale."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 18,
+      "fact": "Une femelle qui présente le flanc cherche souvent à guider l'intrus loin de petits déjà cachés."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Les bauges successives dessinent parfois les seules bandes de tourbe capables de porter une charrette légère."
+    }
+  ],
+  "encounter_use": {
+    "roles": ["briseur de ligne", "gardien de passage", "danger de terrain"],
+    "telegraphs": [
+      "Le souffle devient audible avant que la hure ne s'abaisse.",
+      "La tourbe se bombe autour des sabots quand l'animal s'ancre ou prépare une projection."
+    ],
+    "noncombat_options": [
+      "Contourner une compagnie en restant sous le vent et loin des marcassins.",
+      "Ouvrir une voie vers une zone de fouille plus riche plutôt que défendre le passage.",
+      "Employer Dressage pour calmer un animal coincé qui dispose encore d'une issue visible."
+    ],
+    "complications": [
+      "Une charge peut rompre la berge et modifier durablement le chemin.",
+      "La fumée utilisée pour l'effrayer peut allumer une combustion lente de la tourbe."
+    ]
+  },
+  "salvage": [
+    "Soies tombées dans les bauges, utiles aux brosses résistantes.",
+    "Défenses d'une carcasse ancienne, denses mais souvent fendues par les minéraux de la tourbe.",
+    "Tourbe enrichie des bauges, recherchée par certains cultivateurs."
+  ],
+  "plates": [
+    {
+      "image": "sanglier-de-tourbe-plate.png",
+      "alt": "Un sanglier massif couvert de tourbe s'ancre dans une mare brune, tandis qu'une berge fissurée révèle le danger de sa prochaine charge.",
+      "caption": "Sa force vient de sa masse et du terrain qu'il connaît, non d'une protection abstraite.",
+      "prompt_key": "sanglier-de-tourbe"
+    }
+  ]
+}

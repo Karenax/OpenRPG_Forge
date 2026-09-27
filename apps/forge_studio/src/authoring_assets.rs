@@ -1,0 +1,283 @@
+//! Metadata browser for the deployed governed kit. Does not load a second renderer.
+use forge_assets::{
+    GovernedAssetKitBuildReport,
+    asset_browser::{AssetBrowser, category_label},
+};
+use leptos::prelude::*;
+use wasm_bindgen::JsCast;
+
+pub(crate) mod catalog_drop;
+mod placement_controls;
+pub(crate) mod imported_buildings;
+pub(crate) mod imported_scene;
+pub(crate) mod imported_environment;
+pub(crate) mod placements;
+pub(crate) mod preview;
+pub(crate) mod verify;
+
+thread_local! {
+    static PREVIEW_STATUS: std::cell::RefCell<Option<RwSignal<String>>> = const { std::cell::RefCell::new(None) };
+}
+
+fn preview_status(message: &str) {
+    PREVIEW_STATUS.with(|slot| {
+        if let Some(output) = *slot.borrow() {
+            output.set(message.into());
+        }
+    });
+}
+
+pub(crate) fn cancel_preview() {
+    catalog_drop::cancel();
+    crate::authoring_brush_pointer::cancel();
+    preview::cancel();
+    crate::authoring_camera::leave_preview();
+    preview_status("Aucun aperçu actif. La carte n’a pas été modifiée.");
+}
+
+#[component]
+#[allow(
+    clippy::too_many_lines,
+    reason = "Shelf and inspector share one catalog, verification and placement session"
+)]
+pub(super) fn AssetBrowserControls(
+    state: RwSignal<Option<forge_project::authoring::AuthoringState>>,
+    host_busy: RwSignal<bool>,
+    inspected: RwSignal<Option<forge_core::EntityId>>,
+    on_command: Callback<Result<forge_project::authoring::AuthoringRequest, String>>,
+) -> impl IntoView {
+    let browser = RwSignal::new(None::<AssetBrowser>);
+    let query = RwSignal::new(String::new());
+    let category = RwSignal::new(String::new());
+    let atelier = use_context::<crate::atelier_ui::Link>();
+    let selected = atelier.map_or_else(
+        || RwSignal::new(String::new()),
+        |link| link.catalog_selected,
+    );
+    // Keep every form mounted: switching workspaces must not discard a draft.
+    let workspace = RwSignal::new("manipulate");
+    let short_surface = || {
+        web_sys::window()
+            .and_then(|w| w.inner_height().ok())
+            .and_then(|v| v.as_f64())
+            .is_some_and(crate::panel_layout::compact_library)
+    };
+    let compact = RwSignal::new(short_surface());
+    let library_open = RwSignal::new(!compact.get_untracked());
+    let resize = window_event_listener(leptos::ev::resize, move |_| {
+        let next = short_surface();
+        if compact.get_untracked() != next {
+            compact.set(next);
+            if next {
+                library_open.set(false);
+            }
+        }
+    });
+    on_cleanup(move || resize.remove());
+    Effect::new(move |_| {
+        workspace.set(if inspected.get().is_some() {
+            "transform"
+        } else {
+            "manipulate"
+        });
+    });
+    Effect::new(move |_| {
+        if let Some(link) = atelier {
+            link.catalog.set(browser.with(|browser| {
+                browser
+                    .as_ref()
+                    .map(|catalog| {
+                        catalog
+                            .report()
+                            .assets
+                            .iter()
+                            .take(4096)
+                            .map(|asset| crate::atelier_protocol::CatalogItem {
+                                id: asset.id.clone(),
+                                category: category_label(&asset.kind).to_owned(),
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            }));
+        }
+    });
+    let busy = RwSignal::new(false);
+    let verification = RwSignal::new(String::new());
+    let preview_output = RwSignal::new(String::new());
+    Effect::new(move |_| {
+        let _ = selected.get();
+        verification.set(String::new());
+        preview_output.set(String::new());
+    });
+    PREVIEW_STATUS.with(|slot| slot.replace(Some(preview_output)));
+    on_cleanup(|| {
+        catalog_drop::cancel();
+        preview::cancel();
+        PREVIEW_STATUS.with(|slot| slot.replace(None));
+    });
+    let status = RwSignal::new(
+        "Catalogue non chargé. Les placements exigent une zone convertie et un GLB vérifié."
+            .to_owned(),
+    );
+    let matches = Memo::new(move |_| {
+        browser.get().map(|browser| {
+            let category = category.get();
+            browser
+                .search(
+                    &query.get(),
+                    (!category.is_empty()).then_some(category.as_str()),
+                )
+                .map(|assets| assets.into_iter().cloned().collect::<Vec<_>>())
+        })
+    });
+    let load = move |()| {
+        if busy.get_untracked() {
+            return;
+        }
+        busy.set(true);
+        cancel_preview();
+        browser.set(None);
+        selected.set(String::new());
+        verification.set(String::new());
+        status.set("Lecture du manifeste déployé…".into());
+        wasm_bindgen_futures::spawn_local(async move {
+            let result = load_browser().await;
+            match result {
+                Ok(value) => {
+                    status.set(format!("{} références gouvernées. Charger le catalogue ne vérifie pas les fichiers ; leur contrôle est individuel.", value.report().assets.len()));
+                    browser.set(Some(value));
+                }
+                Err(reason) => status.set(format!("Catalogue indisponible ou refusé : {reason}. Le kit doit être déployé dans forge-kit ; aucun téléchargement externe automatique.")),
+            }
+            busy.set(false);
+        });
+    };
+    Effect::new(move |_| load(()));
+    view! {
+        <div class="gold-assets">
+        <details class="gold-library" prop:open=move ||library_open.get()
+            on:toggle=move |event| {
+                if let Some(element)=event.current_target().and_then(|t|t.dyn_into::<web_sys::Element>().ok()) {
+                    let open=element.has_attribute("open");
+                    if library_open.get_untracked()!=open { library_open.set(open); }
+                }
+            }><summary>"Bibliothèque d’objets"<span class="atelier-library-count">{move ||matches.get().and_then(Result::ok).map(|items|format!("{} objets · glisser vers la scène",items.len())).unwrap_or_default()}</span></summary>
+            <div class="gold-library-filters">
+            <label>"Rechercher"<input placeholder="Nom ou catégorie…" maxlength="256" prop:value=move || query.get()
+                on:input=move |ev| query.set(event_target_value(&ev))/></label>
+            <label>"Catégorie"<select prop:value=move || category.get() on:change=move |ev| category.set(event_target_value(&ev))>
+                <option value="">"Toutes"</option><option value="tree">"Arbres / végétation"</option>
+                <option value="rock">"Rochers"</option><option value="architecture">"Architecture"</option>
+            </select></label>
+            <button title="Relire le catalogue local" disabled=move || busy.get() on:click=move |_| load(())>"Actualiser"</button>
+            </div>
+            {move || matches.get().map(|result| match result {
+                Ok(assets) => view! { <div class="atelier-library-results">
+                    <div class="gold-asset-cards">{assets.into_iter().map(|asset| {
+                        let id = asset.id.clone();
+                        let drag_id = id.clone();
+                        let selected_id = id.clone();
+                        view! { <button draggable="false" title=format!("{} · {}", asset.id, category_label(&asset.kind)) aria-pressed=move || (selected.get() == selected_id).to_string()
+                            on:dragstart=move |event| event.prevent_default()
+                            on:mousedown=move |event| {
+                                if host_busy.get_untracked() { event.prevent_default(); return; }
+                                catalog_drop::begin(&event, state, browser, selected, busy, drag_id.clone(), on_command);
+                            }
+                            on:click=move |event| { if !catalog_drop::consume_click(&event) { cancel_preview(); selected.set(id.clone()); verification.set(String::new()); } }>{crate::atelier_ui::asset_glyph(&asset.kind)}<span>{asset.id.clone()}</span><small>{category_label(&asset.kind).to_owned()}</small></button> }
+                    }).collect_view()}</div>
+                </div> }.into_any(),
+                Err(reason) => view! { <p>{reason}</p> }.into_any(),
+            })}
+            <Show when=move || browser.get().is_none()><output aria-live="polite">{move ||status.get()}</output></Show>
+        </details>
+            <nav class="atelier-object-workspaces" aria-label="Travail sur les objets">
+                {[("transform","Transformer"),("manipulate","Placer / manipuler"),("catalog","Fiche")].into_iter().map(|(key,label)|view!{
+                    <button aria-pressed=move ||(workspace.get()==key).to_string() on:click=move |_|workspace.set(key)>{label}</button>
+                }).collect_view()}
+            </nav>
+            <section hidden=move ||workspace.get()!="catalog" aria-label="Informations du catalogue">
+            <imported_buildings::LibraryControls/>
+            <details><summary>"Fiche de l’objet du catalogue"</summary>
+            {move || browser.get().and_then(|catalog| {
+                let report = catalog.report();
+                report.assets.iter().find(|asset| asset.id == selected.get()).map(|asset| view! {
+                    <section aria-label="Fiche asset" style="overflow-wrap:anywhere">
+                        <h3>{asset.id.clone()}</h3>
+                        <p>{format!("{} · kit {} r{}", category_label(&asset.kind), report.asset_kit_id, report.asset_kit_revision)}</p>
+                        <p>{format!("Provenance déclarée : {} · licence : {}", report.provenance.source_kind, report.provenance.license)}</p>
+                        <p>{format!("GLB relatif : {} · SHA-256 attendu : {}", asset.glb.path, asset.glb.sha256)}</p>
+                        <p>"Export technique déclaré valide. Le contrôle de disponibilité est présenté ci-dessous ; dimensions, pivots et collisions ne sont pas qualifiés par ce panneau."</p>
+                        <p>{if report.authored_source.is_some() { "Source retouchée : revue humaine toujours en attente." } else { "Source procédurale originale déclarée." }}</p>
+                        <button disabled=move || busy.get() on:click=move |_| verify::start(browser, selected, busy, verification)>"Vérifier le fichier GLB sélectionné"</button>
+                        <output aria-live="polite">{move || verification.get()}</output>
+                        <button disabled=move || busy.get() on:click=move |_| show_preview(browser, selected, busy)>"Aperçu 3D temporaire"</button>
+                        <button on:click=move |_| cancel_preview()>"Retirer l’aperçu / revenir à la carte"</button>
+                        <output aria-live="polite">{move || preview_output.get()}</output>
+                    </section>
+                })
+            })}
+        </details>
+            <details><summary>"État du catalogue"</summary><output aria-live="polite">{move ||status.get()}</output><p>"Les pictogrammes indiquent une catégorie, pas la forme exacte de l’objet. Ouvrez l’aperçu 3D depuis sa fiche pour l’examiner."</p></details>
+            </section>
+            <section hidden=move ||workspace.get()!="transform" aria-label="Transformation de l’objet">
+            <crate::atelier_ui::MainInspector/>
+            </section>
+            <section hidden=move ||workspace.get()!="manipulate" aria-label="Placement et manipulation">
+            <placement_controls::PlacementControls state=state catalog=browser selected=selected inspected=inspected busy=busy host_busy=host_busy on_command=on_command/>
+            </section>
+        </div>
+    }
+}
+
+fn show_preview(
+    browser: RwSignal<Option<AssetBrowser>>,
+    selected: RwSignal<String>,
+    busy: RwSignal<bool>,
+) {
+    if busy.get_untracked() {
+        return;
+    }
+    if !crate::authoring_viewport::can_preview_asset() {
+        preview_status("Ouvrir une zone en mode édition avant de demander cet aperçu.");
+        return;
+    }
+    let id = selected.get_untracked();
+    let Some(catalog) = browser.get_untracked() else {
+        return;
+    };
+    let reference = match catalog.reference(&id) {
+        Ok(reference) => reference,
+        Err(reason) => {
+            preview_status(&reason.to_string());
+            return;
+        }
+    };
+    let ticket = preview::ticket();
+    busy.set(true);
+    preview_status("Contrôle du hash et du GLB avant chargement temporaire…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = verify::check_reference(&catalog, reference.0, reference.1).await;
+        if preview::is_current(ticket)
+            && selected.get_untracked() == id
+            && crate::authoring_viewport::can_preview_asset()
+        {
+            match result {
+                Ok((_, bytes)) => {
+                    if preview::submit(ticket, id, bytes) {
+                        preview_status("GLB vérifié ; chargement dans le moteur existant…");
+                    }
+                }
+                Err(reason) => preview_status(&format!("Aperçu refusé : {reason}")),
+            }
+        }
+        busy.set(false);
+    });
+}
+
+async fn load_browser() -> Result<AssetBrowser, String> {
+    let bytes = super::governed_kit::transport::fetch("build.json", 1024 * 1024).await?;
+    let report: GovernedAssetKitBuildReport =
+        serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
+    AssetBrowser::new(report).map_err(|e| e.to_string())
+}

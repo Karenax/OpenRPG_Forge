@@ -1,0 +1,313 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.charognard-de-braise",
+  "name": "Charognard de braise",
+  "subtitle": "Le semeur de foyers qui nettoie les lendemains d'incendie",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Créature originale proposée pour le volume I. Son rôle de charognard et de propagateur opportuniste du feu est une proposition écologique et mécanique non implémentée.",
+  "major": false,
+  "classification": {
+    "nature": "Grand oiseau charognard à jabot minéral et plumage résistant à la chaleur rayonnante",
+    "family": "Nécrophages pyrophiles",
+    "rarity": "Peu commun, plus visible durant les semaines qui suivent un feu de lande ou de forêt",
+    "activity": "Diurne par temps froid, surtout matinale et vespérale pendant la saison sèche",
+    "social": "Couple territorial autour du nid ; rassemblements temporaires de quatre à douze adultes sur une grande carcasse",
+    "threat": "moderee",
+    "threat_reason": "Il préfère les carcasses aux proies vivantes, mais défend son jabot chargé, attaque en piqué et peut transporter des braises vers une litière sèche, transformant une altercation banale en incendie progressif."
+  },
+  "physique": {
+    "dimensions": "1,05 à 1,35 m du bec à la queue ; envergure de 2,4 à 3,1 m",
+    "mass_kg": [8.5, 15.2],
+    "locomotion": [
+      "vol plané de longue durée sur les ascendances chaudes",
+      "battements courts et puissants pour le décollage",
+      "marche sautillante et stable sur les sols couverts de débris"
+    ],
+    "center_of_gravity": "Sous le sternum et légèrement avancé lorsque le jabot contient des pierres chaudes ; cette charge améliore le piqué mais allonge la reprise d'altitude.",
+    "silhouette": "Corps sombre à longues ailes anguleuses, cou protégé par une collerette rousse et bec couleur d'os ; des lignes rouge sombre apparaissent sous la gorge quand le jabot contient une braise.",
+    "anatomy_zones": [
+      {
+        "zone": "Crâne et bec",
+        "description": "Bec crochu capable d'ouvrir une peau durcie ; plaques cornées résistantes mais articulation de la mâchoire relativement exposée.",
+        "protection": 8
+      },
+      {
+        "zone": "Collerette et jabot minéral",
+        "description": "Plumes courtes enduites d'huile et poche doublée de petits gastrolithes réfractaires ; une lueur rouge peut traverser la peau lorsque la poche est chargée.",
+        "protection": 12
+      },
+      {
+        "zone": "Sternum et dos",
+        "description": "Bréchet puissant couvert de plumes serrées qui amortissent une chute et isolent brièvement de la chaleur rayonnante.",
+        "protection": 9
+      },
+      {
+        "zone": "Ailes",
+        "description": "Ossature légère et rémiges larges ; les bords sont résistants aux étincelles mais vulnérables à l'eau, au givre et aux déchirures.",
+        "protection": 4
+      },
+      {
+        "zone": "Pattes et serres",
+        "description": "Tarses écailleux isolés du sol chaud et serres adaptées au transport plus qu'à la mise à mort d'une grande proie.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "lisières brûlées, landes à ajoncs et pinèdes soumises à de petits feux périodiques",
+    "falaises chaudes dominant des vallées forestières",
+    "terrils, anciennes forges et carrières où persistent des pierres chauffées",
+    "plaines sèches parcourues par de grands troupeaux"
+  ],
+  "ecology": {
+    "diet": "Charogne récente ou cuite par le feu, gros insectes fuyant les flammes, œufs abandonnés et fruits riches en huile. Les gastrolithes chauffés dans le jabot réduisent les agents pathogènes et ramollissent les tissus coriaces.",
+    "lifecycle": "Le jeune quitte le nid après quatre mois mais suit ses parents pendant une année entière pour apprendre les ascendances et les sites de feu sûrs. Le plumage adulte apparaît vers trois ans ; un individu peut dépasser trente ans.",
+    "reproduction": "Le couple bâtit une plateforme de charbon froid, d'argile et d'os dans une corniche ventilée. Deux œufs au plus sont incubés par la chaleur corporelle, jamais par une braise libre ; un adulte qui surchauffe le nid retire immédiatement les pierres chaudes.",
+    "behavior": "Il survole les fumées à distance, attend que les flammes principales baissent puis descend par étapes. Il transporte parfois une brindille rougeoyante jusqu'à une plaque de litière sèche pour faire sortir coléoptères et petits reptiles, mais abandonne le foyer si le vent le pousse vers son nid.",
+    "niche": "Charognard précoce des paysages incendiés, disperseur de graines résistantes au feu et prédateur d'insectes xylophages. En ouvrant rapidement les carcasses, il nourrit des décomposeurs plus petits.",
+    "environmental_impact": "Ses foyers bas créent une mosaïque d'herbes rajeunies lorsqu'ils restent espacés. Près d'un grenier, d'une résinière ou durant une sécheresse anormale, le même comportement propage un incendie destructeur. La présence de nombreux oiseaux signale donc soit une bonne dynamique de feu, soit un combustible dangereusement abondant."
+  },
+  "senses": [
+    "vision à longue portée sensible aux mouvements, aux colonnes de fumée et aux contrastes thermiques",
+    "odorat capable de distinguer une carcasse fraîche d'un foyer riche en résine",
+    "perception des ascendances et des rafales par les plumes faciales"
+  ],
+  "communication": [
+    "croassement grave répété pour revendiquer une carcasse",
+    "claquement de bec et déploiement asymétrique d'une aile pour avertir le partenaire",
+    "spirales de vol partagées qui indiquent une ascendance ou un grand cadavre"
+  ],
+  "signs": [
+    "plumes noires à pointe rousse qui sentent la fumée sans être brûlées",
+    "petits foyers circulaires séparés par plusieurs dizaines de mètres",
+    "ossements ouverts au niveau des articulations et disposés autour de pierres noires",
+    "traces de serres dans la cendre avec une rainure laissée par une brindille traînée",
+    "croassements profonds au-dessus d'une colonne d'air chaud alors qu'aucune carcasse n'est visible"
+  ],
+  "demeanor": {
+    "objectives": [
+      "repérer une carcasse ou exposer de petites proies sans déclencher un grand feu",
+      "conserver des gastrolithes chauds pour assainir son repas",
+      "protéger son partenaire, son nid et une voie de remontée dans le vent"
+    ],
+    "fears": [
+      "pluie froide qui alourdit les ailes et éteint le jabot",
+      "fumée épaisse sans courant ascendant",
+      "filets, plafonds bas et couloirs où les ailes ne peuvent se déployer"
+    ],
+    "morale": "Audacieux dans les airs, prudent au sol. Il effectue rarement plus de deux piqués contre une cible mobile et ne défend pas une carcasse au prix d'une aile blessée.",
+    "escalation": "Il observe en cercle, croasse, descend sur un perchoir puis montre son jabot rouge. Si l'intrus approche encore, il projette de la cendre, lâche une braise à distance et ne termine par un piqué qu'en défense du nid.",
+    "retreat": "Il gagne une ascendance, largue toute charge chaude sur une zone déjà brûlée et rejoint une falaise dès qu'une aile est mouillée, qu'un courant descendant apparaît ou que son partenaire quitte le secteur."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 8,
+      "constitution": 5,
+      "intelligence": 5,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 4
+    },
+    "skills": {
+      "athletics": 45,
+      "acrobatics": 60,
+      "survival": 65,
+      "vigilance": 70,
+      "unarmed": 50,
+      "throwing": 45,
+      "stealth": 35
+    },
+    "resources": {
+      "vitality": 98,
+      "stamina": 93,
+      "mana": 76,
+      "balance": 76,
+      "focus": 96
+    },
+    "movement": "2,5 m/s au sol ; 14 m/s en vol battu ; jusqu'à 24 m/s en piqué ; le décollage exige 4 m dégagés ou un rebord d'au moins 2 m.",
+    "protections": [
+      "Crâne et bec : 8 contre le tranchant, 10 contre le contondant et 6 contre le perforant.",
+      "Collerette et jabot : 12 contre la chaleur rayonnante, 8 contre le tranchant et 5 contre le perforant.",
+      "Sternum et dos : 9 contre le contondant, 7 contre le tranchant et 5 contre le perforant.",
+      "Ailes : 4 contre les contacts physiques ; une blessure grave d'aile interdit le vol soutenu.",
+      "Pattes et serres : 7 contre la chaleur du sol et 6 contre les contacts physiques."
+    ],
+    "attacks": [
+      {
+        "name": "Serres en piqué",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 24,
+        "reach": "ligne de piqué de 8 m aboutissant au contact",
+        "stamina_cost": 18,
+        "preparation": "1 seconde de mise en axe après un cercle visible",
+        "telegraph": "L'oiseau cesse de battre des ailes, ferme à moitié les rémiges, abaisse les pattes et fixe une ligne de fuite avant de plonger.",
+        "effect": "Contact perforant et contondant combiné ; une marge propre peut déséquilibrer ou arracher un objet exposé, mais l'oiseau doit ensuite remonter ou se poser.",
+        "counterplay": "Se déplacer perpendiculairement à l'axe, gagner un couvert haut, lever un bouclier au dernier moment ou exploiter la reprise d'altitude qui suit nécessairement le contact."
+      },
+      {
+        "name": "Bec de cendre",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 14,
+        "reach": "0,7 m au sol ou sur un perchoir",
+        "stamina_cost": 8,
+        "preparation": "0,35 seconde de retrait du cou",
+        "telegraph": "La collerette s'aplatit, la tête recule en S et le bec s'entrouvre avant une frappe rectiligne.",
+        "effect": "Perforation précise visant une main, une sangle ou une zone déjà blessée ; l'oiseau préfère ouvrir un accès à sa nourriture plutôt que poursuivre le Trauma.",
+        "counterplay": "Garder les mains derrière un outil long, présenter une surface dure, reculer hors du perchoir ou frapper le sol pour lui faire reprendre de la distance."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Lâcher de braise",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 8,
+        "reach": "point au sol dans un rayon horizontal de 6 m",
+        "stamina_cost": 12,
+        "preparation": "1,2 seconde pour remonter la charge du jabot",
+        "telegraph": "La gorge rougit, l'oiseau secoue deux fois la tête et ouvre largement le bec ; une poussière d'étincelles tombe avant la braise principale.",
+        "effect": "Faible contact thermique immédiat, puis foyer réel si la braise atteint un combustible sec. Le danger vient de la propagation et non d'un volume de feu instantané.",
+        "counterplay": "Mouiller ou dégager la zone visée, étouffer la braise sous de la terre, forcer l'oiseau à avaler sa charge en l'interrompant ou se déplacer vers un sol déjà brûlé."
+      },
+      {
+        "name": "Écran de cendre",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "acrobatics",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "demi-cercle de 3 m autour du point de décollage",
+        "stamina_cost": 16,
+        "preparation": "0,7 seconde d'abaissement des ailes",
+        "telegraph": "Les ailes raclent la couche de cendre, la queue se déploie et les premières poussières glissent vers l'avant avant le battement principal.",
+        "effect": "Soulève un écran qui gêne la Vigilance, révèle les mouvements par leurs tourbillons et permet un décollage sous couvert ; aucun Trauma direct.",
+        "counterplay": "Se placer au vent, reculer hors de la couche de cendre, attendre que le nuage retombe ou mouiller le sol avant l'approche."
+      },
+      {
+        "name": "Réveil du foyer",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "survival",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "foyer ou litière à 2 m",
+        "stamina_cost": 10,
+        "preparation": "3 secondes de tri de brindilles et de ventilation au battement",
+        "telegraph": "L'oiseau rassemble des fibres sèches en lignes rayonnantes, dépose une pierre chaude puis souffle par séries régulières.",
+        "effect": "Rallume un foyer encore viable pour faire sortir insectes et petites proies. L'effet échoue sans combustible sec, oxygène ou chaleur résiduelle suffisante.",
+        "counterplay": "Disperser les fibres, refroidir les pierres, saturer la litière d'eau ou laisser une voie d'alimentation qui détourne l'oiseau du foyer."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Chaleur rayonnante et étincelles",
+        "mechanism": "La collerette huileuse, les gastrolithes réfractaires et la circulation d'air sous les plumes ralentissent l'échauffement sans protéger d'une flamme enveloppante."
+      },
+      {
+        "subject": "Fumées ordinaires de bois",
+        "mechanism": "Des cornets nasaux filtrants et une respiration intermittente lui permettent de traverser une fumée légère, mais pas de rester dans un espace clos saturé."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Eau froide et plumage saturé",
+        "mechanism": "Les rémiges collent, la portance chute et le jabot se refroidit ; l'oiseau doit courir ou grimper avant de pouvoir redécoller."
+      },
+      {
+        "subject": "Perforation des ailes",
+        "mechanism": "La faible protection des membranes et des axes de plume transforme une blessure localisée en perte immédiate de manœuvrabilité."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Braise sur litière sèche et vent faible",
+        "result": "Foyer rampant qui gagne les herbes voisines",
+        "chain": "La braise chauffe les fibres fines, une flamme basse apparaît, les insectes fuient et attirent l'oiseau ; sans intervention, le foyer atteint ensuite les résines et devient un véritable incendie."
+      },
+      {
+        "input": "Pluie, jet d'eau ou brume dense sur les ailes",
+        "result": "Portance réduite et charge chaude neutralisée",
+        "chain": "L'eau refroidit d'abord le jabot, colle ensuite les rémiges et force l'oiseau à se poser ; ses attaques aériennes disparaissent jusqu'au séchage."
+      },
+      {
+        "input": "Colonne d'air chaud au-dessus d'un foyer maîtrisé",
+        "result": "Ascendance rapide et dépense de vol réduite",
+        "chain": "L'air chauffé monte, le Charognard ouvre ses ailes et reprend de l'altitude sans battement ; déplacer ou étouffer le foyer supprime cette voie de retraite."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Des foyers ronds espacés et des sillons de brindille dans la cendre signalent un Charognard, tandis qu'un front continu indique plutôt un incendie poussé par le vent."
+    },
+    {
+      "status": "etabli",
+      "skill_id": "animal_handling",
+      "difficulty": 18,
+      "fact": "Un oiseau qui montre seulement sa collerette protège une ressource ; lui laisser une carcasse à distance suffit souvent à dégager le passage sans combat."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les couples semblent entretenir des mosaïques de petits brûlis sur plusieurs années, mais il reste difficile de séparer intention, apprentissage et simple opportunisme alimentaire."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "La température du jabot détruit une partie des toxines de charogne ; une pierre régurgitée assez tôt conserve des résidus utiles pour identifier le poison présent dans une carcasse."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "escarmoucheur aérien à trajectoires lisibles",
+      "déclencheur de chaînes de feu que le groupe peut prévenir ou détourner",
+      "guide écologique vers une carcasse, un incendie récent ou une ascendance sûre"
+    ],
+    "telegraphs": [
+      "un cercle silencieux et des ailes à demi fermées annoncent l'axe du piqué",
+      "la gorge rougit et des étincelles tombent avant un lâcher de braise",
+      "les ailes raclent toujours la cendre avant que l'écran ne se lève"
+    ],
+    "noncombat_options": [
+      "déplacer une carcasse vers un sol minéral éloigné des bâtiments",
+      "créer puis surveiller un petit foyer sûr qui offre une ascendance de sortie",
+      "mouiller la litière autour du chemin sans détremper le nid",
+      "attendre que le couple termine son repas et quitte de lui-même le secteur"
+    ],
+    "complications": [
+      "le vent tourne et pousse un petit foyer vers des réserves de résine",
+      "un jeune incapable de voler se trouve derrière l'adulte agressif",
+      "la carcasse contient un poison ou une preuve que le feu pourrait détruire",
+      "abattre l'oiseau en vol fait tomber son jabot chargé dans une végétation invisible depuis le sol"
+    ]
+  },
+  "salvage": [
+    "Gastrolithes régurgités : pierres réfractaires légères, utiles pour analyser le dernier repas ou garnir un petit four alchimique.",
+    "Plumes naturellement muées : revêtement résistant aux étincelles, à laver avant tout usage à cause des huiles de charogne.",
+    "Charbon de nid abandonné : matériau très sec portant les graines et pollens des territoires visités par le couple."
+  ],
+  "plates": [
+    {
+      "image": "charognard-de-braise-plate.png",
+      "alt": "Un grand Charognard de braise aux ailes noires et à la collerette rousse plane au-dessus d'une clairière brûlée ; sa gorge rougeoyante laisse tomber une étincelle près d'une carcasse et d'herbes nouvelles.",
+      "caption": "Il nettoie les terres brûlées, puis décide parfois où naîtra le prochain foyer.",
+      "prompt_key": "charognard-de-braise-plate"
+    }
+  ]
+}

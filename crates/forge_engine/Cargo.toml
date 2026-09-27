@@ -11,17 +11,24 @@ description = "Bevy adapter for engine-neutral OpenRPG Forge scene documents."
 default = ["native"]
 native = ["physics-rapier"]
 web = ["bevy/webgpu", "physics-rapier"]
-physics-rapier = ["dep:bevy_rapier3d"]
+qualification = ["physics-rapier"]
+physics-rapier = ["dep:bevy_rapier3d", "dep:forge_assets"]
 
 [dependencies]
 bevy.workspace = true
 bevy_rapier3d = { workspace = true, optional = true }
+forge_assets = { workspace = true, optional = true }
 forge_core.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+# Validate Forge optical WGSL with the same Naga version already locked by Bevy.
+naga = { version = "=29.0.4", features = ["wgsl-in"] }
+wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
 
 [lints]
 workspace = true

@@ -6,6 +6,9 @@ use forge_core::{
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+mod sunlight;
+pub use sunlight::WeatherSunlightProfile;
+
 pub const WEATHER_PROFILE_SCHEMA: &str = "forge.weather-profile";
 pub const WEATHER_PROFILE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_WEATHER_PROFILE_JSON_BYTES: usize = 64 * 1024;
@@ -30,6 +33,9 @@ pub struct WeatherProfileDocument {
     pub rain: RainProfile,
     pub wetness: WetnessProfile,
     pub post_processing: PostProcessingProfile,
+    /// Optional solar attenuation, independent of material drying. Absence preserves legacy hashes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sunlight: Option<WeatherSunlightProfile>,
 }
 
 impl WeatherProfileDocument {
@@ -59,6 +65,7 @@ impl WeatherProfileDocument {
             rain,
             wetness,
             post_processing,
+            sunlight: None,
         }
     }
 
@@ -85,6 +92,9 @@ impl WeatherProfileDocument {
         self.rain.validate()?;
         self.wetness.validate()?;
         self.post_processing.validate()?;
+        if let Some(sunlight) = self.sunlight {
+            sunlight.validate()?;
+        }
         Ok(())
     }
 
@@ -266,6 +276,8 @@ pub struct WetnessProfile {
     pub rain_target: f32,
     pub wetting_rate_per_second: f32,
     pub drying_rate_per_second: f32,
+    /// Multiplier of microfacet roughness (alpha), not perceptual roughness.
+    /// A perceptual-roughness renderer applies sqrt(lerp(1, multiplier, wetness)).
     pub full_wet_roughness_multiplier: f32,
     pub full_wet_albedo_multiplier: f32,
 }
@@ -349,7 +361,9 @@ impl BloomProfile {
 #[serde(deny_unknown_fields)]
 pub struct ColorGradeProfile {
     pub exposure_ev: f32,
+    /// Normalized artistic adjustment in [-1, 1], not a raw CIE xy offset.
     pub temperature: f32,
+    /// Normalized artistic adjustment in [-1, 1], neutral at zero.
     pub tint: f32,
     pub saturation: f32,
     pub contrast: f32,

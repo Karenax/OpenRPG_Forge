@@ -1,0 +1,241 @@
+{
+  "schema": "forge.asset-kit-runtime-preview",
+  "schema_version": 1,
+  "asset_kit_id": "visual-valley-r1-063",
+  "asset_kit_revision": 3,
+  "source_world_sketch_sha256": "42fe7157fb8b939348fc48dcb729e2df6837aae20bcbc71c57b8acceda2e1ff1",
+  "source_terrain_sha256": "18bd933d37f06a6a08a34b19938a78cb8f6fe8d9667b34bd2dcd6355956fd208",
+  "input_manifest_sha256": "c75ebf0183f6a30af6ed9c5f3190079102d76f7bf90887b201358027c8fcb920",
+  "camera_id": "hero_reference_match",
+  "assets": [
+    "vv-rock-moss-a",
+    "vv-rock-moss-b",
+    "vv-tree-oak-a",
+    "vv-tree-pine-a",
+    "vv-architecture-wall-a",
+    "vv-architecture-arch-a"
+  ],
+  "placements": [
+    {
+      "id": "foreground-oak-west",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [
+        -118,
+        -145
+      ],
+      "surface_offset_m": -0.04,
+      "yaw_degrees": 18,
+      "scale": 0.92
+    },
+    {
+      "id": "foreground-pine-east",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [
+        16,
+        -126
+      ],
+      "surface_offset_m": -0.04,
+      "yaw_degrees": -27,
+      "scale": 0.86
+    },
+    {
+      "id": "forest-oak-south",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [
+        -176,
+        -112
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 73,
+      "scale": 1.08
+    },
+    {
+      "id": "forest-pine-south",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [
+        -211,
+        -74
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 121,
+      "scale": 0.94
+    },
+    {
+      "id": "forest-oak-mid",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [
+        -205,
+        -4
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": -46,
+      "scale": 1.16
+    },
+    {
+      "id": "forest-pine-mid",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [
+        -182,
+        72
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 39,
+      "scale": 1.02
+    },
+    {
+      "id": "forest-oak-north",
+      "asset_id": "vv-tree-oak-a",
+      "xz_m": [
+        -143,
+        126
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": 156,
+      "scale": 1.2
+    },
+    {
+      "id": "forest-pine-north",
+      "asset_id": "vv-tree-pine-a",
+      "xz_m": [
+        -82,
+        158
+      ],
+      "surface_offset_m": -0.05,
+      "yaw_degrees": -112,
+      "scale": 1.05
+    },
+    {
+      "id": "river-rock-south-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [
+        -26,
+        -138
+      ],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 24,
+      "scale": 1.15
+    },
+    {
+      "id": "river-rock-south-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [
+        32,
+        -102
+      ],
+      "surface_offset_m": -0.06,
+      "yaw_degrees": -61,
+      "scale": 1.35
+    },
+    {
+      "id": "ridge-rock-east-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [
+        76,
+        18
+      ],
+      "surface_offset_m": -0.12,
+      "yaw_degrees": 91,
+      "scale": 1.8
+    },
+    {
+      "id": "ridge-rock-east-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [
+        28,
+        88
+      ],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 147,
+      "scale": 1.55
+    },
+    {
+      "id": "ridge-rock-north-a",
+      "asset_id": "vv-rock-moss-a",
+      "xz_m": [
+        -18,
+        154
+      ],
+      "surface_offset_m": -0.12,
+      "yaw_degrees": -133,
+      "scale": 2.1
+    },
+    {
+      "id": "ridge-rock-north-b",
+      "asset_id": "vv-rock-moss-b",
+      "xz_m": [
+        84,
+        192
+      ],
+      "surface_offset_m": -0.08,
+      "yaw_degrees": 53,
+      "scale": 1.75
+    },
+    {
+      "id": "village-gate",
+      "asset_id": "vv-architecture-arch-a",
+      "xz_m": [
+        -157,
+        -13
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19,
+      "scale": 1.15
+    },
+    {
+      "id": "village-wall-west",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [
+        -163.5,
+        -8.5
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19,
+      "scale": 1.15
+    },
+    {
+      "id": "village-wall-east",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [
+        -150.5,
+        -17.5
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": 19,
+      "scale": 1.15
+    },
+    {
+      "id": "keep-gate",
+      "asset_id": "vv-architecture-arch-a",
+      "xz_m": [
+        -96,
+        184
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12,
+      "scale": 1.35
+    },
+    {
+      "id": "keep-wall-west",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [
+        -102.5,
+        182.5
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12,
+      "scale": 1.35
+    },
+    {
+      "id": "keep-wall-east",
+      "asset_id": "vv-architecture-wall-a",
+      "xz_m": [
+        -89.5,
+        185.5
+      ],
+      "surface_offset_m": -0.02,
+      "yaw_degrees": -12,
+      "scale": 1.35
+    }
+  ],
+  "authored_source_sha256": "170e1e2edc95d3ce46610ee2fab7bad9fa6acc08a992636842f0d3c8aa941001"
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "forge.studio-weather-preview-cycle-evidence",
+  "schema_version": 1,
+  "extraction": "selected fields read from the live studio-weather-preview-ledger; not a full raw ledger",
+  "bundle_sha256": "e0ed53c65b63b27c24edf0335ff3b755375ddb689843278cbe1af4d40f120dda",
+  "observations": [
+    {
+      "recorded_at_utc": "2026-09-05T14:19:27.273Z",
+      "source_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+      "state": "clear",
+      "wetness": {"current": 0, "target": 0, "clear_target_restored_exactly": true, "terrain_materials": 1, "vegetation_materials": 1, "terrain_uniforms_match": true, "vegetation_uniforms_match": true},
+      "rain_visible": false,
+      "batch_entities": 1
+    },
+    {
+      "recorded_at_utc": "2026-09-05T14:20:03.826Z",
+      "source_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+      "state": "rain",
+      "wetness": {"current": 0.7799999713897705, "target": 0.7799999713897705, "clear_target_restored_exactly": null, "terrain_materials": 1, "vegetation_materials": 1, "terrain_uniforms_match": true, "vegetation_uniforms_match": true},
+      "rain_visible": true,
+      "batch_entities": 1
+    },
+    {
+      "recorded_at_utc": "2026-09-05T14:21:07.096Z",
+      "source_hash": "b0d8e12bd49d3510361d587463a3002e98741b68052b283fa3f8ca432c87dd9e",
+      "state": "clear",
+      "wetness": {"current": 0, "target": 0, "clear_target_restored_exactly": true, "terrain_materials": 1, "vegetation_materials": 1, "terrain_uniforms_match": true, "vegetation_uniforms_match": true},
+      "rain_visible": false,
+      "batch_entities": 1
+    }
+  ],
+  "full_post_processing_initial_final_comparison_equal": true,
+  "viewport_starts": 1,
+  "render_size_px": [2048, 1101],
+  "gpu_execution_probe": "not_observed",
+  "visual_review": "rain and subsequent clear screenshots inspected in conversation; not archived as image files"
+}

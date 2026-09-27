@@ -2,6 +2,28 @@
 
 //! Asset metadata and provenance validation without rendering or filesystem coupling.
 
+pub mod asset_browser;
+mod glb_preflight;
+mod governed_asset_kit;
+mod imported_catalog;
+pub mod tidewater_environment;
+pub mod tidewater_package;
+pub mod tidewater_plants;
+pub mod tidewater_terrain;
+mod vegetation_prototypes;
+pub use glb_preflight::{GovernedGlbError, governed_glb_json_length, validate_governed_glb_json};
+pub use vegetation_prototypes::{
+    VegetationPrototypeBinding, VegetationPrototypeCatalog, VegetationPrototypeError,
+    VegetationPrototypeSelection,
+};
+
+pub use governed_asset_kit::{
+    GovernedAssetKitAsset, GovernedAssetKitAuthoredSource, GovernedAssetKitBuildReport,
+    GovernedAssetKitError, GovernedAssetKitGenerator, GovernedAssetKitGlb,
+    GovernedAssetKitPlacement, GovernedAssetKitProvenance, GovernedAssetKitQualification,
+    GovernedAssetKitRuntimePreview,
+};
+
 use forge_core::{AssetId, CanonicalJsonError, ContentHash, canonical_json_sha256};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};

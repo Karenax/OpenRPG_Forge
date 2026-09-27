@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Forge · Atelier de mondes — prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="studio">
+  <div id="landscape" aria-label="Carte illustrative interactive">
+    <svg id="map" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Vallée dessinée pour la maquette, pas un rendu du moteur">
+      <defs>
+        <linearGradient id="grass" x2=".8" y2="1"><stop stop-color="#c7dd9c"/><stop offset="1" stop-color="#88bb91"/></linearGradient>
+        <linearGradient id="water" x2="1" y2="1"><stop stop-color="#a5e7e7"/><stop offset="1" stop-color="#55adc5"/></linearGradient>
+        <linearGradient id="crown" x2=".8" y2="1"><stop stop-color="#a5ce76"/><stop offset=".5" stop-color="#57916f"/><stop offset="1" stop-color="#397767"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="8" dy="15" stdDeviation="9" flood-color="#304f4b" flood-opacity=".18"/></filter>
+        <pattern id="contours" width="160" height="110" patternUnits="userSpaceOnUse"><path d="M-30 95 Q45 20 120 60 T230 30 M-30 110 Q45 35 120 75 T230 45" fill="none" stroke="#fff" stroke-opacity=".15" stroke-width="1"/></pattern>
+        <symbol id="tree" viewBox="0 0 80 100"><ellipse cx="46" cy="88" rx="28" ry="9" fill="#326754" opacity=".16"/><path d="M38 83V41" stroke="#776b4c" stroke-width="7" stroke-linecap="round"/><path d="M38 63L20 48M39 57L56 36" stroke="#776b4c" stroke-width="4"/><path d="M10 58C-2 44 8 28 19 27C15 6 48-4 57 17C77 12 87 42 66 53C64 73 35 78 27 62C19 67 13 64 10 58" fill="url(#crown)"/><path d="M18 39Q20 20 40 19" fill="none" stroke="#cde69b" stroke-width="5" stroke-linecap="round" opacity=".5"/></symbol>
+        <symbol id="house" viewBox="0 0 120 120"><path d="M23 62L65 39L103 61V97L62 117L23 94Z" fill="#f7ead0"/><path d="M62 72L103 52V97L62 117" fill="#d9c8aa"/><path d="M8 57L58 12L117 46L67 82Z" fill="#ac6c57"/><path d="M8 57L58 12L66 22L20 66Z" fill="#ce8a66"/><path d="M35 84L49 91V108L35 100Z" fill="#826c55"/><path d="M76 80L89 73V87L76 94Z" fill="#76b8c7"/><path d="M88 21V0L98 5V27" fill="#d9c8aa"/></symbol>
+        <symbol id="rock" viewBox="0 0 80 70"><path d="M8 49L23 15L53 8L74 37L60 60L28 66Z" fill="#a8b6ae"/><path d="M23 15L53 8L46 36L8 49Z" fill="#d4d9c9"/><path d="M46 36L74 37L60 60L28 66Z" fill="#8e9e9c"/></symbol>
+      </defs>
+      <rect width="1400" height="900" fill="url(#grass)"/>
+      <path d="M0 140Q260 360 600 130T1400 200V0H0Z" fill="#d7e5b5" opacity=".7"/>
+      <path d="M0 770Q360 400 760 680T1400 600V900H0Z" fill="#699e7f" opacity=".18"/>
+      <rect width="1400" height="900" fill="url(#contours)"/>
+      <path d="M830-90C520 200 1170 250 850 480S810 770 1100 1000" fill="none" stroke="#e2e8be" stroke-width="98"/>
+      <path d="M830-90C520 200 1170 250 850 480S810 770 1100 1000" fill="none" stroke="url(#water)" stroke-width="70" id="river"/>
+      <path d="M830-90C520 200 1170 250 850 480S810 770 1100 1000" fill="none" stroke="#c4f4e8" stroke-width="2" stroke-dasharray="60 30" opacity=".65"/>
+      <path d="M-40 650Q340 510 535 380T980 470T1430 280" stroke="#afaa82" stroke-opacity=".25" stroke-width="34" fill="none"/>
+      <path d="M-40 650Q340 510 535 380T980 470T1430 280" stroke="#f0dfae" stroke-width="24" fill="none"/>
+      <g id="grove"></g>
+      <g filter="url(#shadow)"><use href="#house" x="550" y="230" width="135" height="135"/><use href="#house" x="460" y="330" width="90" height="90"/><use href="#rock" x="860" y="400" width="75" height="70"/></g>
+      <g transform="translate(864 438) rotate(22)"><rect x="-45" y="-24" width="120" height="48" rx="4" fill="#b39773"/><path d="M-40-18H70M-40 18H70" stroke="#eee2be" stroke-width="5"/><path d="M-25-20V20M-5-20V20M15-20V20M35-20V20M55-20V20" stroke="#806f55" stroke-width="2"/></g>
+      <g id="placed"></g><g id="draft"></g>
+    </svg>
+  </div>
+  <header class="glass topbar">
+    <div class="brand"><span class="brandmark">F</span><strong>Forge</strong><span class="divider"></span><span>Vallée des brumes <small>⌄</small></span></div>
+    <span class="prototype">Prototype visuel · scène illustrative</span>
+    <div class="topactions"><button id="undo" aria-label="Annuler la dernière action de démonstration" title="Annuler">↶</button><button id="settings" aria-label="Préférences visuelles" title="Préférences">☷</button><button id="save">Enregistrer la démo</button></div>
+  </header>
+  <aside class="glass scene-panel" id="scenePanel">
+    <div class="panel-heading"><h2>Ma scène</h2><button id="sceneClose" aria-label="Replier la scène">−</button></div>
+    <p class="eyebrow">VALLÉE DES BRUMES</p>
+    <button class="scene-row" data-select="terrain"><span class="tiny green">⌁</span>Terrain<span class="row-meta">256 m</span></button>
+    <button class="scene-row" data-select="water"><span class="tiny blue">≈</span>Rivière</button>
+    <button class="scene-row" data-select="paths"><span class="tiny amber">〰</span>Sentier</button>
+    <button class="scene-row" data-select="build"><span class="tiny peach">⌂</span>Maisons<span class="row-meta">2</span></button>
+    <button class="scene-row" data-select="nature"><span class="tiny green">♧</span>Végétation</button>
+    <div class="scene-footer"><span class="status-dot"></span> Espace de démonstration</div>
+  </aside>
+  <button id="sceneOpen" class="glass reopen" hidden>Afficher la scène</button>
+  <section class="glass inspector" aria-label="Outil actif">
+    <div class="panel-heading"><div><p class="eyebrow" id="toolKicker">DÉCORER</p><h1 id="toolTitle">Objets</h1></div><span id="toolBadge" class="tool-badge">◇</span></div>
+    <p id="toolHint" class="hint">Choisis un décor, puis clique sur la carte.</p>
+    <div id="controls"></div>
+    <details><summary>Précision</summary><p>Cette maquette explore les interactions. Les coordonnées du moteur ne sont pas connectées.</p></details>
+    <div class="actionbar"><button id="cancel">Annuler</button><button id="apply" class="primary" disabled>Placer</button></div>
+  </section>
+  <div class="glass map-toolbar"><button id="zoomOut" aria-label="Dézoomer">−</button><output id="zoomValue">100 %</output><button id="zoomIn" aria-label="Zoomer">+</button><span class="divider"></span><button id="grid" aria-pressed="false">Grille</button></div>
+  <section class="glass library" id="library" aria-label="Bibliothèque illustrative">
+    <div class="library-head"><h2>La boîte à décors <span>6 objets illustratifs</span></h2><button id="libraryClose" aria-label="Fermer la bibliothèque">×</button></div>
+    <div class="assets" id="assets"></div>
+  </section>
+  <div class="dock-wrap"><nav class="glass dock" id="dock" aria-label="Outils de création"></nav></div>
+  <footer><span id="status" role="status" aria-live="polite">Choisis un outil dans le dock.</span><span>Maquette indépendante · aucune carte Forge modifiée</span></footer>
+  <dialog id="preferences" class="glass"><form method="dialog"><div class="panel-heading"><h2>À ton rythme</h2><button aria-label="Fermer les préférences">×</button></div><p>Une interface vivante, sans te distraire.</p><label class="setting"><span>Animations du dock</span><input id="motion" type="checkbox" checked></label><label class="setting"><span>Transparence et flou</span><input id="glass" type="checkbox" checked></label><label class="setting"><span>Accent</span><select id="accent"><option value="blue">Azur</option><option value="purple">Iris</option><option value="green">Jade</option></select></label></form></dialog>
+</main>
+<script src="app.js"></script>
+</body></html>

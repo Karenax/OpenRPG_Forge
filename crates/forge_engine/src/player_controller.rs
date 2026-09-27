@@ -37,6 +37,9 @@ pub enum PlayerControllerSet {
 #[derive(Clone, Copy, Debug, PartialEq, Resource)]
 pub struct PlayerSpawnPoint(pub Vec3);
 
+#[derive(Clone, Copy, Resource)]
+struct PlayerInitialCameraTarget(Option<Vec3>);
+
 impl PlayerSpawnPoint {
     #[must_use]
     pub const fn position(self) -> Vec3 {
@@ -55,6 +58,28 @@ pub struct PlayerControlCommand {
     pub toggle_camera: bool,
 }
 
+/// Runtime input ownership, controlled by the host; never persisted in the world document.
+#[derive(Clone, Copy, Debug, Resource)]
+pub struct PlayerInputFocus(pub bool);
+
+impl Default for PlayerInputFocus {
+    fn default() -> Self {
+        Self(true)
+    }
+}
+
+/// Host-owned projection barrier, separate from keyboard focus. Close before startup
+/// when playtest projections are pending. This freezes only the player controller,
+/// not the world simulation, and never becomes part of an authored document.
+#[derive(Clone, Copy, Debug, Resource)]
+pub struct PlayerSimulationReady(pub bool);
+
+impl Default for PlayerSimulationReady {
+    fn default() -> Self {
+        Self(true)
+    }
+}
+
 /// Coalescing batch consumed by the next fixed simulation tick.
 ///
 /// Axis and sprint use the last submission, look deltas are summed, jump uses logical OR, and
@@ -71,6 +96,16 @@ pub struct PendingPlayerControlCommand {
 }
 
 impl PendingPlayerControlCommand {
+    /// Cancels held/queued input while retaining the monotonic command sequence.
+    pub fn cancel_input(&mut self) {
+        self.pending_sequence = None;
+        self.held_move_axis = Vec2::ZERO;
+        self.held_sprint = false;
+        self.queued_jump = false;
+        self.queued_look_delta = Vec2::ZERO;
+        self.queued_toggle_camera = false;
+    }
+
     /// Replaces held axes while accumulating one-shot actions for the next fixed tick.
     pub fn submit(
         &mut self,
@@ -325,6 +360,7 @@ pub struct PlayerControllerPlugin {
     profile: PlayerControllerProfileDocument,
     spawn_point: PlayerSpawnPoint,
     interactive_input: bool,
+    initial_camera_target: Option<Vec3>,
 }
 
 impl PlayerControllerPlugin {
@@ -334,6 +370,7 @@ impl PlayerControllerPlugin {
             profile,
             spawn_point: PlayerSpawnPoint(spawn_position),
             interactive_input: true,
+            initial_camera_target: None,
         }
     }
 
@@ -341,6 +378,14 @@ impl PlayerControllerPlugin {
     #[must_use]
     pub const fn with_interactive_input(mut self, enabled: bool) -> Self {
         self.interactive_input = enabled;
+        self
+    }
+
+    /// Sets the initial horizontal heading only; pitch and subsequent player input remain free.
+    /// A target directly above/below the spawn retains the default heading.
+    #[must_use]
+    pub const fn with_initial_camera_target(mut self, target: Vec3) -> Self {
+        self.initial_camera_target = Some(target);
         self
     }
 }
@@ -357,10 +402,26 @@ impl Plugin for PlayerControllerPlugin {
             self.spawn_point.0.is_finite(),
             "PlayerControllerPlugin requires a finite spawn position"
         );
+        if let Some(target) = self.initial_camera_target {
+            assert!(
+                target.is_finite() && (target - self.spawn_point.0).is_finite(),
+                "PlayerControllerPlugin requires a finite initial camera direction"
+            );
+        }
 
+        let camera_system = update_player_camera.in_set(PlayerControllerSet::Camera);
+        // Diagnostic ownership also applies when its paused clock is stepped.
+        // Keep ordinary player simulation, but never overwrite the authored proof camera.
+        #[cfg(feature = "qualification")]
+        let camera_system = camera_system.run_if(bevy::ecs::schedule::common_conditions::not(
+            bevy::ecs::schedule::common_conditions::resource_exists::<crate::FixedProofViewStatus>,
+        ));
         app.insert_resource(PlayerRuntimeProfile(self.profile.clone()))
             .insert_resource(self.spawn_point)
+            .insert_resource(PlayerInitialCameraTarget(self.initial_camera_target))
             .init_resource::<PendingPlayerControlCommand>()
+            .init_resource::<PlayerInputFocus>()
+            .init_resource::<PlayerSimulationReady>()
             .init_resource::<PlayerRuntimeBindings>()
             .insert_resource(PlayerRuntimeSnapshot {
                 profile_content_hash: Some(profile_content_hash),
@@ -387,10 +448,7 @@ impl Plugin for PlayerControllerPlugin {
                 FixedUpdate,
                 observe_player_controller.in_set(PlayerControllerSet::Observe),
             )
-            .add_systems(
-                FixedUpdate,
-                update_player_camera.in_set(PlayerControllerSet::Camera),
-            );
+            .add_systems(FixedUpdate, camera_system);
         if self.interactive_input {
             app.add_systems(PreUpdate, sample_player_input.after(InputSystems));
         }
@@ -404,7 +462,7 @@ impl Plugin for PlayerControllerPlugin {
 fn spawn_player_controller(
     mut commands: Commands,
     profile: Res<PlayerRuntimeProfile>,
-    spawn_point: Res<PlayerSpawnPoint>,
+    (spawn_point, camera_target): (Res<PlayerSpawnPoint>, Res<PlayerInitialCameraTarget>),
     mut bindings: ResMut<PlayerRuntimeBindings>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
     meshes: Option<ResMut<Assets<Mesh>>>,
@@ -458,7 +516,13 @@ fn spawn_player_controller(
     }
     let player_entity = player.id();
 
-    let rig = PlayerCameraRig::new(camera_profile);
+    let mut rig = PlayerCameraRig::new(camera_profile);
+    if let Some(target) = camera_target.0 {
+        let direction = target - spawn_point.0;
+        if direction.x.abs().max(direction.z.abs()) > f32::EPSILON {
+            rig.yaw_radians = (-direction.x).atan2(-direction.z);
+        }
+    }
     let capsule_half_height =
         controller_profile.capsule_radius_m + controller_profile.capsule_half_segment_m;
     let pose = third_person_pose(spawn_point.0, capsule_half_height, rig, camera_profile);
@@ -496,11 +560,25 @@ fn spawn_player_controller(
         .to_radians();
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned system parameter wrappers"
+)]
 fn sample_player_input(
     keyboard: Option<Res<ButtonInput<KeyCode>>>,
     mouse_motion: Option<Res<AccumulatedMouseMotion>>,
+    focus: Res<PlayerInputFocus>,
+    warmup: Option<Res<crate::ProfileWarmup>>,
     mut pending: ResMut<PendingPlayerControlCommand>,
 ) {
+    if !focus.0
+        || warmup
+            .as_deref()
+            .is_some_and(crate::ProfileWarmup::is_warming)
+    {
+        pending.cancel_input();
+        return;
+    }
     let Some(keyboard) = keyboard else {
         return;
     };
@@ -521,7 +599,10 @@ fn sample_player_input(
 }
 
 fn axis_value(keyboard: &ButtonInput<KeyCode>, code: KeyCode) -> f32 {
-    f32::from(keyboard.pressed(code))
+    // A browser automation tap can deliver keydown and keyup before the next
+    // Bevy frame. Keep that one physical press observable for this sample;
+    // sustained movement still uses the held state on following frames.
+    f32::from(keyboard.pressed(code) || keyboard.just_pressed(code))
 }
 
 #[allow(
@@ -530,6 +611,7 @@ fn axis_value(keyboard: &ButtonInput<KeyCode>, code: KeyCode) -> f32 {
 )]
 fn drive_player_controller(
     fixed_time: Res<Time<Fixed>>,
+    ready: Res<PlayerSimulationReady>,
     profile: Res<PlayerRuntimeProfile>,
     mut pending: ResMut<PendingPlayerControlCommand>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
@@ -542,6 +624,11 @@ fn drive_player_controller(
     let Ok((mut controller, mut motion)) = player.single_mut() else {
         return;
     };
+    if !ready.0 {
+        pending.cancel_input();
+        freeze_player_controller(&mut controller, &mut motion, &mut snapshot);
+        return;
+    }
     let Ok(mut camera_rig) = camera.single_mut() else {
         return;
     };
@@ -586,6 +673,13 @@ fn drive_player_controller(
 
     let desired_translation = motion.horizontal_velocity * delta_seconds
         + Vec3::Y * motion.vertical_velocity_mps * delta_seconds;
+    // Keep the downward collision probe, but do not accumulate Rapier's normal
+    // nudge as lateral motion while resting on walkable ground. Restore sliding
+    // for movement, jumping, falling, and a previously observed steep-slope slide.
+    controller.slide = !motion.grounded
+        || motion.horizontal_velocity != Vec3::ZERO
+        || motion.vertical_velocity_mps > 0.0
+        || snapshot.sliding_down_slope;
     controller.translation = Some(desired_translation);
     motion.fixed_tick = motion.fixed_tick.saturating_add(1);
     motion.last_desired_translation = desired_translation;
@@ -602,11 +696,30 @@ fn drive_player_controller(
     snapshot.camera_pitch_radians = camera_rig.pitch_radians;
 }
 
+fn freeze_player_controller(
+    controller: &mut KinematicCharacterController,
+    motion: &mut PlayerMotionState,
+    snapshot: &mut PlayerRuntimeSnapshot,
+) {
+    controller.translation = None;
+    motion.horizontal_velocity = Vec3::ZERO;
+    motion.vertical_velocity_mps = 0.0;
+    motion.last_desired_translation = Vec3::ZERO;
+    snapshot.desired_translation = Vec3::ZERO;
+    snapshot.effective_translation = Vec3::ZERO;
+    snapshot.horizontal_velocity = Vec3::ZERO;
+    snapshot.vertical_velocity_mps = 0.0;
+    snapshot.collisions = 0;
+    snapshot.sliding_down_slope = false;
+}
+
 #[allow(
+    clippy::needless_pass_by_value,
     clippy::type_complexity,
     reason = "the query keeps all backend identity observations in one post-writeback snapshot"
 )]
 fn observe_player_controller(
+    ready: Res<PlayerSimulationReady>,
     mut bindings: ResMut<PlayerRuntimeBindings>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
     mut player: Query<
@@ -628,7 +741,7 @@ fn observe_player_controller(
     let context_entity = context_link.map(|link| link.0);
     bindings.observe_backend(collider_handle, context_entity);
 
-    if let Some(output) = output {
+    if let Some(output) = output.filter(|_| ready.0) {
         motion.grounded = output.grounded;
         if output.grounded && motion.vertical_velocity_mps < 0.0 {
             motion.vertical_velocity_mps = 0.0;
@@ -927,6 +1040,61 @@ mod tests {
     }
 
     #[test]
+    fn interactive_sampling_keeps_a_same_frame_keyboard_tap_for_one_command() {
+        let mut app = test_app_with_interactive_input(test_profile(), Vec3::ZERO, true);
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        let mut keyboard = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keyboard.press(KeyCode::KeyW);
+        keyboard.release(KeyCode::KeyW);
+
+        app.world_mut().run_schedule(PreUpdate);
+
+        let (_, sampled) = app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>()
+            .drain_tick();
+        assert_eq!(sampled.move_axis, Vec2::Y);
+        assert!(!sampled.sprint && !sampled.jump && !sampled.toggle_camera);
+    }
+
+    #[test]
+    fn losing_input_focus_cancels_held_and_queued_actions_without_resetting_sequence() {
+        let mut app = test_app_with_interactive_input(test_profile(), Vec3::ZERO, true);
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        let initial = submit(
+            &mut app,
+            PlayerControlCommand {
+                move_axis: Vec2::Y,
+                sprint: true,
+                jump: true,
+                look_delta: Vec2::new(5.0, 3.0),
+                toggle_camera: true,
+            },
+        );
+        app.world_mut().resource_mut::<PlayerInputFocus>().0 = false;
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .press(KeyCode::KeyW);
+        app.world_mut().run_schedule(PreUpdate);
+        assert_eq!(
+            app.world_mut()
+                .resource_mut::<PendingPlayerControlCommand>()
+                .drain_tick(),
+            (None, PlayerControlCommand::default())
+        );
+        app.world_mut().resource_mut::<PlayerInputFocus>().0 = true;
+        app.world_mut().run_schedule(PreUpdate);
+        let (sequence, resumed) = app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>()
+            .drain_tick();
+        assert_eq!(sequence, Some(initial + 1));
+        assert_eq!(resumed.move_axis, Vec2::Y);
+        assert!(!resumed.jump && !resumed.sprint && !resumed.toggle_camera);
+        assert_eq!(resumed.look_delta, Vec2::ZERO);
+    }
+
+    #[test]
     fn acceleration_and_braking_have_bounded_exact_steps() {
         let accelerated = move_towards(Vec3::ZERO, Vec3::new(0.0, 0.0, -5.0), 0.4);
         assert!((accelerated.length() - 0.4).abs() <= 1.0e-6);
@@ -1163,6 +1331,36 @@ mod tests {
     }
 
     #[test]
+    fn stationary_player_does_not_creep_on_walkable_slopes() {
+        for degrees in [0.0_f32, 15.0, 30.0, -15.0] {
+            let profile = test_profile();
+            let half_height = capsule_half_height(&profile);
+            let mut app = test_app(profile, Vec3::new(0.0, half_height + 0.1, 0.0));
+            spawn_box(
+                &mut app,
+                Vec3::new(0.0, -0.1, 0.0),
+                Vec3::new(10.0, 0.1, 10.0),
+                Quat::from_rotation_x(degrees.to_radians()),
+            );
+            app.update();
+            run_fixed(&mut app, 120);
+            let origin = snapshot(&app).player_position;
+            assert!(snapshot(&app).grounded);
+            let mut maximum_drift = 0.0_f32;
+            for _ in 0..1800 {
+                run_fixed(&mut app, 1);
+                let observed = snapshot(&app);
+                assert_eq!(observed.horizontal_velocity, Vec3::ZERO);
+                maximum_drift = maximum_drift.max(origin.distance(observed.player_position));
+            }
+            assert!(
+                maximum_drift <= 0.02,
+                "idle slope {degrees} degrees drifted {maximum_drift} m in 30 seconds"
+            );
+        }
+    }
+
+    #[test]
     fn camera_sphere_cast_closes_immediately_then_recovers_and_toggle_keeps_entity() {
         let profile = test_profile();
         let camera = profile.camera;
@@ -1311,12 +1509,130 @@ mod tests {
         assert_eq!(before.player_entity, bindings(&app).player_entity);
     }
 
+    #[test]
+    fn simulation_barrier_freezes_fall_and_discards_waiting_commands() {
+        let spawn = Vec3::new(0.0, 10.0, 0.0);
+        let mut app = test_app_with_interactive_input(test_profile(), spawn, false);
+        app.insert_resource(PlayerSimulationReady(false));
+        app.update();
+        let initial = snapshot(&app);
+        for _ in 0..8 {
+            submit(
+                &mut app,
+                PlayerControlCommand {
+                    move_axis: Vec2::Y,
+                    jump: true,
+                    look_delta: Vec2::splat(12.0),
+                    toggle_camera: true,
+                    ..default()
+                },
+            );
+            app.update();
+        }
+        let waiting = snapshot(&app);
+        assert_eq!(waiting.player_position, spawn);
+        assert_eq!(waiting.fixed_tick, initial.fixed_tick);
+        assert_eq!(waiting.last_applied_sequence, initial.last_applied_sequence);
+        assert_eq!(waiting.camera_mode, initial.camera_mode);
+        assert_eq!(
+            waiting.camera_yaw_radians.to_bits(),
+            initial.camera_yaw_radians.to_bits()
+        );
+        assert_eq!(waiting.vertical_velocity_mps.to_bits(), 0.0_f32.to_bits());
+        app.world_mut().resource_mut::<PlayerSimulationReady>().0 = true;
+        run_fixed(&mut app, 2);
+        let resumed = snapshot(&app);
+        assert!(resumed.player_position.y < spawn.y);
+        assert_eq!(resumed.horizontal_velocity, Vec3::ZERO);
+        assert_eq!(resumed.last_applied_sequence, initial.last_applied_sequence);
+        assert_eq!(resumed.camera_mode, initial.camera_mode);
+        app.world_mut().resource_mut::<PlayerSimulationReady>().0 = false;
+        for _ in 0..4 {
+            app.update();
+        }
+        let paused = snapshot(&app);
+        assert_eq!(paused.player_position, resumed.player_position);
+        assert_eq!(paused.fixed_tick, resumed.fixed_tick);
+        assert_eq!(paused.effective_translation, Vec3::ZERO);
+        assert_eq!(paused.vertical_velocity_mps.to_bits(), 0.0_f32.to_bits());
+    }
+
     fn test_profile() -> PlayerControllerProfileDocument {
         VisualValleyPlayerControllerRecipe.build().unwrap()
     }
 
     fn capsule_half_height(profile: &PlayerControllerProfileDocument) -> f32 {
         profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m
+    }
+
+    #[test]
+    fn initial_camera_target_sets_heading_without_changing_spawn_or_pitch() {
+        let profile = forge_world::VisualValleyPlayerControllerRecipe
+            .build()
+            .unwrap();
+        let spawn = Vec3::new(15.0, 4.0, -225.0);
+        for (target, expected_forward) in [
+            (Vec3::ZERO, Vec3::new(-15.0, 0.0, 225.0).normalize()),
+            (spawn + Vec3::X * 10.0, Vec3::X),
+            (spawn + Vec3::Y * 10.0, Vec3::NEG_Z),
+        ] {
+            let mut app = App::new();
+            app.add_plugins(MinimalPlugins).add_plugins(
+                PlayerControllerPlugin::new(profile.clone(), spawn)
+                    .with_initial_camera_target(target)
+                    .with_interactive_input(false),
+            );
+            app.world_mut().run_schedule(Startup);
+            let state = snapshot(&app);
+            let forward = Quat::from_rotation_y(state.camera_yaw_radians) * Vec3::NEG_Z;
+            assert!((forward - expected_forward).length() < 0.0001);
+            assert!((state.player_position - spawn).length() < 0.0001);
+            assert!((state.camera_pitch_radians - (-12.0_f32).to_radians()).abs() < 0.0001);
+        }
+    }
+
+    #[cfg(feature = "qualification")]
+    #[test]
+    fn fixed_proof_clock_preserves_camera_during_player_ticks() {
+        let document = forge_world::embedded_visual_valley_world_sketch().unwrap();
+        let mut app = test_app(test_profile(), Vec3::ZERO);
+        app.add_plugins(
+            crate::FixedProofViewPlugin::new(&document, &document.validation_cameras[0].id)
+                .unwrap(),
+        );
+        app.update();
+        let camera = bindings(&app).camera_entity;
+        let pose = *app.world().get::<Transform>(camera).unwrap();
+        let Projection::Perspective(initial) = app.world().get::<Projection>(camera).unwrap()
+        else {
+            panic!()
+        };
+        let optics = (initial.fov, initial.near, initial.far);
+        for step in 1..=2 {
+            assert!(
+                app.world_mut()
+                    .resource_mut::<crate::FixedProofClock>()
+                    .request_step()
+            );
+            app.update();
+            assert_eq!(*app.world().get::<Transform>(camera).unwrap(), pose);
+            let Projection::Perspective(current) = app.world().get::<Projection>(camera).unwrap()
+            else {
+                panic!()
+            };
+            assert_eq!((current.fov, current.near, current.far), optics);
+            assert_eq!(app.world().resource::<crate::FixedProofClock>().steps, step);
+        }
+        assert!(snapshot(&app).fixed_tick > 0);
+        assert_eq!(
+            app.world().resource::<Time<Virtual>>().elapsed(),
+            Duration::from_millis(500)
+        );
+        // Removing diagnostic ownership restores the ordinary camera follower.
+        app.world_mut()
+            .remove_resource::<crate::FixedProofViewStatus>();
+        app.world_mut().run_schedule(FixedUpdate);
+        assert_ne!(*app.world().get::<Transform>(camera).unwrap(), pose);
     }
 
     fn test_app(profile: PlayerControllerProfileDocument, spawn_position: Vec3) -> App {

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "water_detail",
+    "role": "landmark",
+    "source_image_id": null,
+    "position_m": [-59.375, 12.0, -169.5625],
+    "target_m": [-85.0, 1.5, -199.0],
+    "vertical_fov_degrees": 40.0,
+    "near_m": 0.1,
+    "far_m": 1000.0
+  },
+  {
+    "id": "forest_detail",
+    "role": "landmark",
+    "source_image_id": null,
+    "position_m": [-10.0, 18.0, 90.0],
+    "target_m": [-65.0, 12.0, 115.0],
+    "vertical_fov_degrees": 38.0,
+    "near_m": 0.1,
+    "far_m": 1000.0
+  }
+]

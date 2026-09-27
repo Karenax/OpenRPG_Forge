@@ -2,13 +2,22 @@
 
 //! Versioned source-of-truth documents used by both native and WASM consumers.
 
+pub mod audit;
+pub mod authoring;
+pub mod building;
+pub mod effective_quality;
 mod environment;
+pub mod imported_vegetation;
 mod player;
 mod quality;
+pub mod sampled_terrain;
 mod terrain;
+pub mod terrain_edit;
 mod vegetation;
 mod water;
 mod weather;
+pub mod workspace;
+pub mod zone_authoring;
 
 pub use environment::{
     DistanceFogFalloff, DistanceFogProfile, ENVIRONMENT_PROFILE_SCHEMA,
@@ -17,6 +26,9 @@ pub use environment::{
     SkyProfile, SrgbColor, SunProfile, VolumetricFogCapability, VolumetricFogFallback,
     VolumetricFogProfile,
 };
+
+mod cloud_layer;
+pub use cloud_layer::{CloudLayerSettings, CloudLayerSettingsError, cloud_preview_view_steps};
 
 pub use player::{
     PLAYER_CONTROLLER_PROFILE_SCHEMA, PLAYER_CONTROLLER_PROFILE_SCHEMA_VERSION,
@@ -37,8 +49,10 @@ pub use terrain::{
     HeightSamplingAlgorithm, HeightSamplingParameters, MAX_TERRAIN_HEIGHT_DELTAS,
     MAX_TERRAIN_MATERIAL_LAYERS, MAX_TERRAIN_SAMPLE_INTERVALS_PER_AXIS,
     MIN_TERRAIN_MATERIAL_LAYERS, TERRAIN_DOCUMENT_SCHEMA, TERRAIN_DOCUMENT_SCHEMA_VERSION,
-    TERRAIN_DOCUMENT_SCHEMA_VERSION_V1, TerrainDocument, TerrainDocumentError, TerrainExtent,
-    TerrainHeightDelta, TerrainMaterialLayer, TerrainMaterialLayerId, TerrainMaterialRole,
+    TERRAIN_DOCUMENT_SCHEMA_VERSION_V1, TERRAIN_DOCUMENT_SCHEMA_VERSION_V3,
+    TERRAIN_DOCUMENT_SCHEMA_VERSION_V4, TerrainDocument, TerrainDocumentError, TerrainExtent,
+    TerrainHeightDelta, TerrainMaterialLayer, TerrainMaterialLayerId, TerrainMaterialOverride,
+    TerrainMaterialRole, TerrainMaterialWeight,
 };
 pub use vegetation::{
     MAX_GRASS_BLADES_PER_PATCH, MAX_VEGETATION_ATTEMPTS_PER_CELL,
@@ -46,7 +60,8 @@ pub use vegetation::{
     MAX_VEGETATION_EXCLUSIONS, MAX_VEGETATION_EXPANDED_GRASS_BLADES, MAX_VEGETATION_LAYERS,
     MAX_VEGETATION_PLACEMENT_ATTEMPTS, MIN_VEGETATION_CELLS_PER_CHUNK_AXIS,
     VEGETATION_CHUNK_SIZE_M, VEGETATION_DOCUMENT_SCHEMA, VEGETATION_DOCUMENT_SCHEMA_VERSION,
-    VEGETATION_EXTENT_M, VegetationCollisionProfile, VegetationCollisionShape, VegetationDocument,
+    VEGETATION_DOCUMENT_SCHEMA_VERSION_V2, VEGETATION_EXTENT_M, VegetationCollisionProfile,
+    VegetationCollisionShape, VegetationDensityMask, VegetationDensityPattern, VegetationDocument,
     VegetationDocumentError, VegetationExclusion, VegetationExclusionId, VegetationExtent,
     VegetationKind, VegetationLayer, VegetationLayerId, VegetationMaterialFilter,
     VegetationPresentationProfile,
@@ -54,16 +69,17 @@ pub use vegetation::{
 pub use water::{
     MAX_RIVER_CONTROL_POINTS, MAX_RIVER_SAMPLE_COUNT, MAX_WATER_DOCUMENT_JSON_BYTES,
     MIN_RIVER_CONTROL_POINTS, ResolvedWaterReflectionPath, ResolvedWaterRefractionPath,
-    RiverBankProfile, RiverControlPoint, RiverPathAlgorithm, RiverProfile, WATER_DOCUMENT_SCHEMA,
-    WATER_DOCUMENT_SCHEMA_VERSION, WaterDocument, WaterDocumentError, WaterOpticsCapabilities,
-    WaterOpticsCapabilityStatus, WaterOpticsProfile, WaterOpticsResolution, WaterQualityTier,
-    WaterReflectionFallback, WaterReflectionProfile, WaterRefractionFallback,
-    WaterRefractionProfile, WaterSrgbColor, WaterSurfaceProfile,
+    RiverBankProfile, RiverControlPoint, RiverElevationPolicy, RiverPathAlgorithm, RiverProfile,
+    WATER_DOCUMENT_SCHEMA, WATER_DOCUMENT_SCHEMA_VERSION, WaterDocument, WaterDocumentError,
+    WaterMediumProfile, WaterOpticsCapabilities, WaterOpticsCapabilityStatus, WaterOpticsProfile,
+    WaterOpticsResolution, WaterQualityTier, WaterReflectionFallback, WaterReflectionProfile,
+    WaterRefractionFallback, WaterRefractionProfile, WaterSrgbColor, WaterSurfaceProfile,
 };
 pub use weather::{
     BloomProfile, ColorGradeProfile, MAX_WEATHER_PROFILE_JSON_BYTES, PostProcessingProfile,
     RainDropBudgets, RainProfile, WEATHER_PROFILE_SCHEMA, WEATHER_PROFILE_SCHEMA_VERSION,
-    WeatherProfileDocument, WeatherProfileError, WeatherQualityTier, WeatherState, WetnessProfile,
+    WeatherProfileDocument, WeatherProfileError, WeatherQualityTier, WeatherState,
+    WeatherSunlightProfile, WetnessProfile,
 };
 
 use forge_core::{
