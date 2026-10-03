@@ -71,3 +71,23 @@ n'est pas encore executee ; aucun verdict visuel ou d'occlusion a ce stade.
 Clippy cible strict PASS (`plant-id-gpu-clippy-002.log`) apres correction d'un
 parametre injecte dans setup au lieu de capture. Build et execution GPU natifs
 lances : `plant-id-gpu-build-001.log`, `native-plant-id-001.log`. Resultat attendu.
+
+Resultat obtenu : compilation PASS 6 min 40 s ; execution GPU FAIL. Le graphe
+de scene demande COPY_SRC sur la profondeur de la nouvelle camera, dont les
+usages etaient limites a RENDER_ATTACHMENT. Usages corriges dans la passe ;
+nouveau test GPU de selection encore requis. Aucun ID GPU valide a ce stade.
+Les materiaux d'occlusion terrain/village opaque sont prepares et passent le
+Clippy cible (`plant-occluders-clippy-001.log`), mais ne sont pas raccordes a la
+preuve. La priorite passe au parcours jouable selon la demande du proprietaire.
+
+## Reprise GPU pendant la validation du vent
+
+Le mode `--resident-plant-navigation` a ete rejoue sur le binaire
+`a3bfd120d0b0d110b2f1d5f2f8fca200a8f57f398503a59eae2ad6bf9407fc30`.
+`native-wind-bootstrap-001` termine exit 0 en 8,89 s et produit
+`PLANT_ID_GPU_PASS unique=47 canonical_resolution=pass occluders=NOT_IMPLEMENTED`.
+Le fichier `plant-ids.json` resout 47 IDs GPU en 47 IDs canoniques du head
+`f05a68acc294b586940237565c77fe2f7679ae9d2b77f4596f0380680665d50f`.
+La capture visible et les deux sorties d'ombres restent identiques a la baseline.
+Preuves sous `E:/OpenRPG_Forge/.tidewater-integration/`. La correction COPY_SRC
+est donc validee sur GPU natif ; les occluders et les gestes Studio restent ouverts.

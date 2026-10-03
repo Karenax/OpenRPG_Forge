@@ -17,15 +17,7 @@ pub(super) fn LocalTranslationControls(
     let distance = RwSignal::new("1".to_owned());
     let prepare = move || -> Result<AuthoringRequest, String> {
         let current = head(state.get_untracked())?;
-        let source = current
-            .corrections
-            .placements
-            .as_deref()
-            .unwrap_or_default()
-            .iter()
-            .find(|placement| placement.id == id)
-            .ok_or("Objet absent de la zone courante")?
-            .transform;
+        let source = super::super::objects::lookup(&current, id)?.transform;
         let axis = match axis.get_untracked().as_str() {
             "x" => Axis::X,
             "y" => Axis::Y,

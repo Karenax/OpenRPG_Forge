@@ -347,9 +347,11 @@ pub fn AuthoringControls() -> impl IntoView {
                     <super::authoring_zone::SourceControls state=state busy=busy active_tab=active_tab path=path river=river building=building vegetation_selection=vegetation_selection on_command=Callback::new(send)/>
                     <section class="authoring-panel" data-authoring-tab="objects" hidden=move || active_tab.get() != AuthoringTab::Objects>
                         <super::authoring_assets::AssetBrowserControls state=state host_busy=busy inspected=placement_selection on_command=Callback::new(send)/>
+                        <super::authoring_gameplay::GameplayEditor state=state busy=busy send=Callback::new(send)/>
                     </section>
                     <section class="authoring-panel" data-authoring-tab="follow-up" hidden=move || active_tab.get() != AuthoringTab::FollowUp>
                         <super::authoring_playtest_controls::PlaytestControls state=state busy=busy send=Callback::new(send)/>
+                        <super::authoring_gameplay::GameplayControls state=state busy=busy send=Callback::new(send)/>
                         <super::authoring_history::HistoryControls state=state/>
                         <super::authoring_input::PlaytestStatus/>
                         <details><summary>"Aide et raccourcis"</summary>

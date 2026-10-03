@@ -42,6 +42,9 @@ pub(super) fn SourceControls(
         </section>
         <section class="authoring-panel" data-authoring-tab="nature" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::Nature>
             <h2>"Nature"</h2>
+            <Show when=move || state.get().and_then(|s| s.zone_head).and_then(|h| h.base.vegetation).is_some_and(|v| v.imported_source.is_some())>
+                <super::authoring_imported_plants::selection::Controls state=state busy=busy on_command=on_command/>
+            </Show>
             <label>"Outil de végétation"<select prop:value=move || nature_tool.get() on:change=move |ev| {
                 super::authoring_brush_pointer::cancel(); nature_tool.set(event_target_value(&ev));
             }><option value="paint">"Peindre la densité"</option><option value="generate">"Générer la végétation"</option><option value="species">"Choisir les espèces"</option><option value="layers">"Régler les couches"</option><option value="exclude">"Créer une clairière"</option></select></label>
@@ -116,89 +119,11 @@ pub(super) fn preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> St
         super::authoring_preview::clear();
         return "Proposition périmée : la zone ou sa révision a changé. Réexaminer la retouche avant de l’appliquer ; aucun nouvel aperçu demandé.".into();
     }
-    let corrections = &receipt.applied;
-    if receipt.applied.promotions != receipt.inverse.promotions {
-        return promotion_preview_label(state, receipt);
-    }
-    if let Some(label) = super::authoring_exclusions::preview_label(state, receipt) {
+    if let Some(label) = preview_primary_change(state, receipt) {
         return label;
     }
-    if let Some(label) = super::authoring_species::preview_label(state, receipt) {
+    if let Some(label) = preview_terrain_change(state, receipt) {
         return label;
-    }
-    if receipt.applied.start != receipt.inverse.start {
-        return start_preview_label(receipt);
-    }
-    if let Some(label) = super::authoring_buildings::preview_label(state, receipt) {
-        return label;
-    }
-    if let Some(head) = &state.zone_head
-        && head.corrections.rivers != corrections.rivers
-    {
-        return format!(
-            "Proposition rivière · non appliquée. {}. Aperçu du relief uniquement ; eau et végétation restent acceptées jusqu'à Appliquer.{}",
-            super::authoring_rivers::describe_changes(
-                head.corrections.rivers.as_deref().unwrap_or_default(),
-                corrections.rivers.as_deref().unwrap_or_default(),
-            ),
-            super::authoring_preview::prepare_zone(state, receipt),
-        );
-    }
-    if let Some(head) = &state.zone_head
-        && head.corrections.paths != corrections.paths
-    {
-        super::authoring_preview::clear();
-        let projection = super::authoring_path_projection::preview(state, receipt).map_or_else(
-            |error| format!("Aperçu 3D indisponible : {error}"),
-            |()| "Aperçu cyan demandé ; végétation inchangée avant application".into(),
-        );
-        return format!(
-            "Proposition chemins · {} → {} tracés · {} points · non appliquée. {projection}. {}",
-            head.corrections.paths.as_ref().map_or(0, Vec::len),
-            corrections.paths.as_ref().map_or(0, Vec::len),
-            corrections.paths.as_ref().map_or(0, |paths| paths
-                .iter()
-                .map(|p| p.points.len())
-                .sum::<usize>()),
-            super::authoring_paths::describe_changes(
-                head.corrections.paths.as_deref().unwrap_or_default(),
-                corrections.paths.as_deref().unwrap_or_default()
-            ),
-        );
-    }
-    if let Some(head) = &state.zone_head
-        && head.corrections.placements != corrections.placements
-    {
-        let changes = forge_project::zone_authoring::placements::PlacementChanges::between(
-            head.corrections.placements.as_deref().unwrap_or_default(),
-            corrections.placements.as_deref().unwrap_or_default(),
-        );
-        let details = match changes {
-            Ok(changes) => placement_changes_label(changes),
-            Err(reason) => return format!("Comparaison des placements refusée : {reason}"),
-        };
-        let result = super::authoring_assets::placements::proposal(state, receipt);
-        return format!(
-            "Proposition placements · {} → {} objets · {details} · non appliquée · {}",
-            head.corrections.placements.as_ref().map_or(0, Vec::len),
-            corrections.placements.as_ref().map_or(0, Vec::len),
-            result.map_or_else(
-                |e| e,
-                |()| "chargement de l’aperçu 3D demandé ; consulter son état".into()
-            )
-        );
-    }
-    if let Some(head) = &state.zone_head
-        && head.corrections.density != corrections.density
-    {
-        return format!(
-            "Proposition densité · non appliquée. {}{}",
-            super::authoring_density_review::describe(
-                &receipt.inverse.density,
-                &corrections.density
-            ),
-            super::authoring_preview::prepare_density(head, receipt),
-        );
     }
     if let Some(label) = super::authoring_regeneration_review::label(receipt) {
         super::authoring_preview::clear();
@@ -212,6 +137,96 @@ pub(super) fn preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> St
         super::authoring_regeneration_review::terrain_label(state.zone_head.as_ref(), receipt),
         super::authoring_preview::prepare_zone(state, receipt)
     )
+}
+
+fn preview_primary_change(state: &AuthoringState, receipt: &ZoneReceipt) -> Option<String> {
+    if receipt.applied.imported_plant_placements != receipt.inverse.imported_plant_placements {
+        super::authoring_preview::clear();
+        return Some("Pose ou retouche de plante copiée examinée · non appliquée. La vue garde les placements acceptés jusqu'à Appliquer ; Sauvegarder conserve la modification, Undo/Redo restent disponibles.".into());
+    }
+    if receipt.applied.imported_plant_offsets != receipt.inverse.imported_plant_offsets {
+        super::authoring_preview::clear();
+        return Some("Déplacement de plante importée examiné · non appliqué. La vue montre encore la position acceptée ; Appliquer reconstruit la plante, puis Sauvegarder conserve la retouche. Undo/Redo restent disponibles.".into());
+    }
+    if receipt.applied.promotions != receipt.inverse.promotions {
+        return Some(promotion_preview_label(state, receipt));
+    }
+    if let Some(label) = super::authoring_exclusions::preview_label(state, receipt) {
+        return Some(label);
+    }
+    if let Some(label) = super::authoring_species::preview_label(state, receipt) {
+        return Some(label);
+    }
+    if receipt.applied.start != receipt.inverse.start {
+        return Some(start_preview_label(receipt));
+    }
+    super::authoring_buildings::preview_label(state, receipt)
+}
+
+fn preview_terrain_change(state: &AuthoringState, receipt: &ZoneReceipt) -> Option<String> {
+    let corrections = &receipt.applied;
+    let head = state.zone_head.as_ref()?;
+    if head.corrections.rivers != corrections.rivers {
+        return Some(format!(
+            "Proposition rivière · non appliquée. {}. Aperçu du relief uniquement ; eau et végétation restent acceptées jusqu'à Appliquer.{}",
+            super::authoring_rivers::describe_changes(
+                head.corrections.rivers.as_deref().unwrap_or_default(),
+                corrections.rivers.as_deref().unwrap_or_default(),
+            ),
+            super::authoring_preview::prepare_zone(state, receipt),
+        ));
+    }
+    if head.corrections.paths != corrections.paths {
+        super::authoring_preview::clear();
+        let projection = super::authoring_path_projection::preview(state, receipt).map_or_else(
+            |error| format!("Aperçu 3D indisponible : {error}"),
+            |()| "Aperçu cyan demandé ; végétation inchangée avant application".into(),
+        );
+        return Some(format!(
+            "Proposition chemins · {} → {} tracés · {} points · non appliquée. {projection}. {}",
+            head.corrections.paths.as_ref().map_or(0, Vec::len),
+            corrections.paths.as_ref().map_or(0, Vec::len),
+            corrections.paths.as_ref().map_or(0, |paths| paths
+                .iter()
+                .map(|p| p.points.len())
+                .sum::<usize>()),
+            super::authoring_paths::describe_changes(
+                head.corrections.paths.as_deref().unwrap_or_default(),
+                corrections.paths.as_deref().unwrap_or_default()
+            ),
+        ));
+    }
+    if head.corrections.placements != corrections.placements {
+        let changes = forge_project::zone_authoring::placements::PlacementChanges::between(
+            head.corrections.placements.as_deref().unwrap_or_default(),
+            corrections.placements.as_deref().unwrap_or_default(),
+        );
+        let details = match changes {
+            Ok(changes) => placement_changes_label(changes),
+            Err(reason) => return Some(format!("Comparaison des placements refusée : {reason}")),
+        };
+        let result = super::authoring_assets::placements::proposal(state, receipt);
+        return Some(format!(
+            "Proposition placements · {} → {} objets · {details} · non appliquée · {}",
+            head.corrections.placements.as_ref().map_or(0, Vec::len),
+            corrections.placements.as_ref().map_or(0, Vec::len),
+            result.map_or_else(
+                |e| e,
+                |()| "chargement de l’aperçu 3D demandé ; consulter son état".into()
+            )
+        ));
+    }
+    if head.corrections.density != corrections.density {
+        return Some(format!(
+            "Proposition densité · non appliquée. {}{}",
+            super::authoring_density_review::describe(
+                &receipt.inverse.density,
+                &corrections.density
+            ),
+            super::authoring_preview::prepare_density(head, receipt),
+        ));
+    }
+    None
 }
 
 fn promotion_preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> String {

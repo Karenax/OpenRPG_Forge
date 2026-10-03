@@ -91,8 +91,14 @@ fn exact_decode_and_stable_identity() {
     let original = block(&bytes, 2);
     let instances = original.decode(&bytes, extent()).unwrap();
     assert_eq!(instances.len(), 2);
-    assert_eq!(instances[0].position_m, [12.5, 7.0, -23.0]);
-    assert_eq!(instances[0].scale, [1.2, 1.3, 1.4]);
+    assert_eq!(
+        instances[0].position_m.map(f64::to_bits),
+        [12.5_f64, 7.0, -23.0].map(f64::to_bits)
+    );
+    assert_eq!(
+        instances[0].scale.map(f64::to_bits),
+        [1.2_f64, 1.3, 1.4].map(f64::to_bits)
+    );
     assert_eq!(instances[0].parameters, [0.25]);
     let project = ProjectId::deterministic("project");
     let area = AreaId::deterministic("area");

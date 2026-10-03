@@ -34,7 +34,7 @@ pub(super) fn ReplacementControls(
             <button disabled=locked on:click=move |_| {
                 let setup = (|| {
                     let original = head(state.get_untracked())?;
-                    let placements = original.corrections.placements.as_deref().unwrap_or_default();
+                    let placements = super::super::objects::matching(&original,id)?;
                     let source = placements.iter().find(|p| p.id == id).ok_or("Objet absent")?;
                     let ids = placements.iter().filter(|p| p.id == id || (matching.get_untracked()
                         && p.asset_id == source.asset_id && p.asset_hash == source.asset_hash))
@@ -80,10 +80,10 @@ fn replacement_scope(
     target: &str,
     include_matching: bool,
 ) -> Result<String, String> {
-    let placements = state
+    let head = state
         .and_then(|state| state.zone_head.as_ref())
-        .and_then(|head| head.corrections.placements.as_deref())
         .ok_or("Ouvrir une zone contenant des objets")?;
+    let placements = super::super::objects::matching(head, id)?;
     let source = placements
         .iter()
         .find(|p| p.id == id)

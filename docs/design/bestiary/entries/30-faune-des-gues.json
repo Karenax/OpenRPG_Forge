@@ -1,0 +1,257 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.faune-des-gues",
+  "name": "Faune des gués",
+  "subtitle": "Le passeur qui connaît le poids de chaque courant",
+  "classification": {
+    "nature": "humanoïde sapient",
+    "family": "faunes des vallées fluviales",
+    "rarity": "peu commun, installé près des passages saisonniers",
+    "activity": "diurne, avec veilles lors des crues",
+    "social": "familles et associations de passeurs indépendantes",
+    "threat": "moderee",
+    "threat_reason": "Un passeur connaît les appuis et peut repousser un intrus vers un mauvais courant ; hors de ce terrain, son équipement et son entraînement restent ceux d'une personne ordinaire."
+  },
+  "physique": {
+    "dimensions": "1,45 à 1,75 m debout ; cornes de 15 à 30 cm",
+    "mass_kg": [
+      48,
+      76
+    ],
+    "locomotion": [
+      "marche bipède",
+      "bond entre pierres",
+      "nage courte avec appuis fréquents"
+    ],
+    "center_of_gravity": "Bassin compact au-dessus de membres postérieurs puissants ; la posture fléchie améliore la stabilité mais fatigue sur route plate.",
+    "silhouette": "Visage allongé, petites cornes rabattues, jambes couvertes d'un poil court et sabots larges fendus en deux lobes mobiles.",
+    "anatomy_zones": [
+      {
+        "zone": "front et cornes",
+        "description": "Os dense sur le front ; les tempes demeurent exposées.",
+        "protection": 9
+      },
+      {
+        "zone": "torse",
+        "description": "Gilet de laine serrée et bandes de cuir de travail.",
+        "protection": 7
+      },
+      {
+        "zone": "bras et mains",
+        "description": "Membres libres pour la perche, protégés seulement par des manchettes.",
+        "protection": 3
+      },
+      {
+        "zone": "jambes et sabots",
+        "description": "Poil gras sur les jambes, corne épaisse sous le pied ; articulations non cuirassées.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "gués de rivière entre gravières mobiles",
+    "villages de pilotis au bord de vallées sujettes aux crues"
+  ],
+  "ecology": {
+    "diet": "Régime varié de céréales, légumes, poissons et laitages selon les échanges locaux ; aucune nourriture rituelle obligatoire.",
+    "lifecycle": "Les jeunes apprennent d'abord à lire la rive depuis un chemin sûr ; la conduite d'un groupe dans l'eau ne vient qu'après des années d'apprentissage.",
+    "reproduction": "Naissances et liens familiaux comparables à ceux d'autres peuples sapients ; les usages de parenté diffèrent entre communautés.",
+    "behavior": "Un passeur inspecte une traversée avant de promettre son aide. Certains demandent un salaire, d'autres défendent un droit collectif ; leur attitude dépend du contrat et de leur vécu.",
+    "niche": "Intermédiaire entre rives, observateur des crues et artisan des passages provisoires.",
+    "environmental_impact": "Les pierres de balisage et les petits ouvrages déplacent les dépôts de gravier ; leur entretien peut favoriser une rive au détriment de l'autre."
+  },
+  "senses": [
+    "vision attentive aux rides, reflets et débris flottants",
+    "sens du contact sous les sabots pour comparer l'adhérence de deux appuis"
+  ],
+  "communication": [
+    "langues des communautés riveraines apprises individuellement",
+    "sifflets convenus et gestes de perche pour guider un groupe au milieu du bruit"
+  ],
+  "signs": [
+    "deux empreintes larges au bord des pierres sèches",
+    "balises de bois marquées de hauteurs d'eau récentes",
+    "perches séchant à l'ombre avec leurs extrémités réparées"
+  ],
+  "demeanor": {
+    "objectives": [
+      "faire respecter un accord de passage",
+      "éviter une noyade prévisible",
+      "préserver les ouvrages dont dépend sa communauté"
+    ],
+    "fears": [
+      "groupe qui panique au milieu du gué",
+      "rupture d'une corde chargée",
+      "accusation injuste après une crue"
+    ],
+    "morale": "Solide sur un passage reconnu et avec des partenaires ; il peut négocier ou se retirer si son rôle de protection devient impossible.",
+    "escalation": "Il avertit de la profondeur, barre la route avec sa perche puis repousse si une personne met délibérément le groupe en danger.",
+    "retreat": "Il rejoint la rive la plus proche par les appuis déjà repérés, en laissant une possibilité de sortie à ceux qu'il protégeait."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 6,
+      "willpower": 5,
+      "perception": 8,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 42,
+      "acrobatics": 50,
+      "swimming": 55,
+      "survival": 62,
+      "polearms": 42,
+      "unarmed": 30,
+      "vigilance": 55,
+      "persuasion": 38,
+      "leadership": 35,
+      "crafting": 35
+    },
+    "movement": "Marche 3 m/s, course 6 m/s ; traversée prudente 1 m/s sur appuis reconnus ; nage 1,5 m/s sans forte charge.",
+    "protections": [
+      "Le gilet protège le torse selon sa matière ; il ne couvre ni le visage ni les mains.",
+      "Les sabots résistent aux cailloux mais glissent sur une dalle couverte d'algues."
+    ],
+    "attacks": [
+      {
+        "name": "Perche de séparation",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "1,8 m devant la prise",
+        "stamina_cost": 9,
+        "preparation": "0,65 seconde de recul de la main avant",
+        "telegraph": "La perche se met en travers à hauteur du bassin et sa pointe dessine un bref avertissement.",
+        "effect": "Contact contondant ; une poussée peut retirer jusqu'à 12 points d'Équilibre, sans projeter automatiquement. La perche reste saisissable et sa longueur gêne un espace étroit.",
+        "counterplay": "Reculer hors de portée, tenir une garde ou saisir la partie réellement accessible ; se décaler sur un appui sec évite de céder au courant."
+      },
+      {
+        "name": "Heurt de front",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 16,
+        "reach": "0,5 m",
+        "stamina_cost": 11,
+        "preparation": "0,7 seconde en baissant les épaules",
+        "telegraph": "Il ramène les coudes et cale un sabot avant d'avancer.",
+        "effect": "Contact contondant de proximité, suivi de 0,9 seconde de récupération ; les cornes rabattues n'accordent aucun bonus perforant sans contact de leur pointe.",
+        "counterplay": "Libérer la distance de contact ou pivoter autour de son appui ; une poussée latérale pendant la préparation peut lui faire perdre sa propre stabilité."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Lecture du passage",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "survival",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "portion visible du gué sur 10 m",
+        "stamina_cost": 4,
+        "preparation": "4 secondes d'observation et de sondage avec une perche",
+        "telegraph": "Il compare plusieurs rides puis touche le fond en trois points distincts.",
+        "effect": "Survie D18 si le fond est lisible, D26 en eau trouble ou crue. Une réussite désigne au plus trois appuis vérifiés ; les compagnons qui entendent et suivent exactement ces indications gagnent contexte +1 au prochain test de traversée dans les 30 secondes. Aucun effet après déplacement des pierres ou montée de l'eau.",
+        "counterplay": "Le bruit peut couper les consignes ; eau plus haute, appui cassé ou charge excessive invalident le trajet. Cette capacité ne révèle jamais un fond hors de portée de la perche."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "marche brève en eau fraîche",
+        "mechanism": "Le poil gras isole les jambes ; accumulation de Froid réduite de 15 % tant que le torse reste sec, sans protection contre une immersion prolongée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "pierres lisses couvertes d'algues",
+        "mechanism": "Les lobes du sabot ne trouvent pas de relief ; il doit ralentir ou assurer son corps comme tout autre voyageur."
+      },
+      {
+        "subject": "charge accrochée à la perche",
+        "mechanism": "Un poids suspendu loin des mains augmente le bras de levier et peut arracher l'outil si la prise ne résiste pas."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "pierre de gué déplacée",
+        "result": "route précédemment sûre devenue discontinue",
+        "chain": "Le courant accélère dans l'ouverture et les appuis ne se succèdent plus à la distance annoncée ; les voyageurs doivent réévaluer leur passage."
+      },
+      {
+        "input": "corde tendue entre les deux rives",
+        "result": "ligne d'appui collective soumise à sa charge réelle",
+        "chain": "La tension soutient les personnes qui la saisissent, mais se transmet aux ancrages ; un pieu arraché peut entraîner plusieurs mains liées au même support."
+      }
+    ],
+    "resources": {
+      "vitality": 106,
+      "stamina": 95,
+      "mana": 74,
+      "balance": 84,
+      "focus": 92
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Des balises gravées à plusieurs hauteurs décrivent des états différents de la rivière ; suivre la plus haute marque au hasard ne garantit aucun passage."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Certains signaux de perche auraient conservé la forme d'anciens alphabets commerciaux aujourd'hui oubliés sur la rive opposée."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Une association de passeurs conserve, dans une poterie scellée, les quittances prouvant qu'un péage récent a déjà été payé par les deux villages pour une génération entière."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "guide de traversée",
+      "médiateur entre deux rives",
+      "opposant motivé par un contrat"
+    ],
+    "telegraphs": [
+      "La perche tenue horizontalement est un avertissement compris des riverains.",
+      "Le sondage répété d'une même pierre révèle un doute avant une éventuelle fermeture du gué."
+    ],
+    "noncombat_options": [
+      "Présenter le but du voyage et négocier un passage adapté à la charge et à la hauteur d'eau.",
+      "Aider à réparer les balises ou transporter des matériaux en échange d'une traversée accompagnée."
+    ],
+    "complications": [
+      "Un ordre militaire peut exiger le passage immédiat malgré les avertissements du guide.",
+      "Une réparation sur une rive peut détourner les sédiments vers les terres d'un autre village."
+    ]
+  },
+  "salvage": [
+    "Outils, cartes et perches uniquement cédés, achetés ou trouvés réellement abandonnés ; jamais un butin automatique lié au corps.",
+    "Une leçon consentie de lecture du courant peut être la récompense d'un service rendu."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "faune-des-gues-plate-v1.png",
+      "alt": "Un Faune des gués en gilet de travail s’appuie sur une perche dans une rivière peu profonde, ses sabots fendus posés parmi les graviers.",
+      "caption": "Un passeur inspecte une traversée avant de promettre son aide. Certains demandent un salaire, d'autres défendent un droit collectif ; leur attitude dépend du contrat et de leur vécu.",
+      "prompt_key": "faune-des-gues-plate-v1"
+    }
+  ]
+}

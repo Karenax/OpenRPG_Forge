@@ -1,0 +1,256 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.couronne-de-spores",
+  "name": "Couronne de spores",
+  "subtitle": "Une colonie qui transporte son propre sous-bois",
+  "classification": {
+    "nature": "colonie fongique mobile",
+    "family": "champignons à faisceaux porteurs",
+    "rarity": "rare, abondante localement après des pluies chaudes",
+    "activity": "crépusculaire et après les averses",
+    "social": "une colonie coordonne plusieurs dizaines de fructifications ; les colonies voisines restent distinctes",
+    "threat": "forte",
+    "threat_reason": "Les nuages peuvent fermer un passage confiné tandis que les filaments accrochent les vêtements ; un courant d'air et la distance réduisent nettement cette menace."
+  },
+  "physique": {
+    "dimensions": "couronne de 1,2 à 1,8 m de haut ; base de 1,5 m de diamètre",
+    "mass_kg": [
+      45,
+      85
+    ],
+    "locomotion": [
+      "contraction de faisceaux sous la base",
+      "glissement sur un tapis de débris humides"
+    ],
+    "center_of_gravity": "Base dense très basse ; les grands chapeaux déséquilibrent l'ensemble lorsqu'ils sont gorgés d'eau.",
+    "silhouette": "Chapeaux beige orangé disposés en couronne autour d'un creux sombre, portés par des faisceaux de filaments noués.",
+    "anatomy_zones": [
+      {
+        "zone": "base mycélienne",
+        "description": "Matelas fibreux serré autour de terre et de bois en décomposition.",
+        "protection": 11
+      },
+      {
+        "zone": "pieds porteurs",
+        "description": "Faisceaux élastiques se contractant à tour de rôle.",
+        "protection": 5
+      },
+      {
+        "zone": "chapeaux",
+        "description": "Chair poreuse et lamelles fragiles, adaptées aux échanges avec l'air.",
+        "protection": 2
+      },
+      {
+        "zone": "filaments externes",
+        "description": "Cordons minces qui explorent et retiennent les débris.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "forêts humides où s'accumule le bois mort",
+    "galeries de carrière recevant de l'eau et des déchets végétaux"
+  ],
+  "ecology": {
+    "diet": "Bois mort, feuilles et déchets végétaux déjà décomposés ; elle n'a pas besoin de proies vivantes pour se nourrir.",
+    "lifecycle": "Un tapis immobile grandit plusieurs années avant de constituer une couronne mobile ; les fructifications sont remplacées chaque saison.",
+    "reproduction": "Les spores germent sur des débris humides, mais seules des colonies compatibles peuvent unir leurs filaments pour former une nouvelle base.",
+    "behavior": "Elle avance vers un stock de matière organique puis se fixe ; l'agitation des filaments répond aux vibrations ou à l'arrachement de chapeaux.",
+    "niche": "Décomposeur qui redistribue l'humus entre les poches d'humidité.",
+    "environmental_impact": "Elle enrichit les sols pauvres mais peut obturer un drain avec les débris transportés dans sa base."
+  },
+  "senses": [
+    "réception des vibrations par le faisceau posé au sol",
+    "sensibilité chimique à l'humidité, au bois altéré et aux lésions de ses filaments"
+  ],
+  "communication": [
+    "variations chimiques lentes à travers un contact de mycélium",
+    "contraction successive des chapeaux en réponse à une forte vibration"
+  ],
+  "signs": [
+    "anneau de petites taches poudreuses sous une voûte",
+    "traînée humide mêlée de brindilles rangées dans le même sens",
+    "amas de chapeaux qui restent dressés alors que leur substrat se déplace"
+  ],
+  "demeanor": {
+    "objectives": [
+      "rejoindre un substrat humide",
+      "préserver les fructifications mûres",
+      "stabiliser sa base"
+    ],
+    "fears": [
+      "courant d'air desséchant",
+      "eau vive arrachant les filaments",
+      "feu au contact de l'humus"
+    ],
+    "morale": "La réaction s'atténue lorsque cessent les vibrations ; une base lésée se replie et cherche un support.",
+    "escalation": "Un frémissement parcourt la couronne, quelques lamelles s'ouvrent puis un nuage est relâché si la perturbation continue.",
+    "retreat": "Elle se contracte derrière une souche et avance vers une cavité humide ; elle ne poursuit pas au-delà de 4 m d'un substrat praticable."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 3,
+      "constitution": 8,
+      "intelligence": 2,
+      "willpower": 5,
+      "perception": 5,
+      "presence": 2
+    },
+    "skills": {
+      "unarmed": 35,
+      "throwing": 42,
+      "survival": 60,
+      "athletics": 28,
+      "vigilance": 38
+    },
+    "movement": "Glissement 0,4 m/s sur débris humides ; 0,1 m/s sur dalle sèche ; franchissement d'une marche de 20 cm au maximum.",
+    "protections": [
+      "La base fibreuse absorbe les petits chocs ; elle ne constitue pas une armure autour des chapeaux.",
+      "Une lacération peut séparer des faisceaux et reste une blessure même si aucune douleur animale n'est exprimée."
+    ],
+    "attacks": [
+      {
+        "name": "Fouet de filament",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 14,
+        "reach": "1,6 m depuis la base",
+        "stamina_cost": 9,
+        "preparation": "1 seconde de contraction d'un cordon",
+        "telegraph": "Un filament blanchit et se tend entre deux pieds.",
+        "effect": "Contact contondant suivi d'un accrochage possible au tissu ; vitesse réduite de 20 % pendant 3 secondes au maximum tant que le cordon reste tendu. Pas de cumul entre cordons.",
+        "counterplay": "Couper le cordon, lâcher la pièce retenue ou quitter sa portée avant le geste ; une surface lisse n'offre pas de prise."
+      },
+      {
+        "name": "Bouffée de lamelles",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "cône de 60 degrés sur 3 m, nuage ensuite porté par l'air",
+        "stamina_cost": 18,
+        "preparation": "1,8 seconde, trois chapeaux relevés",
+        "telegraph": "Les lamelles orangées se découvrent et une poussière fine apparaît au bord.",
+        "effect": "Nuage réel pendant 6 secondes au maximum : inhalation ajoute 10 de Toxicité par seconde, plafond de 30 par bouffée. Un masque filtrant adapté réduit cette accumulation de moitié. Nouvelle bouffée après 15 secondes.",
+        "counterplay": "Quitter les 3 m annoncés, retenir son souffle selon la règle commune ou ventiler ; le nuage suit le vent et ne choisit pas ses victimes."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Couronne refermée",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "survival",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "soi-même, couronne de 1,5 m",
+        "stamina_cost": 12,
+        "preparation": "2 secondes sans déplacement",
+        "telegraph": "Les pieds se rapprochent et les grands chapeaux recouvrent les lamelles.",
+        "effect": "Pendant 8 secondes au maximum, les lamelles sont couvertes et aucune bouffée ne peut être émise. La perte d'eau par air sec est réduite de 30 %, mais la base et les filaments restent accessibles.",
+        "counterplay": "Profiter de cette période pour contourner ; un obstacle entre deux pieds empêche la fermeture complète sans lui infliger automatiquement des dégâts."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "impacts superficiels dispersés",
+        "mechanism": "Plusieurs faisceaux se partagent la charge ; la protection de la base ne s'applique qu'aux zones réellement couvertes."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "air sec continu",
+        "mechanism": "Les filaments perdent leur élasticité ; après 30 secondes d'exposition soutenue, le déplacement tombe à 0,1 m/s jusqu'à réhydratation."
+      },
+      {
+        "subject": "courant d'eau rapide",
+        "mechanism": "Les particules de substrat sont arrachées et la base ne peut prendre appui sur une surface lavée."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "saignement sanguin",
+        "mechanism": "La colonie ne possède pas de sang ; la perte de liquide cellulaire, le feu et l'arrachement restent pleinement dommageables."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "porte ouverte entre deux salles à températures différentes",
+        "result": "nuage déplacé vers l'une des ouvertures",
+        "chain": "Le courant d'air entraîne les spores avec lui ; l'exposition peut quitter le groupe mais atteindre une autre salle occupée."
+      },
+      {
+        "input": "amas de bois humide déposé à l'écart",
+        "result": "réorientation lente du déplacement",
+        "chain": "Les molécules du substrat se diffusent dans l'humidité ; les filaments qui les rencontrent tirent progressivement la base dans cette direction."
+      }
+    ],
+    "resources": {
+      "vitality": 118,
+      "stamina": 105,
+      "mana": 58,
+      "balance": 92,
+      "focus": 80
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "L'ouverture simultanée de trois chapeaux annonce une émission ; les petits filaments qui tremblent seuls signalent seulement une exploration."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les colonies déplacées d'un lieu à l'autre pourraient perdre leur mobilité si les décomposeurs microscopiques du substrat changent."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Une colonie mature sécrète parfois, sous son centre, une résine violette qui préserve l'encre végétale effacée sur du bois enfoui."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle respiratoire",
+      "indice d'un drainage défaillant",
+      "colonie déplacée par des travaux"
+    ],
+    "telegraphs": [
+      "Des lamelles découvertes et une poussière orange précèdent la bouffée.",
+      "La base se tasse avant que les filaments ne se tendent."
+    ],
+    "noncombat_options": [
+      "Ventiler et attendre la fermeture des chapeaux pour passer hors de portée des filaments.",
+      "Préparer un lit de bois humide dans un endroit sûr et lui laisser plusieurs heures pour s'y déplacer."
+    ],
+    "complications": [
+      "Une ventilation brutale peut exporter les spores vers des habitations.",
+      "Le bois destiné à l'attirer peut être l'unique réserve de chauffage d'un refuge."
+    ]
+  },
+  "salvage": [
+    "Ne recueillir que les chapeaux déjà détachés après dissipation des spores, avec protection respiratoire.",
+    "Prélever une petite quantité de compost abandonné sans détruire la base ni répandre la colonie dans un milieu inconnu."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "couronne-de-spores-plate-v1.png",
+      "alt": "Plusieurs chapeaux beige orangé forment une Couronne de spores autour d’un creux sombre, sur des faisceaux mycéliens noués dans un bois humide.",
+      "caption": "Elle avance vers un stock de matière organique puis se fixe ; l'agitation des filaments répond aux vibrations ou à l'arrachement de chapeaux.",
+      "prompt_key": "couronne-de-spores-plate-v1"
+    }
+  ]
+}

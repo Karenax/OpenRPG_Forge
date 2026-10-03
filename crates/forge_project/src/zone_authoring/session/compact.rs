@@ -61,7 +61,18 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
     if archive.schema != "forge.zone-edit-session"
         || !matches!(
             archive.version,
-            3 | 5 | 9 | 11 | 14 | 17 | 20 | 23 | 26 | 29 | 32
+            3 | 5
+                | 9
+                | 11
+                | 14
+                | 17
+                | 20
+                | 23
+                | 26
+                | 29
+                | 32
+                | 35
+                | super::SOURCE_OBJECT_COMPACT_VERSION
         )
         || archive.commands.len() > 1024
     {
@@ -89,6 +100,12 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
 }
 
 pub(super) fn version(receipts: &[ZoneReceipt]) -> u32 {
+    if super::has_source_objects(receipts) {
+        return super::SOURCE_OBJECT_COMPACT_VERSION;
+    }
+    if super::archive_version(receipts) == 34 {
+        return 35;
+    }
     if super::archive_version(receipts) == 31 {
         return 32;
     }

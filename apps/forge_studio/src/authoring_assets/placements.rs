@@ -38,6 +38,10 @@ enum Request {
     Show(Prepared),
 }
 thread_local! {
+    static PREVIEW_ACTIVE: Cell<bool> = const { Cell::new(false) };
+    static SOURCE_KEY: Cell<Option<(forge_core::ContentHash, u64, Option<forge_core::ContentHash>)>> = const { Cell::new(None) };
+    static SOURCE_OUTPUT: Cell<Option<leptos::prelude::RwSignal<u64>>> = const { Cell::new(None) };
+    static ACCEPTED_HEAD: RefCell<Option<forge_project::zone_authoring::ZoneAuthoringHead>> = const { RefCell::new(None) };
     static ACCEPTED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static DESIRED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static EPOCH: Cell<u64> = const { Cell::new(0) };
@@ -53,7 +57,18 @@ thread_local! {
 pub(crate) fn focus(id: forge_core::EntityId) {
     if crate::authoring_viewport::can_preview_asset() {
         crate::authoring_brush_pointer::cancel();
-        if !super::imported_scene::focus(id) {
+        if let Some(head) = crate::authoring_imported_population::current_head()
+            && super::objects::is_batched(&head, id)
+            && let Ok(object) = super::objects::lookup(&head, id)
+        {
+            let t = object.transform;
+            crate::authoring_camera::focus_object(
+                Vec3::new(t.translation_m.x, t.translation_m.y, t.translation_m.z),
+                8.0 * t.scale.x.max(t.scale.y).max(t.scale.z),
+            );
+            return;
+        }
+        if !super::imported_scene::focus(id) && !super::fish_stand_scene::focus(id) {
             FOCUS.with(|slot| slot.set(Some(id)));
         }
     }
@@ -86,10 +101,13 @@ fn current(epoch: u64) -> bool {
 
 pub(crate) fn observe(state: &AuthoringState) {
     gizmo::cancel();
+    PREVIEW_ACTIVE.with(|slot| slot.set(false));
+    SOURCE_KEY.with(|slot| slot.set(None));
+    ACCEPTED_HEAD.with(|slot| slot.replace(state.zone_head.clone()));
     let placements = state
         .zone_head
         .as_ref()
-        .and_then(|head| head.corrections.placements.clone())
+        .and_then(|head| super::objects::list(head).ok())
         .unwrap_or_default();
     ACCEPTED.with(|slot| slot.replace(placements.clone()));
     selection::reconcile(&placements);
@@ -97,6 +115,7 @@ pub(crate) fn observe(state: &AuthoringState) {
 }
 
 pub(crate) fn restore() {
+    PREVIEW_ACTIVE.with(|slot| slot.set(false));
     show(ACCEPTED.with(|s| s.borrow().clone()));
 }
 
@@ -105,6 +124,46 @@ pub(super) fn desired_imports() -> Vec<ManualPlacement> {
         slot.borrow()
             .iter()
             .filter(|p| super::imported_buildings::contains_asset(p.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_boardwalks() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_boardwalk_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_piers() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_pier_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_plaza_props() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_plaza_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_fish_stands() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_fish_stand_asset(placement.asset_id))
             .cloned()
             .collect()
     })
@@ -124,15 +183,26 @@ pub(crate) fn proposal_ready() -> Result<bool, String> {
     }
     Ok(READY.with(Cell::get)
         && REQUEST.with(|s| s.borrow().is_none())
-        && super::imported_scene::ready()?)
+        && super::imported_scene::ready()?
+        && super::fish_stand_scene::ready()?)
 }
 
-pub(crate) fn accepted_projection(expected: &[ManualPlacement]) -> bool {
-    ACCEPTED.with(|accepted| accepted.borrow().as_slice() == expected)
+pub(crate) fn accepted_projection(
+    expected: &[ManualPlacement],
+    head_hash: forge_core::ContentHash,
+) -> bool {
+    !PREVIEW_ACTIVE.with(Cell::get)
+        && ACCEPTED_HEAD.with(|slot| {
+            slot.borrow()
+                .as_ref()
+                .is_none_or(|head| head.content_hash() == Ok(head_hash))
+        })
+        && ACCEPTED.with(|accepted| accepted.borrow().as_slice() == expected)
         && DESIRED.with(|desired| desired.borrow().as_slice() == expected)
         && REQUEST.with(|request| request.borrow().is_none())
         && READY.with(Cell::get)
         && super::imported_scene::ready() == Ok(true)
+        && super::fish_stand_scene::ready() == Ok(true)
 }
 
 pub(crate) fn proposal(
@@ -145,7 +215,12 @@ pub(crate) fn proposal(
     {
         return Err("Proposition de placement périmée".into());
     }
-    show(receipt.applied.placements.clone().unwrap_or_default());
+    let mut candidate = head.clone();
+    candidate.corrections = receipt.applied.clone();
+    candidate.version = candidate.corrections.schema_version();
+    let objects = super::objects::list(&candidate)?;
+    PREVIEW_ACTIVE.with(|slot| slot.set(true));
+    show(objects);
     Ok(())
 }
 
@@ -191,7 +266,13 @@ fn show(placements: Vec<ManualPlacement>) {
 async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepared, String> {
     let placements: Vec<_> = placements
         .into_iter()
-        .filter(|p| !super::imported_buildings::contains_asset(p.asset_id))
+        .filter(|p| {
+            !super::imported_buildings::contains_asset(p.asset_id)
+                && !super::imported_buildings::is_fish_stand_asset(p.asset_id)
+                && !super::imported_buildings::is_boardwalk_asset(p.asset_id)
+                && !super::imported_buildings::is_pier_asset(p.asset_id)
+                && !super::imported_buildings::is_plaza_asset(p.asset_id)
+        })
         .collect();
     let resident = RESIDENT.with(|slot| slot.borrow().clone());
     let mut catalog = None;
@@ -420,12 +501,79 @@ impl Projection {
     }
 }
 
+// Verified sources arrive asynchronously; resolve them only outside a proposal.
+fn refresh_sources() {
+    use leptos::prelude::Update;
+
+    if PREVIEW_ACTIVE.with(Cell::get) {
+        return;
+    }
+    let generation = super::imported_buildings::published_generation();
+    let population_owner = crate::authoring_imported_population::ready_head_hash();
+    if SOURCE_KEY
+        .with(Cell::get)
+        .is_some_and(|(hash, previous, ready)| {
+            previous == generation && ready == population_owner.filter(|owner| *owner == hash)
+        })
+    {
+        return;
+    }
+    if !DESIRED.with(|desired| ACCEPTED.with(|accepted| *desired.borrow() == *accepted.borrow())) {
+        return;
+    }
+    let head = ACCEPTED_HEAD.with(|slot| slot.borrow().clone());
+    if let Some(head) = head
+        && let Ok(objects) = super::objects::list(&head)
+    {
+        let Ok(hash) = head.content_hash() else {
+            return;
+        };
+        SOURCE_KEY.with(|slot| {
+            slot.set(Some((
+                hash,
+                generation,
+                population_owner.filter(|owner| *owner == hash),
+            )));
+        });
+        if ACCEPTED.with(|slot| *slot.borrow() != objects) {
+            ACCEPTED.with(|slot| slot.replace(objects.clone()));
+            selection::reconcile(&objects);
+            show(objects);
+        }
+        // Choices include edited batched instances once their population arrives.
+        // Their readiness can change while static placements remain identical.
+        let output = SOURCE_OUTPUT.with(Cell::get);
+        if let Some(output) = output {
+            output.update(|revision| *revision = revision.wrapping_add(1));
+        }
+    }
+}
+
+pub(super) fn bind_sources() -> leptos::prelude::RwSignal<u64> {
+    let signal = leptos::prelude::RwSignal::new(0);
+    SOURCE_OUTPUT.with(|slot| slot.set(Some(signal)));
+    leptos::prelude::on_cleanup(move || {
+        SOURCE_OUTPUT.with(|slot| {
+            if slot.get() == Some(signal) {
+                slot.set(None);
+            }
+        });
+    });
+    signal
+}
+
 pub(super) fn register(app: &mut App) {
     app.add_plugins(forge_engine::ManualPlacementCollisionPlugin);
     app.add_systems(PostUpdate, physics_status::report_status);
     app.add_systems(
         PostUpdate,
-        (update, sync_visibility, selection::pick, gizmo::update)
+        (
+            refresh_sources,
+            update,
+            sync_visibility,
+            selection::pick,
+            gizmo::update,
+        )
             .chain()
             .after(bevy::transform::TransformSystems::Propagate)
             .after(bevy::camera::visibility::VisibilitySystems::CalculateBounds),

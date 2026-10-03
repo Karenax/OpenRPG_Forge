@@ -20,6 +20,35 @@ struct Manifest {
 pub struct TerrainPackage {
     files: BTreeMap<String, Vec<u8>>,
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RasterEncoding {
+    Float32Le,
+}
+
+/// Spatial contract of the source raster used by terrain packages v1 and v2.
+/// The heights payload is acquired separately by its canonical zone pin.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RasterGeometry {
+    pub width: u32,
+    pub height: u32,
+    pub origin_xz_m: [f64; 2],
+    pub sample_spacing_m: f64,
+    pub outside_height_m: f32,
+    pub encoding: RasterEncoding,
+    pub extent_m: [f32; 2],
+}
+
+const SOURCE_RASTER_GEOMETRY: RasterGeometry = RasterGeometry {
+    width: 2048,
+    height: 2048,
+    origin_xz_m: [-1024.0; 2],
+    sample_spacing_m: 1.0,
+    outside_height_m: -90.0,
+    encoding: RasterEncoding::Float32Le,
+    extent_m: [2048.0; 2],
+};
+
 impl TerrainPackage {
     /// The caller pins the manifest and bounds each transport read to the supplied size.
     pub fn load(
@@ -61,6 +90,12 @@ impl TerrainPackage {
     #[must_use]
     pub fn file_count(&self) -> usize {
         self.files.len()
+    }
+
+    /// Available only from a package whose manifest and payloads were verified.
+    #[must_use]
+    pub const fn raster_geometry(&self) -> RasterGeometry {
+        SOURCE_RASTER_GEOMETRY
     }
 }
 fn verify(name: &str, entry: &Entry, bytes: &[u8]) -> Result<(), String> {

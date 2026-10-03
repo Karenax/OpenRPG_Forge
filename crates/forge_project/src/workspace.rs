@@ -5,6 +5,8 @@ use std::collections::BTreeSet;
 use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
+mod atomic_publish;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod file_session;
 pub mod history;
 #[cfg(not(target_arch = "wasm32"))]

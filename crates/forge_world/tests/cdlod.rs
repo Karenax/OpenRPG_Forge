@@ -1,4 +1,67 @@
-use forge_world::cdlod::{CdlodConfig, CdlodError, CdlodRoot, CdlodView, select_nodes};
+use forge_world::cdlod::{
+    CdlodConfig, CdlodError, CdlodNode, CdlodRoot, CdlodView, same_node_geometry, select_nodes,
+};
+
+#[test]
+fn opaque_geometry_reuses_permutations_but_preserves_patch_multiplicity() {
+    let a = CdlodNode {
+        origin_xz: [0.0, -8.0],
+        size_m: 8.0,
+        lod: 0,
+    };
+    let b = CdlodNode {
+        origin_xz: [8.0, -8.0],
+        ..a
+    };
+    let original = [a, b, a];
+    assert!(same_node_geometry(&original, &[b, a, a]));
+    assert_eq!(original, [a, b, a]);
+    assert!(!same_node_geometry(&original, &[b, a, b]));
+    assert!(!same_node_geometry(&original, &[a, b]));
+    assert!(same_node_geometry(&[], &[]));
+}
+
+#[test]
+fn opaque_geometry_invalidates_each_vertex_input_and_rejects_nonfinite_nodes() {
+    let node = CdlodNode {
+        origin_xz: [0.0, -8.0],
+        size_m: 8.0,
+        lod: 0,
+    };
+    for changed in [
+        CdlodNode {
+            origin_xz: [1.0, -8.0],
+            ..node
+        },
+        CdlodNode {
+            origin_xz: [0.0, -7.0],
+            ..node
+        },
+        CdlodNode {
+            size_m: 16.0,
+            ..node
+        },
+        CdlodNode { lod: 1, ..node },
+        CdlodNode {
+            origin_xz: [-0.0, -8.0],
+            ..node
+        },
+    ] {
+        assert!(!same_node_geometry(&[node], &[changed]));
+    }
+    for invalid in [
+        CdlodNode {
+            origin_xz: [f64::NAN, -8.0],
+            ..node
+        },
+        CdlodNode {
+            size_m: f64::INFINITY,
+            ..node
+        },
+    ] {
+        assert!(!same_node_geometry(&[invalid], &[invalid]));
+    }
+}
 
 fn config() -> CdlodConfig {
     CdlodConfig {

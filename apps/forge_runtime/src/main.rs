@@ -245,6 +245,7 @@ fn main() -> AppExit {
                 .disable::<LogPlugin>(),
         );
 
+    app.add_plugins(forge_engine::source_fragment::SourceFragmentPlugin);
     if let Some(plugin) = prototype_preparation {
         app.add_plugins(plugin);
     }
@@ -500,7 +501,7 @@ fn add_runtime_plugin(
     } = configuration;
     match document {
         RuntimeDocument::Gate0(document) => {
-            app.add_plugins(ProofScenePlugin::new(document).with_automation(automation));
+            app.add_plugins(ProofScenePlugin::new(*document).with_automation(automation));
         }
         RuntimeDocument::VisualValley {
             terrain: document,
@@ -512,6 +513,7 @@ fn add_runtime_plugin(
             derived_bridge: _,
             road_surface,
         } => {
+            let document = *document;
             if let Some(tier) = environment_quality {
                 if environment.is_none() {
                     return Err("environment quality requires an environment profile".to_owned());
@@ -755,9 +757,9 @@ const VISUAL_VALLEY_WINDOW_TITLE: &str = "OpenRPG Forge · Rust Gate 1 · Visual
 
 #[derive(Debug)]
 enum RuntimeDocument {
-    Gate0(SceneProofDocument),
+    Gate0(Box<SceneProofDocument>),
     VisualValley {
-        terrain: TerrainDocument,
+        terrain: Box<TerrainDocument>,
         vegetation: Option<Box<VegetationDocument>>,
         environment: Option<Box<EnvironmentProfileDocument>>,
         water: Option<Box<WaterDocument>>,
@@ -822,7 +824,7 @@ fn validated_visual_valley_document(
             .map_err(|error| format!("unsupported Visual Valley weather for {source}: {error}"))?;
     }
     Ok(RuntimeDocument::VisualValley {
-        terrain: document,
+        terrain: Box::new(document),
         vegetation: vegetation.map(Box::new),
         environment: environment.map(Box::new),
         water: water.map(Box::new),
@@ -1999,7 +2001,7 @@ impl Options {
                 .map_err(|error| format!("cannot read {}: {error}", path.display()))?;
             let document = SceneProofDocument::from_json(&json)
                 .map_err(|error| format!("invalid scene {}: {error}", path.display()))?;
-            return Ok(RuntimeDocument::Gate0(document));
+            return Ok(RuntimeDocument::Gate0(Box::new(document)));
         }
         if let Some(path) = &self.terrain_path {
             let json = fs::read_to_string(path)
@@ -2088,7 +2090,7 @@ impl Options {
             );
         }
         embedded_gate0_proof_document()
-            .map(RuntimeDocument::Gate0)
+            .map(|document| RuntimeDocument::Gate0(Box::new(document)))
             .map_err(|error| error.to_string())
     }
 
@@ -2655,7 +2657,7 @@ mod tests {
         let embedded_environment = embedded_visual_valley_environment_profile().unwrap();
         let embedded_water = embedded_visual_valley_water_document().unwrap();
         let embedded_weather = embedded_visual_valley_weather_profile().unwrap();
-        assert_eq!(loaded, embedded);
+        assert_eq!(*loaded, embedded);
         assert_eq!(*loaded_vegetation, embedded_vegetation);
         assert_eq!(*loaded_environment, embedded_environment);
         assert_eq!(*loaded_water, embedded_water);

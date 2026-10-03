@@ -1,4 +1,6 @@
 //! Clear-sky background using native atmosphere LUTs on the scene's device.
+pub mod solar;
+pub mod solar_lighting;
 use bevy::{
     camera::visibility::NoFrustumCulling,
     light::NotShadowCaster,

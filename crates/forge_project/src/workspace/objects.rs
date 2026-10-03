@@ -79,7 +79,7 @@ impl ZoneObjectStore {
         Ok(Self { root })
     }
 
-    /// Stage, flush, then publish a hard link atomically without replacing any
+    /// Stage, flush, then publish atomically without replacing any
     /// existing object. A crash before publication cannot expose a partial object.
     pub fn publish(&self, reviewed: &ReviewedZone) -> Result<(), String> {
         self.verify_sources(reviewed)?;
@@ -96,19 +96,24 @@ impl ZoneObjectStore {
             .create_new(true)
             .open(&stage)
             .map_err(|e| e.to_string())?;
+        let mut consumed = false;
         let result = (|| {
             file.write_all(&reviewed.bytes).map_err(|e| e.to_string())?;
             file.sync_all().map_err(|e| e.to_string())?;
             drop(file);
-            match fs::hard_link(&stage, &final_path) {
-                Ok(()) => (),
+            match super::atomic_publish::publish(&stage, &final_path) {
+                Ok(value) => consumed = value,
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
                 Err(e) => return Err(e.to_string()),
             }
             self.verify(reviewed.project_id, &reviewed.reference)
         })();
         // Only this call's successfully create_new-owned staging file is removed.
-        let cleanup = fs::remove_file(&stage).map_err(|e| e.to_string());
+        let cleanup = if consumed {
+            Ok(())
+        } else {
+            fs::remove_file(&stage).map_err(|e| e.to_string())
+        };
         result.and(cleanup)
     }
 

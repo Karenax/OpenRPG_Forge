@@ -1,8 +1,8 @@
 {
   "schema_version": "0.1",
-  "bestiary_id": "openrpg-forge.bestiary.fr.v0.2",
+  "bestiary_id": "openrpg-forge.bestiary.fr.v0.3",
   "title": "Bestiaire OpenRPG Forge",
-  "subtitle": "Lisières, eaux et cendres — volume I",
+  "subtitle": "Lisières, eaux et cendres — Horizons sauvages",
   "language": "fr-FR",
   "status": "design-proposal-not-implemented",
   "ruleset": {
@@ -76,6 +76,177 @@
       "La récupération porte sur du matériel abandonné ou cédé, jamais sur une anatomie sapiente par défaut."
     ]
   },
+  "expansion_wave": {
+    "id": "wild-realms.v0.3",
+    "status": "design-proposal-not-implemented",
+    "added_on": "2026-09-27",
+    "title": "Horizons sauvages",
+    "entry_ids": [
+      "creature.chouette-cerf-des-brisants",
+      "creature.taupe-belier-de-basalte",
+      "creature.raie-des-dunes",
+      "creature.tisseuse-de-verre",
+      "creature.brochet-lanterne",
+      "creature.ronce-marcheuse",
+      "creature.couronne-de-spores",
+      "creature.saule-des-voix",
+      "creature.faune-des-gues",
+      "creature.dame-des-lucioles",
+      "creature.lutine-des-greniers",
+      "creature.cheval-de-rosee",
+      "creature.porte-braise",
+      "creature.noeud-d-averse",
+      "creature.fileuse-de-givre",
+      "creature.berger-d-eboulis",
+      "creature.limon-d-ardoise",
+      "creature.gelee-de-cuivre",
+      "creature.nappe-de-sel",
+      "creature.veilleur-d-ossuaire",
+      "creature.porte-deuil-des-marais",
+      "creature.squelette-des-cloches",
+      "creature.cendrelame-lie",
+      "creature.arpenteur-de-bornes",
+      "creature.carillon-de-bronze",
+      "creature.drapier-d-argile",
+      "creature.geant-des-moraines",
+      "creature.ogresse-des-fours",
+      "creature.vouivre-des-salines",
+      "creature.dragon-des-sources-closes"
+    ],
+    "illustration_status": "complete",
+    "illustrated_entry_ids": [
+      "creature.chouette-cerf-des-brisants",
+      "creature.taupe-belier-de-basalte",
+      "creature.raie-des-dunes",
+      "creature.tisseuse-de-verre",
+      "creature.brochet-lanterne",
+      "creature.ronce-marcheuse",
+      "creature.couronne-de-spores",
+      "creature.saule-des-voix",
+      "creature.faune-des-gues",
+      "creature.dame-des-lucioles",
+      "creature.lutine-des-greniers",
+      "creature.cheval-de-rosee",
+      "creature.porte-braise",
+      "creature.noeud-d-averse",
+      "creature.fileuse-de-givre",
+      "creature.berger-d-eboulis",
+      "creature.limon-d-ardoise",
+      "creature.gelee-de-cuivre",
+      "creature.nappe-de-sel",
+      "creature.veilleur-d-ossuaire",
+      "creature.porte-deuil-des-marais",
+      "creature.squelette-des-cloches",
+      "creature.cendrelame-lie",
+      "creature.arpenteur-de-bornes",
+      "creature.carillon-de-bronze",
+      "creature.drapier-d-argile",
+      "creature.geant-des-moraines",
+      "creature.ogresse-des-fours",
+      "creature.vouivre-des-salines",
+      "creature.dragon-des-sources-closes"
+    ],
+    "research_document": "RESEARCH_HORIZONS_SAUVAGES_20260927.md",
+    "sources": [
+      {
+        "title": "How to Use a Monster — D&D Beyond Basic Rules",
+        "url": "https://www.dndbeyond.com/sources/dnd/br-2024/how-to-use-a-monster",
+        "accessed": "2026-09-27"
+      },
+      {
+        "title": "System Reference Document v5.2.1 — Wizards of the Coast",
+        "url": "https://www.dndbeyond.com/srd",
+        "accessed": "2026-09-27"
+      }
+    ],
+    "approach": "Création originale à partir d'archétypes généraux de fantasy. Aucun bloc de statistiques, texte, lore, illustration ou code de D&D n'est reproduit ou converti. Les chiffres suivent exclusivement les règles Forge.",
+    "preserved_entries": [
+      {
+        "path": "entries/01-loup-de-bruyere.json",
+        "sha256": "711DF71A2C8696DC3F9C02F9DDE314883E61135E9249E1F98660EBA408E0074D"
+      },
+      {
+        "path": "entries/02-sanglier-de-tourbe.json",
+        "sha256": "6A06BB2B6AC70E8BA186F812C0DBF81497BD5D5DFD0E4A3E58A3226B44A96F67"
+      },
+      {
+        "path": "entries/03-cerf-miroir.json",
+        "sha256": "60ABA0C45585637673B5E9CDBC807A121E435081B275529D1AFFC25CFEA57D02"
+      },
+      {
+        "path": "entries/04-mante-fougere.json",
+        "sha256": "8C32A822F710B4C9C33EB0E0787AA381466CC4A0D0AE1D69928233CFDD9E4354"
+      },
+      {
+        "path": "entries/05-myceleur-gris.json",
+        "sha256": "9A40F09594D9A413997A9FEBD818E344F2DFE147549BFEC3F98E0CDB1CC28BB3"
+      },
+      {
+        "path": "entries/06-sangsue-d-orage.json",
+        "sha256": "5E9B11A65900F7C08C4E7505DFCACD7C5D22949CD1002F6A9DAB706149113BBF"
+      },
+      {
+        "path": "entries/07-charognard-de-braise.json",
+        "sha256": "D4944D0EECBA4D495190CC6ADB73D26192366A536A78F483CBFFEDA40946EF5F"
+      },
+      {
+        "path": "entries/08-brumaille.json",
+        "sha256": "60AFF989266F875F4AD5C3334AD42BFD61BBD467E18F949E217A2FC329BBB7DA"
+      },
+      {
+        "path": "entries/09-rodeur-corrompu.json",
+        "sha256": "D4F3014202D7069104FAD2500DAB08CD108DA1D1E79724A22270CC1CEE30D1F8"
+      },
+      {
+        "path": "entries/10-sentinelle-de-cendre.json",
+        "sha256": "C4C9374710D09C7F669A584024FCB15D76E9D1D17B9445F5698CED7C6EC70408"
+      },
+      {
+        "path": "entries/11-gardien-des-cendres.json",
+        "sha256": "2129B3E80BD7291DB45968BB7C976DC00E4B88BAA514BC9C3A689F218C70BFE4"
+      },
+      {
+        "path": "entries/12-gardien-des-racines.json",
+        "sha256": "C52AD088DFD0116B912DD5F2A3931A4D2EA37388081B718DCA65A2569DE2F676"
+      },
+      {
+        "path": "entries/13-rivefil-gobelin.json",
+        "sha256": "8A44FF4B5DF4CCD5323DA67156E746D8F6DEECD7CD5CD2D8D26AC7FDB15F2A8E"
+      },
+      {
+        "path": "entries/14-veille-lueur-gobeline.json",
+        "sha256": "77D3308FD8A842F0A598CB46612294D20ECCC065D5B64B61F77E31C15F87DF31"
+      },
+      {
+        "path": "entries/15-prevote-gobeline-des-sept-vannes.json",
+        "sha256": "82F88947A4E72935883DCD8E1D321AE94B1CD68E6C1FB478B46E784BE3834C6C"
+      },
+      {
+        "path": "entries/16-cours-de-bise-gnoll.json",
+        "sha256": "AFC6A16EC06C2732294368A8AE6D5E07F4E838086A045680CA6C759FE84C3A54"
+      },
+      {
+        "path": "entries/17-mirevent-gnolle.json",
+        "sha256": "5B759C206BB997CCB3C630FEBAD181DCD974EAEF5B511B0AE36C3965ACEAEAA0"
+      },
+      {
+        "path": "entries/18-cartographe-gnoll-du-tonnerre.json",
+        "sha256": "EEDD9AD695911C965027EC98BDDED8124F3603D71A3A500D1B88E94A3E45ECF1"
+      },
+      {
+        "path": "entries/19-porte-schiste-orc.json",
+        "sha256": "98B671BEB7048ED3DF2F6F7187F8DDF96147E94B537FEFD7CD8B000D19D3222A"
+      },
+      {
+        "path": "entries/20-greffepente-orque.json",
+        "sha256": "53886865FE0FBAB68CEBB220BCB14E4D04845315BD49021050B8FA875301E35E"
+      },
+      {
+        "path": "entries/21-maitre-etai-orc-de-la-faille-claire.json",
+        "sha256": "928D8F45908272B8F1D4D72E6B37A927EF0E264048511E1861D40DC5C95C74AE"
+      }
+    ]
+  },
   "entries": [
     "entries/01-loup-de-bruyere.json",
     "entries/02-sanglier-de-tourbe.json",
@@ -97,6 +268,36 @@
     "entries/18-cartographe-gnoll-du-tonnerre.json",
     "entries/19-porte-schiste-orc.json",
     "entries/20-greffepente-orque.json",
-    "entries/21-maitre-etai-orc-de-la-faille-claire.json"
+    "entries/21-maitre-etai-orc-de-la-faille-claire.json",
+    "entries/22-chouette-cerf-des-brisants.json",
+    "entries/23-taupe-belier-de-basalte.json",
+    "entries/24-raie-des-dunes.json",
+    "entries/25-tisseuse-de-verre.json",
+    "entries/26-brochet-lanterne.json",
+    "entries/27-ronce-marcheuse.json",
+    "entries/28-couronne-de-spores.json",
+    "entries/29-saule-des-voix.json",
+    "entries/30-faune-des-gues.json",
+    "entries/31-dame-des-lucioles.json",
+    "entries/32-lutine-des-greniers.json",
+    "entries/33-cheval-de-rosee.json",
+    "entries/34-porte-braise.json",
+    "entries/35-noeud-d-averse.json",
+    "entries/36-fileuse-de-givre.json",
+    "entries/37-berger-d-eboulis.json",
+    "entries/38-limon-d-ardoise.json",
+    "entries/39-gelee-de-cuivre.json",
+    "entries/40-nappe-de-sel.json",
+    "entries/41-veilleur-d-ossuaire.json",
+    "entries/42-porte-deuil-des-marais.json",
+    "entries/43-squelette-des-cloches.json",
+    "entries/44-cendrelame-lie.json",
+    "entries/45-arpenteur-de-bornes.json",
+    "entries/46-carillon-de-bronze.json",
+    "entries/47-drapier-d-argile.json",
+    "entries/48-geant-des-moraines.json",
+    "entries/49-ogresse-des-fours.json",
+    "entries/50-vouivre-des-salines.json",
+    "entries/51-dragon-des-sources-closes.json"
   ]
 }

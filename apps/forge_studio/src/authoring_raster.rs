@@ -212,7 +212,7 @@ enum Surface {
     Sampled(Rc<SampledTerrainPlan>),
 }
 impl Alignment {
-    fn resolve(&self, transform: Transform) -> Result<Transform, String> {
+    pub(crate) fn resolve(&self, transform: Transform) -> Result<Transform, String> {
         match &self.surface {
             Surface::Procedural(plan) => self.snap.resolve(transform, plan),
             Surface::Sampled(plan) => self.snap.resolve_sampled(transform, plan),

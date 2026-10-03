@@ -1,0 +1,256 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.arpenteur-de-bornes",
+  "name": "Arpenteur de bornes",
+  "subtitle": "Le géomètre de pierre qui demande où finit un chemin",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "construct de géométrie animé",
+    "family": "gardiens de bornage",
+    "rarity": "peu commun sur les anciennes voies entretenues",
+    "activity": "diurne, immobile lorsque les repères deviennent illisibles",
+    "social": "autonome sous mandat révisable, accepte la médiation d'arpenteurs",
+    "threat": "forte",
+    "threat_reason": "Ses outils lourds et sa patience peuvent fermer un passage vital ; il applique une géométrie parfois périmée, sans pouvoir décider à lui seul de la propriété ou de la légitimité d'une frontière."
+  },
+  "physique": {
+    "dimensions": "2,60 à 3 m de haut, pieds larges de 0,65 m",
+    "mass_kg": [
+      380,
+      520
+    ],
+    "locomotion": [
+      "marche à pas mesurés",
+      "franchissement de marches basses"
+    ],
+    "center_of_gravity": "Entre deux pieds très larges ; une inclinaison du sol le force à raccourcir ses pas.",
+    "silhouette": "Deux jambes de pierre taillée soutiennent un torse évidé contenant niveaux et fils à plomb ; une mire dépasse l'épaule.",
+    "anatomy_zones": [
+      {
+        "zone": "tête optique",
+        "description": "Couronne de petites lentilles sous une visière de schiste ; champs de vision séparés.",
+        "protection": 8
+      },
+      {
+        "zone": "torse",
+        "description": "Deux plaques de grès entourent un mécanisme ouvert aux poussières.",
+        "protection": 22
+      },
+      {
+        "zone": "bras et mire",
+        "description": "Articulations métalliques visibles entre des segments de pierre, faibles en torsion.",
+        "protection": 12
+      },
+      {
+        "zone": "pieds",
+        "description": "Semelles de pierre à rainures profondes ; les chevilles supportent mal un affaissement asymétrique.",
+        "protection": 18
+      }
+    ]
+  },
+  "habitats": [
+    "cols jalonnés de bornes de route",
+    "plaines irriguées dont les fossés sont régulièrement déplacés"
+  ],
+  "ecology": {
+    "diet": "Pas de nourriture ; lubrifiants, pièces et recharges rituelles sont apportés par les équipes d'entretien, jamais pris sur les passants.",
+    "lifecycle": "Mesure un tronçon, revient à son dépôt et compare ses relevés. Un défaut d'étalonnage s'accumule s'il reste trop longtemps sans contrôle.",
+    "reproduction": "Assemblage artisanal suivi d'un mandat écrit ; aucun dédoublement autonome ni création à partir d'un rocher quelconque.",
+    "behavior": "Prend des mesures répétées, pose une mire et attend une réponse aux anomalies. Il peut garder une déviation provisoire des décennies si personne ne clôt le dossier.",
+    "niche": "Auxiliaire d'entretien des voies et des canaux, dont les relevés restent contestables et doivent être interprétés par des personnes.",
+    "environmental_impact": "Ses pieds tassent fortement les accotements ; des bandes de passage dédiées évitent les terriers et les jeunes plantations."
+  },
+  "senses": [
+    "lit les repères visibles à 25 m en plein jour",
+    "perçoit les inclinaisons grâce à un balancier interne",
+    "distingue les vibrations proches mais pas leur origine derrière une falaise"
+  ],
+  "communication": [
+    "montre une mire graduée et attend qu'on désigne un repère",
+    "énonce distances et écarts avec une voix lente",
+    "accepte les marques contradictoires pour les consigner, sans les effacer automatiquement"
+  ],
+  "signs": [
+    "traces carrées espacées d'une longueur très régulière",
+    "petits tas de graviers triés au bord des bornes",
+    "mire plantée à côté d'une clôture récente"
+  ],
+  "demeanor": {
+    "objectives": [
+      "maintenir un passage praticable",
+      "signaler un repère déplacé",
+      "faire vérifier ses mesures contradictoires"
+    ],
+    "fears": [
+      "perte d'une lentille",
+      "sol qui s'effondre sous un pied",
+      "instructions incompatibles sans arbitre"
+    ],
+    "morale": "Très persistant devant une incohérence ; il suspend la contrainte lorsque deux mandats plausibles doivent être comparés.",
+    "escalation": "Il plante sa mire, annonce l'écart, trace une limite puis repousse ceux qui démontent son matériel en mouvement.",
+    "retreat": "Retourne sur une surface stable avec ses instruments ; abandonne une borne impossible à atteindre sans effondrement."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 3,
+      "constitution": 8,
+      "intelligence": 4,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 4
+    },
+    "skills": {
+      "polearms": 55,
+      "unarmed": 42,
+      "mechanisms": 60,
+      "investigation": 55,
+      "lore": 30,
+      "vigilance": 60,
+      "force_magic": 45
+    },
+    "resources": {
+      "vitality": 122,
+      "stamina": 108,
+      "mana": 72,
+      "balance": 100,
+      "focus": 92
+    },
+    "movement": "Marche 1,5 m/s sur route, 0,5 m/s sur éboulis ; marche franchissable de 0,35 m, aucun saut ni nage.",
+    "protections": [
+      "Les plaques de grès couvrent le torse sans fermer l'accès latéral au mécanisme.",
+      "Les lentilles et axes sont matériels et remplaçables ; aucune invulnérabilité de construct."
+    ],
+    "attacks": [
+      {
+        "name": "Mire de recul",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "strength",
+        "impact": 26,
+        "reach": "2,8 m en ligne devant lui",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde, mire abaissée à hauteur de taille",
+        "telegraph": "Les repères de la mire s'alignent sur la cible tandis que les deux pieds se calent.",
+        "effect": "Un seul coup de hampe contondant peut repousser une cible d'au plus 1 m selon ses appuis ; l'outil ne traverse ni porte ni garde.",
+        "counterplay": "Se décaler de la ligne, interposer une traverse résistante ou cesser de déplacer le matériel."
+      },
+      {
+        "name": "Pas d'obstruction",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "constitution",
+        "impact": 24,
+        "reach": "zone au sol de 0,6 m devant un pied",
+        "stamina_cost": 14,
+        "preparation": "1,8 seconde, pied levé de 0,4 m",
+        "telegraph": "Il transfère visiblement son poids sur l'autre jambe ; le balancier bat une fois.",
+        "effect": "Le pied s'abat sur la zone annoncée ; seuls les corps réellement pris sous la semelle subissent le contact, sans onde de choc à distance.",
+        "counterplay": "Sortir de la petite zone avant la pose, retenir le mouvement par un obstacle solide ou exploiter son appui unique."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Trait tendu",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "force_magic",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "entre deux repères visibles séparés d'au plus 8 m",
+        "stamina_cost": 8,
+        "preparation": "3 secondes sans marcher, deux doigts pointés vers les repères",
+        "telegraph": "Un fil lumineux se tend à 0,8 m du sol et devient nettement visible.",
+        "effect": "Coûte 12 Mana. Maintient sous concentration un unique fil de force pendant au plus 15 secondes ; il résiste à une poussée légère mais cède après une perte de 15 Équilibre de son créateur. Il ne se déplace pas, ne tranche rien et ne peut apparaître à travers un corps ou une paroi.",
+        "counterplay": "Passer au-dessus ou au-dessous, masquer un repère ou rompre les appuis de l'arpenteur ; nul besoin de toucher une surface invisible."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "usure superficielle",
+        "mechanism": "La pierre supporte les frottements de route mieux que ses lentilles et axes ; un choc concentré peut toujours la fissurer."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "sol creux",
+        "mechanism": "Sa masse dépasse la portance de certaines caves ou berges ; une semelle qui s'enfonce bloque la jambe avant tout mouvement de défense."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "poison biologique",
+        "mechanism": "L'arpenteur n'a pas de métabolisme biologique ; des produits corrosifs peuvent néanmoins endommager ses pièces."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "fossé récent coupant la route mesurée",
+        "result": "arrêt et pose de repères supplémentaires",
+        "chain": "Le tronçon n'offre plus de continuité vérifiable ; l'arpenteur cherche un détour au lieu de franchir automatiquement le vide."
+      },
+      {
+        "input": "pluie sur les lentilles couvertes de poussière",
+        "result": "mesures discordantes et attente",
+        "chain": "L'eau transforme la poussière en film opaque ; les repères perdent leur netteté et le mandat de vérification bloque la progression."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "Une mire placée à côté d'une clôture indique un écart à vérifier, pas une décision valide sur la propriété."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les modèles entretenus par des équipes différentes semblent accepter des conventions de mesure incompatibles."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Le cadran intérieur marqué « septième toise » utilise encore l'étalon court de Lurence ; cette pièce explique exactement l'écart qui condamne à tort la venelle des Saules."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle de voirie",
+      "témoin d'un changement du paysage",
+      "arbitre technique à contredire"
+    ],
+    "telegraphs": [
+      "La mire est plantée avant toute fermeture du passage.",
+      "Un pied se lève lentement après un unique battement du balancier."
+    ],
+    "noncombat_options": [
+      "Présenter deux relevés et obtenir une suspension du bornage pour expertise.",
+      "Aménager un détour porteur et faire reconnaître son raccordement aux repères existants."
+    ],
+    "complications": [
+      "Un notable présente une fausse instruction pour faire déplacer une limite.",
+      "Le raccourci demandé traverse réellement une berge instable."
+    ]
+  },
+  "salvage": [
+    "Pierre de repère cassée explicitement abandonnée par l'équipe d'entretien.",
+    "Lentille ou mire cédée lors d'une réparation autorisée ; aucune pièce n'est un butin dû au seul arrêt du construct."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "arpenteur-de-bornes-plate-v1.png",
+      "alt": "Un Arpenteur de bornes aux larges pieds de pierre tient sa mire ; niveaux et fils à plomb apparaissent dans son torse évidé.",
+      "caption": "Prend des mesures répétées, pose une mire et attend une réponse aux anomalies. Il peut garder une déviation provisoire des décennies si personne ne clôt le dossier.",
+      "prompt_key": "arpenteur-de-bornes-plate-v1"
+    }
+  ]
+}

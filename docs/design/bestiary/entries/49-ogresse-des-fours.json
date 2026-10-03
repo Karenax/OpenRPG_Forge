@@ -1,0 +1,252 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.ogresse-des-fours",
+  "name": "Ogresse des fours",
+  "subtitle": "La gardienne du feu commun et des horaires de cuisson",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "géante sapiente de la famille des ogres",
+    "family": "communautés ogres, métiers de cuisson",
+    "rarity": "peu commune, présente dans certains bourgs de potiers et de boulangers",
+    "activity": "selon les cycles du four, parfois nocturne",
+    "social": "artisane indépendante ou membre d'une coopérative",
+    "threat": "forte",
+    "threat_reason": "Sa force et les longues pelles de travail dominent un atelier étroit ; son conflit éventuel vient d'un contrat, d'un risque de feu ou d'une agression, jamais d'un appétit imposé par son ascendance."
+  },
+  "physique": {
+    "dimensions": "2,70 à 3,20 m de haut, épaules larges de 1,20 m",
+    "mass_kg": [
+      280,
+      420
+    ],
+    "locomotion": [
+      "marche bipède",
+      "petits pas latéraux autour des portes de four"
+    ],
+    "center_of_gravity": "Bas et stable sur deux pieds ; une charge tenue loin du torse peut la tirer vers l'avant.",
+    "silhouette": "Corps large, tablier matelassé, cheveux attachés sous une coiffe de travail et mains protégées de gants épais.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Visage expressif découvert, coiffe protégeant seulement cheveux et oreilles des étincelles.",
+        "protection": 3
+      },
+      {
+        "zone": "torse",
+        "description": "Tablier de cuir et textile épais, ouvert dans le dos pour limiter la chaleur.",
+        "protection": 12
+      },
+      {
+        "zone": "mains et avant-bras",
+        "description": "Gants de cuisson isolants mais gênants pour saisir de petits objets.",
+        "protection": 10
+      },
+      {
+        "zone": "jambes",
+        "description": "Pantalon épais et chaussures larges ; chevilles non cuirassées.",
+        "protection": 6
+      }
+    ]
+  },
+  "habitats": [
+    "ateliers de fours collectifs dans des bourgs artisanaux",
+    "relais de caravanes dotés de grandes cuisines et de réserves"
+  ],
+  "ecology": {
+    "diet": "Alimentation variée comprenant céréales, légumes, légumineuses et produits d'élevage selon les pratiques locales ; aucun besoin de chair sapiente.",
+    "lifecycle": "Enfance au sein d'un foyer, apprentissage puis spécialisation libre. L'expérience et les outils expliquent le métier, pas une capacité de cuisson héritée.",
+    "reproduction": "Reproduction biologique et soins familiaux prolongés ; les descriptions d'ogresses ne fixent ni modèle familial unique ni rôle reproductif obligatoire.",
+    "behavior": "Compte les charges, écoute le tirage et protège les horaires partagés. Elle interrompt volontiers une dispute pour éviter qu'une cuisson ne soit perdue.",
+    "niche": "Actrice économique et sociale autour d'une ressource collective coûteuse ; peut être hôte, cliente, rivale ou alliée.",
+    "environmental_impact": "La consommation de combustible est importante ; les coopératives entretiennent des approvisionnements durables et réutilisent la chaleur résiduelle."
+  },
+  "senses": [
+    "odorat entraîné à reconnaître un produit trop cuit ou un tirage défectueux",
+    "audition attentive aux craquements des récipients",
+    "vision ordinaire, gênée par la fumée et les changements rapides de luminosité"
+  ],
+  "communication": [
+    "parole directe et vocabulaire précis des charges et horaires",
+    "gestes larges pour signaler une surface chaude",
+    "tableau commun où chacun peut contester une réservation"
+  ],
+  "signs": [
+    "larges empreintes enfarinées vers une réserve",
+    "pelles rangées par longueur près des portes",
+    "notes d'horaires et de dettes accessibles à tous les usagers"
+  ],
+  "demeanor": {
+    "objectives": [
+      "préserver le four et les personnes présentes",
+      "honorer les créneaux convenus",
+      "être payée équitablement pour son travail"
+    ],
+    "fears": [
+      "incendie du quartier",
+      "produit contaminé distribué par erreur",
+      "accident dans une foule pressée"
+    ],
+    "morale": "Solide lorsqu'elle protège des personnes, mais elle accepte une médiation et ne poursuit pas un débiteur au milieu des flammes.",
+    "escalation": "Annonce la zone dangereuse, ferme une porte, pose une pelle en travers puis repousse un contact forcé.",
+    "retreat": "Évacue les apprentis vers une cour et abandonne une charge de cuisson si rester met des vies en danger."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 5,
+      "constitution": 8,
+      "intelligence": 6,
+      "willpower": 7,
+      "perception": 6,
+      "presence": 7
+    },
+    "skills": {
+      "polearms": 60,
+      "unarmed": 52,
+      "crafting": 70,
+      "alchemy": 42,
+      "persuasion": 58,
+      "trade": 60,
+      "vigilance": 48,
+      "elementalism": 40
+    },
+    "resources": {
+      "vitality": 124,
+      "stamina": 111,
+      "mana": 86,
+      "balance": 104,
+      "focus": 92
+    },
+    "movement": "Marche 2,5 m/s ; déplacement rapide 4,5 m/s pendant 3 secondes sur sol dégagé. Les gants de cuisson ralentissent les manipulations fines.",
+    "protections": [
+      "Tablier et gants isolent une chaleur brève aux seules zones couvertes ; ils ne rendent pas insensible au feu.",
+      "La grande taille ne modifie pas les formules communes de Vitalité ou d'Équilibre."
+    ],
+    "attacks": [
+      {
+        "name": "Pelle de séparation",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "strength",
+        "impact": 26,
+        "reach": "arc frontal de 2,5 m",
+        "stamina_cost": 12,
+        "preparation": "1 seconde, pelle vide ramenée à hauteur du bassin",
+        "telegraph": "Elle vérifie que la pelle est vide, écarte les mains et pivote d'un demi-pas.",
+        "effect": "Un coup du plat contre la première cible au contact ; aucune projection de braises ni dégâts thermiques implicites.",
+        "counterplay": "Reculer hors de l'arc, se placer derrière une traverse fixe ou arrêter d'approcher la porte."
+      },
+      {
+        "name": "Heurt de ballot",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 18,
+        "reach": "1 m au contact, ballot tenu devant le torse",
+        "stamina_cost": 8,
+        "preparation": "0,8 seconde, ballot serré contre elle",
+        "telegraph": "Les épaules s'abaissent et un pied avance entre deux dalles.",
+        "effect": "Une poussée amortie vise à séparer les personnes ; déplacement d'au plus 1 m si les appuis cèdent, sans étourdissement automatique.",
+        "counterplay": "Écarter la trajectoire, caler son appui ou accepter d'être guidé vers l'espace libre ; le ballot ne poursuit pas une esquive."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Écart de chaleur",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "une personne consentante à 3 m, visible",
+        "stamina_cost": 7,
+        "preparation": "2,5 secondes immobile, paume ouverte vers le foyer",
+        "telegraph": "Un ruban d'air tremblant se courbe entre la source chaude et la personne.",
+        "effect": "Coûte 12 Mana. Pendant au plus 10 secondes sous concentration continue, détourne une part du rayonnement d'une seule source chaude déjà identifiée. N'arrête ni flamme directe, ni fumée, ni métal au contact ; ne refroidit pas le four et ne rend pas possible une entrée dans son foyer. Marcher ou perdre la vue de la personne termine l'effet.",
+        "counterplay": "Sortir de la ligne du rayonnement, utiliser un écran matériel ou interrompre la concentration ; aucune protection ne subsiste après l'effet."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chaleur de travail",
+        "mechanism": "L'habitude et les vêtements retardent l'inconfort près d'un four ; ni la peau ni l'expérience ne donnent une immunité aux brûlures."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "fumées confinées",
+        "mechanism": "Les poumons restent biologiques ; le manque d'air et la fumée imposent une évacuation, même si le travail n'est pas terminé."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "tirage affaibli par une obstruction",
+        "result": "arrêt des chargements et ouverture d'une voie d'évacuation",
+        "chain": "La fumée revient dans la pièce et masque les portes ; l'ogresse traite le défaut avant tout différend commercial."
+      },
+      {
+        "input": "eau répandue sur les dalles de travail",
+        "result": "pelles posées et déplacement ralenti",
+        "chain": "Le sol devient glissant sous une charge lourde ; une chute près d'une surface chaude aurait plus de conséquences qu'un retard."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Une pelle tenue horizontalement devant une porte est d'abord un signal d'arrêt lié au travail."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 18,
+      "fact": "Certaines coopératives semblent partager la chaleur restante avec les logements voisins en échange de l'entretien du conduit."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Le registre cousu dans la doublure de son ancien tablier prouve qu'elle paie anonymement les créneaux des foyers ruinés ; un marchand menace de révéler ces remises pour contester sa gestion."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "hôte exigeante",
+      "médiatrice d'un service collectif",
+      "défenseuse d'un atelier"
+    ],
+    "telegraphs": [
+      "Elle éloigne les apprentis et pose les outils fragiles avant le conflit.",
+      "Le ruban d'air courbé annonce une protection thermique temporaire."
+    ],
+    "noncombat_options": [
+      "Proposer une médiation publique sur la dette ou la réservation litigieuse.",
+      "Aider à évacuer et réparer le défaut du four avant de reprendre la discussion sur la commande."
+    ],
+    "complications": [
+      "Une cuisson urgente concurrence un repas collectif déjà réservé.",
+      "Un tiers présente une facture falsifiée pour monter les usagers contre l'artisane."
+    ]
+  },
+  "salvage": [
+    "Tessons, cendres froides ou chutes de combustible explicitement cédés après contrôle de leur usage.",
+    "Pelle usée déclarée abandonnée ; les provisions, recettes et outils actifs restent la propriété de leurs ayants droit."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "ogresse-des-fours-plate-v1.png",
+      "alt": "Une Ogresse des fours en tablier et gants de cuisson travaille près de grands fours maçonnés, les cheveux attachés sous une coiffe.",
+      "caption": "Compte les charges, écoute le tirage et protège les horaires partagés. Elle interrompt volontiers une dispute pour éviter qu'une cuisson ne soit perdue.",
+      "prompt_key": "ogresse-des-fours-plate-v1"
+    }
+  ]
+}

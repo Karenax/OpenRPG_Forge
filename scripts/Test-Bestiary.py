@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import argparse
+import copy
 import hashlib
 import json
 import re
@@ -93,6 +95,7 @@ def test_schema(manifest: dict[str, Any], entries: list[dict[str, Any]]) -> None
         powershell = shutil.which("pwsh") or shutil.which("powershell")
         assert powershell, "Neither jsonschema nor PowerShell Test-Json is available"
         schema_path = str(SOURCE / "entry.schema.json").replace("'", "''")
+        legacy_path = str(SOURCE / "entries/01-loup-de-bruyere.json").replace("'", "''")
         entry_paths = [str(SOURCE / relative).replace("'", "''") for relative in manifest["entries"]]
         quoted = ",".join(f"'{path}'" for path in entry_paths)
         script = (
@@ -100,7 +103,19 @@ def test_schema(manifest: dict[str, Any], entries: list[dict[str, Any]]) -> None
             f"$schema=Get-Content -Raw -LiteralPath '{schema_path}'; "
             f"$paths=@({quoted}); "
             "foreach($path in $paths){$ok=Get-Content -Raw -LiteralPath $path | Test-Json -Schema $schema; "
-            "if(-not $ok){throw \"Schema validation failed: $path\"}}"
+            "if(-not $ok){throw \"Schema validation failed: $path\"}}; "
+            # The planned-art exception must never silently weaken old entries.
+            f"$legacy=Get-Content -Raw -LiteralPath '{legacy_path}' | ConvertFrom-Json -AsHashtable; "
+            "$plate=$legacy.plates[0]; $legacy.plates=@(); "
+            "if(($legacy | ConvertTo-Json -Depth 30 | Test-Json -Schema $schema -ErrorAction SilentlyContinue)){throw 'Empty legacy plates accepted'}; "
+            "$legacy.illustration_status='illustrated'; "
+            "if(($legacy | ConvertTo-Json -Depth 30 | Test-Json -Schema $schema -ErrorAction SilentlyContinue)){throw 'Empty illustrated plates accepted'}; "
+            "$legacy.illustration_status='planned'; $legacy.major=$false; "
+            "if(-not ($legacy | ConvertTo-Json -Depth 30 | Test-Json -Schema $schema)){throw 'Planned source rejected'}; "
+            "$legacy.plates=@($plate); "
+            "if(($legacy | ConvertTo-Json -Depth 30 | Test-Json -Schema $schema -ErrorAction SilentlyContinue)){throw 'Planned source with borrowed plate accepted'}; "
+            "$legacy.plates=@(); $legacy.major=$true; "
+            "if(($legacy | ConvertTo-Json -Depth 30 | Test-Json -Schema $schema -ErrorAction SilentlyContinue)){throw 'Planned major accepted'}"
         )
         result = subprocess.run(
             [powershell, "-NoProfile", "-NonInteractive", "-Command", script],
@@ -120,17 +135,29 @@ def test_schema(manifest: dict[str, Any], entries: list[dict[str, Any]]) -> None
                 location = ".".join(str(part) for part in error.absolute_path)
                 errors.append(f"{relative}:{location}: {error.message}")
         assert not errors, "\n".join(errors)
+        fixture = copy.deepcopy(load_json(SOURCE / "entries/01-loup-de-bruyere.json"))
+        plate = fixture["plates"][0]
+        fixture["plates"] = []
+        assert not validator.is_valid(fixture)
+        fixture["illustration_status"] = "illustrated"
+        assert not validator.is_valid(fixture)
+        fixture.update(illustration_status="planned", major=False)
+        assert validator.is_valid(fixture)
+        fixture["plates"] = [plate]
+        assert not validator.is_valid(fixture)
+        fixture.update(plates=[], major=True)
+        assert not validator.is_valid(fixture)
 
 
 def test_roster(manifest: dict[str, Any], entries: list[dict[str, Any]]) -> None:
-    assert manifest["bestiary_id"] == "openrpg-forge.bestiary.fr.v0.2"
+    assert manifest["bestiary_id"] == "openrpg-forge.bestiary.fr.v0.3"
     assert manifest["ruleset"]["id"] == "openrpg-forge.systemic-rpg.v1"
     assert manifest["player_handbook"]["id"] == "openrpg-forge.player-handbook.fr.v0.1"
     assert manifest["status"] == "design-proposal-not-implemented"
     assert manifest["ruleset"]["sha256"] == digest(RULESET_SOURCE)
     assert manifest["player_handbook"]["sha256"] == digest(HANDBOOK_SOURCE)
     assert manifest["design_system"]["sha256"] == digest(DESIGN_SYSTEM_SOURCE)
-    assert len(entries) == 21
+    assert len(entries) == 51
     assert len(manifest["entries"]) == len(set(manifest["entries"]))
     ids = [entry["creature_id"] for entry in entries]
     assert len(ids) == len(set(ids))
@@ -190,12 +217,47 @@ def test_rules(entries: list[dict[str, Any]]) -> None:
         assert {fact["status"] for fact in entry["field_knowledge"]} >= {"etabli", "suppose", "secret"}
         assert all(fact["difficulty"] in DIFFICULTIES for fact in entry["field_knowledge"])
         assert all(fact["skill_id"] in {"lore", "tracking", "investigation", "vigilance", "animal_handling"} for fact in entry["field_knowledge"])
-        if entry["major"]:
+        if entry.get("illustration_status") == "planned":
+            assert not entry["major"] and not entry["plates"]
+            assert "major_dossier" not in entry
+        elif entry["major"]:
             assert "major_dossier" in entry
             assert len(entry["plates"]) == 2
         else:
             assert "major_dossier" not in entry
             assert len(entry["plates"]) == 1
+
+
+def test_expansion(manifest: dict[str, Any], entries: list[dict[str, Any]]) -> None:
+    wave = manifest["expansion_wave"]
+    assert wave["id"] == "wild-realms.v0.3"
+    assert wave["status"] == "design-proposal-not-implemented"
+    assert len(wave["entry_ids"]) == len(set(wave["entry_ids"])) == 30
+    assert [entry["creature_id"] for entry in entries[21:]] == wave["entry_ids"]
+    assert (SOURCE / wave["research_document"]).is_file()
+    assert len(wave["sources"]) == 2
+    pins = wave["preserved_entries"]
+    assert len(pins) == 21
+    assert [pin["path"] for pin in pins] == manifest["entries"][:21]
+    for pin in pins:
+        assert digest(SOURCE / pin["path"]) == pin["sha256"], pin["path"]
+    illustrated = set(wave["entry_ids"])
+    assert len(illustrated) == 30
+    assert wave["illustration_status"] == "complete"
+    assert len(wave["illustrated_entry_ids"]) == len(illustrated)
+    assert set(wave["illustrated_entry_ids"]) == illustrated
+    assert len(entries) == 51 and all(entry["plates"] for entry in entries)
+    assert sum(len(entry["plates"]) for entry in entries) == 56
+    for entry in entries[21:]:
+        assert entry["creature_id"] in illustrated
+        assert entry["illustration_status"] == "illustrated" and len(entry["plates"]) == 1
+        assert entry["plates"][0]["image"] == entry["creature_id"].removeprefix("creature.") + "-plate-v1.png"
+        assert entry["canonicality"] == "new-design-proposal"
+        assert len(entry["encounter_use"]["noncombat_options"]) >= 2
+        assert len(entry["rules"]["attacks"]) >= 2
+        assert len(entry["rules"]["abilities"]) >= 1
+        for action in entry["rules"]["attacks"] + entry["rules"]["abilities"]:
+            assert action["skill_id"] in entry["rules"]["skills"], (entry["name"], action["name"])
 
 
 def test_spreads(entries: list[dict[str, Any]]) -> None:
@@ -239,6 +301,20 @@ def test_assets(entries: list[dict[str, Any]]) -> None:
         assert record["license"] == "LicenseRef-OpenAI-Generated-Output"
         assert record["prompt"].strip()
         assert record["alt"].strip()
+        if record.get("prompt_file"):
+            assert (ASSETS / record["prompt_file"]).read_text(encoding="utf-8").strip() == record["prompt"]
+            raw = path.read_bytes()
+            assert raw[:8] == b"\x89PNG\r\n\x1a\n"
+            assert int.from_bytes(raw[16:20], "big") == record["dimensions"]["width"] == 1024
+            assert int.from_bytes(raw[20:24], "big") == record["dimensions"]["height"] == 1536
+            entry = load_json(ROOT / record["source_entry"])
+            assert any(plate["image"] == filename and plate["alt"] == record["alt"] for plate in entry["plates"])
+            content = {key: value for key, value in entry.items() if key not in {"plates", "illustration_status"}}
+            canonical = json.dumps(content, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+            assert hashlib.sha256(canonical.encode("utf-8")).hexdigest().upper() == record["source_content_sha256"]
+            assert record["review"]["authority"] == "agent_review"
+            assert record["review"]["human_review"] == "pending"
+            assert record["runtime_qualified"] is False
 
 
 def test_pdf(entries: list[dict[str, Any]]) -> None:
@@ -331,17 +407,26 @@ def test_report(entries: list[dict[str, Any]]) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source-only", action="store_true", help="Validate canonical sources and existing art, not PDF/viewer outputs.")
+    args = parser.parse_args()
     manifest, entries = load_bundle()
     tests: list[tuple[str, Callable[[], None]]] = [
         ("schéma JSON", lambda: test_schema(manifest, entries)),
         ("roster et autorités", lambda: test_roster(manifest, entries)),
         ("règles communes", lambda: test_rules(entries)),
-        ("parité des doubles pages", lambda: test_spreads(entries)),
+        ("extension et préservation des 21 originaux", lambda: test_expansion(manifest, entries)),
         ("illustrations et provenance", lambda: test_assets(entries)),
+    ]
+    if args.source_only:
+        print("SOURCES SEULES — PDF et ancienne visionneuse non qualifiés par cette commande.")
+    else:
+        tests += [
+        ("parité des doubles pages", lambda: test_spreads(entries)),
         ("PDF A4 et contenu", lambda: test_pdf(entries)),
         ("visionneuse autonome", lambda: test_viewer(entries)),
         ("rapport de build", lambda: test_report(entries)),
-    ]
+        ]
     failures = 0
     for name, test in tests:
         try:

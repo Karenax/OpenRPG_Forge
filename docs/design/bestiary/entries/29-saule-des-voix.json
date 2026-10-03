@@ -1,0 +1,259 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.saule-des-voix",
+  "name": "Saule des voix",
+  "subtitle": "Un témoin enraciné qui apprend les conversations",
+  "classification": {
+    "nature": "végétal sapient",
+    "family": "arbres mémoriels des rives",
+    "rarity": "très rare, parfois unique dans une vallée",
+    "activity": "attentif au jour, réponses lentes la nuit",
+    "social": "individus enracinés entretenant des relations avec les habitants du voisinage",
+    "threat": "forte",
+    "threat_reason": "Sa portée et ses imitations sonores peuvent isoler un groupe, mais il reste attaché à son sol et ses décisions dépendent de son histoire avec les personnes présentes."
+  },
+  "physique": {
+    "dimensions": "tronc haut de 6 à 9 m ; ramure de 8 m de diamètre",
+    "mass_kg": [
+      1800,
+      4200
+    ],
+    "locomotion": [
+      "flexion de branches",
+      "déplacement lent des racines superficielles ; tronc fixe"
+    ],
+    "center_of_gravity": "Élevé mais transmis au sol par un réseau étendu ; une berge minée peut faire basculer l'ensemble.",
+    "silhouette": "Saule penché portant des lèvres d'écorce irrégulières près des anciennes cicatrices, sans visage humain unique.",
+    "anatomy_zones": [
+      {
+        "zone": "tronc",
+        "description": "Écorce épaisse sur un bois fibreux vivant.",
+        "protection": 25
+      },
+      {
+        "zone": "grandes branches",
+        "description": "Longs leviers souples, renforcés près des embranchements.",
+        "protection": 14
+      },
+      {
+        "zone": "radicelles et extrémités",
+        "description": "Tissus jeunes sensibles à l'arrachement et au dessèchement.",
+        "protection": 3
+      },
+      {
+        "zone": "feuillage",
+        "description": "Rideau de feuilles minces ; masque la vue sans arrêter une arme.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "berges stables de rivières lentes",
+    "places humides de villages construits autour d'une source"
+  ],
+  "ecology": {
+    "diet": "Photosynthèse et nutriments du sol ; les cadeaux utiles sont de l'eau propre et un sol non tassé.",
+    "lifecycle": "La parole apparaît progressivement après plusieurs décennies d'écoute ; certains arbres cessent de converser durant des saisons entières après une sécheresse.",
+    "reproduction": "Boutures et graines comme un saule ordinaire ; aucune descendance n'hérite automatiquement des souvenirs ni des opinions de l'arbre parent.",
+    "behavior": "Il prête attention aux conversations répétées et demande parfois qu'on lui explique un mot. Ses alliances et ses griefs sont individuels, jamais imposés par son espèce.",
+    "niche": "Stabilisateur de berge et interlocuteur de longue durée pour les communautés proches.",
+    "environmental_impact": "Ses racines ralentissent l'érosion et son ombre crée un abri ; une querelle locale peut toutefois interrompre l'entretien commun de la rive."
+  },
+  "senses": [
+    "vibrations de voix reçues par les cavités du tronc",
+    "perception diffuse de lumière et de pression sur ses racines, sans vision à travers les murs"
+  ],
+  "communication": [
+    "parole lente dans les langues réellement entendues et apprises",
+    "inclinaison d'une branche pour désigner un objet proche"
+  ],
+  "signs": [
+    "une phrase répétée depuis plusieurs hauteurs du même arbre",
+    "sol régulièrement dégagé près de certaines racines",
+    "branches écartées pour laisser passer une personne connue"
+  ],
+  "demeanor": {
+    "objectives": [
+      "préserver la berge qui le porte",
+      "comprendre un changement chez ses voisins",
+      "tenir ou renégocier un engagement personnel"
+    ],
+    "fears": [
+      "eau contaminée",
+      "incendie de rive",
+      "démolition des appuis de berge"
+    ],
+    "morale": "Patient lorsqu'il peut parler ; il défend violemment ses racines s'il croit sa survie immédiatement menacée.",
+    "escalation": "Il avertit oralement, pose une branche sur le passage puis frappe uniquement si l'intrusion ou la lésion continue.",
+    "retreat": "Ne pouvant fuir, il replie ses branches autour du tronc et demande une trêve ; il accepte une médiation selon les preuves et ses intérêts."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 3,
+      "constitution": 9,
+      "intelligence": 7,
+      "willpower": 8,
+      "perception": 7,
+      "presence": 8
+    },
+    "skills": {
+      "unarmed": 48,
+      "illusion": 55,
+      "spirit": 35,
+      "lore": 65,
+      "empathy": 45,
+      "persuasion": 48,
+      "vigilance": 50,
+      "survival": 60
+    },
+    "movement": "Tronc immobile ; extrémités des branches jusqu'à 3 m/s dans leur arc réel ; une racine ne se déplace que de 0,3 m pendant une manœuvre.",
+    "protections": [
+      "L'écorce protège le tronc, mais feuilles et jeunes racines conservent leurs valeurs propres.",
+      "Le grand volume facilite les contacts ; il n'accorde aucun multiplicateur de Vitalité en dehors des formules communes."
+    ],
+    "attacks": [
+      {
+        "name": "Branche de barrage",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 30,
+        "reach": "arc de 4 m depuis le tronc",
+        "stamina_cost": 18,
+        "preparation": "1,6 seconde de flexion audible",
+        "telegraph": "Le bois grince et le feuillage se déplace à contre-vent.",
+        "effect": "Contact contondant unique ; une cible touchée peut perdre jusqu'à 20 points d'Équilibre. La branche ne suit plus un changement de direction après les 0,3 dernières secondes.",
+        "counterplay": "Gagner un espace hors de l'arc annoncé, se placer derrière une structure solide ou profiter d'un obstacle qui limite la flexion."
+      },
+      {
+        "name": "Racine levée",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 12,
+        "reach": "racine visible située jusqu'à 2 m du tronc",
+        "stamina_cost": 12,
+        "preparation": "1,2 seconde de soulèvement progressif",
+        "telegraph": "La terre se fissure en ligne et la racine s'arrondit sous la surface.",
+        "effect": "La racine monte de 0,3 m ; elle crée un obstacle réel et retire jusqu'à 12 points d'Équilibre à un pied effectivement heurté. Aucun effet sur une personne hors du sol concerné.",
+        "counterplay": "Enjamber la ligne visible, s'arrêter avant elle ou quitter l'appui ; une dalle intacte empêche le soulèvement et reçoit l'effort."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Voix renvoyées",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "illusion",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "trois sources sonores au maximum dans un rayon de 8 m du tronc",
+        "stamina_cost": 4,
+        "preparation": "1,3 seconde de vibration des cavités d'écorce",
+        "telegraph": "Plusieurs fentes du tronc s'ouvrent et un souffle reproduit la première syllabe.",
+        "effect": "Coût : 7 Mana au lancement puis 3 Mana et 4 Concentration par seconde, au plus 6 secondes. Il reproduit des sons déjà entendus, sans lire les pensées ni inventer une langue connue. Maintien actif ; fin immédiate à Concentration 0, mise hors de combat ou échec du test de maintien après Trauma net ≥ 10.",
+        "counterplay": "Observer la source, demander une réponse inédite ou s'éloigner de plus de 8 m ; un mur atténue réellement le son. Investigation D18 repère une répétition identique si le personnage peut comparer."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chocs légers au tronc",
+        "mechanism": "Le bois répartit la pression ; seule la protection locale de l'écorce réduit le Trauma, sans réduction universelle des attaques."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "berges privées d'appui",
+        "mechanism": "L'affouillement sous les racines retire leur support ; le basculement reste possible malgré la force du tronc."
+      },
+      {
+        "subject": "feu entretenu",
+        "mechanism": "L'écorce humide retarde l'allumage, mais le bois en combustion propage Chaleur et fumée dans les cavités respirantes."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "saignement sanguin",
+        "mechanism": "L'arbre n'a pas de sang ; les plaies de sève, les brûlures et les ruptures structurelles restent des atteintes réelles."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "courant détourné vers la face nue de la berge",
+        "result": "racines déchaussées et stabilité dégradée",
+        "chain": "L'eau emporte la terre fine ; le réseau perd son appui et le tronc doit réduire ses mouvements pour ne pas basculer."
+      },
+      {
+        "input": "corde tendue entre une branche et un pieu",
+        "result": "arc de mouvement limité tant que les attaches tiennent",
+        "chain": "La corde reçoit l'effort de flexion ; sa tension contraint la branche ou arrache le pieu si celui-ci est moins solide que l'appui de l'arbre."
+      }
+    ],
+    "resources": {
+      "vitality": 130,
+      "stamina": 119,
+      "mana": 96,
+      "balance": 108,
+      "focus": 100
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 18,
+      "fact": "Une conversation avec cet arbre doit respecter ses pauses ; l'absence de réponse immédiate peut correspondre à une recherche de mots et non à un refus."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "investigation",
+      "difficulty": 22,
+      "fact": "Les langues entendues seulement dans l'enfance du village sembleraient lui revenir plus facilement après les pluies de printemps."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Sous le cœur du tronc, les anneaux d'une année particulièrement sèche dessinent la carte d'un ancien bras de rivière aujourd'hui entièrement comblé."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "témoin de longue mémoire",
+      "partenaire de médiation",
+      "défenseur d'une berge"
+    ],
+    "telegraphs": [
+      "Un avertissement parlé précède la fermeture du passage.",
+      "Le grincement d'une seule grosse branche annonce son arc de frappe."
+    ],
+    "noncombat_options": [
+      "Apporter des preuves d'un projet respectueux de la rive et négocier l'accès avec un interlocuteur qu'il connaît.",
+      "Réparer le drain qui assèche son sol ou désigner un médiateur accepté avant de reprendre les travaux."
+    ],
+    "complications": [
+      "Une imitation sonore exacte ne prouve pas que l'arbre ait compris le contexte des paroles.",
+      "Deux familles peuvent interpréter différemment un engagement pris plusieurs décennies auparavant."
+    ]
+  },
+  "salvage": [
+    "Rameaux taillés ou graines uniquement avec son consentement explicite ; aucun morceau de corps traité comme un butin automatique.",
+    "Une copie autorisée de son témoignage, avec ses réserves et incertitudes, constitue une récompense possible."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "saule-des-voix-plate-v1.png",
+      "alt": "Un Saule des voix penche sur une rivière ; plusieurs lèvres d’écorce s’ouvrent dans ses cicatrices, sous un rideau de feuilles.",
+      "caption": "Il prête attention aux conversations répétées et demande parfois qu'on lui explique un mot. Ses alliances et ses griefs sont individuels, jamais imposés par son espèce.",
+      "prompt_key": "saule-des-voix-plate-v1"
+    }
+  ]
+}

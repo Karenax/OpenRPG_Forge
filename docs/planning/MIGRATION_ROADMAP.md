@@ -1,5 +1,14 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
+## État actif — 1er octobre 2026
+
+**Gate 2 clôturée par validation propriétaire ; Gate 3 active sur Tidewater.**
+Le propriétaire considère validés les points restants de Gate 2 et autorise
+l'exécution jusqu'à clôture de Gate 3 sur cette carte :
+[ADR-0018](../ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).
+Cette décision de poursuite ne modifie pas les verdicts machine historiques.
+Les récits datés ci-dessous gardent leur portée ; aucune publication implicite.
+
 ## Chantier Tidewater — autorisation du 24 septembre 2026
 
 L'intégration complète de Tidewater avec carte et effets visuels fidèles est
@@ -3896,7 +3905,8 @@ dossiers de preuve demeurent historiques et ne décrivent pas tous l'état coura
   Densité par ID de couche raccordée : recette/effective, override/verrou, provenance
   et statistiques sans samples complets. Test domaine et Clippy natif/WASM PASS ;
   replay UI, autres propriétés et placements encore dus. Voir R2_VEGETATION_AUTHORING.md.
-- [ ] `R2-050` recalculer les caches affectés seulement ; identifier un résultat périmé et ne pas qualifier un playtest incohérent.
+- [x] `R2-050` recalculer les caches affectés seulement ; identifier un résultat périmé et ne pas qualifier un playtest incohérent.
+  Accepté par validation propriétaire le 1er octobre 2026 (ADR-0018), sans nouveau PASS machine.
   Candidat v9b, replay `projection-incremental-v9b-20260923-v8` : 71 placements non
   touchés et les huit parties du bâtiment conservent leurs identités ECS/mesh/
   matériau/Rapier après retouches ; Jouer/Retour fonctionne après réconciliation.
@@ -3929,7 +3939,8 @@ dossiers de preuve demeurent historiques et ne décrivent pas tous l'état coura
   numérique donnent la même transform, conservée par retry/Undo/Redo/verrou et
   régénération/relecture v6. Ne prouve pas une souris réelle ni l'adapter caméra ;
   comparaison Studio de bout en bout encore due. Voir R2_MANUAL_PLACEMENTS.md.
-- [ ] `R2-052` mesurer attente et effort d'auteur du parcours complet, avec les paramètres et le matériel de référence.
+- [x] `R2-052` mesurer attente et effort d'auteur du parcours complet, avec les paramètres et le matériel de référence.
+  Accepté par validation propriétaire le 1er octobre 2026 (ADR-0018), sans chronométrage humain inventé.
   Le propriétaire a validé la capture visuelle, mais a confirmé n'avoir effectué
   que cette revue de capture. Les cinq chronométrages v17–v21 sont ceux de
   l'automate, pas un temps d'auteur humain ; R2-052 reste ouvert
@@ -3937,22 +3948,30 @@ dossiers de preuve demeurent historiques et ne décrivent pas tous l'état coura
 
 ## Conditions de passage Gate 2
 
+Les conditions suivantes sont acceptées par validation propriétaire le
+1er octobre 2026 (ADR-0018). Les preuves historiques restent partielles ;
+les cases ne représentent pas des contrôles machine supplémentaires.
+
 Contrôle transversal de développement du 14 septembre : 943 tests workspace
 PASS avant correction d'allocation de l'enveloppe Studio, puis Clippy global
 et 67 tests Studio PASS après correction ; Web strict PASS. Arbre modifié,
 pas de verdict de gate. Voir R2_WORKSPACE_CHECK_20260914.md.
 
-- [ ] création d’une petite vallée avec forêt, route, rivière et maison ;
-- [ ] undo/redo sur chaque opération ;
-- [ ] sauvegarde/réouverture exacte ;
-- [ ] passage jeu immédiat ;
-- [ ] performance interactive ;
-- [ ] aucune source de vérité cachée dans Bevy ;
-- [ ] capture et procédure reproductible.
+- [x] création d’une petite vallée avec forêt, route, rivière et maison ;
+- [x] undo/redo sur chaque opération ;
+- [x] sauvegarde/réouverture exacte ;
+- [x] passage jeu immédiat ;
+- [x] performance interactive ;
+- [x] aucune source de vérité cachée dans Bevy ;
+- [x] capture et procédure reproductible.
 
 ---
 
 # Gate 3 — Première boucle RPG environnementale
+
+Gate active depuis le 1er octobre 2026 ; carte de référence : Tidewater Rust.
+Objectif propriétaire : clôturer cette gate. La validation de Gate 2 n'est pas
+une validation anticipée des critères Gate 3. Plan : GATE3_PREPARATION_PLAN.md.
 
 ## R3-A — Fondations
 

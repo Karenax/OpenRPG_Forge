@@ -76,6 +76,13 @@ frame count alone is not a temporal determinism proof or a performance result.
 `index-baseline.py BASELINE_DIR OVERLAY_HTML` hashes the six inspected captures
 and checks their recorded 1920x1080 dimensions; it refuses an existing index.
 
+`Compare-PairedCapture.ps1 -Reference SOURCE.png -Native FORGE.png -Output
+RECEIPT.json -Preset Village|Seaward` records input SHA-256 and sampled sRGB
+luminance/RGB differences in fixed rectangles. Run it only after independently
+checking source revision, camera and rendering configuration; matching mean
+brightness alone is not scene or temporal parity. The tool refuses an existing
+receipt and supports only 1920×1080 PNG pairs on Windows.
+
 Current CPU raster path: opt-in `TerrainDocument` v4 plus
 `forge_world::sampled_terrain::SampledTerrainPlan`. It has no filesystem access;
 the caller resolves immutable bytes against their hash. The same document keeps
@@ -924,3 +931,134 @@ and ten blocks. The scene and its plant shadow casters use the same Rust adapter
 to reconstruct those streams. Use the existing scene CLI/render mode unchanged.
 This path currently requires the complete original population; authored filtering
 and Studio rendering are not yet connected to it.
+
+FishStand content continuation (pinned Tidewater commit above):
+`export-fish-stand-content.mjs` keeps the original Rocketbox Joe GLB and source
+records; `export-fish-stand-fish.mjs` serializes the five display fish with
+u32 triangle indices. `prepare-fish-stand-content-bundle.py` and
+`prepare-fish-stand-fish-bundle.py` produce additive, hashed preview inputs.
+For a Bevy build without JPEG support,
+`convert_joe_embedded_jpeg_to_png.py --integration-root E:\OpenRPG_Forge\.tidewater-integration`
+creates the additive PNG derivative (bundle 010) and pixel-identity/Khronos
+provenance. `compose_joe_png_bundle.py --integration-root E:\OpenRPG_Forge\.tidewater-integration`
+copies bundle 009 plus that derivative into a full package-valid bundle 011;
+it preserves both inputs and writes conversion provenance beside the output.
+The FishStand shader remains a bounded material adapter, not the source PBR
+renderer, and this bundle does not register an editable Studio object.
+
+Studio ocean FFT inputs (no baked GPU results):
+`package-ocean-assets.py FULL_PREVIEW_BUNDLE BUNDLE_SHA256 UPSTREAM NEW_OUTPUT`
+checks the pinned preview manifest, each selected source file, the nested
+`ocean.json` hashes and the Tidewater MIT notice. It writes a 14-file
+`forge.tidewater.ocean-input-package` consumed by `OceanPackage`. Add
+`--ocean-package-root PACKAGE --ocean-package-sha256 SHA256` to
+`prepare-building-library-site.py` to stage it beside the existing building,
+environment, terrain, plant and FishStand packages. The resulting optional
+`ocean_sha256` is loaded by Studio. That initial transport-only result is
+recorded in `docs/evidence/tidewater/2026-09-29-studio-ocean-input-transport.md`.
+The current imported Playtest also runs the resident four-cascade FFT.
+`package-water-surface-assets.py FULL_PREVIEW_BUNDLE BUNDLE_SHA256 UPSTREAM
+NEW_OUTPUT` packages the source surface inputs; stage them with
+`--water-surface-package-root` and `--water-surface-package-sha256` on
+`prepare-building-library-site.py`. Add `forge_water_geometry=1` to the
+authoring URL for a white geometry diagnostic, or `forge_water_optics=1` for
+the blue source-material preview. The latter implies geometry and currently
+suspends the Bevy motion-blur pass. Its successful isolated Playtest and
+remaining visual limits are recorded in
+`docs/evidence/tidewater/2026-09-30-studio-ocean-optics-preview.md`.
+
+Studio ShoreSim inputs (no baked simulation texture):
+`package-shore-sim-assets.py FULL_PREVIEW_BUNDLE BUNDLE_SHA256 UPSTREAM
+NEW_OUTPUT` checks the pinned preview manifest and the original ShoreSim
+descriptor, then packages the kernel, source heights, shore field, direction,
+simulation/terrain parameters and ten lace mips with the MIT notice. Stage it
+with `--shore-sim-package-root` and `--shore-sim-package-sha256` on
+`prepare-building-library-site.py`. When the verified FFT, optical surface and
+ShoreSim packages are all present, the imported Playtest activates the optical
+ocean and resident GPU ShoreSim by default. They bind live state to both the
+water and beach materials. `forge_water_optics=0` or `forge_shore_sim=0`
+disables either path for diagnosis; `=1` explicitly requests a path on a
+partial library. The authored height deltas and shore field are recomputed for
+the edited terrain before each renderer generation.
+
+Studio ground-bounce input (fixed source sun):
+`package-ground-bounce-assets.py FULL_PREVIEW_BUNDLE BUNDLE_SHA256 UPSTREAM
+NEW_OUTPUT` checks the pinned scene manifest and the original 512×512 RGBA16F
+filtered bounce map, then packages the descriptor, map and MIT notice. Stage
+it with `--ground-bounce-package-root` and
+`--ground-bounce-package-sha256` on `prepare-building-library-site.py`.
+Studio validates the map against the imported environment's sun and binds it
+to the village material in Authoring and Playtest. The Playtest graphics panel
+offers a 0–2 strength slider when the package is available. This fixed-sun
+map is an input for the current Tidewater scene, not a dynamic rebake for
+changed sun or terrain.
+
+The imported Playtest also enables GTAO and the source-derived solar flare
+post passes. Both sample the Bevy main depth texture, so the player camera
+requests `TEXTURE_BINDING` before the first WebGPU view allocation; optical
+water additionally retains `COPY_SRC`. The graphics panel exposes live 0–2
+strength controls. `Invoke-FishStandStudioSmoke.ps1` can check them with
+`-RequireAmbientOcclusion -RequireLensFlare`; `-CaptureSunFlarePair` captures
+the flare at 0 and 2 while looking toward the pinned source sun. The smoke
+captures still need source-aligned weather, time and exposure for parity.
+
+The imported Playtest also applies source-derived atmospheric haze, using the
+resident atmosphere lookup texture. The graphics panel offers a live 0–4
+"Brume marine" control (default 1.6). The fish-stand smoke can validate its
+0/default pair with `-RequireAirHaze`; this does not establish visual parity
+with the public demo or underwater behavior.
+
+With the optical ocean enabled, the Studio Playtest motion-blur slider is
+active. `Invoke-FishStandStudioSmoke.ps1 -RequireMotionBlurWithOcean` checks
+0°, 360° and reset to 180° while the ocean remains live. The WebGPU frontend
+rewrites the four implicit-LOD samples in Bevy 0.19's composed motion-blur
+shader to explicit LOD 0; this is guarded against unexpected shader changes.
+
+Studio keeps the Playtest graphics values in versioned local WebView storage,
+separate from the authored zone. The smoke option `-RequireGraphicsPersistence`
+changes exposure, reloads the page in the same isolated profile, verifies the
+restored value, resets it, and then runs the normal edit/playtest path.
+
+
+Path-light source conversion (three props toward the upper houses):
+`export-path-lights.mjs UPSTREAM NEW_RAW_OUTPUT` observes the pinned village,
+verifies the unchanged whole scene, and preserves geometry, source material data,
+colliders, light-vector identity and provenance. `package-path-lights.py
+RAW_PARTS SOURCE_RENDER BUILDING_PACKAGE UPSTREAM NEW_OUTPUT` folds verified
+triangles onto village materials and local pivots. `verify-path-light-package.py
+RAW_PARTS PACKAGE EXPECTED_PACKAGE_SHA256 NEW_REPORT` independently checks
+closed payloads, source attributes and reconstructed positions/colliders/lights.
+This package still requires a Rust reader, catalogue/transport and editable-root
+light binding before Studio/runtime qualification. See the
+[path-light evidence](../../docs/evidence/tidewater/2026-10-03-path-light-source-acquisition.md).
+
+`prepare-path-light-catalog.py PACKAGE EXPECTED_PACKAGE_SHA256 NEW_OUTPUT`
+prepares three standard AssetCatalog records and immutable source-binding
+metadata in a separate directory. It does not install a library or create
+authored placements. The exact source IDs remain the import join keys.
+
+The prepared Rust reader is `forge_assets/src/tidewater_path_lights.rs`;
+it has isolated native sync/async package and tamper checks. It is not yet
+registered in the crate or connected to the Studio library. Its real-package
+test requires `FORGE_TIDEWATER_PATH_LIGHT_PACKAGE` and explicit `--ignored`.
+
+`export-environment-programs.mjs UPSTREAM NEW_OUTPUT` acquires the original
+22 environment compute programs, explicit binding layouts, constructor uniform
+bytes and resource identities from the clean pinned source. It validates original
+pipeline creation but does not dispatch them. Uniform bytes and resolved texture
+identities are constructor snapshots; the renderer must supply live providers.
+The native Engine example `verify_tidewater_environment_programs PACKAGE
+MANIFEST_SHA256 FRESH_REPORT` checks integrity and creates those pipelines on
+its existing Bevy RenderDevice, without supplying substitute resources or
+claiming rendered parity. See the
+[solar environment evidence](../../docs/evidence/tidewater/2026-10-03-solar-environment.md).
+
+Optional arguments `LIVE_ROOT LIVE_MANIFEST_SHA256` execute GGX and SH from a
+qualified, real source cube. Append `--generate-mips` to upload only its base
+level and generate the seven remaining levels on Bevy. Append `--generate-sky`
+instead to generate all six base faces from acquired atmosphere LUTs and live
+cloud snapshots before mips/GGX/SH. These extended modes are isolated GPU
+qualification tools, not the Studio environment publisher. The current code
+compares generated source levels as well as final GGX/SH outputs; report flags
+distinguish which stages actually executed. Filtered R32 input requires the
+original `FLOAT32_FILTERABLE` feature and is never silently substituted.

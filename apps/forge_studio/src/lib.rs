@@ -22,15 +22,15 @@ use forge_world::{
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+#[cfg(not(target_arch = "wasm32"))]
+pub mod asset_library_native;
+pub mod asset_library_protocol;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod asset_library_ui;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod audit_labels;
 pub mod promotion_preview_gate;
 pub mod reconciliation_protocol;
-pub mod asset_library_protocol;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod asset_library_native;
-#[cfg(all(target_arch = "wasm32", feature = "web"))]
-mod asset_library_ui;
 
 const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
 const STUDIO_WEATHER_QUERY_KEY: &str = "forge_weather";
@@ -774,6 +774,9 @@ const fn scene_proof_kind_glyph(kind: &SceneProofKind) -> &'static str {
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod telemetry;
 
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod library_resume;
+
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_building_projection;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -792,6 +795,8 @@ mod authoring_density_review;
 mod authoring_draft_scope;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_exclusions;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_gameplay;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_index_page;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
@@ -808,6 +813,8 @@ mod authoring_placement_reuse;
 mod authoring_playtest;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_playtest_controls;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_playtest_sources;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_projection_diagnostics;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -838,7 +845,11 @@ mod authoring_zone_information;
 mod workspace_controls;
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_immersion;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_input;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_temporal;
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_brush;
@@ -912,6 +923,9 @@ pub enum StudioCommand {
     Authoring {
         request: Box<forge_project::authoring::AuthoringRequest>,
     },
+    GameSave {
+        request: Box<forge_project::authoring::game_save::GameSaveRequest>,
+    },
     SelectEntity {
         entity_id: EntityId,
     },
@@ -938,6 +952,9 @@ mod panel_layout;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "response", rename_all = "snake_case", deny_unknown_fields)]
 pub enum StudioResponse {
+    /// The native shell accepted an explicit close confirmation and destroyed
+    /// the window. No authoring state is implied when the host was unavailable.
+    WindowClosed,
     VegetationSource {
         chunk: forge_project::authoring::vegetation_source::VegetationSourceChunk,
     },
@@ -955,6 +972,9 @@ pub enum StudioResponse {
     },
     Authoring {
         state: Box<forge_project::authoring::AuthoringState>,
+    },
+    GameSave {
+        state: Box<forge_project::authoring::game_save::GameSaveResponse>,
     },
     SelectionAccepted {
         entity_id: EntityId,
@@ -997,12 +1017,14 @@ fn validate_selection_response(
         StudioResponse::Rejected { reason } => {
             Err(format!("Commande rejetée par Tauri : {reason}"))
         }
-        StudioResponse::SceneSummary { .. }
+        StudioResponse::WindowClosed
+        | StudioResponse::SceneSummary { .. }
         | StudioResponse::TerrainSource { .. }
         | StudioResponse::VegetationSource { .. }
         | StudioResponse::Atelier { .. }
         | StudioResponse::Reconciliation { .. }
         | StudioResponse::Authoring { .. }
+        | StudioResponse::GameSave { .. }
         | StudioResponse::Workspace { .. } => {
             Err("Réponse Tauri inattendue : résumé reçu pour une sélection".to_owned())
         }
@@ -1114,7 +1136,9 @@ mod web {
     #[wasm_bindgen(start)]
     pub fn start() {
         console_error_panic_hook::set_once();
-        if super::atelier_ui::requested() {
+        if super::asset_library_ui::requested() {
+            mount_to_body(|| view! { <super::asset_library_ui::LibraryWorkspace/> });
+        } else if super::atelier_ui::requested() {
             mount_to_body(|| view! { <super::atelier_ui::SecondaryWorkspace/> });
         } else if super::authoring_viewport::requested() {
             mount_to_body(|| view! { <super::authoring_viewport::AuthoringWorkspace/> });
@@ -2048,7 +2072,10 @@ mod web {
             .map_err(|error| format!("API Tauri core inaccessible : {}", js_error(&error)))
     }
 
-    async fn invoke_tauri_raw(command: &str, arguments: &JsValue) -> Result<JsValue, String> {
+    pub(super) async fn invoke_tauri_raw(
+        command: &str,
+        arguments: &JsValue,
+    ) -> Result<JsValue, String> {
         let core = tauri_core()?;
         let invoke = js_sys::Reflect::get(&core, &JsValue::from_str("invoke"))
             .map_err(|error| format!("API Tauri invoke inaccessible : {}", js_error(&error)))?
@@ -2254,6 +2281,7 @@ mod web {
                     .set(render_plugin),
             );
 
+        app.add_plugins(forge_engine::source_fragment::SourceFragmentPlugin);
         if let Some(kit) = kit {
             kit.install(&mut app);
         }

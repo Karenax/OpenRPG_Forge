@@ -11,6 +11,7 @@ use forge_core::{AssetId, ContentHash};
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
+pub mod local_lights;
 pub mod materials;
 pub mod placements;
 pub mod scene;

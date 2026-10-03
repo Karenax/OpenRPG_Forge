@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-window",
-  "description": "Gate 0 Studio exposes only its typed execute_studio_command application command. No privileged Tauri core command is granted; the title mutation denial is kept as an executable ACL proof.",
+  "description": "Studio exposes typed authoring commands and read-only private asset library queries. No privileged Tauri core command is granted; title mutation remains denied.",
   "windows": ["main", "atelier"],
   "local": true,
   "permissions": ["allow-execute-studio-command", "allow-read-asset-library", "core:window:deny-set-title"]

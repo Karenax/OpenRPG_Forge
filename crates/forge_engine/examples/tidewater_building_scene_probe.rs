@@ -148,6 +148,11 @@ fn setup(package: &BuildingPackage) -> Result<(App, MaterialHandles), Box<dyn Er
         cloud_shadow: None,
         wind: Vec4::ZERO,
         flags: Vec4::ZERO,
+        ground_bounce: None,
+        bounce_settings: Vec4::ZERO,
+        caustics: forge_engine::tidewater_caustics::CausticMaterialInputs::disabled(
+            &mut app.world_mut().resource_mut::<Assets<Image>>(),
+        ),
     };
     let mut handles = BTreeMap::new();
     for (name, params) in &library.materials {

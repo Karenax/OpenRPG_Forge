@@ -1,0 +1,238 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "fileuse-de-givre-plate-v1.png",
+      "alt": "Une Fileuse de givre pâle et trapue se tient dans ses fils humides, à l’abri d’une cavité de montagne parcourue de suintements.",
+      "caption": "Elle mesure les vibrations, retire les débris trop lourds et attaque une proie retenue. Une grande silhouette libre de ses mouvements provoque d'abord un repli derrière les fils.",
+      "prompt_key": "fileuse-de-givre-plate-v1"
+    }
+  ],
+  "creature_id": "creature.fileuse-de-givre",
+  "name": "Fileuse de givre",
+  "subtitle": "L'araignée des suintements froids qui raidit ses propres fils",
+  "classification": {
+    "nature": "Animal arthropode à affinité élémentaire",
+    "family": "Tisseuses des parois froides",
+    "rarity": "Peu commune dans les cavités humides proches du gel",
+    "activity": "Crépusculaire ; se cache durant les périodes chaudes et sèches",
+    "social": "Solitaire, hors accouplement et premiers jours des jeunes",
+    "threat": "moderee",
+    "threat_reason": "Sa morsure et ses fils gênent les déplacements sur des parois déjà glissantes ; elle reste limitée à une courte poursuite près de sa toile."
+  },
+  "physique": {
+    "dimensions": "Corps de 0,7 à 0,9 m ; envergure des pattes de 1,4 à 1,8 m",
+    "mass_kg": [
+      18,
+      30
+    ],
+    "locomotion": [
+      "marche à huit pattes",
+      "escalade de parois rugueuses",
+      "descente suspendue à un fil porteur"
+    ],
+    "center_of_gravity": "Sous l'abdomen, entre quatre paires d'appuis ; elle garde au moins deux pattes en prise pendant un mouvement brusque.",
+    "silhouette": "Araignée pâle au thorax trapu et aux pattes courtes, dont les fils humides portent des gouttes brillantes.",
+    "anatomy_zones": [
+      {
+        "zone": "Céphalothorax",
+        "description": "Carapace bombée protégeant les muscles des pattes et les pièces buccales.",
+        "protection": 10
+      },
+      {
+        "zone": "Abdomen",
+        "description": "Enveloppe plus souple, gonflée par les réserves et les glandes séricigènes.",
+        "protection": 4
+      },
+      {
+        "zone": "Pattes et articulations",
+        "description": "Segments rigides à extrémités crochues ; les membranes entre segments restent exposées.",
+        "protection": 6
+      }
+    ]
+  },
+  "habitats": [
+    "cavités de montagne traversées de suintements",
+    "dessous de ponts ombragés au voisinage de cascades froides"
+  ],
+  "ecology": {
+    "diet": "Insectes, petits vertébrés et charognes fraîches retenus par la toile ; elle ne mange ni glace ni roche.",
+    "lifecycle": "Les jeunes quittent leur cocon sur de courts fils, puis grandissent par mues successives. Les adultes réduisent leur activité lorsque l'humidité disparaît et réutilisent les zones froides abritées.",
+    "reproduction": "Ponte d'œufs dans un cocon isolé du ruissellement direct ; l'accouplement et la croissance restent biologiques, sans création de jeunes par gel de la toile.",
+    "behavior": "Elle mesure les vibrations, retire les débris trop lourds et attaque une proie retenue. Une grande silhouette libre de ses mouvements provoque d'abord un repli derrière les fils.",
+    "niche": "Prédatrice des petits animaux attirés par l'eau froide et les abris humides.",
+    "environmental_impact": "Les toiles piègent aussi des débris végétaux, créant de petites poches organiques ; les fils raidis peuvent détourner un filet d'eau vers une corniche."
+  },
+  "senses": [
+    "Perçoit finement les vibrations des fils reliés à ses pattes.",
+    "Distingue les mouvements et contrastes proches avec plusieurs yeux, sans vision détaillée à longue distance."
+  ],
+  "communication": [
+    "Tensions rythmiques de la toile entre congénères ; soulèvement des pattes avant face à une menace."
+  ],
+  "signs": [
+    "Fils garnis de gouttes alignées entre deux pierres.",
+    "Enveloppes de mue pâles accrochées sous un surplomb.",
+    "Restes de proies enveloppés au-dessus d'une zone de ruissellement."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Conserver une toile productive.",
+      "Mettre son cocon à l'abri du courant."
+    ],
+    "fears": [
+      "Dessiccation prolongée.",
+      "Vibration d'un objet bien plus lourd qu'elle."
+    ],
+    "morale": "Elle renonce à une proie trop résistante ; ses filières et son abdomen passent avant la conservation d'une toile.",
+    "escalation": "Elle lève les pattes, fait vibrer un fil d'avertissement puis projette une nappe de soie si l'approche continue.",
+    "retreat": "Elle descend derrière un surplomb sur un fil porteur puis rejoint une fissure humide hors du passage."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 8,
+      "constitution": 5,
+      "intelligence": 2,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 2
+    },
+    "skills": {
+      "unarmed": 40,
+      "throwing": 40,
+      "elementalism": 40,
+      "climbing": 60,
+      "stealth": 45,
+      "vigilance": 55
+    },
+    "movement": "Marche 2 m/s ; pointe au sol 4 m/s sur 6 m ; escalade 1,5 m/s sur roche rugueuse ; descente sur fil 2 m/s.",
+    "protections": [
+      "La carapace protège surtout le thorax ; les membranes articulaires et l'abdomen ne bénéficient pas de cette rigidité."
+    ],
+    "attacks": [
+      {
+        "name": "Morsure de maintien",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 19,
+        "reach": "0,5 m devant les pièces buccales",
+        "stamina_cost": 9,
+        "preparation": "0,5 seconde pour ramener les pattes avant autour de la cible",
+        "telegraph": "Le corps s'abaisse et les crochets se découvrent entre les palpes.",
+        "effect": "Une seule morsure perforante sur une zone accessible ; aucun poison surnaturel ni paralysie automatique. Elle relâche si elle ne peut stabiliser ses appuis.",
+        "counterplay": "Garder une pièce rigide entre le corps et les crochets, sortir de l'axe ou lui faire perdre un appui sans saisir l'abdomen."
+      },
+      {
+        "name": "Nappe de soie",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 8,
+        "reach": "projection de 2 m sur une zone de 0,5 m de large",
+        "stamina_cost": 10,
+        "preparation": "0,8 seconde pour orienter l'abdomen",
+        "telegraph": "Elle tourne le corps de côté et écarte les filières avant le jet.",
+        "effect": "Dépose des fils collants sur une petite zone exposée. Les fils accrochent tissu et reliefs, mais ne scellent pas une armure entière et ne garantissent pas une immobilisation ; une lame ou une traction sur un support faible peut les rompre.",
+        "counterplay": "Interposer un écran lisse, éviter le côté vers lequel l'abdomen se tourne et couper les fils sans les enrouler autour d'un membre."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ourlet gelé",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "fils ou sol humides à moins de 1 m, sur 1 m² au maximum",
+        "stamina_cost": 11,
+        "preparation": "1,3 seconde ; 12 Mana et 6 Concentration à l'activation",
+        "telegraph": "Les pattes se figent et les gouttes proches blanchissent depuis leurs points de contact.",
+        "effect": "Sous concentration continue pendant 6 secondes au maximum, refroidit jusqu'à 0,5 litre d'eau déjà présente en une mince couche de glace. Ne crée pas d'eau et ne gèle pas les tissus d'un être vivant. Le fil se raidit ou le sol devient glissant ; à l'arrêt, la glace fond selon la température ambiante et reste cassable.",
+        "counterplay": "S'éloigner des points humides annoncés, rompre le contact de la fileuse avec sa toile ou utiliser un appui sec."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Froid modéré et bref",
+        "mechanism": "Son enveloppe et son ralentissement métabolique lui permettent de rester active près du gel, sans la protéger d'une congélation prolongée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Chaleur sèche",
+        "mechanism": "La perte d'eau fragilise son activité et réduit la quantité de gouttes disponibles sur sa toile."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Ruissellement augmenté",
+        "result": "Toile alourdie puis rupture possible",
+        "chain": "Les fils retiennent davantage d'eau, la charge tire sur les ancrages et un point de fixation friable peut céder, ouvrant un passage."
+      },
+      {
+        "input": "Pierre sèche posée sous les fils",
+        "result": "Appui praticable hors de la zone gelée",
+        "chain": "La pierre dépasse la pellicule humide, offre une surface sans eau disponible et permet de franchir une petite zone sans traverser la toile."
+      }
+    ],
+    "resources": {
+      "vitality": 98,
+      "stamina": 93,
+      "mana": 64,
+      "balance": 76,
+      "focus": 92
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 18,
+      "fact": "Les mues et les paquets suspendus signalent une toile occupée ; les fils secs ne portent pas la réserve d'eau nécessaire à son ourlet gelé."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les adultes semblent choisir des ancrages qui reçoivent de l'eau froide même pendant le dégel printanier."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Un pigment rouge minuscule, conservé à l'intérieur de certaines mues, provient d'un insecte qui ne vit que dans les conduits d'un ancien jardin chauffé ; il révèle une liaison souterraine oubliée."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle écologique d'une traversée froide",
+      "prédatrice à contourner"
+    ],
+    "telegraphs": [
+      "L'abdomen orienté de côté annonce la nappe de soie.",
+      "Les gouttes blanchissent avant que l'ourlet ne soit complet."
+    ],
+    "noncombat_options": [
+      "Installer un passage sec en restant hors des ancrages et du cocon.",
+      "Faire vibrer doucement un fil périphérique avec une branche, attendre son retrait puis détourner le trajet sans détruire la toile centrale."
+    ],
+    "complications": [
+      "Une toile peut retenir un débris qui bouchait jusque-là une rigole.",
+      "Une chute sur le gel menace davantage qu'une morsure lors d'une traversée de corniche."
+    ]
+  },
+  "salvage": [
+    "Fils détachés et mues abandonnées, prélevés hors des toiles actives ; ne pas enlever les cocons ni assécher un abri pour obtenir de la soie."
+  ]
+}

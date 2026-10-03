@@ -34,6 +34,7 @@
     "editorial_status": { "const": "design-proposal-not-implemented" },
     "canonicality": { "enum": ["historical-anchor", "new-design-proposal"] },
     "origin_notes": { "type": "string" },
+    "illustration_status": { "enum": ["illustrated", "planned"] },
     "major": { "type": "boolean" },
     "classification": {
       "type": "object",
@@ -183,7 +184,7 @@
     "salvage": { "type": "array", "items": { "type": "string" } },
     "plates": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 0,
       "maxItems": 2,
       "items": {
         "type": "object",
@@ -209,6 +210,13 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "required": ["illustration_status"], "properties": { "illustration_status": { "const": "planned" } } },
+      "then": { "properties": { "plates": { "maxItems": 0 }, "major": { "const": false } } },
+      "else": { "properties": { "plates": { "minItems": 1 } } }
+    }
+  ],
   "$defs": {
     "attribute": { "type": "integer", "minimum": 1, "maximum": 10 },
     "action": {

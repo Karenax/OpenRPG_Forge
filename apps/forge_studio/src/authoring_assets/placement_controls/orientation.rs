@@ -24,15 +24,7 @@ pub(super) fn OrientationControls(
         .map(|value| RwSignal::new(value.to_string()));
     let prepare = move |rotation| -> Result<AuthoringRequest, String> {
         let current = head(state.get_untracked())?;
-        let source = current
-            .corrections
-            .placements
-            .as_deref()
-            .unwrap_or_default()
-            .iter()
-            .find(|placement| placement.id == id)
-            .ok_or("Objet absent de la zone courante")?
-            .transform;
+        let source = super::super::objects::lookup(&current, id)?.transform;
         let target = if rotation {
             let axis = match axis.get_untracked().as_str() {
                 "x" => Axis::X,

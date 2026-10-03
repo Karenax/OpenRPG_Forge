@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 
 mod catalog;
 mod compaction;
+mod game_save;
+mod gameplay;
 mod managed;
 mod recovery;
 mod session;
@@ -425,6 +427,7 @@ impl AuthoringHost {
         recovery: Option<super::RecoveryReview>,
     ) -> Result<AuthoringState, String> {
         Ok(AuthoringState {
+            gameplay_module_id: self.gameplay_module_id(),
             managed_tabs: self.managed_tab_state(),
             zone_head: self.active.as_ref().and_then(ActiveSession::head).cloned(),
             zone_receipt: None,

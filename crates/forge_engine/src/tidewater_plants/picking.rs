@@ -7,10 +7,15 @@ use bevy::{
     render::render_resource::AsBindGroup,
     shader::ShaderRef,
 };
-pub mod render;
 pub mod occluders;
+pub mod render;
 
 const SHADER: Handle<Shader> = bevy::asset::uuid_handle!("c36df55a-5d16-4e91-8ff5-84b3ae79d450");
+
+#[must_use]
+pub fn shader_id() -> AssetId<Shader> {
+    SHADER.id()
+}
 pub const MAX_ID: u32 = 0x00ff_ffff;
 pub type PickingMaterial = ExtendedMaterial<super::PlantMaterial, PickingExtension>;
 
@@ -99,7 +104,12 @@ pub fn shader_source(source: &str) -> Result<String, String> {
 }
 
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
-    let derived = shader_source(source)?;
+    let derived = super::motion::shader_source(source)?;
+    let derived = crate::tidewater_object_shadow::receiver::shader_source(&derived)?;
+    crate::tidewater_object_shadow::receiver::install(world)?;
+    let derived = shader_source(&derived)?;
+    let derived = super::with_source_derivative_directive(derived);
+    super::motion::install(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Shader assets unavailable")?

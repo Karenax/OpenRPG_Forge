@@ -183,7 +183,7 @@ fn registered(world: &World, context: Entity, part: Entity) -> bool {
         .is_some_and(|colliders| colliders.entity2collider().contains_key(&part))
 }
 
-fn surface(mesh: &Mesh) -> Result<(Collider, usize), String> {
+pub fn surface(mesh: &Mesh) -> Result<(Collider, usize), String> {
     let Some(VertexAttributeValues::Float32x3(positions)) =
         mesh.attribute(Mesh::ATTRIBUTE_POSITION)
     else {

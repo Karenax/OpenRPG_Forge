@@ -5,6 +5,7 @@ use forge_engine::tidewater_plants::{Params, PlantMaterial, canonical, scene};
 use forge_project::{
     authoring::{AuthoringRequest, host::AuthoringHost, workspace::WorkspaceHostRequest},
     workspace::source_blobs::SourceBlobStore,
+    zone_authoring::ZoneAuthoringHead,
 };
 use forge_world::imported_vegetation::ImportedPopulation;
 use std::{collections::BTreeSet, error::Error, fs, io::Read, path::Path};
@@ -59,6 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_ne!(prepared.streams, shifted.streams);
     assert_ne!(prepared.head_hash, shifted.head_hash);
     let scene = scene::from_population(&package, &population, head, &heights)?;
+    check_authored_copy(&population, &package, head, &heights, ids.len())?;
     let mut counts = Vec::new();
     for camera in [
         Vec3::new(42., 14., -90.),
@@ -80,9 +82,99 @@ fn main() -> Result<(), Box<dyn Error>> {
     assert_eq!(state, host.execute(AuthoringRequest::Inspect)?);
     host.execute(AuthoringRequest::Close)?;
     println!(
-        "POPULATION_SCENE_PASS {} canonical identities; portable package scene; two camera selections and return stable; ground edit preserves identities and changes streams/head; source state unchanged",
+        "POPULATION_SCENE_PASS {} canonical identities plus one authored copy selected near its position; portable package scene; two camera selections and return stable; ground edit preserves identities and changes streams/head; source state unchanged",
         ids.len()
     );
+    Ok(())
+}
+
+fn check_authored_copy(
+    population: &ImportedPopulation,
+    package: &PlantPackage,
+    head: &ZoneAuthoringHead,
+    heights: &[u8],
+    original_count: usize,
+) -> Result<(), Box<dyn Error>> {
+    let template_layer = population.layers().first().ok_or("template layer")?;
+    let template = template_layer
+        .instances()
+        .iter()
+        .find(|entity| {
+            entity.source.position_m[0].abs()
+                < f64::from(population.document().extent_m.size_x_m) * 0.5 - 2.0
+        })
+        .ok_or("interior plant template")?;
+    let catalogue = population.plant_catalogue();
+    assert_eq!(catalogue.len(), population.layers().len());
+    assert_eq!(
+        catalogue
+            .iter()
+            .map(|entry| entry.source_count)
+            .sum::<usize>(),
+        original_count
+    );
+    let authored_id = forge_core::EntityId::deterministic("population-scene-authored-copy");
+    let [x, y, z] = template.source.position_m;
+    let catalogue_copy = population.plant_placement_at(
+        &forge_project::VegetationLayerId::new(&template_layer.layer_id),
+        authored_id,
+        [x + 1.0, z],
+        0.0,
+        None,
+        None,
+    )?;
+    let mut authored = head.clone();
+    authored.corrections.imported_plant_placements = Some(vec![catalogue_copy]);
+    authored.version = authored.corrections.schema_version();
+    let authored_population = canonical::prepare(population, Some((&authored, heights)))?;
+    assert_eq!(
+        authored_population
+            .identities
+            .values()
+            .map(Vec::len)
+            .sum::<usize>(),
+        original_count + 1
+    );
+    assert!(
+        authored_population
+            .identities
+            .values()
+            .flatten()
+            .any(|id| *id == authored_id)
+    );
+    let authored_scene = scene::from_population(package, population, &authored, heights)?;
+    let nearby = project(
+        &authored_scene,
+        bevy::math::DVec3::new(x + 1.0, y + 10.0, z).as_vec3(),
+    )?;
+    assert!(nearby.iter().any(|plant| plant.id == authored_id));
+    let mut transformed = authored.clone();
+    let copy = &mut transformed
+        .corrections
+        .imported_plant_placements
+        .as_mut()
+        .ok_or("authored copy absent")?[0];
+    copy.yaw_degrees = Some(90.0);
+    copy.scale_factor = Some(1.5);
+    transformed.version = transformed.corrections.schema_version();
+    assert_eq!(transformed.version, 12);
+    let transformed_population = canonical::prepare(population, Some((&transformed, heights)))?;
+    assert_eq!(
+        transformed_population.identities,
+        authored_population.identities
+    );
+    assert_ne!(transformed_population.streams, authored_population.streams);
+    let transformed_scene = scene::from_population(package, population, &transformed, heights)?;
+    let transformed_nearby = project(
+        &transformed_scene,
+        bevy::math::DVec3::new(x + 1.0, y + 10.0, z).as_vec3(),
+    )?;
+    assert!(
+        transformed_nearby
+            .iter()
+            .any(|plant| plant.id == authored_id)
+    );
+    println!("AUTHORED_PLANT_APPEARANCE_PASS stable_id_changed_gpu_streams scene_resident");
     Ok(())
 }
 
@@ -178,6 +270,21 @@ fn check_picking(
         })
         .collect::<Vec<_>>();
     assert_eq!(mapped, expected);
+    assert!(snapshot.visible_count() <= snapshot.identity_count());
+    let drawn = snapshot
+        .batches
+        .iter()
+        .flat_map(|batch| {
+            batch
+                .tags
+                .iter()
+                .map(|tag| batch.material.extension.ids.x + tag)
+        })
+        .collect::<BTreeSet<_>>();
+    let hidden = (1..=u32::try_from(snapshot.identity_count()).expect("bounded population"))
+        .find(|id| !drawn.contains(id))
+        .expect("camera view excludes at least one imported plant");
+    assert!(snapshot.resolve(hidden, snapshot.head).is_err());
     assert_eq!(snapshot.resolve(0, snapshot.head)?, None);
     assert!(snapshot.resolve(u32::MAX, snapshot.head).is_err());
     let stale = "0000000000000000000000000000000000000000000000000000000000000000"
@@ -233,6 +340,7 @@ fn project(scene: &scene::Vegetation, camera: Vec3) -> Result<Vec<scene::Importe
 
 fn material() -> PlantMaterial {
     PlantMaterial {
+        motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
         params: Params {
             i_pos: Vec4::ZERO,
             i_dat: Vec4::ZERO,
@@ -253,6 +361,7 @@ fn material() -> PlantMaterial {
         clouds: [Vec4::ZERO; 5],
         cloud_shadow: None,
         object_settings: default(),
+        live_shadows: forge_engine::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
         grass_heights: default(),
         grass_mask: default(),
         kind: 0,

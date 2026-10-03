@@ -1,7 +1,8 @@
-use super::{SendCommand, head};
+use super::{PlacementEdit, SendCommand, head};
 use forge_core::{CommandId, EntityId};
 use forge_project::authoring::{AuthoringRequest, AuthoringState};
 use forge_world::path_placement::PathPlacementOptions;
+use forge_world::placement_snap::PlacementSnap;
 use leptos::prelude::*;
 
 type DraftContext = Option<((forge_core::ProjectId, forge_core::AreaId), EntityId)>;
@@ -77,16 +78,56 @@ pub(super) fn PathArrayControls(
             surface_offset_m: numbers[3],
             yaw_offset_degrees: numbers[4],
         };
+        let source = super::super::objects::lookup(&head, source_id)?;
+        let transforms =
+            forge_world::path_placement::transforms(&head, source.transform, path_id, options)?;
+        let terrain = crate::authoring_scene::terrain(&head)?;
+        let alignment = crate::authoring_raster::prepare_alignment(
+            &terrain,
+            PlacementSnap {
+                grid_step_m: None,
+                surface_offset_m: Some(options.surface_offset_m),
+            },
+        )?;
         let key = serde_json::to_string(&(head.content_hash()?, source_id, path_id, options))
             .map_err(|e| e.to_string())?;
-        forge_world::path_placement::prepare(
-            &head,
-            CommandId::deterministic(format!("path-array:{key}")),
-            source_id,
-            path_id,
-            options,
-        )
-        .map(|request| AuthoringRequest::PreviewZone { request })
+        let expected_hash = head.content_hash()?;
+        let expected_revision = head.revision;
+        let mut candidate = head.clone();
+        for (index, pose) in transforms.into_iter().enumerate() {
+            let transform = alignment.resolve(pose)?;
+            let copy_id = EntityId::deterministic(format!("path-placement:{key}:{index}"));
+            let request = super::super::objects::edit(
+                &candidate,
+                PlacementEdit::Duplicate {
+                    source_id,
+                    id: copy_id,
+                    transform,
+                },
+                CommandId::deterministic(format!("path-array:{key}:{index}")),
+            )?;
+            let forge_project::zone_authoring::session::ZoneAction::Edit(corrections) =
+                request.action
+            else {
+                return Err("Répétition : commande de copie inattendue".into());
+            };
+            candidate.corrections = *corrections;
+            candidate.version = candidate.corrections.schema_version();
+            candidate.validate()?;
+        }
+        if candidate.corrections == head.corrections {
+            return Err("Répétition : aucune copie préparée".into());
+        }
+        Ok(AuthoringRequest::PreviewZone {
+            request: forge_project::zone_authoring::session::ZoneRequest {
+                command_id: CommandId::deterministic(format!("path-array:{key}")),
+                expected_revision,
+                expected_hash,
+                action: forge_project::zone_authoring::session::ZoneAction::edit(
+                    candidate.corrections,
+                ),
+            },
+        })
     };
     view! {
         <details><summary>"Répéter sur un tracé · clôture ou mur"</summary>

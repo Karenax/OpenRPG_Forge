@@ -29,6 +29,7 @@ struct Reference {
 
 /// Fully verified bytes. GPU validation and license review remain separate.
 pub struct BuildingPackage {
+    source_commit: String,
     catalog: AssetCatalog,
     files: BTreeMap<String, Vec<u8>>,
     materials: Value,
@@ -91,6 +92,7 @@ impl BuildingPackage {
         }
         let materials: Value = decode(&files[&m.material_library.file])?;
         let package = Self {
+            source_commit: m.source_commit.clone(),
             catalog,
             files,
             materials,
@@ -102,6 +104,10 @@ impl BuildingPackage {
     #[must_use]
     pub fn catalog(&self) -> &AssetCatalog {
         &self.catalog
+    }
+    #[must_use]
+    pub fn source_commit(&self) -> &str {
+        &self.source_commit
     }
     #[must_use]
     pub fn materials(&self) -> &Value {

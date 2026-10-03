@@ -1,0 +1,270 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.dame-des-lucioles",
+  "name": "Dame des lucioles",
+  "subtitle": "La gardienne d'un passage que la nuit rend incertain",
+  "classification": {
+    "nature": "personne féerique incarnée des marais",
+    "family": "fées incarnées des marais",
+    "rarity": "rare ; personnes dispersées autour de zones humides anciennes",
+    "activity": "crépusculaire et nocturne",
+    "social": "personne liée à des collecteurs, passeurs et protecteurs de zones humides",
+    "threat": "forte",
+    "threat_reason": "Son feu et ses illusions modifient la lecture d'une rive, mais ses effets demandent du Mana, une préparation visible et une attention qu'un choc peut interrompre."
+  },
+  "physique": {
+    "dimensions": "1,6 à 1,8 m debout ; bâton de 1,5 m",
+    "mass_kg": [
+      52,
+      74
+    ],
+    "locomotion": [
+      "marche sur sentier",
+      "nage ordinaire",
+      "franchissement par perche"
+    ],
+    "center_of_gravity": "Bas dans un bassin large, au-dessus de pieds à quatre longs doigts écartés ; ces appuis répartissent son poids sans empêcher l'enfoncement. Le bâton ne permet ni vol ni marche sur l'eau.",
+    "silhouette": "Corps étroit à peau opaline, parcourue de fins vaisseaux ambrés ; visage sans nez saillant, grands yeux sombres facettés et deux lamelles souples aux tempes. Des mains à quatre doigts palmés dépassent d'un manteau de fibres sombres. Elle n'a pas d'ailes.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Une membrane opaline souple couvre le crâne ; les lamelles temporales et les yeux facettés restent exposés sous la capuche.",
+        "protection": 2
+      },
+      {
+        "zone": "torse",
+        "description": "Côtes souples sous une peau vascularisée ; poumons respirant l'air, protégés par une veste matelassée et un manteau huilé.",
+        "protection": 10
+      },
+      {
+        "zone": "bras et mains",
+        "description": "Avant-bras fins et quatre doigts reliés à leur base par une membrane ; gants fendus laissant libres les gestes de préparation.",
+        "protection": 3
+      },
+      {
+        "zone": "jambes",
+        "description": "Jambes à deux longs segments et pieds largement déployables ; guêtres épaisses aux tibias, doigts et articulations exposés.",
+        "protection": 5
+      }
+    ]
+  },
+  "habitats": [
+    "marais traversés par des sentiers de collecte",
+    "rives de lacs où subsistent des clairières sans éclairage nocturne"
+  ],
+  "ecology": {
+    "diet": "Fruits, graines trempées et bouillons salés nourrissent ses tissus ; elle doit boire de l'eau douce régulièrement. Sa peau humide ne remplace ni l'alimentation ni la respiration, et elle ne consomme ni lumière ni lucioles.",
+    "lifecycle": "Le jeune corps se forme dans une enveloppe vivante ancrée à une roselière, puis s'en détache pour grandir auprès d'adultes. La peau s'épaissit avec l'âge et perd peu à peu sa transparence. Cette fée matérielle vieillit, se blesse et meurt ; sa formation aux sorts et aux accords est acquise, pas contenue dans sa naissance.",
+    "reproduction": "Deux adultes consentants peuvent réunir des bourgeons de leur peau pour former une enveloppe germinale, entretenue plusieurs saisons dans une eau douce peu profonde. Le nouvel individu ne reçoit ni leurs souvenirs ni leurs engagements ; une roselière seule ne produit pas spontanément de personne.",
+    "behavior": "Cette personne entretient des refuges pour les larves et renseigne les voyageurs par choix. Son accueil dépend du respect des accords locaux ; d'autres fées peuvent défendre des intérêts opposés, refuser cette charge ou vivre ailleurs. Aucun pacte ni tempérament moral ne leur est imposé par leur nature.",
+    "niche": "Habitante durable des roselières, observatrice de leur vie nocturne et interlocutrice des riverains ; son attachement au lieu repose sur son histoire et ses besoins, sans lui donner possession de ses habitants.",
+    "environmental_impact": "Les passages qu'elle balise limitent le piétinement des berges ; protéger un secteur sombre peut aussi déplacer le trafic vers une autre communauté."
+  },
+  "senses": [
+    "yeux facettés sensibles aux faibles contrastes et aux éclats brefs, sans vision dans l'obscurité totale ni à travers le brouillard",
+    "lamelles temporales percevant les sons et les mouvements d'air proches ; une rafale ou un frottement de roseaux peut masquer ces indices"
+  ],
+  "communication": [
+    "parole dans les langues qu'elle a apprises",
+    "signaux lumineux convenus avec les passeurs, toujours perceptibles aux témoins présents"
+  ],
+  "signs": [
+    "balises de roseau portant un fil pâle à hauteur de genou",
+    "petites zones de bois humide laissées intactes près du chemin",
+    "signaux courts répondant à distance depuis une rive habitée"
+  ],
+  "demeanor": {
+    "objectives": [
+      "conserver un passage sûr",
+      "protéger un lieu de reproduction des insectes",
+      "faire respecter un accord avec les riverains"
+    ],
+    "fears": [
+      "incendie de roseaux secs",
+      "huile déversée sur une nurserie",
+      "voyageurs dirigés vers une fausse rive"
+    ],
+    "morale": "Elle privilégie l'évacuation et la parole ; isolée ou à court de Mana, elle abandonne l'affrontement pour demander du renfort.",
+    "escalation": "Elle identifie les voyageurs, avertit clairement, ferme le chemin puis emploie ses capacités si une menace persiste.",
+    "retreat": "Elle rejoint une portion de terrain ferme connue, éteint ses propres effets et laisse une issue aux personnes qui se retirent."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 6,
+      "constitution": 5,
+      "intelligence": 7,
+      "willpower": 7,
+      "perception": 8,
+      "presence": 7
+    },
+    "skills": {
+      "polearms": 35,
+      "elementalism": 45,
+      "illusion": 50,
+      "animal_handling": 48,
+      "survival": 55,
+      "vigilance": 60,
+      "empathy": 45,
+      "persuasion": 50,
+      "swimming": 35
+    },
+    "movement": "Marche 3 m/s, course 5 m/s sur sol ferme ; nage 1,2 m/s sans sacoche ; vase profonde et courant appliquent les contraintes ordinaires.",
+    "protections": [
+      "Le matelassé protège le torse contre les contacts compatibles ; le manteau ne constitue pas une barrière magique.",
+      "Les insectes présents ne sont ni une armure ni une réserve de Vitalité."
+    ],
+    "attacks": [
+      {
+        "name": "Bâton de rive",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "1,5 m",
+        "stamina_cost": 8,
+        "preparation": "0,7 seconde, prise raccourcie",
+        "telegraph": "Elle retire le bâton du sol et présente son extrémité à hauteur de poitrine.",
+        "effect": "Contact contondant ; elle peut chercher à séparer les personnes plutôt qu'à frapper la tête. Récupération 0,8 seconde, sans protection automatique pendant ce délai.",
+        "counterplay": "Reculer hors de portée ou opposer une garde ; les roseaux serrés et une rambarde limitent réellement le balayage."
+      },
+      {
+        "name": "Étincelle portée",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "projectile lumineux et thermique jusqu'à 8 m",
+        "stamina_cost": 3,
+        "preparation": "0,95 seconde, main libre et cible visible",
+        "telegraph": "Un point ambré grossit entre ses doigts, accompagné d'un souffle sec.",
+        "effect": "Coût : 12 Mana, payé au lancement ; intensité 2, effet immédiat sans maintien ni coût de Concentration. Le projectile ajoute 25 de Chaleur à la zone réellement touchée, sans Trauma direct garanti. Il peut allumer une matière déjà sèche et inflammable ; une interruption applique la règle commune.",
+        "counterplay": "Couper la ligne, interposer une matière isolante ou quitter la trajectoire ; de l'eau sur le combustible peut empêcher l'allumage sans effacer le projectile."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Rive dessinée",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "illusion",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "zone visible de 2 m de rayon à moins de 8 m",
+        "stamina_cost": 2,
+        "preparation": "1,4 seconde avec gestes continus",
+        "telegraph": "Elle trace un arc avec les doigts ; les reflets s'alignent avant que l'apparence ne se fixe.",
+        "effect": "Coût : 10 Mana au lancement puis 3 Mana et 2 Concentration par seconde, au plus 6 secondes. Elle peint une apparence lumineuse de terrain ou de balise, sans masse, son ni appui. Elle doit maintenir sa vue et son attention ; fin à Concentration 0, ligne rompue ou échec du maintien après Trauma net ≥ 10.",
+        "counterplay": "Sonder avec une perche, comparer aux remous ou éclairer latéralement révèle l'absence de matière ; Investigation D18 repère un reflet incohérent. Personne n'est obligé de suivre l'apparence."
+      },
+      {
+        "name": "Rassemblement des lueurs",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "animal_handling",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "insectes présents à moins de 4 m",
+        "stamina_cost": 4,
+        "preparation": "3 secondes avec une petite lampe à obturateur",
+        "telegraph": "Deux éclats faibles précèdent une longue période sombre.",
+        "effect": "Dressage D18 attire vers un support préparé une partie des lucioles déjà présentes pendant 10 secondes au maximum ; aucune création, contrôle mental ou lumière suffisante pour aveugler. Pas de coût en Mana : il s'agit d'un comportement appris et réversible.",
+        "counterplay": "Les insectes peuvent fuir un bruit, une lumière vive ou un mouvement brutal ; sans insectes actifs dans la zone, la tentative n'a aucun effet."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "pluie ordinaire",
+        "mechanism": "Le manteau huilé ralentit le refroidissement du torse tant qu'il reste fermé ; il ne protège pas de l'immersion ni du feu."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "attention partagée",
+        "mechanism": "L'illusion demande un maintien actif ; un choc, une perte de vue ou une action incompatible peut la faire cesser selon les règles communes."
+      },
+      {
+        "subject": "appuis noyés",
+        "mechanism": "Son corps vascularisé a du poids et ses poumons ont besoin d'air ; une balise lumineuse n'empêche ni l'enfoncement dans la vase ni la noyade."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "brouillard traversé par une lumière latérale",
+        "result": "trajet lumineux visible et reflets dispersés",
+        "chain": "Les gouttelettes diffusent la lumière ; elles peuvent révéler la direction d'une illusion tout en réduisant la visibilité de la rive réelle."
+      },
+      {
+        "input": "étincelle sur roseaux secs puis vent de rive",
+        "result": "incendie mobile menaçant tous les occupants",
+        "chain": "La chaleur allume le combustible, le vent incline les flammes et transporte les débris ; la chaîne conserve son initiatrice et ne distingue pas amis et adversaires."
+      }
+    ],
+    "resources": {
+      "vitality": 98,
+      "stamina": 96,
+      "mana": 90,
+      "balance": 76,
+      "focus": 100
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 14,
+      "fact": "La Dame est une fée incarnée : sa peau opaline et ses mains palmées ne la rendent ni immatérielle ni amphibie. Ses sorts s'apprennent et ses engagements se négocient."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 22,
+      "fact": "Les variations du rythme lumineux pourraient guider différentes espèces d'insectes, mais une saison froide rend ces réponses peu fiables."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Dans le double fond d'une boîte de soin qu'elle ne laisse jamais à autrui, cette fée conserve le dernier message d'une expédition disparue et la preuve que son commanditaire en connaissait le risque."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "guide nocturne",
+      "médiatrice d'un conflit de territoire",
+      "adversaire qui protège un accord précis"
+    ],
+    "telegraphs": [
+      "Elle annonce la fermeture d'un chemin avant de préparer une illusion.",
+      "La lumière qui grossit dans la main laisse moins d'une seconde pour quitter sa trajectoire."
+    ],
+    "noncombat_options": [
+      "Accepter un itinéraire plus long et convenir d'un signal de passage pour éviter la zone fragile.",
+      "Présenter les besoins d'une communauté et négocier des horaires, une réparation ou une compensation vérifiable."
+    ],
+    "complications": [
+      "Des voyageurs peuvent prendre une balise d'exercice pour un passage réel si le groupe n'a pas été averti.",
+      "Protéger un marais sans discuter des déplacements imposés peut couper l'accès d'un village à ses ressources."
+    ]
+  },
+  "salvage": [
+    "Cartes, remèdes et matériel uniquement cédés, achetés ou retrouvés après un abandon confirmé ; jamais de trophées sur une personne.",
+    "Des graines et matériaux remis avec son accord peuvent servir à restaurer une rive ; les insectes restent des êtres vivants à relâcher."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "dame-des-lucioles-plate-v1.png",
+      "alt": "La Dame des lucioles se tient sur une rive ferme, vêtue d’un manteau sombre. Son visage opalin porte de grands yeux sombres et deux lamelles temporales ; elle tient un bâton et une petite lampe.",
+      "caption": "Une lumière convenue entre les roseaux peut annoncer un passage sûr.",
+      "prompt_key": "dame-des-lucioles-plate-v1"
+    }
+  ]
+}

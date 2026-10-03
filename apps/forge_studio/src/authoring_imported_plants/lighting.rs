@@ -32,6 +32,7 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
     Some((
         key,
         PlantMaterial {
+            motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
             params: Params {
                 i_pos: Vec4::ZERO,
                 i_dat: Vec4::ZERO,
@@ -50,6 +51,7 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
             hill_shadow: hill.output.clone(),
             object_shadow: shadow.image.clone(),
             object_settings: shadow.settings.clone(),
+            live_shadows: forge_engine::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
             clouds: environment.cloud_view,
             cloud_shadow: Some(environment.clouds.images[2].clone()),
             grass_heights: material.extension.height.clone(),

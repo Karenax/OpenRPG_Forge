@@ -4,7 +4,7 @@ use super::{
     session::{ZoneAction, ZoneRequest},
 };
 use crate::VegetationLayerId;
-use forge_core::{CommandId, ContentHash, EntityId, Revision};
+use forge_core::{AssetId, CommandId, ContentHash, EntityId, Revision};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -18,6 +18,7 @@ pub enum RegenerationConflict {
         layer_id: VegetationLayerId,
         locked: bool,
     },
+    ImportedPlantSourceChanged,
     BuildingConstraintChanged {
         building_id: EntityId,
         locked: bool,
@@ -66,10 +67,35 @@ impl RegenerationConflict {
             Self::TerrainGridChanged => "[TerrainGridChanged] La taille, la grille ou le schéma du terrain change. Conserver ces paramètres pour garder les retouches à leurs emplacements.".into(),
             Self::TerrainHeightReferenceChanged => "[TerrainHeightReferenceChanged] Le relief possède des retouches relatives. Changer sa seed ou sa recette déplacerait leur surface de référence ; le rebasage exact n’est pas disponible. Conserver la recette de relief ; une régénération de végétation seule reste possible si ses autres contraintes sont satisfaites.".into(),
             Self::DensityLayerRemoved { layer_id, locked } => format!("[DensityLayerRemoved] La couche {layer_id} possède un masque auteur (verrou {}). La proposition la supprime. Conserver son identifiant dans la recette ; déverrouiller n’efface pas le masque et ne résout pas sa disparition.", if *locked { "actif" } else { "inactif" }),
+            Self::ImportedPlantSourceChanged => "[ImportedPlantSourceChanged] Des plantes importées ont été déplacées ou copiées. La proposition change leurs blocs source ; réconcilier les clés de plantes avant de remplacer ces blocs pour conserver les retouches.".into(),
             Self::BuildingConstraintChanged { building_id, locked, reason } => format!("[BuildingConstraintChanged] Le bâtiment {building_id} ne tient plus dans les contraintes proposées (verrou du bâtiment entier {}). Adapter la proposition ou retoucher explicitement le bâtiment avant de réexaminer. Détail : {reason}", if *locked { "actif" } else { "inactif" }),
             Self::InvalidEffectiveDocument { reason } => format!("[InvalidEffectiveDocument] La recette et les retouches ne forment pas une zone valide. Corriger la proposition ou la retouche concernée, puis réexaminer. Détail : {reason}"),
         }
     }
+}
+
+fn imported_plant_asset_id(base: &ZoneBase, layer: &crate::VegetationLayerId) -> AssetId {
+    AssetId::deterministic(format!(
+        "imported-instance:{}:{}:{}",
+        base.terrain.project_id,
+        base.terrain.area_id,
+        layer.as_str()
+    ))
+}
+
+fn has_imported_plant_object_edits(head: &ZoneAuthoringHead) -> bool {
+    let Some(vegetation) = head.base.vegetation.as_ref() else {
+        return false;
+    };
+    let Some(edits) = head.corrections.source_object_edits.as_deref() else {
+        return false;
+    };
+    edits.iter().any(|edit| {
+        vegetation
+            .layers
+            .iter()
+            .any(|layer| imported_plant_asset_id(&head.base, &layer.id) == edit.source.asset_id)
+    })
 }
 
 impl ZoneAuthoringHead {
@@ -111,6 +137,29 @@ impl ZoneAuthoringHead {
                     locked: correction.locked,
                 });
             }
+        }
+        if (has_imported_plant_object_edits(self)
+            || self
+                .corrections
+                .imported_plant_offsets
+                .as_ref()
+                .is_some_and(|offsets| !offsets.is_empty())
+            || self
+                .corrections
+                .imported_plant_placements
+                .as_ref()
+                .is_some_and(|placements| !placements.is_empty()))
+            && self
+                .base
+                .vegetation
+                .as_ref()
+                .and_then(|vegetation| vegetation.imported_source.as_ref())
+                != proposed_base
+                    .vegetation
+                    .as_ref()
+                    .and_then(|vegetation| vegetation.imported_source.as_ref())
+        {
+            conflicts.push(RegenerationConflict::ImportedPlantSourceChanged);
         }
         let mut candidate = self.clone();
         for building in self.corrections.buildings.as_deref().unwrap_or_default() {

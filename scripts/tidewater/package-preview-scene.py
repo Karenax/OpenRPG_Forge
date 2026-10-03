@@ -5,7 +5,9 @@ import json
 from pathlib import Path
 import uuid
 
-FOLDERS = {"scene", "workspace", "buildings", "ocean", "shore", "spray", "clouds"}
+REQUIRED_FOLDERS = {"scene", "workspace", "buildings", "ocean", "shore", "spray", "clouds"}
+# Additive, versioned scene inputs.  Older bundles remain valid without these.
+OPTIONAL_FOLDERS = {"fish-stand", "fish-stand-content", "fish-stand-fish"}
 COMMIT = "1438b1abfcaee3267092b75573014f4d9b4a983c"
 MAX_FILE = 128 * 1024 * 1024
 MAX_TOTAL = 1024 * 1024 * 1024
@@ -52,7 +54,8 @@ def verify(root, expected):
     entries = manifest["files"]
     if not 1 <= len(entries) <= MAX_FILES:
         raise ValueError("file count quota")
-    if {name.split("/")[0] for name in entries} != FOLDERS:
+    groups = {name.split("/")[0] for name in entries}
+    if not REQUIRED_FOLDERS <= groups or not groups <= REQUIRED_FOLDERS | OPTIONAL_FOLDERS:
         raise ValueError("missing input group")
     actual = {p.relative_to(root).as_posix(): p for p in files(root)}
     if set(actual) != set(entries) | {"preview-scene.json"}:
@@ -72,7 +75,8 @@ def bundle(config_path, output):
     config = json.loads(config_path.read_text(encoding="utf-8"))
     if set(config) != {"folders", "source_commit", "area_id", "building_package_sha256"}:
         raise ValueError("unknown configuration fields")
-    if set(config["folders"]) != FOLDERS or config["source_commit"] != COMMIT:
+    groups = set(config["folders"])
+    if not REQUIRED_FOLDERS <= groups or not groups <= REQUIRED_FOLDERS | OPTIONAL_FOLDERS or config["source_commit"] != COMMIT:
         raise ValueError("bundle inputs or source differ")
     uuid.UUID(config["area_id"])
     if output.exists():

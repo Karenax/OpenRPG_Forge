@@ -119,6 +119,14 @@ fn item(target: &Target, label: String) -> SceneItem {
     }
 }
 
+#[path = "atelier_selection.rs"]
+mod selected_objects;
+use selected_objects::{SCENE_ITEM_LIMIT, preserve_selected_object_item};
+
+#[allow(
+    clippy::too_many_lines,
+    reason = "The Leptos binding view keeps signal ownership in one scope"
+)]
 pub(super) fn bind_main(bindings: MainBindings) {
     provide_context(bindings);
     let Some(link) = use_context::<Link>() else {
@@ -135,17 +143,29 @@ pub(super) fn bind_main(bindings: MainBindings) {
                 .and_then(|s| s.zone_head.as_ref())
                 .map(|h| authoring_scene_index::rows(h, ""))
                 .unwrap_or_default();
+            let mut items = rows
+                .iter()
+                .take(SCENE_ITEM_LIMIT)
+                .map(|(target, label)| item(target, label.clone()))
+                .collect::<Vec<_>>();
+            let selected = if let (Some(selected), Some(head)) = (
+                bindings.placement.get(),
+                session.as_ref().and_then(|s| s.zone_head.as_ref()),
+            ) && let Ok(placement) =
+                crate::authoring_assets::objects::lookup(head, selected)
+            {
+                Some((selected, placement.name))
+            } else {
+                None
+            };
+            preserve_selected_object_item(&mut items, selected);
             Snapshot {
                 project: session
                     .as_ref()
                     .and_then(|s| s.document.as_ref())
                     .map_or_else(|| "Aucune zone ouverte".into(), |d| d.name.clone()),
                 dirty: session.as_ref().is_some_and(|s| s.dirty),
-                items: rows
-                    .iter()
-                    .take(4096)
-                    .map(|(t, l)| item(t, l.clone()))
-                    .collect(),
+                items,
                 ..Snapshot::default()
             }
         })
@@ -274,12 +294,7 @@ fn inspector_snapshot(
         let session = session.as_ref()?;
         let head = session.zone_head.as_ref()?;
         let selected = bindings.placement.get()?;
-        let placement = head
-            .corrections
-            .placements
-            .as_ref()?
-            .iter()
-            .find(|p| p.id == selected)?;
+        let placement = crate::authoring_assets::objects::lookup(head, selected).ok()?;
         Some(crate::atelier_drafts::ObjectInspector {
             scope: crate::atelier_drafts::DraftScope {
                 area: head.base.terrain.area_id.to_string(),
@@ -330,11 +345,10 @@ fn apply_intent(bindings: MainBindings, link: Link, intent: Intent) {
         Intent::MapOnly { enabled } => link.map_only.set(enabled),
         Intent::Select { key } => {
             // Revalidate after the await: the main window may have changed zones.
-            let rows = bindings
-                .state
-                .get_untracked()
-                .and_then(|s| s.zone_head)
-                .map(|h| authoring_scene_index::rows(&h, ""))
+            let head = bindings.state.get_untracked().and_then(|s| s.zone_head);
+            let rows = head
+                .as_ref()
+                .map(|head| authoring_scene_index::rows(head, ""))
                 .unwrap_or_default();
             if let Some((target, _)) = rows.iter().find(|(t, l)| item(t, l.clone()).key == key) {
                 crate::authoring_shortcuts::cancel_preview();
@@ -360,6 +374,13 @@ fn apply_intent(bindings: MainBindings, link: Link, intent: Intent) {
                         bindings.active.set(AuthoringTab::Objects);
                     }
                 }
+            } else if let Some(id) = selected_objects::resolve_object_key(&key, |id| {
+                head.as_ref()
+                    .is_some_and(|head| crate::authoring_assets::objects::lookup(head, id).is_ok())
+            }) {
+                crate::authoring_shortcuts::cancel_preview();
+                crate::authoring_assets::placements::selection::choose(Some(id));
+                bindings.active.set(AuthoringTab::Objects);
             }
         }
     }
@@ -414,6 +435,7 @@ pub(super) fn SecondaryWorkspace() -> impl IntoView {
         <main class="authoring-shell atelier-secondary">
             <style>{include_str!("authoring_gold.css")}</style>
             <header class="topbar"><h1>"OpenRPG Forge"</h1><span>"Atelier secondaire"</span>
+                <crate::asset_library_ui::LibraryLauncher/>
                 <button class="atelier-map-mode" aria-pressed=move || reply.get().snapshot.map_only.to_string()
                     on:click=move |_|submit.run(Intent::MapOnly { enabled: !reply.get_untracked().snapshot.map_only })>
                     {move || if reply.get().snapshot.map_only { "Afficher les panneaux sur la carte" } else { "Carte seule sur l’écran principal" }}

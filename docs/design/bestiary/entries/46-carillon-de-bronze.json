@@ -1,0 +1,269 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.carillon-de-bronze",
+  "name": "Carillon de bronze",
+  "subtitle": "L'écoute immobile des galeries résonnantes",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "construct acoustique",
+    "family": "veilleurs de galerie",
+    "rarity": "rare, entretenu dans quelques ouvrages collectifs",
+    "activity": "veille par séquences de dix minutes",
+    "social": "travaille avec des gardiens et accepte des horaires de silence",
+    "threat": "forte",
+    "threat_reason": "Son battant frappe lourdement et ses impulsions de force déstabilisent un couloir ; il garde toutefois un lieu précis et différencie alarme, évacuation et conflit."
+  },
+  "physique": {
+    "dimensions": "2,20 m de haut, trépied occupant un cercle de 1,60 m",
+    "mass_kg": [
+      240,
+      360
+    ],
+    "locomotion": [
+      "marche lente sur trois pieds",
+      "rotation du corps autour du support"
+    ],
+    "center_of_gravity": "Le bronze pend entre trois pieds ; un battant lancé déplace ce centre et rend l'arrêt moins immédiat.",
+    "silhouette": "Une cloche sans visage portée par trois jambes articulées, avec des lamelles d'écoute tournées vers les murs.",
+    "anatomy_zones": [
+      {
+        "zone": "couronne",
+        "description": "Lamelles fines et fentes d'écoute, protégées par une grille ajourée.",
+        "protection": 8
+      },
+      {
+        "zone": "jupe de bronze",
+        "description": "Paroi épaisse mais susceptible de se fissurer autour d'une ancienne réparation.",
+        "protection": 24
+      },
+      {
+        "zone": "battant",
+        "description": "Masse suspendue par deux axes visibles ; elle peut se coincer contre un obstacle.",
+        "protection": 14
+      },
+      {
+        "zone": "pieds",
+        "description": "Petites rotules et patins de bois remplaçables, peu résistants à une torsion.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "galeries de réservoirs municipaux",
+    "grandes halles de pierre où les alarmes doivent porter"
+  ],
+  "ecology": {
+    "diet": "Aucun besoin alimentaire ; patins, huile et entretien du circuit de force sont fournis par les responsables de l'ouvrage.",
+    "lifecycle": "Alterner écoute, déplacement et silence évite de saturer les lamelles. Des fissures modifient le timbre et doivent être réparées avant une nouvelle veille.",
+    "reproduction": "Construction en atelier ; il ne peut assembler un autre carillon ni transférer sa veille à des cloches ordinaires.",
+    "behavior": "Compare les vibrations connues à celles d'un choc ou d'une fuite. Il appelle un gardien avant de traiter une présence comme une menace.",
+    "niche": "Détecteur de défauts et relais d'alarme ; il est utile aux habitants mais ses diagnostics demandent une vérification humaine.",
+    "environmental_impact": "Les veilles sonores fatiguent la faune des galeries ; des périodes muettes et des passages absorbants limitent cette pression."
+  },
+  "senses": [
+    "capte les vibrations d'un sol continu jusqu'à 12 m lorsqu'il s'immobilise",
+    "entend les timbres distincts dans une salle calme",
+    "vision grossière à travers trois fentes, incapable de lire un visage à distance"
+  ],
+  "communication": [
+    "timbres codés affichés à l'entrée de l'ouvrage",
+    "inclinaison d'une lamelle vers l'anomalie détectée",
+    "petites plaques coulissantes portant arrêt, sortie ou aide"
+  ],
+  "signs": [
+    "trois traces de patins autour d'une marque circulaire",
+    "une note grave suivie d'une longue pause",
+    "poussière rassemblée en fines lignes au pied des murs"
+  ],
+  "demeanor": {
+    "objectives": [
+      "signaler une défaillance",
+      "garder une voie d'évacuation libre",
+      "éviter d'amplifier une résonance dangereuse"
+    ],
+    "fears": [
+      "fissure de sa jupe",
+      "perte d'un appui",
+      "saturation par des bruits proches"
+    ],
+    "morale": "Privilégie le recul et l'alarme lorsqu'un gardien peut intervenir ; une fissure nouvelle le pousse à s'immobiliser.",
+    "escalation": "Il pointe la sortie, émet un timbre d'avertissement, bloque le couloir puis engage son battant seulement si le passage est forcé.",
+    "retreat": "Se range contre une niche large et cesse les impulsions pour laisser une issue praticable."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 4,
+      "constitution": 7,
+      "intelligence": 5,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 4
+    },
+    "skills": {
+      "impact_weapons": 50,
+      "unarmed": 35,
+      "mechanisms": 65,
+      "force_magic": 50,
+      "vigilance": 70,
+      "lore": 25
+    },
+    "resources": {
+      "vitality": 112,
+      "stamina": 103,
+      "mana": 76,
+      "balance": 88,
+      "focus": 96
+    },
+    "movement": "Marche 1 m/s sur sol régulier ; rotation de 90 degrés en 2 secondes ; ne franchit pas une marche de plus de 0,20 m.",
+    "protections": [
+      "La paroi de bronze couvre les impacts frontaux ; les lamelles et rotules demeurent vulnérables.",
+      "Sa masse donne de l'inertie, mais chaque action paie son coût d'Endurance et peut rompre ses appuis."
+    ],
+    "attacks": [
+      {
+        "name": "Balancier de seuil",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 24,
+        "reach": "arc frontal de 2 m",
+        "stamina_cost": 12,
+        "preparation": "1,6 seconde, battant retenu sur un côté",
+        "telegraph": "La jupe penche et deux pieds grincent avant le départ du battant.",
+        "effect": "Le battant atteint la première cible matérielle dans son arc ; il s'arrête contre un obstacle assez lourd et n'émet aucune explosion sonore gratuite.",
+        "counterplay": "Quitter l'arc, interposer un obstacle fixé ou immobiliser le battant avant sa libération."
+      },
+      {
+        "name": "Pied de dégagement",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 16,
+        "reach": "0,9 m devant le pied annoncé",
+        "stamina_cost": 8,
+        "preparation": "0,9 seconde, les deux autres pieds se verrouillent",
+        "telegraph": "Un patin se soulève et montre sa face de bois.",
+        "effect": "Une poussée basse contre une seule cible peut faire perdre l'appui au contact ; elle n'affecte pas tout le couloir.",
+        "counterplay": "Retirer la jambe, prendre de la hauteur ou se déplacer vers le côté du pied immobile."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Pulsation de galerie",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "force_magic",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "cône frontal de 4 m, arrêté par une paroi pleine",
+        "stamina_cost": 10,
+        "preparation": "2,5 secondes immobile, lamelles fermées",
+        "telegraph": "Une note très basse monte tandis que la poussière tremble devant la cloche.",
+        "effect": "Coûte 10 Mana. Sous concentration pendant au plus 6 secondes, émet au maximum trois impulsions espacées de 2 secondes ; chaque impulsion retire au plus 6 Équilibre à une cible exposée et appuyée dans le cône. Aucun dégât de Vitalité, cumul maximal 18 Équilibre par activation. Le carillon ne se déplace pas et ne frappe pas pendant l'effet.",
+        "counterplay": "Sortir du cône, placer une paroi pleine entre soi et la cloche ou rompre un de ses appuis. Se boucher les oreilles atténue le son mais n'arrête pas la force matérielle."
+      },
+      {
+        "name": "Écoute d'ancrage",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "vigilance",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "sol continu dans un rayon de 12 m",
+        "stamina_cost": 5,
+        "preparation": "3 secondes, les trois patins posés à plat",
+        "telegraph": "Toutes les cloches cessent de sonner et les lamelles touchent le sol.",
+        "effect": "Écoute non magique pendant au plus 10 secondes, sans déplacement ni attaque. Repère une direction de vibration, jamais l'identité ou les intentions de sa source ; aucune détection dans l'air ou au-delà d'une rupture du sol.",
+        "counterplay": "Passer sur un support désolidarisé, s'immobiliser ou produire un bruit d'atelier légitime qui oblige le gardien à vérifier."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "projections légères",
+        "mechanism": "La jupe arrondie dévie les petits débris obliques ; les ouvertures d'écoute restent exposées."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "résonance structurelle",
+        "mechanism": "Un bruit continu proche de son propre timbre perturbe ses mesures ; il suspend alors l'écoute et se fie aux indications du gardien."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "maladies organiques",
+        "mechanism": "La structure métallique ne contracte pas de maladie biologique ; corrosion et défauts mécaniques restent possibles."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "tentures épaisses suspendues dans la salle",
+        "result": "portée de l'alarme raccourcie",
+        "chain": "Les surfaces souples absorbent les réflexions sonores ; le carillon doit se rapprocher du gardien au lieu d'augmenter indéfiniment son volume."
+      },
+      {
+        "input": "dalle fendue entre la cloche et une fuite",
+        "result": "zone mal localisée",
+        "chain": "La fracture coupe une partie des vibrations transmises ; deux sources différentes peuvent sembler venir de la même direction."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Quand les trois patins se posent à plat et que le son cesse, le carillon écoute le sol et ne prépare pas son battant."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les veilleurs entretenus dans une même halle paraissent reconnaître un répertoire commun d'alarmes."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Le deuxième axe du battant contient une bande gravée « réserve de midi » : ce registre prouve qu'une alarme de fuite a été volontairement supprimée par un ancien contremaître."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "alarme collective",
+      "contrôle de couloir",
+      "indicateur d'un défaut invisible"
+    ],
+    "telegraphs": [
+      "Une plaque indique la sortie avant le blocage du couloir.",
+      "La note grave et la poussière tremblante précèdent les impulsions."
+    ],
+    "noncombat_options": [
+      "Présenter l'autorisation du gardien et traverser pendant une période muette.",
+      "Rechercher la panne signalée avec un artisan, puis faire lever l'alarme."
+    ],
+    "complications": [
+      "Une fête dans la halle masque une fuite réelle.",
+      "Une vieille réparation change le timbre et fait croire à un message différent."
+    ]
+  },
+  "salvage": [
+    "Patins usés ou lamelles fêlées déclarés abandonnés après maintenance.",
+    "Échantillon de bronze explicitement cédé par les responsables de l'ouvrage ; aucune pièce encore montée ne devient librement prélevable."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "carillon-de-bronze-plate-v1.png",
+      "alt": "Un Carillon de bronze sans visage repose sur trois jambes articulées, son battant suspendu sous la cloche dans une galerie de réservoir.",
+      "caption": "Compare les vibrations connues à celles d'un choc ou d'une fuite. Il appelle un gardien avant de traiter une présence comme une menace.",
+      "prompt_key": "carillon-de-bronze-plate-v1"
+    }
+  ]
+}

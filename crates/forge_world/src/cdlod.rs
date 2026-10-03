@@ -118,6 +118,37 @@ pub struct CdlodNode {
     pub lod: u8,
 }
 
+/// Whether an opaque patch mesh can retain its existing packing order.
+/// Selection still returns the source's front-to-back order; this comparison
+/// only avoids rebuilding identical patch geometry after a distance-sort change.
+/// Multiplicity and every node field are preserved, including signed zero.
+#[must_use]
+pub fn same_node_geometry(a: &[CdlodNode], b: &[CdlodNode]) -> bool {
+    if a.len() != b.len()
+        || a.iter().chain(b).any(|node| {
+            !node.origin_xz.iter().all(|value| value.is_finite()) || !node.size_m.is_finite()
+        })
+    {
+        return false;
+    }
+    let key = |node: &CdlodNode| {
+        (
+            node.origin_xz[0].to_bits(),
+            node.origin_xz[1].to_bits(),
+            node.size_m.to_bits(),
+            node.lod,
+        )
+    };
+    if a.iter().zip(b).all(|(a, b)| key(a) == key(b)) {
+        return true;
+    }
+    let mut a = a.iter().map(key).collect::<Vec<_>>();
+    let mut b = b.iter().map(key).collect::<Vec<_>>();
+    a.sort_unstable();
+    b.sort_unstable();
+    a == b
+}
+
 /// Pure CPU selection with source traversal and stable front-to-back ordering.
 /// Capacity exhaustion is an error, never an apparently successful missing tile.
 pub fn select_nodes(

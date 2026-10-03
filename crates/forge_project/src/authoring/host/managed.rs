@@ -111,9 +111,6 @@ impl AuthoringHost {
     }
 
     fn validate_zone_candidate(&self, request: &ZoneRequest) -> Result<(), String> {
-        let Some(validate) = self.zone_validator else {
-            return Ok(());
-        };
         let session = match &self.active {
             Some(ActiveSession::Zone(file)) => file.session(),
             Some(ActiveSession::Managed { session, .. }) => session,
@@ -131,7 +128,17 @@ impl AuthoringHost {
             candidate.base = change.applied;
         }
         candidate.revision = receipt.resulting_revision;
-        validate(&candidate)
+        if self.managed_area().is_some()
+            && candidate
+                .corrections
+                .gameplay
+                .as_ref()
+                .is_some_and(|gameplay| Some(gameplay.module_id) != self.gameplay_module_id())
+        {
+            return Err("Gameplay must belong to the module that owns this managed zone".into());
+        }
+        self.zone_validator
+            .map_or(Ok(()), |validate| validate(&candidate))
     }
 
     pub(super) fn save_managed(&mut self) -> Result<(), String> {

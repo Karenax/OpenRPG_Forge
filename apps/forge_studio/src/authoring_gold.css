@@ -55,6 +55,7 @@
 .authoring-panel details[open] { padding-bottom:8px; }
 .authoring-panel details > summary { padding:10px 0; border:0; border-radius:0; font-size:14px; font-weight:600; color:#ded8cb; cursor:pointer; }
 .authoring-panel details[open] > :not(summary) { margin-top:8px; }
+.authoring-tools #authoring-playtest-graphics input[type="range"] { width:100%; box-sizing:border-box; }
 .authoring-panel .scene-navigation { margin:0; }
 .authoring-tools .managed-zone-tabs { position:static; inset:auto; transform:none; width:auto; display:flex; flex-wrap:wrap; gap:6px; padding:8px 0; box-shadow:none; border:0; background:transparent; }
 .authoring-tools .managed-zone-tabs:empty { display:none; }

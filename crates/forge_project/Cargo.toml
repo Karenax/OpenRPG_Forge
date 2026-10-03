@@ -9,6 +9,7 @@ description = "Versioned engine-neutral Forge project and scene-proof documents.
 
 [dependencies]
 forge_core.workspace = true
+forge_gameplay.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

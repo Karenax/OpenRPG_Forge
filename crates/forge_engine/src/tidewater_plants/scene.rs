@@ -12,6 +12,7 @@ use bevy::{
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error};
 pub mod resident;
+pub mod shadow;
 
 #[derive(Deserialize)]
 struct Description {
@@ -206,7 +207,13 @@ fn load_prepared(
             .into_iter()
             .any(|n| n != positions.len())
             || (canonical.is_none() && positions.len() != group.count)
-            || positions.len() > group.count
+            || positions.len()
+                > group.count
+                    + if canonical.is_some() {
+                        forge_project::zone_authoring::imported_plants::MAX_IMPORTED_PLANT_PLACEMENTS
+                    } else {
+                        0
+                    }
             || positions.iter().any(|p| p[3] <= 0.0 || p[3] > 100.0)
             || radii.iter().any(|r| r[0] < 0.0)
         {
@@ -349,7 +356,10 @@ fn far_ids(group: &Group, camera: Vec3) -> Vec<usize> {
         .collect();
     if group.sort_far && !group.far_exclude_near {
         let bucket = |i: usize| (distance(i).0.sqrt() / 6.0).floor().min(1023.0);
-        ids.sort_by(|&a, &b| bucket(a).total_cmp(&bucket(b)));
+        // Nonnegative finite buckets have the same numeric and bit order. Cache
+        // one key per instance instead of evaluating sqrt in every comparison;
+        // cached-key sorting retains source order for equal buckets.
+        ids.sort_by_cached_key(|&i| bucket(i).to_bits());
     }
     ids
 }
@@ -383,12 +393,13 @@ pub fn spawn(
         let records = buffers.add(ShaderBuffer::from(group.records.clone()));
         let models = buffers.add(ShaderBuffer::from(group.models.clone()));
         let near = near_ids(group, camera);
+        let mut far = None;
         for level in &group.levels {
             let data = &level.description;
             let ids = if data.near {
-                near.clone()
+                &near
             } else {
-                far_ids(group, camera)
+                far.get_or_insert_with(|| far_ids(group, camera))
             };
             let count = ids.len().min(data.capacity);
             let mut material = base.clone();
@@ -400,7 +411,7 @@ pub fn spawn(
             material.params.lod_end_frame.x = data.range[2];
             let material = materials.add(material);
             let mesh = meshes.add(level.mesh.clone());
-            for index in ids.into_iter().take(count) {
+            for &index in ids.iter().take(count) {
                 let entity = commands
                     .spawn((
                         Mesh3d(mesh.clone()),
@@ -452,4 +463,60 @@ fn read_vectors<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, Box<dyn E
             Ok(result)
         })
         .collect()
+}
+
+#[cfg(test)]
+mod selection_tests {
+    use super::*;
+
+    fn group() -> Group {
+        Group {
+            identities: None,
+            name: "selection-boundaries".into(),
+            query_radius: 512.0,
+            cell_size: 64.0,
+            far_exclude_near: false,
+            near_range: 20.0,
+            refresh_distance: 2.0,
+            sort_far: true,
+            records: [12.0, 6.0, 11.999, 0.0, -6.0, 6144.0, 1.0e30, 6140.0]
+                .map(|x| Record {
+                    i_pos: Vec4::new(x, 0.0, 0.0, 1.0),
+                    i_dat: Vec4::ZERO,
+                })
+                .into(),
+            models: Vec::new(),
+            query_radii: Vec::new(),
+            levels: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn far_selection_retains_source_ties_bucket_boundaries_and_capacity_prefixes() {
+        let group = group();
+        let ids = far_ids(&group, Vec3::ZERO);
+        // Exact 6 m/12 m boundaries, tied near buckets, and the 1023 clamp.
+        assert_eq!(ids, [3, 1, 2, 4, 0, 5, 6, 7]);
+        for (capacity, expected) in [
+            (0, &[][..]),
+            (2, &[3, 1][..]),
+            (4, &[3, 1, 2, 4][..]),
+            (8, &[3, 1, 2, 4, 0, 5, 6, 7][..]),
+        ] {
+            assert_eq!(&ids[..ids.len().min(capacity)], expected);
+        }
+        // A moved camera must recompute the keys and preserve newly tied order.
+        assert_eq!(far_ids(&group, Vec3::X), [1, 3, 0, 2, 4, 5, 6, 7]);
+    }
+
+    #[test]
+    fn far_near_exclusion_uses_vertical_distance_and_keeps_unsorted_source_order() {
+        let mut group = group();
+        group.far_exclude_near = true;
+        group.records[1].i_pos.y = 30.0;
+        assert_eq!(far_ids(&group, Vec3::ZERO), [1, 5, 6, 7]);
+        group.sort_far = false;
+        group.far_exclude_near = false;
+        assert_eq!(far_ids(&group, Vec3::ZERO), (0..8).collect::<Vec<_>>());
+    }
 }

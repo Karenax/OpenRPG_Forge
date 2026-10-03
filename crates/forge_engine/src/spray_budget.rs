@@ -80,6 +80,10 @@ impl SprayBudget {
 #[allow(clippy::float_cmp)] // Exact clamp values and source timestamp boundaries are intentional.
 mod tests {
     use super::*;
+    #[allow(
+        clippy::unnecessary_wraps,
+        reason = "Constructs optional feedback with the same shape used by the missing-feedback fixture."
+    )]
     fn sample(time: f64, head: u32) -> Option<HeadSample> {
         Some(HeadSample { time, head })
     }
@@ -137,7 +141,7 @@ mod tests {
         let mut low = SprayBudget::new(1).unwrap();
         let mut high = SprayBudget::new(32768).unwrap();
         for i in 0..1000 {
-            low.after_emission(sample(f64::from(i) / 60.0, i * 100000))
+            low.after_emission(sample(f64::from(i) / 60.0, i * 100_000))
                 .unwrap();
             high.after_emission(sample(f64::from(i) / 60.0, i * 2))
                 .unwrap();

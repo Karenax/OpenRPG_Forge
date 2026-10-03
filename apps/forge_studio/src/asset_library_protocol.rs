@@ -9,6 +9,8 @@ pub struct LibraryQuery {
     pub family: String,
     pub asset_type: String,
     pub subtype: String,
+    /// Empty, `converted_model`, or `source_support`.
+    pub availability: String,
     /// Empty, `metadata_ready`, `needs_review`, or `runtime_qualified`.
     pub status: String,
     /// Empty/name, triangles, or height; all ascending, with ID as a stable tie breaker.
@@ -35,6 +37,9 @@ pub struct LibraryCard {
     pub family: String,
     pub asset_type: String,
     pub subtype: String,
+    /// `converted_model` for a usable GLB, `source_support` for a preserved
+    /// source that cannot honestly be exposed as a placement model.
+    pub availability: String,
     pub tags: Vec<String>,
     pub dimensions: [f64; 3],
     pub triangles: u64,
@@ -49,6 +54,7 @@ pub struct LibraryFacets {
     pub families: Vec<String>,
     pub types: Vec<String>,
     pub subtypes: Vec<String>,
+    pub availabilities: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -71,7 +77,8 @@ pub struct LibraryDetail {
     pub profile: serde_json::Value,
     pub catalog_asset: serde_json::Value,
     pub license: String,
-    pub model_path: String,
+    pub model_path: Option<String>,
+    pub source_path: Option<String>,
     pub preview_path: Option<String>,
 }
 

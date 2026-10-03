@@ -1,0 +1,268 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.geant-des-moraines",
+  "name": "Géant des moraines",
+  "subtitle": "Un éleveur nomade qui accompagne les troupeaux au bord des glaciers",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "géant sapient",
+    "family": "communautés pastorales des moraines",
+    "rarity": "peu commun dans les hauts bassins glaciaires",
+    "activity": "départs à l'aube, repos aux heures de fonte vive",
+    "social": "familles de transhumants, alliances saisonnières autour des pâturages",
+    "threat": "critique",
+    "threat_reason": "Sa masse, sa longue crosse et un troupeau effrayé rendent un contact dangereux ; les conflits portent sur l'accès aux pâturages, les bêtes ou un accord d'hivernage, jamais sur une hostilité innée."
+  },
+  "physique": {
+    "dimensions": "4,20 à 5 m de haut, envergure des bras proche de 5 m",
+    "mass_kg": [
+      1250,
+      1900
+    ],
+    "locomotion": [
+      "marche sur appuis larges",
+      "escalade lente avec trois points de contact",
+      "progression en travers des pentes"
+    ],
+    "center_of_gravity": "Bas pour sa taille, bassin puissant ; un bât chargé trop haut dégrade sa stabilité et doit être délesté avant une pente raide.",
+    "silhouette": "Grand corps compact vêtu de laine épaisse, besaces de soins et bât de voyage ; il porte une crosse à bout arrondi, sans maillet de chantier.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Bonnet épais et visage exposé au vent, sans plaque osseuse extraordinaire.",
+        "protection": 6
+      },
+      {
+        "zone": "torse",
+        "description": "Vêtements superposés sur une musculature robuste ; ils isolent mieux qu'ils n'arrêtent une pointe.",
+        "protection": 10
+      },
+      {
+        "zone": "avant-bras",
+        "description": "Brassards de bois et de cuir utilisés pour protéger les bras lors des soins et de la manutention des bâts.",
+        "protection": 14
+      },
+      {
+        "zone": "jambes",
+        "description": "Guêtres épaisses et chaussures à semelles larges ; chevilles vulnérables si un bloc roule.",
+        "protection": 9
+      }
+    ]
+  },
+  "habitats": [
+    "pelouses périglaciaires entre moraines et névés, assez riches pour nourrir les troupeaux",
+    "vallons abrités servant d'étapes entre pâturages d'été et quartiers d'hiver"
+  ],
+  "ecology": {
+    "diet": "Laitages, céréales échangées en vallée, racines et viande issue d'un élevage mesuré ; aucun besoin de chair sapiente. Ses troupeaux broutent les pelouses, jamais la glace ou la pierre nue.",
+    "lifecycle": "Enfance longue auprès des troupeaux, apprentissage des soins et des migrations puis choix de devenir éleveur ou de suivre une autre activité. Un ancien peut transmettre les itinéraires sans marcher à chaque saison.",
+    "reproduction": "Reproduction biologique avec soins prolongés au sein de foyers variés ; les décisions familiales restent distinctes de la reproduction des animaux élevés.",
+    "behavior": "Compte les jeunes, examine les sabots et ajuste la migration à la pousse de l'herbe. Il demande souvent aux étrangers de laisser passer les bêtes avant d'ouvrir une discussion, pour éviter de couper le groupe.",
+    "niche": "Éleveur et partenaire d'échanges entre hautes vallées ; sa connaissance des troupeaux ne lui donne aucun droit naturel sur les pâturages des autres.",
+    "environmental_impact": "Le pâturage entretient des pelouses et transporte des graines, mais une halte prolongée peut tasser les sols et contaminer un point d'eau ; rotation et éloignement des réserves d'eau sont négociés."
+  },
+  "senses": [
+    "vision attentive aux mouvements des jeunes et aux changements de pelage",
+    "reconnaît plusieurs appels individuels de son propre troupeau, sans entendre à travers la montagne",
+    "odorat ordinaire, utile pour repérer une litière souillée à proximité"
+  ],
+  "communication": [
+    "langue parlée et vocabulaire des soins, des saisons et des échanges",
+    "gestes de crosse appris par les animaux familiers",
+    "appels brefs entre familles de transhumants, sans autorité magique"
+  ],
+  "signs": [
+    "grandes empreintes accompagnées de traces de sabots de tailles variées",
+    "touffes de laine sur les buissons aux étapes de repos",
+    "enclos temporaires de corde retirés après le passage, avec foyers froids soigneusement dispersés"
+  ],
+  "demeanor": {
+    "objectives": [
+      "conduire le troupeau vers un pâturage disponible",
+      "garder les jeunes avec leurs mères",
+      "faire respecter un accord d'accès et prévenir le surpâturage"
+    ],
+    "fears": [
+      "panique séparant les bêtes dans le brouillard",
+      "maladie introduite dans le troupeau",
+      "jeune coincé dans une crevasse"
+    ],
+    "morale": "Très ferme si une bête est saisie ou blessée ; préfère abandonner une cargaison que prolonger un combat qui disperserait les jeunes.",
+    "escalation": "Il rassemble les animaux, demande qu'on s'écarte, présente la crosse en travers puis repousse une saisie ou une approche agressive.",
+    "retreat": "Guide les bêtes vers une cuvette abritée et renonce à poursuivre l'agresseur dès que le troupeau peut se regrouper."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 10,
+      "dexterity": 4,
+      "constitution": 10,
+      "intelligence": 5,
+      "willpower": 7,
+      "perception": 7,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 70,
+      "impact_weapons": 65,
+      "unarmed": 58,
+      "animal_handling": 68,
+      "survival": 65,
+      "crafting": 58,
+      "persuasion": 42,
+      "vigilance": 56,
+      "leadership": 50
+    },
+    "resources": {
+      "vitality": 140,
+      "stamina": 121,
+      "mana": 82,
+      "balance": 120,
+      "focus": 96
+    },
+    "movement": "Marche 3 m/s, course brève 5 m/s sur replat dégagé ; escalade 0,8 m/s. Les ponts ordinaires peuvent ne pas supporter sa masse.",
+    "protections": [
+      "La taille n'ajoute aucune Vitalité hors de la formule commune ; masse, portée et occupation du terrain expliquent le danger.",
+      "Les protections concernent les vêtements et brassards réellement couverts, sans peau invulnérable."
+    ],
+    "attacks": [
+      {
+        "name": "Crosse de séparation",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 32,
+        "reach": "arc frontal de 3,5 m",
+        "stamina_cost": 18,
+        "preparation": "1,4 seconde, crosse ramenée près de l'épaule",
+        "telegraph": "Il dégage d'abord les bêtes de l'arc puis présente le côté arrondi de la crosse.",
+        "effect": "Un contact contondant sur le premier obstacle cherche à séparer l'agresseur du troupeau ; aucune saisie du cou ni frappe en cercle. La crosse ne traverse pas une garde ou un mur.",
+        "counterplay": "Quitter l'arc pendant la préparation, garder une protection réelle ou reculer vers l'espace qu'il laisse libre loin des bêtes."
+      },
+      {
+        "name": "Revers de bât",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "constitution",
+        "impact": 22,
+        "reach": "1,5 m sur le côté de son propre bât",
+        "stamina_cost": 14,
+        "preparation": "1,2 seconde, sangles resserrées et genoux fléchis",
+        "telegraph": "Il s'assure que personne ne se trouve derrière ses bêtes, puis présente son chargement de côté.",
+        "effect": "Une poussée avec le bât porté contre une seule cible proche ; déplacement maximal de 1 m si les appuis cèdent réellement. Ni projectile ni chute automatique ; une charge mal fixée peut se détacher et terminer le geste.",
+        "counterplay": "Sortir du côté annoncé, s'appuyer contre une masse fixe ou cesser de tirer sur les sangles et la bête protégée."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Rassemblement des meneuses",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "animal_handling",
+        "attribute_id": "presence",
+        "impact": 0,
+        "reach": "six animaux familiers au maximum, audibles et visibles à 30 m",
+        "stamina_cost": 10,
+        "preparation": "3 secondes d'appel et de geste, sans attaque",
+        "telegraph": "Il lève la crosse sans l'armer et répète deux appels que quelques bêtes reconnaissent.",
+        "effect": "Dressage D18 sur un troupeau calme, D26 s'il est effrayé. Une réussite invite les animaux familiers à suivre un trajet déjà connu pendant au plus 10 secondes ; aucun contrôle mental, aucun effet sur une bête inconnue et aucune marche forcée vers un danger évident. Une frayeur immédiate ou la perte des signaux interrompt la réponse. Capacité physique sans Mana ni concentration magique.",
+        "counterplay": "Laisser le trajet libre, cesser les gestes qui effraient les bêtes et parler à l'éleveur ; une paroi ou un bruit couvre réellement ses signaux."
+      },
+      {
+        "name": "Délestage d'urgence",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "contact avec un bât accessible à 2 m",
+        "stamina_cost": 14,
+        "preparation": "2 secondes pour poser deux pieds et saisir les poignées",
+        "telegraph": "Il montre les mains, décroche la sangle de sécurité puis compte à voix haute avant de soulever.",
+        "effect": "Soulève un seul chargement de 120 kg au maximum pendant au plus 8 secondes pour libérer une bête immobilisée. Deux mains occupées, déplacement limité à 1 m/s, aucune attaque simultanée ; il ne porte pas l'animal entier et ne restitue ni Vitalité ni Endurance. Action matérielle sans Mana ni concentration magique.",
+        "counterplay": "Préparer une aire de dépôt et éloigner les personnes de la charge ; si l'appui ou les poignées cèdent, le levage s'arrête selon leur rupture réelle."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "froid sec",
+        "mechanism": "Les couches de laine et la masse corporelle retardent le refroidissement ; vêtements mouillés et immobilité prolongée rendent cette protection insuffisante."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "appuis dérobés",
+        "mechanism": "Une cheville porte une masse importante ; la perte d'un support pendant un grand pas peut produire une chute grave."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "redoux formant une croûte creuse sur le passage du troupeau",
+        "result": "changement d'itinéraire avant le déplacement des bêtes chargées",
+        "chain": "L'eau de fonte affaiblit les ponts de neige ; le géant compare les appuis et retire les bâts les plus lourds au lieu de pousser la migration à travers une surface incertaine."
+      },
+      {
+        "input": "brouillard séparant les meneuses du reste du groupe",
+        "result": "halte, appels rapprochés et rassemblement progressif",
+        "chain": "Les jeunes perdent leurs repères visuels ; le troupeau ralentit puis suit les sons familiers si aucune panique ne couvre les appels."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 18,
+      "fact": "Des empreintes géantes entourées de petites traces de sabot indiquent une transhumance ; couper ce groupe peut séparer des jeunes de leurs mères."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 22,
+      "fact": "Les changements de timbre des appels paraissent viser quelques meneuses familières, dont les autres bêtes suivent ensuite le déplacement."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Dans un vallon qu'il omet de ses cartes partagées, il abrite le dernier veau connu d'une harde sauvage présumée disparue ; ce refuge explique un détour régulier, et en révéler l'accès exposerait le petit aux captures."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "éleveur en migration",
+      "partenaire d'un accord de pâturage",
+      "allié pour secourir une bête isolée"
+    ],
+    "telegraphs": [
+      "Les meneuses sont rappelées avant que la crosse soit mise en travers.",
+      "Il décroche une sangle et montre ses mains avant de délester un animal."
+    ],
+    "noncombat_options": [
+      "Laisser le troupeau se réunir puis négocier un horaire et une largeur de passage qui préservent aussi les voyageurs.",
+      "Aider à soigner un sabot ou à délester une bête, puis discuter d'un échange de laine, de vivres ou d'accès à un pâturage."
+    ],
+    "complications": [
+      "Des chiens de caravane paniquent les jeunes au moment où la brume tombe.",
+      "Un pâturage convenu est épuisé plus tôt que prévu, tandis qu'une autre communauté en a besoin pour son propre hivernage."
+    ]
+  },
+  "salvage": [
+    "Laine tondue, laitages ou cuir explicitement cédés ou échangés par les éleveurs.",
+    "Cordes ou pièces de bât déclarées abandonnées ; les bêtes, les provisions et les objets du camp restent des biens confiés à leurs ayants droit."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "geant-des-moraines-plate-v1.png",
+      "alt": "Un Géant des moraines en laine épaisse porte des besaces de soins et une crosse arrondie dans un pâturage alpin bordé de névés.",
+      "caption": "Compte les jeunes, examine les sabots et ajuste la migration à la pousse de l'herbe. Il demande souvent aux étrangers de laisser passer les bêtes avant d'ouvrir une discussion, pour éviter de couper le groupe.",
+      "prompt_key": "geant-des-moraines-plate-v1"
+    }
+  ]
+}

@@ -57,6 +57,49 @@ pub fn enable_stepping(app: &mut App) {
     app.sub_app_mut(RenderApp).init_resource::<StepState>();
 }
 
+#[allow(
+    dead_code,
+    reason = "Clock controls and snapshots are used by the shared plant probes and clock tests; the static spectrum example only offers and acknowledges frames"
+)]
+pub mod live_clock;
+#[derive(Resource, Clone, Default, Deref)]
+pub struct LiveClock(live_clock::LiveClock);
+
+#[derive(Resource)]
+pub struct LiveCoupled;
+#[derive(Resource)]
+struct LiveReady(Arc<AtomicBool>);
+#[allow(dead_code)]
+pub fn enable_live_coupled(app: &mut App, ready: Arc<AtomicBool>) {
+    enable_live(app);
+    app.insert_resource(LiveReady(ready));
+    app.sub_app_mut(RenderApp).insert_resource(LiveCoupled);
+}
+#[allow(dead_code)]
+pub fn enable_live(app: &mut App) {
+    enable_stepping(app);
+    let clock = LiveClock::default();
+    app.insert_resource(clock.clone())
+        .add_systems(Update, live_clock);
+    app.sub_app_mut(RenderApp).insert_resource(clock);
+}
+
+fn live_clock(
+    time: Res<Time<Real>>,
+    target: Res<Targets>,
+    clock: Res<LiveClock>,
+    gate: Option<Res<LiveReady>>,
+) {
+    if !target.readback_complete.load(Ordering::Acquire)
+        || gate.is_some_and(|gate| !gate.0.load(Ordering::Acquire))
+    {
+        return;
+    }
+    // Tidewater's Engine clamps the RAF delta to 100 ms. Do not consume elapsed
+    // time while the render graph still owns the prior transaction.
+    clock.offer(time.elapsed_secs_f64());
+}
+
 #[derive(Resource)]
 struct Input {
     shaders: Vec<String>,
@@ -397,9 +440,12 @@ fn compute(
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
     images: Res<RenderAssets<GpuImage>>,
     mut stepping: Option<ResMut<StepState>>,
+    live: Option<Res<LiveClock>>,
+    coupled_live: Option<Res<LiveCoupled>>,
     mut cached: Local<Option<Vec<bevy::render::render_resource::ComputePipeline>>>,
 ) {
-    if targets.ready.load(Ordering::Acquire) {
+    let was_ready = targets.ready.load(Ordering::Acquire);
+    if was_ready && (live.is_none() || !targets.readback_complete.load(Ordering::Acquire)) {
         return;
     }
     let gpu: Vec<_> = targets
@@ -452,23 +498,27 @@ fn compute(
             })
             .collect()
     });
-    // Only frame.dt is read by these kernels. Construct its native Frame layout
-    // field (byte 584); no source Frame binary is used as a GPU input.
-    let mut frame_bytes = [0_u8; 720];
-    frame_bytes[584..588].copy_from_slice(&(1.0_f32 / 60.0).to_le_bytes());
-    let frame_uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
-        label: Some("native ocean frame dt"),
-        contents: &frame_bytes,
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    // Only frame.dt is read by these kernels. Static acquisition retains its
+    // fixed source snapshot; live runs exactly one offered source-frame update.
     let mut time = stepping.as_ref().map_or(0.0, |s| s.time);
-    // A distinct uniform buffer per recorded step avoids queue-write aliasing.
-    // The stepped mode retains buffers and time across submissions.
     let first = stepping.as_ref().map_or(0, |s| s.next);
-    if stepping.is_some() && first > targets.permitted_step.load(Ordering::Acquire) {
+    if (!was_ready || coupled_live.is_some())
+        && stepping.is_some()
+        && first > targets.permitted_step.load(Ordering::Acquire)
+    {
         return;
     }
-    let last = if stepping.is_some() {
+    let live_step = if was_ready {
+        let Some(frame) = live.as_ref().expect("live continuation").pending(first) else {
+            return;
+        };
+        Some(frame)
+    } else {
+        None
+    };
+    let last = if was_ready {
+        first
+    } else if stepping.is_some() {
         first
             .max(1)
             .min(input.frames)
@@ -476,9 +526,20 @@ fn compute(
     } else {
         input.frames
     };
+    let dt = live_step.map_or(1.0_f32 / 60.0, |frame| frame.dt);
+    let mut frame_bytes = [0_u8; 720];
+    frame_bytes[584..588].copy_from_slice(&dt.to_le_bytes());
+    let frame_uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
+        label: Some("native ocean frame dt"),
+        contents: &frame_bytes,
+        usage: wgpu::BufferUsages::UNIFORM,
+    });
     for step in first..=last {
         let mut params = input.params;
-        if step > 0 {
+        if let Some(frame) = live_step {
+            debug_assert_eq!(step, frame.step);
+            time = frame.time;
+        } else if step > 0 {
             time += 1.0 / 60.0;
         }
         #[allow(clippy::cast_possible_truncation)]
@@ -587,6 +648,12 @@ fn compute(
     if let Some(state) = stepping.as_mut() {
         state.next = last + 1;
         state.time = time;
+    }
+    if was_ready && coupled_live.is_none() {
+        live.expect("live continuation").acknowledge(last);
+    }
+    if was_ready {
+        return;
     }
     if last < input.frames {
         return;

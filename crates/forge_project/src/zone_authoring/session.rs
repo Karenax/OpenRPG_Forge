@@ -10,6 +10,10 @@ mod compact;
 mod delta;
 mod source_blobs;
 
+const SOURCE_OBJECT_ARCHIVE_VERSION: u32 = 37;
+const SOURCE_OBJECT_COMPACT_VERSION: u32 = 38;
+const SOURCE_OBJECT_DELTA_VERSION: u32 = 39;
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ZoneCompactionReview {
@@ -172,7 +176,9 @@ impl ZoneEditSession {
             .iter()
             .find(|r| r.request.command_id == request.command_id)
         {
-            if receipt.request != *request {
+            if canonical_json_bytes(&receipt.request).map_err(|error| error.to_string())?
+                != canonical_json_bytes(request).map_err(|error| error.to_string())?
+            {
                 return Err("Command ID reused with different parameters".into());
             }
             return Ok(Some(receipt.clone()));
@@ -202,6 +208,16 @@ impl ZoneEditSession {
             return Err("Stale zone command".into());
         }
         let (applied, base_change) = self.proposal(&request.action)?;
+        if matches!(request.action, ZoneAction::Edit(_)) {
+            super::source_objects::validate_transition(
+                self.head
+                    .corrections
+                    .source_object_edits
+                    .as_deref()
+                    .unwrap_or_default(),
+                applied.source_object_edits.as_deref().unwrap_or_default(),
+            )?;
+        }
         if applied == self.head.corrections
             && base_change.as_ref().is_none_or(|c| c.applied == c.inverse)
         {
@@ -257,7 +273,7 @@ impl ZoneEditSession {
         };
         let mut receipts = self.receipts.clone();
         receipts.push(receipt.clone());
-        self.encode(candidate, receipts)?;
+        self.encode(&candidate, &receipts)?;
         Ok(receipt)
     }
 
@@ -346,39 +362,39 @@ impl ZoneEditSession {
 
     fn encode(
         &self,
-        head: ZoneAuthoringHead,
-        receipts: Vec<ZoneReceipt>,
+        head: &ZoneAuthoringHead,
+        receipts: &[ZoneReceipt],
     ) -> Result<Vec<u8>, String> {
         if self.delta_archive {
-            return delta::encode(&self.migration, &head, &receipts);
+            return delta::encode(&self.migration, head, receipts);
         }
         if self.compact_archive {
-            return match compact::encode(&self.migration, &head, &receipts) {
+            return match compact::encode(&self.migration, head, receipts) {
                 Ok(bytes) => Ok(bytes),
                 Err(message) if message == "Zone archive exceeds 4 MiB before mutation" => {
-                    delta::encode(&self.migration, &head, &receipts)
+                    delta::encode(&self.migration, head, receipts)
                 }
                 Err(message) => Err(message),
             };
         }
         let bytes = canonical_json_bytes(&PlainArchive {
             schema: "forge.zone-edit-session",
-            version: archive_version(&receipts),
+            version: archive_version(receipts),
             migration: &self.migration,
-            head: &head,
-            receipts: &receipts,
+            head,
+            receipts,
         })
         .map_err(|e| e.to_string())?;
         if bytes.len() > MAX_ZONE_HEAD_BYTES {
             // Keep every command and receipt, but switch to the lossless delta
             // representation before the plain archive would block editing.
-            return delta::encode(&self.migration, &head, &receipts);
+            return delta::encode(&self.migration, head, receipts);
         }
         Ok(bytes)
     }
 
     pub fn archive_bytes(&self) -> Result<Vec<u8>, String> {
-        self.encode(self.head.clone(), self.receipts.clone())
+        self.encode(&self.head, &self.receipts)
     }
 
     /// Prepare a lossless compact encoding (v3 or v5) without changing the active session.
@@ -433,13 +449,13 @@ impl ZoneEditSession {
         let header: Header = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
         if matches!(
             header.version,
-            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33
+            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33 | 36 | SOURCE_OBJECT_DELTA_VERSION
         ) {
             return delta::decode(bytes);
         }
         if matches!(
             header.version,
-            3 | 5 | 9 | 11 | 14 | 17 | 20 | 23 | 26 | 29 | 32
+            3 | 5 | 9 | 11 | 14 | 17 | 20 | 23 | 26 | 29 | 32 | 35 | SOURCE_OBJECT_COMPACT_VERSION
         ) {
             return compact::decode(bytes);
         }
@@ -459,7 +475,9 @@ impl ZoneEditSession {
                 return Err("Zone receipt replay mismatch".into());
             }
         }
-        if session.head != archive.head {
+        if canonical_json_bytes(&session.head).map_err(|error| error.to_string())?
+            != canonical_json_bytes(&archive.head).map_err(|error| error.to_string())?
+        {
             return Err("Zone head differs from audited result".into());
         }
         Ok(session)
@@ -467,6 +485,12 @@ impl ZoneEditSession {
 }
 
 fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
+    if has_source_objects(receipts) {
+        return SOURCE_OBJECT_ARCHIVE_VERSION;
+    }
+    if has_gameplay(receipts) {
+        return 34;
+    }
     if receipts.iter().any(|receipt| !receipt.audit.is_legacy()) {
         return 31;
     }
@@ -514,6 +538,19 @@ fn has_paths(receipts: &[ZoneReceipt]) -> bool {
     receipts
         .iter()
         .any(|r| r.applied.paths.is_some() || r.inverse.paths.is_some())
+}
+
+fn has_source_objects(receipts: &[ZoneReceipt]) -> bool {
+    receipts.iter().any(|receipt| {
+        receipt.applied.source_object_edits.is_some()
+            || receipt.inverse.source_object_edits.is_some()
+    })
+}
+
+fn has_gameplay(receipts: &[ZoneReceipt]) -> bool {
+    receipts
+        .iter()
+        .any(|r| r.applied.gameplay.is_some() || r.inverse.gameplay.is_some())
 }
 
 fn has_vegetation_exclusions(receipts: &[ZoneReceipt]) -> bool {

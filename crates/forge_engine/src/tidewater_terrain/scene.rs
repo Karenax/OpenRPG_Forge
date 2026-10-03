@@ -6,6 +6,7 @@ use super::{
     normals,
     textures::PreparedSurface,
 };
+use crate::tidewater_caustics::CausticMaterialInputs;
 use crate::tidewater_material::ObjectShadowSettings;
 use bevy::{camera::visibility::NoFrustumCulling, light::NotShadowCaster, prelude::*};
 use forge_assets::tidewater_terrain::TerrainPackage;
@@ -24,6 +25,7 @@ pub struct Bindings {
     pub shore_state: Handle<Image>,
     pub shore_lace: Handle<Image>,
     pub shore_params: [UVec4; 3],
+    pub caustics: Option<CausticMaterialInputs>,
     pub settings: TerrainSettings,
 }
 
@@ -52,6 +54,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
         return Ok(());
     }
     normals::register(app)?;
+    crate::tidewater_underwater_lighting::install_neutral(app.world_mut())?;
     if !app.is_plugin_added::<MaterialPlugin<TerrainMaterial>>() {
         app.add_plugins(MaterialPlugin::<TerrainMaterial>::default());
     }
@@ -86,8 +89,12 @@ impl PreparedTerrain {
             std::str::from_utf8(package.file(name).ok_or("Missing terrain shader")?)
                 .map_err(|e| e.to_string())
         };
+        // This authored path installs its own shader and bypasses install_shader.
+        // It must read the matrices of the depth layers encoded by the live graph.
+        let fragment =
+            crate::tidewater_object_shadow::receiver::shader_source(text("terrain.wgsl")?)?;
         let fragment = Shader::from_wgsl(
-            text("terrain.wgsl")?.to_owned(),
+            crate::tidewater_caustics::terrain_shader_source(&fragment)?,
             "tidewater-package-terrain.wgsl",
         );
         let corrections = crate::tidewater_terrain_edits::Corrections::from_document(document)?;
@@ -140,6 +147,10 @@ impl PreparedTerrain {
             let mesh = world.resource_mut::<Assets<Mesh>>().add(geometry.mesh);
             let mut images = world.resource_mut::<Assets<Image>>();
             let surface = self.surface.stage(&mut images);
+            let caustics = bindings
+                .caustics
+                .clone()
+                .unwrap_or_else(|| CausticMaterialInputs::disabled(&mut images));
             let extension = lod::LodExtension {
                 height: images.add(geometry.height),
                 corrections: images.add(geometry.corrections),
@@ -154,11 +165,18 @@ impl PreparedTerrain {
                 hill_shadow: bindings.hill_shadow,
                 object_shadow: bindings.object_shadow,
                 object_settings: bindings.object_settings,
+                live_shadows: crate::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
                 clouds: bindings.clouds,
                 cloud_shadow: bindings.cloud_shadow,
                 shore_state: bindings.shore_state,
                 shore_lace: bindings.shore_lace,
                 shore_params: bindings.shore_params,
+                caustic_fine: caustics.fine,
+                caustic_broad: caustics.broad,
+                caustic_params: caustics.params,
+                underwater_waves: caustics.light_maps.waves,
+                underwater_level: caustics.light_maps.level,
+                underwater_map_frame: caustics.light_maps.frame,
                 settings: bindings.settings,
             };
             let handle = world
@@ -204,7 +222,14 @@ impl Bindings {
         ]
         .into_iter()
         .chain(self.cloud_shadow.iter())
-        {
+        .chain(self.caustics.iter().flat_map(|inputs| {
+            [
+                &inputs.fine,
+                &inputs.broad,
+                &inputs.light_maps.waves,
+                &inputs.light_maps.level,
+            ]
+        })) {
             if images.get(handle).is_none() {
                 return Err("Unresolved terrain scene texture".into());
             }

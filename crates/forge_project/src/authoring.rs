@@ -7,6 +7,7 @@ use forge_core::{AreaId, ContentHash};
 use serde::{Deserialize, Serialize};
 
 pub mod creation;
+pub mod game_save;
 pub mod history;
 pub mod playtest;
 pub mod terrain_source;
@@ -114,6 +115,9 @@ impl AuthoringRequest {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthoringState {
+    /// Native-resolved owning module (or isolated standalone scope) for new gameplay data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gameplay_module_id: Option<forge_core::ModuleId>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub managed_tabs: Vec<ManagedZoneTab>,
     /// Aggregate authority when present; document below is only its derived terrain view.

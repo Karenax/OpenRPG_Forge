@@ -39,6 +39,7 @@ struct Drag {
 struct Tool {
     mode: Mode,
     id: EntityId,
+    batched: bool,
     source: ForgeTransform,
     current: ForgeTransform,
     drag: Option<Drag>,
@@ -68,10 +69,13 @@ pub(crate) fn arm(
     callback: Callback<Result<ForgeTransform, String>>,
 ) {
     cancel();
+    let batched = crate::authoring_imported_population::current_head()
+        .is_some_and(|head| super::super::objects::is_batched(&head, id));
     TOOL.with(|slot| {
         slot.replace(Some(Tool {
             mode,
             id,
+            batched,
             source,
             current: source,
             drag: None,
@@ -90,6 +94,7 @@ pub(crate) fn can_arm() -> bool {
 
 fn source_current() -> bool {
     crate::authoring_viewport::can_preview_asset()
+        && !super::PREVIEW_ACTIVE.with(std::cell::Cell::get)
         && super::DESIRED.with(|desired| {
             super::ACCEPTED.with(|accepted| *desired.borrow() == *accepted.borrow())
         })
@@ -191,9 +196,10 @@ pub(super) fn update(
         write_diagnostic(&cancelled_diagnostic());
         return;
     }
-    let ready = roots
-        .iter()
-        .any(|(root, _, visibility)| root.0 == tool.id && *visibility != Visibility::Hidden);
+    let ready = tool.batched
+        || roots
+            .iter()
+            .any(|(root, _, visibility)| root.0 == tool.id && *visibility != Visibility::Hidden);
     let events = EVENTS.with(|slot| std::mem::take(&mut *slot.borrow_mut()));
     let mut result = None;
     if ready

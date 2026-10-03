@@ -1,5 +1,15 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Gate 3 active — décision propriétaire du 1er octobre 2026
+
+Gate 2 est clôturée pour la poursuite locale par validation explicite du
+propriétaire des points restants, selon [ADR-0018](docs/ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).
+Les résultats machine antérieurs restent inchangés et gardent leurs limites.
+Objectif actif : clôturer Gate 3 avec une aventure jouable créée dans Studio
+sur la map Tidewater Rust. Les contrats et comportements de gameplay restent
+génériques ; le contenu de l'aventure appartient au module. Aucune publication
+Git implicite. Les états datés ci-dessous décrivent leurs étapes historiques.
+
 ## Chantier Tidewater autorisé — 24 septembre 2026
 
 Le propriétaire a demandé l'exécution du plan complet avec la même carte et les
@@ -80,8 +90,9 @@ intégré ni changement de gate. [Rapport et limites](docs/evidence/gate2/HERMES
 
 - Gate C qualifiée ; Gate 0 passée localement sous dérogations.
 - Gate 1 clôturée localement : [rapport du 12 septembre](docs/evidence/gate1/GATE1_CLOSURE_20260912.md).
-- Gate 2 active et ouverte ; R2-020 terminé localement, selon le bilan ci-dessus.
-- Gate 3 et suivantes non ouvertes. CI distante : `NOT RUN — infrastructure billing`.
+- Gate 2 clôturée par validation propriétaire le 1er octobre 2026 (ADR-0018).
+- Gate 3 active sur Tidewater ; Gate 4 et suivantes non ouvertes.
+- CI distante : `NOT RUN — infrastructure billing` ; aucun nouveau PASS distant.
 - La vision et les contrats ci-dessous restent normatifs ; un objectif n'est pas
   une capacité déjà implémentée. La [roadmap](docs/planning/MIGRATION_ROADMAP.md)
   porte les critères, les dossiers de preuves leurs résultats et limites.
@@ -854,12 +865,12 @@ ne contiennent que les états nécessaires.
 
 ### 7.9 Navigation
 
-La navigation est derrière un contrat Forge. R1-068 a exécuté la première preuve sur terrain
-extérieur, intérieur, portes, profils d'agent et évitement dynamique. Rerecast + Landmass reste la
-pile préférée pour investigation, mais le fournisseur demeure `not_selected` : sortie globale brute
-invalide, tuiles, reconstruction partielle et carving d'obstacle dynamique absents, backend physique
-maintenu Avian plutôt que Rapier et `RUSTSEC-2025-0141`. Voir
-`docs/ADR/ADR-0009-navigation-provider-benchmark.md`.
+La navigation est derrière un contrat Forge. Le 2 octobre 2026, le propriétaire a accepté
+Rerecast 0.4.0 avec le fork testé maintenu par le projet, Landmass 0.9.2 et l'adaptateur Forge
+vers le monde Rapier existant, selon `docs/ADR/ADR-0009-navigation-provider-benchmark.md`.
+Les preuves LAB NAV019 motivent cette sélection ; l'intégration produit et sa qualification
+native/WASM sur Tidewater restent en cours. Cette décision ne clôture pas Gate 3.
+R1-068 et ses refus antérieurs restent des preuves historiques avec leurs limites propres.
 
 Le système doit supporter :
 

@@ -7,10 +7,12 @@ use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
 pub(crate) mod catalog_drop;
-mod placement_controls;
+pub(crate) mod fish_stand_scene;
 pub(crate) mod imported_buildings;
-pub(crate) mod imported_scene;
 pub(crate) mod imported_environment;
+pub(crate) mod imported_scene;
+pub(crate) mod objects;
+mod placement_controls;
 pub(crate) mod placements;
 pub(crate) mod preview;
 pub(crate) mod verify;

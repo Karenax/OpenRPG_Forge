@@ -1,0 +1,235 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "noeud-d-averse-plate-v1.png",
+      "alt": "Deux nappes d’eau tournent autour du galet sombre d’un Nœud d’averse ; feuilles et bulles accompagnent le mouvement dans un bassin pluvial.",
+      "caption": "Il maintient un écoulement entre son bassin et une sortie connue. Il pousse feuilles et objets flottants, puis réagit si une digue improvise une montée dangereuse du niveau.",
+      "prompt_key": "noeud-d-averse-plate-v1"
+    }
+  ],
+  "creature_id": "creature.noeud-d-averse",
+  "name": "Nœud d’averse",
+  "subtitle": "Le tourbillon de ruissellement attaché à une pierre de bassin",
+  "classification": {
+    "nature": "Élémentaire d'eau à ancrage matériel",
+    "family": "Présences des bassins temporaires",
+    "rarity": "Rare après des pluies répétées sur les mêmes reliefs",
+    "activity": "Pendant et après la pluie ; se retire lors de l'assèchement",
+    "social": "Solitaire, tolérant d'autres présences si leurs écoulements restent distincts",
+    "threat": "moderee",
+    "threat_reason": "Ses jets courts déséquilibrent au bord des ravines, mais il dépend d'une quantité limitée d'eau libre et d'un ancrage que l'on peut laisser en paix."
+  },
+  "physique": {
+    "dimensions": "Colonne irrégulière de 0,8 à 1,6 m ; bassin mobilisé d'environ 1 m de diamètre",
+    "mass_kg": [
+      45,
+      100
+    ],
+    "locomotion": [
+      "glissement d'eau sur le sol",
+      "roulement lent de la pierre d'ancrage"
+    ],
+    "center_of_gravity": "Au niveau de la pierre lourde, sous la masse d'eau ; la colonne visible ne constitue pas un corps indépendant.",
+    "silhouette": "Deux nappes d'eau tournent autour d'une pierre sombre ; feuilles et bulles dessinent des nœuds transitoires dans la colonne.",
+    "anatomy_zones": [
+      {
+        "zone": "Pierre d'ancrage",
+        "description": "Galet de 15 à 25 kg qui porte la présence ; la masse totale indiquée inclut cette pierre et 30 à 75 kg d'eau réellement rassemblée.",
+        "protection": 18
+      },
+      {
+        "zone": "Base d'eau",
+        "description": "Eau libre autour du galet, sans tissu vivant ; la disperser réduit le volume disponible.",
+        "protection": 0
+      },
+      {
+        "zone": "Couronne tourbillonnante",
+        "description": "Feuilles, bulles et eau en suspension ; aucune tête ni organe humain n'y est caché.",
+        "protection": 0
+      }
+    ]
+  },
+  "habitats": [
+    "bassins de ravines alimentés par la pluie",
+    "cours dallées dont le trop-plein rejoint un ruisseau"
+  ],
+  "ecology": {
+    "diet": "Aucune alimentation biologique. Son activité dépend de l'eau libre qui atteint le bassin ; elle ne lui permet ni de créer de l'eau ni de la tirer d'un organisme.",
+    "lifecycle": "L'élémentaire se manifeste lorsque l'eau d'un bassin s'organise autour d'une pierre durablement baignée. Il n'est pas l'esprit d'un défunt ; sa présence reste attachée au galet pendant les périodes sèches, sans activité visible, puis reprend avec le ruissellement.",
+    "reproduction": "Pas de naissance ni de division par éclaboussure. Un autre élémentaire peut se former indépendamment autour d'un autre ancrage ; déplacer un seau de son eau ne crée pas un descendant.",
+    "behavior": "Il maintient un écoulement entre son bassin et une sortie connue. Il pousse feuilles et objets flottants, puis réagit si une digue improvise une montée dangereuse du niveau.",
+    "niche": "Présence locale qui remet en circulation de petits volumes d'eau stagnante.",
+    "environmental_impact": "Il déplace des sédiments fins et dégage certains trop-pleins, mais peut aussi inonder un seuil bas en concentrant un ruissellement."
+  },
+  "senses": [
+    "Perçoit les variations de pression et les contacts dans l'eau reliée à son bassin.",
+    "Repère les mouvements proches par les rides de surface, sans voir au travers d'un mur ou d'un sol sec."
+  ],
+  "communication": [
+    "Alternance de remous, alignement de feuilles et frappes d'eau contre une berge ; les réponses simples exigent un temps d'observation."
+  ],
+  "signs": [
+    "Feuilles tournant contre le courant près d'un seul galet.",
+    "Petites vagues répétées vers un trop-plein bouché.",
+    "Colonne de bulles qui se reforme après une éclaboussure."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Garder une sortie d'eau praticable.",
+      "Éviter que son ancrage soit emporté hors du bassin."
+    ],
+    "fears": [
+      "Assèchement forcé et prolongé.",
+      "Boue compacte ensevelissant la pierre."
+    ],
+    "morale": "Il disperse son eau si l'ancrage reste menacé ; défendre une rive ne vaut pas la perte du bassin.",
+    "escalation": "Les rides convergent, les feuilles frappent l'obstacle puis un jet vise ses appuis.",
+    "retreat": "La colonne s'affaisse et l'eau rejoint la dépression autour du galet ; sans eau libre, il devient inactif."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 6,
+      "constitution": 6,
+      "intelligence": 4,
+      "willpower": 7,
+      "perception": 7,
+      "presence": 4
+    },
+    "skills": {
+      "elementalism": 50,
+      "force_magic": 40,
+      "vigilance": 50,
+      "survival": 35
+    },
+    "movement": "Glissement jusqu'à 1 m/s dans une nappe d'eau continue ; roulement du galet 0,3 m/s sur une pente faible ; aucun franchissement autonome d'un seuil sec de 0,2 m.",
+    "protections": [
+      "Les armes traversent l'eau sans léser un organe, mais elles peuvent la disperser ou atteindre la pierre ; l'ancrage reste une cible matérielle."
+    ],
+    "attacks": [
+      {
+        "name": "Fouet de ruissellement",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 17,
+        "reach": "jet de 3 m en ligne directe depuis le bassin",
+        "stamina_cost": 10,
+        "preparation": "0,8 seconde ; 8 Mana à l'activation",
+        "telegraph": "Une bande d'eau se resserre et se dresse du côté visé.",
+        "effect": "Accélère au plus 4 litres d'eau libre en un jet unique de moins d'une seconde, puis l'eau retombe. Concentration non requise après le départ. Le choc frappe une zone exposée sans traverser un écran plein ; le volume projeté doit revenir ou être remplacé avant un nouvel usage équivalent.",
+        "counterplay": "Quitter l'axe annoncé, interposer une planche ou se tenir hors du bord glissant."
+      },
+      {
+        "name": "Poussée du bassin",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "force_magic",
+        "attribute_id": "willpower",
+        "impact": 20,
+        "reach": "vague basse sur 2 m devant l'ancrage",
+        "stamina_cost": 13,
+        "preparation": "1,2 seconde ; 10 Mana à l'activation",
+        "telegraph": "Le niveau baisse d'un côté et forme un bourrelet devant le galet.",
+        "effect": "Propulse au plus 12 litres déjà présents en une seule vague de 1 seconde. Concentration non requise après le départ. Elle pousse les objets flottants et met les appuis à l'épreuve, sans déplacement ni chute automatiques d'une créature ; un obstacle solide coupe la vague.",
+        "counterplay": "Monter sur une rive stable, se caler derrière un rebord ou laisser la vague passer sous une passerelle."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Dérivation brève",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "rigole ouverte longue de 4 m au maximum et reliée au bassin",
+        "stamina_cost": 12,
+        "preparation": "1,5 seconde ; 14 Mana et 8 Concentration à l'activation",
+        "telegraph": "Des feuilles s'alignent dans une rigole et le tourbillon s'aplatit vers son entrée.",
+        "effect": "Sous concentration continue pendant 8 secondes au maximum, dirige au total jusqu'à 20 litres d'eau libre le long d'une rigole existante, y compris sur un dénivelé de 0,2 m. N'ouvre pas de canal, ne traverse pas une paroi et ne prélève pas l'eau des êtres vivants. À l'arrêt, gravité et relief reprennent leur effet normal.",
+        "counterplay": "Couper la continuité du canal avec une barrière étanche ou quitter sa sortie ; ouvrir une autre évacuation peut suffire à apaiser la présence."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Coups dans la colonne d'eau",
+        "mechanism": "La colonne n'a pas d'organes ; un coup disperse de l'eau plutôt qu'il ne blesse une chair, tout en réduisant momentanément sa matière disponible."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Perte d'eau libre",
+        "mechanism": "Un écoulement loin du bassin diminue les volumes qu'il peut mobiliser et finit par rendre la manifestation impossible."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Trop-plein débouché",
+        "result": "Baisse du niveau et apaisement",
+        "chain": "L'eau retrouve une sortie, la pression contre la berge diminue et la présence cesse de pousser les obstacles qui retenaient l'écoulement."
+      },
+      {
+        "input": "Seuil de sable au milieu d'une rigole",
+        "result": "Boue et dérivation instable",
+        "chain": "Le courant déplace les grains, creuse une brèche et répartit l'eau entre plusieurs chemins, ce qui affaiblit une vague concentrée mais peut salir une réserve voisine."
+      }
+    ],
+    "resources": {
+      "vitality": 106,
+      "stamina": 101,
+      "mana": 78,
+      "balance": 84,
+      "focus": 96
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Les feuilles et bulles se rassemblent avant un jet ; une pierre entourée d'eau calme peut rester un ancrage même quand la colonne est absente."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La présence semble reconnaître le trajet de son trop-plein habituel malgré de petits remaniements de berge."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "La face enterrée du galet porte une mesure d'arpenteur effacée sur toutes les bornes voisines ; elle fixe la limite d'un ancien terrain commun aujourd'hui revendiqué comme propriété privée."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "gardien involontaire d'un passage humide",
+      "indice d'un drainage défaillant"
+    ],
+    "telegraphs": [
+      "Le bourrelet d'eau se forme avant la poussée.",
+      "Les feuilles alignées montrent le canal d'une dérivation."
+    ],
+    "noncombat_options": [
+      "Retirer les feuilles du trop-plein depuis la rive et observer si le courant se calme.",
+      "Créer une rigole de contournement peu profonde, sans déplacer le galet, pour partager le passage avec le ruissellement."
+    ],
+    "complications": [
+      "Une pluie nouvelle peut remplir le bassin plus vite qu'un groupe ne le vide.",
+      "Les objets entraînés peuvent boucher une sortie située sous un bâtiment habité."
+    ]
+  },
+  "salvage": [
+    "Ramasser seulement les débris ordinaires rejetés hors du bassin, avec l'accord de leurs propriétaires ; ni le galet occupé ni l'eau ne sont des composants magiques à prélever de force."
+  ]
+}

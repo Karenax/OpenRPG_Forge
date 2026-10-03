@@ -12,7 +12,17 @@ thread_local! {
     static UPDATES: RefCell<VecDeque<TerrainDocument>> = const { RefCell::new(VecDeque::new()) };
     static INVALIDATED: RefCell<bool> = const { RefCell::new(false) };
     static PLAYING: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    static PLAYTEST: std::cell::Cell<Option<forge_project::authoring::playtest::PlaytestIdentity>> = const { std::cell::Cell::new(None) };
     static DOCUMENT: RefCell<Option<TerrainDocument>> = const { RefCell::new(None) };
+}
+
+pub(crate) fn imported_document() -> Option<TerrainDocument> {
+    DOCUMENT.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .filter(|d| d.sampled_source.is_some())
+            .cloned()
+    })
 }
 
 pub(super) fn can_preview_asset() -> bool {
@@ -154,6 +164,7 @@ pub(super) fn observe(
     DOCUMENT.with(|slot| slot.replace(document.cloned()));
     super::authoring_input::set_playing(playtest.is_some());
     PLAYING.with(|playing| playing.set(playtest.is_some()));
+    PLAYTEST.with(|slot| slot.set(playtest));
     if playtest.is_some() {
         super::authoring_assets::cancel_preview();
         super::authoring_brush_pointer::cancel();
@@ -204,11 +215,11 @@ pub(super) fn observe(
         return;
     }
     if document.sampled_source.is_some() {
-        if playtest.is_some() {
-            report("Playtest du terrain importé non encore raccordé.".into());
-            return;
-        }
-        if let Err(error) = crate::authoring_imported_terrain::launch(document.clone()) {
+        crate::authoring_assets::imported_buildings::ensure_for_projection(
+            document,
+            playtest.is_some(),
+        );
+        if let Err(error) = crate::authoring_imported_terrain::launch(document.clone(), playtest) {
             report(error);
             return;
         }
@@ -237,7 +248,7 @@ pub(super) fn observe(
 }
 
 pub(crate) fn retry_imported() {
-    if has_projection() || PLAYING.with(std::cell::Cell::get) {
+    if has_projection() {
         return;
     }
     let document = DOCUMENT.with(|slot| slot.borrow().clone());
@@ -245,7 +256,7 @@ pub(crate) fn retry_imported() {
         .as_ref()
         .is_some_and(|d| d.sampled_source.is_some())
     {
-        observe(document.as_ref(), None);
+        observe(document.as_ref(), PLAYTEST.with(std::cell::Cell::get));
     }
 }
 
@@ -259,6 +270,7 @@ pub(crate) fn latest_imported_update() -> Option<TerrainDocument> {
 }
 
 pub(crate) fn imported_failure(error: &str) {
+    super::authoring_gameplay::invalidate_run();
     INVALIDATED.with(|slot| slot.replace(true));
     UPDATES.with(|slot| slot.borrow_mut().clear());
     super::authoring_brush_pointer::suspend();
@@ -285,6 +297,7 @@ fn launch_viewport(
             }),
             ..default()
         }))
+        .add_plugins(forge_engine::source_fragment::SourceFragmentPlugin)
         .add_plugins(plugin)
         .insert_resource(forge_engine::DiagnosticsOverlaySettings { visible: false })
         .insert_resource(forge_engine::DiagnosticsOverlayTitle(
@@ -320,7 +333,10 @@ fn launch_viewport(
             report(format!("Initialisation environnement refusée : {error}"));
             return;
         }
-        super::authoring_playtest::install(&mut app, playtest);
+        if let Err(error) = super::authoring_playtest::install(&mut app, playtest) {
+            imported_failure(&error);
+            return;
+        }
         super::authoring_lighting::install(&mut app);
         super::authoring_path_projection::install(&mut app);
         super::authoring_building_projection::install(&mut app);

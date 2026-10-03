@@ -34,7 +34,10 @@ pub(super) fn spawn(
     };
     if matches!(
         probe.plant_projection,
-        super::PlantProjection::ResidentNavigation | super::PlantProjection::Walk
+        super::PlantProjection::ResidentNavigation
+            | super::PlantProjection::Walk
+            | super::PlantProjection::WalkSmoke
+            | super::PlantProjection::WalkLongSmoke
     ) {
         resident_navigation(commands, base.clone(), camera, visibility);
         return;
@@ -94,12 +97,6 @@ fn resident_navigation(
             assert_eq!(sizes(world), original);
         }
         assert!(retained > 0);
-        if matches!(
-            world.resource::<Probe>().plant_projection,
-            super::PlantProjection::ResidentNavigation
-        ) {
-            super::picking_proof::start(world, &resident).expect("picking snapshot");
-        }
         info!(
             retained,
             "Resident plant A/B/A selection completed before GPU capture"

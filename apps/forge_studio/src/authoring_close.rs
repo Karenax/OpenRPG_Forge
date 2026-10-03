@@ -52,8 +52,12 @@ pub(super) fn CloseDialog(
                     })
                     .await?
                     {
+                        StudioResponse::WindowClosed => Ok(()),
                         StudioResponse::Rejected { reason } => Err(reason),
-                        _ => Ok(()),
+                        _ => Err(
+                            "La fermeture native n’a pas été confirmée. La fenêtre reste ouverte."
+                                .into(),
+                        ),
                     }
                 }
                 .await;
@@ -68,7 +72,7 @@ pub(super) fn CloseDialog(
             on:keydown=move |event| event.stop_propagation()>
             <h2 id="gold-close-title">"Quitter le Studio ?"</h2>
             <p>"Les brouillons et aperçus non appliqués ne sont pas enregistrés. Restez dans le Studio pour les terminer."</p>
-            <p class="gold-save-state">{move || if preview.get().is_some() { "Un aperçu attend votre validation." } else if state.get().is_some_and(|s| s.dirty) { "La carte contient des modifications non enregistrées." } else { "Les retouches appliquées sont enregistrées." }}</p>
+            <p class="gold-save-state">{move || if preview.get().is_some() { "Un aperçu attend votre validation." } else if state.get().is_some_and(|s| s.dirty) { "La carte contient des modifications non enregistrées." } else if state.get().is_none() { "L’état des retouches n’est pas disponible dans cette session." } else { "Les retouches appliquées sont enregistrées." }}</p>
             <output role="alert">{move || error.get()}</output>
             <div class="gold-dialog-actions">
                 <button autofocus on:click=move |_| { if let Some(dialog) = dialog.get() { dialog.close(); } }>"Continuer à mapper"</button>

@@ -1,6 +1,10 @@
 # Gate 3 — Plan détaillé de préparation
 
-Date : 23 septembre 2026. Statut : **proposition documentaire préparée ; implémentation non démarrée**.
+Date initiale : 23 septembre 2026. État actualisé au 2 octobre 2026 :
+**exécution active sur Tidewater, Gate 3 ouverte** depuis l'autorisation
+propriétaire [ADR-0018](../ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).
+Les résultats machine et runtime, ainsi que les limites encore ouvertes,
+figurent dans le [suivi daté](../evidence/gate3/GATE3_PROGRESS_20261002.md).
 
 Ce plan développe les critères existants de la [roadmap](MIGRATION_ROADMAP.md#gate-3--première-boucle-rpg-environnementale). Il ne modifie ni leur statut, ni l'ordre des gates. Les identifiants G3-01 à G3-10 désignent des lots proposés, pas de nouveaux critères officiels. Aucun lot n'est qualifié par sa description.
 

@@ -7,7 +7,7 @@ pub struct CloudInputs {
     pub params: [Vec4; 5],
     pub panorama: Handle<Image>,
     pub shadow: Handle<Image>,
-    view: Handle<Image>,
+    pub(super) view: Handle<Image>,
 }
 pub fn install_clouds(
     app: &mut App,

@@ -366,6 +366,10 @@ mod tests {
         }
     }
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Checks exact GPU flags and the source lattice cycle, including signed-zero evidence."
+    )]
     fn warm_start_lattice_cycle_and_negative_zero() {
         let mut c = Controller::default();
         let mut lattice = std::collections::BTreeSet::new();
@@ -386,6 +390,10 @@ mod tests {
         assert_eq!(lattice.len(), 16);
     }
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Checks exact 0/1 invalidation flags from the source controller."
+    )]
     fn cuts_coverage_light_and_underwater_invalidate_the_correct_passes() {
         let mut c = Controller::default();
         let mut i = input();
@@ -422,6 +430,10 @@ mod tests {
         assert!(c.update(i).unwrap().panorama_full);
     }
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Checks exact clamp endpoints and unchanged uniform values after refused input."
+    )]
     fn invalid_input_is_atomic_and_elapsed_time_is_clamped() {
         let mut c = Controller::default();
         let mut i = input();

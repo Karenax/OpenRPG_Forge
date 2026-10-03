@@ -1,0 +1,106 @@
+{
+  "schema": "forge.tidewater.gate3-public-arrival-observations",
+  "version": 1,
+  "evidence_kind": "immutable_public_dom_test_input",
+  "gate_qualified": false,
+  "room": {
+    "source_path": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-gameplay-playtest-v6-runtime-004\\run1-failure-ui.json",
+    "source_sha256": "dcff49b759d727f559ee241edc5f9ab9ce904e5759bfe7e2f283cf35d8d803ff",
+    "observation": {
+      "ok": true,
+      "raw": "Simulation active · sources CPU concordantes, pas une preuve GPU · Tick 2313 · commande Some(2894) · position (m) 46.09, 7.52, -146.16 · au sol true · cap caméra (°) 0.0 · caméra FirstPerson · entrée active true · simulation prête true · nuages dynamiques 3206 images · FFT océan prête, étape 3325 · géométrie océan 93 nœuds · optique océan source, rive dérivée false, étape 3325 · ressac ShoreSim prêt, étape 3325 · mode Tidewater marche · occlusion ambiante 1.00 · flare solaire 1.00 · brume marine 1.60 · flou de mouvement 180° · exposition appliquée 0.10 EV · dernier mouvement observé tick 2313 : demandé X/Z (0.0000, 0.0500) m, résolu (0.0000, 0.0000) m, 1 contact(s) (sol inclus)",
+      "x": 46.09,
+      "y": 7.52,
+      "z": -146.16,
+      "grounded": true,
+      "simulation_ready": true,
+      "input_active": true,
+      "yaw_degrees": 0.0,
+      "tick": 2313,
+      "locomotion": {
+        "anchor": [
+          46.085655212402344,
+          6.6496171951293945,
+          -146.16061401367188
+        ],
+        "body_grounded": true,
+        "floating": true,
+        "ground_height": 6.6496171951293945,
+        "grounded": true,
+        "mode": "Walk",
+        "rapier_grounded": true,
+        "rapier_sliding_down_slope": false,
+        "swim_entries": 0,
+        "velocity": [
+          2.802596928649634E-45,
+          0,
+          2.999999523162842
+        ],
+        "walk_returns": 0,
+        "water_height": 0,
+        "water_mean": 0,
+        "water_query_position": [
+          46.085655212402344,
+          -146.16061401367188
+        ],
+        "water_query_step": 3320,
+        "water_query_time": 59.419349670410156
+      }
+    }
+  },
+  "guardian": {
+    "source_path": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-gameplay-playtest-v6-runtime-002\\run1-failure-ui.json",
+    "source_sha256": "b19422487da87eec930c3a2f1c7b88f80dc366b581523c1d722a6adef207fa20",
+    "observation": {
+      "ok": true,
+      "raw": "Simulation active · sources CPU concordantes, pas une preuve GPU · Tick 6830 · commande Some(8681) · position (m) 15.47, 58.75, -270.41 · au sol false · cap caméra (°) 0.0 · caméra FirstPerson · entrée active true · simulation prête true · nuages dynamiques 9027 images · FFT océan prête, étape 9146 · géométrie océan 68 nœuds · optique océan source, rive dérivée false, étape 9146 · ressac ShoreSim prêt, étape 9146 · mode Tidewater marche · occlusion ambiante 1.00 · flare solaire 1.00 · brume marine 1.60 · flou de mouvement 180° · exposition appliquée 0.10 EV · dernier mouvement observé tick 6830 : demandé X/Z (0.0500, 0.0000) m, résolu (0.0000, 0.0000) m, 20 contact(s) (sol inclus)",
+      "x": 15.47,
+      "y": 58.75,
+      "z": -270.41,
+      "grounded": false,
+      "simulation_ready": true,
+      "input_active": true,
+      "yaw_degrees": 0.0,
+      "tick": 6830,
+      "locomotion": {
+        "anchor": [
+          15.473838806152344,
+          57.87017059326172,
+          -270.4059143066406
+        ],
+        "body_grounded": false,
+        "floating": true,
+        "ground_height": 57.78935241699219,
+        "grounded": false,
+        "mode": "Walk",
+        "rapier_grounded": true,
+        "rapier_sliding_down_slope": true,
+        "swim_entries": 0,
+        "velocity": [
+          2.999997138977051,
+          -122.95156860351562,
+          -1.5531758550731828E-13
+        ],
+        "walk_returns": 0,
+        "water_height": 0,
+        "water_mean": 0,
+        "water_query_position": [
+          15.473838806152344,
+          -270.4059143066406
+        ],
+        "water_query_step": 9141,
+        "water_query_time": 172.37269592285156
+      }
+    },
+    "actions": [
+      {
+        "text": "Frapper Gardien de la forêt",
+        "disabled": false
+      },
+      {
+        "text": "Allumer Balise inflammable",
+        "disabled": false
+      }
+    ]
+  }
+}

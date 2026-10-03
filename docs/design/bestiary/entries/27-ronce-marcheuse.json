@@ -1,0 +1,256 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.ronce-marcheuse",
+  "name": "Ronce-marcheuse",
+  "subtitle": "Le fourré qui déplace lentement sa frontière",
+  "classification": {
+    "nature": "végétal mobile",
+    "family": "ronces à racines porteuses",
+    "rarity": "commune dans quelques vallées humides, inconnue ailleurs",
+    "activity": "diurne après la pluie",
+    "social": "massifs lâches issus de graines voisines, sans chef ni volonté commune",
+    "threat": "moderee",
+    "threat_reason": "Ses tiges peuvent accrocher un voyageur ou fermer un chemin ; elle avance lentement et répond d'abord à la disponibilité du sol et de la lumière."
+  },
+  "physique": {
+    "dimensions": "couronne de 1,6 à 2,4 m de haut ; largeur variable de 1,5 à 3 m",
+    "mass_kg": [
+      65,
+      110
+    ],
+    "locomotion": [
+      "relevage alterné de racines épaissies",
+      "traction courte par une tige ancrée"
+    ],
+    "center_of_gravity": "Bas autour d'une souche centrale ; la couronne large devient instable si plusieurs racines quittent le sol ensemble.",
+    "silhouette": "Buisson arqué porté par cinq à sept racines coudées, avec des fleurs pâles sur le côté le mieux exposé.",
+    "anatomy_zones": [
+      {
+        "zone": "souche",
+        "description": "Bois compact abritant les bourgeons de reprise.",
+        "protection": 16
+      },
+      {
+        "zone": "tiges souples",
+        "description": "Longues cannes fibreuses couvertes d'épines tournées vers l'arrière.",
+        "protection": 5
+      },
+      {
+        "zone": "feuilles et fleurs",
+        "description": "Tissus minces qui assurent les échanges avec l'air et la lumière.",
+        "protection": 1
+      },
+      {
+        "zone": "racines porteuses",
+        "description": "Bois jeune humide, articulé par des zones de croissance tendres.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "lisières en reconquête autour des champs abandonnés",
+    "fonds de vallon où les crues déposent un limon frais"
+  ],
+  "ecology": {
+    "diet": "Photosynthèse, eau et sels du sol ; elle profite de matière organique déjà décomposée sans digérer une victime capturée.",
+    "lifecycle": "Immobile ses cinq premières années, la souche développe ensuite des racines porteuses ; les plus vieux massifs se fixent de nouveau.",
+    "reproduction": "Graines dans des fruits appréciés des oiseaux ; les branches rompues peuvent aussi s'enraciner si elles restent plusieurs semaines au même endroit.",
+    "behavior": "Elle suit la lumière à très faible vitesse et rétracte une tige quand sa tension menace la souche ; un passage répétitivement piétiné peut déclencher une défense locale.",
+    "niche": "Pionnière des sols remués, abri pour oiseaux et petits mammifères.",
+    "environmental_impact": "Ses déplacements lents brassent le limon, déplacent les petites pierres et peuvent refermer un ancien chemin en quelques semaines."
+  },
+  "senses": [
+    "sensibilité à la pression et à la tension de ses propres tiges",
+    "réaction à la lumière et à l'humidité par les feuilles et racines"
+  ],
+  "communication": [
+    "signaux chimiques lents entre racines proches",
+    "frémissements des tiges lors d'un contact répété"
+  ],
+  "signs": [
+    "creux de racines frais devant une souche sans fosse permanente",
+    "fruits et feuilles arrachés à hauteur changeante",
+    "petites pierres poussées en arcs irréguliers sur le chemin"
+  ],
+  "demeanor": {
+    "objectives": [
+      "atteindre une terre humide éclairée",
+      "préserver les jeunes bourgeons",
+      "dégager une tige surchargée"
+    ],
+    "fears": [
+      "dessèchement prolongé",
+      "feu approchant de la souche",
+      "perte simultanée de plusieurs appuis"
+    ],
+    "morale": "Réactivité locale plutôt que courage ; les gestes cessent dès que la tension et les lésions s'arrêtent.",
+    "escalation": "Une tige se redresse, gratte le sol puis se rabat ; la souche ne poursuit pas une personne qui a quitté sa portée.",
+    "retreat": "Elle replie ses jeunes pousses et se déplace vers l'humidité à 0,3 m/s si ses racines ne sont pas fixées."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 3,
+      "constitution": 7,
+      "intelligence": 2,
+      "willpower": 4,
+      "perception": 4,
+      "presence": 2
+    },
+    "skills": {
+      "athletics": 30,
+      "unarmed": 38,
+      "throwing": 25,
+      "survival": 52,
+      "vigilance": 32
+    },
+    "movement": "Déplacement 0,3 m/s ; traction exceptionnelle 0,8 m sur une tige fixée ; impossible sur une paroi verticale ou dans une eau assez profonde pour soulever la souche.",
+    "protections": [
+      "La souche possède une écorce dure ; la protection ne s'étend pas aux fleurs et aux jeunes extrémités.",
+      "Les épines gênent les prises à mains nues mais ne neutralisent pas une pince ni un outil long."
+    ],
+    "attacks": [
+      {
+        "name": "Coup de canne",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 19,
+        "reach": "2 m depuis la souche",
+        "stamina_cost": 10,
+        "preparation": "1 seconde de flexion",
+        "telegraph": "Les feuilles se replient et la canne se tend comme un arc.",
+        "effect": "Contact tranchant unique ; une épine ayant pénétré un vêtement peut retenir son tissu, sans immobilisation automatique du corps. Récupération 1,2 seconde.",
+        "counterplay": "Se tenir au-delà de 2 m, présenter un bouclier lisse ou sectionner la tige tendue ; les épines ne traversent pas une plaque."
+      },
+      {
+        "name": "Gousse projetée",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 10,
+        "reach": "projectile physique jusqu'à 5 m",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde de torsion d'une branche fructifère",
+        "telegraph": "Une gousse sèche craque et sa tige se tourne vers le contact récent.",
+        "effect": "Une gousse rigide produit un contact contondant puis se fend. Deux gousses mûres au maximum sont disponibles sur un individu ; leur maturation n'est pas une récupération de combat.",
+        "counterplay": "Interposer une surface ou changer de côté pendant la préparation ; le tir vise la dernière pression perçue, pas une cible invisible."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Ancrage de racines",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "sol meuble dans un rayon de 1 m autour de la souche",
+        "stamina_cost": 15,
+        "preparation": "3 secondes sans déplacement",
+        "telegraph": "Trois racines s'enfoncent et font remonter de la terre humide.",
+        "effect": "Pendant 8 secondes au maximum, contexte +3 aux résistances à une poussée ; aucun bonus si le sol se dérobe. L'animal végétal doit consacrer 2 secondes à se libérer avant de marcher.",
+        "counterplay": "Attendre la fin, agir sur une tige éloignée de la souche ou déchausser un des trois appuis ; une dalle empêche l'ancrage dès le départ."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "petites coupes dans le vieux bois",
+        "mechanism": "Les tissus conducteurs sont répartis autour de la souche ; une coupure superficielle ne tranche pas toute la circulation."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "chaleur sèche",
+        "mechanism": "L'eau quitte les jeunes tiges ; accumulation de Chaleur augmentée de 25 % sur les feuilles sèches."
+      },
+      {
+        "subject": "appuis arrachés",
+        "mechanism": "Deux racines porteuses rompues du même côté inclinent la souche et rendent impossible une traction dans cette direction."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "saignement sanguin",
+        "mechanism": "Aucun réseau de sang n'existe ; les lésions provoquent cependant une perte de sève et restent des blessures, sans immunité au Trauma."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "ombre étendue par une bâche",
+        "result": "réorientation lente de la couronne",
+        "chain": "La lumière disponible diminue ; les pousses se tournent vers le bord éclairé et la souche suit si le sol lui permet d'avancer."
+      },
+      {
+        "input": "sol détrempé sous les racines ancrées",
+        "result": "perte de résistance à la poussée",
+        "chain": "Le limon devient trop meuble pour transmettre l'effort ; les racines glissent malgré leur profondeur et la souche se déplace avec elles."
+      }
+    ],
+    "resources": {
+      "vitality": 114,
+      "stamina": 97,
+      "mana": 52,
+      "balance": 92,
+      "focus": 72
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "investigation",
+      "difficulty": 14,
+      "fact": "Le maintien d'une tension sur une seule tige entretient sa réaction ; libérer le tissu accroché peut suffire à faire cesser les coups."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les massifs les plus mobiles sembleraient provenir de graines passées par certains oiseaux de marais."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Un greffon pris naturellement sur une vieille souche peut fleurir une seule nuit à la date d'une éclipse survenue pendant sa germination."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "chemin progressivement obstrué",
+      "défense végétale involontaire",
+      "indice de changement hydrologique"
+    ],
+    "telegraphs": [
+      "Les feuilles se replient avant le fouet.",
+      "La terre remonte en trois points lorsqu'un ancrage commence."
+    ],
+    "noncombat_options": [
+      "Libérer les tissus pris avec une perche, puis contourner la portée de la couronne.",
+      "Aménager un corridor de lumière et de terre humide pour guider sa migration sur plusieurs heures."
+    ],
+    "complications": [
+      "Les oiseaux nichant dans la couronne rendent une taille brutale dangereuse pour toute une couvée.",
+      "Déplacer la ronce vers un champ voisin peut créer un conflit entre habitants."
+    ]
+  },
+  "salvage": [
+    "Fruits tombés, rameaux naturellement rompus et épines détachées uniquement, sans arracher la souche.",
+    "Une taille négociée avec les gardiens du terrain doit conserver les nids et les bourgeons de reprise."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "ronce-marcheuse-plate-v1.png",
+      "alt": "Une Ronce-marcheuse avance sur un chemin humide, portée par six racines coudées sous une souche basse. Ses cannes épineuses s’arquent vers la lumière, où s’ouvrent des fleurs pâles.",
+      "caption": "Après la pluie, le fourré gagne lentement une terre plus claire et plus humide.",
+      "prompt_key": "ronce-marcheuse-plate-v1"
+    }
+  ]
+}

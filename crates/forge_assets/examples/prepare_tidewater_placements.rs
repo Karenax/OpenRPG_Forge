@@ -44,28 +44,12 @@ fn undo(zone: &mut ZoneEditSession, name: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let args: Vec<_> = std::env::args_os().skip(1).collect();
-    if args.len() != 3 {
-        return Err("INITIAL_ARCHIVE CATALOG_DIRECTORY NEW_OUTPUT required".into());
-    }
-    let mut zone = ZoneEditSession::from_archive_bytes(&fs::read(&args[0])?)?;
-    let catalog_root = Path::new(&args[1]);
-    let output = Path::new(&args[2]);
-    let catalog: AssetCatalog =
-        serde_json::from_slice(&fs::read(catalog_root.join("catalog.json"))?)?;
-    catalog.validate_import_metadata()?;
-    if catalog.assets.len() != 23
-        || zone
-            .head()
-            .corrections
-            .placements
-            .as_ref()
-            .is_some_and(|p| !p.is_empty())
-    {
-        return Err("Expected 23 imported buildings and no existing placements".into());
-    }
-    let base = zone.head().base.clone();
+fn build_placements(
+    catalog: &AssetCatalog,
+    catalog_root: &Path,
+    zone: &ZoneEditSession,
+) -> Result<Vec<ManualPlacement>, Box<dyn Error>> {
+    let base = &zone.head().base;
     let mut placements = Vec::new();
     for record in &catalog.assets {
         catalog.resolve_import_pin(record.id, record.content_hash)?;
@@ -99,6 +83,32 @@ fn main() -> Result<(), Box<dyn Error>> {
             locked: false,
         });
     }
+    Ok(placements)
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let args: Vec<_> = std::env::args_os().skip(1).collect();
+    if args.len() != 3 {
+        return Err("INITIAL_ARCHIVE CATALOG_DIRECTORY NEW_OUTPUT required".into());
+    }
+    let mut zone = ZoneEditSession::from_archive_bytes(&fs::read(&args[0])?)?;
+    let catalog_root = Path::new(&args[1]);
+    let output = Path::new(&args[2]);
+    let catalog: AssetCatalog =
+        serde_json::from_slice(&fs::read(catalog_root.join("catalog.json"))?)?;
+    catalog.validate_import_metadata()?;
+    if catalog.assets.len() != 23
+        || zone
+            .head()
+            .corrections
+            .placements
+            .as_ref()
+            .is_some_and(|p| !p.is_empty())
+    {
+        return Err("Expected 23 imported buildings and no existing placements".into());
+    }
+    let base = zone.head().base.clone();
+    let mut placements = build_placements(&catalog, catalog_root, &zone)?;
     placements.sort_by_key(|p| p.id);
     let original = placements.clone();
     let target = placements

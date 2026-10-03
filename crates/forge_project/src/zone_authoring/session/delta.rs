@@ -39,6 +39,17 @@ fn assign<T>(change: Change<T>, target: &mut T) {
 #[serde(deny_unknown_fields)]
 struct CorrectionsDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    source_object_edits:
+        Option<Change<Option<Vec<crate::zone_authoring::source_objects::SourceObjectEdit>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    gameplay: Option<Change<Option<Box<forge_gameplay::GameplayDocument>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    imported_plant_placements:
+        Option<Change<Option<Vec<crate::zone_authoring::imported_plants::ImportedPlantPlacement>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    imported_plant_offsets:
+        Option<Change<Option<Vec<crate::zone_authoring::imported_plants::ImportedPlantOffset>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     vegetation_exclusions: Option<Change<Option<Vec<crate::VegetationExclusion>>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     promotions: Option<Change<Option<Vec<crate::zone_authoring::promotion::PromotedInstance>>>>,
@@ -62,6 +73,38 @@ struct CorrectionsDelta {
 impl CorrectionsDelta {
     fn between(a: &ZoneCorrections, b: &ZoneCorrections) -> Result<Self, String> {
         Ok(Self {
+            source_object_edits: if a.source_object_edits.is_some()
+                || b.source_object_edits.is_some()
+            {
+                Some(difference(&a.source_object_edits, &b.source_object_edits)?)
+            } else {
+                None
+            },
+            gameplay: if a.gameplay.is_some() || b.gameplay.is_some() {
+                Some(difference(&a.gameplay, &b.gameplay)?)
+            } else {
+                None
+            },
+            imported_plant_placements: if a.imported_plant_placements.is_some()
+                || b.imported_plant_placements.is_some()
+            {
+                Some(difference(
+                    &a.imported_plant_placements,
+                    &b.imported_plant_placements,
+                )?)
+            } else {
+                None
+            },
+            imported_plant_offsets: if a.imported_plant_offsets.is_some()
+                || b.imported_plant_offsets.is_some()
+            {
+                Some(difference(
+                    &a.imported_plant_offsets,
+                    &b.imported_plant_offsets,
+                )?)
+            } else {
+                None
+            },
             vegetation_exclusions: if a.vegetation_exclusions.is_some()
                 || b.vegetation_exclusions.is_some()
             {
@@ -111,6 +154,18 @@ impl CorrectionsDelta {
         })
     }
     fn apply(self, target: &mut ZoneCorrections) {
+        if let Some(change) = self.source_object_edits {
+            assign(change, &mut target.source_object_edits);
+        }
+        if let Some(change) = self.gameplay {
+            assign(change, &mut target.gameplay);
+        }
+        if let Some(change) = self.imported_plant_placements {
+            assign(change, &mut target.imported_plant_placements);
+        }
+        if let Some(change) = self.imported_plant_offsets {
+            assign(change, &mut target.imported_plant_offsets);
+        }
         if let Some(change) = self.vegetation_exclusions {
             assign(change, &mut target.vegetation_exclusions);
         }
@@ -222,7 +277,7 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
     if archive.schema != "forge.zone-edit-session"
         || !matches!(
             archive.version,
-            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33
+            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33 | 36 | super::SOURCE_OBJECT_DELTA_VERSION
         )
         || archive.commands.len() > 1024
     {
@@ -269,6 +324,12 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
 }
 
 fn version(receipts: &[ZoneReceipt]) -> u32 {
+    if super::has_source_objects(receipts) {
+        return super::SOURCE_OBJECT_DELTA_VERSION;
+    }
+    if super::archive_version(receipts) == 34 {
+        return 36;
+    }
     if super::archive_version(receipts) == 31 {
         return 33;
     }

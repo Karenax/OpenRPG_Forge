@@ -29,6 +29,11 @@ impl std::error::Error for FixedProofViewError {}
 #[derive(Clone, Resource)]
 struct FixedProofView(WorldSketchCamera);
 
+#[derive(Resource)]
+struct FixedProofViewClockMode {
+    frozen: bool,
+}
+
 /// Bounded diagnostic clock, never saved into a document or used for benchmarks.
 #[derive(Default, Resource)]
 pub struct FixedProofClock {
@@ -61,8 +66,8 @@ pub struct FixedProofViewStatus {
     pub fixed_elapsed_ns: u128,
 }
 
-/// Freezes virtual time from startup and reuses the sole active camera.
-pub struct FixedProofViewPlugin(FixedProofView);
+/// Reuses the sole active camera; the default diagnostic also freezes virtual time.
+pub struct FixedProofViewPlugin(FixedProofView, bool);
 
 impl FixedProofViewPlugin {
     pub fn new(
@@ -77,6 +82,30 @@ impl FixedProofViewPlugin {
             .iter()
             .find(|view| view.id == camera_id)
             .ok_or_else(|| FixedProofViewError::MissingCamera(camera_id.to_owned()))?;
+        Self::from_camera(camera.clone())
+    }
+
+    /// Use a transient camera for an imported scene without modifying its document.
+    pub fn from_camera(camera: WorldSketchCamera) -> Result<Self, FixedProofViewError> {
+        if camera.id.is_empty()
+            || !camera
+                .position_m
+                .iter()
+                .chain(camera.target_m.iter())
+                .all(|value| value.is_finite())
+            || !camera.vertical_fov_degrees.is_finite()
+            || camera.vertical_fov_degrees <= 1.0
+            || camera.vertical_fov_degrees >= 179.0
+            || !camera.near_m.is_finite()
+            || camera.near_m <= 0.0
+            || !camera.far_m.is_finite()
+            || camera.far_m <= camera.near_m
+        {
+            return Err(FixedProofViewError::InvalidDocument(format!(
+                "Invalid proof camera: {}",
+                camera.id
+            )));
+        }
         let direction = Vec3::from_array(camera.target_m) - Vec3::from_array(camera.position_m);
         let direction = direction
             .try_normalize()
@@ -84,13 +113,21 @@ impl FixedProofViewPlugin {
         if direction.cross(Vec3::Y).length_squared() < 1.0e-6 {
             return Err(FixedProofViewError::InvalidDirection);
         }
-        Ok(Self(FixedProofView(camera.clone())))
+        Ok(Self(FixedProofView(camera), true))
+    }
+
+    /// Keep the reference camera while allowing an imported scene to finish loading.
+    pub fn camera_only(camera: WorldSketchCamera) -> Result<Self, FixedProofViewError> {
+        let mut plugin = Self::from_camera(camera)?;
+        plugin.1 = false;
+        Ok(plugin)
     }
 }
 
 impl Plugin for FixedProofViewPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(self.0.clone())
+            .insert_resource(FixedProofViewClockMode { frozen: self.1 })
             .init_resource::<FixedProofClock>()
             .insert_resource(FixedProofViewStatus {
                 camera_id: self.0.0.id.clone(),
@@ -101,16 +138,19 @@ impl Plugin for FixedProofViewPlugin {
                 virtual_elapsed_ns: 0,
                 fixed_elapsed_ns: 0,
             })
-            .add_systems(Startup, freeze_virtual_time)
             .add_systems(PostStartup, install_fixed_view)
-            .add_systems(Last, observe_fixed_view_stability)
-            .add_systems(First, step_proof_clock.after(bevy::time::TimeSystems));
+            .add_systems(Last, observe_fixed_view_stability);
+        if self.1 {
+            app.add_systems(Startup, freeze_virtual_time)
+                .add_systems(First, step_proof_clock.after(bevy::time::TimeSystems));
+        }
     }
 }
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy observation parameters")]
 fn observe_fixed_view_stability(
     view: Res<FixedProofView>,
+    mode: Res<FixedProofViewClockMode>,
     mut status: ResMut<FixedProofViewStatus>,
     virtual_time: Res<Time<Virtual>>,
     fixed_time: Res<Time<Fixed>>,
@@ -128,13 +168,16 @@ fn observe_fixed_view_stability(
     }) && active.next().is_none();
     let virtual_ns = virtual_time.elapsed().as_nanos();
     let fixed_ns = fixed_time.elapsed().as_nanos();
-    let valid = matches && status.installed && status.error.is_none() && virtual_time.is_paused();
+    let valid = matches
+        && status.installed
+        && status.error.is_none()
+        && (!mode.frozen || virtual_time.is_paused());
     let previous_stable_frames = status.stable_main_frames;
     status.stable_main_frames = if !valid {
         0
     } else if status.current_view_matches
-        && status.virtual_elapsed_ns == virtual_ns
-        && status.fixed_elapsed_ns == fixed_ns
+        && (!mode.frozen
+            || (status.virtual_elapsed_ns == virtual_ns && status.fixed_elapsed_ns == fixed_ns))
     {
         status.stable_main_frames.saturating_add(1)
     } else {

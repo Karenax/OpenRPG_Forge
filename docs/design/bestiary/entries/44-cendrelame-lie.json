@@ -1,0 +1,264 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.cendrelame-lie",
+  "name": "Cendrelame lié",
+  "subtitle": "Une mémoire de forge qui refuse de laisser la braise décider",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "mort revenant de forge à volonté fragmentaire",
+    "family": "mémoires liées à un ouvrage",
+    "rarity": "exceptionnel dans les ateliers ayant pratiqué un lien volontaire",
+    "activity": "pendant les périodes de chauffe",
+    "social": "capable de dialogue bref, recherche un interlocuteur stable",
+    "threat": "forte",
+    "threat_reason": "Il manie une vraie lame et contrôle une chaleur limitée ; l'atelier encombré rend ses gestes dangereux, mais le souvenir d'un métier motive davantage son comportement qu'une volonté de tuer."
+  },
+  "physique": {
+    "dimensions": "1,75 à 2,10 m, manteau de cendre large aux épaules",
+    "mass_kg": [
+      65,
+      95
+    ],
+    "locomotion": [
+      "marche bipède",
+      "pas glissé sur les dalles sèches"
+    ],
+    "center_of_gravity": "Porté vers l'avant par un plastron de scories ; il doit s'arrêter pour se retourner sur une pente.",
+    "silhouette": "Silhouette humaine dans une armature de forge ajourée, avec une cendre mate aux jointures et une lame sobre portée pointe basse.",
+    "anatomy_zones": [
+      {
+        "zone": "visage",
+        "description": "Masque de travail noirci, ouvert sous le menton ; il ne cache pas une tête indestructible.",
+        "protection": 8
+      },
+      {
+        "zone": "torse",
+        "description": "Plastron de scories et anneaux portant le lien, lourd et fissurable.",
+        "protection": 16
+      },
+      {
+        "zone": "bras",
+        "description": "Jointures de cendre comprimée sous des bandes métalliques espacées.",
+        "protection": 7
+      },
+      {
+        "zone": "jambes",
+        "description": "Bottes de travail rigides, semelles vulnérables sur un dépôt humide.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "forges fermées dont un foyer est encore entretenu",
+    "ateliers de réparation installés près d'anciennes coulées volcaniques"
+  ],
+  "ecology": {
+    "diet": "Ne mange plus ; la conservation du support exige de la cendre propre, des pièces réparées et du repos. La chaleur ambiante n'accorde aucun Mana illimité.",
+    "lifecycle": "Alternance de veille et d'immobilité auprès de l'ouvrage auquel le lien est associé ; les souvenirs deviennent moins précis si cet ouvrage se dégrade.",
+    "reproduction": "Aucune reproduction. Le lien ne s'étend pas aux victimes d'un incendie et ne se transmet pas par blessure.",
+    "behavior": "Inspecte les outils, corrige une prise maladroite et prévient avant de barrer un foyer dangereux ; il peut confondre une intervention moderne avec un sabotage.",
+    "niche": "Témoin partiel d'un savoir artisanal, dont la présence oblige à discuter la durée et le consentement du rite initial.",
+    "environmental_impact": "Maintient des installations anciennes en service, mais accumule des scories et peut empêcher leur remplacement s'il ne comprend pas les nouveaux procédés."
+  },
+  "senses": [
+    "perçoit les variations de chaleur sur une surface à moins de 3 m",
+    "voit les déplacements dans la pénombre du foyer, mais pas à travers une paroi",
+    "entend mal une voix couverte par plusieurs marteaux"
+  ],
+  "communication": [
+    "phrases courtes tirées de son vocabulaire de métier",
+    "tracés de la pointe sur un lit de cendre",
+    "inclinaison de la lame pour accepter une suspension du travail"
+  ],
+  "signs": [
+    "outils alignés après une nuit sans personnel",
+    "empreintes sèches bordées d'une fine poudre grise",
+    "scories fendues déposées devant un foyer mal ventilé"
+  ],
+  "demeanor": {
+    "objectives": [
+      "préserver un ouvrage confié",
+      "éviter un accident de chauffe",
+      "comprendre les intentions du nouvel occupant"
+    ],
+    "fears": [
+      "rupture du support qui conserve ses souvenirs",
+      "effondrement de la cheminée",
+      "être réduit au rôle d'arme"
+    ],
+    "morale": "Résolu dans l'atelier, hésitant lorsque son interlocuteur montre un savoir de forge crédible ; il peut choisir le repos définitif si son mandat est accompli.",
+    "escalation": "Il pose un outil en travers du passage, formule un avertissement, tire sa lame puis amorce une chauffe visible.",
+    "retreat": "Coupe ses effets de chaleur et se replie vers une zone dégagée pour protéger le support plutôt que les murs."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 6,
+      "constitution": 6,
+      "intelligence": 6,
+      "willpower": 7,
+      "perception": 5,
+      "presence": 5
+    },
+    "skills": {
+      "blades": 60,
+      "parry": 52,
+      "elementalism": 50,
+      "smithing": 55,
+      "vigilance": 40,
+      "persuasion": 40
+    },
+    "resources": {
+      "vitality": 108,
+      "stamina": 101,
+      "mana": 86,
+      "balance": 88,
+      "focus": 88
+    },
+    "movement": "Marche 2,2 m/s ; pas rapide 4 m/s pendant 3 secondes au maximum entre deux obstacles. Les joints glissent mal sur les cendres mouillées.",
+    "protections": [
+      "Les scories protègent le torse couvert ; les articulations restent exposées.",
+      "La lame est un objet matériel, non une projection qui traverse les gardes."
+    ],
+    "attacks": [
+      {
+        "name": "Coupe de dégagement",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "blades",
+        "attribute_id": "dexterity",
+        "impact": 28,
+        "reach": "arc frontal de 1,6 m",
+        "stamina_cost": 12,
+        "preparation": "0,8 seconde, pointe ramenée près de l'épaule",
+        "telegraph": "La poudre aux coudes se tasse et la pointe décrit un petit cercle.",
+        "effect": "Une coupe physique vise une seule cible ; sans Liseré de braise actif, aucun effet thermique supplémentaire n'est produit.",
+        "counterplay": "Sortir de l'arc, parer au tiers fort de la lame ou offrir un espace de retraite."
+      },
+      {
+        "name": "Heurt du pommeau",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "blades",
+        "attribute_id": "strength",
+        "impact": 18,
+        "reach": "0,7 m au contact",
+        "stamina_cost": 8,
+        "preparation": "0,5 seconde après retrait du tranchant",
+        "telegraph": "Il ramène la lame contre son flanc et avance la main arrière.",
+        "effect": "Un contact contondant bref cherche à séparer les combattants ; il ne désarme ni n'assomme automatiquement.",
+        "counterplay": "Rompre le corps-à-corps, couvrir le visage ou retenir l'avant-bras sans saisir le tranchant."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Liseré de braise",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "une lame tenue, portée de contact inchangée",
+        "stamina_cost": 7,
+        "preparation": "2 secondes, lame posée dans l'axe du foyer",
+        "telegraph": "Un trait orange remonte lentement depuis la garde.",
+        "effect": "Coûte 10 Mana au départ ; dure au plus 12 secondes sous concentration continue. Le prochain contact matériel de la lame porte au plus 8 Impact thermique supplémentaires, puis l'effet cesse. Une seule lame peut être préparée et les activations ne se cumulent pas.",
+        "counterplay": "Faire manquer le contact, couvrir la zone avec un isolant réel ou interrompre la concentration avant l'approche."
+      },
+      {
+        "name": "Braise contenue",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "un objet inerte de moins de 2 kg à 2 m",
+        "stamina_cost": 5,
+        "preparation": "3 secondes, paumes dirigées vers l'objet",
+        "telegraph": "Des lignes ternes apparaissent sur l'objet et le revenant cesse d'avancer.",
+        "effect": "Coûte 8 Mana. Pendant au plus 15 secondes sous concentration, ralentit le transfert de chaleur d'un seul objet déjà chaud ; ne refroidit pas instantanément, n'éteint pas un incendie et ne protège pas une créature entière. Incompatible avec Liseré de braise, car les deux exigent sa concentration.",
+        "counterplay": "Éloigner l'objet, rompre la ligne de vue ou patienter jusqu'à la fin ; traiter ensuite l'objet comme encore chaud."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chaleur de forge indirecte",
+        "mechanism": "Les couches de scorie isolent le support contre un rayonnement bref ; la chaleur accumulée finit néanmoins par fissurer les joints."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "choc thermique du support",
+        "mechanism": "Un changement brutal de température peut ouvrir des fissures dans les pièces déjà chaudes ; cette vulnérabilité dépend de leur état réel, non du seul contact avec l'eau."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "cheminée obstruée",
+        "result": "arrêt du travail et recherche d'une sortie",
+        "chain": "Les fumées gênent sa vision comme celle des vivants ; le revenant détourne son attention du conflit pour dégager l'évacuation."
+      },
+      {
+        "input": "lit de cendres saturé d'eau",
+        "result": "rotation lente et lame conservée près du corps",
+        "chain": "La boue accroche les semelles et surcharge les joints ; les grands pas deviennent plus risqués que les petites parades."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "La lumière de la garde progresse avant que la lame ne puisse ajouter un effet thermique à son contact."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La précision de ses souvenirs paraît liée à l'entretien d'un ouvrage particulier plutôt qu'au foyer entier."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Une tuile signée Nère, scellée sous l'établi occidental, contient la quittance finale que personne ne lui a présentée ; la lire avec lui permet de discuter la fin de son mandat."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "maître artisan ambigu",
+      "gardien d'un risque industriel",
+      "adversaire de duel limité"
+    ],
+    "telegraphs": [
+      "Un outil est posé en travers du chemin avant que la lame soit tirée.",
+      "Le trait orange de la garde annonce une unique coupe chauffée."
+    ],
+    "noncombat_options": [
+      "Démontrer calmement que la nouvelle installation protège mieux l'ouvrage confié.",
+      "Organiser avec les ayants droit un arrêt du foyer et une discussion sur la conservation ou la fin du lien."
+    ],
+    "complications": [
+      "Un propriétaire veut le vendre comme gardien, sans considérer sa volonté.",
+      "Une panne réelle rend urgente l'intervention que le revenant prend pour une dégradation."
+    ]
+  },
+  "salvage": [
+    "Scories froides ou outil explicitement cédé après une réparation.",
+    "Aucun prélèvement sur le support lié ; les objets personnels restent des biens à restituer, même après l'extinction du rite."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "cendrelame-lie-plate-v1.png",
+      "alt": "Un Cendrelame lié se tient dans une forge, masque noirci et jointures de cendre mate, sa lame sobre dirigée vers le sol.",
+      "caption": "Inspecte les outils, corrige une prise maladroite et prévient avant de barrer un foyer dangereux ; il peut confondre une intervention moderne avec un sabotage.",
+      "prompt_key": "cendrelame-lie-plate-v1"
+    }
+  ]
+}

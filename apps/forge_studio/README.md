@@ -424,6 +424,45 @@ The Windows harness launches the exact release executable, requests foreground f
 complete decorated window, checks sampled colour diversity, hashes both executable and PNG, and
 writes a sidecar matching `gate0-window-capture.schema.json`. Screen capture can still be occluded;
 the sidecar therefore remains `uninspected` until a human reviews the PNG.
+# Bibliothèque privée d’assets
+
+Le bouton **Bibliothèque d’assets** de l’atelier principal et secondaire ouvre un
+écran dédié, sans démonter la carte ni perdre les retouches. Une ouverture directe
+est également possible avec `?asset_library=1` dans le frontend Tauri.
+
+La recherche couvre les assets déjà indexés du Vault désigné au démarrage par
+`OPENRPG_ASSET_VAULT` (sur cette machine : `F:\OpenRPG_AssetVault`). Elle combine
+texte sans distinction d’accents, pack, famille, type, sous-type et état de
+vérification, ainsi qu’un filtre de disponibilité distinguant les modèles GLB
+utilisables des sources conservées ; tri par nom, triangles ou hauteur ; pagination
+de 24 vignettes.
+Chaque fiche expose descriptions, dimensions, pivot proposé, points d’attache,
+confiance, vérifications enregistrées, licence, provenance et métadonnées complètes.
+Une source sans géométrie visible ou une dépendance incomplète reste trouvable avec
+son FBX et sa provenance, mais porte explicitement le statut non plaçable et ne reçoit
+pas de faux GLB.
+Les dimensions et triangles mesurés directement dans un FBX sont étiquetés « source ».
+Les aperçus neutres de géométrie n'impliquent ni reproduction des matériaux Unity
+ni qualification du prefab complet.
+
+Le pont `read_asset_library` est en lecture seule : IDs et filtres, aucune écriture
+ou import dans le module. Les fichiers restent dans le Vault privé, hors bundle.
+Les métadonnées et PNG sont contrôlés par leurs empreintes enregistrées ; les
+sources conservées sont contrôlées par SHA-256 à l'ouverture de leur fiche, sans
+relire tous les FBX pendant la recherche. Le contrôle intégral reste la commande
+`source_support_import.py verify`. Les requêtes de détail/vignette sont liées à
+la révision du registre. « Actualiser »
+relit le catalogue et son registre immuable de sources conservées. Une fiche complète
+ne vaut ni validation de placement ni qualification dans le moteur ; la collection
+source peut contenir d’autres assets qui ne sont pas encore convertis/indexés.
+
+Le contrôle opt-in de toute la collection est :
+
+```powershell
+$env:OPENRPG_ASSET_VAULT = 'F:\OpenRPG_AssetVault'
+cargo test -p forge_studio --lib --no-default-features live_vault_library --offline -- --ignored --nocapture
+```
+
 # Aperçu du ciel (Gate 1, expérimental)
 
 Le menu des scènes propose « Vallée avec ciel expérimental ». L'option explicite

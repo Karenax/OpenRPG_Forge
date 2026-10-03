@@ -1,0 +1,122 @@
+{
+  "schema_version": "0.1",
+  "batch_id": "wild-realms-art-01.20260927",
+  "assets": [
+    {
+      "file": "chouette-cerf-des-brisants-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "DE4668B3B7E40EEBEA224B00E58A12430CADC7619A288767F52F1FC060550B13",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/22-chouette-cerf-des-brisants.json",
+      "source_content_sha256": "CF7D619F476763136DFAFB28ED59A4DA3E6B815DF71C57363ABADB2720CAB0E7",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Chouette-cerf aux bois bas et au disque facial de plumes se tient sur quatre sabots griffus, au bord d’une falaise de craie. Ses membranes sont entrouvertes au-dessus de la mer.",
+      "prompt": "Use case: stylized-concept. Original naturalist fantasy illustration for the OpenRPG Forge bestiary, one full-page creature portrait, vertical 2:3, ideally 1024 x 1536.\nScene: a pale chalk coastal cliff above a blue-grey sea at low tide, shallow tide pools and washed-up seaweed below, salt grasses bent by the wind, bright diffuse late-afternoon light. Rich but readable foreground, middle distance and distant coastline.\nSubject: one Chouette-cerf des brisants, an original compact quadrupedal coastal grazer, about 1.5 m long and 0.95 m at the shoulder, 65 kg. Its owl-like face is a circular disk of short grey-brown feathers with watchful amber eyes and a small discreet beak. Short LOW fan-shaped antlers project sideways, not a tall stag crown. Feather-covered chest, compact lightweight body. EXACTLY FOUR legs. Each foot is a small cloven hoof edged with gripping claws. A supple velvet-furred gliding membrane connects each foreleg wrist to the same-side flank. The patagia are partly opened into triangular panels as the animal braces on a broad cliff ledge; all four feet remain planted. They are skin membranes, not feathers, not extra arms, not bird wings. This animal only glides downhill and does not perform powered flight.\nComposition: entire animal visible in a three-quarter lateral view, full antlers, all four connected legs, hooves and membrane edges inside the image with clear margins. It calmly looks toward a safe lower ledge. Habitat conveys the cliff ecology and real scale, animal occupies about 60 percent of image height. No humans or second creature.\nStyle: premium editorial natural history plate; carefully drawn fine ink detail integrated into textured gouache, restrained painterly modelling, physically convincing weight and anatomy, tactile feathers and matte velvet membrane, no plastic CGI. Earthy bronze and grey plumage, deep forest green salt plants, slate blue sea, pale limestone highlights, airy readable shadows. Detailed cinematic environment without turning the creature into a heroic combat pose.\nConstraints: original species, no copied commercial monster design or named artist style, no armor or weapons, no magical aura, no glowing antlers, no extra wings or limbs, no flight scene, no gore. No text, numbers, letters, labels, border, watermark, signature or pseudo-calligraphic marks anywhere. Full-bleed illustrated landscape background.",
+      "prompt_file": "provenance/prompts/22-chouette-cerf-des-brisants-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Quatre appuis distincts, disque facial, bois en éventail et membranes visibles ; cadrage entier et habitat côtier lisibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "ronce-marcheuse-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "B6B54DD537A1172D96E08FE68CE01EAAED61AFCACA63C85D6870F1B95DE80E79",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/27-ronce-marcheuse.json",
+      "source_content_sha256": "8CF87332E172D9B9258AC450D1E1B4550A241AE55E8DFBB623BA6A81F49B6262",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Ronce-marcheuse avance sur un chemin humide, portée par six racines coudées sous une souche basse. Ses cannes épineuses s’arquent vers la lumière, où s’ouvrent des fleurs pâles.",
+      "prompt": "Use case: stylized-concept. An original naturalist fantasy creature plate for the OpenRPG Forge bestiary. Portrait canvas, strict vertical 2:3, ideally 1024 x 1536. Full-bleed environmental illustration, no border. Premium editorial natural history illustration: fine ink detail integrated with textured gouache, restrained painterly modelling and very convincing physical anatomy, weight and materials. Deep forest greens, earthy bronze, slate blue, charcoal, pale limestone highlights, no saturated neon. Readable open shadows, clear silhouette, atmosphere in three depth planes. One creature only, entire body and all extremities inside the frame with margins. No text, letters, numbers, labels, logos, signature, watermark or pseudo-calligraphic marks. Original creature, no commercial monster design or named artist imitation. No gore, no human victim, no gratuitous magical aura.\nScene: damp woodland edge beside an old rural track and an abandoned field just after rain, clear warm slanting daylight lighting the open side of the hedge, dark wet earth and small stones shifted by roots.\nSubject: a Ronce-marcheuse, a genuinely mobile bramble BUSH, about 2 m high and 2 m across, 85 kg, not a tree person. A compact low central woody stump is supported by EXACTLY SIX articulated thick bent ROOTS arranged radially, five planted and one slightly lifted in a slow step. Clearly visible root connections to the central stump. Long slender fibrous thorned canes form an arching asymmetrical shrub canopy, leaves like ordinary brambles, backward-pointing thorns. Small pale ivory flowers occur only on the sunlit branches. Ordinary matte bark, damp wood, flexible brown roots, living green foliage.\nComposition: three-quarter slightly low view with a generous clear patch of track around the six root tips, the complete arching canopy visible. The bush slowly relocates toward damp well-lit soil; disturbed earth shows real weight, no attack. Roots resemble woody branching plant roots, never muscular animal tentacles.\nConstraints: NO face, eyes, mouth, head, torso, arms, hands or humanoid stance. No giant oak tree, no green human, no carnivorous plant maw. No luminous sap, no glowing flowers, no magical mist. Make the six load-bearing roots individually readable beneath a dense but light, airy bramble canopy.",
+      "prompt_file": "provenance/prompts/27-ronce-marcheuse-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Buisson sans visage ni forme humaine, six racines principales dont une relevée, cannes épineuses et fleurs pâles ; migration lente lisible.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "dame-des-lucioles-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "7EB9AE9695E38E21D0A85F95806E97250998C62A9A27883C82D4496101966E61",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/31-dame-des-lucioles.json",
+      "source_content_sha256": "1AF1FE9780A59DCCD8CA6CFFB77FABB0118A6F806EAC32123C5D3B00C650B687",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "La Dame des lucioles se tient sur une rive ferme, vêtue d’un manteau sombre. Son visage opalin porte de grands yeux sombres et deux lamelles temporales ; elle tient un bâton et une petite lampe.",
+      "prompt": "Use case: stylized-concept. An original naturalist fantasy creature plate for the OpenRPG Forge bestiary. Portrait canvas, strict vertical 2:3, ideally 1024 x 1536. Full-bleed environmental illustration, no border. Premium editorial natural history illustration: fine ink detail integrated with textured gouache, restrained painterly modelling and very convincing physical anatomy, weight and materials. Deep forest greens, earthy bronze, slate blue, charcoal, pale limestone highlights, no saturated neon. Readable open shadows, clear silhouette, atmosphere in three depth planes. One creature only, entire body and all extremities inside the frame with margins. No text, letters, numbers, labels, logos, signature, watermark or pseudo-calligraphic marks. Original creature, no commercial monster design or named artist imitation. No gore, no human victim, no gratuitous magical aura.\nScene: a firm earthen path beside a marsh reedbed at blue-hour dusk, cool open-sky light and a small warm shuttered lantern keep the figure and anatomy readable. A few tiny real fireflies among reeds, not a galaxy of magic particles. Still shallow water reflects reeds in the background.\nSubject: the Dame des lucioles, an original physically corporeal female-presenting fey person, 1.7 m tall, 62 kg, narrow upper body and broad pelvis, neither human nor elf. Opaline pale skin with fine subtle amber capillaries; not transparent, not luminous. A smooth face WITHOUT a projecting nose, two large dark softly faceted eyes, exactly two soft tapering sensory lamellae arising from the temples rather than pointed ears, no gills. Exactly FOUR fingers on EACH hand, fingers webbed only at their bases; exactly FOUR long splayed toes on EACH foot. No wings.\nClothing and props: a practical dark oiled-fiber cloak with hood pushed back, modest quilted jacket, split fingerless gloves exposing the webbed fingers, gaiters ending above the visible bare feet. No tiara, jewelry, fairy dress or high heels. One hand naturally holds a plain 1.5 m walking staff; the other carries a small simple shuttered lantern. Hands unobstructed enough to read the four-finger anatomy.\nComposition: full-length standing figure in a three-quarter view on firm soil, both entire feet clearly separated and solidly planted, staff tip on ground. Attentive calm expression of someone open to conversation, head and hands well resolved, no hostile spellcasting. Figure occupies about 70 percent of image height.\nConstraints: absolutely not an ordinary human woman with an elf face; flat nasal region, faceted eyes and paired temporal lamellae are crucial. Exactly four digits per hand and foot, physically believable joints. No wings, levitation, walking on water, ghost transparency or secret containers. Keep face and anatomy readable despite dusk.",
+      "prompt_file": "provenance/prompts/31-dame-des-lucioles-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Personne corporelle sans ailes ni nez saillant, deux lamelles, manteau et appuis distincts ; quatre orteils visibles au premier plan. Le détail des doigts en prise et des facettes oculaires reste à confirmer en revue humaine.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "dragon-des-sources-closes-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "30B27174DFC056CE72DF54736F8A3C9ECBB36DC38103417D4D5CBA6F78A3EDCB",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/51-dragon-des-sources-closes.json",
+      "source_content_sha256": "AF3F10F816B6DB9A0987728E1BB1B767267434F00C4E8DA76BF236524EBBBCE3",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un grand dragon gris vert repose sur les marches d’un bassin karstique. Son corps bas possède quatre pattes, de petites ailes de stabilisation et une longue queue plongée dans l’eau, près d’une ancienne grille.",
+      "prompt": "Use case: stylized-concept. An original naturalist fantasy creature plate for the OpenRPG Forge bestiary. Portrait canvas, strict vertical 2:3, ideally 1024 x 1536. Full-bleed environmental illustration, no border. Premium editorial natural history illustration: fine ink detail integrated with textured gouache, restrained painterly modelling and very convincing physical anatomy, weight and materials. Deep forest greens, earthy bronze, slate blue, charcoal, pale limestone highlights, no saturated neon. Readable open shadows, clear silhouette, atmosphere in three depth planes. One creature only, entire body and all extremities inside the frame with margins. No text, letters, numbers, labels, logos, signature, watermark or pseudo-calligraphic marks. Original creature, no commercial monster design or named artist imitation. No gore, no human victim, no gratuitous magical aura.\nScene: a large ancient karst spring basin in a limestone hollow, turquoise-grey clear water, broad wet stone terraces and old hydraulic masonry, a modest weathered sluice grille in the background. Cool oblique daylight enters through an opening high in the rock and reflects softly from the water. No treasure hoard or ruins burning.\nSubject: the Dragon des sources closes, a sapient amphibious dragon, 9 m long including its long rudder-tail, 2.5 m at shoulder, about 2200 kg. A low heavy elongated body supported by exactly FOUR broadly spaced stout reptilian legs, broad muzzle, slate grey-green scales, broad overlapping dorsal plates and discreet small fins. In ADDITION to its four legs it has exactly TWO VERY SHORT folded stabilizing wings near the shoulders, comparable to small paddles, incapable of sustained flight. The wings must look deliberately much too small to lift the heavy animal, never huge heroic dragon wings. Broad substantial scaled feet on wet stone, long laterally flattened rudder tail curves gently into the pool.\nComposition: full creature in a readable three-quarter lateral pose, head raised attentively near the viewer, body stretches back along a wide stepped terrace, four separate legs visibly connected to the torso, tail tip visible through clear shallow water, short folded wings visible above the forelimbs. Camera far enough away to include the full body, wing tips and entire tail without cropping. Large masonry blocks and a weathered grille establish impressive real scale. Calm territorial resident, not attacking; breathing and weight expressed through posture rather than a magic effect.\nConstraints: no fire, water jet or elemental breath from the mouth; no giant wings, no flying, no bipedal wyvern, no legless serpent, no long thin mammalian neck, no horns shaped into a crown, no treasure, no secret symbols or spirals. Keep four load-bearing limbs anatomically distinct from two tiny stabilizing wings. Gray-green wet scales, natural stone and water, not metallic armor.",
+      "prompt_file": "provenance/prompts/51-dragon-des-sources-closes-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Quatre pattes visibles, ailes très courtes, museau large, plaques dorsales et queue aquatique ; absence de souffle ou de posture aérienne.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    }
+  ]
+}

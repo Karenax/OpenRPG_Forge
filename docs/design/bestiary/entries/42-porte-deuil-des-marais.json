@@ -1,0 +1,257 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.porte-deuil-des-marais",
+  "name": "Porte-deuil des marais",
+  "subtitle": "La silhouette qui reconduit les morts au-delà des roseaux",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "mort lié à un rite funéraire",
+    "family": "porteurs de sépulture",
+    "rarity": "rare, lié à un lieu de mémoire entretenu",
+    "activity": "aux basses eaux et après les crues",
+    "social": "isolé, tolère les cortèges qui respectent les dépouilles",
+    "threat": "forte",
+    "threat_reason": "Sa masse et sa longue perche menacent surtout les voyageurs sur une passerelle étroite ; il cherche à dégager un passage funéraire, non à accumuler des victimes."
+  },
+  "physique": {
+    "dimensions": "2,10 à 2,50 m debout, panier dorsal large de 1,20 m",
+    "mass_kg": [
+      130,
+      190
+    ],
+    "locomotion": [
+      "marche lente sur le fond",
+      "progression appuyée sur une perche",
+      "nage maladroite sans chargement"
+    ],
+    "center_of_gravity": "Haut lorsque le panier est plein ; la perche fournit un troisième appui indispensable dans la vase.",
+    "silhouette": "Une cape de joncs couvre un corps conservé par la tourbe ; un panier fermé repose entre ses épaules et sa nuque baissée.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Visage enveloppé d'un tissu funéraire humide ; les ouvertures des yeux restent dégagées.",
+        "protection": 3
+      },
+      {
+        "zone": "torse et panier",
+        "description": "Côtes soutenues par une armature de saule ; le panier protège le dos sans devenir une réserve de butin.",
+        "protection": 12
+      },
+      {
+        "zone": "bras",
+        "description": "Tendons raidis et liens de lin autour des coudes, moins résistants lorsqu'ils se dessèchent.",
+        "protection": 5
+      },
+      {
+        "zone": "jambes",
+        "description": "Pieds larges entourés de racines mortes, solides de face mais vulnérables à la torsion.",
+        "protection": 6
+      }
+    ]
+  },
+  "habitats": [
+    "marais traversés d'anciennes chaussées funéraires",
+    "cimetières de berge régulièrement inondés"
+  ],
+  "ecology": {
+    "diet": "Aucune nourriture animale ; l'entretien du lien exige des offrandes végétales consenties et du repos sur une dalle rituelle, sans prélèvement de vie.",
+    "lifecycle": "Le porteur s'éveille après une crue qui déplace les tombes, puis s'immobilise lorsque les restes confiés retrouvent une sépulture reconnue.",
+    "reproduction": "Aucune reproduction biologique. Un nouveau lien exige un rite communautaire ; un décès ordinaire ne crée pas automatiquement un porteur.",
+    "behavior": "Il ramasse les os déplacés sans distinguer richesse ou origine, s'arrête devant les vivants et attend qu'ils libèrent le chemin.",
+    "niche": "Gardien d'un usage funéraire ; il n'est ni une population prédatrice ni la preuve que la personne défunte consent encore au rite.",
+    "environmental_impact": "Ses passages entretiennent des chenaux étroits et déplacent parfois les nids de berge ; les habitants aménagent des détours en période de ponte."
+  },
+  "senses": [
+    "perçoit les vibrations transmises par sa perche dans un rayon de 5 m",
+    "voit les silhouettes à travers un tissu humide, mais distingue mal les couleurs",
+    "perd ses repères auditifs sous une pluie battante"
+  ],
+  "communication": [
+    "trois coups espacés de perche pour demander le passage",
+    "inclinaison du panier vers le lieu de dépôt proposé",
+    "quelques mots incomplets, sans conversation suivie"
+  ],
+  "signs": [
+    "trous de perche régulièrement espacés près de larges empreintes",
+    "joncs tressés déposés au-dessus du niveau de crue",
+    "petits amas d'ossements nettoyés et couverts d'une toile"
+  ],
+  "demeanor": {
+    "objectives": [
+      "reconduire les restes déplacés",
+      "garder son panier stable",
+      "éviter qu'une sépulture soit piétinée"
+    ],
+    "fears": [
+      "rupture de la passerelle sous son chargement",
+      "dessèchement de ses liens",
+      "dispersion des dépouilles"
+    ],
+    "morale": "Persiste face à une obstruction, mais cesse toute poussée si les restes risquent de tomber ; ce comportement ne justifie pas de les prendre en otage.",
+    "escalation": "Il s'arrête, frappe le sol, barre la route avec sa perche puis repousse un obstacle qui avance encore.",
+    "retreat": "Recule vers une dalle émergée et pose le panier avant de se défendre ; ne poursuit pas hors du marais."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 3,
+      "constitution": 7,
+      "intelligence": 5,
+      "willpower": 8,
+      "perception": 6,
+      "presence": 6
+    },
+    "skills": {
+      "polearms": 52,
+      "unarmed": 44,
+      "spirit": 54,
+      "swimming": 35,
+      "vigilance": 50,
+      "empathy": 42,
+      "lore": 45
+    },
+    "resources": {
+      "vitality": 114,
+      "stamina": 109,
+      "mana": 88,
+      "balance": 92,
+      "focus": 96
+    },
+    "movement": "Marche 1,4 m/s sur fond ferme, 0,7 m/s dans la vase ; nage 0,8 m/s sans panier. Une passerelle doit supporter sa masse et son chargement.",
+    "protections": [
+      "Le saule protège uniquement la face dorsale couverte ; le tissu mouillé ne constitue pas une armure complète.",
+      "La tourbe conserve les tissus mais n'annule ni fracture ni arrachement."
+    ],
+    "attacks": [
+      {
+        "name": "Écart de perche",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "polearms",
+        "attribute_id": "strength",
+        "impact": 22,
+        "reach": "arc frontal de 2 m",
+        "stamina_cost": 10,
+        "preparation": "1,2 seconde, perche posée horizontalement",
+        "telegraph": "Les deux mains s'écartent et le porteur replace un pied vers la rive.",
+        "effect": "Un seul contact contondant cherche à ouvrir le passage ; il ne traverse pas une garde solide et ne frappe pas à travers le panier.",
+        "counterplay": "Reculer hors de l'arc, saisir un abri latéral ou laisser libre la chaussée."
+      },
+      {
+        "name": "Poussée du panier fermé",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "constitution",
+        "impact": 18,
+        "reach": "contact à 1 m derrière lui",
+        "stamina_cost": 12,
+        "preparation": "1,5 seconde après avoir verrouillé le couvercle",
+        "telegraph": "Il pivote lentement, plie les genoux et présente son dos.",
+        "effect": "Une poussée contre une seule cible peut la déplacer d'au plus 1 m si ses appuis cèdent réellement ; aucun renversement automatique.",
+        "counterplay": "Quitter l'axe, caler ses appuis contre un garde-corps solide ou interrompre le pivot sans toucher aux dépouilles."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Rideau de joncs pâles",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "spirit",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "écran de 2 m de large à 5 m au maximum, visible du porteur",
+        "stamina_cost": 6,
+        "preparation": "2 secondes, perche levée sans déplacement",
+        "telegraph": "Des gouttes immobiles dessinent les tiges d'un roseau absent.",
+        "effect": "Coûte 8 Mana à l'engagement. Pendant au plus 10 secondes sous concentration continue, un unique voile atténue la vue à travers lui ; il ne bloque ni corps ni projectile et ne produit aucune peur imposée. Perdre la concentration le dissipe.",
+        "counterplay": "Contourner l'écran, suivre les sons ou obliger le porteur à abandonner sa posture ; une lumière latérale conserve les ombres perceptibles."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "immersion froide",
+        "mechanism": "Les tissus conservés et les liens rituels ne dépendent pas d'une respiration pulmonaire ; le courant peut néanmoins désarticuler ou emporter le corps."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "dessèchement prolongé",
+        "mechanism": "Les joncs se rétractent et les articulations perdent leur souplesse ; le porteur recherche l'eau avant de reprendre sa charge."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "asphyxie par manque d'air",
+        "mechanism": "Le corps ne respire plus ; cette absence de respiration ne le protège pas des dommages matériels de l'eau ou de la pression."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "montée du niveau d'eau sur une chaussée",
+        "result": "arrêt du cortège au dernier repère émergé",
+        "chain": "Le porteur ne peut plus vérifier le fond avec sa perche ; il immobilise le panier plutôt que de risquer sa chute."
+      },
+      {
+        "input": "passerelle couverte d'algues",
+        "result": "poussées plus lentes et appuis incertains",
+        "chain": "La surface glissante empêche de transmettre toute la force du pivot ; un appui latéral peut céder avant celui de l'adversaire."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Des trous de perche plus profonds du côté de l'eau signalent un panier chargé et un trajet de retour."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les offrandes de joncs renouvelées par les habitants semblent raccourcir ses périodes d'agitation après une crue."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Sous la traverse inférieure du panier, onze entailles entourent le nom de Sévane ; ce compte révèle qu'une dalle cadastrée comme vide abrite le dernier dépôt attendu."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle de passage",
+      "guide funéraire involontaire",
+      "protecteur d'un lieu fragile"
+    ],
+    "telegraphs": [
+      "La perche barre d'abord le chemin sans toucher personne.",
+      "Le porteur vérifie son couvercle avant de tourner le dos à une menace."
+    ],
+    "noncombat_options": [
+      "Organiser un détour et laisser le cortège passer.",
+      "Proposer, avec les gardiens du lieu, une sépulture sèche pour les restes déplacés ; aucune dépouille ne doit devenir monnaie d'échange."
+    ],
+    "complications": [
+      "Le chemin sûr traverse une roselière en période de nidification.",
+      "Les habitants ne s'accordent pas sur la légitimité du rite qui maintient le corps en activité."
+    ]
+  },
+  "salvage": [
+    "Joncs rejetés sur une rive après une réparation, si les gardiens du lieu les déclarent abandonnés.",
+    "Aucun prélèvement sur le corps, le panier ou les dépouilles ; leur restitution et leur sépulture restent l'objet de la rencontre."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "porte-deuil-des-marais-plate-v1.png",
+      "alt": "Un Porte-deuil des marais marche sous une cape de joncs, son visage enveloppé de tissu et un panier funéraire fermé fixé dans son dos.",
+      "caption": "Il ramasse les os déplacés sans distinguer richesse ou origine, s'arrête devant les vivants et attend qu'ils libèrent le chemin.",
+      "prompt_key": "porte-deuil-des-marais-plate-v1"
+    }
+  ]
+}

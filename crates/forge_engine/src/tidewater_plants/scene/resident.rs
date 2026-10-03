@@ -100,13 +100,16 @@ impl Resident {
         let mut report = SelectionReport::default();
         for (group, levels) in self.scene.groups.iter().zip(&mut self.levels) {
             let near = near_ids(group, view.camera);
+            // Every far level consumes the same source selection with its own
+            // capacity. Compute it once for this group/view, never across views.
+            let mut far = None;
             for (level, assets) in group.levels.iter().zip(levels) {
-                let mut ids = if level.description.near {
-                    near.clone()
+                let ids = if level.description.near {
+                    &near
                 } else {
-                    far_ids(group, view.camera)
+                    far.get_or_insert_with(|| far_ids(group, view.camera))
                 };
-                ids.truncate(level.description.capacity);
+                let ids = &ids[..ids.len().min(level.description.capacity)];
                 let desired: BTreeSet<_> = ids.iter().copied().collect();
                 assets.entities.retain(|index, entity| {
                     if desired.contains(index) && world.get_entity(*entity).is_ok() {
@@ -117,7 +120,7 @@ impl Resident {
                     false
                 });
                 assets.order.clear();
-                for index in ids {
+                for &index in ids {
                     let entity = if let Some(&entity) = assets.entities.get(&index) {
                         report.retained += 1;
                         if world.get::<Visibility>(entity) != Some(&view.visibility) {

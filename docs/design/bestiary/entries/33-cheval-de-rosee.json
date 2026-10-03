@@ -1,0 +1,237 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "cheval-de-rosee-plate-v1.png",
+      "alt": "Un Cheval de rosée au pelage gris bleuté se tient dans un pré humide ; des gouttes perlent sur sa crinière et ses sabots sont bordés de poils clairs.",
+      "caption": "Il suit les zones fraîches et évite les silhouettes qui ferment les sorties. Il accepte une proximité calme après plusieurs rencontres, sans devenir immédiatement une monture.",
+      "prompt_key": "cheval-de-rosee-plate-v1"
+    }
+  ],
+  "creature_id": "creature.cheval-de-rosee",
+  "name": "Cheval de rosée",
+  "subtitle": "Le coursier des prés froids qui rassemble l'eau sur son passage",
+  "classification": {
+    "nature": "Animal féerique équin à pelage condensateur",
+    "family": "Équidés des prairies humides",
+    "rarity": "Rare, surtout dans les vallons sans drainage profond",
+    "activity": "Aube et nuits fraîches",
+    "social": "Petits groupes de trois à sept adultes accompagnés de leurs jeunes",
+    "threat": "forte",
+    "threat_reason": "Sa masse et ses ruades rendent l'encerclement dangereux ; l'eau qu'il rassemble dégrade les appuis sans lui donner de contrôle sur les personnes."
+  },
+  "physique": {
+    "dimensions": "2,1 à 2,5 m de long ; 1,4 à 1,7 m au garrot",
+    "mass_kg": [
+      320,
+      470
+    ],
+    "locomotion": [
+      "marche quadrupède",
+      "trot",
+      "galop court"
+    ],
+    "center_of_gravity": "Porté sous le thorax ; les hanches s'abaissent avant une ruade et la tête équilibre les changements d'allure.",
+    "silhouette": "Équin trapu au pelage gris bleuté, crinière plate qui retient des perles d'eau et sabots larges bordés de poils argentés.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et encolure",
+        "description": "Crâne dense, cou puissant et gorge sans armure naturelle.",
+        "protection": 7
+      },
+      {
+        "zone": "Thorax et flancs",
+        "description": "Peau épaisse sous un pelage humide qui protège surtout du refroidissement nocturne.",
+        "protection": 6
+      },
+      {
+        "zone": "Jambes et sabots",
+        "description": "Sabots résistants à la compression ; tendons et articulations restent accessibles.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "prés de fond de vallée riches en sources",
+    "lisières de marais aux berges portantes"
+  ],
+  "ecology": {
+    "diet": "Herbes tendres, roseaux jeunes et eau douce ; la condensation complète l'abreuvement sans nourrir l'animal.",
+    "lifecycle": "Le poulain suit sa mère dès ses premiers jours ; la crinière condensatrice apparaît au cours du second printemps. Les adultes alternent pâturage et repos à l'ombre.",
+    "reproduction": "Un poulain naît généralement au printemps après une gestation annuelle ; le groupe protège les jeunes dans une prairie où aucun fossé ne coupe la fuite.",
+    "behavior": "Il suit les zones fraîches et évite les silhouettes qui ferment les sorties. Il accepte une proximité calme après plusieurs rencontres, sans devenir immédiatement une monture.",
+    "niche": "Brouteur maintenant les prairies ouvertes et transportant des graines collées à sa crinière.",
+    "environmental_impact": "Ses sabots forment de petites cuvettes humides ; une troupe concentrée trop longtemps dégrade les berges et compacte le sol."
+  },
+  "senses": [
+    "Vision latérale attentive aux mouvements et aux sorties possibles.",
+    "Odorat fin des plantes fraîches et de l'eau stagnante."
+  ],
+  "communication": [
+    "Souffles nasaux, hennissements graves et orientation des oreilles."
+  ],
+  "signs": [
+    "Empreintes larges bordées de poils argentés.",
+    "Herbes couchées couvertes de gouttes lorsque le sol voisin est sec.",
+    "Crins gris humides suspendus à hauteur de poitrine."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Garder une issue pour les jeunes.",
+      "Rejoindre une prairie fraîche."
+    ],
+    "fears": [
+      "Encerclement.",
+      "Cordes tendues au niveau des jambes."
+    ],
+    "morale": "Défensif près des poulains, il préfère gagner de la distance dès qu'un passage s'ouvre.",
+    "escalation": "Il souffle, présente son épaule, piétine puis frappe seulement si l'approche se poursuit.",
+    "retreat": "Il trotte vers une berge connue et ne franchit pas volontairement un obstacle qui sépare le groupe."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 7,
+      "constitution": 7,
+      "intelligence": 3,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 6
+    },
+    "skills": {
+      "athletics": 55,
+      "unarmed": 45,
+      "survival": 50,
+      "vigilance": 55,
+      "elementalism": 40
+    },
+    "movement": "Marche 2 m/s ; trot 5 m/s ; galop 12 m/s sur sol portant ; bond horizontal de 2 m avec élan.",
+    "protections": [
+      "La protection du pelage reste légère et localisée ; aucun écran de rosée n'arrête une arme."
+    ],
+    "attacks": [
+      {
+        "name": "Ruade des deux sabots",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 27,
+        "reach": "1,5 m derrière la croupe",
+        "stamina_cost": 13,
+        "preparation": "0,5 seconde pour reporter le poids sur les antérieurs",
+        "telegraph": "La queue se plaque, les hanches descendent et les sabots arrière se rapprochent.",
+        "effect": "Contact contondant localisé ; une perte d'Équilibre dépend de l'appui et du contact réel. L'animal ne peut pas pivoter pendant la ruade.",
+        "counterplay": "Quitter l'axe arrière, ne pas saisir la queue ou laisser une voie de recul."
+      },
+      {
+        "name": "Écart de poitrail",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 22,
+        "reach": "avance rectiligne de 3 m, contact frontal",
+        "stamina_cost": 15,
+        "preparation": "0,8 seconde d'abaissement de l'encolure",
+        "telegraph": "Il tourne une oreille vers la sortie et pose deux appuis dans l'axe avant d'avancer.",
+        "effect": "Le poitrail repousse un obstacle léger selon la masse et la friction ; l'animal s'arrête après 3 m ou au premier obstacle solide.",
+        "counterplay": "Se décaler, rester derrière un appui massif ou libérer le passage qu'il cherche."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Voile de rosée",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "sol et végétation dans un rayon de 2 m autour du corps",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde ; 12 Mana et 6 Concentration à l'activation",
+        "telegraph": "La crinière se hérisse et ses gouttes se rejoignent en fils qui descendent vers le sol.",
+        "effect": "Pendant 5 secondes, avec concentration continue, rassemble au plus 3 litres d'eau déjà présents sur son pelage et la végétation proche. Le sol est mouillé, sans eau créée ni prélèvement dans un corps vivant ; l'eau déposée persiste naturellement après la fin.",
+        "counterplay": "Sortir du rayon, choisir un appui rugueux, éloigner la végétation humide ou interrompre sa station immobile."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Froid humide ordinaire",
+        "mechanism": "Le sous-poil garde une couche d'air malgré les gouttes retenues par les crins extérieurs."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Berge creuse et glace mince",
+        "mechanism": "La masse de l'animal peut rompre une surface qui porte encore un petit voyageur."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Rosée déposée sur pierre lisse",
+        "result": "Friction réduite pour tous",
+        "chain": "L'eau remplit les petites aspérités, les sabots et semelles glissent plus facilement et une poussée peut entraîner les deux adversaires."
+      },
+      {
+        "input": "Fossé comblé par des fascines stables",
+        "result": "Voie de fuite retrouvée",
+        "chain": "Les fascines portent les premiers appuis, le groupe traverse et la présence d'une sortie retire le motif principal de défense."
+      }
+    ],
+    "resources": {
+      "vitality": 118,
+      "stamina": 103,
+      "mana": 68,
+      "balance": 100,
+      "focus": 96
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "animal_handling",
+      "difficulty": 14,
+      "fact": "Les oreilles tournées vers un passage libre annoncent généralement un départ plutôt qu'une charge de poursuite."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La fréquentation des sources froides semble liée à la qualité de la crinière plus qu'à un besoin d'eau exceptionnel."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Un fragment de corne usé, perdu naturellement, conserve dans ses anciennes stries un pollen violet disparu des prés actuels ; il peut prouver un passage saisonnier par une vallée oubliée."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle défensif de berge",
+      "animal à guider hors d'un danger"
+    ],
+    "telegraphs": [
+      "La croupe descend avant la ruade.",
+      "Les gouttes s'étirent sous la crinière avant le Voile de rosée."
+    ],
+    "noncombat_options": [
+      "S'écarter ensemble pour offrir une sortie assez large aux poulains.",
+      "Construire un passage de fascines puis guider la troupe à distance avec des gestes lents."
+    ],
+    "complications": [
+      "Une berge cède sous le dernier adulte.",
+      "Le sol mouillé facilite aussi la chute d'un personnage venu secourir un poulain."
+    ]
+  },
+  "salvage": [
+    "Crins de mue uniquement ramassés après le départ de la troupe ; aucun prélèvement ne justifie de capturer ou blesser l'animal."
+  ]
+}

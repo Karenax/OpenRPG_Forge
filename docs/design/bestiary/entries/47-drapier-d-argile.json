@@ -1,0 +1,270 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.drapier-d-argile",
+  "name": "Drapier d’argile",
+  "subtitle": "L'artisan qui apprend la souplesse avec un corps de terre",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "construct sapient d'atelier",
+    "family": "artisans d'argile",
+    "rarity": "rare, lié à des ateliers capables de l'entretenir",
+    "activity": "diurne, repos dans une pièce à humidité stable",
+    "social": "travaille en compagnonnage et négocie ses propres contrats",
+    "threat": "moderee",
+    "threat_reason": "Sa force et les outils d'un atelier peuvent blesser à courte portée ; il défend ses engagements et son intégrité, sans obéissance automatique au propriétaire des lieux."
+  },
+  "physique": {
+    "dimensions": "1,70 à 2 m de haut, bras longs aux doigts plats",
+    "mass_kg": [
+      95,
+      135
+    ],
+    "locomotion": [
+      "marche souple mais mesurée",
+      "déplacement latéral entre les métiers"
+    ],
+    "center_of_gravity": "Bas dans le bassin creux chargé de terre humide ; les mouvements de bras compensent le poids d'un rouleau.",
+    "silhouette": "Corps de terre gris clair strié de coutures, tablier de chutes et larges doigts portant des empreintes de trame.",
+    "anatomy_zones": [
+      {
+        "zone": "visage",
+        "description": "Plaque d'argile fine aux traits mobiles, sans masque métallique.",
+        "protection": 4
+      },
+      {
+        "zone": "torse",
+        "description": "Coque épaisse renforcée de fibres textiles, plus fragile là où une réparation est fraîche.",
+        "protection": 12
+      },
+      {
+        "zone": "mains",
+        "description": "Doigts plats très précis, à petites articulations de bois.",
+        "protection": 3
+      },
+      {
+        "zone": "bassin et jambes",
+        "description": "Terre dense autour d'un cadre souple ; les genoux craignent les chocs latéraux.",
+        "protection": 9
+      }
+    ]
+  },
+  "habitats": [
+    "ateliers textiles alimentés par un canal lent",
+    "maisons de tisserands dans des quartiers de terre crue"
+  ],
+  "ecology": {
+    "diet": "Pas de nourriture biologique ; apporte lui-même de l'argile compatible, des fibres et de l'eau propre pour entretenir son corps.",
+    "lifecycle": "Apprend son métier par compagnonnage, conserve les traces des réparations et peut choisir un autre atelier ou une autre activité.",
+    "reproduction": "Un nouvel artisan exige un travail collectif et un éveil distinct ; une poignée de terre détachée ne devient pas un enfant ou une copie.",
+    "behavior": "Observe longuement le tombé d'un tissu, demande des conditions de travail précises et refuse de confondre contrat de service et possession de sa personne.",
+    "niche": "Personne de métier intégrée aux échanges locaux ; sa nature construite ne détermine ni statut servile ni disposition morale.",
+    "environmental_impact": "Réutilise les chutes et les terres de réparation ; des bassins de décantation évitent de rejeter l'argile dans les frayères."
+  },
+  "senses": [
+    "sent les tensions d'un tissu sous ses doigts",
+    "voit bien les petites variations de texture à portée de bras",
+    "les éclaboussures sur ses yeux d'argile réduisent temporairement la précision"
+  ],
+  "communication": [
+    "parole posée et gestes professionnels explicites",
+    "échantillons de tissu pour discuter couleur, prix et qualité",
+    "marques de couture personnelles revendiquées comme signature"
+  ],
+  "signs": [
+    "fines empreintes de trame dans l'argile séchée",
+    "chutes triées par longueur plutôt que par couleur",
+    "bassine de décantation régulièrement nettoyée"
+  ],
+  "demeanor": {
+    "objectives": [
+      "honorer un contrat équitable",
+      "préserver ses mains et son autonomie",
+      "terminer une commande sans gaspillage"
+    ],
+    "fears": [
+      "dessèchement rapide",
+      "être immobilisé comme un outil",
+      "eau souillée dans sa terre de réparation"
+    ],
+    "morale": "Préfère préserver ses mains et négocier ; résiste si l'on tente de le démonter ou de l'enfermer.",
+    "escalation": "Il pose les outils fragiles, demande qu'on recule, barre l'allée avec un rouleau puis repousse un contact forcé.",
+    "retreat": "Gagne la réserve humide par une allée dégagée, en laissant une sortie à ses interlocuteurs."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 6,
+      "willpower": 6,
+      "perception": 5,
+      "presence": 5
+    },
+    "skills": {
+      "unarmed": 48,
+      "throwing": 42,
+      "crafting": 66,
+      "alteration": 52,
+      "trade": 45,
+      "empathy": 40,
+      "vigilance": 42
+    },
+    "resources": {
+      "vitality": 106,
+      "stamina": 98,
+      "mana": 80,
+      "balance": 84,
+      "focus": 84
+    },
+    "movement": "Marche 2 m/s ; déplacement latéral 1,2 m/s ; pas rapide 4 m/s pendant 2 secondes sur sol sec, sans course prolongée.",
+    "protections": [
+      "La coque fibreuse amortit des contacts superficiels ; les mains de précision sont peu protégées.",
+      "Une réparation de surface ne régénère pas automatiquement la Vitalité."
+    ],
+    "attacks": [
+      {
+        "name": "Rouleau en travers",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 20,
+        "reach": "1,4 m avec un rouleau tenu à deux mains",
+        "stamina_cost": 9,
+        "preparation": "0,9 seconde, rouleau ramené devant le torse",
+        "telegraph": "Le drapier écarte les coudes et dégage l'allée derrière lui.",
+        "effect": "Un contact contondant limité au premier obstacle ; le rouleau sert à maintenir la distance, sans emprise magique sur le tissu porté par la cible.",
+        "counterplay": "Sortir de l'axe, couvrir le torse ou accepter la distance demandée."
+      },
+      {
+        "name": "Navette de rejet",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 16,
+        "reach": "projectile visible jusqu'à 5 m",
+        "stamina_cost": 8,
+        "preparation": "1 seconde, navette saisie et bras découvert",
+        "telegraph": "La main montre l'objet avant de passer au-dessus de l'épaule.",
+        "effect": "Une navette de bois est lancée sur une cible visible ; un seul projectile disponible en main, à récupérer ou remplacer avant un nouveau lancer.",
+        "counterplay": "Passer derrière un métier, s'écarter pendant l'armé ou interposer une planche ; aucun guidage après le lancer."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Plissé provisoire",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "alteration",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "un tissu libre de moins de 2 kg à 4 m",
+        "stamina_cost": 6,
+        "preparation": "2 secondes, deux mains traçant le pli",
+        "telegraph": "La trame se tend en lignes nettes avant de changer de forme.",
+        "effect": "Coûte 8 Mana. Sous concentration continue pendant au plus 12 secondes, maintient un seul drap dans une forme simple. Le tissu doit être posé librement ou appartenir au drapier ; ni vêtement porté, ni entrave sur un corps, ni tranchant. Il peut masquer une petite ouverture mais ne devient pas rigide comme du métal.",
+        "counterplay": "S'écarter du drap, couper sa ligne de vue ou déplacer son support ; à la fin, le tissu retombe normalement."
+      },
+      {
+        "name": "Reprise de surface",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "crafting",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "une zone de son propre corps, hors mains occupées",
+        "stamina_cost": 8,
+        "preparation": "6 secondes immobile avec 0,5 kg d'argile préparée",
+        "telegraph": "Le drapier pose ses outils et presse une pâte fibreuse sur une fissure.",
+        "effect": "Réparation matérielle non magique ; une seule zone gagne 3 Protection superficielle pendant au plus 30 secondes, avant détachement ou reprise complète à l'atelier. Aucun gain de Vitalité, aucun cumul ; inutilisable sous des contacts répétés.",
+        "counterplay": "Interrompre la préparation ou attendre ; ne pas confondre cette couche fraîche avec une coque durable."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "petites coupures superficielles",
+        "mechanism": "Les fibres lient la coque et retiennent de petits fragments ; une lame profonde peut atteindre le cadre et reste dangereuse."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "dessèchement brutal",
+        "mechanism": "La terre se rétracte autour du cadre ; les doigts perdent de la précision et les anciennes fissures s'ouvrent."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "toxines digestives",
+        "mechanism": "Il n'a pas de système digestif biologique ; l'eau ou les substances qui dégradent l'argile restent un risque matériel."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "sol couvert d'eau et de terre",
+        "result": "déplacement ralenti et outils déposés",
+        "chain": "Les patins lisses perdent leur adhérence ; le drapier libère ses mains pour chercher un appui sûr."
+      },
+      {
+        "input": "courant d'air chaud à travers l'atelier",
+        "result": "fermeture des volets et pause du travail",
+        "chain": "L'évaporation accélérée durcit les doigts avant le torse ; il protège sa précision plutôt que de poursuivre une commande à tout prix."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Une couture fraîche d'argile claire est une réparation de surface et ne prouve pas que le cadre intérieur est intact."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Ses préférences de texture évoluent avec les rencontres, ce qui contredit l'idée d'un goût fixé à l'assemblage."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Dans une bobine creuse, il conserve le patron inachevé intitulé « Rivage sans métier » : il souhaite financer une année de voyage, mais redoute de perdre son atelier s'il l'annonce."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "artisan négociable",
+      "personne dont le contrat est contesté",
+      "allié dans un espace encombré"
+    ],
+    "telegraphs": [
+      "Il met d'abord ses petits outils hors de portée du conflit.",
+      "Les lignes du drap se tendent avant toute modification de forme."
+    ],
+    "noncombat_options": [
+      "Renégocier délais, rémunération et droit de quitter l'atelier.",
+      "Apporter une terre compatible ou dégager le bassin de décantation en échange d'un service convenu."
+    ],
+    "complications": [
+      "Un client prétend avoir acheté l'artisan avec le bâtiment.",
+      "Une commande urgente exige un matériau qui contaminerait son bassin."
+    ]
+  },
+  "salvage": [
+    "Chutes de tissu ou terre excédentaire explicitement cédées par l'artisan.",
+    "Outils déclarés abandonnés après remplacement ; les fragments de son corps ne constituent pas du butin."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "drapier-d-argile-plate-v1.png",
+      "alt": "Un Drapier d’argile gris clair examine une étoffe dans un atelier de tissage, vêtu d’un tablier de chutes et doté de larges doigts plats.",
+      "caption": "Observe longuement le tombé d'un tissu, demande des conditions de travail précises et refuse de confondre contrat de service et possession de sa personne.",
+      "prompt_key": "drapier-d-argile-plate-v1"
+    }
+  ]
+}

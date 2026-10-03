@@ -1,4 +1,4 @@
-//! Original grass patches; static-camera native cell selection and GPU deformation.
+//! Original grass data and geometry, adapted to the shared resident renderer.
 use super::{PlantMaterial, Probe, ProbeMode, canopy::Record, vegetation_scene};
 use bevy::{
     asset::RenderAssetUsages,
@@ -39,9 +39,7 @@ struct Level {
 }
 pub(super) struct Grass {
     description: Description,
-    flags: Vec<u8>,
-    min_y: Vec<[f32; 1]>,
-    max_y: Vec<[f32; 1]>,
+    grid: forge_engine::tidewater_plants::grass::Grid,
     mask: Vec<u8>,
     meshes: Vec<Mesh>,
 }
@@ -79,9 +77,11 @@ pub(super) fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Grass>, B
         .collect::<Result<Vec<_>, _>>()?;
     Ok(Some(Grass {
         description: d,
-        flags,
-        min_y,
-        max_y,
+        grid: forge_engine::tidewater_plants::grass::Grid::new(
+            flags,
+            min_y.into_iter().map(|v| v[0]).collect(),
+            max_y.into_iter().map(|v| v[0]).collect(),
+        )?,
         mask,
         meshes,
     }))
@@ -126,48 +126,8 @@ pub(super) fn textures(
     )
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn select(g: &Grass, view: forge_world::cdlod::CdlodView) -> [Vec<[f32; 4]>; 3] {
-    let mut result: [Vec<[f32; 4]>; 3] = std::array::from_fn(|_| Vec::new());
-    let [cx, _, cz] = view.position;
-    for z in 0..256 {
-        for x in 0..256 {
-            let i = z * 256 + x;
-            if g.flags[i] == 0 {
-                continue;
-            }
-            let x0 = -1024.0 + f64::from(u16::try_from(x).expect("256-cell grid")) * 8.0;
-            let z0 = -1024.0 + f64::from(u16::try_from(z).expect("256-cell grid")) * 8.0;
-            let dx = (x0 - cx).max(0.0).max(cx - x0 - 8.0);
-            let dz = (z0 - cz).max(0.0).max(cz - z0 - 8.0);
-            let distance = dx.hypot(dz);
-            if distance > 88.0 {
-                continue;
-            }
-            let lo = [x0, f64::from(g.min_y[i][0]) - 0.5, z0];
-            let hi = [x0 + 8.0, f64::from(g.max_y[i][0]) + 1.8, z0 + 8.0];
-            if view.planes.iter().any(|p| {
-                (0..3)
-                    .map(|a| p[a] * if p[a] >= 0.0 { hi[a] } else { lo[a] })
-                    .sum::<f64>()
-                    + p[3]
-                    < 0.0
-            }) {
-                continue;
-            }
-            let level = if distance < 18.0 && result[0].len() < 48 {
-                0
-            } else if distance < 46.0 && result[1].len() < 160 {
-                1
-            } else if distance >= 46.0 && result[2].len() < 420 {
-                2
-            } else {
-                continue;
-            };
-            result[level].push([x0 as f32, z0 as f32, 0.0, 0.0]);
-        }
-    }
-    result
+    g.grid.select(view).expect("validated grass view")
 }
 
 #[allow(clippy::too_many_arguments, clippy::cast_possible_truncation)]
@@ -190,6 +150,45 @@ pub(super) fn spawn(
         grass,
         super::terrain_lod::source_view(&transform, &projection),
     );
+    if matches!(
+        probe.plant_projection,
+        super::PlantProjection::Walk
+            | super::PlantProjection::WalkSmoke
+            | super::PlantProjection::WalkLongSmoke
+    ) {
+        for (level, cells) in selected.iter().enumerate() {
+            assert_eq!(*cells, grass.description.levels[level].oracle_cells);
+        }
+        let base = base.clone();
+        let readback = matches!(
+            probe.plant_projection,
+            super::PlantProjection::WalkSmoke | super::PlantProjection::WalkLongSmoke
+        );
+        commands.queue(move |world: &mut World| {
+            let grass = world
+                .resource_mut::<Probe>()
+                .grass
+                .take()
+                .expect("validated grass");
+            let meshes: [Mesh; 3] = grass.meshes.try_into().expect("three grass levels");
+            let resident =
+                forge_engine::tidewater_plants::grass::Resident::stage(world, &base, meshes)
+                    .expect("grass assets");
+            if readback {
+                let mut buffers = world.resource_mut::<Assets<ShaderBuffer>>();
+                for handle in resident.buffers() {
+                    // Configure readback before the first render extraction.
+                    buffers
+                        .get_mut(&handle)
+                        .expect("grass buffer")
+                        .buffer_description
+                        .usage |= wgpu::BufferUsages::COPY_SRC;
+                }
+            }
+            world.insert_resource(super::walk_grass::Live::new(grass.grid, resident));
+        });
+        return;
+    }
     for (level, cells) in selected.into_iter().enumerate() {
         assert_eq!(
             cells, grass.description.levels[level].oracle_cells,

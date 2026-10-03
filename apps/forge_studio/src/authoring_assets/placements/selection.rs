@@ -16,6 +16,9 @@ thread_local! {
 }
 
 pub(crate) fn bind() -> leptos::prelude::RwSignal<Option<EntityId>> {
+    if let Some(selected) = OUTPUT.with(Cell::get) {
+        return selected;
+    }
     let selected = leptos::prelude::RwSignal::new(SELECTED.with(Cell::get));
     OUTPUT.with(|slot| slot.set(Some(selected)));
     leptos::prelude::on_cleanup(|| {
@@ -55,6 +58,7 @@ pub(crate) fn click(position: Vec2) {
         || super::gizmo::active()
         || crate::authoring_path_guides::is_dragging()
         || crate::authoring_building_projection::selection::is_armed()
+        || crate::authoring_imported_plants::selection::is_armed()
         || crate::authoring_species::selection::is_armed()
     {
         return;
@@ -66,10 +70,11 @@ pub(super) fn reconcile(placements: &[super::ManualPlacement]) {
     // A newly accepted head invalidates a gesture begun on the previous head,
     // even when the new zone happens to contain the same object identities.
     cancel();
-    if SELECTED
-        .with(Cell::get)
-        .is_some_and(|id| !placements.iter().any(|p| p.id == id))
-    {
+    if SELECTED.with(Cell::get).is_some_and(|id| {
+        !placements.iter().any(|p| p.id == id)
+            && crate::authoring_imported_population::current_head()
+                .is_none_or(|head| super::super::objects::lookup(&head, id).is_err())
+    }) {
         clear();
     }
 }

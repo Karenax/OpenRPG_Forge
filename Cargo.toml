@@ -1,6 +1,8 @@
 [workspace]
 members = [
     "crates/forge_core",
+    "crates/forge_gameplay",
+    "crates/forge_navigation",
     "crates/forge_project",
     "crates/forge_world",
     "crates/forge_engine",
@@ -9,7 +11,7 @@ members = [
     "apps/forge_studio",
     "tools/forge_cli",
 ]
-exclude = ["tools/forge_navigation_benchmark"]
+exclude = ["tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0"]
 resolver = "3"
 
 [workspace.package]
@@ -25,13 +27,15 @@ bevy_rapier3d = { version = "=0.36.0", default-features = false, features = ["di
 console_error_panic_hook = "=0.1.7"
 forge_assets = { path = "crates/forge_assets" }
 forge_core = { path = "crates/forge_core" }
+forge_gameplay = { path = "crates/forge_gameplay" }
+forge_navigation = { path = "crates/forge_navigation" }
 forge_engine = { path = "crates/forge_engine", default-features = false }
 forge_project = { path = "crates/forge_project" }
 forge_world = { path = "crates/forge_world" }
 leptos = { version = "=0.8.20", default-features = false, features = ["csr"] }
 js-sys = "=0.3.104"
 serde = { version = "=1.0.229", features = ["derive"] }
-serde_json = "=1.0.151"
+serde_json = { version = "=1.0.151", features = ["float_roundtrip"] }
 serde-wasm-bindgen = "=0.6.5"
 sha2 = "=0.11.0"
 thiserror = "=2.0.20"
@@ -41,6 +45,10 @@ uuid = { version = "=1.26.0", features = ["serde", "v5"] }
 wasm-bindgen = "=0.2.127"
 wasm-bindgen-futures = "=0.4.77"
 web-sys = "=0.3.104"
+
+[patch.crates-io]
+# ADR-0009 owner-approved, raw-output-tested NAV019 fork. No wrapper/advisory edge.
+rerecast = { path = "third_party/rerecast-0.4.0" }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

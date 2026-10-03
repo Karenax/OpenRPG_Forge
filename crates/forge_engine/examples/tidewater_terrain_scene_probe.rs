@@ -23,6 +23,7 @@ fn bindings(world: &mut World) -> Bindings {
         shore_state: image.clone(),
         shore_lace: image,
         shore_params: [UVec4::ZERO; 3],
+        caustics: None,
         settings: TerrainSettings {
             wind: Vec4::new(1.0, 0.0, 6.0, 2.0),
             sun: Vec4::Y,

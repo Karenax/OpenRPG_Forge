@@ -11,6 +11,7 @@ pub struct PreparedEnvironment {
     pub atmosphere_params: [Vec4; 4],
     pub clouds: tidewater_clouds::Input,
     pub cloud_view: [Vec4; 5],
+    pub cloud_continuation: tidewater_clouds::acquisition_controller::Continuation,
     pub environment: Image,
     pub scene_lighting: SceneLighting,
     pub sky_shader: String,
@@ -21,6 +22,7 @@ pub struct ResidentEnvironment {
     pub atmosphere: tidewater_atmosphere::Targets,
     pub clouds: tidewater_clouds::Targets,
     pub cloud_view: [Vec4; 5],
+    pub cloud_continuation: tidewater_clouds::acquisition_controller::Continuation,
     pub environment: Handle<Image>,
     pub scene_lighting: SceneLighting,
 }
@@ -54,6 +56,7 @@ impl PreparedEnvironment {
             clouds,
             environment,
             cloud_view: self.cloud_view,
+            cloud_continuation: self.cloud_continuation,
             scene_lighting: self.scene_lighting,
         })
     }
@@ -80,7 +83,8 @@ impl PreparedEnvironment {
         {
             return Err("Invalid cloud environment acquisition".into());
         }
-        let generated = tidewater_clouds::acquisition_controller::generate(&meta)?;
+        let (generated, cloud_continuation) =
+            tidewater_clouds::acquisition_controller::generation_and_continuation(&meta)?;
         if generated.len() != 120 {
             return Err("Environment requires 120 controller steps".into());
         }
@@ -162,6 +166,7 @@ impl PreparedEnvironment {
             atmosphere_params,
             clouds,
             cloud_view,
+            cloud_continuation,
             scene_lighting,
             sky_shader,
             environment: crate::tidewater_environment::cube_rgba16f(

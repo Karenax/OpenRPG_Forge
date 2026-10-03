@@ -1,0 +1,236 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "gelee-de-cuivre-plate-v1.png",
+      "alt": "Une Gelée de cuivre translucide forme un petit dôme brun vert dans une galerie humide ; ses inclusions cuivrées se dessinent à travers le gel.",
+      "caption": "Elle suit les films humides et les dépôts nutritifs. Une pression répétée rapproche les inclusions et peut déclencher une réponse défensive, sans préférence morale pour les êtres portant du métal.",
+      "prompt_key": "gelee-de-cuivre-plate-v1"
+    }
+  ],
+  "creature_id": "creature.gelee-de-cuivre",
+  "name": "Gelée de cuivre",
+  "subtitle": "La colonie translucide dont les inclusions métalliques relient les flaques",
+  "classification": {
+    "nature": "Organisme amorphe à affinité électrique",
+    "family": "Gelées des eaux minéralisées",
+    "rarity": "Rare dans les galeries cuprifères humides",
+    "activity": "Lente et régulière, plus mobile après l'apport d'eau",
+    "social": "Colonies indépendantes qui peuvent se séparer en bourgeons viables",
+    "threat": "moderee",
+    "threat_reason": "Ses contacts sont peu rapides, mais une décharge magique peut suivre un petit circuit conducteur proche ; le terrain et l'isolation comptent davantage que sa poursuite."
+  },
+  "physique": {
+    "dimensions": "Dôme de 0,5 à 0,9 m de diamètre et de 0,2 à 0,5 m de haut",
+    "mass_kg": [
+      12,
+      40
+    ],
+    "locomotion": [
+      "ondulation sur sol humide",
+      "écoulement lent dans les rigoles"
+    ],
+    "center_of_gravity": "Très bas ; les inclusions métalliques se concentrent vers la base quand elle s'immobilise.",
+    "silhouette": "Gel translucide brun vert, traversé de paillettes cuivrées qui se regroupent en lignes lors d'une excitation.",
+    "anatomy_zones": [
+      {
+        "zone": "Enveloppe gélifiée",
+        "description": "Couche souple retenant l'eau ; une entaille importante la vide et endommage la colonie.",
+        "protection": 3
+      },
+      {
+        "zone": "Cordons minéralisés",
+        "description": "Alignements discontinus de particules riches en cuivre, sans squelette ni armure pleine.",
+        "protection": 7
+      },
+      {
+        "zone": "Frange d'adhésion",
+        "description": "Bord mince qui suit les microreliefs et les films d'eau.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "galeries humides à minéraux cuprifères",
+    "anciens bassins de lavage de minerai laissés en repos"
+  ],
+  "ecology": {
+    "diet": "Micro-organismes et débris organiques des eaux stagnantes ; de faibles quantités de minéraux sont retenues dans le gel, sans digestion instantanée des outils métalliques.",
+    "lifecycle": "La colonie s'épaissit lentement, remplace son enveloppe et rejette des agrégats minéraux. Un milieu trop sec ou trop pauvre en matière organique entraîne un déclin.",
+    "reproduction": "Bourgeonnement d'une portion organisée lorsque les réserves suffisent ; un fragment arraché n'acquiert pas automatiquement une autonomie. Les paillettes seules ne sont pas des œufs.",
+    "behavior": "Elle suit les films humides et les dépôts nutritifs. Une pression répétée rapproche les inclusions et peut déclencher une réponse défensive, sans préférence morale pour les êtres portant du métal.",
+    "niche": "Consommatrice de biofilms dans des poches d'eau riches en minéraux.",
+    "environmental_impact": "Elle déplace une petite part des particules métalliques en agrégats ; l'eau de son habitat ne devient pas potable par sa seule présence."
+  },
+  "senses": [
+    "Détecte les contacts et les vibrations transmises par sa frange.",
+    "Perçoit les variations locales de conductivité dans un film d'eau directement relié à son corps."
+  ],
+  "communication": [
+    "Pulsations lentes de la masse ; aucun langage ni message symbolique démontré."
+  ],
+  "signs": [
+    "Traînées gélatineuses ponctuées de grains vert brun.",
+    "Agrégats cuivrés regroupés sur les rebords de flaques.",
+    "Paillettes internes qui s'alignent lorsqu'un objet touche la masse."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Rester au contact d'un film d'eau nutritif.",
+      "Éloigner les pressions persistantes."
+    ],
+    "fears": [
+      "Dessèchement de l'enveloppe.",
+      "Rupture importante de la masse."
+    ],
+    "morale": "Réponse locale de défense ; elle n'organise ni embuscade tactique ni poursuite vengeresse.",
+    "escalation": "La frange se retire, les paillettes se rapprochent puis le corps donne une pulsation plus forte.",
+    "retreat": "Elle rejoint une rigole humide et se contracte derrière une pierre, abandonnant un dépôt minéral si nécessaire."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 3,
+      "dexterity": 4,
+      "constitution": 6,
+      "intelligence": 2,
+      "willpower": 6,
+      "perception": 6,
+      "presence": 1
+    },
+    "skills": {
+      "unarmed": 30,
+      "throwing": 25,
+      "elementalism": 45,
+      "survival": 40,
+      "vigilance": 40
+    },
+    "movement": "Progression 0,5 m/s sur surface humide ; pointe de 1 m/s pendant 2 m ; pas d'escalade verticale ni de franchissement d'une marche sèche de 0,15 m.",
+    "protections": [
+      "Les inclusions répartissent certains frottements, mais leur réseau discontinu laisse de nombreuses zones de gel exposées."
+    ],
+    "attacks": [
+      {
+        "name": "Heurt visqueux",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 10,
+        "reach": "0,6 m depuis le bord",
+        "stamina_cost": 7,
+        "preparation": "0,7 seconde pour épaissir la frange",
+        "telegraph": "Le dôme penche et une langue de gel se gonfle vers le contact.",
+        "effect": "Une seule poussée lourde et collante contre une surface accessible ; elle ne colle pas durablement une cible entière et ne décharge aucune magie par cette action.",
+        "counterplay": "Retirer l'appui exposé, interposer une plaque pleine ou reculer au-delà de la frange."
+      },
+      {
+        "name": "Crachat de granules",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 9,
+        "reach": "jet jusqu'à 2 m, large de 0,4 m",
+        "stamina_cost": 8,
+        "preparation": "1 seconde pour comprimer un repli chargé de granules",
+        "telegraph": "Les particules se concentrent dans une petite poche tournée vers la cible.",
+        "effect": "Projette au plus 0,2 kg de gel et d'inclusions en un jet bref. Le dépôt peut irriter une peau blessée et salir les yeux ; il n'est ni un acide dissolvant ni une décharge automatique.",
+        "counterplay": "Protéger le visage, se décaler hors de l'axe et éviter le contact direct avec les dépôts minéralisés."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Impulsion conductrice",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 18,
+        "reach": "jusqu'à 2 m le long d'un contact métallique continu ou d'eau minéralisée reliée à son corps",
+        "stamina_cost": 13,
+        "preparation": "1,2 seconde ; 15 Mana à l'activation",
+        "telegraph": "Les inclusions forment une ligne brillante et la surface produit un crépitement bref.",
+        "effect": "Émet une impulsion magique de 0,2 seconde au maximum ; aucune concentration requise après l'activation. Seul un contact présent sur le petit circuit conducteur peut recevoir le choc. Ne franchit pas une couche isolante sèche, ne saute pas dans l'air et ne paralyse pas automatiquement une cible.",
+        "counterplay": "Rompre le contact conducteur avant la pulsation, quitter la flaque ou interposer une surface isolante sèche ; garder les tiers hors du même circuit."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Déformation lente",
+        "mechanism": "La colonie redistribue sa masse sous une pression large et graduelle, sans empêcher une coupure ni une déchirure."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Support absorbant sec",
+        "mechanism": "La perte d'eau réduit l'adhésion et interrompt les petits chemins humides qu'elle utilise pour se déplacer et percevoir."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Chaîne métallique reliant deux flaques proches",
+        "result": "Petit circuit conducteur supplémentaire",
+        "chain": "La chaîne établit un contact entre les films minéralisés, une impulsion peut suivre ce chemin dans sa limite de portée et toucher une personne qui tient l'autre extrémité."
+      },
+      {
+        "input": "Passerelle de bois sec sur cales",
+        "result": "Trajet de passage isolé du film humide",
+        "chain": "Les cales séparent le plateau des flaques, le bois sec interrompt le contact conducteur et les voyageurs traversent sans toucher la colonie ni l'eau reliée."
+      }
+    ],
+    "resources": {
+      "vitality": 102,
+      "stamina": 98,
+      "mana": 64,
+      "balance": 76,
+      "focus": 88
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Les inclusions alignées et le crépitement annoncent l'impulsion ; un métal seulement visible mais sans contact continu ne forme pas de circuit."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Des observateurs pensent que la couleur des agrégats change avec les minéraux du bassin, plutôt qu'avec l'âge exact de la colonie."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Un agrégat très ancien renferme le fragment numéroté d'un jeton de paie déclaré détruit ; il peut établir qu'une équipe a travaillé dans une galerie officiellement fermée à cette date."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "danger de terrain conducteur",
+      "indice d'un bassin minéralisé"
+    ],
+    "telegraphs": [
+      "La langue de gel se gonfle avant le heurt.",
+      "La ligne brillante et le crépitement précèdent l'impulsion."
+    ],
+    "noncombat_options": [
+      "Installer une passerelle sèche et retirer les objets métalliques qui relient les flaques, sans toucher la colonie.",
+      "Laisser une rigole latérale humide et riche en biofilm disponible, puis attendre que la gelée quitte le passage pauvre en nourriture."
+    ],
+    "complications": [
+      "Une corde mouillée munie d'un crochet peut rétablir un contact que le groupe croyait coupé.",
+      "Les eaux du bassin restent à traiter comme potentiellement contaminées, même après le départ de la gelée."
+    ]
+  },
+  "salvage": [
+    "Agrégats naturellement abandonnés, avec autorisation du propriétaire du site et protections de manipulation ; leur teneur en métal est variable et ne justifie pas une récolte d'organismes vivants."
+  ]
+}

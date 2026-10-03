@@ -89,6 +89,10 @@ fn weight(mask: &VegetationDensityMask, extent: VegetationExtent, x: f64, z: f64
 mod tests {
     use super::*;
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "The source mask corners are exact zero/one sentinels and the symmetric center is exactly one half."
+    )]
     fn masks_are_exact_at_corners_and_bilinear_at_center() {
         let mask = VegetationDensityMask {
             vertices_per_axis: 2,

@@ -1,0 +1,267 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.vouivre-des-salines",
+  "name": "Vouivre des salines",
+  "subtitle": "La pêcheuse des bassins blancs et des vents rasants",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "dragon animal de type vouivre",
+    "family": "vouivres littorales",
+    "rarity": "peu commune près des grandes salines tranquilles",
+    "activity": "diurne, chasse surtout à marée descendante",
+    "social": "couples saisonniers, jeunes tolérés près des reposoirs",
+    "threat": "forte",
+    "threat_reason": "Son bec, sa queue et sa vitesse en approche exposent les personnes isolées sur une digue ; elle défend surtout un reposoir ou une couvée et peut être évitée sans combat."
+  },
+  "physique": {
+    "dimensions": "3,50 à 4,50 m du bec à la queue, envergure de 6 à 7,50 m",
+    "mass_kg": [
+      170,
+      260
+    ],
+    "locomotion": [
+      "vol plané",
+      "course bipède brève",
+      "marche sur digue",
+      "nage de surface limitée"
+    ],
+    "center_of_gravity": "Devant les hanches ; la longue queue compense les changements d'angle, mais gêne les virages dans un espace étroit.",
+    "silhouette": "Deux pattes hautes, ailes à membranes claires et bec en cuillère dentelée ; la queue se termine par une palette cornée sans dard venimeux.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Bec corné et glandes nasales rejetant du sel ; yeux latéraux sensibles à la lumière rasante.",
+        "protection": 9
+      },
+      {
+        "zone": "thorax",
+        "description": "Écailles fines sur une cage légère, protégée surtout par la position des ailes repliées.",
+        "protection": 8
+      },
+      {
+        "zone": "ailes",
+        "description": "Membranes vascularisées entre de longs doigts ; une déchirure nuit au vol sans immobiliser automatiquement l'animal.",
+        "protection": 3
+      },
+      {
+        "zone": "queue et pattes",
+        "description": "Écailles épaisses sur la face supérieure, articulations plus exposées dessous.",
+        "protection": 12
+      }
+    ]
+  },
+  "habitats": [
+    "salines côtières entre bassins peu profonds et digues",
+    "lagunes saumâtres bordées de falaises basses"
+  ],
+  "ecology": {
+    "diet": "Poissons piégés à marée basse, crustacés et petits animaux de berge ; recherche de l'eau moins salée pour compenser ses pertes.",
+    "lifecycle": "Les jeunes apprennent d'abord à courir sur les digues, puis à planer depuis un talus. Les adultes utilisent des reposoirs réguliers pour sécher leurs membranes.",
+    "reproduction": "Deux ou trois œufs dans un nid haut de végétaux secs ; les deux adultes alternent surveillance et recherche de nourriture.",
+    "behavior": "Observe un bassin avant de descendre, préfère les captures faciles et s'écarte des groupes calmes ; une course vers le nid déclenche une interception.",
+    "niche": "Prédateur des lagunes et transporteur de nutriments entre bassins et falaises, sans constituer un auxiliaire fiable de contrôle des nuisibles.",
+    "environmental_impact": "Les reposoirs enrichissent localement le sol et abîment les petites digues ; déplacer les passages humains réduit les conflits pendant la ponte."
+  },
+  "senses": [
+    "vision précise des mouvements à la surface de l'eau",
+    "perception du vent par les membranes et les petites plumes sensorielles du cou",
+    "odorat médiocre dans les embruns, meilleure détection visuelle que nocturne"
+  ],
+  "communication": [
+    "sifflements brefs entre adultes",
+    "ailes entrouvertes pour avertir d'une limite",
+    "claquements du bec avant une approche défensive"
+  ],
+  "signs": [
+    "longue traînée de queue entre deux empreintes profondes",
+    "pelotes de coquilles et d'arêtes sur les digues hautes",
+    "plaques de sel tombées d'un reposoir après le séchage"
+  ],
+  "demeanor": {
+    "objectives": [
+      "garder un reposoir sec",
+      "nourrir sa couvée",
+      "accéder à un point d'eau moins salée"
+    ],
+    "fears": [
+      "membrane prise dans une corde",
+      "perte d'un courant ascendant près des rochers",
+      "groupe encerclant le nid"
+    ],
+    "morale": "Agressive à courte distance du nid, prudente ailleurs ; une aile blessée l'incite à gagner un bassin calme plutôt qu'à poursuivre.",
+    "escalation": "Elle siffle, montre sa palette caudale, effectue un passage visible puis attaque si la limite reste franchie.",
+    "retreat": "Plane vers un reposoir élevé ou marche jusqu'à une berge isolée si le vol est compromis."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 8,
+      "constitution": 7,
+      "intelligence": 3,
+      "willpower": 6,
+      "perception": 8,
+      "presence": 4
+    },
+    "skills": {
+      "athletics": 62,
+      "acrobatics": 60,
+      "unarmed": 65,
+      "throwing": 45,
+      "survival": 58,
+      "vigilance": 65,
+      "tracking": 48
+    },
+    "resources": {
+      "vitality": 116,
+      "stamina": 103,
+      "mana": 68,
+      "balance": 96,
+      "focus": 96
+    },
+    "movement": "Marche 2 m/s, course 6 m/s sur digue ferme ; vol 12 m/s avec espace de battement, plané 15 m/s sous vent favorable. Décollage exige une bande libre de 8 m ou un rebord adapté ; nage 1 m/s.",
+    "protections": [
+      "Les écailles épaisses couvrent surtout le dos et la queue ; les membranes restent fragiles.",
+      "Le sel n'est ni un poison ni une armure minérale permanente."
+    ],
+    "attacks": [
+      {
+        "name": "Pincement de berge",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 26,
+        "reach": "1,5 m devant le bec",
+        "stamina_cost": 12,
+        "preparation": "0,8 seconde après stabilisation de la tête",
+        "telegraph": "Le cou se replie en S et les ailes se ferment contre le corps.",
+        "effect": "Un seul contact de bec sur une cible visible ; il peut saisir un objet libre de moins de 5 kg, mais ne désarme pas automatiquement une main fermée.",
+        "counterplay": "Se décaler du cou, interposer une garde ou reculer derrière une digue plus haute que la ligne du bec."
+      },
+      {
+        "name": "Palette de rupture",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 24,
+        "reach": "arc latéral de 3 m sur 90 degrés",
+        "stamina_cost": 14,
+        "preparation": "1 seconde, queue levée du sol",
+        "telegraph": "La hanche pivote à l'opposé et la palette montre sa face claire.",
+        "effect": "Un balayage matériel atteint le premier obstacle dans l'arc ; risque de perte d'appui au contact, sans venin ni frappe circulaire complète.",
+        "counterplay": "Quitter le côté annoncé, s'abriter contre une masse fixe ou se rapprocher de l'axe de rotation sans passer sous les pattes."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Poussière de sel",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "cône de 3 m sous vent faible, dévié par une rafale",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde, tête secouée vers le bas",
+        "telegraph": "Les narines blanchissent et de petits cristaux tombent avant la projection.",
+        "effect": "Expulsion non magique de cristaux accumulés, limitée à deux charges disponibles après plusieurs heures de repos et d'alimentation. Irritation des yeux exposés et visibilité réduite pendant au plus 6 secondes ; aucun dégât corrosif ni aveuglement irréversible. Une charge est consommée même si le vent détourne le nuage.",
+        "counterplay": "Protéger les yeux, tourner la tête ou se placer au vent ; laisser retomber le nuage avant d'avancer."
+      },
+      {
+        "name": "Saut de digue",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "bond de 4 m au maximum vers une surface visible et libre",
+        "stamina_cost": 18,
+        "preparation": "2 secondes accroupie, ailes largement ouvertes",
+        "telegraph": "La queue se raidit et les deux pattes se rapprochent sous le bassin.",
+        "effect": "Bond non magique unique, sans attaque pendant le déplacement. Exige des appuis fermes et 6 m de largeur libre pour les ailes ; une nouvelle préparation est nécessaire après réception.",
+        "counterplay": "Laisser la zone de réception libre, suivre le changement de position ou utiliser un passage trop étroit pour ouvrir les ailes."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "embruns salés",
+        "mechanism": "Les glandes nasales rejettent l'excès de sel ; ce mécanisme exige de l'eau et ne permet pas de vivre indéfiniment sans hydratation."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "cordages et espace étroit",
+        "mechanism": "Les longues membranes peuvent s'accrocher ; une aile contrainte empêche le battement symétrique nécessaire au décollage."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "rafale latérale au-dessus d'une digue",
+        "result": "approche annulée ou réception décalée",
+        "chain": "Le vent change la portance des deux ailes ; l'animal choisit une passe plus large plutôt qu'un virage instantané."
+      },
+      {
+        "input": "bassin asséché et sol couvert d'une croûte fragile",
+        "result": "recherche d'une autre zone de nourrissage",
+        "chain": "Les proies se raréfient et la croûte cède sous son poids ; rester sur les digues économise son Endurance."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Les plaques de sel sous un reposoir indiquent un lieu de séchage régulier, pas nécessairement l'emplacement du nid."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 22,
+      "fact": "Les couples qui disposent d'un point d'eau douce proche semblent effectuer moins de passages au-dessus des travailleurs."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Un anneau de céramique bleu enfoui dans le nid ancien révèle qu'un adulte a été nourri autrefois au signal de deux claquements de palette ; cet apprentissage individuel n'est pas partagé par l'espèce."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "prédateur de rive",
+      "défenseur de couvée",
+      "obstacle aérien évitable"
+    ],
+    "telegraphs": [
+      "Ailes entrouvertes et bec claquant précèdent l'interception.",
+      "Les cristaux tombent avant que la tête ne projette le nuage."
+    ],
+    "noncombat_options": [
+      "Déplacer les trajets hors de la zone de nidification et attendre la fin de la couvée.",
+      "Restaurer un accès tranquille à l'eau moins salée, avec les sauniers, pour réduire les approches vers les réserves."
+    ],
+    "complications": [
+      "Une digue à réparer est aussi le seul reposoir sec disponible.",
+      "Des filets abandonnés blessent une aile et rendent la retraite difficile."
+    ]
+  },
+  "salvage": [
+    "Cristaux et petites écailles naturellement tombés sur un reposoir inoccupé, sans approche du nid.",
+    "Cordages abandonnés retirés des bassins ; aucune capture ni mise à mort n'est nécessaire à cette récupération."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "vouivre-des-salines-plate-v1.png",
+      "alt": "Une Vouivre des salines se tient sur une digue, avec deux hautes pattes, des ailes membraneuses claires, un bec en cuillère et une queue en palette.",
+      "caption": "Observe un bassin avant de descendre, préfère les captures faciles et s'écarte des groupes calmes ; une course vers le nid déclenche une interception.",
+      "prompt_key": "vouivre-des-salines-plate-v1"
+    }
+  ]
+}

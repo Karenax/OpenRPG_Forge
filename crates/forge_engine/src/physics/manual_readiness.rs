@@ -74,6 +74,14 @@ pub(super) fn inspect(
 }
 
 pub(crate) fn static_collider_ready(world: &World, entity: Entity) -> bool {
+    collider_ready(world, entity, false)
+}
+
+pub(crate) fn static_sensor_ready(world: &World, entity: Entity) -> bool {
+    collider_ready(world, entity, true)
+}
+
+fn collider_ready(world: &World, entity: Entity, sensor: bool) -> bool {
     let binding = world.get::<Collider>(entity).and_then(|_| {
         Some((
             world.get::<RapierColliderHandle>(entity)?,
@@ -89,7 +97,7 @@ pub(crate) fn static_collider_ready(world: &World, entity: Entity) -> bool {
                         && context
                             .colliders
                             .get(handle.0)
-                            .is_some_and(|backend| synchronized(world, entity, backend))
+                            .is_some_and(|backend| synchronized(world, entity, backend, sensor))
                 })
     })
 }
@@ -98,6 +106,7 @@ fn synchronized(
     world: &World,
     entity: Entity,
     backend: &bevy_rapier3d::rapier::geometry::Collider,
+    sensor: bool,
 ) -> bool {
     let Some(global) = world.get::<GlobalTransform>(entity) else {
         return false;
@@ -122,7 +131,7 @@ fn synchronized(
         && collider.scale().abs_diff_eq(transform.scale, 1.0e-4)
         && std::ptr::eq(collider.raw.as_ref(), backend.shape())
         && backend.is_enabled()
-        && !backend.is_sensor()
+        && backend.is_sensor() == sensor
         && backend.parent().is_none()
 }
 

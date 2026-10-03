@@ -28,6 +28,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Studio Web frontend rebuild failed' }
     & wasm-bindgen $wasm --target web --out-dir $frontend --out-name forge_studio
     if ($LASTEXITCODE -ne 0) { throw 'wasm-bindgen failed' }
+    & (Join-Path $repository 'scripts/Build-NavigationWorker.ps1') -Output $frontend -Configuration release
     Copy-Item -LiteralPath (Join-Path $repository 'apps/forge_studio/styles.css') -Destination (Join-Path $frontend 'styles.css')
     foreach ($file in Get-ChildItem -LiteralPath $frontend -File) {
         Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $candidate ('web/' + $file.Name))

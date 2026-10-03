@@ -1,0 +1,253 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.raie-des-dunes",
+  "name": "Raie des dunes",
+  "subtitle": "Une ombre qui nage sous le sable",
+  "classification": {
+    "nature": "animal des sables",
+    "family": "raies fouisseuses terrestres",
+    "rarity": "peu commune dans les ergs vivants",
+    "activity": "matinale et nocturne ; enfouie aux heures chaudes",
+    "social": "solitaire sauf migration vers les rares cuvettes humides",
+    "threat": "moderee",
+    "threat_reason": "Elle peut surprendre à courte portée depuis le sable meuble ; les sols durs et la perte d'humidité limitent fortement sa mobilité."
+  },
+  "physique": {
+    "dimensions": "disque de 1,8 à 2,4 m de large ; queue de 1,3 m",
+    "mass_kg": [
+      38,
+      65
+    ],
+    "locomotion": [
+      "ondulation sous 10 à 20 cm de sable sec",
+      "glissement en surface",
+      "reptation lente sur sol compact"
+    ],
+    "center_of_gravity": "Réparti dans un disque bas ; la queue équilibre les virages mais ne soulève jamais l'animal.",
+    "silhouette": "Nageoires ocre très larges, deux yeux sur de petites crêtes et queue plate bordée d'écailles coupantes.",
+    "anatomy_zones": [
+      {
+        "zone": "dos",
+        "description": "Écailles mates limitant l'abrasion du sable.",
+        "protection": 7
+      },
+      {
+        "zone": "bords du disque",
+        "description": "Muscles minces où passent les canaux d'hydratation.",
+        "protection": 2
+      },
+      {
+        "zone": "ventre",
+        "description": "Peau lisse et deux fentes respiratoires abritées par des replis.",
+        "protection": 2
+      },
+      {
+        "zone": "queue",
+        "description": "Écailles cornées rigides sur une base mobile.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "dunes de sable fin proches de nappes saisonnières",
+    "cuvettes d'erg bordées de roche nue"
+  ],
+  "ecology": {
+    "diet": "Insectes fouisseurs, petits reptiles et bulbes qu'elle dégage en ondulant.",
+    "lifecycle": "Les jeunes grandissent dans des cuvettes humides pendant leur premier été ; les adultes doivent rejoindre un point de rosée tous les deux jours.",
+    "reproduction": "Deux ou trois jeunes naissent vivants après une saison de migration ; ils restent enfouis près du point d'eau sous surveillance maternelle.",
+    "behavior": "Elle contourne les crêtes pierreuses et suit les bandes de sable fin. Une caravane la dérange surtout lorsqu'elle piétine une zone d'hydratation.",
+    "niche": "Prédatrice des petits fouisseurs et remueuse des couches superficielles.",
+    "environmental_impact": "Ses sillons accumulent graines et rosée, ce qui peut favoriser un ruban de végétation après la pluie."
+  },
+  "senses": [
+    "vibrations des pas reçues par le disque posé sur le sable",
+    "odorat proche sensible à l'humidité et aux proies enfouies"
+  ],
+  "communication": [
+    "ondulations visibles de la queue au bord d'une cuvette",
+    "battements brefs du disque transmis par le sable"
+  ],
+  "signs": [
+    "large sillon sans empreinte de pied",
+    "petits évents par paires sur une surface autrement lisse",
+    "demi-cercles de sable frais autour de bulbes arrachés"
+  ],
+  "demeanor": {
+    "objectives": [
+      "rejoindre un refuge humide",
+      "déloger une proie",
+      "éloigner les pas de sa cuvette"
+    ],
+    "fears": [
+      "croûte saline coupante",
+      "absence de sable meuble",
+      "feu posé sur une zone d'évents"
+    ],
+    "morale": "Elle attaque brièvement puis s'enfouit ; épuisée ou desséchée, elle cherche une ombre plutôt qu'un duel.",
+    "escalation": "Elle gonfle une crête de sable, expose sa queue, puis frappe seulement un intrus qui continue d'approcher.",
+    "retreat": "Elle rejoint une pente meuble à moins de 20 m ; elle ne poursuit pas sur une dalle ni à travers une clôture basse."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 7,
+      "constitution": 6,
+      "intelligence": 2,
+      "willpower": 4,
+      "perception": 7,
+      "presence": 3
+    },
+    "skills": {
+      "athletics": 45,
+      "acrobatics": 42,
+      "survival": 60,
+      "stealth": 58,
+      "unarmed": 40,
+      "throwing": 28,
+      "vigilance": 50
+    },
+    "movement": "Glissement dans le sable meuble 5 m/s à faible profondeur ; surface 3 m/s ; sol dur 0,5 m/s. Aucun passage sous une dalle ni sous des fondations.",
+    "protections": [
+      "Les écailles dorsales résistent à l'abrasion, pas à la pression d'un piétinement lourd.",
+      "Le sable masque la silhouette sans annuler les contacts sur le disque."
+    ],
+    "attacks": [
+      {
+        "name": "Fouet d'écaille",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 21,
+        "reach": "arc latéral de 1,3 m",
+        "stamina_cost": 10,
+        "preparation": "0,6 seconde, queue émergée",
+        "telegraph": "Un ruban sombre se dresse et se courbe à l'opposé du côté menacé.",
+        "effect": "Un contact tranchant au maximum par cible ; récupération de 0,9 seconde avant de replier la queue.",
+        "counterplay": "Sortir de l'arc ou présenter une protection à la hauteur de la queue ; le mouvement ne corrige plus sa direction dans les 0,2 dernières secondes."
+      },
+      {
+        "name": "Gerbe de sable",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "strength",
+        "impact": 4,
+        "reach": "cône de 50 degrés sur 3 m",
+        "stamina_cost": 12,
+        "preparation": "0,9 seconde, bord du disque roulé",
+        "telegraph": "Le sable se rassemble en bourrelet devant la nageoire.",
+        "effect": "Le sable atteint réellement les yeux découverts : contexte visuel −2 pendant 2 secondes, sans cumul. Une cible masquée ne subit que le contact superficiel.",
+        "counterplay": "Fermer une visière, tourner le visage ou se déplacer de 1,5 m hors du cône ; un vent de face rabat la gerbe vers l'animal."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Immersion superficielle",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "stealth",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "soi-même, déplacement de 2 m sous le sable",
+        "stamina_cost": 14,
+        "preparation": "1,4 seconde d'ondulation visible",
+        "telegraph": "Le bord du disque soulève des vagues concentriques avant de disparaître.",
+        "effect": "Elle se recouvre de 10 à 20 cm de sable puis s'immobilise pendant au plus 8 secondes. Ses évents et sa queue restent repérables ; elle ne peut attaquer sans réémerger.",
+        "counterplay": "Surveiller les deux évents, gagner la roche ou faire obstacle à la couverture ; humidifier le sable le tasse et interdit cette manœuvre localement."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "chaleur sèche brève",
+        "mechanism": "Les canaux internes répartissent l'eau ; accumulation de Chaleur réduite de 20 % pendant les 30 premières secondes seulement, puis aucune réduction."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "sable détrempé",
+        "mechanism": "Les grains agglomérés résistent à l'ondulation ; vitesse limitée à 1 m/s et immersion impossible."
+      },
+      {
+        "subject": "ventre sur sol dur",
+        "mechanism": "Sans sable porteur, le poids gêne les fentes respiratoires et empêche les accélérations latérales."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "outre renversée sur une étroite bande de sable",
+        "result": "petite zone de freinage",
+        "chain": "L'eau agglomère les grains ; la nageoire doit contourner la bande ou ralentir au contact."
+      },
+      {
+        "input": "descente d'une charge lourde sur la crête d'une dune",
+        "result": "coulée de sable révélant ou déplaçant l'animal",
+        "chain": "Le sable perd sa pente stable et glisse ; la couche de couverture est emportée avec la raie et les autres objets posés dessus."
+      }
+    ],
+    "resources": {
+      "vitality": 106,
+      "stamina": 92,
+      "mana": 52,
+      "balance": 84,
+      "focus": 84
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Deux évents rapprochés au milieu d'une zone lisse indiquent une respiration ; marcher entre eux risque de poser le pied sur le dos."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les voyages nocturnes convergeraient vers des cuvettes où certaines pierres retiennent plus longtemps la rosée."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Les femelles tracent une spirale d'écailles minuscules autour des sites où un ancien partenaire est mort ; aucun jeune n'y est ensuite mis au monde."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "prédateur enfoui",
+      "gardienne involontaire d'un point d'humidité"
+    ],
+    "telegraphs": [
+      "Une petite crête avance à contre-vent.",
+      "La queue est montrée avant qu'une intrusion déclenche une frappe."
+    ],
+    "noncombat_options": [
+      "Passer par les îlots rocheux en laissant la cuvette calme.",
+      "Déposer une petite quantité d'eau à distance du passage et attendre qu'elle atteigne ce nouveau point humide."
+    ],
+    "complications": [
+      "La dernière eau de la caravane représente aussi la seule monnaie de diversion.",
+      "Un déplacement précipité peut déclencher une coulée menaçant les jeunes enfouis."
+    ]
+  },
+  "salvage": [
+    "Collecter seulement les écailles déjà abandonnées, sans creuser une cuvette de mise bas.",
+    "Relever les trajets vers la rosée constitue une ressource d'expédition plus utile qu'une capture."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "raie-des-dunes-plate-v1.png",
+      "alt": "Une Raie des dunes aux nageoires ocre et à la queue bordée d’écailles glisse au contact du sable, près d’une zone humide.",
+      "caption": "Elle contourne les crêtes pierreuses et suit les bandes de sable fin. Une caravane la dérange surtout lorsqu'elle piétine une zone d'hydratation.",
+      "prompt_key": "raie-des-dunes-plate-v1"
+    }
+  ]
+}

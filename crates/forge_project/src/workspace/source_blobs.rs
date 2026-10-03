@@ -54,18 +54,23 @@ impl SourceBlobStore {
             .create_new(true)
             .open(&stage)
             .map_err(|e| e.to_string())?;
+        let mut consumed = false;
         let result = (|| {
             file.write_all(bytes).map_err(|e| e.to_string())?;
             file.sync_all().map_err(|e| e.to_string())?;
             drop(file);
-            match fs::hard_link(&stage, &destination) {
-                Ok(()) => (),
+            match super::atomic_publish::publish(&stage, &destination) {
+                Ok(value) => consumed = value,
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => (),
                 Err(e) => return Err(e.to_string()),
             }
             self.read(hash, bytes.len()).map(|_| ())
         })();
-        let cleanup = fs::remove_file(&stage).map_err(|e| e.to_string());
+        let cleanup = if consumed {
+            Ok(())
+        } else {
+            fs::remove_file(&stage).map_err(|e| e.to_string())
+        };
         result.and(cleanup)
     }
 
@@ -95,5 +100,43 @@ impl SourceBlobStore {
 
     fn path(&self, hash: ContentHash) -> PathBuf {
         self.root.join(format!("{hash}.bin"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn source_publication_round_trips_and_is_idempotent() {
+        let root =
+            std::env::temp_dir().join(format!("forge-source-publish-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        let store = SourceBlobStore::open(&root).unwrap();
+        let bytes = b"reviewed terrain source bytes";
+        let hash = bytes_sha256(bytes);
+        store.publish(hash, bytes).unwrap();
+        store.publish(hash, bytes).unwrap();
+        assert_eq!(store.read(hash, bytes.len()).unwrap(), bytes);
+        drop(store);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn conflicting_source_is_rejected_without_replacement() {
+        let root =
+            std::env::temp_dir().join(format!("forge-source-conflict-{}", std::process::id()));
+        fs::create_dir(&root).unwrap();
+        let store = SourceBlobStore::open(&root).unwrap();
+        let bytes = b"reviewed source";
+        let hash = bytes_sha256(bytes);
+        fs::write(store.path(hash), b"corrupt existing source").unwrap();
+        assert!(store.publish(hash, bytes).is_err());
+        assert_eq!(
+            fs::read(store.path(hash)).unwrap(),
+            b"corrupt existing source"
+        );
+        drop(store);
+        fs::remove_dir_all(root).unwrap();
     }
 }

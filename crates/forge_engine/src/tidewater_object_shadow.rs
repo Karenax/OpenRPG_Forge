@@ -57,10 +57,38 @@ pub struct GpuDraw {
     pub indices: Buffer,
     pub count: u32,
     pub groups: Vec<BindGroup>,
+    uniforms: Vec<UniformBuffer<Uniforms>>,
 }
 pub struct OpaqueBatch {
     pub pipeline: RenderPipeline,
     pub draws: Vec<GpuDraw>,
+}
+impl OpaqueBatch {
+    pub fn update_cascades(
+        &mut self,
+        matrices: &[Mat4],
+        layers: &[usize],
+        device: &RenderDevice,
+        queue: &RenderQueue,
+    ) -> Result<(), String> {
+        if matrices.len() != 3
+            || matrices.iter().any(|matrix| !matrix.is_finite())
+            || layers.iter().any(|&layer| layer >= matrices.len())
+        {
+            return Err("Invalid opaque cascade update".into());
+        }
+        for draw in &mut self.draws {
+            if draw.uniforms.len() != matrices.len() {
+                return Err("Opaque cascade layout changed".into());
+            }
+            for &layer in layers {
+                let uniform = &mut draw.uniforms[layer];
+                uniform.get_mut().view_projection = matrices[layer];
+                uniform.write_buffer(device, queue);
+            }
+        }
+        Ok(())
+    }
 }
 
 const SHADER: &str = "struct Params{view_projection:mat4x4f,model:mat4x4f};\n@group(0) @binding(0) var<uniform> params:Params;\n@vertex fn vertex(@location(0) position:vec3f)->@builtin(position) vec4f {let world=params.model*vec4f(position,1.0);return params.view_projection*world;}";
@@ -125,7 +153,7 @@ pub fn prepare(
                     usage,
                 })
             };
-            let groups = matrices
+            let uniforms = matrices
                 .iter()
                 .map(|&view_projection| {
                     let mut uniform = UniformBuffer::from(Uniforms {
@@ -133,10 +161,16 @@ pub fn prepare(
                         model: d.model,
                     });
                     uniform.write_buffer(device, queue);
+                    uniform
+                })
+                .collect::<Vec<_>>();
+            let groups = uniforms
+                .iter()
+                .map(|uniform| {
                     device.create_bind_group(
                         "Tidewater shadow draw",
                         &layout,
-                        &BindGroupEntries::single(&uniform),
+                        &BindGroupEntries::single(uniform),
                     )
                 })
                 .collect();
@@ -145,14 +179,17 @@ pub fn prepare(
                 indices: make(&d.indices, gpu::BufferUsages::INDEX),
                 count: u32::try_from(d.indices.len() / 4).expect("validated indices"),
                 groups,
+                uniforms,
             }
         })
         .collect();
     Ok(OpaqueBatch { pipeline, draws })
 }
 
+pub mod plant_shader;
 pub mod plants;
 pub mod terrain;
+pub mod wind;
 fn finite_bytes(bytes: &[u8]) -> bool {
     bytes.len().is_multiple_of(4)
         && bytes
@@ -178,4 +215,6 @@ fn validate(draws: &[OpaqueDraw], matrices: &[Mat4]) -> Result<(), String> {
     Ok(())
 }
 pub mod graph;
+pub mod live;
+pub mod receiver;
 pub mod scene;

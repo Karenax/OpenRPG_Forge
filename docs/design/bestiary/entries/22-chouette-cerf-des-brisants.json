@@ -1,0 +1,254 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.chouette-cerf-des-brisants",
+  "name": "Chouette-cerf des brisants",
+  "subtitle": "Le planeur qui broute au-dessus des marées",
+  "classification": {
+    "nature": "animal côtier",
+    "family": "planeurs des brisants",
+    "rarity": "rare, regroupé sur les falaises abritées",
+    "activity": "crépusculaire, réglée sur les marées basses",
+    "social": "couples durables accompagnés de leurs jeunes",
+    "threat": "moderee",
+    "threat_reason": "Ses bois et ses bonds rendent les corniches dangereuses, mais il cherche surtout à garder une distance avec les intrus et à protéger un jeune."
+  },
+  "physique": {
+    "dimensions": "1,4 à 1,7 m de long ; 0,95 m au garrot ; membrane déployée sur 2,8 m",
+    "mass_kg": [
+      52,
+      78
+    ],
+    "locomotion": [
+      "marche sur quatre membres",
+      "bond entre corniches",
+      "vol plané descendant"
+    ],
+    "center_of_gravity": "Poitrine ramassée entre les membres antérieurs ; les bois orientent le corps mais gênent un demi-tour dans un passage étroit.",
+    "silhouette": "Disque facial de plumes courtes, bois bas en éventail et membrane veloutée reliant les poignets aux flancs ; aucune aile capable de vol battu.",
+    "anatomy_zones": [
+      {
+        "zone": "front et bois",
+        "description": "Arcs osseux courts présentant leurs branches vers l'extérieur.",
+        "protection": 13
+      },
+      {
+        "zone": "thorax",
+        "description": "Plumage serré sur une cage thoracique légère ; les flancs restent souples.",
+        "protection": 5
+      },
+      {
+        "zone": "membranes",
+        "description": "Peau vascularisée fine tendue seulement pendant le plané.",
+        "protection": 1
+      },
+      {
+        "zone": "membres et sabots",
+        "description": "Extrémités fendues bordées de petites griffes d'adhérence.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "corniches de craie dominant des herbiers marins",
+    "îlots rocheux reliés à marée basse"
+  ],
+  "ecology": {
+    "diet": "Pousses salées, algues échouées et mollusques dont il brise la coquille contre une pierre.",
+    "lifecycle": "Le jeune reste six mois sur des replats reliés à pied ; les premiers planés accompagnés ont lieu au printemps suivant.",
+    "reproduction": "Un seul petit vivant par saison favorable ; les deux adultes transportent nourriture et matériaux secs vers le replat de repos.",
+    "behavior": "Il repère un passage sûr avant de descendre brouter, puis remonte par des sentes ; le plané sert à quitter un danger et non à regagner de l'altitude.",
+    "niche": "Brouteur des falaises et transporteur de graines entre les îlots proches.",
+    "environmental_impact": "Ses couches de plumes et d'algues fertilisent de petites terrasses où poussent des plantes absentes de la paroi nue."
+  },
+  "senses": [
+    "ouïe directionnelle adaptée au bruit intermittent des vagues",
+    "vision crépusculaire précise, diminuée par les embruns sur le disque facial"
+  ],
+  "communication": [
+    "claquements des bois contre la roche avant une approche",
+    "souffles graves pour rappeler un jeune"
+  ],
+  "signs": [
+    "empreintes fendues terminées par deux marques de griffe",
+    "algues mâchées déposées sur des terrasses sèches",
+    "plumes grises coincées dans les buissons tournés vers la mer"
+  ],
+  "demeanor": {
+    "objectives": [
+      "accéder aux herbiers découverts",
+      "garder une voie de remontée",
+      "éloigner un intrus du jeune"
+    ],
+    "fears": [
+      "membrane accrochée à une ronce",
+      "corniche sans issue",
+      "chien lancé à sa poursuite"
+    ],
+    "morale": "Prudent seul ; il tient son replat si un jeune ne sait pas encore partir.",
+    "escalation": "Il se place de profil pour paraître large, frappe la roche, puis pousse avant d'employer ses pointes.",
+    "retreat": "Il gagne un replat inférieur par un plané visible dès qu'une issue s'ouvre ; il ne poursuit pas dans les terres."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 7,
+      "constitution": 5,
+      "intelligence": 3,
+      "willpower": 5,
+      "perception": 8,
+      "presence": 4
+    },
+    "skills": {
+      "athletics": 50,
+      "acrobatics": 55,
+      "climbing": 32,
+      "survival": 45,
+      "stealth": 38,
+      "unarmed": 45,
+      "vigilance": 58,
+      "tracking": 30
+    },
+    "movement": "Marche 3 m/s, course 7 m/s ; plané jusqu'à 12 m depuis un départ surélevé de 4 m, sans remontée ni virage supérieur à 45 degrés.",
+    "protections": [
+      "Les bois protègent le front, jamais les membranes ni l'arrière de la nuque.",
+      "Le plumage amortit les éraflures ; une membrane mouillée devient plus lourde."
+    ],
+    "attacks": [
+      {
+        "name": "Écartement des bois",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 18,
+        "reach": "0,9 m devant le front",
+        "stamina_cost": 9,
+        "preparation": "0,65 seconde, tête abaissée",
+        "telegraph": "Il écarte les sabots et présente le plat des bois.",
+        "effect": "Contact contondant ; une cible touchée perd jusqu'à 12 points d'Équilibre. Un déplacement maximal de 0,6 m exige que l'appui cède ; aucun renversement automatique.",
+        "counterplay": "Reculer de 1 m pendant la préparation ou contourner le front ; une garde réelle reçoit le choc et conserve sa protection."
+      },
+      {
+        "name": "Frappe de sabot",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 20,
+        "reach": "0,7 m sur un côté",
+        "stamina_cost": 12,
+        "preparation": "0,5 seconde en prenant appui sur trois membres",
+        "telegraph": "Le bassin pivote et un sabot se replie sous le ventre.",
+        "effect": "Un seul contact contondant contre une cible proche ; récupération de 0,8 seconde avant un nouveau bond.",
+        "counterplay": "Quitter le côté annoncé ou se placer derrière un bloc ; la frappe ne traverse ni bouclier ni roche."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Repli plané",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "acrobatics",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "jusqu'à 12 m vers un replat situé au moins 4 m plus bas",
+        "stamina_cost": 18,
+        "preparation": "1,2 seconde au bord d'un appui",
+        "telegraph": "Les membres antérieurs s'écartent et la membrane prend le vent.",
+        "effect": "Un déplacement descendant suivant la géométrie libre ; il termine avec 1 seconde de réception vulnérable. Une membrane entravée ou un espace de moins de 2,8 m interdit le départ.",
+        "counterplay": "Anticiper le replat visible ou interrompre avant le saut par un contact ; un plafond et un vent contraire raccourcissent le trajet sans le transformer en téléportation."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "embruns froids",
+        "mechanism": "Le plumage gras ralentit de 20 % l'accumulation de Froid tant qu'il n'est pas entièrement trempé."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "membrane entravée",
+        "mechanism": "Une branche, un filet ou une blessure locale empêche sa mise en tension et retire le plané tant que l'entrave persiste."
+      },
+      {
+        "subject": "virage sur sol lisse",
+        "mechanism": "Les griffes prennent mal sur une dalle polie ; une réception sur cette surface exige Acrobatie D18."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "rafale latérale pendant un plané",
+        "result": "dérive vers une autre corniche",
+        "chain": "La membrane reçoit la poussée du vent ; la trajectoire se décale selon l'espace libre, avec collision possible sur une paroi."
+      },
+      {
+        "input": "montée de la marée sur le passage de retour",
+        "result": "retrait des adultes vers les sentes hautes",
+        "chain": "L'eau recouvre les appuis de remontée ; les animaux abandonnent le nourrissage et croisent plus souvent les voyageurs sur les hauteurs."
+      }
+    ],
+    "resources": {
+      "vitality": 100,
+      "stamina": 90,
+      "mana": 62,
+      "balance": 80,
+      "focus": 92
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Des traces descendant jusqu'aux algues puis remontant en lacets appartiennent à un brouteur qui doit reprendre de l'altitude à pied."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "animal_handling",
+      "difficulty": 22,
+      "fact": "Les claquements espacés sembleraient autoriser le partenaire à approcher, alors qu'une série serrée annoncerait un refus."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Dans les bois annuellement perdus, une mince bague de calcite conserve l'orientation du champ magnétique au jour de leur croissance."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "animal territorial de corniche",
+      "obstacle mobile sur un sentier étroit"
+    ],
+    "telegraphs": [
+      "Un adulte tourne son corps en travers du sentier avant tout contact.",
+      "Une membrane ouverte annonce toujours un départ descendant."
+    ],
+    "noncombat_options": [
+      "Attendre la marée basse et laisser libres les sentes qui relient le replat à l'estran.",
+      "Déposer des algues fraîches loin du jeune, puis se retirer sans couper le trajet entre les adultes."
+    ],
+    "complications": [
+      "Un animal effrayé peut tomber sur un autre groupe placé en contrebas.",
+      "Une capture improvisée risque de déchirer une membrane indispensable au retour vers le gîte."
+    ]
+  },
+  "salvage": [
+    "Ramasser les plumes déjà tombées après le départ du couple ; aucun prélèvement sur l'animal vivant.",
+    "Les bois naturellement perdus peuvent être collectés hors des replats de reproduction, avec l'accord du propriétaire du lieu."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "chouette-cerf-des-brisants-plate-v1.png",
+      "alt": "Une Chouette-cerf aux bois bas et au disque facial de plumes se tient sur quatre sabots griffus, au bord d’une falaise de craie. Ses membranes sont entrouvertes au-dessus de la mer.",
+      "caption": "Le retour vers les hauteurs se fait à pied ; la membrane ne permet qu’un départ vers les corniches inférieures.",
+      "prompt_key": "chouette-cerf-des-brisants-plate-v1"
+    }
+  ]
+}

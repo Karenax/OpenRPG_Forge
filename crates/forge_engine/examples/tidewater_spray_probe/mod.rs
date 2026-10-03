@@ -30,6 +30,16 @@ use std::{
     time::Duration,
 };
 use wgpu::util::DeviceExt;
+mod gpu_cache;
+mod live_camera;
+mod live_feedback;
+pub mod water_queries;
+pub use live_camera::LiveCamera;
+pub use live_feedback::LiveFeedback;
+#[allow(dead_code)] // Called by the scene and interactive walk adapters.
+pub fn enable_water_queries(app: &mut App, output: PathBuf) -> Result<(), String> {
+    water_queries::install(app, output)
+}
 #[derive(Clone, Copy, PartialEq)]
 enum BudgetMode {
     Recorded,
@@ -59,6 +69,7 @@ struct Input {
 }
 #[derive(Resource, Clone)]
 pub struct Targets {
+    pub completed_steps: Arc<std::sync::atomic::AtomicU32>,
     budget: Option<Arc<Mutex<BudgetFeedback>>>,
     pub shore_state: Option<Handle<Image>>,
     #[allow(dead_code)] // Consumed by the scene lip material, not the standalone compute example.
@@ -66,6 +77,32 @@ pub struct Targets {
     pub buffers: Vec<Handle<ShaderBuffer>>,
     pub ready: Arc<AtomicBool>,
     pub readback_complete: Arc<AtomicBool>,
+}
+#[derive(Resource)]
+struct Live;
+
+#[allow(dead_code)]
+pub fn enable_live(app: &mut App) -> Result<(), String> {
+    let input = app
+        .sub_app(RenderApp)
+        .world()
+        .get_resource::<Input>()
+        .ok_or("Missing coupled spray input")?;
+    if !input.history
+        || input.coupled.is_none()
+        || app.world().resource::<Targets>().budget.is_none()
+    {
+        return Err("Live spray requires coupled shore and native feedback budget".into());
+    }
+    let ready = app.world().resource::<Targets>().readback_complete.clone();
+    super::ocean::enable_live_coupled(app, ready);
+    live_feedback::install(app);
+    let camera = LiveCamera::default();
+    app.insert_resource(camera.clone());
+    app.sub_app_mut(RenderApp).insert_resource(camera);
+    app.insert_resource(Live);
+    app.sub_app_mut(RenderApp).insert_resource(Live);
+    Ok(())
 }
 #[derive(PartialEq)]
 enum Completion {
@@ -559,6 +596,7 @@ fn configure(
         None
     };
     let targets = Targets {
+        completed_steps: Arc::new(std::sync::atomic::AtomicU32::new(0)),
         budget,
         shore_state,
         stations: input.count,
@@ -682,11 +720,18 @@ fn compute(
     queue: Res<RenderQueue>,
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
     ocean: Option<Res<super::ocean::Targets>>,
+    clock: Option<Res<super::ocean::LiveClock>>,
     images: Res<RenderAssets<GpuImage>>,
     mut progress: Local<(u32, f64)>,
+    mut cached: Local<Option<gpu_cache::Resources>>,
     mut coupled: Local<Option<super::shore_sim::CoupledSimulation>>,
+    live: Option<Res<Live>>,
+    camera: Option<Res<LiveCamera>>,
+    live_feedback: Option<Res<LiveFeedback>>,
+    water_queries: Option<Res<water_queries::Targets>>,
 ) {
-    if targets.ready.load(Ordering::Acquire) {
+    let was_ready = targets.ready.load(Ordering::Acquire);
+    if was_ready && (live.is_none() || !targets.readback_complete.load(Ordering::Acquire)) {
         return;
     }
     let gpu: Vec<_> = targets
@@ -713,7 +758,23 @@ fn compute(
     } else {
         None
     };
+    let live_packet = if let Some(feedback) = &live_feedback {
+        let Some(packet) = buffers.get(&feedback.packet) else {
+            return;
+        };
+        Some(packet)
+    } else {
+        None
+    };
     let mut native_step = 0;
+    let query_packet = if let Some(queries) = &water_queries {
+        let Some(packet) = buffers.get(&queries.packet) else {
+            return;
+        };
+        Some(packet)
+    } else {
+        None
+    };
     let native_image = if input.history {
         let fft = ocean.as_ref().expect("native ocean installed");
         native_step = fft.completed_steps.load(Ordering::Acquire);
@@ -728,185 +789,53 @@ fn compute(
     } else {
         None
     };
+    let live_step = if input.history && native_step > 120 && live.is_some() {
+        Some(
+            clock
+                .as_ref()
+                .expect("live ocean clock")
+                .pending(native_step)
+                .expect("pending live ocean step"),
+        )
+    } else {
+        None
+    };
     if input.history {
         progress.0 = native_step;
-        progress.1 += 1.0 / 60.0;
+        progress.1 = live_step.map_or_else(|| progress.1 + 1.0 / 60.0, |frame| frame.time);
     }
-    let device = device.wgpu_device();
-    let ub = wgpu::BindingType::Buffer {
-        ty: wgpu::BufferBindingType::Uniform,
-        has_dynamic_offset: false,
-        min_binding_size: None,
-    };
-    let tex = |filterable, array| wgpu::BindingType::Texture {
-        sample_type: wgpu::TextureSampleType::Float { filterable },
-        view_dimension: if array {
-            wgpu::TextureViewDimension::D2Array
-        } else {
-            wgpu::TextureViewDimension::D2
-        },
-        multisampled: false,
-    };
-    let entry = |binding, ty| wgpu::BindGroupLayoutEntry {
-        binding,
-        visibility: wgpu::ShaderStages::COMPUTE,
-        ty,
-        count: None,
-    };
-    let mut entries0 = vec![entry(0, ub)];
-    for i in 1..10 {
-        entries0.push(entry(
-            i,
-            wgpu::BindingType::Sampler(if i == 9 {
-                wgpu::SamplerBindingType::Comparison
-            } else if i >= 7 {
-                wgpu::SamplerBindingType::NonFiltering
-            } else {
-                wgpu::SamplerBindingType::Filtering
-            }),
-        ));
-    }
-    let layout0 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("crest frame"),
-        entries: &entries0,
+    let render_device = &*device;
+    let device = render_device.wgpu_device();
+    let cached = cached.get_or_insert_with(|| {
+        let started = std::time::Instant::now();
+        let resources = gpu_cache::Resources::new(render_device, &queue, &input);
+        info!(
+            elapsed_ms = started.elapsed().as_secs_f64() * 1000.0,
+            "Tidewater spray immutable GPU resources initialized"
+        );
+        resources
     });
-    let entries1: Vec<_> = (0..20)
-        .map(|i| {
-            entry(
-                i,
-                match i {
-                    6 | 8 | 11 | 16 | 17 => ub,
-                    12..=15 | 18 | 19 => wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: i == 18 },
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    0 | 3 | 4 => tex(false, false),
-                    9 | 10 => tex(true, true),
-                    _ => tex(true, false),
-                },
-            )
-        })
-        .collect();
-    let layout1 = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("crest resources"),
-        entries: &entries1,
-    });
-    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: Some("crest compute"),
-        bind_group_layouts: &[Some(&layout0), Some(&layout1)],
-        immediate_size: 0,
-    });
-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("original crest kernel"),
-        source: wgpu::ShaderSource::Wgsl(
-            std::str::from_utf8(&input.files["kernel.wgsl"])
-                .expect("checked WGSL")
-                .into(),
-        ),
-    });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-        label: Some("crest compute"),
-        layout: Some(&layout),
-        module: &shader,
-        entry_point: Some("main"),
-        compilation_options: default(),
-        cache: None,
-    });
-    let samplers: Vec<_> = (1..10)
-        .map(|i| {
-            let address = match i {
-                1 | 4 | 6 | 8 => wgpu::AddressMode::Repeat,
-                3 => wgpu::AddressMode::MirrorRepeat,
-                _ => wgpu::AddressMode::ClampToEdge,
-            };
-            let filter = if i >= 7 {
-                wgpu::FilterMode::Nearest
-            } else {
-                wgpu::FilterMode::Linear
-            };
-            device.create_sampler(&wgpu::SamplerDescriptor {
-                address_mode_u: address,
-                address_mode_v: address,
-                address_mode_w: address,
-                min_filter: filter,
-                mag_filter: filter,
-                mipmap_filter: if i >= 7 {
-                    wgpu::MipmapFilterMode::Nearest
-                } else {
-                    wgpu::MipmapFilterMode::Linear
-                },
-                anisotropy_clamp: match i {
-                    4 | 5 => 8,
-                    6 => 4,
-                    _ => 1,
-                },
-                compare: if i == 9 {
-                    Some(wgpu::CompareFunction::LessEqual)
-                } else {
-                    None
-                },
-                ..default()
-            })
-        })
-        .collect();
-    let buffer = |data: &[u8], usage| {
+    let gpu_cache::Resources {
+        layout0,
+        layout1,
+        pipeline,
+        samplers,
+        terrain,
+        shore,
+        stations,
+        height,
+        deltas,
+        field,
+        dummy,
+        integration,
+    } = &*cached;
+    let uniform = |data: &[u8]| {
         device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("crest input"),
             contents: data,
-            usage,
+            usage: wgpu::BufferUsages::UNIFORM,
         })
     };
-    let uniform = |data: &[u8]| buffer(data, wgpu::BufferUsages::UNIFORM);
-    let terrain = uniform(&input.files["terrain-params.bin"]);
-    let shore = uniform(&input.files["shore-params.bin"]);
-    let station_bytes = if input.stations.is_empty() {
-        &[0_u8; 16][..]
-    } else {
-        &input.stations
-    };
-    let stations = buffer(station_bytes, wgpu::BufferUsages::STORAGE);
-    let height = texture(
-        device,
-        &queue,
-        2048,
-        1,
-        wgpu::TextureFormat::R32Float,
-        &[&input.files["heights.f32.bin"]],
-        4,
-    );
-    let delta_bytes = input
-        .files
-        .get("authored-height-deltas.bin")
-        .map_or(&[0_u8; 4][..], Vec::as_slice);
-    let delta_side = if delta_bytes.len() == 4 { 1 } else { 2049 };
-    let deltas = texture(
-        device,
-        &queue,
-        delta_side,
-        1,
-        wgpu::TextureFormat::R32Float,
-        &[delta_bytes],
-        4,
-    );
-    let field = texture(
-        device,
-        &queue,
-        512,
-        1,
-        wgpu::TextureFormat::Rgba32Float,
-        &[&input.files["shore-field.rgba32.bin"]],
-        16,
-    );
-    let dummy = texture(
-        device,
-        &queue,
-        1,
-        1,
-        wgpu::TextureFormat::Rgba8Unorm,
-        &[&[0; 4]],
-        4,
-    );
     for (index, step) in input.steps.iter().enumerate() {
         let mut frame_bytes = input.files[&format!("frame-{step:04}-frame.bin")].clone();
         let mut ocean_bytes = input.files[&format!("frame-{step:04}-ocean.bin")].clone();
@@ -917,6 +846,9 @@ fn compute(
             let time = progress.1 as f32;
             frame_bytes[576..580].copy_from_slice(&native_step.to_le_bytes());
             frame_bytes[580..584].copy_from_slice(&time.to_le_bytes());
+            if let Some(frame) = live_step {
+                frame_bytes[584..588].copy_from_slice(&frame.dt.to_le_bytes());
+            }
             ocean_bytes = ocean
                 .as_ref()
                 .expect("ocean")
@@ -935,6 +867,9 @@ fn compute(
             };
             params_bytes[28..32].copy_from_slice(&budget.to_le_bytes());
             spray_bytes[..4].copy_from_slice(&native_step.to_le_bytes());
+            if let Some(camera) = &camera {
+                camera.apply(native_step, &mut params_bytes);
+            }
             if let Some(shore_input) = &input.coupled {
                 let sim = coupled.get_or_insert_with(|| {
                     shore_input.initialize(device, &queue, (*gpu[5].buffer).clone())
@@ -982,19 +917,19 @@ fn compute(
         }
         let group0 = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("crest frame"),
-            layout: &layout0,
+            layout: layout0,
             entries: &entries,
         });
         let view = wgpu::BindingResource::TextureView;
         let resources = [
-            view(&height),
-            view(&dummy),
-            view(&dummy),
-            view(&deltas),
-            view(&field),
-            view(&dummy),
+            view(height),
+            view(dummy),
+            view(dummy),
+            view(deltas),
+            view(field),
+            view(dummy),
             terrain.as_entire_binding(),
-            view(&dummy),
+            view(dummy),
             shore.as_entire_binding(),
             view(displacement),
             view(displacement),
@@ -1018,7 +953,7 @@ fn compute(
             .collect();
         let group1 = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("crest resources"),
-            layout: &layout1,
+            layout: layout1,
             entries: &entries,
         });
         let mut pass = context
@@ -1027,7 +962,7 @@ fn compute(
                 label: Some("native crests"),
                 timestamp_writes: None,
             });
-        pass.set_pipeline(&pipeline);
+        pass.set_pipeline(pipeline);
         pass.set_bind_group(0, &group0, &[]);
         pass.set_bind_group(1, &group1, &[]);
         if !input.replay {
@@ -1035,55 +970,16 @@ fn compute(
         }
         drop(pass);
         if input.integrate {
-            let entries: Vec<_> = (0..24)
-                .map(|i| {
-                    entry(
-                        i,
-                        match i {
-                            0..=3 | 5 | 22 | 23 => wgpu::BindingType::Buffer {
-                                ty: wgpu::BufferBindingType::Storage {
-                                    read_only: i == 5 || i == 23,
-                                },
-                                has_dynamic_offset: false,
-                                min_binding_size: None,
-                            },
-                            4 | 8 | 15 | 17 | 18 | 21 => ub,
-                            6 | 7 => tex(true, true),
-                            9 | 12 | 13 => tex(false, false),
-                            _ => tex(true, false),
-                        },
-                    )
-                })
-                .collect();
-            let update_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("spray integration resources"),
-                entries: &entries,
-            });
-            let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("spray integration"),
-                bind_group_layouts: &[Some(&layout0), Some(&update_layout)],
-                immediate_size: 0,
-            });
-            let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("original spray update"),
-                source: wgpu::ShaderSource::Wgsl(
-                    std::str::from_utf8(&input.files["spray-update.wgsl"])
-                        .expect("checked WGSL")
-                        .into(),
-                ),
-            });
-            let update = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                label: Some("spray integration"),
-                layout: Some(&layout),
-                module: &shader,
-                entry_point: Some("main"),
-                compilation_options: default(),
-                cache: None,
-            });
-            let query = buffer(&[0; 64 * 16], wgpu::BufferUsages::STORAGE);
-            let requests = buffer(&[0; 32 * 4 * 16], wgpu::BufferUsages::STORAGE);
-            let surface = uniform(&input.files["surface-params.bin"]);
-            let sim = uniform(&input.files["shore-sim-params.bin"]);
+            let resources_cache = integration.as_ref().expect("integration installed");
+            let gpu_cache::Integration {
+                layout: update_layout,
+                pipeline: update,
+                query,
+                requests,
+                surface,
+                sim,
+                water_queries: query_pipeline,
+            } = resources_cache;
             let resources = [
                 gpu[1].buffer.as_entire_binding(),
                 gpu[2].buffer.as_entire_binding(),
@@ -1094,18 +990,18 @@ fn compute(
                 view(displacement),
                 view(displacement),
                 ocean.as_entire_binding(),
-                view(&height),
-                view(&dummy),
-                view(&dummy),
-                view(&deltas),
-                view(&field),
-                view(&dummy),
+                view(height),
+                view(dummy),
+                view(dummy),
+                view(deltas),
+                view(field),
+                view(dummy),
                 terrain.as_entire_binding(),
-                view(&dummy),
+                view(dummy),
                 shore.as_entire_binding(),
                 surface.as_entire_binding(),
-                view(&dummy),
-                view(&dummy),
+                view(dummy),
+                view(dummy),
                 sim.as_entire_binding(),
                 gpu[5].buffer.as_entire_binding(),
                 requests.as_entire_binding(),
@@ -1120,7 +1016,7 @@ fn compute(
                 .collect();
             let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("spray integration"),
-                layout: &update_layout,
+                layout: update_layout,
                 entries: &entries,
             });
             let mut pass =
@@ -1130,31 +1026,48 @@ fn compute(
                         label: Some("native spray integration"),
                         timestamp_writes: None,
                     });
-            pass.set_pipeline(&update);
+            pass.set_pipeline(update);
             pass.set_bind_group(0, &group0, &[]);
             pass.set_bind_group(1, &group, &[]);
             pass.dispatch_workgroups(40960 / 64, 1, 1);
+            drop(pass);
+            if let Some(queries) = &water_queries {
+                query_pipeline.encode(
+                    render_device,
+                    context.command_encoder(),
+                    &group0.clone().into(),
+                    &group.clone().into(),
+                    &query_packet.expect("prepared query packet").buffer,
+                    &queries.queries.snapshot(),
+                    native_step,
+                    progress.1,
+                );
+            }
         }
     }
     if input.history {
-        context.command_encoder().copy_buffer_to_buffer(
-            &gpu[4].buffer,
-            0,
-            &gpu[6].buffer,
-            u64::from(native_step - 1) * 4,
-            4,
-        );
+        if native_step <= 120 {
+            context.command_encoder().copy_buffer_to_buffer(
+                &gpu[4].buffer,
+                0,
+                &gpu[6].buffer,
+                u64::from(native_step - 1) * 4,
+                4,
+            );
+        }
         if let Some(shared) = &targets.budget {
             let mut feedback = shared.lock().expect("budget mutex");
-            assert_eq!(
-                feedback.latest.map(|v| v.0),
-                if native_step == 1 {
-                    None
-                } else {
-                    Some(native_step - 1)
-                },
-                "missing previous GPU head"
-            );
+            if native_step <= 120 {
+                assert_eq!(
+                    feedback.latest.map(|v| v.0),
+                    if native_step == 1 {
+                        None
+                    } else {
+                        Some(native_step - 1)
+                    },
+                    "missing previous GPU head"
+                );
+            }
             let emitter = feedback.controller.value();
             let latest = feedback.latest;
             feedback
@@ -1162,15 +1075,46 @@ fn compute(
                 .after_emission(latest.map(|v| v.1))
                 .expect("ordered native feedback");
             let next_budget = feedback.controller.value();
-            feedback.rows.push(serde_json::json!({"frame":native_step,"time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time)}));
+            if native_step <= 120 {
+                feedback.rows.push(serde_json::json!({"frame":native_step,"time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time)}));
+            }
             feedback.encoded_step = native_step;
             feedback.encoded_time = progress.1;
+            if native_step > 120 {
+                live_feedback
+                    .as_ref()
+                    .expect("live feedback installed")
+                    .encode(
+                        device,
+                        context.command_encoder(),
+                        live_packet.expect("live feedback prepared"),
+                        &gpu[4].buffer,
+                        live_step.expect("live step"),
+                        latest.map(|sample| sample.0),
+                    );
+                // Retain one ordered FFT/shore/spray step per submission, while
+                // allowing the next step before this counter readback arrives.
+                ocean
+                    .as_ref()
+                    .expect("native ocean")
+                    .permitted_step
+                    .store(native_step + 1, Ordering::Release);
+            }
         } else {
             ocean
                 .as_ref()
                 .expect("ocean")
                 .permitted_step
                 .store(native_step + 1, Ordering::Release);
+        }
+        targets
+            .completed_steps
+            .store(native_step, Ordering::Release);
+        if live_step.is_some() {
+            clock
+                .as_ref()
+                .expect("live ocean clock")
+                .acknowledge(native_step);
         }
         if native_step < 120 {
             return;
@@ -1179,6 +1123,9 @@ fn compute(
     if let Some(sim) = coupled.as_ref() {
         let image = public_shore.expect("coupled shore image");
         sim.publish(context.command_encoder(), &image.texture);
+        if was_ready {
+            return;
+        }
         context.command_encoder().copy_texture_to_buffer(
             image.texture.as_image_copy(),
             wgpu::TexelCopyBufferInfo {
@@ -1315,8 +1262,7 @@ fn readback(
     }
 }
 
-// Keep the simulation on the encoded step until its head copy is delivered. Rendering may
-// continue meanwhile; the next FFT cannot overwrite the state associated with this sample.
+// Strict acquisition protocol only. The live continuation uses tagged asynchronous packets.
 fn read_budget(
     mut commands: Commands,
     targets: Res<Targets>,
@@ -1328,7 +1274,7 @@ fn read_budget(
     let (step, time) = {
         let mut feedback = shared.lock().expect("budget mutex");
         let step = feedback.encoded_step;
-        if step == 0 || step == 120 || step == feedback.requested_step {
+        if step == 0 || step >= 120 || step == feedback.requested_step {
             return;
         }
         feedback.requested_step = step;

@@ -10,7 +10,10 @@ mod exclusions;
 pub use exclusions::{ImportedExclusionView, ImportedVisibleLayer};
 mod density;
 pub use density::ImportedAuthoredView;
+mod catalogue;
+pub use catalogue::ImportedPlantCatalogEntry;
 pub mod acquisition;
+pub mod editable;
 mod terrain;
 pub use terrain::{ImportedTerrainLayer, ImportedTerrainView};
 

@@ -1,0 +1,251 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.brochet-lanterne",
+  "name": "Brochet-lanterne",
+  "subtitle": "Le chasseur qui allume une fausse trouée sous l'eau",
+  "classification": {
+    "nature": "animal aquatique",
+    "family": "poissons à photophores",
+    "rarity": "peu commun dans les eaux lentes profondes",
+    "activity": "nocturne et active dans les eaux troubles",
+    "social": "solitaire, territoires limités à une fosse",
+    "threat": "moderee",
+    "threat_reason": "Il peut blesser un nageur et l'entraîner vers un obstacle, mais il dépend d'une eau assez profonde pour pivoter et renonce aux proies qu'il ne maîtrise pas."
+  },
+  "physique": {
+    "dimensions": "1,4 à 1,9 m de long ; tête large de 0,3 m",
+    "mass_kg": [
+      28,
+      52
+    ],
+    "locomotion": [
+      "nage lente entre les herbes",
+      "accélération brève",
+      "virage autour d'un appui immergé"
+    ],
+    "center_of_gravity": "Centré derrière la tête ; la longue queue assure la propulsion et exige de l'espace latéral.",
+    "silhouette": "Corps vert sombre marbré de cuivre, mâchoire allongée et rangée de petites poches lumineuses le long de la gorge.",
+    "anatomy_zones": [
+      {
+        "zone": "tête",
+        "description": "Plaques osseuses entre les yeux ; lèvres et dessous de la mâchoire plus souples.",
+        "protection": 10
+      },
+      {
+        "zone": "flancs",
+        "description": "Écailles imbriquées couvrant une chair souple.",
+        "protection": 6
+      },
+      {
+        "zone": "branchies",
+        "description": "Fentes protégées par un opercule qui doit s'ouvrir pour respirer.",
+        "protection": 2
+      },
+      {
+        "zone": "nageoires",
+        "description": "Rayons fins couverts d'une membrane transparente.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "fosses de rivière ombragées par les saules",
+    "canaux anciens envahis d'herbes aquatiques"
+  ],
+  "ecology": {
+    "diet": "Poissons moyens et petits animaux tombés à l'eau ; il abandonne les carcasses en décomposition.",
+    "lifecycle": "Les jeunes restent parmi les racines pendant un an ; les photophores apparaissent avec un régime riche en crustacés.",
+    "reproduction": "La ponte est dispersée au printemps sur les tiges submergées ; les adultes quittent alors brièvement leur fosse.",
+    "behavior": "Il laisse son reflet lumineux simuler une ouverture dans les herbes puis attaque la silhouette qui s'en approche ; il retourne ensuite à l'ombre.",
+    "niche": "Prédateur des poissons lents et consommateur d'animaux noyés récemment.",
+    "environmental_impact": "Il entretient des couloirs de nage entre les plantes et concentre des fragments de coquilles sous ses postes de repos."
+  },
+  "senses": [
+    "ligne latérale détectant les mouvements d'eau proches",
+    "vision sensible aux faibles lumières, gênée par les changements brusques de luminosité"
+  ],
+  "communication": [
+    "pulsations lumineuses courtes à l'approche d'un congénère",
+    "claquements de mâchoire perceptibles sous l'eau"
+  ],
+  "signs": [
+    "éclat vert stable sous une berge où aucune lumière extérieure ne parvient",
+    "herbes rabattues en couloir à hauteur constante",
+    "écailles épaisses mêlées aux coquilles dans une fosse"
+  ],
+  "demeanor": {
+    "objectives": [
+      "conserver une fosse riche en proies",
+      "capturer un repas sans blessure",
+      "rejoindre l'eau profonde"
+    ],
+    "fears": [
+      "remous d'une masse trop grande",
+      "eau pauvre en oxygène",
+      "éclat violent à très courte distance"
+    ],
+    "morale": "Il rompt après une blessure grave à la bouche ; il ne défend ni honneur ni trésor.",
+    "escalation": "Lueur immobile, approche latérale lente, puis accélération unique vers une partie isolée.",
+    "retreat": "Il descend derrière une racine ou une pierre ; si la fosse est vidée, il suit le filet d'eau le plus profond."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 7,
+      "constitution": 5,
+      "intelligence": 2,
+      "willpower": 4,
+      "perception": 7,
+      "presence": 3
+    },
+    "skills": {
+      "swimming": 68,
+      "stealth": 50,
+      "unarmed": 42,
+      "vigilance": 55,
+      "survival": 40
+    },
+    "movement": "Nage 3 m/s ; pointe de 8 m/s sur 4 m avec récupération de 2 secondes ; aucun déplacement terrestre contrôlé.",
+    "protections": [
+      "La tête et les flancs ont des écailles ; les branchies ouvertes restent une zone peu protégée.",
+      "Une immersion normale ne crée pas de Suffocation pour ce poisson ; hors d'une eau oxygénée, il doit respirer et s'asphyxie."
+    ],
+    "attacks": [
+      {
+        "name": "Saisie en pointe",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 23,
+        "reach": "élan de 3 m puis mâchoire à 0,5 m",
+        "stamina_cost": 14,
+        "preparation": "0,7 seconde de queue courbée",
+        "telegraph": "La lueur s'éteint tandis que le corps dessine un S.",
+        "effect": "Contact perforant ; une prise peut durer 2 secondes au maximum si la cible ne se dégage pas. Elle n'impose aucun déplacement à une cible plus lourde et ne répète pas automatiquement le Trauma.",
+        "counterplay": "Interposer un objet rigide, quitter l'axe avant l'accélération ou utiliser un appui pour empêcher l'entraînement."
+      },
+      {
+        "name": "Coup de queue de fosse",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 14,
+        "reach": "arc de 1 m derrière le corps",
+        "stamina_cost": 10,
+        "preparation": "0,6 seconde de torsion visible",
+        "telegraph": "Les écailles du flanc se tournent vers la lumière avant le balayage.",
+        "effect": "Contact contondant avec perte maximale de 10 points d'Équilibre ; les sédiments réellement soulevés troublent localement l'eau pendant 3 secondes.",
+        "counterplay": "Se décaler au-dessus du poisson ou conserver un appui ; une berge trop étroite bloque l'amplitude de la queue."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Écran lumineux",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "stealth",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "lueur visible dans un rayon de 4 m d'eau claire",
+        "stamina_cost": 6,
+        "preparation": "1 seconde sans nage rapide",
+        "telegraph": "Trois points sous la gorge s'allument l'un après l'autre.",
+        "effect": "Les photophores éclairent réellement les herbes pendant 5 secondes. Ils n'imposent ni mouvement ni croyance ; la silhouette du poisson peut être reconnue par Vigilance D18. Nouvelle émission après 15 secondes.",
+        "counterplay": "Éclairer de côté, observer les ombres ou rester hors de la fosse ; la turbidité réduit la portée pour tous."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "eau froide courante",
+        "mechanism": "Son métabolisme supporte les eaux fraîches ; accumulation de Froid réduite de 20 %, sans protection contre le gel local."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "eau stagnante sans oxygène",
+        "mechanism": "Ses branchies ne peuvent alimenter les accélérations ; il doit chercher une arrivée d'eau et abandonne une poursuite prolongée."
+      },
+      {
+        "subject": "nageoires entravées",
+        "mechanism": "Des végétaux épais ou un filet empêchent l'orientation de la queue et réduisent la vitesse à 1 m/s tant qu'ils retiennent le corps."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "vase soulevée par une rame",
+        "result": "lueur diffuse et visée incertaine",
+        "chain": "Les particules dispersent la lumière ; l'animal conserve les vibrations proches mais perd une partie de sa précision visuelle."
+      },
+      {
+        "input": "vanne ouverte en aval",
+        "result": "déplacement vers un chenal restant profond",
+        "chain": "La baisse du niveau réduit l'espace de nage et découvre les herbes ; le poisson abandonne sa fosse avant de rester à sec."
+      }
+    ],
+    "resources": {
+      "vitality": 102,
+      "stamina": 87,
+      "mana": 52,
+      "balance": 84,
+      "focus": 84
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Une lumière qui reste fixe sous la berge tandis que sa bordure pulse peut provenir d'un animal et non d'une sortie vers la surface."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La couleur des poches lumineuses varierait selon les crustacés consommés dans la rivière."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Un anneau opaque se forme dans les otolithes après chaque crue chargée de poussière de cuivre ; une carcasse ancienne peut ainsi révéler l'histoire d'une pollution."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "danger de traversée",
+      "prédateur d'un canal fermé"
+    ],
+    "telegraphs": [
+      "L'extinction de la lueur précède l'accélération.",
+      "Les herbes s'ouvrent en un couloir étroit plutôt qu'en remous larges."
+    ],
+    "noncombat_options": [
+      "Traverser sur une passerelle ou dans moins de 40 cm d'eau sans pénétrer dans la fosse.",
+      "Attirer le poisson vers un chenal de dérivation avec un poisson déjà mort, puis ouvrir la sortie avant d'inspecter la berge."
+    ],
+    "complications": [
+      "Un nageur paniqué soulève assez de vase pour perdre aussi son propre itinéraire.",
+      "Assécher la fosse peut détruire une ponte de plusieurs espèces sans résoudre la cause de l'intrusion."
+    ]
+  },
+  "salvage": [
+    "Écailles perdues et coquilles rejetées peuvent être ramassées après observation du poste.",
+    "Étudier une carcasse trouvée morte n'exige aucun prélèvement sur une population vivante ; ne pas empoisonner l'eau pour obtenir un spécimen."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "brochet-lanterne-plate-v1.png",
+      "alt": "Un Brochet-lanterne vert et cuivré nage entièrement sous l’eau ; de petites poches lumineuses soulignent sa gorge parmi les herbes aquatiques.",
+      "caption": "Il laisse son reflet lumineux simuler une ouverture dans les herbes puis attaque la silhouette qui s'en approche ; il retourne ensuite à l'ombre.",
+      "prompt_key": "brochet-lanterne-plate-v1"
+    }
+  ]
+}

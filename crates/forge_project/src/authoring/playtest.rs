@@ -86,6 +86,7 @@ impl PlaytestIdentity {
 /// No public mutable fields and no deserializer: construct from a validated authority.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PlaytestSnapshot {
+    gameplay: Option<forge_gameplay::GameplayDocument>,
     identity: PlaytestIdentity,
     terrain: TerrainDocument,
     vegetation: Option<VegetationDocument>,
@@ -130,6 +131,7 @@ impl PlaytestSnapshot {
         snapshot.buildings = head.corrections.buildings.clone().unwrap_or_default();
         snapshot.promotions = head.corrections.promotions.clone().unwrap_or_default();
         snapshot.start = head.corrections.start.as_deref().copied();
+        snapshot.gameplay = head.corrections.gameplay.as_deref().cloned();
         Ok(snapshot)
     }
 
@@ -156,6 +158,7 @@ impl PlaytestSnapshot {
             .transpose()
             .map_err(|e| e.to_string())?;
         Ok(Self {
+            gameplay: None,
             identity: PlaytestIdentity {
                 source_hash,
                 terrain_hash,
@@ -175,6 +178,12 @@ impl PlaytestSnapshot {
     #[must_use]
     pub const fn identity(&self) -> PlaytestIdentity {
         self.identity
+    }
+
+    /// Immutable authored definitions from the same validated source hash.
+    #[must_use]
+    pub const fn gameplay(&self) -> Option<&forge_gameplay::GameplayDocument> {
+        self.gameplay.as_ref()
     }
 
     #[must_use]

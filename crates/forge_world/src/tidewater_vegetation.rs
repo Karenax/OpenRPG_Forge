@@ -133,6 +133,10 @@ mod tests {
     use forge_core::{ContentHash, EntityId};
     use forge_project::imported_vegetation::ImportedVegetationInstance;
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Adding source-order metadata must leave the existing packed float payload exactly unchanged."
+    )]
     fn order_is_optional_for_legacy_and_strict_for_renderable_imports() {
         let mut entity = ImportedEntity {
             id: EntityId::deterministic("order-test"),

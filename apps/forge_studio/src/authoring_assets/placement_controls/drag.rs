@@ -16,14 +16,7 @@ pub(super) fn arm(
     }
     snap.validate()?;
     let source = head(state.get_untracked())?;
-    let placement = source
-        .corrections
-        .placements
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .find(|placement| placement.id == id)
-        .ok_or("Objet absent de la zone")?;
+    let placement = super::super::objects::lookup(&source, id)?;
     if placement.locked {
         return Err("Déverrouiller l’objet avant déplacement".into());
     }

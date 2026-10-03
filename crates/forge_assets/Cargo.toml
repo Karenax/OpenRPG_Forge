@@ -10,7 +10,8 @@ description = "Asset identity and provenance validation contracts for OpenRPG Fo
 [dependencies]
 forge_core.workspace = true
 serde.workspace = true
-serde_json.workspace = true
+# Retain captured f64 phases/matrices before the renderer's explicit f32 conversion.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 thiserror.workspace = true
 
 [dev-dependencies]

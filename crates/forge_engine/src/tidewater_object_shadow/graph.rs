@@ -12,6 +12,7 @@ use bevy::{
         render_asset::RenderAssets,
         render_resource as gpu,
         renderer::{RenderContext, RenderDevice, RenderGraph, RenderQueue},
+        storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
 };
@@ -19,6 +20,8 @@ use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
 };
+#[path = "animation.rs"]
+pub mod animation;
 
 pub struct Input {
     pub settings: Settings,
@@ -78,6 +81,8 @@ struct KernelInput(Arc<Input>);
 pub struct Target {
     pub settings: Settings,
     pub image: Handle<Image>,
+    /// Readback of the sequence and layer mask encoded by the depth graph.
+    pub trace: Handle<ShaderBuffer>,
     /// Commands encoded for this generation; not a CPU completion fence.
     pub ready: Arc<AtomicBool>,
 }
@@ -101,6 +106,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
     app.add_plugins((
         ExtractResourcePlugin::<KernelInput>::default(),
         ExtractResourcePlugin::<Target>::default(),
+        ExtractResourcePlugin::<animation::State>::default(),
     ));
     app.sub_app_mut(RenderApp).add_systems(
         RenderGraph,
@@ -121,6 +127,7 @@ pub fn stage(world: &mut World, input: Input) -> Result<Target, String> {
     if !world.contains_resource::<Registered>() || !world.contains_resource::<Assets<Image>>() {
         return Err("Object shadow graph is not registered".into());
     }
+    super::receiver::reset(world)?;
     let size = if input.settings.enabled > 0.5 {
         2048
     } else {
@@ -150,13 +157,18 @@ pub fn stage(world: &mut World, input: Input) -> Result<Target, String> {
         ..default()
     });
     let image = world.resource_mut::<Assets<Image>>().add(image);
+    let trace = world
+        .resource_mut::<Assets<ShaderBuffer>>()
+        .add(ShaderBuffer::from(UVec4::ZERO));
     let target = Target {
         settings: input.settings.clone(),
         image,
+        trace,
         ready: Arc::new(AtomicBool::new(false)),
     };
     world.insert_resource(KernelInput(Arc::new(input)));
     world.insert_resource(target.clone());
+    world.insert_resource(animation::State::default());
     Ok(target)
 }
 
@@ -174,7 +186,7 @@ fn prepare(
             plants::prepare(p, &input.matrices, &input.eyes, device, queue)
                 .expect("validated plant shadows")
         }),
-        terrain: input.terrain.as_ref().filter(|t| t.count > 0).map(|t| {
+        terrain: input.terrain.as_ref().map(|t| {
             terrain::prepare(t, &input.matrices, device, queue).expect("validated terrain shadows")
         }),
     }
@@ -189,22 +201,63 @@ fn draw(
     queue: Res<RenderQueue>,
     images: Res<RenderAssets<GpuImage>>,
     target: Res<Target>,
-    prepared: Option<Res<Prepared>>,
+    prepared: Option<ResMut<Prepared>>,
+    animation: Res<animation::State>,
+    buffers: Res<RenderAssets<GpuShaderBuffer>>,
 ) {
-    if target.ready.load(Ordering::Acquire) {
+    let motion = animation
+        .motion
+        .filter(|_| animation.sequence > animation.encoded.load(Ordering::Acquire));
+    if target.ready.load(Ordering::Acquire) && motion.is_none() {
         return;
     }
     let Some(image) = images.get(&target.image) else {
         return;
     };
-    let Some(prepared) = prepared.filter(|p| Arc::ptr_eq(&p.ready, &target.ready)) else {
+    let Some(trace) = buffers.get(target.trace.id()) else {
+        return;
+    };
+    let Some(mut prepared) = prepared.filter(|p| Arc::ptr_eq(&p.ready, &target.ready)) else {
         commands.insert_resource(prepare(&input.0, target.ready.clone(), &device, &queue));
         return;
     };
-    for layer in 0..3 {
+    let live = motion.and(animation.frame.as_deref());
+    let recovered = motion.is_some() && animation.needs_recovery();
+    let layers = if recovered {
+        &[0, 1, 2][..]
+    } else {
+        live.map_or(&[0, 1, 2][..], |frame| frame.layers.as_slice())
+    };
+    if let Some(frame) = live {
+        let Some(receiver) = buffers.get(super::receiver::DEFAULT_BUFFER.id()) else {
+            return;
+        };
+        update_frame(&mut prepared, frame, layers, &device, &queue);
+        // This is deliberately a render-world write: material assets and their
+        // bind groups stay resident, and matrices cannot precede their depth maps.
+        queue.write_buffer(
+            &receiver.buffer,
+            0,
+            &super::receiver::bytes(frame.settings.clone()),
+        );
+    }
+    // This graph encodes one pose per submission. Queue writes precede its depth
+    // passes and retain the uniform buffers already referenced by the bind groups.
+    if let Some(motion) = motion {
+        for batch in &mut prepared.plants {
+            batch.update_motion(
+                motion.main_camera,
+                motion.wind_time,
+                motion.gust_frame,
+                &device,
+                &queue,
+            );
+        }
+    }
+    for &layer in layers {
         let view = image.texture.create_view(&gpu::TextureViewDescriptor {
             dimension: Some(gpu::TextureViewDimension::D2),
-            base_array_layer: layer,
+            base_array_layer: u32::try_from(layer).expect("three shadow layers"),
             array_layer_count: Some(1),
             ..default()
         });
@@ -225,14 +278,14 @@ fn draw(
             });
         pass.set_pipeline(&prepared.opaque.pipeline);
         for d in &prepared.opaque.draws {
-            pass.set_bind_group(0, &*d.groups[layer as usize], &[]);
+            pass.set_bind_group(0, &*d.groups[layer], &[]);
             pass.set_vertex_buffer(0, *d.vertices.slice(..));
             pass.set_index_buffer(*d.indices.slice(..), gpu::IndexFormat::Uint32);
             pass.draw_indexed(0..d.count, 0, 0..1);
         }
         if let Some(t) = &prepared.terrain {
             pass.set_pipeline(&t.pipeline);
-            pass.set_bind_group(0, &*t.groups[layer as usize], &[]);
+            pass.set_bind_group(0, &*t.groups[layer], &[]);
             pass.set_vertex_buffer(0, *t.grid.slice(..));
             pass.set_vertex_buffer(1, *t.nodes.slice(..));
             pass.set_index_buffer(*t.indices.slice(..), gpu::IndexFormat::Uint32);
@@ -240,11 +293,52 @@ fn draw(
         }
         for p in &prepared.plants {
             pass.set_pipeline(&p.pipeline);
-            pass.set_bind_group(0, &*p.groups[layer as usize], &[]);
+            pass.set_bind_group(0, &*p.groups[layer], &[]);
             pass.set_vertex_buffer(0, *p.vertices.slice(..));
             pass.set_index_buffer(*p.indices.slice(..), gpu::IndexFormat::Uint32);
             pass.draw_indexed(0..p.index_count, 0, 0..p.count);
         }
     }
     target.ready.store(true, Ordering::Release);
+    if motion.is_some() {
+        let statistics = animation.record_encoded(layers, recovered);
+        write_trace(statistics, trace, &queue);
+    }
+}
+
+fn write_trace(statistics: animation::Statistics, trace: &GpuShaderBuffer, queue: &RenderQueue) {
+    let words = [
+        statistics.last_sequence,
+        statistics.last_mask,
+        u32::try_from(statistics.submissions).expect("submissions bounded by sequence"),
+        u32::try_from(statistics.recovered).expect("recoveries bounded by sequence"),
+    ];
+    let bytes: Vec<_> = words.into_iter().flat_map(u32::to_le_bytes).collect();
+    queue.write_buffer(&trace.buffer, 0, &bytes);
+}
+
+fn update_frame(
+    prepared: &mut Prepared,
+    frame: &super::live::Frame,
+    layers: &[usize],
+    device: &RenderDevice,
+    queue: &RenderQueue,
+) {
+    let matrices = &frame.settings.matrices[..3];
+    prepared
+        .opaque
+        .update_cascades(matrices, layers, device, queue)
+        .expect("validated resident opaque cascades");
+    if let (Some(gpu), Some(stream)) = (&mut prepared.terrain, &frame.terrain) {
+        gpu.update_stream(stream, device, queue)
+            .expect("validated terrain stream");
+        gpu.update_cascades(matrices, layers, device, queue)
+            .expect("validated terrain cascades");
+    }
+    for (gpu, stream) in prepared.plants.iter_mut().zip(&frame.plants) {
+        gpu.update_stream(stream, queue)
+            .expect("validated plant stream");
+        gpu.update_cascades(matrices, &frame.eyes, layers, device, queue)
+            .expect("validated plant cascades");
+    }
 }

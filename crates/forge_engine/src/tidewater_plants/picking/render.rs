@@ -17,6 +17,7 @@ use bevy::{
 };
 
 pub const LAYER: usize = 30;
+#[derive(Clone)]
 pub struct View {
     pub width: u32,
     pub height: u32,
@@ -27,6 +28,7 @@ pub struct Pass {
     pub target: Handle<Image>,
     pub snapshot: Snapshot,
     pub camera: Entity,
+    layer: usize,
     entities: Vec<Entity>,
 }
 
@@ -38,6 +40,17 @@ pub fn install(app: &mut App) {
 
 impl Pass {
     pub fn spawn(world: &mut World, snapshot: Snapshot, view: View) -> Result<Self, String> {
+        Self::spawn_on_layer(world, snapshot, view, LAYER)
+    }
+
+    /// Separate diagnostic passes can render the same source view without
+    /// sharing plant copies or occluders.
+    pub fn spawn_on_layer(
+        world: &mut World,
+        snapshot: Snapshot,
+        view: View,
+        layer: usize,
+    ) -> Result<Self, String> {
         if view.width == 0
             || view.height == 0
             || view.width > 4096
@@ -46,6 +59,7 @@ impl Pass {
             || !view.transform.rotation.is_finite()
             || !world.contains_resource::<Assets<Image>>()
             || !world.contains_resource::<Assets<PickingMaterial>>()
+            || layer >= 32
         {
             return Err("Plant picking render inputs unavailable or invalid".into());
         }
@@ -69,7 +83,7 @@ impl Pass {
                             Visibility::Visible,
                             NoFrustumCulling,
                             NotShadowCaster,
-                            RenderLayers::layer(LAYER),
+                            RenderLayers::layer(layer),
                         ))
                         .id(),
                 );
@@ -78,7 +92,12 @@ impl Pass {
         let camera = world
             .spawn((
                 PreviewCamera,
-                Camera3d::default(),
+                Camera3d {
+                    depth_texture_usages: (TextureUsages::RENDER_ATTACHMENT
+                        | TextureUsages::COPY_SRC)
+                        .into(),
+                    ..default()
+                },
                 Camera {
                     order: -21,
                     clear_color: ClearColorConfig::Custom(Color::BLACK),
@@ -90,15 +109,34 @@ impl Pass {
                 DebandDither::Disabled,
                 view.transform,
                 view.projection,
-                RenderLayers::layer(LAYER),
+                RenderLayers::layer(layer),
             ))
             .id();
         Ok(Self {
             target,
             snapshot,
             camera,
+            layer,
             entities,
         })
+    }
+
+    /// Add the terrain and opaque village meshes from the same already-projected
+    /// world. Prepare before mutating this pass so missing scene resources cannot
+    /// leave a partly masked ID image.
+    pub fn add_occluders(
+        &mut self,
+        world: &mut World,
+        prepared: super::occluders::Prepared,
+    ) -> Result<(), String> {
+        if !world.contains_resource::<Assets<super::occluders::TerrainOccluder>>()
+            || !world.contains_resource::<Assets<super::occluders::VillageOccluder>>()
+            || !world.contains_resource::<Assets<super::occluders::StandardOccluder>>()
+        {
+            return Err("Picking occluder plugins are absent".into());
+        }
+        self.entities.extend(prepared.stage(world, self.layer));
+        Ok(())
     }
 
     /// Caller retires the readback entity separately before releasing this pass.

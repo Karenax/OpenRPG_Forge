@@ -19,6 +19,7 @@ use bevy::{
 use std::{collections::BTreeMap, error::Error};
 const SLOT: MeshVertexAttribute =
     MeshVertexAttribute::new("SpraySlot", 0x7457_0007, VertexFormat::Uint32);
+
 const SPRITE_SHADER: Handle<Shader> =
     bevy::asset::uuid_handle!("6e8cc1d5-5811-4f49-a124-de4efc4132dd");
 #[derive(Resource)]
@@ -79,11 +80,11 @@ pub fn install(app: &mut App, files: &BTreeMap<String, Vec<u8>>) -> Result<(), B
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct SprayMaterial {
     #[uniform(40)]
-    clouds: [Vec4; 5],
+    pub(super) clouds: [Vec4; 5],
     #[texture(41, filterable = false)]
     cloud_shadow: Option<Handle<Image>>,
     #[uniform(0)]
-    frame: [UVec4; 45],
+    pub(super) frame: [UVec4; 45],
     #[storage(1, read_only)]
     pos: Handle<ShaderBuffer>,
     #[storage(2, read_only)]

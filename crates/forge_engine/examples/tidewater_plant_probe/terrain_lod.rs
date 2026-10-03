@@ -99,6 +99,9 @@ pub fn setup(world: &mut World) {
         shore_state: placeholder.clone(),
         shore_lace: placeholder,
         shore_params: [UVec4::ZERO; 3],
+        caustics: world
+            .get_resource::<forge_engine::tidewater_caustics::CausticMaterialInputs>()
+            .cloned(),
         settings: TerrainSettings {
             wind: Vec4::new(1.0, 0.0, 6.0, 2.0),
             sun: Vec3::new(0.3, 0.6, -0.7).normalize().extend(0.0),

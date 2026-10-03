@@ -1,10 +1,12 @@
 //! Original village meshes and materials in the native development scene.
 use super::{LeafTexture, Probe, ProbeMode};
 use bevy::{
+    asset::RenderAssetUsages,
     camera::visibility::NoFrustumCulling,
     image::{ImageAddressMode, ImageFilterMode, ImageSampler, ImageSamplerDescriptor},
     light::NotShadowCaster,
     prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error};
@@ -46,9 +48,16 @@ struct TextureData {
 }
 pub struct Village {
     lighting: forge_engine::tidewater_material::SceneLighting,
+    ground_bounce: Option<(Image, Vec4)>,
     description: Description,
     meshes: BTreeMap<String, Mesh>,
     textures: BTreeMap<String, Image>,
+}
+
+impl Village {
+    pub fn lighting(&self) -> &forge_engine::tidewater_material::SceneLighting {
+        &self.lighting
+    }
 }
 
 #[expect(
@@ -154,8 +163,11 @@ pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Option<Village>, Box<dy
             return Err("invalid village node".into());
         }
     }
+    let lighting = load_lighting(files)?;
+    let ground_bounce = load_ground_bounce(files, &lighting)?;
     Ok(Some(Village {
-        lighting: load_lighting(files)?,
+        lighting,
+        ground_bounce,
         description: d,
         meshes,
         textures,
@@ -172,6 +184,7 @@ pub fn setup(
     environment: Res<super::ProbeEnvironment>,
     hill: Res<super::hill_shadow::Images>,
     object: Res<super::object_shadow::Target>,
+    caustics: Option<Res<forge_engine::tidewater_caustics::CausticMaterialInputs>>,
 ) {
     let Some(v) = &probe.village else {
         return;
@@ -181,11 +194,22 @@ pub fn setup(
         .iter()
         .map(|(k, v)| (k.clone(), images.add(v.clone())))
         .collect();
+    let (ground_bounce, bounce_settings) = v.ground_bounce.as_ref().map_or_else(
+        || (None, Vec4::ZERO),
+        |(image, settings)| (Some(images.add(image.clone())), *settings),
+    );
     let mesh_handles: BTreeMap<_, _> = v
         .meshes
         .iter()
         .map(|(k, v)| (k, meshes.add(v.clone())))
         .collect();
+    let mut caustics = caustics.as_deref().cloned().unwrap_or_else(|| {
+        forge_engine::tidewater_caustics::CausticMaterialInputs::disabled(&mut images)
+    });
+    if std::env::var_os("FORGE_TIDEWATER_VILLAGE_UNDERWATER_OFF").is_some() {
+        // Negative is an explicit diagnostic opt-out, preserved by live controls.
+        caustics.params.water_scattering.w = -1.0;
+    }
     let lighting = building_materials::LightingBindings {
         scene_lighting: v.lighting.clone(),
         environment: environment.0.clone(),
@@ -200,6 +224,9 @@ pub fn setup(
         } else {
             Vec4::ZERO
         },
+        ground_bounce,
+        bounce_settings,
+        caustics,
     };
     let prepared = v
         .description
@@ -232,6 +259,71 @@ pub fn setup(
         nodes = v.description.nodes.len(),
         "Source village instantiated"
     );
+}
+
+fn load_ground_bounce(
+    files: &BTreeMap<String, Vec<u8>>,
+    lighting: &forge_engine::tidewater_material::SceneLighting,
+) -> Result<Option<(Image, Vec4)>, Box<dyn Error>> {
+    #[derive(Deserialize)]
+    struct Description {
+        schema: String,
+        version: u32,
+        source_commit: String,
+        width: u32,
+        height: u32,
+        format: String,
+        sun_direction: [f32; 3],
+        sea_level: f32,
+        strength: f32,
+        files: BTreeMap<String, String>,
+    }
+    let (Some(metadata), Some(bytes)) = (
+        files.get("ground-bounce.json"),
+        files.get("ground-bounce.rgba16.bin"),
+    ) else {
+        if files.contains_key("ground-bounce.json")
+            || files.contains_key("ground-bounce.rgba16.bin")
+        {
+            return Err("Incomplete ground bounce source".into());
+        }
+        return Ok(None);
+    };
+    let description: Description = serde_json::from_slice(metadata)?;
+    if description.schema != "forge.tidewater.ground-bounce-probe"
+        || description.version != 1
+        || description.source_commit != "1438b1abfcaee3267092b75573014f4d9b4a983c"
+        || description.width != 512
+        || description.height != 512
+        || description.format != "rgba16float"
+        || bytes.len() != 512 * 512 * 8
+        || description.files.get("ground-bounce.rgba16.bin")
+            != Some(&forge_core::bytes_sha256(bytes).to_string())
+        || !description.sea_level.is_finite()
+        || !description.strength.is_finite()
+        || !(0.0..=2.0).contains(&description.strength)
+        || !Vec3::from_array(description.sun_direction).is_finite()
+        || (Vec3::from_array(description.sun_direction) - lighting.sun_direction.truncate())
+            .length()
+            > 0.001
+    {
+        return Err("Invalid ground bounce source".into());
+    }
+    let image = Image::new(
+        Extent3d {
+            width: 512,
+            height: 512,
+            depth_or_array_layers: 1,
+        },
+        TextureDimension::D2,
+        bytes.clone(),
+        TextureFormat::Rgba16Float,
+        RenderAssetUsages::default(),
+    );
+    Ok(Some((
+        image,
+        Vec4::new(description.strength, description.sea_level, 0.0, 0.0),
+    )))
 }
 
 fn load_lighting(

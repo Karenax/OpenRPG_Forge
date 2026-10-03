@@ -1,0 +1,239 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "veilleur-d-ossuaire-plate-v1.png",
+      "alt": "Un Veilleur d’ossuaire en manteau réparé tient un bâton à clochette ; son masque de terre cuite surmonte une armature d’os et de bois.",
+      "caption": "Il accueille les visiteurs, rappelle les usages locaux et surveille les déplacements de restes confiés. Il demande des explications avant de barrer une sortie, sauf agression en cours.",
+      "prompt_key": "veilleur-d-ossuaire-plate-v1"
+    }
+  ],
+  "creature_id": "creature.veilleur-d-ossuaire",
+  "name": "Veilleur d’ossuaire",
+  "subtitle": "Le mort lié qui maintient une garde après la dernière cérémonie",
+  "classification": {
+    "nature": "Mort lié à un assemblage funéraire matériel",
+    "family": "Veilles funéraires consenties",
+    "rarity": "Rare, dans les ossuaires dont un engagement de garde demeure actif",
+    "activity": "Veille lente entrecoupée d'immobilité ; répond aux visites et aux désordres",
+    "social": "Individu lié à un lieu, parfois accompagné de conservateurs vivants",
+    "threat": "forte",
+    "threat_reason": "Il défend les personnes confiées au lieu et l'intégrité des sépultures avec un corps insensible à la fatigue biologique ordinaire, mais ses gestes et sa magie ont des coûts et des limites."
+  },
+  "physique": {
+    "dimensions": "1,6 à 1,9 m debout ; corps étroit autour d'une armature de bois",
+    "mass_kg": [
+      26,
+      44
+    ],
+    "locomotion": [
+      "marche bipède lente",
+      "appui sur un bâton de garde"
+    ],
+    "center_of_gravity": "Proche du bassin lesté de terre cuite ; les ligatures imposent des virages prudents.",
+    "silhouette": "Assemblage d'os confiés au lieu, de terre cuite et de bois, enveloppé d'un manteau de garde réparé ; une clochette pend au bâton.",
+    "anatomy_zones": [
+      {
+        "zone": "Masque et col",
+        "description": "Masque de terre cuite au-dessus d'une armature légère ; il abrite le point d'expression de la voix, pas un cerveau vivant.",
+        "protection": 8
+      },
+      {
+        "zone": "Cage et bassin",
+        "description": "Os maintenus par des liens autour d'une structure de bois et de poids de terre cuite ; ensemble matériel réellement pesant.",
+        "protection": 10
+      },
+      {
+        "zone": "Membres et ligatures",
+        "description": "Segments rigides articulés par des liens remplaçables ; les attaches restent les parties les plus exposées.",
+        "protection": 4
+      }
+    ]
+  },
+  "habitats": [
+    "ossuaires entretenus par une communauté",
+    "galeries funéraires dotées d'un espace d'accueil"
+  ],
+  "ecology": {
+    "diet": "Ne mange ni ne respire. Les conservateurs remplacent liens, tissus et pièces abîmées ; cet entretien ne remplace pas le repos nécessaire à ses ressources d'action.",
+    "lifecycle": "Une personne défunte peut avoir accepté de lier une part de sa veille à un assemblage funéraire. La présence conserve un rôle et des souvenirs fragmentaires, sans preuve qu'elle soit la totalité de la personne revenue. Elle peut demander ou recevoir une cérémonie de libération.",
+    "reproduction": "Aucune reproduction, contagion ni levée spontanée des autres morts. Chaque veille exige un engagement distinct, un lieu préparé et une décision funéraire ; casser le corps ne crée pas de nouveaux veilleurs.",
+    "behavior": "Il accueille les visiteurs, rappelle les usages locaux et surveille les déplacements de restes confiés. Il demande des explications avant de barrer une sortie, sauf agression en cours.",
+    "niche": "Gardien rituel et interlocuteur de la mémoire d'un lieu, sans fonction de prédateur.",
+    "environmental_impact": "Il maintient les allées dégagées et signale les infiltrations ; une veille privée de conservateurs peut toutefois appliquer des consignes devenues inadaptées."
+  },
+  "senses": [
+    "Distingue silhouettes, lumière et gestes dans son champ proche, sans vision à travers les murs.",
+    "Entend la parole et les vibrations de pas dans la galerie, sans lire les pensées ni reconnaître infailliblement une intention."
+  ],
+  "communication": [
+    "Parole lente entrecoupée de silences, gestes du bâton et sons de clochette ; il peut avouer qu'un souvenir lui manque."
+  ],
+  "signs": [
+    "Allée balayée dans une salle pourtant rarement visitée.",
+    "Ligatures neuves à côté de tissus très anciens.",
+    "Clochette isolée suivie d'une demande de se présenter."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Protéger les visiteurs et les restes confiés.",
+      "Comprendre pourquoi un usage funéraire n'est plus respecté."
+    ],
+    "fears": [
+      "Dispersion irréversible de sépultures sans accord.",
+      "Perte de ses repères au point de nuire à ceux qu'il protège."
+    ],
+    "morale": "Il cherche à retenir une intrusion plutôt qu'à tuer ; une preuve d'erreur ou une demande de libération reconnue peut interrompre l'affrontement.",
+    "escalation": "Il salue, demande une explication, barre un seuil puis frappe si une personne continue une profanation manifeste ou attaque un visiteur.",
+    "retreat": "Il rejoint une salle large permettant de protéger les présents et cesse une poursuite à la limite de son lieu de garde."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 5,
+      "dexterity": 5,
+      "constitution": 7,
+      "intelligence": 5,
+      "willpower": 8,
+      "perception": 7,
+      "presence": 6
+    },
+    "skills": {
+      "impact_weapons": 45,
+      "unarmed": 35,
+      "spirit": 55,
+      "lore": 50,
+      "empathy": 40,
+      "vigilance": 55,
+      "persuasion": 40
+    },
+    "movement": "Marche 1,4 m/s ; accélération à 2,5 m/s sur 4 m ; franchit les marches avec le bâton et ne saute pas entre deux galeries.",
+    "protections": [
+      "L'assemblage n'a pas de chair à lacérer, mais une fracture, une ligature rompue ou une pièce perdue réduit réellement sa mobilité."
+    ],
+    "attacks": [
+      {
+        "name": "Bâton de seuil",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 23,
+        "reach": "1,5 m devant lui",
+        "stamina_cost": 12,
+        "preparation": "0,8 seconde pour ramener le bâton depuis le sol",
+        "telegraph": "La clochette cesse de sonner et le bâton se relève en travers du passage.",
+        "effect": "Une frappe contondante unique vise une zone accessible. Elle ne draine ni vie ni mémoire et s'arrête au premier obstacle solide.",
+        "counterplay": "S'arrêter hors du seuil, quitter la ligne de frappe ou interposer un support stable sans tirer sur les restes funéraires."
+      },
+      {
+        "name": "Revers de garde",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 16,
+        "reach": "0,7 m depuis l'épaule",
+        "stamina_cost": 8,
+        "preparation": "0,5 seconde pour pivoter et dégager l'avant-bras",
+        "telegraph": "Le manteau s'écarte et l'épaule tourne vers le contact.",
+        "effect": "Pousse une seule cible ou un objet au contact avec l'avant-bras. Le recul dépend des masses et des appuis ; aucune projection garantie, saisie prolongée ou transmission de malédiction.",
+        "counterplay": "Reculez hors du contact, évitez l'angle du pivot et montrez des mains libres si l'objectif est d'interrompre le conflit."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Écho de garde",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "spirit",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "voix nettement audible jusqu'à 12 m dans une galerie ouverte",
+        "stamina_cost": 10,
+        "preparation": "1,4 seconde ; 12 Mana et 6 Concentration à l'activation",
+        "telegraph": "Il touche la clochette sans la faire sonner et son masque vibre avant les premiers mots.",
+        "effect": "Sous concentration continue pendant 8 secondes au maximum, porte sa propre voix et répète une courte consigne connue. N'impose ni obéissance ni peur, n'imite pas un défunt et ne révèle pas un souvenir absent. Une porte pleine atténue la voix ; l'interruption de la concentration met fin à l'amplification.",
+        "counterplay": "Écouter depuis une distance sûre, lui répondre entre deux phrases ou interrompre son attention ; une consigne entendue peut être discutée et refusée."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Épuisement biologique ordinaire",
+        "mechanism": "L'assemblage n'a pas besoin d'oxygène ou de nourriture, mais ses ressources d'action et l'usure de ses liens empêchent une activité illimitée."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Ligatures dégradées",
+        "mechanism": "L'humidité et l'abrasion fragilisent les attaches ; une rupture désolidarise un segment même si la présence reste active."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Infiltration au-dessus des rangements",
+        "result": "Déplacement préventif et demande d'aide",
+        "chain": "L'eau humidifie les tissus et les supports, le veilleur constate leur dégradation et privilégie une mise à l'abri organisée des restes plutôt que le contrôle d'un passage secondaire."
+      },
+      {
+        "input": "Allée encombrée de mobilier déplacé",
+        "result": "Circulation et garde entravées",
+        "chain": "Les meubles réduisent les appuis disponibles, le bâton ne peut plus pivoter librement et le veilleur demande leur remise en place avant de laisser entrer un groupe."
+      }
+    ],
+    "resources": {
+      "vitality": 112,
+      "stamina": 109,
+      "mana": 88,
+      "balance": 88,
+      "focus": 100
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "lore",
+      "difficulty": 18,
+      "fact": "Une veille funéraire ne rend pas contagieuse la mort ; les autres os restent inertes et chaque engagement est distinct."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les silences face à certains noms semblent marquer des souvenirs manquants plutôt qu'un refus systématique de répondre."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Un sceau d'argile placé à l'intérieur du talon gauche conserve la signature d'une apprentie exclue des archives officielles ; il peut lui rendre l'attribution du premier assemblage de ce lieu."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "interlocuteur d'un lieu de mémoire",
+      "gardien d'un seuil funéraire",
+      "allié lors d'une mise à l'abri"
+    ],
+    "telegraphs": [
+      "Le bâton quitte le sol avant la frappe.",
+      "Le masque vibre avant l'écho de garde."
+    ],
+    "noncombat_options": [
+      "Se présenter, demander les usages du lieu et convenir d'un trajet qui respecte les rangements funéraires.",
+      "Faire venir un conservateur reconnu pour réparer une infiltration ou discuter d'une consigne devenue inadaptée ; toute libération doit suivre la décision funéraire du lieu."
+    ],
+    "complications": [
+      "Les vivants peuvent se disputer la légitimité d'une consigne ancienne.",
+      "Déplacer un rangement pour le protéger peut être pris pour un vol si l'on n'explique pas l'opération."
+    ]
+  },
+  "salvage": [
+    "Aucun prélèvement sur les restes confiés. Après libération consentie, seuls les matériaux non funéraires explicitement cédés par les responsables peuvent être réemployés ; les os suivent les usages du lieu."
+  ]
+}

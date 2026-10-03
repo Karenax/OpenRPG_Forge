@@ -1,0 +1,252 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.taupe-belier-de-basalte",
+  "name": "Taupe-bélier de basalte",
+  "subtitle": "L'ouvrière aveugle des talus volcaniques",
+  "classification": {
+    "nature": "animal fouisseur",
+    "family": "fouisseurs à casque",
+    "rarity": "peu commune dans les vallées volcaniques",
+    "activity": "active sous terre par courtes séquences de quatre heures",
+    "social": "adultes solitaires ; galeries voisines tolérées autour d'une source",
+    "threat": "forte",
+    "threat_reason": "Sa masse et son casque renversent les étais fragiles ; elle reste lente à découvert et avertit longtemps avant une charge dans une galerie."
+  },
+  "physique": {
+    "dimensions": "1,8 à 2,2 m de long ; 0,8 m de haut à l'épaule",
+    "mass_kg": [
+      150,
+      230
+    ],
+    "locomotion": [
+      "fouissement dans les cendres meubles",
+      "marche basse",
+      "charge rectiligne brève"
+    ],
+    "center_of_gravity": "Très bas entre les épaules ; l'arrière plus léger tourne difficilement dans un boyau.",
+    "silhouette": "Corps trapu, quatre pattes en pelle et casque frontal annelé couvert de poussière noire.",
+    "anatomy_zones": [
+      {
+        "zone": "casque frontal",
+        "description": "Kératine chargée de grains minéraux ; ses anneaux répartissent les chocs reçus de face.",
+        "protection": 24
+      },
+      {
+        "zone": "nuque et dos",
+        "description": "Peau plissée sur une musculature épaisse, sans plaque osseuse continue.",
+        "protection": 10
+      },
+      {
+        "zone": "ventre",
+        "description": "Peau fine protégée surtout par la proximité du sol.",
+        "protection": 3
+      },
+      {
+        "zone": "pattes-pelles",
+        "description": "Griffes larges ; articulations et coussinets exposés entre les doigts.",
+        "protection": 8
+      }
+    ]
+  },
+  "habitats": [
+    "talus de cendres consolidées autour d'anciens cônes volcaniques",
+    "éboulis de basalte mêlés de terre chaude"
+  ],
+  "ecology": {
+    "diet": "Racines charnues, larves et champignons souterrains ; elle lèche certains dépôts salins après la pluie.",
+    "lifecycle": "Les jeunes suivent une galerie maternelle pendant deux ans ; un adulte renouvelle son casque par couches pendant une vingtaine d'années.",
+    "reproduction": "Un petit naît tous les deux ou trois ans dans une chambre haute, hors d'atteinte des crues souterraines.",
+    "behavior": "Elle tasse les parois en reculant et abandonne un front de taille dès que le matériau devient roche massive ; elle ne traverse pas la pierre intacte.",
+    "niche": "Aère les sols volcaniques et met à jour des réserves de racines accessibles à d'autres animaux.",
+    "environmental_impact": "Les chambres abandonnées drainent les talus, mais leur connexion accidentelle à une galerie minière peut provoquer un affaissement."
+  },
+  "senses": [
+    "vibrations transmises par les coussinets au sol",
+    "odorat sensible aux racines et aux changements d'air ; vue limitée aux contrastes proches"
+  ],
+  "communication": [
+    "trois coups de casque espacés pour annoncer une occupation",
+    "soufflement nasal prolongé face à une issue bouchée"
+  ],
+  "signs": [
+    "terre repoussée en bourrelets réguliers",
+    "marques parallèles larges comme une paume",
+    "grains noirs polis mêlés aux poils dans les angles d'une galerie"
+  ],
+  "demeanor": {
+    "objectives": [
+      "ouvrir une galerie sèche",
+      "atteindre une réserve de racines",
+      "dégager sa voie de fuite"
+    ],
+    "fears": [
+      "eau montante",
+      "sol qui résonne sans retour ferme",
+      "fumée piégée sous terre"
+    ],
+    "morale": "Elle insiste devant un obstacle immobile mais renonce après deux charges infructueuses ou une blessure grave.",
+    "escalation": "Elle cesse de creuser, sonde le sol puis frappe trois fois avant d'abaisser le casque.",
+    "retreat": "Elle recule jusqu'à une chambre assez large pour se retourner ; si le retour est bloqué, elle gratte une paroi meuble plutôt que charger sans fin."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 8,
+      "dexterity": 4,
+      "constitution": 8,
+      "intelligence": 2,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 4
+    },
+    "skills": {
+      "athletics": 58,
+      "unarmed": 50,
+      "survival": 52,
+      "vigilance": 60,
+      "tracking": 35
+    },
+    "movement": "Marche 2 m/s, charge 6 m/s sur 5 m ; fouissement 0,2 m/s uniquement dans un sol meuble, sans traverser une dalle ni un mur porteur.",
+    "protections": [
+      "Le casque protège seulement le cône frontal de 80 degrés.",
+      "Le dos amortit les petits débris ; poussière et gaz peuvent toujours atteindre les voies respiratoires."
+    ],
+    "attacks": [
+      {
+        "name": "Charge de déblai",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 34,
+        "reach": "course rectiligne de 5 m puis contact du casque à 0,6 m",
+        "stamina_cost": 22,
+        "preparation": "1,5 seconde après trois coups au sol",
+        "telegraph": "Le train arrière pousse de la terre tandis que le casque s'aligne sur la galerie.",
+        "effect": "Un contact contondant et jusqu'à 22 points d'Équilibre perdus ; arrêt au premier obstacle solide. Récupération 1,6 seconde, sans réorientation pendant la charge.",
+        "counterplay": "Gagner une niche latérale de 1 m ou interposer un appui réellement solide ; un sol glissant raccourcit sa poussée."
+      },
+      {
+        "name": "Balayage de pelle",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 23,
+        "reach": "0,9 m devant une épaule",
+        "stamina_cost": 13,
+        "preparation": "0,8 seconde, patte relevée",
+        "telegraph": "Une griffe racle le plafond puis se tourne vers l'ouverture.",
+        "effect": "Contact tranchant unique ; les pierres déplacées restent des objets physiques et ne deviennent pas un second Impact garanti.",
+        "counterplay": "Se tenir du côté opposé à la patte levée ou protéger l'angle avec une garde ; après le geste, cette épaule reste découverte pendant 0,7 seconde."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Sondage du talus",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "vigilance",
+        "attribute_id": "perception",
+        "impact": 0,
+        "reach": "6 m par sol continu",
+        "stamina_cost": 6,
+        "preparation": "2 secondes immobile, quatre pattes posées",
+        "telegraph": "L'animal presse alternativement ses coussinets et suspend sa respiration.",
+        "effect": "Vigilance D18 distingue une masse mobile d'une vibration régulière ; le résultat donne une direction approximative pendant 3 secondes, jamais une identité. Un vide interrompt la transmission.",
+        "counterplay": "S'immobiliser, quitter le même sol ou faire vibrer un objet ailleurs ; un effondrement brouille tous les signaux, y compris ceux de l'animal."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "petits éboulements frontaux",
+        "mechanism": "Le casque répartit les chocs ; sa protection ne couvre ni le ventre ni un ensevelissement qui prive d'air."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "inondation des chambres",
+        "mechanism": "Ses poumons et son corps dense imposent de gagner l'air ; elle ne peut combattre et creuser efficacement sous l'eau."
+      },
+      {
+        "subject": "casque engagé dans une ouverture",
+        "mechanism": "Les anneaux peuvent se coincer entre deux poutres ; dégager le corps demande 2 secondes sans poussée opposée."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "étai brisé sur la trajectoire d'une charge",
+        "result": "chute possible du plafond fragilisé",
+        "chain": "Le casque pousse l'étai, la charge du plafond perd son appui et les pierres tombent sur tous les occupants, y compris l'animal."
+      },
+      {
+        "input": "rigole dirigée vers une galerie basse",
+        "result": "abandon progressif du front de fouille",
+        "chain": "L'eau remplit les creux et porte la terre fine ; l'animal cherche une chambre haute avant que son accès à l'air se ferme."
+      }
+    ],
+    "resources": {
+      "vitality": 124,
+      "stamina": 108,
+      "mana": 64,
+      "balance": 104,
+      "focus": 92
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "Les bourrelets régulièrement tassés signalent un passage entretenu ; une sortie bouchée de terre fraîche peut servir de porte et non de cul-de-sac."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La régularité des séances de fouille pourrait suivre les variations de température du sol plutôt que la lumière."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "La salive d'une femelle allaitante fixe temporairement les poussières arsenicales en granules inertes ; cet effet disparaît dès leur séchage."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "danger de galerie",
+      "cause d'affaissement local",
+      "animal déplacé par un chantier"
+    ],
+    "telegraphs": [
+      "Trois coups sourds précèdent la charge.",
+      "La poussière s'arrête de tomber lorsque l'animal écoute."
+    ],
+    "noncombat_options": [
+      "Ouvrir un débouché latéral vers le talus, puis se retirer pour lui laisser une sortie.",
+      "Déplacer le chantier et ses vibrations quelques heures, afin qu'elle atteigne sa réserve sans rencontrer les mineurs."
+    ],
+    "complications": [
+      "Un mineur peut confondre les coups du casque avec un signal de secours.",
+      "L'eau utilisée pour la détourner peut aussi fragiliser les fondations du hameau."
+    ]
+  },
+  "salvage": [
+    "Récupérer uniquement les lamelles de casque naturellement détachées dans une galerie abandonnée.",
+    "Étudier les drains laissés vacants plutôt que détruire une chambre occupée ; toute collecte doit respecter les ouvrages voisins."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "taupe-belier-de-basalte-plate-v1.png",
+      "alt": "Une Taupe-bélier trapue sort d’un terrier volcanique ; ses pattes-pelles et son casque frontal annelé sont couverts de poussière noire.",
+      "caption": "Elle tasse les parois en reculant et abandonne un front de taille dès que le matériau devient roche massive ; elle ne traverse pas la pierre intacte.",
+      "prompt_key": "taupe-belier-de-basalte-plate-v1"
+    }
+  ]
+}

@@ -1,5 +1,43 @@
 # forge_engine
 
+`tidewater_boat::PreparedBoat` projects a verified `BoatPackage` into a disposable
+authoring frame. Its 14 source nodes retain their parentage and local poses;
+the 12 visible meshes preserve position, normal, UV, linear colour, `aux` and
+ordered triangles. The 23 source collision records retain `walkable` and
+`solid` separately. A non-solid walkable deck remains a static support, not a
+sensor; these cuboids do not implement the source boat-local player controller.
+
+`stage_authored<M>` validates the catalog asset ID, exact receipt, unique
+placement IDs, unit scale and all resident material handles before allocation.
+Its unparented placement wrapper owns the source hierarchy and a hash-verified
+water-exclusion child at the descriptor's source parent/local frame. The source
+proxy retains its eight boundary edges without repairs. `ResidentBoat<M>::census`
+checks current ownership, parentage, poses, five attribute streams, triangle
+indices, render intent and exclusion identity. `is_synchronized` additionally
+checks actual Rapier registrations and explicit collision failures. The census
+covers those resident instances, not all possible boats in a zone. It currently
+hashes the CPU meshes when called and has no measured runtime performance budget.
+
+Prepare a replacement before retiring the current residency. `retire` removes
+owned entities even after reparenting, detaches foreign children, and preserves
+shared materials and meshes adopted by another render entity. The caller owns
+the lifetime of any adopted mesh. Canonical authoring documents remain outside
+Bevy; a projected placement copy is an identity/readiness guard.
+
+The material type is supplied by the caller. This geometry adapter does not
+generate inspection PBR materials or qualify procedural shaders, shadow alpha,
+temporal velocity, GPU rendering, Studio editing or boat driving. The mandatory
+actual-package headless proof is:
+
+```text
+cargo run -p forge_engine --example verify_tidewater_boat_instance -- PACKAGE_ROOT
+```
+
+The proof uses unrendered `StandardMaterial` handles solely to exercise the
+generic geometry lifecycle. It refuses a missing package instead of skipping,
+checks bit-preserved mesh streams, real Rapier registration, invalid placements,
+ownership changes, placement serialization, replacement and isolated retirement.
+
 For accepted authoring paths, use `update_vegetation_sources_with_paths` after
 terrain acknowledgement. It keeps the authored vegetation document unchanged;
 path clearances participate in generation, quality preparation, asynchronous
@@ -771,3 +809,20 @@ airborne state or an observed steep-slope slide restores sliding. No transform
 is pinned and no map-specific coordinate is used. The slope regression runs
 30 seconds without input after settling; movement/jump/steep-slope tests remain
 part of the controller qualification.
+
+`source_mesh_pipeline` prepares hash-pinned source mesh programs on the caller's
+existing Bevy `RenderDevice`/`RenderAdapter`. It checks declared resource limits
+and format capabilities, then awaits shader and layout/pipeline validation.
+The result owns layouts and pipeline, retaining material/pass/late identity.
+It requires explicit v2 source policies and creates no second device or renderer.
+Live scene resources, bind groups, drawing and frame composition remain the
+caller’s responsibility. The native verifier proves pipeline creation; it does
+not qualify source variant coverage, scene appearance or browser execution.
+
+`source_local_lights` collects ordered source-space lamps and torch state into
+its 448-byte source uniform block. Its ECS helper reads propagated live transforms
+and checks an explicit registration inventory; the GPU helper borrows the existing
+Bevy device and queue and rejects stale publication tags. Its Rust/CPU/GPU validation
+is in progress. Actual import metadata, authoritative night/time publication,
+RenderWorld scene integration and mesh drawing remain open. See
+`docs/evidence/tidewater/2026-10-02-source-local-lights.md` for scope and evidence.

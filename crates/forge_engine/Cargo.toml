@@ -12,23 +12,58 @@ default = ["native"]
 native = ["physics-rapier"]
 web = ["bevy/webgpu", "physics-rapier"]
 qualification = ["physics-rapier"]
-physics-rapier = ["dep:bevy_rapier3d", "dep:forge_assets"]
+physics-rapier = ["dep:bevy_rapier3d", "dep:forge_assets", "dep:forge_navigation"]
 
 [dependencies]
 bevy.workspace = true
 bevy_rapier3d = { workspace = true, optional = true }
 forge_assets = { workspace = true, optional = true }
 forge_core.workspace = true
+forge_gameplay.workspace = true
+forge_navigation = { workspace = true, optional = true }
 forge_project.workspace = true
 forge_world.workspace = true
+# Bevy's public SortedPhaseItem API names this exact already-locked type.
+indexmap = "=2.14.1"
 serde.workspace = true
-serde_json.workspace = true
+# Source clocks/camera values must round-trip exactly before GPU packet packing.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
 tracing.workspace = true
+wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Worker", "WorkerOptions", "WorkerType", "MessageEvent", "ErrorEvent", "Window", "Performance"] }
+getrandom = { version = "=0.3.4", default-features = false, features = ["wasm_js"] }
 
 [dev-dependencies]
 # Validate Forge optical WGSL with the same Naga version already locked by Bevy.
 naga = { version = "=29.0.4", features = ["wgsl-in"] }
-wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
 
 [lints]
 workspace = true
+
+[[example]]
+name = "source_normal_precision_proof"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "verify_tidewater_boat_instance"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "verify_source_mesh_pipelines"
+required-features = ["native"]
+
+[[example]]
+name = "verify_source_local_lights"
+required-features = ["native"]
+
+[[example]]
+name = "source_fragment_render_probe"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "source_fragment_capture_probe_v3"
+required-features = ["physics-rapier"]

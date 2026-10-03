@@ -1,0 +1,241 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "porte-braise-plate-v1.png",
+      "alt": "Un Porte-braise de terre cuite cerclé de métal transporte des braises visibles dans sa trappe ventrale, au milieu d’un atelier de cuisson.",
+      "caption": "Il vérifie les appuis, dégage un passage et attend un signal convenu avant de livrer son chargement. Une consigne contradictoire le fait s'immobiliser et appeler par frappes.",
+      "prompt_key": "porte-braise-plate-v1"
+    }
+  ],
+  "creature_id": "creature.porte-braise",
+  "name": "Porte-braise",
+  "subtitle": "Le manutentionnaire de terre cuite qui transporte le feu vivant",
+  "classification": {
+    "nature": "Construction animée",
+    "family": "Ouvriers de foyer",
+    "rarity": "Rare, dans les ateliers qui entretiennent encore leurs anciens automates",
+    "activity": "Liée aux heures de chauffe, avec une veille immobile entre les services",
+    "social": "Solitaire ou intégré à une équipe d'artisans",
+    "threat": "forte",
+    "threat_reason": "Son poids, ses outils et le combustible incandescent qu'il transporte rendent un heurt dangereux, surtout dans un atelier encombré."
+  },
+  "physique": {
+    "dimensions": "1,5 à 1,8 m debout ; caisse ventrale de 0,6 m de large",
+    "mass_kg": [
+      85,
+      145
+    ],
+    "locomotion": [
+      "marche bipède articulée",
+      "pas latéraux courts sur sol ferme"
+    ],
+    "center_of_gravity": "Bas et avancé lorsque la caisse ventrale est chargée ; il écarte les pieds avant de soulever un panier.",
+    "silhouette": "Corps de terre cuite cerclé de métal, pieds plats et fourche courte ; une trappe ventrale laisse voir le rouge des braises transportées.",
+    "anatomy_zones": [
+      {
+        "zone": "Caisse du foyer",
+        "description": "Double paroi réfractaire et cercles de soutien ; les joints restent accessibles entre les plaques.",
+        "protection": 16
+      },
+      {
+        "zone": "Tête et collerette",
+        "description": "Visière de céramique sans visage organique, montée sur un pivot étroit.",
+        "protection": 12
+      },
+      {
+        "zone": "Articulations et pieds",
+        "description": "Axes métalliques, garnitures minérales et larges semelles de terre cuite.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "ateliers de cuisson ventilés",
+    "cours de charbonniers sur sol minéral"
+  ],
+  "ecology": {
+    "diet": "Ne se nourrit pas. Il transporte du charbon déjà allumé, remplacé par ses utilisateurs ; le combustible apporte la chaleur, pas une réserve infinie d'énergie.",
+    "lifecycle": "Assemblé puis animé dans un atelier, il apprend des trajets courts sous surveillance. Les joints se dégradent avec les cycles de chauffe ; une extinction contrôlée permet leur remplacement.",
+    "reproduction": "Aucune reproduction biologique. Un nouveau porte-braise exige un corps fabriqué, une animation distincte et un apprentissage ; une pièce détachée ne devient pas un individu.",
+    "behavior": "Il vérifie les appuis, dégage un passage et attend un signal convenu avant de livrer son chargement. Une consigne contradictoire le fait s'immobiliser et appeler par frappes.",
+    "niche": "Manutention de braises dans les espaces où les artisans préfèrent garder leurs distances du foyer.",
+    "environmental_impact": "Il concentre chaleur, cendres et poussière sur ses circuits. Sans ventilation, le foyer transporté dégrade l'air comme toute combustion ordinaire."
+  },
+  "senses": [
+    "Vibration des dalles et contacts transmis par ses pieds.",
+    "Repérage des silhouettes et des contrastes lumineux à travers une fente de visière."
+  ],
+  "communication": [
+    "Frappes sur son cerclage, positions de fourche et quelques mots appris ; il peut demander que l'on reformule une consigne."
+  ],
+  "signs": [
+    "Empreintes plates bordées de poussière de terre cuite.",
+    "Petits dépôts de cendre aux points d'arrêt.",
+    "Série régulière de trois frappes avant un passage étroit."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Livrer son chargement sans renverser de braises.",
+      "Conserver un trajet praticable vers une aire de dépôt."
+    ],
+    "fears": [
+      "Basculement dans une fosse.",
+      "Arrosage brutal d'une paroi très chaude."
+    ],
+    "morale": "Il protège son équilibre et son chargement ; il peut accepter de le déposer si on lui montre une aire sûre.",
+    "escalation": "Il frappe sa caisse, désigne le trajet puis écarte un obstacle ; il ne frappe directement qu'un agresseur au contact.",
+    "retreat": "Il recule vers une surface minérale large, abaisse le chargement et cesse les poursuites hors de son circuit."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 7,
+      "dexterity": 3,
+      "constitution": 8,
+      "intelligence": 4,
+      "willpower": 6,
+      "perception": 5,
+      "presence": 3
+    },
+    "skills": {
+      "impact_weapons": 40,
+      "throwing": 30,
+      "alteration": 45,
+      "crafting": 45,
+      "vigilance": 35,
+      "athletics": 40
+    },
+    "movement": "Marche 1,5 m/s sur sol ferme ; recul 0,7 m/s ; il ne saute pas et franchit une marche de 0,15 m seulement à vide.",
+    "protections": [
+      "La céramique réfractaire tolère la chaleur habituelle de son foyer, mais une montée trop rapide ou une fissure peut la rompre."
+    ],
+    "attacks": [
+      {
+        "name": "Revers de fourche",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 24,
+        "reach": "1,2 m devant ou sur le côté",
+        "stamina_cost": 12,
+        "preparation": "0,8 seconde pour écarter les pieds et armer la fourche",
+        "telegraph": "La fourche quitte le chargement et le pied extérieur pivote vers la cible.",
+        "effect": "Le manche et le plat de la fourche produisent un seul choc contondant. L'outil s'arrête au premier obstacle solide ; il n'arrache pas automatiquement une arme tenue.",
+        "counterplay": "Sortir de l'arc indiqué par les pieds, interposer un pilier ou reculer au-delà de la fourche."
+      },
+      {
+        "name": "Jet de cendre chaude",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 12,
+        "reach": "cône de 2 m devant la trappe",
+        "stamina_cost": 9,
+        "preparation": "0,9 seconde pour entrouvrir la trappe et incliner une pelle",
+        "telegraph": "La trappe claque, une lueur rouge apparaît et la pelle se place sous les résidus.",
+        "effect": "Projette au plus une pelle de cendre et de petits charbons déjà présents. La chaleur cause des brûlures au contact et la poussière gêne la vue ; l'action échoue si la caisse est vide ou froide et ne traverse pas une protection pleine.",
+        "counterplay": "Se placer de côté, couvrir visage et peau avec un écran adapté et éloigner les matières inflammables."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Répartition de chaleur",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "alteration",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "contact direct (0 m) avec une seule plaque de sa propre caisse",
+        "stamina_cost": 10,
+        "preparation": "1,5 seconde ; 12 Mana et 6 Concentration à l'activation",
+        "telegraph": "Il pose les deux mains sur le cerclage et la lueur des joints se déplace lentement.",
+        "effect": "Pendant 8 secondes au maximum, sous concentration continue, redistribue la chaleur déjà contenue dans sa caisse pour refroidir une poignée et chauffer une plaque voisine. Ne crée aucune chaleur, n'éteint pas le combustible et n'affecte pas une cible extérieure. Une interruption arrête le transfert ; la chaleur se diffuse ensuite normalement.",
+        "counterplay": "Profiter de son immobilité pour quitter le trajet ou interrompre son attention ; ne pas supposer que le reste de la caisse est devenu froid."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Braises de service",
+        "mechanism": "Les parois réfractaires séparent les braises des pivots ; une longue exposition ou une fissure finit néanmoins par atteindre les pièces internes."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Choc thermique",
+        "mechanism": "Un refroidissement brutal dilate inégalement les couches et peut ouvrir les joints d'une caisse déjà chaude."
+      },
+      {
+        "subject": "Sol meuble",
+        "mechanism": "La masse concentrée sur les pieds augmente l'enfoncement et rend la récupération d'équilibre lente."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Passage encombré de bois sec",
+        "result": "Risque de feu secondaire",
+        "chain": "Un heurt ouvre la trappe, une braise tombe dans les copeaux et un départ de feu devient possible si personne ne sépare rapidement combustible et chaleur."
+      },
+      {
+        "input": "Aire minérale dégagée avec bac de dépôt",
+        "result": "Arrêt sûr et possibilité de négocier",
+        "chain": "Les pieds trouvent un appui stable, le chargement peut être abaissé et la nécessité immédiate de défendre le passage disparaît."
+      }
+    ],
+    "resources": {
+      "vitality": 122,
+      "stamina": 108,
+      "mana": 72,
+      "balance": 100,
+      "focus": 84
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Le bruit de la trappe et le déplacement de la pelle précèdent le jet de résidus ; une caisse froide ne peut pas produire de braises."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Certains ateliers pensent que les itinéraires appris persistent après le remplacement d'un pivot, mais une révision complète exige toujours un essai surveillé."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Sous la glaçure de son talon droit, une empreinte de pouce contient un grain de verre bleu propre à un atelier disparu ; elle permettrait d'identifier son premier fabricant."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle mobile dans un atelier",
+      "ouvrier à secourir lors d'un incident"
+    ],
+    "telegraphs": [
+      "Le pied pivote avant le revers de fourche.",
+      "Les deux mains sur la caisse annoncent une redistribution de chaleur."
+    ],
+    "noncombat_options": [
+      "Dégager un passage jusqu'à un bac incombustible et lui demander d'y déposer les braises.",
+      "Faire répéter une consigne par un artisan reconnu, puis convenir d'un nouveau trajet avec des repères visibles."
+    ],
+    "complications": [
+      "Une charpente basse retient fumée et chaleur même si personne ne combat.",
+      "Un essieu de charrette brisé peut barrer son unique voie de retour."
+    ]
+  },
+  "salvage": [
+    "Céramique et cerclages issus d'une réforme consentie ou d'une carcasse réellement abandonnée ; attendre le refroidissement et ne pas démonter un ouvrier encore animé."
+  ]
+}

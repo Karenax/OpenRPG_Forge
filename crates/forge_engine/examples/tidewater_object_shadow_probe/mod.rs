@@ -2,6 +2,11 @@
 #![allow(clippy::needless_pass_by_value)]
 #[path = "../tidewater_plant_probe/vegetation_scene/canonical.rs"]
 pub(crate) mod canonical;
+#[allow(
+    dead_code,
+    reason = "The shared module is driven by tidewater_plant_probe; the static object-shadow example does not install its live source resource"
+)]
+pub mod live;
 #[path = "plant_shader.rs"]
 mod plant_shader;
 #[path = "plants.rs"]

@@ -35,6 +35,7 @@ web = [
 
 [dependencies]
 forge_core.workspace = true
+forge_gameplay.workspace = true
 forge_project.workspace = true
 forge_world.workspace = true
 serde.workspace = true

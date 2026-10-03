@@ -1,0 +1,253 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.tisseuse-de-verre",
+  "name": "Tisseuse de verre",
+  "subtitle": "L'araignée qui suspend la rosée entre les pierres",
+  "classification": {
+    "nature": "arthropode",
+    "family": "tisseuses siliceuses",
+    "rarity": "rare hors des sols riches en silice",
+    "activity": "nocturne ; immobile dans l'ombre pendant le jour",
+    "social": "solitaire, avec tolérance des juvéniles sur les toiles périphériques",
+    "threat": "moderee",
+    "threat_reason": "Ses fils presque transparents peuvent entraver un passage et ses chélicères percent la peau ; ses appuis fragiles et son refus de quitter sa toile offrent plusieurs issues."
+  },
+  "physique": {
+    "dimensions": "corps de 0,55 à 0,8 m ; envergure des pattes jusqu'à 2 m",
+    "mass_kg": [
+      12,
+      23
+    ],
+    "locomotion": [
+      "marche sur huit pattes",
+      "suspension à un fil",
+      "course courte sur toile tendue"
+    ],
+    "center_of_gravity": "Abdomen lourd sous la ligne des pattes ; stable suspendue mais lente à retourner sur le dos.",
+    "silhouette": "Abdomen translucide strié de poches laiteuses, pattes fines et filières entourées de petites plaques brillantes.",
+    "anatomy_zones": [
+      {
+        "zone": "céphalothorax",
+        "description": "Carapace mince ponctuée d'yeux, renforcée près des chélicères.",
+        "protection": 9
+      },
+      {
+        "zone": "abdomen",
+        "description": "Membrane souple contenant les réserves d'eau et de soie minéralisée.",
+        "protection": 3
+      },
+      {
+        "zone": "articulations",
+        "description": "Petites charnières sans enveloppe minérale continue.",
+        "protection": 1
+      },
+      {
+        "zone": "chélicères",
+        "description": "Crochets rigides recevant un venin visqueux par un canal étroit.",
+        "protection": 12
+      }
+    ]
+  },
+  "habitats": [
+    "arches calcaires traversées par un courant d'air humide",
+    "serres et verreries abandonnées près d'une source"
+  ],
+  "ecology": {
+    "diet": "Grands insectes, petits oiseaux et rongeurs pris dans les toiles ; les débris de silice sont ingérés en très faibles quantités.",
+    "lifecycle": "Les jeunes produisent une soie souple ; la minéralisation augmente après plusieurs mues, au prix d'un renouvellement fréquent des fils cassants.",
+    "reproduction": "Un cocon de quelques dizaines d'œufs reste fixé sous une pierre sèche ; les jeunes se dispersent lors de leur troisième mue.",
+    "behavior": "Elle entretient les fils qui récoltent la rosée avant les fils de capture. Une proie trop lourde est libérée si elle risque d'emporter les points d'ancrage.",
+    "niche": "Prédatrice de passage et collectrice d'humidité dans les cavités ventilées.",
+    "environmental_impact": "Ses nappes retiennent poussière et gouttelettes ; les vieux cocons deviennent des refuges pour de petits insectes."
+  },
+  "senses": [
+    "vibrations transmises par chaque ancrage de la toile",
+    "vision proche sensible au mouvement et aux reflets, peu utile derrière une paroi opaque"
+  ],
+  "communication": [
+    "pincements d'un fil périphérique lors de l'approche d'un partenaire",
+    "vibrations lentes signalant aux jeunes une zone de chasse occupée"
+  ],
+  "signs": [
+    "gouttelettes suspendues en lignes sans support apparent",
+    "éclats de fils brillants au pied d'une arche",
+    "enveloppes d'insectes ouvertes et rangées sous un abri"
+  ],
+  "demeanor": {
+    "objectives": [
+      "préserver les ancrages de récolte",
+      "réparer une toile rompue",
+      "tenir les grands animaux loin du cocon"
+    ],
+    "fears": [
+      "fil porteur arraché",
+      "vent sec prolongé",
+      "fumée sous la voûte"
+    ],
+    "morale": "Elle défend le cocon mais cède un passage périphérique si plusieurs ancrages sont menacés.",
+    "escalation": "Elle pince les fils, tend une patte vers l'intrus puis cherche à l'entraver ; la morsure suit seulement un contact prolongé.",
+    "retreat": "Elle remonte vers un abri supérieur par un fil de sécurité ; un adversaire au sol n'est pas poursuivi au-delà de 6 m de toile."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 8,
+      "constitution": 4,
+      "intelligence": 3,
+      "willpower": 5,
+      "perception": 7,
+      "presence": 3
+    },
+    "skills": {
+      "climbing": 65,
+      "acrobatics": 55,
+      "stealth": 52,
+      "unarmed": 42,
+      "traps": 48,
+      "vigilance": 60,
+      "survival": 40
+    },
+    "movement": "Marche 2 m/s ; déplacement sur fils porteurs 4 m/s ; suspension verticale jusqu'à 6 m sous un ancrage intact.",
+    "protections": [
+      "La carapace protège le thorax ; une patte ou l'abdomen ne bénéficie pas de cette protection.",
+      "La soie minéralisée est résistante en tension mais se casse sous une torsion répétée."
+    ],
+    "attacks": [
+      {
+        "name": "Morsure de retenue",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 17,
+        "reach": "0,5 m devant les chélicères",
+        "stamina_cost": 9,
+        "preparation": "0,7 seconde, pattes antérieures repliées",
+        "telegraph": "Les crochets s'écartent et une goutte blanche apparaît à leur extrémité.",
+        "effect": "Contact perforant ; seulement si le Trauma net dépasse 0, ajoute 20 de Toxicité une fois. Aucun ajout répété par la même morsure ; récupération 1 seconde.",
+        "counterplay": "Garder une protection entre les crochets et la peau, reculer de 0,6 m ou rompre l'appui de la patte avancée."
+      },
+      {
+        "name": "Rabattement des pattes",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 12,
+        "reach": "arc frontal de 1,1 m",
+        "stamina_cost": 12,
+        "preparation": "0,85 seconde en levant deux pattes",
+        "telegraph": "Le corps se redresse, laissant apparaître sa face inférieure.",
+        "effect": "Un contact contondant entraîne jusqu'à 10 points d'Équilibre perdus ; il peut rapprocher une cible d'un fil existant mais ne crée aucune entrave à lui seul.",
+        "counterplay": "Sortir par le côté opposé ou contenir les membres avec une garde ; l'abdomen reste exposé pendant 0,6 seconde après le geste."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Tension de capture",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "traps",
+        "attribute_id": "dexterity",
+        "impact": 0,
+        "reach": "un fil existant dans un rayon de 4 m",
+        "stamina_cost": 14,
+        "preparation": "1,2 seconde avec deux pattes sur le même réseau",
+        "telegraph": "Deux ancrages se rapprochent et les gouttelettes se mettent à vibrer.",
+        "effect": "Un fil touchant déjà un membre se tend pendant 4 secondes au maximum. La vitesse est réduite de 30 % tant que le contact tient ; une traction opposée ou la rupture du fil libère immédiatement. Une seule cible à la fois.",
+        "counterplay": "Sectionner le fil accessible, désolidariser un ancrage ou garder le membre hors du réseau avant la mise en tension ; une feuille rigide révèle et écarte les fils."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "petites pluies",
+        "mechanism": "La surface de la carapace évacue l'eau ; la toile en récolte une partie sans que cela rende l'animal immunisé à l'immersion."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "torsion des fils",
+        "mechanism": "La gaine siliceuse fissure lorsqu'un fil est enroulé trois fois autour d'un bâton ; sa tension peut alors le rompre."
+      },
+      {
+        "subject": "air très sec",
+        "mechanism": "La perte d'eau rend les articulations raides et oblige l'animal à rejoindre sa réserve de rosée."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "poussière légère lancée à travers le passage",
+        "result": "réseau de fils rendu visible",
+        "chain": "Les grains adhèrent à l'humidité des fils et dessinent leurs trajets ; le même voile révèle aussi le déplacement de l'animal."
+      },
+      {
+        "input": "détachement d'une pierre portant plusieurs ancrages",
+        "result": "affaissement d'une partie de la toile",
+        "chain": "La tension tire la pierre libérée et les fils convergents tombent avec elle ; les proies et la tisseuse peuvent perdre leur appui."
+      }
+    ],
+    "resources": {
+      "vitality": 92,
+      "stamina": 85,
+      "mana": 62,
+      "balance": 72,
+      "focus": 88
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "investigation",
+      "difficulty": 18,
+      "fact": "Les fils chargés de gouttes convergent vers des replis de réserve ; les couper tous prive l'animal d'eau plutôt que seulement de proies."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "La densité des reflets de l'abdomen pourrait permettre d'estimer le délai restant avant la prochaine mue."
+    },
+    {
+      "status": "secret",
+      "skill_id": "lore",
+      "difficulty": 30,
+      "fact": "Une levure propre à ses vieux cocons peut transformer une faible quantité de sucre en pigment rouge stable à la lumière ; elle ne vit pas sur la toile de chasse."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle de passage",
+      "prédatrice d'une verrerie délaissée"
+    ],
+    "telegraphs": [
+      "Les gouttes vibrent avant qu'un fil ne se tende.",
+      "Les pattes antérieures levées précèdent toujours une tentative de contact."
+    ],
+    "noncombat_options": [
+      "Écarter une seule nappe périphérique avec une perche, puis préserver les fils porteurs et le cocon.",
+      "Déposer une proie déjà morte sur une toile éloignée pour laisser le passage central libre pendant son examen."
+    ],
+    "complications": [
+      "Brûler les fils peut enfumer les voyageurs et provoquer la chute d'objets suspendus.",
+      "Une toile récoltant la seule eau de la cavité peut avoir d'autres usagers."
+    ]
+  },
+  "salvage": [
+    "Prélever uniquement les fils déjà rompus et les enveloppes de mue vides.",
+    "Collecter la rosée excédentaire sans assécher les réserves de l'animal ni déplacer les cocons."
+  ],
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, inspirée seulement d’archétypes généraux de fantasy. Aucun texte, statistique ou asset de D&D n’a été copié. Proposition de conception non implémentée.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "tisseuse-de-verre-plate-v1.png",
+      "alt": "Une Tisseuse de verre à l’abdomen translucide se tient dans une toile chargée de gouttes, entre des arches calcaires et une verrière abandonnée.",
+      "caption": "Elle entretient les fils qui récoltent la rosée avant les fils de capture. Une proie trop lourde est libérée si elle risque d'emporter les points d'ancrage.",
+      "prompt_key": "tisseuse-de-verre-plate-v1"
+    }
+  ]
+}

@@ -2,8 +2,8 @@
 use super::canonical;
 use super::{checked_file, plant_shader};
 use bevy::prelude::Vec4;
-use forge_engine::tidewater_object_shadow::plants::Batch;
 pub(super) use forge_engine::tidewater_object_shadow::plants::Input as Plants;
+use forge_engine::tidewater_object_shadow::plants::{Batch, Stream};
 use serde_json::Value;
 use std::{error::Error, path::Path};
 
@@ -26,6 +26,52 @@ fn float_bytes(
     }
     Ok(bytes)
 }
+pub(super) struct Source {
+    groups: Vec<Group>,
+}
+struct Group {
+    pos: Vec<u8>,
+    dat: Vec<u8>,
+    models: Vec<u8>,
+    radii: Vec<u8>,
+    radius: f64,
+    capacity: usize,
+}
+impl Source {
+    pub(super) fn select(&self, camera: Vec4) -> Result<Vec<Stream>, Box<dyn Error>> {
+        if !camera.is_finite() {
+            return Err("invalid plant selection camera".into());
+        }
+        Ok(self
+            .groups
+            .iter()
+            .map(|group| {
+                let ids = select(&group.pos, &group.radii, camera, group.radius)
+                    .into_iter()
+                    .take(group.capacity)
+                    .collect::<Vec<_>>();
+                Stream {
+                    records: ids
+                        .iter()
+                        .flat_map(|&i| {
+                            group.pos[i * 16..i * 16 + 16]
+                                .iter()
+                                .chain(&group.dat[i * 16..i * 16 + 16])
+                        })
+                        .copied()
+                        .collect(),
+                    models: ids
+                        .iter()
+                        .flat_map(|&i| group.models[i * 64..i * 64 + 64].iter())
+                        .copied()
+                        .collect(),
+                    count: u32::try_from(ids.len()).expect("plant capacity"),
+                }
+            })
+            .collect())
+    }
+}
+
 fn value(v: &[u8], index: usize) -> f32 {
     f32::from_le_bytes(
         v[index * 4..index * 4 + 4]
@@ -81,12 +127,32 @@ pub(super) fn load(
     camera: Vec4,
     scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
 ) -> Result<Plants, Box<dyn Error>> {
+    Ok(build(root, fixture, camera, scene_files, false)?.0)
+}
+pub(super) fn load_live(
+    root: &Path,
+    fixture: &Value,
+    camera: Vec4,
+    scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
+) -> Result<(Plants, Source), Box<dyn Error>> {
+    build(root, fixture, camera, scene_files, true)
+}
+
+#[allow(clippy::too_many_lines)]
+fn build(
+    root: &Path,
+    fixture: &Value,
+    camera: Vec4,
+    scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
+    live: bool,
+) -> Result<(Plants, Source), Box<dyn Error>> {
     let scene: Value =
         serde_json::from_slice(&checked_file(root, fixture, "vegetation-scene.json")?)?;
     if scene["schema"] != "forge.tidewater.vegetation-scene-probe" || scene["version"] != 1 {
         return Err("unsupported vegetation".into());
     }
     let mut batches = Vec::new();
+    let mut source_groups = Vec::new();
     let mut canonical_files = std::collections::BTreeMap::new();
     if scene_files.is_none() && fixture["files"].get("canonical-vegetation.json").is_some() {
         for name in fixture["files"]
@@ -187,17 +253,26 @@ pub(super) fn load(
         if !(1..=65536).contains(&capacity) {
             return Err("invalid plant capacity".into());
         }
-        let ids = select(&pos, &radii, camera, radius)
-            .into_iter()
-            .take(capacity)
-            .collect::<Vec<_>>();
+        source_groups.push(Group {
+            pos: pos.clone(),
+            dat: dat.clone(),
+            models: models.clone(),
+            radii: radii.clone(),
+            radius,
+            capacity,
+        });
+        let ids = if live {
+            Vec::new()
+        } else {
+            select(&pos, &radii, camera, radius)
+                .into_iter()
+                .take(capacity)
+                .collect::<Vec<_>>()
+        };
         println!(
             "native shadow plants {name}: {} instances; ids={ids:?}",
             ids.len()
         );
-        if ids.is_empty() {
-            continue;
-        }
         let records = ids
             .iter()
             .flat_map(|&i| {
@@ -297,13 +372,18 @@ pub(super) fn load(
     {
         return Err("unsupported leaf atlas".into());
     }
-    Ok(Plants {
-        batches,
-        shaders: [plant_shader::make(&raw, 0)?, plant_shader::make(&raw, 1)?],
-        leaf,
-        detail,
-        size,
-        mips,
-        camera,
-    })
+    Ok((
+        Plants {
+            batches,
+            shaders: [plant_shader::make(&raw, 0)?, plant_shader::make(&raw, 1)?],
+            leaf,
+            detail,
+            size,
+            mips,
+            camera,
+        },
+        Source {
+            groups: source_groups,
+        },
+    ))
 }

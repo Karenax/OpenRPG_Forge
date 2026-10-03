@@ -9,3 +9,8 @@ locked = true
 addresses = ["127.0.0.1"]
 port = 1420
 open = false
+
+[[hooks]]
+stage = "post_build"
+command = "pwsh"
+command_arguments = ["-NoProfile", "-File", "../../scripts/Build-NavigationWorker.ps1"]

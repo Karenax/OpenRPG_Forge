@@ -112,6 +112,14 @@ def calculated_resources(attributes: dict[str, int]) -> dict[str, int]:
 
 
 def validate_bundle(manifest: dict[str, Any], entries: list[dict[str, Any]], allow_placeholders: bool) -> None:
+    pending = [entry for entry in entries if entry.get("illustration_status") == "planned"]
+    if pending:
+        raise ValueError(
+            f"{len(pending)} fiches attendent leurs planches originales. "
+            "L'export livre/ancienne visionneuse n'est pas prêt pour cette édition. "
+            "Utiliser le codex launcher-aube et Test-Bestiary.py --source-only ; "
+            "--allow-placeholders ne remplace pas une direction artistique absente."
+        )
     ids: set[str] = set()
     images: set[str] = set()
     for entry in entries:

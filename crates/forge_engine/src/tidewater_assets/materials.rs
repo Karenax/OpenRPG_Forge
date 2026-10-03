@@ -1,5 +1,6 @@
 //! Material construction shared by the scene renderer and package consumers.
 use super::MaterialParameters;
+use crate::tidewater_caustics::CausticMaterialInputs;
 use crate::tidewater_material::{ObjectShadowSettings, SceneLighting, Settings, VillageMaterial};
 use bevy::prelude::*;
 use std::collections::BTreeMap;
@@ -15,6 +16,9 @@ pub struct LightingBindings {
     pub cloud_shadow: Option<Handle<Image>>,
     pub wind: Vec4,
     pub flags: Vec4,
+    pub caustics: CausticMaterialInputs,
+    pub ground_bounce: Option<Handle<Image>>,
+    pub bounce_settings: Vec4,
 }
 
 /// Build without modifying any asset store. Missing textures fail explicitly.
@@ -49,11 +53,18 @@ pub fn prepare(
         .collect::<Result<Vec<_>, _>>()?;
     resolved.resize(4, resolved[0].clone());
     Ok(VillageMaterial {
+        local_lights: crate::tidewater_material::local_lights::gpu::BUFFER.clone(),
         scene_lighting: lighting.scene_lighting.clone(),
         environment: lighting.environment.clone(),
         hill_shadow: lighting.hill_shadow.clone(),
         object_shadow: lighting.object_shadow.clone(),
         object_settings: lighting.object_settings.clone(),
+        live_shadows: crate::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
+        underwater_params: lighting.caustics.params.clone(),
+        underwater_level: lighting.caustics.light_maps.level.clone(),
+        underwater_map_frame: lighting.caustics.light_maps.frame.clone(),
+        ground_bounce: lighting.ground_bounce.clone(),
+        bounce_settings: lighting.bounce_settings,
         clouds: lighting.clouds,
         cloud_shadow: lighting.cloud_shadow.clone(),
         kind: parameters.kind,

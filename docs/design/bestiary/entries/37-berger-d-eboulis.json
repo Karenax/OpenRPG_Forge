@@ -1,0 +1,240 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "berger-d-eboulis-plate-v1.png",
+      "alt": "Un Berger d’éboulis en vêtements rapiécés inspecte une route de montagne, muni d’un levier ferré et de coins de bois.",
+      "caption": "Il écoute les chocs, repère les pierres instables et pose des marques pour fermer temporairement un chemin. Il négocie la réouverture après avoir inspecté les appuis.",
+      "prompt_key": "berger-d-eboulis-plate-v1"
+    }
+  ],
+  "creature_id": "creature.berger-d-eboulis",
+  "name": "Berger d’éboulis",
+  "subtitle": "Le géant des pentes qui conduit les pierres vers leurs lits d'arrêt",
+  "classification": {
+    "nature": "Humanoïde géant sapient",
+    "family": "Peuples des hautes terrasses",
+    "rarity": "Rare ; quelques foyers près des routes de montagne entretenues",
+    "activity": "Diurne, avec inspections après le gel et les pluies",
+    "social": "Foyers et équipes de travail ; le nom désigne un métier, pas une disposition innée",
+    "threat": "forte",
+    "threat_reason": "Sa taille et ses outils rendent un affrontement dangereux sur une pente, mais il cherche à sécuriser un terrain dont voyageurs et habitants dépendent."
+  },
+  "physique": {
+    "dimensions": "3,2 à 3,7 m debout ; épaules de 1,2 à 1,5 m de large",
+    "mass_kg": [
+      480,
+      760
+    ],
+    "locomotion": [
+      "marche bipède",
+      "progression oblique sur pente",
+      "appui sur un long levier"
+    ],
+    "center_of_gravity": "Bas pour sa taille, grâce à de larges hanches et des genoux souvent fléchis ; il évite les dalles en porte-à-faux.",
+    "silhouette": "Grande personne trapue, couverte de vêtements rapiécés et de protections de cuir, portant un levier ferré et des coins de bois.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et cou",
+        "description": "Coiffe matelassée et large col, utiles contre les petits éclats sans former un casque fermé.",
+        "protection": 5
+      },
+      {
+        "zone": "Torse et épaules",
+        "description": "Cuir superposé sur des vêtements épais ; la protection couvre surtout la face exposée aux pierres.",
+        "protection": 10
+      },
+      {
+        "zone": "Jambes et mains",
+        "description": "Guêtres renforcées et gants de travail, avec articulations libres pour saisir les outils.",
+        "protection": 7
+      }
+    ]
+  },
+  "habitats": [
+    "routes de montagne bordées de lits d'arrêt",
+    "terrasses pierreuses au-dessus des hameaux"
+  ],
+  "ecology": {
+    "diet": "Alimentation omnivore obtenue par culture, élevage et échange ; les besoins élevés imposent des réserves, pas la prédation sur les voyageurs.",
+    "lifecycle": "Les jeunes grandissent dans des foyers et apprennent progressivement la lecture des pentes. Le métier de berger d'éboulis est choisi et enseigné ; un adulte vieillissant peut se consacrer au conseil.",
+    "reproduction": "Naissances au sein des communautés ; ni les pierres ni les avalanches ne donnent naissance aux géants.",
+    "behavior": "Il écoute les chocs, repère les pierres instables et pose des marques pour fermer temporairement un chemin. Il négocie la réouverture après avoir inspecté les appuis.",
+    "niche": "Travailleur spécialisé dans l'entretien de pentes et de passages trop lourds pour une petite équipe humaine.",
+    "environmental_impact": "Les lits d'arrêt protègent les routes mais concentrent les débris ; leur aménagement peut déplacer l'eau et demande une concertation avec les habitants en aval."
+  },
+  "senses": [
+    "Ouïe entraînée aux chocs annonçant une pierre mobile.",
+    "Vision attentive des fissures, poussières fraîches et changements de pente."
+  ],
+  "communication": [
+    "Parole, appels portés par l'écho et panneaux de chantier ; les marques ne sont pas une langue secrète commune à tous les géants."
+  ],
+  "signs": [
+    "Coins de bois récents dans une fissure surveillée.",
+    "Couloir de pierres dégagé vers une cuvette de réception.",
+    "Grandes empreintes qui contournent soigneusement les mêmes dalles."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Empêcher le passage sous une zone instable.",
+      "Achever une déviation sans menacer les maisons en aval."
+    ],
+    "fears": [
+      "Présence d'enfants ou d'animaux dans le lit d'arrêt.",
+      "Effondrement d'un appui qu'il croyait sûr."
+    ],
+    "morale": "Il protège son équipe et avertit les intrus ; un désaccord sur un péage ou un chantier n'entraîne pas automatiquement un combat.",
+    "escalation": "Il appelle, montre la fissure et barre le chemin avec son levier avant de repousser une intrusion dangereuse.",
+    "retreat": "Il gagne une terrasse stable, récupère si possible un collègue blessé et abandonne ses outils lourds plutôt que suivre un adversaire sur une dalle fragile."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 10,
+      "dexterity": 4,
+      "constitution": 9,
+      "intelligence": 6,
+      "willpower": 7,
+      "perception": 7,
+      "presence": 7
+    },
+    "skills": {
+      "impact_weapons": 55,
+      "throwing": 45,
+      "athletics": 60,
+      "survival": 55,
+      "crafting": 45,
+      "persuasion": 35,
+      "vigilance": 55
+    },
+    "movement": "Marche 2,5 m/s ; course 5 m/s sur sol stable ; montée prudente 1 m/s ; aucun saut volontaire sur une corniche non inspectée.",
+    "protections": [
+      "Les protections de chantier arrêtent de petits éclats ; elles ne garantissent aucune survie sous un bloc ou une avalanche."
+    ],
+    "attacks": [
+      {
+        "name": "Balayage de levier",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "strength",
+        "impact": 35,
+        "reach": "arc de 2,8 m devant lui",
+        "stamina_cost": 20,
+        "preparation": "1,1 seconde pour déplacer les mains et planter un pied",
+        "telegraph": "Le levier se met à l'horizontale et le pied extérieur tourne vers le passage.",
+        "effect": "Produit un seul choc contondant dans l'arc dégagé. Le levier s'arrête contre une masse solide ; déséquilibre et recul dépendent des appuis, sans balayage automatique de toutes les personnes proches.",
+        "counterplay": "Quitter l'arc par l'arrière, profiter d'un pilier qui bloque le levier ou rester hors de portée en montrant que le passage est libre."
+      },
+      {
+        "name": "Bloc de dissuasion",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "strength",
+        "impact": 32,
+        "reach": "jet jusqu'à 8 m vers une cible visible",
+        "stamina_cost": 22,
+        "preparation": "1,6 seconde pour saisir et armer un bloc de 8 kg au maximum",
+        "telegraph": "Il se baisse, vérifie le trajet puis ramène le bloc contre son épaule.",
+        "effect": "Lance une seule pierre disponible sur place. Elle peut rebondir selon le terrain mais n'explose pas et ne change pas de direction à volonté ; l'action est impossible sans projectile approprié.",
+        "counterplay": "Se déplacer pendant la longue préparation, se protéger derrière une masse fixe et éviter de s'aligner avec la pente de rebond."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Calage d'urgence",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "strength",
+        "impact": 0,
+        "reach": "contact avec un bloc à moins de 2 m, au bout du levier",
+        "stamina_cost": 18,
+        "preparation": "1 seconde pour poser le levier contre un appui stable",
+        "telegraph": "Il abaisse son centre de gravité, coince le levier et appelle pour que l'on quitte l'aval.",
+        "effect": "Peut maintenir pendant 5 secondes au maximum un bloc isolé de 80 kg roulant lentement, si un appui ferme permet l'effet de levier. Action physique, sans Mana ni concentration magique ; elle ne stoppe ni une chute libre ni une avalanche et cède si l'appui casse.",
+        "counterplay": "Pour traverser, quitter immédiatement l'aval ; contre lui, contourner la zone de calage sans tirer le levier ni provoquer volontairement une chute sur des tiers."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Petits chocs de manutention",
+        "mechanism": "Sa masse, ses appuis larges et ses protections réduisent les effets des petites pierres, sans annuler une perforation ou un choc rapide."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Dalles minces et sols creux",
+        "mechanism": "Son poids peut dépasser la charge du support, même si une personne plus légère l'a traversé sans incident."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Lit d'arrêt rempli de débris",
+        "result": "Pierres déviées vers la route",
+        "chain": "La cuvette ne peut plus absorber les nouveaux blocs, les rebonds franchissent son bord et le chantier doit être fermé jusqu'au dégagement."
+      },
+      {
+        "input": "Rigole de fonte rétablie",
+        "result": "Moins d'eau dans une fissure surveillée",
+        "chain": "L'eau rejoint le drain, s'accumule moins dans la roche et réduit les nouveaux cycles de gel dans la fissure, sans réparer une dalle déjà cassée."
+      }
+    ],
+    "resources": {
+      "vitality": 134,
+      "stamina": 116,
+      "mana": 86,
+      "balance": 116,
+      "focus": 96
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 18,
+      "fact": "Les empreintes qui évitent une même dalle et les coins récemment changés montrent les appuis qu'un travailleur juge encore incertains."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les équipes semblent transmettre leurs lectures de pente par des exercices de terrain plutôt que par un répertoire unique de marques."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 30,
+      "fact": "Dans la couture intérieure d'une ancienne ceinture de travail, une quittance prouve qu'un notable a payé pour détourner les débris vers une ferme rivale ; son porteur actuel ignore peut-être cette archive."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "médiateur d'un passage fermé",
+      "allié d'une évacuation",
+      "adversaire de chantier si l'escalade échoue"
+    ],
+    "telegraphs": [
+      "Le levier horizontal annonce le balayage.",
+      "La recherche d'un bloc au sol donne le temps de sortir de l'axe du jet."
+    ],
+    "noncombat_options": [
+      "Accepter une fermeture temporaire et aider à dégager le lit d'arrêt depuis une zone sûre.",
+      "Proposer une inspection commune et une signalisation compréhensible pour rouvrir une portion stable du chemin."
+    ],
+    "complications": [
+      "Une caravane attend dans une zone que les voyageurs croient protégée.",
+      "Le déplacement de pierres peut obstruer l'eau d'un hameau en aval."
+    ]
+  },
+  "salvage": [
+    "Coins, chutes de cuir et pierres ordinaires avec l'accord de l'équipe ; outils, vêtements et restes d'une personne ne sont pas des ressources de chasse."
+  ]
+}

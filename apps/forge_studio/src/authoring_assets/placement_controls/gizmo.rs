@@ -92,14 +92,7 @@ fn arm(
     } else {
         None
     };
-    let placement = current
-        .corrections
-        .placements
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .find(|placement| placement.id == id)
-        .ok_or("Objet absent")?;
+    let placement = super::super::objects::lookup(&current, id)?;
     if placement.locked {
         return Err("Déverrouiller l’objet avant déplacement".into());
     }

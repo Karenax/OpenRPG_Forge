@@ -1,0 +1,269 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.squelette-des-cloches",
+  "name": "Squelette des cloches",
+  "subtitle": "Le courrier d'ossements qui fait sonner les nouvelles entre les villages",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "mort articulé par un rite sonore",
+    "family": "courriers des relais de cloches",
+    "rarity": "rare sur les routes entretenues par plusieurs communautés",
+    "activity": "tournées diurnes avec repos obligatoire aux relais",
+    "social": "voyage seul ou avec une caravane, accueilli par plusieurs foyers de relais",
+    "threat": "moderee",
+    "threat_reason": "Son battant protège les dépêches qu'on lui confie et ses cloches appellent les voyageurs proches ; il cherche surtout à rejoindre le relais suivant, sans garder un territoire funéraire."
+  },
+  "physique": {
+    "dimensions": "1,50 à 1,85 m de haut, armature large de 0,50 m",
+    "mass_kg": [
+      24,
+      38
+    ],
+    "locomotion": [
+      "marche articulée sur sentes",
+      "escalade lente des échelles de relais"
+    ],
+    "center_of_gravity": "Bas grâce à un balancier fixé au bassin ; ses bras doivent rester libres pour se rattraper.",
+    "silhouette": "Des os enveloppés de rubans portent de petites cloches de timbres distincts ; une cage de bois soutient le sternum et une besace fermée repose contre le thorax.",
+    "anatomy_zones": [
+      {
+        "zone": "crâne",
+        "description": "Calotte fragile maintenue par une bande de cuir, sans lueur oculaire permanente.",
+        "protection": 3
+      },
+      {
+        "zone": "cage thoracique",
+        "description": "Arceaux de bois espacés et petites cloches suspendues qui ne couvrent pas les flancs.",
+        "protection": 6
+      },
+      {
+        "zone": "bassin",
+        "description": "Balancier de fonte attaché à une ceinture épaisse, exposé à un choc latéral.",
+        "protection": 10
+      },
+      {
+        "zone": "mains et pieds",
+        "description": "Phalanges reliées par des cordons remplaçables ; faibles prises sur une pierre humide.",
+        "protection": 2
+      }
+    ]
+  },
+  "habitats": [
+    "routes de col reliant des hameaux dispersés",
+    "relais de courrier installés aux marchés et aux traversées de rivière"
+  ],
+  "ecology": {
+    "diet": "Aucun besoin alimentaire. Chaque relais fournit à tour de rôle cordons, graisses végétales et pièces de suspension ; la tournée comporte du repos pour retrouver ses ressources d'action.",
+    "lifecycle": "Le courrier apprend un circuit entre plusieurs communautés, effectue une étape puis se repose chez un hôte convenu. Les routes peuvent évoluer avec son accord ; une décision funéraire permet de terminer sa mission et de rendre les restes au repos.",
+    "reproduction": "Aucune reproduction ; une nouvelle animation relève d'un rite documenté et d'un accord funéraire, jamais d'un meurtre destiné à remplacer un courrier.",
+    "behavior": "Annonce son arrivée, compare le destinataire au signe convenu et demande un reçu. Il porte les messages sans en garantir la véracité et refuse qu'une querelle de village transforme sa tournée en chasse à une personne.",
+    "niche": "Lien matériel entre des communautés éloignées ; sa mémoire sonore bornée complète les lettres transportées sans remplacer les témoins ni créer une communication instantanée.",
+    "environmental_impact": "Ses passages maintiennent des sentes légères et font circuler alertes et nouvelles. Il enveloppe ses cloches près des reposoirs d'oiseaux ; un relais fermé peut isoler plusieurs villages."
+  },
+  "senses": [
+    "audition sensible aux rythmes répétés jusqu'à 30 m en espace calme",
+    "vision des mouvements directs, peu efficace dans un contre-jour",
+    "détecte mal un contact très lent tant qu'aucun cordon ne vibre"
+  ],
+  "communication": [
+    "timbres d'arrivée convenus entre les villages d'un même circuit",
+    "gestes des doigts pour demander un reçu ou montrer une route impraticable",
+    "restitution limitée d'un court message enregistré avec le consentement de son émetteur"
+  ],
+  "signs": [
+    "pas sans semelle suivant une sente de village en village",
+    "petits rubans de cire colorée à l'abri des bornes de relais",
+    "trois timbres espacés provenant d'un marcheur avant son entrée sur une place"
+  ],
+  "demeanor": {
+    "objectives": [
+      "remettre les dépêches au bon destinataire",
+      "conserver une trace des remises et refus",
+      "rejoindre un relais sûr avant l'usure de ses attaches"
+    ],
+    "fears": [
+      "cordons accrochés dans un essieu",
+      "besace emportée par une crue",
+      "messages falsifiés qui feraient accuser un autre village"
+    ],
+    "morale": "Évite de combattre pour un horaire ; protège une dépêche qu'on tente de lui arracher, puis cherche des témoins plutôt qu'une vengeance.",
+    "escalation": "Il montre le signe du destinataire, annonce un refus, appelle des témoins par ses timbres puis repousse seulement une tentative de saisie.",
+    "retreat": "Rejoint le dernier relais accessible ou une caravane consentante, en conservant ses dépêches ; ne poursuit pas un agresseur qui le laisse partir."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 6,
+      "constitution": 4,
+      "intelligence": 4,
+      "willpower": 5,
+      "perception": 7,
+      "presence": 4
+    },
+    "skills": {
+      "impact_weapons": 42,
+      "unarmed": 40,
+      "spirit": 40,
+      "vigilance": 55,
+      "mechanisms": 48,
+      "lore": 28
+    },
+    "resources": {
+      "vitality": 92,
+      "stamina": 85,
+      "mana": 66,
+      "balance": 72,
+      "focus": 88
+    },
+    "movement": "Marche 1,8 m/s ; escalade d'échelle 0,4 m/s avec deux mains libres. Aucun saut supérieur à 0,5 m.",
+    "protections": [
+      "Les intervalles entre les os permettent parfois à une pointe étroite de traverser sans contact, mais n'annulent pas un impact réel.",
+      "Les rubans amortissent le frottement ; ils ne protègent pas d'une lame."
+    ],
+    "attacks": [
+      {
+        "name": "Frappe de battant",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "dexterity",
+        "impact": 18,
+        "reach": "1,2 m devant lui",
+        "stamina_cost": 7,
+        "preparation": "0,7 seconde, bras tiré derrière l'épaule",
+        "telegraph": "Le battant suspendu s'immobilise avant que le bras ne parte.",
+        "effect": "Un coup contondant contre une seule cible ; le petit battant doit réellement rencontrer le corps ou la garde.",
+        "counterplay": "Tenir la distance, dévier le bras avant l'élan ou interposer une protection rigide."
+      },
+      {
+        "name": "Balayage de traverse",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 14,
+        "reach": "arc bas de 1 m",
+        "stamina_cost": 9,
+        "preparation": "1 seconde, bassin tourné de côté",
+        "telegraph": "Deux clochettes se taisent quand la ceinture se tend.",
+        "effect": "La traverse cherche une cheville exposée ; elle n'abat une cible que si le contact rompt son appui et ne frappe pas une seconde cible derrière la première.",
+        "counterplay": "Lever ou retirer le pied visé, bloquer la traverse ou rester sur une marche hors de son arc."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Annonce de relais",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "mechanisms",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "audible jusqu'à 40 m sans obstacle important",
+        "stamina_cost": 4,
+        "preparation": "1,5 seconde de traction sur trois fils",
+        "telegraph": "Les doigts prennent successivement trois fils colorés.",
+        "effect": "Signal mécanique non magique de 3 secondes ; annonce une arrivée et une demande de reçu aux personnes qui connaissent le code du circuit. N'impose aucune action, ne transmet pas le contenu d'une lettre et ne révèle pas une position invisible.",
+        "counterplay": "Demander un autre témoin ou vérifier le signe du destinataire ; une porte épaisse et le vent atténuent réellement le signal."
+      },
+      {
+        "name": "Dépêche retenue",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "spirit",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "voix audible à 5 m",
+        "stamina_cost": 3,
+        "preparation": "3 secondes immobile pour écouter et inscrire la phrase consentie ; 2 secondes avant sa restitution",
+        "telegraph": "Le ruban du sternum vibre pendant l'inscription ; avant la restitution, une clochette donne un timbre bref et la mâchoire s'entrouvre.",
+        "effect": "Coûte 8 Mana et 6 Concentration à l'inscription. Après les 3 secondes de concentration immobile, conserve une seule phrase consentie d'au plus douze mots pendant au plus 3 600 secondes, sans maintien pendant le trajet. Sa restitution unique dure au plus 8 secondes sous concentration continue, puis la phrase disparaît. Une nouvelle inscription remplace l'ancienne. Il parle de sa propre voix : le message ne prouve ni l'identité ni la sincérité de son émetteur.",
+        "counterplay": "Interrompre l'inscription ou la restitution, attendre l'expiration ou confronter le message à un reçu écrit ; aucune parole stockée ne devient un ordre magique."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "fatigue musculaire",
+        "mechanism": "L'absence de muscles limite cette forme de fatigue, mais les actions consomment toujours l'Endurance commune et les attaches s'usent."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "torsion des articulations",
+        "mechanism": "Les cordons supportent la traction prévue dans un axe ; un mouvement transversal peut déboîter une articulation sans la pulvériser."
+      }
+    ],
+    "immunities": [
+      {
+        "subject": "privation de souffle",
+        "mechanism": "Aucun poumon ne doit être oxygéné ; les os demeurent sensibles aux impacts, au feu et à l'érosion."
+      }
+    ],
+    "environmental_interactions": [
+      {
+        "input": "vent fort au passage d'un col",
+        "result": "timbres couverts et étape ralentie",
+        "chain": "Les cloches bougent sans action des doigts et leur son se disperse ; le courrier enveloppe les battants puis attend un échange visuel au relais."
+      },
+      {
+        "input": "crue recouvrant une sente de relais",
+        "result": "détour et risque d'expiration d'une dépêche sonore",
+        "chain": "Le courrier ne peut vérifier les appuis sous l'eau ; il revient vers une passerelle connue, tandis que la durée restante du message continue de diminuer."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Trois timbres espacés annoncent l'arrivée d'un courrier ; le rythme suivant précise s'il demande un reçu ou un accompagnement."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 18,
+      "fact": "Les variantes du dernier timbre semblent suivre l'histoire des routes partagées plutôt que les frontières politiques actuelles."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Une lettre cousue dans la doublure intérieure de sa besace prouve que deux villages ennemis avaient demandé séparément une trêve ; un troisième relais a retenu leurs réponses pour prolonger un péage de guerre."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "messager entre communautés",
+      "témoin d'une remise contestée",
+      "compagnon de route vulnérable"
+    ],
+    "telegraphs": [
+      "Les fils colorés sont pris entre les doigts avant le signal d'arrivée.",
+      "La besace est ramenée contre le thorax avant un geste de défense."
+    ],
+    "noncombat_options": [
+      "Proposer un accompagnement jusqu'au prochain relais et convenir d'un reçu devant témoin.",
+      "Réparer une attache ou trouver un destinataire déplacé par la crue, sans ouvrir les dépêches confiées."
+    ],
+    "complications": [
+      "Deux personnes présentent le même signe de réception et se contestent le message.",
+      "Une étape fermée force le courrier à choisir entre un détour lent et un passage dangereux ; sa mémoire sonore ne dure qu'une heure."
+    ]
+  },
+  "salvage": [
+    "Cloche fendue ou cordon déclaré abandonné après une réparation acceptée au relais.",
+    "Les dépêches restent confiées à leurs destinataires ; les os et objets funéraires ne sont pas des matériaux récupérables et la fin de mission exige une restitution digne."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "squelette-des-cloches-plate-v1.png",
+      "alt": "Un Squelette des cloches porte des rubans, de petites cloches et une besace fermée contre sa cage de bois sur une route de courrier.",
+      "caption": "Annonce son arrivée, compare le destinataire au signe convenu et demande un reçu. Il porte les messages sans en garantir la véracité et refuse qu'une querelle de village transforme sa tournée en chasse à une personne.",
+      "prompt_key": "squelette-des-cloches-plate-v1"
+    }
+  ]
+}

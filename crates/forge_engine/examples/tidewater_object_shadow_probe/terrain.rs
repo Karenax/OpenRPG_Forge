@@ -5,12 +5,12 @@ pub(super) use forge_engine::tidewater_object_shadow::terrain::Input as Terrain;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 
-pub(super) fn load(
+pub(super) fn source(
     root: &Path,
     fixture: &Value,
-    view: CascadeView,
     scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
-) -> Result<Terrain, Box<dyn Error>> {
+) -> Result<forge_engine::tidewater_object_shadow::terrain::authored::PreparedSource, Box<dyn Error>>
+{
     let read = |name: &str| -> Result<Vec<u8>, Box<dyn Error>> {
         match scene_files {
             Some(files) => files
@@ -24,5 +24,15 @@ pub(super) fn load(
     let doc =
         forge_project::TerrainDocument::from_json(std::str::from_utf8(&read("terrain.json")?)?)?;
     let shader = String::from_utf8(checked_file(root, fixture, "terrain-lod.wgsl")?)?;
-    forge_engine::tidewater_object_shadow::terrain::authored::prepare(&doc, heights, &shader, view)
+    forge_engine::tidewater_object_shadow::terrain::authored::PreparedSource::new(
+        &doc, heights, &shader,
+    )
+}
+pub(super) fn load(
+    root: &Path,
+    fixture: &Value,
+    view: CascadeView,
+    scene_files: Option<&std::collections::BTreeMap<String, Vec<u8>>>,
+) -> Result<Terrain, Box<dyn Error>> {
+    source(root, fixture, scene_files)?.at(view)
 }

@@ -1,0 +1,240 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "lutine-des-greniers-plate-v1.png",
+      "alt": "Une petite Lutine des greniers en vêtements cousus se tient près des réserves de grain, avec son battoir et sa ceinture de coques sèches.",
+      "caption": "Elle trie les grains, détourne les insectes et signale une fuite par des coups sur le bois. Elle proteste si un occupant condamne une aération ou prélève la part convenue.",
+      "prompt_key": "lutine-des-greniers-plate-v1"
+    }
+  ],
+  "creature_id": "creature.lutine-des-greniers",
+  "name": "Lutine des greniers",
+  "subtitle": "La veilleuse des réserves sèches et des marchés minuscules",
+  "classification": {
+    "nature": "Humanoïde féerique sapient",
+    "family": "Petits peuples des réserves",
+    "rarity": "Peu commune dans les greniers occupés depuis plusieurs générations",
+    "activity": "Nocturne, avec des négociations à l'aube",
+    "social": "Foyers de deux à six personnes liés par des accords de stockage",
+    "threat": "faible",
+    "threat_reason": "Ses outils et ses leurres peuvent provoquer une chute sur une passerelle, mais elle cherche surtout à protéger les réserves et à obtenir un partage convenu."
+  },
+  "physique": {
+    "dimensions": "0,42 à 0,58 m debout ; bras de 0,25 m",
+    "mass_kg": [
+      3,
+      6
+    ],
+    "locomotion": [
+      "marche bipède",
+      "escalade des poutres",
+      "bonds courts entre sacs"
+    ],
+    "center_of_gravity": "Bas, déporté vers l'arrière lorsqu'elle porte un ballot ; elle teste chaque appui du bout du pied.",
+    "silhouette": "Petite personne aux longs doigts, vêtue de fibres cousues, portant un battoir à graines et une ceinture de coques sèches.",
+    "anatomy_zones": [
+      {
+        "zone": "Tête et oreilles",
+        "description": "Bonnet de toile épaisse ; les oreilles découvertes restent vulnérables aux projections.",
+        "protection": 2
+      },
+      {
+        "zone": "Torse",
+        "description": "Veste rembourrée de balle végétale, utile contre les frottements mais peu contre une pointe.",
+        "protection": 4
+      },
+      {
+        "zone": "Bras et jambes",
+        "description": "Membres fins aux articulations mobiles, protégés seulement par des bandes de tissu.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "greniers ventilés sur pilotis",
+    "moulins desservis par de petites galeries sèches"
+  ],
+  "ecology": {
+    "diet": "Céréales cuites, graines oléagineuses, fruits secs et petits insectes, obtenus par échange ou dans les pertes de stockage.",
+    "lifecycle": "Les jeunes grandissent dans des foyers protégés ; le métier de veilleuse s'apprend en observant moisissures, insectes et circulation de l'air. Une adulte peut changer de métier ou de grenier.",
+    "reproduction": "Naissances au sein de foyers divers ; aucune reproduction ne dépend d'un bâtiment ou d'un pacte avec ses propriétaires.",
+    "behavior": "Elle trie les grains, détourne les insectes et signale une fuite par des coups sur le bois. Elle proteste si un occupant condamne une aération ou prélève la part convenue.",
+    "niche": "Interlocutrice des réserves, capable d'entretenir les recoins inaccessibles aux grands habitants.",
+    "environmental_impact": "Les conduits qu'elle entretient réduisent les pertes alimentaires ; un conflit prolongé laisse revenir humidité et ravageurs sans malédiction automatique."
+  },
+  "senses": [
+    "Ouïe précise des insectes dans le bois et des grains tombant d'un sac.",
+    "Odorat attentif au rancissement et aux premières moisissures."
+  ],
+  "communication": [
+    "Parole claire, frappes de coque et rubans de tissu noués autour des réserves autorisées."
+  ],
+  "signs": [
+    "Tas de grains malades séparés des grains sains.",
+    "Échelle de ficelle fixée derrière une solive.",
+    "Trois coques vides déposées devant une aération obstruée."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Garder les réserves sèches.",
+      "Faire respecter un accord de partage."
+    ],
+    "fears": [
+      "Fumigation d'un grenier encore habité.",
+      "Condamnation de sa galerie de sortie."
+    ],
+    "morale": "Elle défend son foyer, mais cesse de combattre dès qu'une discussion devient possible à distance des réserves.",
+    "escalation": "Elle appelle, frappe une poutre, lance une coque à côté de l'intrus puis défend son échelle si elle est saisie.",
+    "retreat": "Elle rejoint une galerie connue et laisse tomber ses outils si leur poids compromet la fuite."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 3,
+      "dexterity": 8,
+      "constitution": 4,
+      "intelligence": 7,
+      "willpower": 6,
+      "perception": 7,
+      "presence": 6
+    },
+    "skills": {
+      "climbing": 55,
+      "stealth": 50,
+      "impact_weapons": 30,
+      "throwing": 40,
+      "illusion": 45,
+      "crafting": 45,
+      "persuasion": 40,
+      "vigilance": 55
+    },
+    "movement": "Marche 2 m/s ; course 4 m/s ; escalade 1 m/s sur bois rugueux ; bond horizontal de 0,8 m avec appui ferme.",
+    "protections": [
+      "Les tissus et la balle végétale amortissent les éraflures ; ils ne protègent ni du feu ni d'une chute importante."
+    ],
+    "attacks": [
+      {
+        "name": "Battoir de tri",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "impact_weapons",
+        "attribute_id": "dexterity",
+        "impact": 9,
+        "reach": "0,45 m devant la main",
+        "stamina_cost": 5,
+        "preparation": "0,4 seconde pour relever le battoir",
+        "telegraph": "Elle libère sa main de la poutre et ramène le battoir au-dessus de l'épaule.",
+        "effect": "Un contact contondant peut faire lâcher un petit objet si la prise cède ; il ne repousse pas automatiquement une personne plus lourde.",
+        "counterplay": "Retirer la main, interposer une manche épaisse ou laisser libre l'accès à son échelle."
+      },
+      {
+        "name": "Coque lestée",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 7,
+        "reach": "jet jusqu'à 5 m en ligne de vue",
+        "stamina_cost": 4,
+        "preparation": "0,5 seconde pour détacher une coque de la ceinture",
+        "telegraph": "La coque cliquette et le bras se tend dans la direction choisie.",
+        "effect": "La coque remplie de graines frappe une surface puis se brise ; les grains répandus peuvent rouler sous un pied, sans provoquer de chute garantie.",
+        "counterplay": "Se placer derrière une poutre, protéger le visage et ralentir sur les graines plutôt que courir."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Double de ballot",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "illusion",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "une silhouette de ballot à moins de 4 m, visible depuis le même grenier",
+        "stamina_cost": 6,
+        "preparation": "1,2 seconde ; 10 Mana et 6 Concentration à l'activation",
+        "telegraph": "Elle tend un fil entre ses doigts ; sa teinte rejoint celle des sacs voisins avant l'apparition du reflet.",
+        "effect": "Maintient pendant 6 secondes au maximum l'image immobile d'un ballot de 0,5 m. Concentration continue requise ; déplacement de la lutine, contact ou interruption dissipe l'image. Aucun poids, son ni dissimulation à travers un obstacle.",
+        "counterplay": "Changer d'angle, regarder l'ombre, toucher le ballot avec un outil ou rompre l'attention de la lutine."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Passages étroits familiers",
+        "mechanism": "Sa petite taille et les prises entretenues lui donnent des routes que bloque un ballot volumineux."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Courant d'air violent sur les hauteurs",
+        "mechanism": "Sa faible masse et ses vêtements amples rendent les traversées de poutre exposées aux bourrasques."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Aération rouverte",
+        "result": "Courant d'air rétabli et signal d'apaisement",
+        "chain": "Le volet libère le passage de l'air, la condensation diminue et la veilleuse peut reprendre son travail sans défendre la réserve."
+      },
+      {
+        "input": "Sac percé au-dessus d'une passerelle",
+        "result": "Grains roulants et appui moins sûr",
+        "chain": "Les grains tombent sur le bois, se glissent sous les semelles et obligent tous les présents à ralentir ou à balayer."
+      }
+    ],
+    "resources": {
+      "vitality": 90,
+      "stamina": 88,
+      "mana": 84,
+      "balance": 68,
+      "focus": 92
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Les grains noirs mis à part et l'aération nettoyée indiquent un travail d'entretien, pas un pillage."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les foyers de veilleuses semblent préférer les accords oraux renouvelés à chaque récolte aux contrats permanents."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Un nœud à cinq boucles caché sous la dernière marche conserve le nom d'un créancier disparu ; son interprétation peut révéler qui possède réellement une réserve murée."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "interlocutrice des réserves",
+      "défenseuse de petits passages"
+    ],
+    "telegraphs": [
+      "Le battoir quitte la poutre avant toute frappe.",
+      "Le fil change de teinte avant le leurre."
+    ],
+    "noncombat_options": [
+      "Rouvrir une aération et proposer une inspection commune des sacs humides.",
+      "Fixer avec son foyer une part de grain et une galerie de passage à respecter."
+    ],
+    "complications": [
+      "Une fumigation menace aussi les habitants cachés et les aliments.",
+      "Un sac renversé peut masquer un trou entre deux planches."
+    ]
+  },
+  "salvage": [
+    "Outils, coques et ficelles uniquement s'ils sont abandonnés ou cédés ; les réserves et objets du foyer ne constituent pas un butin automatique."
+  ]
+}

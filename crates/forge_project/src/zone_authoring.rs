@@ -12,6 +12,8 @@ pub mod buildings;
 pub mod exclusions;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod file_session;
+pub mod gameplay;
+pub mod imported_plants;
 pub mod inspection;
 pub mod migration;
 pub mod paths;
@@ -20,6 +22,7 @@ pub mod promotion;
 pub mod regeneration;
 pub mod rivers;
 pub mod session;
+pub mod source_objects;
 pub mod species;
 pub mod start;
 pub mod terrain_commands;
@@ -55,6 +58,18 @@ pub struct DensityOverride {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ZoneCorrections {
+    /// Sparse edits, copies and persistent deletions of verified source objects (head v14).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_object_edits: Option<Vec<source_objects::SourceObjectEdit>>,
+    /// Canonical authored RPG definitions. Absent preserves all historical hashes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gameplay: Option<Box<forge_gameplay::GameplayDocument>>,
+    /// Authored copies of imported plants; head v11 when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imported_plant_placements: Option<Vec<imported_plants::ImportedPlantPlacement>>,
+    /// Authored offsets over immutable imported instances; head v10 when present.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub imported_plant_offsets: Option<Vec<imported_plants::ImportedPlantOffset>>,
     /// None inherits the recipe exclusions; Some, including empty, replaces them (head v9).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vegetation_exclusions: Option<Vec<VegetationExclusion>>,
@@ -102,6 +117,12 @@ impl ZoneAuthoringHead {
             return Err("Unsupported zone authoring schema/version".into());
         }
         let stamp = &self.base.generator;
+        if let Some(edits) = &self.corrections.source_object_edits {
+            source_objects::validate(self, edits)?;
+        }
+        if let Some(document) = self.corrections.gameplay.as_deref() {
+            gameplay::validate(self, document)?;
+        }
         if let Some(origins) = &self.corrections.promotions {
             promotion::validate(self, origins)?;
         }
@@ -110,6 +131,12 @@ impl ZoneAuthoringHead {
         }
         if let Some(exclusions) = &self.corrections.vegetation_exclusions {
             exclusions::validate(exclusions, self.base.vegetation.as_ref())?;
+        }
+        if let Some(offsets) = &self.corrections.imported_plant_offsets {
+            imported_plants::validate(self, offsets)?;
+        }
+        if let Some(placements) = &self.corrections.imported_plant_placements {
+            imported_plants::validate_placements(self, placements)?;
         }
         if let Some(start) = self.corrections.start.as_deref() {
             start.validate(&self.base.terrain)?;
@@ -241,8 +268,27 @@ impl ZoneAuthoringHead {
 impl ZoneCorrections {
     /// Minimum head version required by the present authoring domains.
     #[must_use]
-    pub const fn schema_version(&self) -> u32 {
-        if self.vegetation_exclusions.is_some() {
+    pub fn schema_version(&self) -> u32 {
+        if self.source_object_edits.is_some() {
+            return 14;
+        }
+        if self.gameplay.is_some() {
+            13
+        } else if self
+            .imported_plant_placements
+            .as_ref()
+            .is_some_and(|placements| {
+                placements.iter().any(|placement| {
+                    placement.yaw_degrees.is_some() || placement.scale_factor.is_some()
+                })
+            })
+        {
+            12
+        } else if self.imported_plant_placements.is_some() {
+            11
+        } else if self.imported_plant_offsets.is_some() {
+            10
+        } else if self.vegetation_exclusions.is_some() {
             9
         } else if self.promotions.is_some() {
             8

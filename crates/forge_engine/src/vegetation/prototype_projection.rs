@@ -840,7 +840,9 @@ mod tests {
         let mut app = preview_app();
         assert!(!quality_ready(app.world()));
         project(app.world_mut());
-        assert!(!quality_ready(app.world())); // Individual far LODs are not chunk batching.
+        assert!(quality_ready(app.world())); // Individual LODs do not request optional far batching.
+        app.insert_resource(super::super::far_batches::GovernedFarBatchPreview);
+        assert!(!quality_ready(app.world())); // Requested batches have not been projected.
         let mut app = independent_far_app();
         assert!(quality_ready(app.world()));
         let profile = app.world().resource::<VegetationPresentation>().0;

@@ -4,9 +4,33 @@ use forge_world::placement_transform::{Axis, RotationSpace, rotate, set_scale};
 use serde::{Deserialize, Serialize};
 
 /// Revalidate against the current main session after the cross-window await.
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 pub fn prepare_preview(
     session: Option<&forge_project::authoring::AuthoringState>,
     draft: &crate::atelier_drafts::TransformDraft,
+) -> Result<forge_project::authoring::AuthoringRequest, String> {
+    prepare_preview_with(
+        session,
+        draft,
+        crate::authoring_assets::objects::lookup,
+        crate::authoring_assets::objects::edit,
+    )
+}
+
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+fn prepare_preview_with(
+    session: Option<&forge_project::authoring::AuthoringState>,
+    draft: &crate::atelier_drafts::TransformDraft,
+    lookup: impl FnOnce(
+        &forge_project::zone_authoring::ZoneAuthoringHead,
+        forge_core::EntityId,
+    )
+        -> Result<forge_project::zone_authoring::placements::ManualPlacement, String>,
+    prepare: impl FnOnce(
+        &forge_project::zone_authoring::ZoneAuthoringHead,
+        forge_project::zone_authoring::placements::PlacementEdit,
+        forge_core::CommandId,
+    ) -> Result<forge_project::zone_authoring::session::ZoneRequest, String>,
 ) -> Result<forge_project::authoring::AuthoringRequest, String> {
     use forge_project::{authoring::AuthoringRequest, zone_authoring::placements::PlacementEdit};
     let session = session.ok_or("Ouvrir une zone")?;
@@ -19,16 +43,12 @@ pub fn prepare_preview(
     {
         return Err("La carte a changé. Ce brouillon est conservé mais ne peut plus être appliqué à cette révision.".into());
     }
-    let placement = head
-        .corrections
-        .placements
-        .as_ref()
-        .and_then(|items| {
-            items
-                .iter()
-                .find(|p| p.id.to_string() == draft.scope.object)
-        })
-        .ok_or("Objet absent de la carte")?;
+    let id = draft
+        .scope
+        .object
+        .parse::<forge_core::EntityId>()
+        .map_err(|_| "Identifiant d’objet invalide")?;
+    let placement = lookup(head, id)?;
     if placement.locked {
         return Err("Cet objet est verrouillé".into());
     }
@@ -37,7 +57,7 @@ pub fn prepare_preview(
         transform: draft.fields.resolve(placement.transform)?,
     };
     let key = serde_json::to_string(&(head.content_hash()?, &edit)).map_err(|e| e.to_string())?;
-    head.prepare_placement(forge_core::CommandId::deterministic(key), edit)
+    prepare(head, edit, forge_core::CommandId::deterministic(key))
         .map(|request| AuthoringRequest::PreviewZone { request })
 }
 
@@ -111,6 +131,27 @@ impl TransformFields {
 mod tests {
     use super::*;
     use forge_core::UnitQuaternion;
+
+    fn prepare_preview(
+        session: Option<&forge_project::authoring::AuthoringState>,
+        draft: &crate::atelier_drafts::TransformDraft,
+    ) -> Result<forge_project::authoring::AuthoringRequest, String> {
+        prepare_preview_with(
+            session,
+            draft,
+            |head, id| {
+                head.corrections
+                    .placements
+                    .as_deref()
+                    .unwrap_or_default()
+                    .iter()
+                    .find(|placement| placement.id == id)
+                    .cloned()
+                    .ok_or_else(|| "Objet absent de la fixture".into())
+            },
+            |head, edit, command| head.prepare_placement(command, edit),
+        )
+    }
 
     #[test]
     fn unchanged_fields_preserve_orientation_and_nonuniform_scale() {
@@ -220,9 +261,130 @@ mod tests {
         stale.scope.base_hash = "0".repeat(64);
         assert!(prepare_preview(Some(&session), &stale).is_err());
         assert!(prepare_preview(None, &draft).is_err());
+        let mut invalid = draft.clone();
+        invalid.scope.object = "invalid-object-id".into();
+        assert!(prepare_preview(Some(&session), &invalid).is_err());
+        session.playtest_hash = Some(forge_core::ContentHash::from_bytes([7; 32]));
+        assert!(prepare_preview(Some(&session), &draft).is_err());
+        session.playtest_hash = None;
         let head = session.zone_head.as_mut().unwrap();
         head.corrections.placements.as_mut().unwrap()[0].locked = true;
         draft.scope.base_hash = head.content_hash().unwrap().to_string();
         assert!(prepare_preview(Some(&session), &draft).is_err());
+    }
+
+    #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Exercises source authority, preview immutability and lock refusal on one shared authored fixture."
+    )]
+    fn preview_routes_a_resolved_source_outside_manual_placements_to_its_authority() {
+        use crate::atelier_drafts::{DraftScope, TransformDraft};
+        use forge_project::{
+            authoring::{AuthoringRequest, AuthoringState, new_terrain},
+            zone_authoring::{
+                GeneratorStamp, ZoneAuthoringHead, ZoneBase, ZoneCorrections,
+                placements::ManualPlacement, session::ZoneAction,
+                source_objects::SourceObjectState,
+            },
+        };
+        let terrain = new_terrain("atelier-source-test", "zone", "Zone").unwrap();
+        let head = ZoneAuthoringHead {
+            schema: "forge.zone-authoring".into(),
+            version: 1,
+            revision: terrain.revision,
+            base: ZoneBase {
+                generator: GeneratorStamp {
+                    name: "fixture".into(),
+                    version: "1".into(),
+                    inputs_hash: terrain.content_hash().unwrap(),
+                },
+                terrain,
+                vegetation: None,
+            },
+            corrections: ZoneCorrections::default(),
+        };
+        let source = ManualPlacement {
+            id: forge_core::EntityId::deterministic("atelier-verified-source"),
+            name: "Source vérifiée".into(),
+            asset_id: forge_core::AssetId::deterministic("atelier-source-prototype"),
+            asset_hash: forge_core::ContentHash::from_bytes([5; 32]),
+            transform: Transform::IDENTITY,
+            locked: false,
+        };
+        let mut draft = TransformDraft {
+            scope: DraftScope {
+                area: head.base.terrain.area_id.to_string(),
+                object: source.id.to_string(),
+                base_hash: head.content_hash().unwrap().to_string(),
+            },
+            fields: TransformFields::from_transform(source.transform),
+        };
+        draft.fields.position[0] = "3".into();
+        let session: AuthoringState = serde_json::from_value(serde_json::json!({
+            "zone_head": head, "document": null, "dirty": false, "receipt": null,
+            "playtest_hash": null
+        }))
+        .unwrap();
+        let request = prepare_preview_with(
+            Some(&session),
+            &draft,
+            |head, id| {
+                assert!(head.corrections.placements.is_none());
+                assert_eq!(id, source.id);
+                Ok(source.clone())
+            },
+            |head, edit, command| head.prepare_source_object(source.clone(), edit, command),
+        )
+        .unwrap();
+        let AuthoringRequest::PreviewZone { request } = request else {
+            panic!("Expected a standard zone proposal");
+        };
+        let ZoneAction::Edit(corrections) = request.action else {
+            panic!("Expected source corrections in a zone proposal");
+        };
+        assert!(corrections.placements.is_none());
+        let records = corrections.source_object_edits.unwrap();
+        let record = &records[0];
+        assert_eq!(record.source, source);
+        let SourceObjectState::Edited { placement } = &record.state else {
+            panic!("Expected an edited source snapshot");
+        };
+        assert_eq!(
+            placement.transform.translation_m.x.to_bits(),
+            3.0_f32.to_bits()
+        );
+        assert_eq!(placement.asset_hash, source.asset_hash);
+        assert!(
+            session
+                .zone_head
+                .as_ref()
+                .unwrap()
+                .corrections
+                .source_object_edits
+                .is_none()
+        );
+        let mut locked = source.clone();
+        locked.locked = true;
+        assert!(
+            prepare_preview_with(
+                Some(&session),
+                &draft,
+                |_, _| Ok(locked),
+                |_, _, _| panic!("Locked sources must be refused before preparation"),
+            )
+            .is_err()
+        );
+        let mut stale = draft.clone();
+        stale.scope.base_hash = "0".repeat(64);
+        assert!(
+            prepare_preview_with(
+                Some(&session),
+                &stale,
+                |_, _| panic!("Stale drafts must be refused before source resolution"),
+                |_, _, _| panic!("Stale drafts must be refused before preparation"),
+            )
+            .is_err()
+        );
     }
 }

@@ -4,8 +4,17 @@ use forge_world::{
     imported_vegetation::ImportedPopulation,
     tidewater_vegetation::{PackedPlant, pack},
 };
-use std::{collections::BTreeMap, error::Error};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    error::Error,
+};
 pub type Streams = BTreeMap<String, BTreeMap<String, Vec<u8>>>;
+type GroupRecords = BTreeMap<&'static str, BTreeMap<u32, (forge_core::EntityId, PackedPlant)>>;
+type ProjectedEntities<'a> =
+    BTreeMap<forge_core::EntityId, (&'a str, forge_world::imported_vegetation::ImportedEntity)>;
+
+#[cfg(test)]
+mod tests;
 
 pub struct PreparedPopulation {
     pub streams: Streams,
@@ -61,7 +70,11 @@ pub fn prepare(
         let ids = view
             .layers
             .into_iter()
-            .flat_map(|l| l.instances.into_iter().map(|e| (e.id, e)))
+            .flat_map(|l| {
+                l.instances
+                    .into_iter()
+                    .map(move |e| (e.id, (l.layer_id, e)))
+            })
             .collect::<BTreeMap<_, _>>();
         eprintln!(
             "canonical authored vegetation: visible={}, excluded={}, density_removed={}, head={}",
@@ -75,13 +88,23 @@ pub fn prepare(
     } else {
         None
     };
-    let mut groups: BTreeMap<&str, BTreeMap<u32, (forge_core::EntityId, PackedPlant)>> =
-        BTreeMap::new();
+    let groups = group_records(population, authored.map(|(head, _)| head), visible.as_ref())?;
+    if groups.len() != 6 || population.instance_count() != 65_383 {
+        return Err("incomplete canonical island vegetation".into());
+    }
+    emit_records(groups, visible.as_ref(), head_hash)
+}
+
+fn group_records(
+    population: &ImportedPopulation,
+    head: Option<&forge_project::zone_authoring::ZoneAuthoringHead>,
+    visible: Option<&ProjectedEntities<'_>>,
+) -> Result<GroupRecords, Box<dyn Error>> {
+    let mut groups = GroupRecords::new();
     for layer in population.layers() {
         for entity in layer.instances() {
             let rendered = visible
-                .as_ref()
-                .and_then(|v| v.get(&entity.id))
+                .and_then(|v| v.get(&entity.id).map(|(_, entity)| entity))
                 .unwrap_or(entity);
             let plant = pack(&layer.prototype_key, &layer.parameter_names, rendered)?;
             let order = plant
@@ -97,9 +120,22 @@ pub fn prepare(
             }
         }
     }
-    if groups.len() != 6 || population.instance_count() != 65_383 {
-        return Err("incomplete canonical island vegetation".into());
+    if let Some(head) = head {
+        append_placements(
+            &mut groups,
+            population,
+            head,
+            visible.ok_or("missing authored plant view")?,
+        )?;
     }
+    Ok(groups)
+}
+
+fn emit_records(
+    groups: GroupRecords,
+    visible: Option<&ProjectedEntities<'_>>,
+    head_hash: Option<forge_core::ContentHash>,
+) -> Result<PreparedPopulation, Box<dyn Error>> {
     let mut result = BTreeMap::new();
     let mut identities = BTreeMap::new();
     for (group, records) in groups {
@@ -112,7 +148,7 @@ pub fn prepare(
         let mut data = Vec::new();
         let mut radius = Vec::new();
         for (id, record) in records.into_values() {
-            if visible.as_ref().is_some_and(|ids| !ids.contains_key(&id)) {
+            if visible.is_some_and(|ids| !ids.contains_key(&id)) {
                 continue;
             }
             ids.push(id);
@@ -143,4 +179,57 @@ pub fn prepare(
         identities,
         head_hash,
     })
+}
+
+fn append_placements(
+    groups: &mut GroupRecords,
+    population: &ImportedPopulation,
+    head: &forge_project::zone_authoring::ZoneAuthoringHead,
+    visible: &ProjectedEntities<'_>,
+) -> Result<(), Box<dyn Error>> {
+    let mut appended = BTreeSet::new();
+    // Preserve the historical authored-copy order before appending newer source
+    // copies. The validated final terrain view decides which copies still exist.
+    for placement in head
+        .corrections
+        .imported_plant_placements
+        .as_deref()
+        .unwrap_or_default()
+    {
+        if let Some((layer_id, entity)) = visible.get(&placement.id) {
+            append_entity(groups, population, layer_id, entity)?;
+            appended.insert(placement.id);
+        }
+    }
+    let source_ids: BTreeSet<_> = population
+        .layers()
+        .iter()
+        .flat_map(|layer| layer.instances().iter().map(|entity| entity.id))
+        .collect();
+    for (id, (layer_id, entity)) in visible {
+        if !source_ids.contains(id) && appended.insert(*id) {
+            append_entity(groups, population, layer_id, entity)?;
+        }
+    }
+    Ok(())
+}
+
+fn append_entity(
+    groups: &mut GroupRecords,
+    population: &ImportedPopulation,
+    layer_id: &str,
+    entity: &forge_world::imported_vegetation::ImportedEntity,
+) -> Result<(), Box<dyn Error>> {
+    let layer = population
+        .layers()
+        .iter()
+        .find(|layer| layer.layer_id == layer_id)
+        .ok_or("Authored plant prototype layer disappeared")?;
+    let plant = pack(&layer.prototype_key, &layer.parameter_names, entity)?;
+    let records = groups.entry(plant.group).or_default();
+    let order = u32::try_from(records.len())?;
+    if records.insert(order, (entity.id, plant)).is_some() {
+        return Err("duplicate authored plant group order".into());
+    }
+    Ok(())
 }

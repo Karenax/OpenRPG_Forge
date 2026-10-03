@@ -78,7 +78,20 @@ pub(crate) async fn fetch_building_payload(
     name: &str,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
-    let name = js_sys::encode_uri_component(name);
+    // Keep directory separators intact: some static servers reject encoded
+    // slashes (%2F), while bundle manifests use nested relative paths.
+    if name.is_empty()
+        || name
+            .split('/')
+            .any(|part| part.is_empty() || part == "." || part == ".." || part.contains('\\'))
+    {
+        return Err("Chemin de ressource de bibliothèque invalide".into());
+    }
+    let name = name
+        .split('/')
+        .map(|part| format!("{}", js_sys::encode_uri_component(part)))
+        .collect::<Vec<_>>()
+        .join("/");
     fetch_relative(&format!("./forge-imports/{package}/{name}"), limit).await
 }
 

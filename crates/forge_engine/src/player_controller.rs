@@ -22,6 +22,11 @@ use std::{error::Error, fmt};
 
 const CAMERA_COLLISION_MARGIN_M: f32 = 0.05;
 
+#[path = "tidewater_player.rs"]
+mod tidewater;
+pub use crate::tidewater_locomotion::TidewaterLadder;
+pub use tidewater::{TidewaterPlayerInput, TidewaterPlayerPlugin, TidewaterPlayerState};
+
 /// Public fixed-schedule boundaries used by deterministic probes and later Studio playtests.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, SystemSet)]
 pub enum PlayerControllerSet {
@@ -40,10 +45,45 @@ pub struct PlayerSpawnPoint(pub Vec3);
 #[derive(Clone, Copy, Resource)]
 struct PlayerInitialCameraTarget(Option<Vec3>);
 
+#[derive(Clone, Copy, Resource)]
+struct PlayerInitialCameraMode(PlayerCameraMode);
+
+#[derive(Clone, Copy, Resource)]
+struct PlayerInitialCameraPitch(Option<f32>);
+
 impl PlayerSpawnPoint {
     #[must_use]
     pub const fn position(self) -> Vec3 {
         self.0
+    }
+
+    /// Relocates a configured initial pose while preserving its camera direction.
+    /// Only valid before startup has bound the live player and camera.
+    pub fn rebase_before_start(world: &mut World, position: Vec3) -> Result<(), String> {
+        if !position.is_finite() {
+            return Err("Player resume position must be finite".into());
+        }
+        let bindings = world
+            .get_resource::<PlayerRuntimeBindings>()
+            .ok_or_else(|| "Player controller is not configured".to_owned())?;
+        if bindings.snapshot().is_some() {
+            return Err("Initial player pose cannot be rebased after startup".into());
+        }
+        let previous = world
+            .get_resource::<Self>()
+            .ok_or_else(|| "Initial player spawn is missing".to_owned())?
+            .0;
+        let target = world
+            .get_resource::<PlayerInitialCameraTarget>()
+            .ok_or_else(|| "Initial player camera target is missing".to_owned())?
+            .0
+            .map(|target| position + (target - previous));
+        if target.is_some_and(|target| !target.is_finite()) {
+            return Err("Rebased player camera target must be finite".into());
+        }
+        world.insert_resource(Self(position));
+        world.insert_resource(PlayerInitialCameraTarget(target));
+        Ok(())
     }
 }
 
@@ -89,6 +129,7 @@ pub struct PendingPlayerControlCommand {
     next_sequence: u64,
     pending_sequence: Option<u64>,
     held_move_axis: Vec2,
+    held_raw_move_axis: Vec2,
     held_sprint: bool,
     queued_jump: bool,
     queued_look_delta: Vec2,
@@ -100,6 +141,7 @@ impl PendingPlayerControlCommand {
     pub fn cancel_input(&mut self) {
         self.pending_sequence = None;
         self.held_move_axis = Vec2::ZERO;
+        self.held_raw_move_axis = Vec2::ZERO;
         self.held_sprint = false;
         self.queued_jump = false;
         self.queued_look_delta = Vec2::ZERO;
@@ -129,6 +171,7 @@ impl PendingPlayerControlCommand {
         self.next_sequence = sequence;
         self.pending_sequence = Some(sequence);
         self.held_move_axis = normalize_move_axis(command.move_axis);
+        self.held_raw_move_axis = command.move_axis;
         self.held_sprint = command.sprint;
         self.queued_jump |= command.jump;
         self.queued_look_delta = accumulated_look;
@@ -361,6 +404,8 @@ pub struct PlayerControllerPlugin {
     spawn_point: PlayerSpawnPoint,
     interactive_input: bool,
     initial_camera_target: Option<Vec3>,
+    initial_camera_mode: PlayerCameraMode,
+    initial_camera_pitch_degrees: Option<f32>,
 }
 
 impl PlayerControllerPlugin {
@@ -371,6 +416,8 @@ impl PlayerControllerPlugin {
             spawn_point: PlayerSpawnPoint(spawn_position),
             interactive_input: true,
             initial_camera_target: None,
+            initial_camera_mode: PlayerCameraMode::ThirdPerson,
+            initial_camera_pitch_degrees: None,
         }
     }
 
@@ -386,6 +433,20 @@ impl PlayerControllerPlugin {
     #[must_use]
     pub const fn with_initial_camera_target(mut self, target: Vec3) -> Self {
         self.initial_camera_target = Some(target);
+        self
+    }
+
+    /// Selects the startup view without changing the player's collision body or the V toggle.
+    #[must_use]
+    pub const fn with_initial_camera_mode(mut self, mode: PlayerCameraMode) -> Self {
+        self.initial_camera_mode = mode;
+        self
+    }
+
+    /// Sets a camera pitch within the validated profile's authored limits.
+    #[must_use]
+    pub const fn with_initial_camera_pitch_degrees(mut self, pitch: f32) -> Self {
+        self.initial_camera_pitch_degrees = Some(pitch);
         self
     }
 }
@@ -408,6 +469,15 @@ impl Plugin for PlayerControllerPlugin {
                 "PlayerControllerPlugin requires a finite initial camera direction"
             );
         }
+        if let Some(pitch) = self.initial_camera_pitch_degrees {
+            assert!(
+                pitch.is_finite()
+                    && (self.profile.camera.pitch_min_degrees
+                        ..=self.profile.camera.pitch_max_degrees)
+                        .contains(&pitch),
+                "PlayerControllerPlugin requires an initial pitch inside the camera profile"
+            );
+        }
 
         let camera_system = update_player_camera.in_set(PlayerControllerSet::Camera);
         // Diagnostic ownership also applies when its paused clock is stepped.
@@ -419,6 +489,8 @@ impl Plugin for PlayerControllerPlugin {
         app.insert_resource(PlayerRuntimeProfile(self.profile.clone()))
             .insert_resource(self.spawn_point)
             .insert_resource(PlayerInitialCameraTarget(self.initial_camera_target))
+            .insert_resource(PlayerInitialCameraMode(self.initial_camera_mode))
+            .insert_resource(PlayerInitialCameraPitch(self.initial_camera_pitch_degrees))
             .init_resource::<PendingPlayerControlCommand>()
             .init_resource::<PlayerInputFocus>()
             .init_resource::<PlayerSimulationReady>()
@@ -442,7 +514,13 @@ impl Plugin for PlayerControllerPlugin {
             .add_systems(Startup, spawn_player_controller)
             .add_systems(
                 FixedUpdate,
-                drive_player_controller.in_set(PlayerControllerSet::Drive),
+                drive_player_controller
+                    .in_set(PlayerControllerSet::Drive)
+                    .run_if(bevy::ecs::schedule::common_conditions::not(
+                        bevy::ecs::schedule::common_conditions::resource_exists::<
+                            TidewaterPlayerState,
+                        >,
+                    )),
             )
             .add_systems(
                 FixedUpdate,
@@ -459,10 +537,19 @@ impl Plugin for PlayerControllerPlugin {
     clippy::needless_pass_by_value,
     reason = "Bevy systems require owned system parameter wrappers"
 )]
+#[allow(
+    clippy::too_many_lines,
+    reason = "Creates the player, its camera, and their runtime bindings in one startup transaction."
+)]
 fn spawn_player_controller(
     mut commands: Commands,
     profile: Res<PlayerRuntimeProfile>,
-    (spawn_point, camera_target): (Res<PlayerSpawnPoint>, Res<PlayerInitialCameraTarget>),
+    (spawn_point, camera_target, camera_mode, camera_pitch): (
+        Res<PlayerSpawnPoint>,
+        Res<PlayerInitialCameraTarget>,
+        Res<PlayerInitialCameraMode>,
+        Res<PlayerInitialCameraPitch>,
+    ),
     mut bindings: ResMut<PlayerRuntimeBindings>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
     meshes: Option<ResMut<Assets<Mesh>>>,
@@ -509,7 +596,11 @@ fn spawn_player_controller(
         },
         PlayerMotionState::default(),
         Transform::from_translation(spawn_point.0),
-        Visibility::Visible,
+        if camera_mode.0 == PlayerCameraMode::FirstPerson {
+            Visibility::Hidden
+        } else {
+            Visibility::Visible
+        },
     ));
     if let (Some(mesh), Some(material)) = (&mesh_handle, &material_handle) {
         player.insert((Mesh3d(mesh.clone()), MeshMaterial3d(material.clone())));
@@ -517,6 +608,13 @@ fn spawn_player_controller(
     let player_entity = player.id();
 
     let mut rig = PlayerCameraRig::new(camera_profile);
+    rig.mode = camera_mode.0;
+    if let Some(pitch) = camera_pitch.0 {
+        rig.pitch_radians = pitch.to_radians();
+    }
+    if rig.mode == PlayerCameraMode::FirstPerson {
+        rig.boom_distance_m = 0.0;
+    }
     if let Some(target) = camera_target.0 {
         let direction = target - spawn_point.0;
         if direction.x.abs().max(direction.z.abs()) > f32::EPSILON {
@@ -525,7 +623,18 @@ fn spawn_player_controller(
     }
     let capsule_half_height =
         controller_profile.capsule_radius_m + controller_profile.capsule_half_segment_m;
-    let pose = third_person_pose(spawn_point.0, capsule_half_height, rig, camera_profile);
+    let pose = match rig.mode {
+        PlayerCameraMode::FirstPerson => {
+            first_person_pose(spawn_point.0, capsule_half_height, rig, camera_profile)
+        }
+        PlayerCameraMode::ThirdPerson => {
+            third_person_pose(spawn_point.0, capsule_half_height, rig, camera_profile)
+        }
+    };
+    let vertical_fov_degrees = match rig.mode {
+        PlayerCameraMode::FirstPerson => camera_profile.first_person_vertical_fov_degrees,
+        PlayerCameraMode::ThirdPerson => camera_profile.third_person_vertical_fov_degrees,
+    };
     let camera_entity = commands
         .spawn((
             Name::new("Forge player camera"),
@@ -538,9 +647,7 @@ fn spawn_player_controller(
                 ..default()
             },
             Projection::Perspective(PerspectiveProjection {
-                fov: camera_profile
-                    .third_person_vertical_fov_degrees
-                    .to_radians(),
+                fov: vertical_fov_degrees.to_radians(),
                 near: 0.05,
                 far: 1_600.0,
                 ..default()
@@ -555,9 +662,7 @@ fn spawn_player_controller(
     snapshot.camera_yaw_radians = rig.yaw_radians;
     snapshot.camera_pitch_radians = rig.pitch_radians;
     snapshot.camera_boom_distance_m = rig.boom_distance_m;
-    snapshot.camera_vertical_fov_radians = camera_profile
-        .third_person_vertical_fov_degrees
-        .to_radians();
+    snapshot.camera_vertical_fov_radians = vertical_fov_degrees.to_radians();
 }
 
 #[allow(
@@ -759,6 +864,7 @@ fn observe_player_controller(
 #[allow(
     clippy::needless_pass_by_value,
     clippy::too_many_lines,
+    clippy::too_many_arguments,
     clippy::type_complexity,
     reason = "the Bevy system atomically projects one player pose, Rapier query, and stable camera"
 )]
@@ -768,6 +874,7 @@ fn update_player_camera(
     bindings: Res<PlayerRuntimeBindings>,
     rapier: ReadRapierContext,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
+    tidewater: Option<ResMut<TidewaterPlayerState>>,
     mut player: Query<(&Transform, &mut Visibility), With<ForgePlayerCharacter>>,
     mut camera: Query<
         (&mut Transform, &mut Projection, &mut PlayerCameraRig),
@@ -781,20 +888,23 @@ fn update_player_camera(
         return;
     };
     let controller_profile = &profile.0.controller;
-    let camera_profile = &profile.0.camera;
-    let capsule_half_height =
+    let mut effective_camera_profile = profile.0.camera;
+    let mut player_center = player_transform.translation;
+    let mut capsule_half_height =
         controller_profile.capsule_radius_m + controller_profile.capsule_half_segment_m;
+    if let Some(mut state) = tidewater {
+        player_center = state.motion.eye(fixed_time.timestep().as_secs_f32());
+        capsule_half_height = 0.0;
+        effective_camera_profile.eye_height_m = 0.0;
+        effective_camera_profile.pivot_height_m = 0.0;
+    }
+    let camera_profile = &effective_camera_profile;
 
     match rig.mode {
         PlayerCameraMode::FirstPerson => {
             *player_visibility = Visibility::Hidden;
             rig.boom_distance_m = 0.0;
-            let pose = first_person_pose(
-                player_transform.translation,
-                capsule_half_height,
-                *rig,
-                camera_profile,
-            );
+            let pose = first_person_pose(player_center, capsule_half_height, *rig, camera_profile);
             *camera_transform =
                 Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y);
             set_perspective_fov(
@@ -814,12 +924,8 @@ fn update_player_camera(
             *player_visibility = Visibility::Visible;
             let mut cast_rig = *rig;
             cast_rig.boom_distance_m = camera_profile.third_person_distance_m;
-            let desired_pose = third_person_pose(
-                player_transform.translation,
-                capsule_half_height,
-                cast_rig,
-                camera_profile,
-            );
+            let desired_pose =
+                third_person_pose(player_center, capsule_half_height, cast_rig, camera_profile);
             let cast_vector = desired_pose.translation - desired_pose.pivot;
             let cast_distance = cast_vector.length();
             let mut collision_limit = None;
@@ -857,12 +963,7 @@ fn update_player_camera(
                 camera_profile.recovery_speed_mps,
                 fixed_time.timestep().as_secs_f32(),
             );
-            let pose = third_person_pose(
-                player_transform.translation,
-                capsule_half_height,
-                *rig,
-                camera_profile,
-            );
+            let pose = third_person_pose(player_center, capsule_half_height, *rig, camera_profile);
             *camera_transform =
                 Transform::from_translation(pose.translation).looking_to(pose.forward, Vec3::Y);
             set_perspective_fov(
@@ -1589,6 +1690,45 @@ mod tests {
             assert!((state.player_position - spawn).length() < 0.0001);
             assert!((state.camera_pitch_radians - (-12.0_f32).to_radians()).abs() < 0.0001);
         }
+    }
+
+    #[test]
+    fn first_person_start_hides_capsule_and_sets_eye_projection() {
+        let profile = test_profile();
+        let spawn = Vec3::new(4.0, 8.0, -16.0);
+        let mut app = App::new();
+        app.add_plugins(MinimalPlugins).add_plugins(
+            PlayerControllerPlugin::new(profile.clone(), spawn)
+                .with_initial_camera_mode(PlayerCameraMode::FirstPerson)
+                .with_initial_camera_pitch_degrees(12.0)
+                .with_interactive_input(false),
+        );
+        app.world_mut().run_schedule(Startup);
+        let bindings = bindings(&app);
+        assert_eq!(snapshot(&app).camera_mode, PlayerCameraMode::FirstPerson);
+        assert!((snapshot(&app).camera_pitch_radians - 12.0_f32.to_radians()).abs() < 1.0e-6);
+        assert_eq!(
+            app.world()
+                .get::<Visibility>(bindings.player_entity)
+                .unwrap(),
+            &Visibility::Hidden
+        );
+        let Projection::Perspective(camera) = app
+            .world()
+            .get::<Projection>(bindings.camera_entity)
+            .unwrap()
+        else {
+            panic!("expected perspective camera")
+        };
+        assert!(
+            (camera.fov
+                - profile
+                    .camera
+                    .first_person_vertical_fov_degrees
+                    .to_radians())
+            .abs()
+                < 1.0e-6
+        );
     }
 
     #[cfg(feature = "qualification")]

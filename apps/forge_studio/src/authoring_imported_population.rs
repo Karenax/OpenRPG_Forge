@@ -90,6 +90,24 @@ pub(crate) fn current_head() -> Option<Rc<ZoneAuthoringHead>> {
     DOCUMENT.with(|d| d.borrow().clone())
 }
 
+/// The verified resident population's owner, without hashing the head on every frame.
+pub(crate) fn ready_head_hash() -> Option<ContentHash> {
+    if LOADING.with(Cell::get) {
+        return None;
+    }
+    DOCUMENT.with(|document| {
+        let document = document.borrow();
+        let head = document.as_ref()?;
+        POPULATION.with(|population| {
+            let population = population.borrow();
+            population.as_ref().filter(|population| {
+                Some(population.document()) == head.base.vegetation.as_ref()
+            })?;
+            HEAD.with(Cell::get)
+        })
+    })
+}
+
 pub(crate) fn population(head: &ZoneAuthoringHead) -> Result<Rc<ImportedPopulation>, String> {
     if HEAD.with(Cell::get) != Some(head.content_hash()?) {
         return Err("Population demandée pour une autre révision".into());

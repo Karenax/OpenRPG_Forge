@@ -19,6 +19,7 @@ use std::sync::{
     atomic::{AtomicBool, AtomicU32, Ordering},
 };
 pub mod acquisition_controller;
+pub mod live;
 pub(crate) mod validation;
 use validation::validate;
 pub mod shadow;
@@ -56,6 +57,17 @@ struct Execution {
     settings: Option<bevy::render::render_resource::Buffer>,
     shadow: Option<shadow::Cache>,
 }
+#[allow(clippy::struct_excessive_bools)]
+pub(super) struct FrameView<'a> {
+    pub index: usize,
+    pub local: &'a [u8],
+    pub global: &'a [u8],
+    pub atmosphere: Option<&'a [u8]>,
+    pub shadow_full: bool,
+    pub panorama_full: bool,
+    pub trace_view: bool,
+    pub view_index: usize,
+}
 #[allow(clippy::too_many_lines, clippy::too_many_arguments)]
 fn compute(
     mut context: RenderContext,
@@ -65,8 +77,17 @@ fn compute(
     device: Res<RenderDevice>,
     images: Res<RenderAssets<GpuImage>>,
     queue: Res<bevy::render::renderer::RenderQueue>,
+    pending: Res<live::Pending>,
 ) {
-    if targets.ready.load(Ordering::Acquire) {
+    let live = pending.0.as_deref().filter(|f| {
+        targets.ready.load(Ordering::Acquire)
+            && Some(f.step)
+                == targets
+                    .completed_steps
+                    .load(Ordering::Acquire)
+                    .checked_add(1)
+    });
+    if targets.ready.load(Ordering::Acquire) && live.is_none() {
         return;
     }
     if !execution
@@ -176,17 +197,48 @@ fn compute(
             pass.dispatch_workgroups(SIZES[index] / 8, SIZES[index] / 8, 1);
         }
     }
-    let end = if input.stepped {
+    let end = if let Some(frame) = live {
+        frame.step as usize
+    } else if input.stepped {
         (*next + 1).min(120)
     } else {
         120
     };
     if let Some(shadow) = &input.shadow {
+        let frames: Vec<_> = if let Some(frame) = live {
+            vec![frame.view()]
+        } else {
+            shadow
+                .frames
+                .iter()
+                .enumerate()
+                .skip(*next)
+                .take(end - *next)
+                .map(|(index, (local, global))| FrameView {
+                    index,
+                    local,
+                    global,
+                    atmosphere: None,
+                    shadow_full: index == 0,
+                    panorama_full: index == 0,
+                    trace_view: true,
+                    view_index: index % 2,
+                })
+                .collect()
+        };
+        // Immutable per-submission settings preserve already queued frames.
+        let live_settings = live.map(|frame| {
+            device.create_buffer_with_data(&gpu::BufferInitDescriptor {
+                label: Some("live cloud settings"),
+                contents: &frame.settings,
+                usage: gpu::BufferUsages::UNIFORM,
+            })
+        });
         shadow.encode(
             &device,
             &queue,
             context.command_encoder(),
-            settings,
+            live_settings.as_ref().unwrap_or(settings),
             &views[0].texture_view,
             &views[2].texture_view,
             (views.len() >= 5).then(|| {
@@ -206,14 +258,15 @@ fn compute(
                 ]
             }),
             atmosphere_views,
-            *next..end,
+            &frames,
             shadow_cache,
         );
     }
     *next = end;
-    targets
-        .completed_steps
-        .store(u32::try_from(end).expect("120 steps"), Ordering::Release);
+    targets.completed_steps.store(
+        u32::try_from(end).expect("bounded cloud step"),
+        Ordering::Release,
+    );
     targets.submissions.fetch_add(1, Ordering::AcqRel);
     if end == 120 {
         targets.ready.store(true, Ordering::Release);
@@ -238,10 +291,12 @@ pub fn register(app: &mut App) -> Result<(), String> {
     app.add_plugins((
         ExtractResourcePlugin::<StagedInput>::default(),
         ExtractResourcePlugin::<Targets>::default(),
+        ExtractResourcePlugin::<live::Pending>::default(),
     ));
     app.sub_app_mut(RenderApp).add_systems(
         RenderGraph,
         compute
+            .after(crate::tidewater_atmosphere::AtmosphereCompute)
             .before(camera_driver)
             .run_if(resource_exists::<StagedInput>)
             .run_if(resource_exists::<Targets>),
@@ -336,6 +391,7 @@ pub fn stage(
         atmosphere: shared,
     });
     world.insert_resource(targets.clone());
+    world.insert_resource(live::Pending::default());
     Ok(targets)
 }
 

@@ -7,7 +7,11 @@ use tauri::Manager;
 mod native_atelier;
 mod native_reconciliation;
 
-/// Read-only adapter: the WebView supplies IDs and filters, never filesystem paths.
+static AUTHORING_HOST: OnceLock<
+    Mutex<Result<forge_project::authoring::host::AuthoringHost, String>>,
+> = OnceLock::new();
+
+/// Read-only adapter: the `WebView` supplies IDs and filters, never filesystem paths.
 #[tauri::command]
 async fn read_asset_library(request: String) -> Result<String, String> {
     if request.len() > 8192 {
@@ -31,9 +35,7 @@ async fn read_asset_library(request: String) -> Result<String, String> {
 fn with_authoring_host<T>(
     operation: impl FnOnce(&mut forge_project::authoring::host::AuthoringHost) -> Result<T, String>,
 ) -> Result<T, String> {
-    static HOST: OnceLock<Mutex<Result<forge_project::authoring::host::AuthoringHost, String>>> =
-        OnceLock::new();
-    let host = HOST.get_or_init(|| Mutex::new(
+    let host = AUTHORING_HOST.get_or_init(|| Mutex::new(
         std::env::var_os("FORGE_AUTHORING_ROOT")
             .ok_or_else(|| "Set FORGE_AUTHORING_ROOT to an existing authorized directory before launching Studio".to_owned())
             .and_then(|root| forge_project::authoring::host::AuthoringHost::new(std::path::Path::new(&root)))
@@ -194,6 +196,14 @@ fn execute_studio_command_sync(command: StudioCommand) -> StudioResponse {
                 },
             ),
         StudioCommand::Authoring { request } => execute_authoring(*request),
+        StudioCommand::GameSave { request } => {
+            with_authoring_host(|host| host.execute_game_save(*request)).map_or_else(
+                |reason| StudioResponse::Rejected { reason },
+                |state| StudioResponse::GameSave {
+                    state: Box::new(state),
+                },
+            )
+        }
         StudioCommand::Workspace { request } => {
             native_reconciliation::clear();
             let result = if request.persists_audit_receipt() {
@@ -266,7 +276,10 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![execute_studio_command])
+        .invoke_handler(tauri::generate_handler![
+            execute_studio_command,
+            read_asset_library
+        ])
         .run(tauri::generate_context!())
         .expect("failed to run OpenRPG Forge Studio");
 }
@@ -275,26 +288,66 @@ fn finish_window_close(
     window: &tauri::WebviewWindow,
     discard_unsaved: bool,
 ) -> Result<String, String> {
-    let result = with_authoring_host(|host| {
-        let state = host.execute(forge_project::authoring::AuthoringRequest::Inspect)?;
-        check_window_close(state.dirty, discard_unsaved)?;
-        if let Some(atelier) = window
-            .app_handle()
-            .get_webview_window(native_atelier::LABEL)
-        {
-            atelier.destroy().map_err(|error| error.to_string())?;
-            native_atelier::closed();
-        }
-        // Bypass CloseRequested only after explicit confirmation, under the host lock.
-        window.destroy().map_err(|error| error.to_string())?;
-        Ok(state)
-    });
-    encode_tauri_wire(&match result {
-        Ok(state) => StudioResponse::Authoring {
-            state: Box::new(state),
+    let result = match AUTHORING_HOST.get() {
+        Some(host) => match host.lock() {
+            Ok(mut host) => match host.as_mut() {
+                Ok(host) => {
+                    let inspected =
+                        host.execute(forge_project::authoring::AuthoringRequest::Inspect);
+                    close_window_when_authorized(
+                        inspected.as_ref().ok().map(|state| state.dirty),
+                        discard_unsaved,
+                        || destroy_confirmed_windows(window),
+                    )
+                }
+                Err(_) => close_window_when_authorized(None, discard_unsaved, || {
+                    destroy_confirmed_windows(window)
+                }),
+            },
+            Err(_) => close_window_when_authorized(None, discard_unsaved, || {
+                destroy_confirmed_windows(window)
+            }),
         },
+        None => close_window_when_authorized(None, discard_unsaved, || {
+            destroy_confirmed_windows(window)
+        }),
+    };
+    encode_tauri_wire(&match result {
+        Ok(()) => StudioResponse::WindowClosed,
         Err(reason) => StudioResponse::Rejected { reason },
     })
+}
+
+/// The native authoring host is authoritative when it is available. If it was
+/// never initialized or failed during startup, the user may still explicitly
+/// abandon the unavailable session; ordinary save-and-close is never upgraded
+/// into a discard.
+fn close_window_when_authorized(
+    dirty: Option<bool>,
+    discard_unsaved: bool,
+    close: impl FnOnce() -> Result<(), String>,
+) -> Result<(), String> {
+    match dirty {
+        Some(dirty) => check_window_close(dirty, discard_unsaved)?,
+        None if !discard_unsaved => return Err(
+            "État auteur indisponible : choisissez « Quitter sans enregistrer » pour abandonner explicitement cette session."
+                .into(),
+        ),
+        None => {}
+    }
+    close()
+}
+
+fn destroy_confirmed_windows(window: &tauri::WebviewWindow) -> Result<(), String> {
+    if let Some(atelier) = window
+        .app_handle()
+        .get_webview_window(native_atelier::LABEL)
+    {
+        atelier.destroy().map_err(|error| error.to_string())?;
+        native_atelier::closed();
+    }
+    // Bypass CloseRequested only after explicit confirmation.
+    window.destroy().map_err(|error| error.to_string())
 }
 
 fn check_window_close(dirty: bool, discard_unsaved: bool) -> Result<(), String> {
@@ -316,6 +369,84 @@ mod tests {
         assert!(check_window_close(true, false).is_err());
         assert!(check_window_close(false, false).is_ok());
         assert!(check_window_close(true, true).is_ok());
+    }
+
+    #[test]
+    fn unavailable_authoring_state_requires_an_explicit_discard() {
+        let mut calls = 0;
+        assert!(
+            close_window_when_authorized(None, false, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_err()
+        );
+        assert_eq!(calls, 0);
+
+        assert!(
+            close_window_when_authorized(None, true, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_ok()
+        );
+        assert_eq!(calls, 1);
+    }
+
+    #[test]
+    fn close_policy_keeps_dirty_guard_and_allows_confirmed_paths_once() {
+        let mut calls = 0;
+        assert!(
+            close_window_when_authorized(Some(true), false, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_err()
+        );
+        assert_eq!(calls, 0);
+
+        assert!(
+            close_window_when_authorized(Some(false), false, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_ok()
+        );
+        assert_eq!(calls, 1);
+
+        assert!(
+            close_window_when_authorized(Some(true), true, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_ok()
+        );
+        assert_eq!(calls, 2);
+    }
+
+    #[test]
+    fn close_failure_is_returned_without_retrying_the_action() {
+        let mut calls = 0;
+        let error = close_window_when_authorized(Some(false), false, || {
+            calls += 1;
+            Err("native destroy failed".into())
+        })
+        .unwrap_err();
+        assert_eq!(error, "native destroy failed");
+        assert_eq!(calls, 1);
+    }
+
+    #[test]
+    fn save_and_close_is_not_silently_converted_to_discard() {
+        let mut calls = 0;
+        assert!(
+            close_window_when_authorized(None, false, || {
+                calls += 1;
+                Ok(())
+            })
+            .is_err()
+        );
+        assert_eq!(calls, 0);
     }
 
     #[test]
@@ -354,15 +485,19 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 2);
+        assert_eq!(permissions.len(), 3);
         assert_eq!(permissions[0], "allow-execute-studio-command");
-        assert_eq!(permissions[1], "core:window:deny-set-title");
+        assert_eq!(permissions[1], "allow-read-asset-library");
+        assert_eq!(permissions[2], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
             .filter(|identifier| !identifier.contains(":deny-"))
             .collect();
-        assert_eq!(granted, ["allow-execute-studio-command"]);
+        assert_eq!(
+            granted,
+            ["allow-execute-studio-command", "allow-read-asset-library"]
+        );
     }
 
     #[test]

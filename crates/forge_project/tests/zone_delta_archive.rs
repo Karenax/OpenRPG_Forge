@@ -1,9 +1,14 @@
-use forge_core::CommandId;
+use forge_core::{CommandId, EntityId, bytes_sha256};
 use forge_project::{
+    VegetationDocument,
     authoring::new_terrain,
+    imported_vegetation::{
+        ImportedInstanceEncoding, ImportedVegetationBlock, ImportedVegetationSource,
+    },
     terrain_edit::TerrainEditSession,
     zone_authoring::{
         GeneratorStamp,
+        imported_plants::{ImportedPlantOffset, ImportedPlantPlacement},
         migration::ZoneMigrationProposal,
         session::{ZoneAction, ZoneEditSession, ZoneRequest},
     },
@@ -139,6 +144,88 @@ fn editing_continues_by_switching_to_lossless_delta_before_archive_limit() {
     command(&mut reopened, ZoneAction::Redo);
     assert_eq!(reopened.head().corrections, session.head().corrections);
     assert_eq!(reopened.head().base, session.head().base);
+}
+
+#[test]
+fn explicit_delta_archive_preserves_imported_plant_offsets_and_placements() {
+    let (mut source, layer_id, source_key) = imported_plant_session();
+    let mut corrections = source.head().corrections.clone();
+    corrections.imported_plant_offsets = Some(vec![ImportedPlantOffset {
+        layer_id: layer_id.clone(),
+        source_key,
+        translation_m: [1.5, -0.25, 3.0],
+    }]);
+    command(&mut source, ZoneAction::edit(corrections));
+    let mut corrections = source.head().corrections.clone();
+    corrections.imported_plant_placements = Some(vec![ImportedPlantPlacement {
+        id: EntityId::deterministic("delta-imported-plant-placement"),
+        layer_id,
+        source_key,
+        translation_m: [-4.0, 0.5, 2.0],
+        yaw_degrees: Some(45.0),
+        scale_factor: Some(1.25),
+    }]);
+    command(&mut source, ZoneAction::edit(corrections));
+
+    let expected = source.head().clone();
+    let bytes = source.delta_archive_bytes().unwrap();
+    let mut restored = ZoneEditSession::from_archive_bytes(&bytes).unwrap();
+    assert_eq!(restored.head(), &expected);
+    assert_eq!(restored.audit(), source.audit());
+    assert_eq!(restored.archive_bytes().unwrap(), bytes);
+
+    command(&mut source, ZoneAction::Undo);
+    command(&mut restored, ZoneAction::Undo);
+    assert_eq!(restored.head(), source.head());
+    assert!(restored.head().corrections.imported_plant_offsets.is_some());
+    assert!(
+        restored
+            .head()
+            .corrections
+            .imported_plant_placements
+            .is_none()
+    );
+    command(&mut source, ZoneAction::Redo);
+    command(&mut restored, ZoneAction::Redo);
+    assert_eq!(restored.head(), source.head());
+    assert_eq!(restored.head().corrections, expected.corrections);
+    assert_eq!(restored.head().base, expected.base);
+}
+
+fn imported_plant_session() -> (
+    ZoneEditSession,
+    forge_project::VegetationLayerId,
+    forge_core::ContentHash,
+) {
+    let terrain = new_terrain("delta-imported-plants", "zone", "Zone").unwrap();
+    let mut vegetation = VegetationDocument::from_json(include_str!(
+        "../../../examples/visual_valley/vegetation.v1.json"
+    ))
+    .unwrap();
+    vegetation.project_id = terrain.project_id;
+    vegetation.area_id = terrain.area_id;
+    vegetation.schema_version = 2;
+    vegetation.layers.truncate(1);
+    vegetation.layers[0].material_filter = None;
+    let layer_id = vegetation.layers[0].id.clone();
+    let source_key = bytes_sha256(b"delta-imported-plant-source");
+    vegetation.imported_source = Some(ImportedVegetationSource {
+        schema: "forge.imported-vegetation".into(),
+        version: 1,
+        blocks: vec![ImportedVegetationBlock {
+            layer_id: layer_id.to_string(),
+            prototype_key: "trees".into(),
+            count: 1,
+            encoding: ImportedInstanceEncoding::TransformF64LeV1,
+            instances_sha256: bytes_sha256(b"delta-imported-plant-instances"),
+            parameter_names: vec![],
+        }],
+    });
+    let mut session = ZoneEditSession::from_initial_terrain(terrain).unwrap();
+    let mut base = session.head().base.clone();
+    base.vegetation = Some(vegetation);
+    command(&mut session, ZoneAction::Regenerate(Box::new(base)));
+    (session, layer_id, source_key)
 }
 
 #[test]

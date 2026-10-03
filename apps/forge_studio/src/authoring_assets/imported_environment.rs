@@ -27,11 +27,13 @@ pub(crate) fn install(app: &mut App) -> Result<(), String> {
     imported_buildings::restore_buildings()?;
     imported_buildings::restore_terrain()?;
     imported_buildings::restore_plants()?;
+    imported_buildings::restore_fish_stand()?;
     app.add_plugins(MaterialPlugin::<
         forge_engine::tidewater_plants::PlantMaterial,
     >::default());
     forge_engine::tidewater_sky::preview::install(app);
     super::imported_scene::install(app);
+    super::fish_stand_scene::install(app)?;
     app.add_systems(Update, update);
     Ok(())
 }
@@ -48,6 +50,7 @@ fn stage_plants(world: &mut World, update: imported_buildings::PlantUpdate) {
             std::str::from_utf8(package.file("plant.wgsl").ok_or("Shader végétal absent")?)
                 .map_err(|e| e.to_string())?;
         tidewater_plants::stage_shader(world, shader)?;
+        tidewater_plants::picking::stage_shader(world, shader)?;
         let resident = prepared.stage(&mut world.resource_mut::<Assets<Image>>());
         world.insert_resource(resident);
         Ok(())

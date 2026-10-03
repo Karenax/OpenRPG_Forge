@@ -29,6 +29,6 @@ pub(in crate::authoring_assets) fn prepare(
     };
     let key =
         serde_json::to_string(&(head.content_hash()?, &edit)).map_err(|error| error.to_string())?;
-    head.prepare_placement(CommandId::deterministic(key), edit)
+    super::super::objects::edit(head, edit, CommandId::deterministic(key))
         .map(|request| AuthoringRequest::PreviewZone { request })
 }

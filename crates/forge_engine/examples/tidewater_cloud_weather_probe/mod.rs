@@ -30,6 +30,9 @@ mod trace;
 use forge_engine::tidewater_clouds::{Input, install as install_input};
 pub use forge_engine::tidewater_clouds::{SharedAtmosphere, Targets};
 #[derive(Resource)]
+#[allow(dead_code)]
+pub struct LiveSource(pub forge_engine::tidewater_clouds::acquisition_controller::Continuation);
+#[derive(Resource)]
 struct Output {
     root: PathBuf,
     requested: bool,
@@ -97,7 +100,11 @@ pub fn install(
         shadow: Some(shadow::load(root, &meta, true, true, true, true)?),
     };
     app.sub_app_mut(RenderApp).insert_resource(atmosphere);
-    Ok(install_input(app, input, 10)?)
+    let targets = install_input(app, input, 10)?;
+    app.insert_resource(LiveSource(
+        forge_engine::tidewater_clouds::acquisition_controller::continuation(&meta)?,
+    ));
+    Ok(targets)
 }
 #[allow(clippy::too_many_lines)] // Input validation, headless Bevy setup and provenance stay together.
 pub fn run() -> Result<(), Box<dyn Error>> {

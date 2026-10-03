@@ -23,6 +23,10 @@ mod pivot;
 mod replacement;
 
 #[component]
+#[allow(
+    clippy::too_many_lines,
+    reason = "The Leptos placement view keeps its controls in one ownership scope"
+)]
 pub(super) fn PlacementControls(
     state: RwSignal<Option<AuthoringState>>,
     catalog: RwSignal<Option<AssetBrowser>>,
@@ -32,6 +36,16 @@ pub(super) fn PlacementControls(
     host_busy: RwSignal<bool>,
     on_command: SendCommand,
 ) -> impl IntoView {
+    let source_revision = super::placements::bind_sources();
+    // Availability can change without changing the inspected object or its draft.
+    let inspected_placement = Memo::new(move |_| {
+        let _ = source_revision.get();
+        let head = state.get()?.zone_head?;
+        let id = inspected.get()?;
+        super::objects::lookup(&head, id)
+            .ok()
+            .map(|placement| (head.base.terrain.area_id, placement))
+    });
     let scale = RwSignal::new("1".to_owned());
     let yaw = RwSignal::new("0".to_owned());
     let offset = RwSignal::new("0".to_owned());
@@ -70,28 +84,24 @@ pub(super) fn PlacementControls(
                         if value.is_empty() {
                             super::placements::selection::choose(None);
                         } else {
-                            let id = state.get_untracked().and_then(|s| s.zone_head)
-                                .and_then(|h| h.corrections.placements)
-                                .and_then(|ps| ps.into_iter().find(|p| p.id.to_string() == value))
-                                .map(|p| p.id);
+                            let id = state.get_untracked().and_then(|s| s.zone_head).and_then(|h| super::objects::choices(&h,inspected.get_untracked()).ok()).and_then(|ps| ps.into_iter().find(|p| p.id.to_string() == value)).map(|p| p.id);
                             if let Some(id) = id { super::placements::selection::choose(Some(id)); }
                             else { on_command.run(Err("Objet absent de la zone courante ; actualiser la sélection".into())); }
                         }
                     }>
                     <option value="">"Choisir un objet…"</option>
-                    {move || state.get().and_then(|s| s.zone_head).and_then(|h| h.corrections.placements)
-                        .unwrap_or_default().into_iter().map(|p| view! {
+                    {move || { let _ = source_revision.get(); state.get().and_then(|s| s.zone_head).and_then(|h| super::objects::choices(&h,inspected.get()).ok()).unwrap_or_default().into_iter().map(|p| view! {
                             <option value=p.id.to_string()>{p.name}</option>
-                        }).collect_view()}
+                        }).collect_view()}}
                 </select>
             </label>
             <p class="authoring-hint">"Cliquez directement sur un objet visible dans la carte pour ouvrir ses réglages ici."</p>
             <button hidden=move || inspected.get().is_none() on:click=move |_| super::placements::selection::choose(None)>"Fermer l’inspecteur de l’objet"</button>
             <super::placements::ProjectionStatus/>
             </details>
-            {move || state.get().and_then(|s| s.zone_head).map(|head| head.corrections.placements.unwrap_or_default().into_iter().filter(|p| inspected.get().is_some_and(|id| id == p.id)).map(|placement| {
+            {move || inspected_placement.get().into_iter().map(|(_, placement)| {
                 view! { <inspector::PlacedObjectControls state=state placement=placement path_array=path_array catalog=catalog selected=selected busy=busy on_command=on_command/> }
-            }).collect_view())}
+            }).collect_view()}
         </fieldset>
     }
 }
@@ -141,7 +151,7 @@ pub(super) fn head(state: Option<AuthoringState>) -> Result<ZoneAuthoringHead, S
 fn edit(state: Option<AuthoringState>, edit: PlacementEdit) -> Result<AuthoringRequest, String> {
     let head = head(state)?;
     let key = serde_json::to_string(&(head.content_hash()?, &edit)).map_err(|e| e.to_string())?;
-    head.prepare_placement(CommandId::deterministic(key), edit)
+    super::objects::edit(&head, edit, CommandId::deterministic(key))
         .map(|request| AuthoringRequest::PreviewZone { request })
 }
 

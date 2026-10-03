@@ -1,0 +1,236 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "nappe-de-sel-plate-v1.png",
+      "alt": "Une Nappe de sel forme une croûte blanche cristalline aux bords translucides, avec des bourrelets de grains sur le fond d’une ancienne saline.",
+      "caption": "Elle déplace ses grains vers les zones où la saumure se concentre et contourne les volumes d'eau douce. Elle repousse les pressions répétées sur son centre.",
+      "prompt_key": "nappe-de-sel-plate-v1"
+    }
+  ],
+  "creature_id": "creature.nappe-de-sel",
+  "name": "Nappe de sel",
+  "subtitle": "L'amas animé qui reforme ses bordures au rythme des saumures",
+  "classification": {
+    "nature": "Agrégat cristallin animé, non biologique",
+    "family": "Amas minéraux des saumures",
+    "rarity": "Rare dans les bassins anciens soumis à des alternances de séchage",
+    "activity": "Lente entre deux apports d'eau ; s'immobilise sous une dilution importante",
+    "social": "Nappes distinctes sans organisation collective démontrée",
+    "threat": "moderee",
+    "threat_reason": "Les grains en mouvement abrasent les surfaces exposées et peuvent bloquer une marche, mais une nappe dépend de sa matière présente et ne dessèche pas les êtres vivants à distance."
+  },
+  "physique": {
+    "dimensions": "Disque irrégulier de 0,8 à 1,5 m de diamètre ; bourrelets hauts de 0,1 à 0,3 m",
+    "mass_kg": [
+      20,
+      65
+    ],
+    "locomotion": [
+      "glissement granulaire sur sol ferme",
+      "progression par vagues de cristaux"
+    ],
+    "center_of_gravity": "Au ras du sol, dans les grains compactés ; les crêtes mobiles restent peu hautes et se brisent sous une charge suffisante.",
+    "silhouette": "Croûte blanche mobile aux marges translucides, parcourue de rides qui font sonner les grains contre la pierre.",
+    "anatomy_zones": [
+      {
+        "zone": "Croûte centrale",
+        "description": "Cristaux tassés autour d'un noyau compact ; ils sont rigides mais cassants et solubles.",
+        "protection": 10
+      },
+      {
+        "zone": "Bourrelets mobiles",
+        "description": "Grains libres soulevés en vagues courtes, sans muscle ni peau.",
+        "protection": 4
+      },
+      {
+        "zone": "Frange humide",
+        "description": "Minces ponts de saumure et petits cristaux qui relient les îlots de l'agrégat.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "anciens bassins de salines partiellement abandonnés",
+    "terrasses salées recevant des infiltrations minérales"
+  ],
+  "ecology": {
+    "diet": "Aucune nutrition organique. Du sel déjà dissous peut se déposer sur la nappe lors de l'évaporation ; elle n'extrait pas les sels des corps vivants.",
+    "lifecycle": "Un agrégat devient mobile lorsqu'une animation minérale se fixe à une croûte durable. Il gagne ou perd de la matière au fil des dépôts et dissolutions ; une forte dilution disperse les grains et met fin à son activité.",
+    "reproduction": "Aucune reproduction biologique. Des fragments séparés restent du sel ordinaire ; une nouvelle nappe exige une animation indépendante, spontanée ou rituelle, dont la formation n'est pas garantie.",
+    "behavior": "Elle déplace ses grains vers les zones où la saumure se concentre et contourne les volumes d'eau douce. Elle repousse les pressions répétées sur son centre.",
+    "niche": "Présence minérale locale des cycles de saumure, sans rôle de prédateur ni de décomposeur.",
+    "environmental_impact": "Elle concentre les dépôts, peut boucher de petites arrivées d'eau et laisse des bandes salées où la végétation tolérant mal le sel recule."
+  },
+  "senses": [
+    "Réagit aux vibrations directement transmises par le sol sous ses grains.",
+    "Perçoit les différences d'humidité et de salinité au contact de sa frange."
+  ],
+  "communication": [
+    "Claquements granuleux et rides de surface ; aucune parole ni intention symbolique établie."
+  ],
+  "signs": [
+    "Bordure de cristaux reformée à côté d'une trace de pas.",
+    "Grains qui remontent lentement une très faible pente.",
+    "Petit cliquetis régulier dans un bassin sans vent."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Maintenir un agrégat continu.",
+      "Rejoindre les zones de saumure concentrée."
+    ],
+    "fears": [
+      "Dilution rapide dans un grand volume d'eau douce.",
+      "Éparpillement durable des grains."
+    ],
+    "morale": "Réponse d'intégrité et de retrait, sans honneur guerrier ni intérêt pour les possessions d'autrui.",
+    "escalation": "La bordure se retire, forme une crête puis pousse l'objet qui reste sur la croûte.",
+    "retreat": "Elle rassemble ses grains vers un rebord sec ou une dépression salée ; elle ne poursuit pas à travers une nappe d'eau douce."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 4,
+      "dexterity": 3,
+      "constitution": 7,
+      "intelligence": 2,
+      "willpower": 7,
+      "perception": 5,
+      "presence": 2
+    },
+    "skills": {
+      "unarmed": 35,
+      "throwing": 30,
+      "elementalism": 45,
+      "survival": 40,
+      "vigilance": 35
+    },
+    "movement": "Glissement 0,4 m/s sur sol ferme ; vague brève à 0,8 m/s sur 1 m ; ne monte pas une paroi ni une marche verticale de 0,1 m.",
+    "protections": [
+      "La croûte répartit de petites pressions, mais casse sous un choc concentré et se dissout si l'eau disponible n'est pas déjà saturée."
+    ],
+    "attacks": [
+      {
+        "name": "Crête abrasive",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 14,
+        "reach": "0,7 m depuis la bordure",
+        "stamina_cost": 9,
+        "preparation": "0,9 seconde pour amasser une crête",
+        "telegraph": "Les grains convergent en une ride qui se redresse face au contact.",
+        "effect": "Une vague de grains frotte une zone basse et exposée, puis retombe. Elle peut érafler et gêner un appui, sans couper une plaque de métal ni engloutir automatiquement une cible.",
+        "counterplay": "Retirer le pied annoncé, utiliser une semelle rigide et rester sur une surface surélevée hors de la bordure."
+      },
+      {
+        "name": "Éventail de grains",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "dexterity",
+        "impact": 8,
+        "reach": "éventail de 1,5 m, large de 1 m",
+        "stamina_cost": 10,
+        "preparation": "1,1 seconde pour contracter un bourrelet",
+        "telegraph": "Une crête blanchit et produit un cliquetis plus rapide avant de s'ouvrir.",
+        "effect": "Projette au plus 0,4 kg de sel déjà présent. Les grains peuvent irriter les yeux ou une plaie, mais ne retirent pas instantanément l'eau d'un corps et ne créent pas de nuage permanent.",
+        "counterplay": "Couvrir le visage, quitter l'éventail et éviter de frotter les grains sur une peau lésée."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Pont de saumure",
+        "kind": "ability",
+        "visibility": "supposee",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 0,
+        "reach": "film d'eau libre à moins de 1 m, relié au sol sous la nappe",
+        "stamina_cost": 12,
+        "preparation": "1,4 seconde ; 12 Mana et 6 Concentration à l'activation",
+        "telegraph": "Les petites gouttes du sol se rejoignent en filets vers deux îlots de cristaux.",
+        "effect": "Sous concentration continue pendant 6 secondes au maximum, déplace au total 2 litres d'eau libre vers une interruption de 0,3 m entre ses propres grains. Le liquide facilite leur réunion sans créer de sel ni d'eau. Aucun prélèvement dans un organisme, un récipient fermé ou une paroi ; à l'arrêt, le liquide suit la gravité et peut dissoudre une partie de la nappe.",
+        "counterplay": "Interrompre le film humide avec une cale étanche, rester hors du petit passage en formation ou laisser une route salée de contournement."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Petites perforations",
+        "mechanism": "Un trou local traverse des grains remplaçables et ne vise aucun organe, mais disperse une partie de la matière disponible."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Dilution",
+        "mechanism": "Une eau non saturée dissout les cristaux au contact ; la perte de matière et de continuité finit par arrêter l'animation."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Arrivée d'eau douce dans un bassin fermé",
+        "result": "Dissolution et retrait progressifs",
+        "chain": "L'eau non saturée entre entre les grains, dissout les contacts et pousse la nappe à gagner un rebord avant de perdre sa continuité."
+      },
+      {
+        "input": "Planche étanche au-dessus d'une rigole",
+        "result": "Passage séparé des cristaux",
+        "chain": "La planche porte les voyageurs sans pression sur la croûte, la rigole reste accessible à la nappe et les deux circulations peuvent coexister."
+      }
+    ],
+    "resources": {
+      "vitality": 110,
+      "stamina": 106,
+      "mana": 70,
+      "balance": 84,
+      "focus": 88
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 14,
+      "fact": "Les crêtes basses et les grains qui se rassemblent annoncent les attaques ; la nappe ne peut pas franchir une marche verticale assez haute."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les nappes observées semblent rester plus longtemps actives dans les bassins dont les apports salés sont réguliers."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Un cristal central renferme une minuscule lamelle d'étain gravée d'une date impossible dans les registres de la saline ; elle révèle qu'une fermeture officielle a précédé de plusieurs mois l'arrêt réel des travaux."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "obstacle minéral d'une saline",
+      "signe d'un circuit d'eau perturbé"
+    ],
+    "telegraphs": [
+      "Le cliquetis s'accélère avant l'éventail.",
+      "Les gouttes convergent avant le pont de saumure."
+    ],
+    "noncombat_options": [
+      "Poser une passerelle étanche sur appuis solides et préserver sa route vers le bassin salé.",
+      "Rouvrir doucement une arrivée habituelle de saumure dans une zone latérale pour l'attirer hors du passage, avec l'accord des exploitants."
+    ],
+    "complications": [
+      "Un détournement d'eau salée peut atteindre des cultures en contrebas.",
+      "Les grains dispersés rendent certaines marches glissantes même après le retrait de la nappe."
+    ]
+  },
+  "salvage": [
+    "Sel ordinaire déjà rejeté et non animé, uniquement avec l'accord du site et sans le présenter comme comestible sans contrôle ; ne pas dissoudre une nappe pour récolter sa matière."
+  ]
+}

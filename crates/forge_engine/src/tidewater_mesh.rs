@@ -84,13 +84,19 @@ fn vectors<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, &'static str> 
 mod tests {
     use super::*;
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Verifies exact float32 values decoded from a known binary attribute payload."
+    )]
     fn preserves_custom_shader_data_and_rejects_bad_payloads() {
         let p: Vec<u8> = [0.0_f32, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0]
             .into_iter()
             .flat_map(f32::to_le_bytes)
             .collect();
         let uv = [0_u8; 24];
-        let data: Vec<u8> = (0..12).flat_map(|i| (i as f32).to_le_bytes()).collect();
+        let data: Vec<u8> = (0..12_u16)
+            .flat_map(|i| f32::from(i).to_le_bytes())
+            .collect();
         let indices: Vec<u8> = [0_u32, 1, 2]
             .into_iter()
             .flat_map(u32::to_le_bytes)

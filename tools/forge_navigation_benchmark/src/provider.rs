@@ -4,6 +4,9 @@ use bevy_rerecast::{
 };
 use thiserror::Error;
 
+/// Uniform conservative contour simplification used by every lab replay.
+pub const CONSERVATIVE_MAX_SIMPLIFICATION_ERROR: f32 = 1.1;
+
 pub fn settings_for_agent(agent_radius_m: f32, agent_height_m: f32) -> NavmeshSettings {
     NavmeshSettings {
         cell_size_fraction: 2.0,
@@ -13,7 +16,7 @@ pub fn settings_for_agent(agent_radius_m: f32, agent_height_m: f32) -> NavmeshSe
         min_region_size: 8,
         merge_region_size: 20,
         edge_max_len_factor: 8,
-        max_simplification_error: 1.3,
+        max_simplification_error: CONSERVATIVE_MAX_SIMPLIFICATION_ERROR,
         max_vertices_per_polygon: 3,
         detail_sample_dist: 6.0,
         detail_sample_max_error: 1.0,

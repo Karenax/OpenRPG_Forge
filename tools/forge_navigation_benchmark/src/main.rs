@@ -46,6 +46,9 @@ fn main() -> Result<(), BenchmarkError> {
         report.selection.status,
         arguments.output.display()
     );
+    if let Some(error) = report.global_valley.detail_height_mesh_path.error {
+        return Err(BenchmarkError::GlobalNavigationRejected(error));
+    }
     Ok(())
 }
 
@@ -169,6 +172,18 @@ fn run_benchmark(world_sketch_path: &Path) -> Result<BenchmarkReport, BenchmarkE
         Err(error) => NormalizedPathProbeOutcome::normalization_failed(&error),
     };
     let global_valley = GlobalValleyProbe {
+        canonical_geometry_hash: canonical_json_sha256(&(
+            global_input
+                .vertices
+                .iter()
+                .map(bevy_math::Vec3A::to_array)
+                .collect::<Vec<_>>(),
+            global_input
+                .indices
+                .iter()
+                .map(bevy_math::UVec3::to_array)
+                .collect::<Vec<_>>(),
+        ))?,
         extent_m: GLOBAL_EXTERIOR_HALF_EXTENT_M * 2.0,
         source_triangle_count: global_input.indices.len(),
         output_polygon_count: global_navmesh.polygon.polygon_count(),
@@ -274,12 +289,17 @@ fn run_benchmark(world_sketch_path: &Path) -> Result<BenchmarkReport, BenchmarkE
         dynamic_obstacle_carving: false,
         maintained_rapier_backend: false,
     };
+    let bincode_present_in_lab_lock = include_str!("../Cargo.lock").contains("name = \"bincode\"");
     let governance = ProviderGovernance {
         license_policy_passed: true,
         advisory_policy_passed: false,
-        blocking_advisories: vec![format!(
-            "{BINCODE_ADVISORY}: bevy_rerecast_core 0.5.0 depends on unmaintained bincode 2.0.1"
-        )],
+        blocking_advisories: if bincode_present_in_lab_lock {
+            vec![format!(
+                "{BINCODE_ADVISORY}: bevy_rerecast_core 0.5.0 depends on unmaintained bincode 2.0.1"
+            )]
+        } else {
+            Vec::new()
+        },
     };
 
     let all_non_global_feature_probes_passed = exterior.deterministic
@@ -323,10 +343,13 @@ fn run_benchmark(world_sketch_path: &Path) -> Result<BenchmarkReport, BenchmarkE
         "Bevy Rerecast 0.5 only performs full regeneration".to_owned(),
         "the candidate has no native tile-cache or dynamic-obstacle carving path".to_owned(),
         "the maintained upstream physics backend targets Avian, while Forge uses Rapier".to_owned(),
-        format!(
-            "cargo-deny rejects bevy_rerecast_core 0.5.0 because it depends on bincode 2.0.1 ({BINCODE_ADVISORY})"
-        ),
+        "fresh external dependency-policy evidence and explicit owner acceptance are required; absence of bincode in the lab lock is not an audit".to_owned(),
     ];
+    if bincode_present_in_lab_lock {
+        blocking_gaps.push(format!(
+            "unmaintained bincode remains in the lab lock ({BINCODE_ADVISORY})"
+        ));
+    }
     if let Some(error) = &global_valley.detail_height_mesh_path.error {
         blocking_gaps.push(format!(
             "the full 512 m Landmass detail-mesh conversion is rejected: {error}"
@@ -502,6 +525,7 @@ struct ExteriorBridgeProbe {
 
 #[derive(Serialize)]
 struct GlobalValleyProbe {
+    canonical_geometry_hash: ContentHash,
     extent_m: f32,
     source_triangle_count: usize,
     output_polygon_count: usize,
@@ -652,4 +676,6 @@ enum BenchmarkError {
     Json(#[from] serde_json::Error),
     #[error("provider did not return a navigation mesh")]
     MissingProviderOutput,
+    #[error("raw global navigation rejected; report preserved: {0}")]
+    GlobalNavigationRejected(String),
 }

@@ -1,5 +1,5 @@
 //! Compare the Rust terrain AO channel against the acquired source map.
-#[path = "tidewater_plant_probe/terrain_ao.rs"]
+#[path = "../src/tidewater_terrain/normals/ao.rs"]
 mod terrain_ao;
 use std::{error::Error, fs, io::Write};
 fn main() -> Result<(), Box<dyn Error>> {

@@ -28,7 +28,7 @@ impl Input {
         trace_views: Option<[&gpu::WgpuTextureView; 3]>,
         history_views: Option<[&gpu::WgpuTextureView; 5]>,
         atmosphere_views: Option<[&gpu::WgpuTextureView; 2]>,
-        range: std::ops::Range<usize>,
+        frames: &[super::FrameView<'_>],
         cache: &mut Option<Cache>,
     ) {
         let cache = cache.get_or_insert_with(|| {
@@ -104,13 +104,7 @@ impl Input {
             pipeline,
             trace: trace_cache,
         } = cache;
-        for (step, (local, global)) in self
-            .frames
-            .iter()
-            .enumerate()
-            .skip(range.start)
-            .take(range.end - range.start)
-        {
+        for frame in frames {
             // Separate immutable buffers prevent all encoded steps reading the last upload.
             let make = |bytes: &[u8]| {
                 device.create_buffer_with_data(&gpu::BufferInitDescriptor {
@@ -119,8 +113,8 @@ impl Input {
                     usage: gpu::BufferUsages::UNIFORM,
                 })
             };
-            let local = make(local);
-            let global = make(global);
+            let local = make(frame.local);
+            let global = make(frame.global);
             let group0 = device.create_bind_group(
                 "cloud shadow frame",
                 &pipeline.get_bind_group_layout(0).into(),
@@ -168,7 +162,7 @@ impl Input {
             pass.set_pipeline(pipeline);
             pass.set_bind_group(0, &*group0, &[]);
             pass.set_bind_group(1, &*group1, &[]);
-            pass.dispatch_workgroups(32, if step == 0 { 32 } else { 8 }, 1);
+            pass.dispatch_workgroups(32, if frame.shadow_full { 32 } else { 8 }, 1);
         }
         if let (Some(trace), Some(views)) = (&self.trace, trace_views) {
             trace.encode(
@@ -180,8 +174,7 @@ impl Input {
                 weather,
                 sampler,
                 views,
-                &self.frames,
-                range,
+                frames,
                 trace_cache,
                 history_views,
                 atmosphere_views,

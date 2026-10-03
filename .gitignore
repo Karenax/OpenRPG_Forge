@@ -3,6 +3,7 @@
 /artifacts/cadle-gate-c/
 /npm-debug.log*
 target/
+/.build/
 **/Cargo.lock
 !/Cargo.lock
 /apps/forge_studio/dist/

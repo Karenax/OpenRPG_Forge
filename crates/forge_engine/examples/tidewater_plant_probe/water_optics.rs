@@ -12,6 +12,84 @@ use bevy::{
 };
 use std::{collections::BTreeMap, error::Error};
 
+/// Compute passes read the uploaded optical frame, whereas the visible water
+/// shader replaces its private camera with Bevy's view. Keep both in agreement
+/// every render frame, including when CDLOD selection has not moved a full metre.
+// Bevy's camera query intentionally spells out the capture-camera exclusion;
+// retaining it here prevents a proof camera from becoming the source camera.
+#[allow(clippy::type_complexity)]
+pub fn update_camera(
+    cameras: Query<
+        (&Camera, &GlobalTransform),
+        (
+            With<Camera3d>,
+            Without<forge_engine::tidewater_refraction::CaptureCamera>,
+        ),
+    >,
+    mut materials: ResMut<Assets<WaterMaterial>>,
+) {
+    let mut active = cameras.iter().filter(|(camera, _)| camera.is_active);
+    let Some((camera, pose)) = active.next() else {
+        return;
+    };
+    if active.next().is_some() {
+        return;
+    }
+    let inverse_view = pose.to_matrix();
+    let view = inverse_view.inverse();
+    let clip = camera.clip_from_view();
+    let view_projection = clip * view;
+    for (_, material) in materials.iter_mut() {
+        for (first, matrix) in [
+            (0, view),
+            (4, clip),
+            (8, view_projection),
+            (12, inverse_view),
+            (16, clip.inverse()),
+            (20, view_projection.inverse()),
+            (24, view_projection),
+            (28, view_projection),
+        ] {
+            for (column, values) in matrix.to_cols_array_2d().into_iter().enumerate() {
+                material.frame[first + column] = UVec4::from_array(values.map(f32::to_bits));
+            }
+        }
+        let position = pose.translation();
+        for row in [32, 33] {
+            material.frame[row].x = position.x.to_bits();
+            material.frame[row].y = position.y.to_bits();
+            material.frame[row].z = position.z.to_bits();
+        }
+    }
+}
+
+/// Keep the derived view bound to the adapter's main camera, including the
+/// static proof camera which does not carry `ForgePlayerCamera`.
+pub fn select_refraction_camera(world: &mut World) {
+    let mut cameras = world.query_filtered::<(Entity, &Camera), (
+        With<Camera3d>,
+        Without<forge_engine::tidewater_refraction::CaptureCamera>,
+    )>();
+    let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);
+    let Some((entity, _)) = active.next() else {
+        return;
+    };
+    if active.next().is_some() {
+        return;
+    }
+    forge_engine::tidewater_refraction::select_camera(world, entity);
+}
+
+/// Publish the result of the shared synchronization to the native material.
+pub fn update_refraction(
+    observation: Res<forge_engine::tidewater_refraction::Observation>,
+    mut materials: ResMut<Assets<WaterMaterial>>,
+) {
+    for (_, material) in materials.iter_mut() {
+        material.refraction_ready.x = f32::from(observation.ready);
+    }
+}
+
 #[derive(Resource)]
 pub struct Inputs {
     frame: [UVec4; 45],
@@ -30,6 +108,41 @@ pub struct Inputs {
 }
 pub fn shore_field(app: &App) -> Vec<u8> {
     app.world().resource::<Inputs>().shore_field.clone()
+}
+pub fn underwater_column(app: &App) -> (f32, f32) {
+    let inputs = app.world().resource::<Inputs>();
+    let amplitude = f32::from_bits(inputs.shore_params[0].y);
+    (
+        f32::from_bits(inputs.frame[36].w),
+        if amplitude > 0.0 {
+            amplitude * 1.5 + 1.2
+        } else {
+            3.0
+        },
+    )
+}
+
+pub fn underwater_optics(
+    app: &App,
+) -> Result<forge_engine::tidewater_underwater::TidewaterUnderwaterOptics, String> {
+    let frame = &app.world().resource::<Inputs>().frame;
+    let vector = |index: usize| {
+        let words = frame[index].to_array();
+        Vec3::new(
+            f32::from_bits(words[0]),
+            f32::from_bits(words[1]),
+            f32::from_bits(words[2]),
+        )
+    };
+    // Frame.js layout: sunDir 37, sunColor 38, skyIrradiance 39,
+    // waterAbsorption 41 and waterScattering 42.
+    forge_engine::tidewater_underwater::TidewaterUnderwaterOptics::new(
+        vector(41),
+        vector(42),
+        vector(37),
+        vector(38),
+        vector(39),
+    )
 }
 fn detail_inputs(
     files: &BTreeMap<String, Vec<u8>>,
@@ -173,72 +286,85 @@ pub fn install(app: &mut App, files: &BTreeMap<String, Vec<u8>>) -> Result<(), B
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct WaterMaterial {
-    #[uniform(0)]
+    #[uniform(0, visibility(vertex, fragment, compute))]
     morph: [Vec4; 12],
-    #[uniform(1)]
+    #[uniform(1, visibility(vertex, fragment, compute))]
     ocean: [UVec4; 14],
-    #[uniform(2)]
+    #[uniform(2, visibility(vertex, fragment, compute))]
     surface: [Vec4; 2],
-    #[texture(3, filterable = false)]
+    #[texture(3, filterable = false, visibility(vertex, fragment, compute))]
     height: Handle<Image>,
-    #[texture(50, filterable = false)]
+    #[texture(50, filterable = false, visibility(vertex, fragment, compute))]
     corrections: Handle<Image>,
-    #[texture(4, dimension = "2d_array")]
-    #[sampler(5)]
+    #[texture(4, dimension = "2d_array", visibility(vertex, fragment, compute))]
+    #[sampler(5, visibility(vertex, fragment, compute))]
     displacement: Handle<Image>,
-    #[texture(6, sample_type = "depth")]
+    #[texture(6, sample_type = "depth", visibility(vertex, fragment, compute))]
     scene_depth: Handle<Image>,
-    #[uniform(7)]
-    frame: [UVec4; 45],
-    #[texture(8, dimension = "2d_array")]
+    #[uniform(7, visibility(vertex, fragment, compute))]
+    pub(super) frame: [UVec4; 45],
+    #[texture(8, dimension = "2d_array", visibility(vertex, fragment, compute))]
     derivatives: Handle<Image>,
-    #[texture(10)]
-    #[sampler(9)]
+    #[texture(10, visibility(vertex, fragment, compute))]
+    #[sampler(9, visibility(vertex, fragment, compute))]
     foam: Handle<Image>,
-    #[texture(11)]
-    #[sampler(12)]
+    #[texture(11, visibility(vertex, fragment, compute))]
+    #[sampler(12, visibility(vertex, fragment, compute))]
     terrain_normal: Handle<Image>,
-    #[texture(13)]
+    #[texture(13, visibility(vertex, fragment, compute))]
     hill: Handle<Image>,
-    #[texture(15, dimension = "2d_array", sample_type = "depth")]
-    #[sampler(16, sampler_type = "comparison")]
+    #[texture(
+        15,
+        dimension = "2d_array",
+        sample_type = "depth",
+        visibility(vertex, fragment, compute)
+    )]
+    #[sampler(16, sampler_type = "comparison", visibility(vertex, fragment, compute))]
     object: Handle<Image>,
-    #[uniform(17)]
+    #[uniform(17, visibility(vertex, fragment, compute))]
     object_settings: super::object_shadow::Settings,
-    #[uniform(18)]
+    #[storage(44, read_only, visibility(vertex, fragment, compute))]
+    live_shadows: Handle<bevy::render::storage::ShaderBuffer>,
+    #[uniform(18, visibility(vertex, fragment, compute))]
     atmosphere: [Vec4; 4],
-    #[uniform(19)]
+    #[uniform(19, visibility(vertex, fragment, compute))]
     sky: [UVec4; 2],
-    #[texture(20)]
+    #[texture(20, visibility(vertex, fragment, compute))]
     transmittance: Handle<Image>,
-    #[texture(21)]
+    #[texture(21, visibility(vertex, fragment, compute))]
     sky_lut: Handle<Image>,
-    #[uniform(22)]
+    #[uniform(22, visibility(vertex, fragment, compute))]
     material: [UVec4; 5],
-    #[uniform(23)]
+    #[uniform(23, visibility(vertex, fragment, compute))]
     whales: [UVec4; 6],
-    #[texture(24, filterable = false)]
+    #[texture(24, filterable = false, visibility(vertex, fragment, compute))]
     shore_field: Handle<Image>,
-    #[uniform(25)]
+    #[uniform(25, visibility(vertex, fragment, compute))]
     shore_params: [UVec4; 4],
-    #[texture(26, filterable = false)]
+    #[texture(26, filterable = false, visibility(vertex, fragment, compute))]
     shore_direction: Handle<Image>,
-    #[texture(27)]
+    #[texture(27, visibility(vertex, fragment, compute))]
     sim_state: Handle<Image>,
-    #[uniform(28)]
+    #[uniform(28, visibility(vertex, fragment, compute))]
     sim_params: [UVec4; 3],
-    #[texture(29)]
+    #[texture(29, visibility(vertex, fragment, compute))]
     sim_lace: Handle<Image>,
-    #[texture(30)]
+    #[texture(30, visibility(vertex, fragment, compute))]
     detail_noise: Handle<Image>,
-    #[uniform(31)]
+    #[uniform(31, visibility(vertex, fragment, compute))]
     detail_params: [UVec4; 2],
-    #[uniform(32)]
-    clouds: [Vec4; 5],
-    #[texture(33)]
+    #[uniform(32, visibility(vertex, fragment, compute))]
+    pub(super) clouds: [Vec4; 5],
+    #[texture(33, visibility(vertex, fragment, compute))]
     cloud_panorama: Option<Handle<Image>>,
-    #[texture(34, filterable = false)]
+    #[texture(34, filterable = false, visibility(vertex, fragment, compute))]
     cloud_shadow: Option<Handle<Image>>,
+    #[texture(51)]
+    pub(super) refraction_color: Handle<Image>,
+    #[texture(52, sample_type = "depth")]
+    pub(super) refraction_depth: Handle<Image>,
+    #[uniform(53)]
+    pub(super) refraction_ready: Vec4,
 }
 impl Material for WaterMaterial {
     fn vertex_shader() -> ShaderRef {
@@ -283,7 +409,10 @@ pub fn setup(
     ocean: Option<Res<super::ocean::Targets>>,
     atmosphere: Option<Res<super::atmosphere::Targets>>,
     clouds: Option<Res<super::sky::CloudInputs>>,
-    depth: Option<Res<super::water_scene::SceneDepth>>,
+    depth_and_refraction: (
+        Option<Res<super::water_scene::SceneDepth>>,
+        Option<Res<forge_engine::tidewater_refraction::Targets>>,
+    ),
     hill: Res<super::hill_shadow::Images>,
     object: Res<super::object_shadow::Target>,
     mut images: ResMut<Assets<Image>>,
@@ -303,7 +432,10 @@ pub fn setup(
     };
     let ocean = ocean.expect("water ocean graph");
     let atmosphere = atmosphere.expect("water atmosphere graph");
+    let (depth, refraction) = depth_and_refraction;
     let depth = depth.expect("water scene depth");
+    // Optical inputs are installed only alongside the shared capture targets.
+    let refraction = refraction.expect("water refraction registered with optical inputs");
     let detail_size = if inputs.detail_noise.len() == 8 {
         1
     } else {
@@ -419,12 +551,16 @@ pub fn setup(
             displacement: ocean.images[0].clone(),
             derivatives: ocean.images[1].clone(),
             scene_depth: depth.0.clone(),
+            refraction_color: refraction.color.clone(),
+            refraction_depth: refraction.depth.clone(),
+            refraction_ready: Vec4::ZERO,
             frame: inputs.frame,
             foam: foam.clone(),
             terrain_normal: normal.clone(),
             hill: hill.output.clone(),
             object: object.image.clone(),
             object_settings: object.settings.clone(),
+            live_shadows: forge_engine::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
             atmosphere: atmosphere.params,
             sky: inputs.sky,
             transmittance: atmosphere.images[0].clone(),
@@ -438,6 +574,14 @@ pub fn setup(
             sim_params: inputs.sim_params,
             sim_lace: sim_lace.clone(),
         });
+        commands.insert_resource(
+            forge_engine::tidewater_underwater::TidewaterUnderwaterSurfaceMaterial(
+                material.id().untyped(),
+            ),
+        );
+        commands.insert_resource(forge_engine::tidewater_underwater_lighting::Surface(
+            material.id().untyped(),
+        ));
         commands
             .entity(entity)
             .remove::<MeshMaterial3d<super::ocean_geometry::OceanGeometryMaterial>>()

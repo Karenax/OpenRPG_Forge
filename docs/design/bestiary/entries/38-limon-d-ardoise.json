@@ -1,0 +1,236 @@
+{
+  "schema_version": "0.1",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale Forge du 27 septembre 2026, inspirée d'archétypes généraux de fantasy. Aucun texte, statistique, nom propre de lore ou asset D&D n'est copié. Proposition documentaire, non implémentée dans le runtime Rust.",
+  "major": false,
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "limon-d-ardoise-plate-v1.png",
+      "alt": "Un Limon d’ardoise gris noir rampe au ras d’un sol humide de carrière, ses plis opaques portant de fines écailles minérales.",
+      "caption": "Il suit les dépôts nutritifs, contourne les zones sèches et se contracte autour d'un contact répété. Il ne reconnaît ni trésor ni métal précieux comme objectif.",
+      "prompt_key": "limon-d-ardoise-plate-v1"
+    }
+  ],
+  "creature_id": "creature.limon-d-ardoise",
+  "name": "Limon d’ardoise",
+  "subtitle": "La masse sombre qui porte les éclats du sol dans sa peau",
+  "classification": {
+    "nature": "Organisme amorphe minéralisé",
+    "family": "Limons des déchets humides",
+    "rarity": "Peu commun dans les carrières abandonnées et les drains ombragés",
+    "activity": "Continue à faible allure ; ralentit quand le sol sèche",
+    "social": "Masses séparées qui évitent de se partager une même ressource pauvre",
+    "threat": "moderee",
+    "threat_reason": "Son mucus chargé d'éclats abrasifs peut blesser au contact et rendre un passage étroit difficile, mais il avance lentement et ne poursuit pas au-delà d'une zone humide."
+  },
+  "physique": {
+    "dimensions": "Masse de 0,7 à 1,2 m de large et de 0,15 à 0,45 m de haut selon son étalement",
+    "mass_kg": [
+      25,
+      80
+    ],
+    "locomotion": [
+      "contractions lentes sur le sol",
+      "étalement dans les creux humides"
+    ],
+    "center_of_gravity": "Très bas, près du substrat ; les fragments les plus lourds restent dans la couche inférieure.",
+    "silhouette": "Masse gris noir aux bords luisants, parcourue de plis qui font apparaître et disparaître de fines écailles d'ardoise.",
+    "anatomy_zones": [
+      {
+        "zone": "Couche externe",
+        "description": "Mucus épais portant des éclats minéraux non digérés ; il s'use et se renouvelle.",
+        "protection": 9
+      },
+      {
+        "zone": "Masse centrale",
+        "description": "Tissu gélatineux vivant et opaque, sans squelette ni organes humains ; une déchirure importante reste une blessure.",
+        "protection": 3
+      },
+      {
+        "zone": "Bord de progression",
+        "description": "Frange plus fine qui adhère au support et détecte les ressources accessibles.",
+        "protection": 1
+      }
+    ]
+  },
+  "habitats": [
+    "fonds de carrières d'ardoise abandonnées",
+    "drains humides recevant des débris végétaux"
+  ],
+  "ecology": {
+    "diet": "Biofilms, végétaux décomposés et petits restes organiques. Il ne digère pas l'ardoise : les particules minérales restent dans son mucus puis sont rejetées.",
+    "lifecycle": "Un jeune limon s'épaissit en consommant les dépôts humides, renouvelle sa frange et élimine les fragments devenus trop lourds. Une sécheresse durable provoque le déclin de la masse vivante.",
+    "reproduction": "Bourgeonnement lent d'une petite masse viable lorsque les réserves organiques sont suffisantes. Une section arrachée n'est pas automatiquement viable et ne multiplie pas instantanément l'animal.",
+    "behavior": "Il suit les dépôts nutritifs, contourne les zones sèches et se contracte autour d'un contact répété. Il ne reconnaît ni trésor ni métal précieux comme objectif.",
+    "niche": "Décomposeur des débris accumulés dans les dépressions humides.",
+    "environmental_impact": "Il retire une partie des matières organiques et rassemble les éclats fins en cordons ; son mucus peut rendre une dalle glissante ou obturer une petite rigole."
+  },
+  "senses": [
+    "Détecte humidité et substances dissoutes au contact de sa frange.",
+    "Réagit aux vibrations transmises par le sol à courte distance."
+  ],
+  "communication": [
+    "Aucune parole connue ; contractions et retrait indiquent surtout une réaction locale, sans intention sociale démontrée."
+  ],
+  "signs": [
+    "Traînée sombre aux bords luisants.",
+    "Cordons de petites écailles triées près d'une flaque.",
+    "Biofilm interrompu par une bande plus propre sur les dalles."
+  ],
+  "demeanor": {
+    "objectives": [
+      "Atteindre des dépôts organiques humides.",
+      "Éviter la dessiccation de sa frange."
+    ],
+    "fears": [
+      "Sol sec et poreux.",
+      "Vibrations répétées au contact de la masse."
+    ],
+    "morale": "Il réagit par contraction et défense locale, sans courage social ni volonté de vengeance.",
+    "escalation": "La frange se replie, les éclats se dressent puis un lobe frappe l'objet qui continue à le toucher.",
+    "retreat": "Il réduit sa surface exposée et glisse vers la dépression humide la plus proche, sans poursuivre une cible sur sol sec."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 6,
+      "dexterity": 2,
+      "constitution": 8,
+      "intelligence": 1,
+      "willpower": 5,
+      "perception": 4,
+      "presence": 1
+    },
+    "skills": {
+      "unarmed": 35,
+      "throwing": 25,
+      "athletics": 40,
+      "survival": 45,
+      "vigilance": 30
+    },
+    "movement": "Progression 0,4 m/s sur sol humide ; accélération à 0,8 m/s pendant 3 m ; ne grimpe pas une paroi verticale ni une marche sèche de 0,2 m.",
+    "protections": [
+      "Les éclats amortissent et dévient certains contacts superficiels ; ils ne constituent pas une armure continue et peuvent être délogés."
+    ],
+    "attacks": [
+      {
+        "name": "Lobe abrasif",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 18,
+        "reach": "0,8 m depuis le bord de la masse",
+        "stamina_cost": 10,
+        "preparation": "0,9 seconde pour épaissir un lobe",
+        "telegraph": "Une partie du bord se gonfle et les écailles se redressent vers le contact.",
+        "effect": "Un seul coup frotte une zone exposée avec les éclats de surface. Il peut érafler peau et tissu, mais ne dissout pas le métal et ne saisit pas automatiquement un membre.",
+        "counterplay": "Retirer l'objet avant le gonflement complet, interposer une surface rigide ou rester hors de portée du bord."
+      },
+      {
+        "name": "Rejet d'écailles",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "throwing",
+        "attribute_id": "strength",
+        "impact": 11,
+        "reach": "projection en éventail de 1,5 m sur 1 m de large",
+        "stamina_cost": 12,
+        "preparation": "1,2 seconde pour contracter une poche de mucus",
+        "telegraph": "Les écailles convergent en une bosse qui se tend avant de se vider.",
+        "effect": "Éjecte au plus 0,3 kg de mucus et de fragments déjà présents. Le jet est unique et retombe aussitôt ; il érafle ou salit une surface, sans nuage persistant ni effet corrosif.",
+        "counterplay": "Protéger les yeux, se décaler hors de l'éventail et ne pas courir sur le mucus retombé."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Passage en nappe",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "athletics",
+        "attribute_id": "constitution",
+        "impact": 0,
+        "reach": "extension du corps jusqu'à 1,5 m depuis sa position initiale",
+        "stamina_cost": 14,
+        "preparation": "2 secondes pour redistribuer la masse et rejeter les plus gros éclats",
+        "telegraph": "La partie centrale s'abaisse et une frange large avance dans le creux.",
+        "effect": "Pendant 10 secondes au maximum, étale physiquement son corps pour franchir un passage humide haut d'au moins 5 cm. Aucun Mana ni concentration magique ; le volume est conservé, la masse reste continue et ne traverse ni une paroi étanche ni une grille aux ouvertures plus petites que ses fragments retenus.",
+        "counterplay": "Fermer un joint avec une barrière pleine, offrir une rigole plus humide ailleurs ou attendre son retour à une forme épaisse avant de franchir le passage."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "Chocs contondants répartis",
+        "mechanism": "La masse déformable répartit un choc large, tandis qu'une pointe, une coupe ou un arrachement peut toujours endommager les tissus."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "Dessiccation",
+        "mechanism": "La frange perd son eau sur un support sec et poreux, ce qui ralentit l'adhésion puis abîme le tissu vivant."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "Rigole chargée de feuilles mortes",
+        "result": "Déplacement progressif vers la ressource",
+        "chain": "L'eau détrempe les feuilles, les substances organiques atteignent la frange et le limon s'oriente vers ce dépôt au lieu de rester sur une dalle pauvre."
+      },
+      {
+        "input": "Éclats frais tombés au sol",
+        "result": "Couche superficielle plus abrasive",
+        "chain": "Le mucus ramasse les petits fragments sur son passage, leurs arêtes restent exposées et les frottements deviennent plus coupants jusqu'à leur rejet."
+      }
+    ],
+    "resources": {
+      "vitality": 120,
+      "stamina": 105,
+      "mana": 54,
+      "balance": 96,
+      "focus": 76
+    }
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "tracking",
+      "difficulty": 14,
+      "fact": "La bande de biofilm retirée et les cordons d'écailles montrent une alimentation organique ; l'ardoise elle-même n'est pas dissoute."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 22,
+      "fact": "Les masses les plus lourdes semblent ralentir après les éboulements, comme si le tri des fragments demandait davantage d'effort."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 26,
+      "fact": "Certaines écailles rejetées portent une feuille d'argent prise entre deux couches de roche artificielle ; leur origine permettrait de retrouver une contrefaçon de borne funéraire enfouie dans un remblai."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "décomposeur bloquant un drain",
+      "danger de contact sur sol humide"
+    ],
+    "telegraphs": [
+      "Le lobe épaissit avant la frappe.",
+      "Les fragments convergent avant le rejet d'écailles."
+    ],
+    "noncombat_options": [
+      "Déposer des feuilles déjà décomposées dans une rigole latérale humide et attendre qu'il s'y déplace.",
+      "Poser une passerelle pleine au-dessus de sa trajectoire, sans écraser la masse ni lui couper toute issue humide."
+    ],
+    "complications": [
+      "Le mucus peut masquer une fissure sous une dalle.",
+      "Un limon déplacé sans trajet de sortie risque de boucher un autre drain."
+    ]
+  },
+  "salvage": [
+    "Éclats et dépôts abandonnés après son passage, manipulés avec des gants ; ne pas mutiler un organisme vivant pour récupérer un matériau ordinaire."
+  ]
+}

@@ -10,10 +10,14 @@ use bevy::{
     render::{
         ExtractSchedule, MainWorld, RenderApp,
         render_resource::{CachedPipelineState, PipelineCache, PrimitiveTopology},
+        renderer::RenderGraph,
         storage::ShaderBuffer,
         view::screenshot::{Screenshot, ScreenshotCaptured, save_to_disk},
     },
     shader::ShaderCacheError,
+    window::{
+        Monitor, MonitorSelection, PrimaryMonitor, PrimaryWindow, VideoModeSelection, WindowMode,
+    },
 };
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
@@ -29,9 +33,13 @@ mod building_package;
 mod building_placements;
 #[path = "tidewater_plant_probe/canopy.rs"]
 mod canopy;
+#[path = "tidewater_plant_probe/caustics_proof.rs"]
+mod caustics_proof;
 #[allow(dead_code)]
 #[path = "tidewater_cloud_weather_probe/mod.rs"]
 mod clouds;
+#[path = "tidewater_plant_probe/fish_stand.rs"]
+mod fish_stand;
 #[path = "tidewater_plant_probe/grass.rs"]
 mod grass;
 #[path = "tidewater_plant_probe/hill_shadow.rs"]
@@ -44,6 +52,8 @@ mod ocean;
 mod ocean_geometry;
 #[path = "tidewater_plant_probe/picking_proof.rs"]
 mod picking_proof;
+#[path = "tidewater_plant_probe/refraction_proof.rs"]
+mod refraction_proof;
 #[path = "tidewater_plant_probe/shore_field.rs"]
 mod shore_field;
 #[path = "tidewater_shore_sim_probe/mod.rs"]
@@ -54,6 +64,10 @@ mod sky;
 mod spray;
 #[path = "tidewater_plant_probe/spray_sprites.rs"]
 mod spray_sprites;
+#[path = "tidewater_plant_probe/temporal_aux.rs"]
+mod temporal_aux;
+#[path = "tidewater_plant_probe/temporal_owned.rs"]
+mod temporal_owned;
 #[path = "tidewater_plant_probe/terrain_edits.rs"]
 mod terrain_edits;
 #[path = "tidewater_plant_probe/terrain_lod.rs"]
@@ -68,10 +82,18 @@ mod vegetation_scene;
 mod village;
 #[path = "tidewater_plant_probe/walk.rs"]
 mod walk;
+#[path = "tidewater_plant_probe/walk_clouds.rs"]
+mod walk_clouds;
+#[path = "tidewater_plant_probe/walk_grass.rs"]
+mod walk_grass;
+#[path = "tidewater_plant_probe/walk_wind.rs"]
+mod walk_wind;
 #[path = "tidewater_plant_probe/water_optics.rs"]
 mod water_optics;
 #[path = "tidewater_plant_probe/water_scene.rs"]
 mod water_scene;
+#[path = "tidewater_plant_probe/water_time.rs"]
+mod water_time;
 #[path = "tidewater_plant_probe/workspace_vegetation.rs"]
 mod workspace_vegetation;
 
@@ -118,11 +140,14 @@ struct Probe {
     hill_heights: Option<hill_shadow::Input>,
     shadow_readback: ShadowReadback,
     object_readback: ShadowReadback,
+    cloud_readback: ShadowReadback,
     environment: Option<Image>,
     vegetation_scene: Option<vegetation_scene::Vegetation>,
     plant_projection: PlantProjection,
     canopy: Option<Vec<canopy::Record>>,
     village: Option<village::Village>,
+    fish_stand: Option<forge_engine::tidewater_stall::FishStandPrepared>,
+    fish_stand_content: Option<fish_stand::FishStandContent>,
     lod_heights: Option<Vec<u8>>,
     camera_pose: Option<CameraPose>,
     terrain_textures: Option<[Vec<u8>; 3]>,
@@ -151,6 +176,8 @@ enum PlantProjection {
     Static,
     ResidentNavigation,
     Walk,
+    WalkSmoke,
+    WalkLongSmoke,
 }
 
 #[derive(PartialEq, Eq)]
@@ -336,6 +363,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         None => PlantProjection::Static,
         Some(flag) if flag == "--resident-plant-navigation" => PlantProjection::ResidentNavigation,
         Some(flag) if flag == "--walk" => PlantProjection::Walk,
+        Some(flag) if flag == "--walk-smoke" => PlantProjection::WalkSmoke,
+        Some(flag) if flag == "--walk-smoke-long" => PlantProjection::WalkLongSmoke,
         Some(_) => return Err("unexpected additional option".into()),
     };
     if args.next().is_some() {
@@ -543,6 +572,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("invalid instance".into());
     }
     let mut app = App::new();
+    let with_temporal_aux = std::env::var("FORGE_TIDEWATER_TEMPORAL_AUX").as_deref() == Ok("1");
+    let with_temporal_owned =
+        std::env::var("FORGE_TIDEWATER_TEMPORAL_RENDER_OWNED").as_deref() == Ok("1");
+    if with_temporal_owned && !with_temporal_aux {
+        return Err("Render-owned proof requires real temporal auxiliary draws".into());
+    }
     let mut terrain_textures: Option<[Vec<u8>; 3]> = if files.contains_key("terrain.wgsl") {
         let mut textures = Vec::new();
         for (name, size) in [("normal", 2048_u32), ("splat", 2048), ("detail", 512)] {
@@ -609,6 +644,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("terrain coverage requires a LOD fixture".into());
     }
     let village = village::load(&files)?;
+    let fish_stand = fish_stand::load(&root)?;
+    if fish_stand.is_some() && village.is_none() {
+        return Err("FishStand requires the pinned village scene lighting".into());
+    }
+    let fish_stand_content = fish_stand::load_content(&root)?;
     let canopy = canopy::load(&files)?;
     let vegetation_scene = vegetation_scene::load(&files)?;
     let grass = grass::load(&files)?;
@@ -668,11 +708,20 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             ShadowReadback::Complete
         },
+        cloud_readback: if with_clouds
+            && std::env::var("FORGE_TIDEWATER_STATIC_CLOUD_READBACK").as_deref() == Ok("1")
+        {
+            ShadowReadback::Pending
+        } else {
+            ShadowReadback::Complete
+        },
         environment,
         vegetation_scene,
         plant_projection,
         canopy,
         village,
+        fish_stand,
+        fish_stand_content,
         lod_heights,
         camera_pose: fixture.camera_pose,
         terrain_package,
@@ -697,15 +746,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         Color::BLACK
     }))
-    .add_plugins(
-        DefaultPlugins
+    .add_plugins({
+        let plugins = DefaultPlugins
             .set(AssetPlugin {
                 file_path: root.to_string_lossy().into_owned(),
                 ..default()
             })
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    title: "Forge — Tidewater palm probe (not scene parity)".into(),
+                    title: "OpenRPG Forge — Tidewater".into(),
                     resolution: bevy::window::WindowResolution::new(1920, 1080)
                         .with_scale_factor_override(1.0),
                     resizable: false,
@@ -716,12 +765,20 @@ fn main() -> Result<(), Box<dyn Error>> {
                     ..default()
                 }),
                 ..default()
-            }),
-    )
+            });
+        if with_temporal_aux && !with_temporal_owned {
+            plugins.disable::<bevy::render::pipelined_rendering::PipelinedRenderingPlugin>()
+        } else {
+            plugins
+        }
+    })
     .add_plugins(MaterialPlugin::<PlantMaterial>::default())
     .add_plugins(MaterialPlugin::<terrain_surface::TerrainMaterial>::default())
     .add_plugins(MaterialPlugin::<terrain_lod::LodMaterial>::default())
     .add_plugins(MaterialPlugin::<village::VillageMaterial>::default())
+    .add_plugins(MaterialPlugin::<
+        forge_engine::tidewater_stall::FishStandMaterial,
+    >::default())
     .add_plugins(MaterialPlugin::<sky::SkyMaterial>::default())
     .add_plugins(MaterialPlugin::<ocean_geometry::OceanGeometryMaterial>::default())
     .add_plugins(MaterialPlugin::<water_optics::WaterMaterial>::default())
@@ -736,20 +793,35 @@ fn main() -> Result<(), Box<dyn Error>> {
             setup_terrain,
             terrain_lod::setup,
             village::setup,
+            fish_stand::setup,
             sky::setup,
             ocean_geometry::setup,
             water_optics::setup,
         )
             .chain(),
     )
-    .add_systems(Update, capture);
+    .add_systems(Update, (picking_proof::start_if_ready, capture).chain())
+    .add_systems(
+        PostUpdate,
+        water_optics::update_camera.after(bevy::transform::TransformSystems::Propagate),
+    );
     forge_engine::tidewater_terrain::scene::register(&mut app)?;
     if with_geometry {
         water_scene::install(&mut app);
         app.insert_resource(ocean_geometry::Enabled(water_diagnostic));
     }
     if with_optics {
+        forge_engine::tidewater_refraction::register(&mut app)?;
         water_optics::install(&mut app, &files)?;
+        app.add_systems(
+            PostUpdate,
+            (
+                water_optics::select_refraction_camera
+                    .before(forge_engine::tidewater_refraction::Synchronize),
+                water_optics::update_refraction
+                    .after(forge_engine::tidewater_refraction::Synchronize),
+            ),
+        );
     }
     if has_hill_shadow {
         forge_engine::tidewater_hill_shadow::install_shader(
@@ -759,7 +831,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         app.add_plugins(forge_engine::tidewater_hill_shadow::HillShadowPlugin);
     }
     if with_object_depth {
-        object_shadow::install(&mut app, &root, &files)?;
+        if matches!(
+            plant_projection,
+            PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+        ) {
+            object_shadow::live::install(&mut app, &root, &files)?;
+        } else {
+            object_shadow::install(&mut app, &root, &files)?;
+        }
     } else {
         object_shadow::install_disabled(&mut app);
     }
@@ -784,7 +863,65 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     if let Some(ocean_root) = ocean_root {
-        ocean::install(&mut app, &ocean_root, 120, Some(ocean_output))?;
+        let ocean_targets = ocean::install(&mut app, &ocean_root, 120, Some(ocean_output))?;
+        if with_optics {
+            let optics = water_optics::underwater_optics(&app)?;
+            let sun = optics.sun_direction.normalize();
+            let (sea_level, reach) = water_optics::underwater_column(&app);
+            let maps = forge_engine::tidewater_caustics::prepare_maps(
+                &mut app,
+                ocean_targets.images[1].clone(),
+                ocean_targets.sizes[3].x,
+                ocean_targets.sizes[2].x,
+                sun,
+                ocean_targets.completed_steps.clone(),
+            )?;
+            let params = forge_engine::tidewater_caustics::CausticSampleParams::new(
+                ocean_targets.sizes[3].x,
+                ocean_targets.sizes[2].x,
+                sun,
+                if std::env::var_os("FORGE_TIDEWATER_CAUSTICS_OFF").is_some() {
+                    0.0
+                } else {
+                    0.75
+                },
+            )?
+            .with_underwater(
+                ocean_targets.sizes.map(|size| size.x),
+                sea_level,
+                reach,
+                optics.absorption,
+                optics.scattering,
+            )?;
+            forge_engine::tidewater_underwater_lighting::register(&mut app,
+                <water_optics::WaterMaterial as bevy::render::render_resource::AsBindGroup>::bind_group_layout_descriptor)?;
+            let light_maps = app
+                .world()
+                .resource::<forge_engine::tidewater_underwater_lighting::Targets>()
+                .bindings
+                .clone();
+            app.insert_resource(forge_engine::tidewater_underwater_lighting::Control {
+                enabled: true,
+                caustics_strength: params.sun_and_strength.w,
+                shadow_refraction: true,
+            });
+            app.insert_resource(forge_engine::tidewater_caustics::CausticMaterialInputs {
+                fine: maps.fine.clone(),
+                broad: maps.broad.clone(),
+                light_maps,
+                params,
+            });
+            if std::env::var("FORGE_TIDEWATER_CAUSTIC_PROOF").as_deref() == Ok("1") {
+                let path = app.world().resource::<Probe>().screenshot.clone();
+                caustics_proof::install(&mut app, &path, maps);
+            }
+            app.sub_app_mut(RenderApp).add_systems(
+                RenderGraph,
+                forge_engine::tidewater_caustics::render_maps
+                    .after(ocean::OceanComputeSet)
+                    .before(bevy::core_pipeline::schedule::camera_driver),
+            );
+        }
     }
     if with_spray {
         let terrain_document = serde_json::from_slice(get("terrain.json")?)?;
@@ -813,6 +950,18 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
         breaker_lip::install(&mut app, &files)?;
         spray_sprites::install(&mut app, &files)?;
+        if matches!(
+            plant_projection,
+            PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+        ) || std::env::var("FORGE_TIDEWATER_WATER_QUERY_PROOF").as_deref() == Ok("1")
+        {
+            let output = app
+                .world()
+                .resource::<Probe>()
+                .screenshot
+                .with_extension("water-query.json");
+            spray::enable_water_queries(&mut app, output)?;
+        }
     } else {
         if let Some(shore_root) = shore_root {
             shore_sim::install(&mut app, &shore_root, 120, Some(shore_output))?;
@@ -839,6 +988,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if let Some(shader) = files.get("village.wgsl") {
         forge_engine::tidewater_material::install_shader(&mut app, std::str::from_utf8(shader)?)?;
     }
+    forge_engine::tidewater_stall::install_shader(&mut app)?;
     forge_engine::tidewater_plants::stage_shader(
         app.world_mut(),
         std::str::from_utf8(get("plant.wgsl")?)?,
@@ -848,18 +998,68 @@ fn main() -> Result<(), Box<dyn Error>> {
         PlantProjection::ResidentNavigation
     ) {
         forge_engine::tidewater_plants::picking::render::install(&mut app);
+        forge_engine::tidewater_plants::picking::occluders::install(
+            &mut app,
+            std::str::from_utf8(get("village.wgsl")?)?,
+        )?;
         forge_engine::tidewater_plants::picking::stage_shader(
             app.world_mut(),
             std::str::from_utf8(get("plant.wgsl")?)?,
         )?;
     }
-    if matches!(plant_projection, PlantProjection::Walk) {
+    if matches!(
+        plant_projection,
+        PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+    ) {
         walk::install(&mut app)?;
+    } else if std::env::var_os("FORGE_TIDEWATER_STATIC_POSTFX").is_some() {
+        walk::install_static_graphics(&mut app)?;
+    }
+    if matches!(plant_projection, PlantProjection::Walk)
+        && std::env::var_os("FORGE_TIDEWATER_FULLSCREEN").is_some()
+    {
+        app.add_systems(PreUpdate, enter_fullscreen_1080p);
+    }
+    refraction_proof::install(&mut app)?;
+    if with_temporal_aux {
+        if with_temporal_owned {
+            temporal_owned::install(&mut app)?;
+        } else {
+            temporal_aux::install(&mut app)?;
+        }
     }
     if app.run() != AppExit::Success {
         return Err("native render probe failed".into());
     }
     Ok(())
+}
+
+fn enter_fullscreen_1080p(
+    mut window: Query<&mut Window, With<PrimaryWindow>>,
+    monitor: Query<&Monitor, With<PrimaryMonitor>>,
+    mut applied: Local<bool>,
+) {
+    if *applied {
+        return;
+    }
+    let (Ok(mut window), Ok(monitor)) = (window.single_mut(), monitor.single()) else {
+        return;
+    };
+    let Some(mode) = monitor
+        .video_modes
+        .iter()
+        .filter(|mode| mode.physical_size == UVec2::new(1920, 1080))
+        .max_by_key(|mode| mode.refresh_rate_millihertz)
+    else {
+        eprintln!("Tidewater fullscreen unavailable: no 1920x1080 display mode");
+        *applied = true;
+        return;
+    };
+    window.mode = WindowMode::Fullscreen(
+        MonitorSelection::Primary,
+        VideoModeSelection::Specific(*mode),
+    );
+    *applied = true;
 }
 
 fn setup_environment(mut commands: Commands, probe: Res<Probe>, mut images: ResMut<Assets<Image>>) {
@@ -928,6 +1128,7 @@ fn setup(
     ));
     let (grass_heights, grass_mask) = grass::textures(&probe, &mut images);
     let material = PlantMaterial {
+        motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
         grass_heights,
         grass_mask,
         params,
@@ -941,6 +1142,7 @@ fn setup(
         hill_shadow: hill.output.clone(),
         object_shadow: object.image.clone(),
         object_settings: object.settings.clone(),
+        live_shadows: forge_engine::tidewater_object_shadow::receiver::DEFAULT_BUFFER.clone(),
         clouds: [Vec4::ZERO; 5],
         cloud_shadow: None,
         kind: 0,
@@ -981,13 +1183,17 @@ fn setup(
 }
 
 fn spawn_camera(commands: &mut Commands, probe: &Probe, base: Vec3) {
-    if matches!(probe.plant_projection, PlantProjection::Walk) {
+    if matches!(
+        probe.plant_projection,
+        PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+    ) {
         return;
     }
-    commands.spawn((
+    let mut camera = commands.spawn((
         Camera3d {
             depth_texture_usages: (bevy::render::render_resource::TextureUsages::RENDER_ATTACHMENT
-                | bevy::render::render_resource::TextureUsages::COPY_SRC)
+                | bevy::render::render_resource::TextureUsages::COPY_SRC
+                | bevy::render::render_resource::TextureUsages::TEXTURE_BINDING)
                 .into(),
             ..default()
         },
@@ -999,6 +1205,10 @@ fn spawn_camera(commands: &mut Commands, probe: &Probe, base: Vec3) {
         camera_transform(probe, base),
         camera_projection(probe),
     ));
+    // Install the same graphics chain as the playable camera for static A/B captures.
+    if std::env::var_os("FORGE_TIDEWATER_STATIC_POSTFX").is_some() {
+        camera.insert(forge_engine::ForgePlayerCamera);
+    }
 }
 
 fn camera_transform(probe: &Probe, base: Vec3) -> Transform {
@@ -1038,6 +1248,7 @@ fn setup_terrain(
     hill: Res<hill_shadow::Images>,
     object: Res<object_shadow::Target>,
     normals: Res<terrain_normals::Shared>,
+    caustics: Option<Res<forge_engine::tidewater_caustics::CausticMaterialInputs>>,
 ) {
     if probe.lod_heights.is_some()
         || matches!(
@@ -1061,6 +1272,7 @@ fn setup_terrain(
                 hill.output.clone(),
                 &object,
                 normals.image.clone(),
+                caustics.as_deref(),
             )
         });
         spawn_terrain(
@@ -1159,12 +1371,24 @@ fn capture(
     breakers: Option<Res<breakers::Targets>>,
     normals: Res<terrain_normals::Shared>,
     picking: Option<Res<picking_proof::Pending>>,
+    queries: Option<Res<spray::water_queries::Targets>>,
+    refraction_proof: Option<Res<refraction_proof::Proof>>,
+    temporal_proofs: (
+        Option<Res<temporal_aux::Proof>>,
+        Option<Res<temporal_owned::Proof>>,
+    ),
 ) {
     if probe.failed {
         exit.write(AppExit::error());
         return;
     }
-    if matches!(probe.plant_projection, PlantProjection::Walk) {
+    if refraction_proof.is_some() || temporal_proofs.0.is_some() || temporal_proofs.1.is_some() {
+        return;
+    }
+    if matches!(
+        probe.plant_projection,
+        PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+    ) {
         return;
     }
     let object_ready = object
@@ -1194,6 +1418,9 @@ fn capture(
             .is_none_or(|v| v.ready.load(std::sync::atomic::Ordering::Acquire))
         && ocean_ready
         && shore_ready
+        && queries
+            .as_ref()
+            .is_none_or(|q| q.bootstrap_ready.load(std::sync::atomic::Ordering::Acquire))
         && breakers.as_ref().is_none_or(|v| {
             v.ready.load(std::sync::atomic::Ordering::Acquire)
                 && v.readback_complete
@@ -1255,6 +1482,30 @@ fn capture(
                     },
                 );
         }
+        if let Some(clouds) = clouds.filter(|_| probe.cloud_readback == ShadowReadback::Pending) {
+            use bevy::render::gpu_readback::{Readback, ReadbackComplete};
+            commands
+                .spawn(Readback::texture(clouds.images[2].clone()))
+                .observe(
+                    |event: On<ReadbackComplete>,
+                     mut probe: ResMut<Probe>,
+                     mut commands: Commands| {
+                        use std::io::Write;
+                        let result = std::fs::OpenOptions::new()
+                            .write(true)
+                            .create_new(true)
+                            .open(probe.screenshot.with_extension("cloud-shadow.bin"))
+                            .and_then(|mut file| file.write_all(&event.data));
+                        if let Err(error) = result {
+                            error!(%error, "cloud shadow readback failed");
+                            probe.failed = true;
+                        } else {
+                            probe.cloud_readback = ShadowReadback::Complete;
+                        }
+                        commands.entity(event.entity).despawn();
+                    },
+                );
+        }
         commands
             .spawn(Screenshot::primary_window())
             .observe(save_to_disk(probe.screenshot.clone()))
@@ -1265,6 +1516,7 @@ fn capture(
     if probe.captured
         && probe.shadow_readback == ShadowReadback::Complete
         && probe.object_readback == ShadowReadback::Complete
+        && probe.cloud_readback == ShadowReadback::Complete
         && frame.0 >= 135
         && picking.as_ref().is_none_or(|p| p.done)
     {

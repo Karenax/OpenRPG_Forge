@@ -42,6 +42,25 @@ impl Input {
         Ok(())
     }
 }
+pub struct Stream {
+    pub nodes: Vec<u8>,
+    pub count: u32,
+    pub view_position: Vec4,
+    pub morph: [Vec4; 9],
+}
+impl Stream {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.count > 1500
+            || self.nodes.len() != self.count as usize * 16
+            || !self.view_position.is_finite()
+            || self.morph.iter().any(|v| !v.is_finite())
+            || !super::finite_bytes(&self.nodes)
+        {
+            return Err("Invalid terrain shadow stream".into());
+        }
+        Ok(())
+    }
+}
 pub struct Gpu {
     pub pipeline: RenderPipeline,
     pub grid: Buffer,
@@ -49,12 +68,55 @@ pub struct Gpu {
     pub indices: Buffer,
     pub count: u32,
     pub groups: Vec<BindGroup>,
+    uniforms: Vec<UniformBuffer<Params>>,
 }
+const NODE_CAPACITY: usize = 1500;
 #[derive(ShaderType)]
 struct Params {
     view_projection: Mat4,
     view_position: Vec4,
     morph: [Vec4; 9],
+}
+
+impl Gpu {
+    pub fn update_cascades(
+        &mut self,
+        matrices: &[Mat4],
+        layers: &[usize],
+        device: &RenderDevice,
+        queue: &RenderQueue,
+    ) -> Result<(), String> {
+        if matrices.len() != 3
+            || matrices.iter().any(|matrix| !matrix.is_finite())
+            || layers.iter().any(|&layer| layer >= matrices.len())
+            || self.uniforms.len() != matrices.len()
+        {
+            return Err("Invalid terrain cascade update".into());
+        }
+        for &layer in layers {
+            let uniform = &mut self.uniforms[layer];
+            uniform.get_mut().view_projection = matrices[layer];
+            uniform.write_buffer(device, queue);
+        }
+        Ok(())
+    }
+    pub fn update_stream(
+        &mut self,
+        stream: &Stream,
+        device: &RenderDevice,
+        queue: &RenderQueue,
+    ) -> Result<(), String> {
+        stream.validate()?;
+        queue.write_buffer(&self.nodes, 0, &stream.nodes);
+        self.count = stream.count;
+        for uniform in &mut self.uniforms {
+            let params = uniform.get_mut();
+            params.view_position = stream.view_position;
+            params.morph = stream.morph;
+            uniform.write_buffer(device, queue);
+        }
+        Ok(())
+    }
 }
 
 #[allow(clippy::too_many_lines, clippy::many_single_char_names)] // Explicit GPU descriptors and grid corner indices.
@@ -65,9 +127,6 @@ pub fn prepare(
     queue: &RenderQueue,
 ) -> Result<Gpu, String> {
     t.validate(matrices)?;
-    if t.count == 0 {
-        return Err("No terrain shadow nodes to upload".into());
-    }
     let shader = device.create_and_validate_shader_module(gpu::ShaderModuleDescriptor {
         label: Some("Tidewater terrain shadow"),
         source: gpu::ShaderSource::Wgsl(t.shader.clone().into()),
@@ -172,7 +231,7 @@ pub fn prepare(
     let edit_view = edit_texture.create_view(&default());
     let layout: bevy::render::render_resource::BindGroupLayout =
         pipeline.get_bind_group_layout(0).into();
-    let groups = matrices
+    let uniforms = matrices
         .iter()
         .map(|&view_projection| {
             let mut uniform = UniformBuffer::from(Params {
@@ -181,10 +240,16 @@ pub fn prepare(
                 morph: t.morph,
             });
             uniform.write_buffer(device, queue);
+            uniform
+        })
+        .collect::<Vec<_>>();
+    let groups = uniforms
+        .iter()
+        .map(|uniform| {
             device.create_bind_group(
                 "terrain shadow draw",
                 &layout,
-                &BindGroupEntries::sequential((&uniform, &view, &edit_view)),
+                &BindGroupEntries::sequential((uniform, &view, &edit_view)),
             )
         })
         .collect();
@@ -218,9 +283,17 @@ pub fn prepare(
     Ok(Gpu {
         pipeline,
         grid: buffer(&grid, gpu::BufferUsages::VERTEX),
-        nodes: buffer(&t.nodes, gpu::BufferUsages::VERTEX),
+        nodes: buffer(
+            &[
+                t.nodes.as_slice(),
+                &vec![0_u8; (NODE_CAPACITY - t.count as usize) * 16],
+            ]
+            .concat(),
+            gpu::BufferUsages::VERTEX | gpu::BufferUsages::COPY_DST,
+        ),
         indices: buffer(&indices, gpu::BufferUsages::INDEX),
         count: t.count,
         groups,
+        uniforms,
     })
 }

@@ -37,15 +37,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             {
                 bytes.extend(v.to_le_bytes());
             }
-            if let Some(order) = packed.source_order {
-                if ordered
+            if let Some(order) = packed.source_order
+                && ordered
                     .entry(group)
                     .or_default()
                     .insert(order, bytes[start..].to_vec())
                     .is_some()
-                {
-                    return Err("duplicate source order in group".into());
-                }
+            {
+                return Err("duplicate source order in group".into());
             }
         }
         let name = format!("{}.bin", layer.layer_id);

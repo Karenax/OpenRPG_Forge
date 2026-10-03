@@ -43,6 +43,28 @@ impl PathPlacementOptions {
     }
 }
 
+/// Return absolute poses along an accepted path without choosing an authoring
+/// storage domain. Studio can feed these poses through its active raster
+/// alignment and then submit common `PlacementEdit::Duplicate` commands for
+/// either a manual placement or a sparse imported source object.
+pub fn transforms(
+    head: &ZoneAuthoringHead,
+    source: Transform,
+    path_id: EntityId,
+    options: PathPlacementOptions,
+) -> Result<Vec<Transform>, String> {
+    options.validate()?;
+    let path = head
+        .corrections
+        .paths
+        .as_deref()
+        .unwrap_or_default()
+        .iter()
+        .find(|path| path.id == path_id)
+        .ok_or("Tracé absent")?;
+    poses(path, source, options)
+}
+
 pub fn prepare(
     head: &ZoneAuthoringHead,
     command_id: CommandId,
@@ -60,18 +82,10 @@ pub fn prepare(
         .iter()
         .find(|p| p.id == source_id)
         .ok_or("Objet source absent")?;
-    let path = head
-        .corrections
-        .paths
-        .as_deref()
-        .unwrap_or_default()
-        .iter()
-        .find(|p| p.id == path_id)
-        .ok_or("Tracé absent")?;
     let terrain = crate::river_projection::project(head)?.terrain;
     let terrain =
         crate::TerrainGenerationPlan::from_document(&terrain).map_err(|e| e.to_string())?;
-    let poses = poses(path, source.transform, options)?;
+    let poses = transforms(head, source.transform, path_id, options)?;
     let key = serde_json::to_string(&(hash, command_id, source_id, path_id, options))
         .map_err(|e| e.to_string())?;
     let copies = poses

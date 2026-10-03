@@ -66,7 +66,7 @@ pub fn install(app: &mut App, files: &BTreeMap<String, Vec<u8>>) -> Result<(), B
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct LipMaterial {
     #[uniform(0)]
-    frame: [UVec4; 45],
+    pub(super) frame: [UVec4; 45],
     #[storage(1, read_only)]
     crest: Handle<ShaderBuffer>,
     #[texture(2)]
@@ -84,7 +84,7 @@ pub struct LipMaterial {
     #[uniform(9)]
     material: [UVec4; 3],
     #[uniform(10)]
-    clouds: [Vec4; 5],
+    pub(super) clouds: [Vec4; 5],
     #[texture(11)]
     #[sampler(12)]
     cloud_panorama: Option<Handle<Image>>,

@@ -33,6 +33,10 @@ impl ZoneMigrationProposal {
         // v3 must never downgrade an already validated imported source.
         base.schema_version = base.schema_version.max(3);
         let corrections = ZoneCorrections {
+            source_object_edits: None,
+            gameplay: None,
+            imported_plant_offsets: None,
+            imported_plant_placements: None,
             vegetation_exclusions: None,
             promotions: None,
             species: None,

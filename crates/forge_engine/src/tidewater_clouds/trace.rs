@@ -30,8 +30,7 @@ impl Input {
         weather: &gpu::WgpuTextureView,
         repeat: &gpu::WgpuSampler,
         views: [&gpu::WgpuTextureView; 3],
-        frames: &[(Vec<u8>, Vec<u8>)],
-        range: std::ops::Range<usize>,
+        frames: &[super::FrameView<'_>],
         cache: &mut Option<Cache>,
         history_views: Option<[&gpu::WgpuTextureView; 5]>,
         atmosphere_views: Option<[&gpu::WgpuTextureView; 2]>,
@@ -167,18 +166,14 @@ impl Input {
                 usage: gpu::BufferUsages::UNIFORM,
             })
         };
-        for (step, (local, global)) in frames
-            .iter()
-            .enumerate()
-            .skip(range.start.max(if temporal.is_some() { 0 } else { 119 }))
-            .take(
-                range
-                    .end
-                    .saturating_sub(range.start.max(if temporal.is_some() { 0 } else { 119 })),
-            )
-        {
-            let local = uniform(local);
-            let global = uniform(global);
+        for frame in frames {
+            if temporal.is_none() && frame.index != 119 {
+                continue;
+            }
+            let local = uniform(frame.local);
+            let global = uniform(frame.global);
+            let live_atmosphere = frame.atmosphere.map(uniform);
+            let atmosphere = live_atmosphere.as_ref().unwrap_or(atmosphere);
             let group0 = device.create_bind_group(
                 "cloud trace frame",
                 &pipeline.get_bind_group_layout(0).into(),
@@ -243,15 +238,16 @@ impl Input {
                 &pipeline.get_bind_group_layout(1).into(),
                 &entries,
             );
-            let mut pass = encoder.begin_compute_pass(&gpu::ComputePassDescriptor {
-                label: Some("cloud volume trace"),
-                ..gpu::ComputePassDescriptor::default()
-            });
-            pass.set_pipeline(pipeline);
-            pass.set_bind_group(0, &*group0, &[]);
-            pass.set_bind_group(1, &*group1, &[]);
-            pass.dispatch_workgroups(30, 17, 1);
-            drop(pass);
+            if frame.trace_view {
+                let mut pass = encoder.begin_compute_pass(&gpu::ComputePassDescriptor {
+                    label: Some("cloud volume trace"),
+                    ..gpu::ComputePassDescriptor::default()
+                });
+                pass.set_pipeline(pipeline);
+                pass.set_bind_group(0, &*group0, &[]);
+                pass.set_bind_group(1, &*group1, &[]);
+                pass.dispatch_workgroups(30, 17, 1);
+            }
             if let (Some(panorama), Some(history)) = (&panorama, history_views) {
                 let g0 = device.create_bind_group(
                     "panorama frame",
@@ -292,15 +288,17 @@ impl Input {
                 pass.set_pipeline(panorama);
                 pass.set_bind_group(0, &*g0, &[]);
                 pass.set_bind_group(1, &*g1, &[]);
-                if step == 0 {
+                if frame.panorama_full {
                     pass.dispatch_workgroups(64, 20, 1);
                 } else {
                     pass.dispatch_workgroups(16, 5, 1);
                 }
             }
-            if let (Some(temporal), Some(history)) = (&temporal, history_views) {
-                let write = (step % 2) * 2;
-                let previous = (1 - step % 2) * 2;
+            if frame.trace_view
+                && let (Some(temporal), Some(history)) = (&temporal, history_views)
+            {
+                let write = frame.view_index * 2;
+                let previous = (1 - frame.view_index) * 2;
                 let g0 = device.create_bind_group(
                     "cloud temporal sampler",
                     &temporal.get_bind_group_layout(0).into(),

@@ -2,6 +2,9 @@
 //! Callers supply verified WGSL and parameters; no filesystem or network access.
 #![allow(clippy::needless_pass_by_value)]
 mod acquisition;
+pub mod controller;
+mod live;
+pub mod readback;
 pub use acquisition::from_acquisition;
 use bevy::{
     asset::RenderAssetUsages,
@@ -17,12 +20,17 @@ use bevy::{
         texture::GpuImage,
     },
 };
+use live::Work;
+pub use live::update_parameters;
 use std::sync::{
     Arc,
     atomic::{AtomicBool, Ordering},
 };
 const NAMES: [&str; 4] = ["transmittance", "multiScat", "skyView", "irradiance"];
 const SIZES: [(u32, u32); 3] = [(256, 64), (32, 32), (192, 108)];
+/// Atmosphere LUT updates precede cloud kernels on the same render schedule.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AtmosphereCompute;
 /// Validated inputs. Shader provenance and interface qualification belong to the caller.
 #[derive(Resource)]
 pub struct Input {
@@ -74,13 +82,16 @@ pub fn register(app: &mut App) -> Result<(), String> {
     app.add_plugins((
         ExtractResourcePlugin::<KernelInput>::default(),
         ExtractResourcePlugin::<Targets>::default(),
+        ExtractResourcePlugin::<Work>::default(),
     ));
     app.sub_app_mut(RenderApp).add_systems(
         RenderGraph,
         compute
+            .in_set(AtmosphereCompute)
             .before(camera_driver)
             .run_if(resource_exists::<KernelInput>)
-            .run_if(resource_exists::<Targets>),
+            .run_if(resource_exists::<Targets>)
+            .run_if(resource_exists::<Work>),
     );
     app.insert_resource(Registered);
     Ok(())
@@ -143,6 +154,7 @@ pub fn stage(world: &mut World, input: Input) -> Result<Targets, String> {
     };
     world.insert_resource(KernelInput(Arc::new(input)));
     world.insert_resource(targets.clone());
+    world.insert_resource(Work::default());
     Ok(targets)
 }
 #[allow(clippy::too_many_lines)] // Four ordered kernels share native LUTs and one parameter block.
@@ -150,11 +162,12 @@ fn compute(
     mut context: RenderContext,
     input: Res<KernelInput>,
     targets: Res<Targets>,
+    work: Res<Work>,
     device: Res<RenderDevice>,
     images: Res<RenderAssets<GpuImage>>,
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
 ) {
-    if targets.ready.load(Ordering::Acquire) {
+    if work.encoded.load(Ordering::Acquire) == work.revision {
         return;
     }
     let Some(irr) = buffers.get(&targets.irradiance) else {
@@ -171,7 +184,12 @@ fn compute(
     let input = &input.0;
     let uniform = device.create_buffer_with_data(&gpu::BufferInitDescriptor {
         label: Some("native atmosphere inputs"),
-        contents: &input.params,
+        contents: &targets
+            .params
+            .iter()
+            .flat_map(|v| v.to_array())
+            .flat_map(f32::to_le_bytes)
+            .collect::<Vec<_>>(),
         usage: gpu::BufferUsages::UNIFORM,
     });
     let sampler = device.create_sampler(&gpu::SamplerDescriptor {
@@ -180,6 +198,9 @@ fn compute(
         ..default()
     });
     for (index, source) in input.shaders.iter().enumerate() {
+        if work.mask & (1 << index) == 0 {
+            continue;
+        }
         let shader = device.create_and_validate_shader_module(gpu::ShaderModuleDescriptor {
             label: Some(NAMES[index]),
             source: gpu::ShaderSource::Wgsl(source.as_str().into()),
@@ -257,6 +278,7 @@ fn compute(
         pass.dispatch_workgroups(x, y, 1);
     }
     targets.ready.store(true, Ordering::Release);
+    work.encoded.store(work.revision, Ordering::Release);
 }
 
 pub(crate) fn ensure_registered(world: &World) -> Result<(), String> {

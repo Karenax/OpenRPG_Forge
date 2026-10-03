@@ -1,5 +1,14 @@
-//! Explicit acquisition of the locally deployed imported building library.
-use forge_assets::{tidewater_environment::EnvironmentPackage, tidewater_package::BuildingPackage};
+mod source_objects;
+pub(crate) use source_objects::source_placements;
+// Explicit acquisition of the locally deployed imported building library.
+use bevy::ecs as bevy_ecs;
+use forge_assets::{
+    tidewater_boardwalk::BoardwalkPackage, tidewater_environment::EnvironmentPackage,
+    tidewater_fish_stand::FishStandPackage, tidewater_ground_bounce::GroundBouncePackage,
+    tidewater_ocean::OceanPackage, tidewater_package::BuildingPackage, tidewater_pier::PierPackage,
+    tidewater_plaza::PlazaPackage, tidewater_shore_sim::ShoreSimPackage,
+    tidewater_water_surface::WaterSurfacePackage,
+};
 use forge_assets::{tidewater_plants::PlantPackage, tidewater_terrain::TerrainPackage};
 use forge_core::ContentHash;
 use forge_engine::tidewater_assets::{PreparedLibrary, PreparedMeshes};
@@ -25,12 +34,106 @@ thread_local! {
     static TERRAIN: RefCell<Option<Rc<TerrainPackage>>> = const { RefCell::new(None) };
     static PREPARED_TERRAIN: RefCell<Option<TerrainUpdate>> = const { RefCell::new(None) };
     static PREPARED_BUILDINGS: RefCell<Option<PreparedBuildings>> = const { RefCell::new(None) };
+    static FISH_STAND: RefCell<Option<Rc<FishStandPackage>>> = const { RefCell::new(None) };
+    static PREPARED_FISH_STAND: RefCell<Option<forge_engine::tidewater_stall::FishStandPrepared>> = const { RefCell::new(None) };
+    static FISH_STAND_READY: RefCell<Option<RwSignal<bool>>> = const { RefCell::new(None) };
     static RENDER_STATUS: RefCell<Option<RwSignal<String>>> = const { RefCell::new(None) };
     static GENERATION: Cell<u64> = const { Cell::new(0) };
     static PUBLISHED: Cell<u64> = const { Cell::new(0) };
+    static PROJECTION_LOADING: Cell<bool> = const { Cell::new(false) };
     static PREPARED_ENVIRONMENT: RefCell<Option<forge_engine::tidewater_scene_environment::PreparedEnvironment>> = const { RefCell::new(None) };
     static ENVIRONMENT: RefCell<Option<(ContentHash, Rc<EnvironmentPackage>)>> = const { RefCell::new(None) };
+    static OCEAN: RefCell<Option<(ContentHash, Rc<OceanPackage>)>> = const { RefCell::new(None) };
+    static WATER_SURFACE: RefCell<Option<(ContentHash, Rc<WaterSurfacePackage>)>> = const { RefCell::new(None) };
+    static SHORE_SIM: RefCell<Option<(ContentHash, Rc<ShoreSimPackage>)>> = const { RefCell::new(None) };
+    static GROUND_BOUNCE: RefCell<Option<(ContentHash, Rc<GroundBouncePackage>)>> = const { RefCell::new(None) };
+    static BOARDWALK: RefCell<Option<(ContentHash, Rc<BoardwalkPackage>)>> = const { RefCell::new(None) };
+    static BOARDWALK_TEMPLATES: RefCell<Vec<forge_engine::tidewater_boardwalk::BoardwalkTemplate>> = const { RefCell::new(Vec::new()) };
+    static BOARDWALK_READY: RefCell<Option<RwSignal<bool>>> = const { RefCell::new(None) };
+    static PIER: RefCell<Option<(ContentHash, Rc<PierPackage>)>> = const { RefCell::new(None) };
+    static PIER_TEMPLATE: RefCell<Option<forge_engine::tidewater_pier::PierTemplate>> = const { RefCell::new(None) };
+    static PIER_READY: RefCell<Option<RwSignal<bool>>> = const { RefCell::new(None) };
+    static PLAZA: RefCell<Option<(ContentHash, Rc<PlazaPackage>)>> = const { RefCell::new(None) };
+    static PLAZA_TEMPLATES: RefCell<Vec<forge_engine::tidewater_plaza::PlazaTemplate>> = const { RefCell::new(Vec::new()) };
+    static PLAZA_READY: RefCell<Option<RwSignal<bool>>> = const { RefCell::new(None) };
     static PACKAGE: RefCell<Option<(ContentHash, Rc<BuildingPackage>)>> = const { RefCell::new(None) };
+    static LOCAL_LIGHTS: RefCell<Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>>> = const { RefCell::new(None) };
+}
+
+const RESUME_KEY: &str = "forge.imported-library.resume.v1";
+
+fn resume_store() -> Option<web_sys::Storage> {
+    web_sys::window()?.session_storage().ok().flatten()
+}
+
+fn restore_choice(
+    document: &forge_project::TerrainDocument,
+) -> Result<Option<crate::library_resume::LibraryResume>, String> {
+    let Some(store) = resume_store() else {
+        return Ok(None);
+    };
+    let Some(json) = store
+        .get_item(RESUME_KEY)
+        .map_err(|_| "Choix de bibliothèque illisible")?
+    else {
+        return Ok(None);
+    };
+    let choice: crate::library_resume::LibraryResume = serde_json::from_str(&json)
+        .map_err(|_| "Choix de bibliothèque invalide. Rechargez explicitement la bibliothèque.")?;
+    Ok(choice.matches(document).then_some(choice))
+}
+
+fn remember_choice(document: &forge_project::TerrainDocument, hash: ContentHash) {
+    let Some(choice) = crate::library_resume::LibraryResume::new(document, hash) else {
+        return;
+    };
+    if let Some(store) = resume_store()
+        && let Ok(json) = serde_json::to_string(&choice)
+        && store.set_item(RESUME_KEY, &json).is_err()
+    {
+        web_sys::console::warn_1(
+            &"Bibliothèque vérifiée, mais choix de session non mémorisé.".into(),
+        );
+    }
+}
+
+/// Reacquire the previously verified choice in either projection mode.
+/// Every package is verified again; another zone cannot inherit this hint.
+pub(crate) fn ensure_for_projection(document: &forge_project::TerrainDocument, playtest: bool) {
+    if building_package().is_some()
+        && terrain_package().is_some()
+        && plant_package().is_some()
+        && has_environment()
+    {
+        return;
+    }
+    let choice = match restore_choice(document) {
+        Ok(choice) => choice,
+        Err(error) => {
+            crate::authoring_viewport::report(error);
+            return;
+        }
+    };
+    if choice.is_none() && !playtest {
+        return;
+    }
+    if PROJECTION_LOADING.with(|loading| loading.replace(true)) {
+        return;
+    }
+    let ticket = next();
+    crate::authoring_viewport::report(
+        "Restauration de la bibliothèque vérifiée pour la zone…".into(),
+    );
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = load(ticket, choice).await;
+        PROJECTION_LOADING.with(|loading| loading.set(false));
+        if !current(ticket) {
+            return;
+        }
+        if let Err(error) = result {
+            crate::authoring_viewport::report(format!("Bibliothèque indisponible : {error}"));
+        }
+    });
 }
 
 #[derive(serde::Deserialize)]
@@ -40,11 +143,29 @@ struct Candidate {
     version: u32,
     package_sha256: ContentHash,
     #[serde(default)]
+    source_local_lights_sha256: Option<ContentHash>,
+    #[serde(default)]
     environment_sha256: Option<ContentHash>,
+    #[serde(default)]
+    ocean_sha256: Option<ContentHash>,
+    #[serde(default)]
+    water_surface_sha256: Option<ContentHash>,
+    #[serde(default)]
+    shore_sim_sha256: Option<ContentHash>,
+    #[serde(default)]
+    ground_bounce_sha256: Option<ContentHash>,
+    #[serde(default)]
+    boardwalk_sha256: Option<ContentHash>,
+    #[serde(default)]
+    pier_sha256: Option<ContentHash>,
+    #[serde(default)]
+    plaza_sha256: Option<ContentHash>,
     #[serde(default)]
     terrain_sha256: Option<ContentHash>,
     #[serde(default)]
     plants_sha256: Option<ContentHash>,
+    #[serde(default)]
+    fish_stand_bundle_sha256: Option<ContentHash>,
 }
 
 fn next() -> u64 {
@@ -58,11 +179,28 @@ fn current(ticket: u64) -> bool {
     GENERATION.with(Cell::get) == ticket
 }
 
-async fn load(ticket: u64) -> Result<(usize, bool), String> {
+#[allow(
+    clippy::too_many_lines,
+    reason = "Package verification and ticket checks retain their ordered refusal and publication steps."
+)]
+async fn load(
+    ticket: u64,
+    expected: Option<crate::library_resume::LibraryResume>,
+) -> Result<(usize, bool), String> {
     use crate::governed_kit::transport;
-    let candidate: Candidate =
-        serde_json::from_slice(&transport::fetch_building_candidate().await?)
-            .map_err(|e| e.to_string())?;
+    let document = crate::authoring_viewport::imported_document();
+    let bytes = transport::fetch_building_candidate().await?;
+    let candidate_hash = forge_core::bytes_sha256(&bytes);
+    if let Some(choice) = &expected {
+        if !document
+            .as_ref()
+            .is_some_and(|document| choice.matches(document))
+        {
+            return Err("La zone ne correspond plus au choix de bibliothèque.".into());
+        }
+        choice.verify_candidate(candidate_hash)?;
+    }
+    let candidate: Candidate = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     if candidate.schema != "forge.imported-building-library" || candidate.version != 1 {
         return Err("Bibliothèque de bâtiments non reconnue".into());
     }
@@ -99,6 +237,131 @@ async fn load(ticket: u64) -> Result<(usize, bool), String> {
     if !current(ticket) {
         return Err("Chargement remplacé".into());
     }
+    let ocean = if let Some(pin) = candidate.ocean_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 8 * 1024).await?;
+        let resources = OceanPackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        Some((pin, Rc::new(resources)))
+    } else {
+        None
+    };
+    let water_surface = if let Some(pin) = candidate.water_surface_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 12 * 1024).await?;
+        let resources = WaterSurfacePackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        Some((pin, Rc::new(resources)))
+    } else {
+        None
+    };
+    if !current(ticket) {
+        return Err("Chargement remplacé".into());
+    }
+    let shore_sim = if let Some(pin) = candidate.shore_sim_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 12 * 1024).await?;
+        let resources = ShoreSimPackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        Some((pin, Rc::new(resources)))
+    } else {
+        None
+    };
+    let ground_bounce = if let Some(pin) = candidate.ground_bounce_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 4 * 1024).await?;
+        let resources = GroundBouncePackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        Some((pin, Rc::new(resources)))
+    } else {
+        None
+    };
+    let (boardwalk, boardwalk_templates) = if let Some(pin) = candidate.boardwalk_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 16 * 1024).await?;
+        let resources = BoardwalkPackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        let material_hash = forge_core::bytes_sha256(
+            package
+                .file("materials.json")
+                .ok_or("Matériaux du village absents")?,
+        );
+        if material_hash.to_string() != resources.material_library_hash() {
+            return Err("Passerelles incompatibles avec les matériaux du village".into());
+        }
+        let prepared =
+            forge_engine::tidewater_boardwalk::PreparedBoardwalk::from_package(&resources)?;
+        (Some((pin, Rc::new(resources))), prepared.templates())
+    } else {
+        (None, Vec::new())
+    };
+    let (pier, pier_template) = if let Some(pin) = candidate.pier_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 64 * 1024).await?;
+        let resources = PierPackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        let material_hash = forge_core::bytes_sha256(
+            package
+                .file("materials.json")
+                .ok_or("Matériaux du village absents")?,
+        );
+        if material_hash.to_string() != resources.material_library_hash() {
+            return Err("Quai incompatible avec les matériaux du village".into());
+        }
+        let prepared = forge_engine::tidewater_pier::PreparedPier::from_package(&resources)?;
+        (Some((pin, Rc::new(resources))), Some(prepared.template()))
+    } else {
+        (None, None)
+    };
+    let (plaza, plaza_templates) = if let Some(pin) = candidate.plaza_sha256 {
+        let manifest = transport::fetch_building_payload(pin, "package.json", 16 * 1024).await?;
+        let resources = PlazaPackage::load_async(&manifest, pin, |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        })
+        .await?;
+        let material_hash = forge_core::bytes_sha256(
+            package
+                .file("materials.json")
+                .ok_or("Matériaux du village absents")?,
+        );
+        if material_hash.to_string() != resources.material_library_hash() {
+            return Err("Objets de la place incompatibles avec les matériaux du village".into());
+        }
+        let prepared = forge_engine::tidewater_plaza::PreparedPlaza::from_package(&resources)?;
+        (Some((pin, Rc::new(resources))), prepared.templates())
+    } else {
+        (None, Vec::new())
+    };
+    if !current(ticket) {
+        return Err("Chargement remplacé".into());
+    }
     let terrain = if let Some(pin) = candidate.terrain_sha256 {
         let manifest = transport::fetch_building_payload(pin, "package.json", 16 * 1024).await?;
         let resources = TerrainPackage::load_async(&manifest, pin, |name, limit| async move {
@@ -124,8 +387,37 @@ async fn load(ticket: u64) -> Result<(usize, bool), String> {
         .map(|p| PreparedSurface::from_package(p))
         .transpose()?;
     let prepared_plants = prepare_plants(plants.as_deref())?;
+    let fish_stand = load_fish_stand(ticket, candidate.fish_stand_bundle_sha256).await?;
+    if !current(ticket) {
+        return Err("Chargement remplacé".into());
+    }
+    let prepared_fish_stand = fish_stand
+        .as_ref()
+        .map(|package| forge_engine::tidewater_stall::FishStandPrepared::load(package.files()))
+        .transpose()?;
+    if fish_stand
+        .as_ref()
+        .is_some_and(|package| package.building_package_hash() != hash)
+    {
+        return Err("Le bundle FishStand ne correspond pas à la bibliothèque de bâtiments".into());
+    }
     let geometry = PreparedMeshes::load(&package)?;
     let library = PreparedLibrary::load(&package)?;
+    let local_lights =
+        load_local_lights(ticket, candidate.source_local_lights_sha256, &package).await?;
+    if !current(ticket) {
+        return Err("Chargement remplacé".into());
+    }
+    if let Some(document) = &document {
+        let scope = crate::library_resume::LibraryResume::new(document, candidate_hash)
+            .ok_or("Source terrain invalide pour la bibliothèque")?;
+        if !crate::authoring_viewport::imported_document()
+            .as_ref()
+            .is_some_and(|current| scope.matches(current))
+        {
+            return Err("La zone a changé pendant le chargement de la bibliothèque.".into());
+        }
+    }
     let has_environment = environment.is_some();
     let count = package.catalog().assets.len();
     PREPARED_PLANTS.with(|slot| slot.replace(Some(prepared_plants)));
@@ -140,16 +432,116 @@ async fn load(ticket: u64) -> Result<(usize, bool), String> {
     });
     PREPARED_ENVIRONMENT.with(|slot| slot.replace(prepared_environment));
     ENVIRONMENT.with(|slot| slot.replace(environment));
+    OCEAN.with(|slot| slot.replace(ocean));
+    WATER_SURFACE.with(|slot| slot.replace(water_surface));
+    SHORE_SIM.with(|slot| slot.replace(shore_sim));
+    GROUND_BOUNCE.with(|slot| slot.replace(ground_bounce));
+    BOARDWALK.with(|slot| slot.replace(boardwalk));
+    BOARDWALK_TEMPLATES.with(|slot| slot.replace(boardwalk_templates));
+    publish_boardwalk_ready();
+    PIER.with(|slot| slot.replace(pier));
+    PIER_TEMPLATE.with(|slot| slot.replace(pier_template));
+    publish_pier_ready();
+    PLAZA.with(|slot| slot.replace(plaza));
+    PLAZA_TEMPLATES.with(|slot| slot.replace(plaza_templates));
+    publish_plaza_ready();
     PACKAGE.with(|slot| slot.replace(Some((hash, Rc::new(package)))));
+    LOCAL_LIGHTS.with(|slot| slot.replace(local_lights));
     PREPARED_BUILDINGS.with(|slot| slot.replace(Some((geometry, library))));
+    FISH_STAND.with(|slot| slot.replace(fish_stand));
+    PREPARED_FISH_STAND.with(|slot| slot.replace(prepared_fish_stand));
+    publish_fish_stand_ready();
     PUBLISHED.with(|slot| slot.set(ticket));
     super::placements::retry_library();
     super::imported_environment::hide_preview();
     if !has_environment {
         render_status("Cette bibliothèque ne fournit pas d’environnement.".into());
     }
+    if let Some(document) = &document {
+        remember_choice(document, candidate_hash);
+    }
     crate::authoring_viewport::retry_imported();
     Ok((count, has_environment))
+}
+
+async fn load_fish_stand(
+    ticket: u64,
+    pin: Option<ContentHash>,
+) -> Result<Option<Rc<FishStandPackage>>, String> {
+    use crate::governed_kit::transport;
+    let Some(pin) = pin else {
+        return Ok(None);
+    };
+    let manifest =
+        transport::fetch_building_payload(pin, "preview-scene.json", 2 * 1024 * 1024).await?;
+    let package = FishStandPackage::load_async(&manifest, pin, |name, limit| async move {
+        if !current(ticket) {
+            return Err("Chargement remplacé".into());
+        }
+        transport::fetch_building_payload(pin, &name, limit).await
+    })
+    .await?;
+    Ok(Some(Rc::new(package)))
+}
+
+async fn load_local_lights(
+    ticket: u64,
+    pin: Option<ContentHash>,
+    buildings: &BuildingPackage,
+) -> Result<
+    Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>>,
+    String,
+> {
+    use crate::governed_kit::transport;
+    let Some(pin) = pin else {
+        return Ok(None);
+    };
+    let manifest = transport::fetch_building_payload(pin, "manifest.json", 2 * 1024 * 1024).await?;
+    let lights = forge_assets::source_local_lights::SourceLocalLightsPackage::load_async(
+        &manifest,
+        pin,
+        |name, limit| async move {
+            if !current(ticket) {
+                return Err("Chargement remplacé".into());
+            }
+            transport::fetch_building_payload(pin, &name, limit).await
+        },
+    )
+    .await
+    .map_err(|error| error.to_string())?;
+    if !current(ticket) {
+        return Err("Chargement remplacé".into());
+    }
+    forge_engine::tidewater_assets::local_lights::BuildingLightBindings::from_packages(
+        buildings, &lights,
+    )?;
+    Ok(Some(std::sync::Arc::new(lights)))
+}
+
+/// Verified immutable acquisition available to the scene adapter. Its presence
+/// does not attest emitter projection or a material draw.
+#[derive(bevy::prelude::Resource, Clone)]
+pub(super) struct VerifiedLocalLights(
+    pub std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>,
+);
+
+pub(super) fn local_lights_package()
+-> Option<std::sync::Arc<forge_assets::source_local_lights::SourceLocalLightsPackage>> {
+    LOCAL_LIGHTS.with(|slot| slot.borrow().clone())
+}
+
+pub(super) fn stage_local_lights(world: &mut bevy::prelude::World) {
+    LOCAL_LIGHTS.with(|slot| {
+        let package = slot.borrow();
+        if let Some(package) = package.as_ref() {
+            let current = world.get_resource::<VerifiedLocalLights>();
+            if current.is_none_or(|current| current.0.receipt_hash() != package.receipt_hash()) {
+                world.insert_resource(VerifiedLocalLights(package.clone()));
+            }
+        } else {
+            world.remove_resource::<VerifiedLocalLights>();
+        }
+    });
 }
 
 async fn load_plants(
@@ -201,6 +593,103 @@ pub(crate) fn terrain_package() -> Option<Rc<TerrainPackage>> {
     TERRAIN.with(|slot| slot.borrow().clone())
 }
 
+pub(crate) fn ocean_package() -> Option<Rc<OceanPackage>> {
+    OCEAN.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn water_surface_package() -> Option<Rc<WaterSurfacePackage>> {
+    WATER_SURFACE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn shore_sim_package() -> Option<Rc<ShoreSimPackage>> {
+    SHORE_SIM.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn ground_bounce_package() -> Option<Rc<GroundBouncePackage>> {
+    GROUND_BOUNCE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn boardwalk_package() -> Option<Rc<BoardwalkPackage>> {
+    BOARDWALK.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn pier_package() -> Option<Rc<PierPackage>> {
+    PIER.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn plaza_package() -> Option<Rc<PlazaPackage>> {
+    PLAZA.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
+}
+
+pub(crate) fn plaza_templates() -> Vec<forge_engine::tidewater_plaza::PlazaTemplate> {
+    PLAZA_TEMPLATES.with(|slot| slot.borrow().clone())
+}
+
+pub(crate) fn is_plaza_asset(id: forge_core::AssetId) -> bool {
+    forge_assets::tidewater_plaza::asset_ordinal(id).is_some()
+}
+
+fn publish_plaza_ready() {
+    let ready = plaza_package().is_some() && plaza_templates().len() == 5;
+    PLAZA_READY.with(|slot| {
+        if let Some(signal) = *slot.borrow() {
+            signal.set(ready);
+        }
+    });
+}
+
+fn invalidate_plaza() {
+    PLAZA.with(|slot| slot.replace(None));
+    PLAZA_TEMPLATES.with(|slot| slot.borrow_mut().clear());
+    publish_plaza_ready();
+}
+
+pub(crate) fn pier_template() -> Option<forge_engine::tidewater_pier::PierTemplate> {
+    PIER_TEMPLATE.with(|slot| slot.borrow().clone())
+}
+
+pub(crate) fn is_pier_asset(id: forge_core::AssetId) -> bool {
+    id == forge_assets::tidewater_pier::asset_id()
+}
+
+fn publish_pier_ready() {
+    let ready = pier_package().is_some() && pier_template().is_some();
+    PIER_READY.with(|slot| {
+        if let Some(signal) = *slot.borrow() {
+            signal.set(ready);
+        }
+    });
+}
+
+fn invalidate_pier() {
+    PIER.with(|slot| slot.replace(None));
+    PIER_TEMPLATE.with(|slot| slot.replace(None));
+    publish_pier_ready();
+}
+
+pub(crate) fn boardwalk_templates() -> Vec<forge_engine::tidewater_boardwalk::BoardwalkTemplate> {
+    BOARDWALK_TEMPLATES.with(|slot| slot.borrow().clone())
+}
+
+pub(crate) fn is_boardwalk_asset(id: forge_core::AssetId) -> bool {
+    forge_assets::tidewater_boardwalk::asset_ordinal(id).is_some()
+}
+
+fn publish_boardwalk_ready() {
+    let ready = boardwalk_package().is_some() && boardwalk_templates().len() == 3;
+    BOARDWALK_READY.with(|slot| {
+        if let Some(signal) = *slot.borrow() {
+            signal.set(ready);
+        }
+    });
+}
+
+fn invalidate_boardwalk() {
+    BOARDWALK.with(|slot| slot.replace(None));
+    BOARDWALK_TEMPLATES.with(|slot| slot.borrow_mut().clear());
+    publish_boardwalk_ready();
+}
+
 pub(crate) fn building_package() -> Option<Rc<BuildingPackage>> {
     PACKAGE.with(|slot| slot.borrow().as_ref().map(|(_, package)| package.clone()))
 }
@@ -215,6 +704,34 @@ pub(crate) fn contains_asset(id: forge_core::AssetId) -> bool {
                 .any(|record| record.id == id)
         })
     })
+}
+
+pub(crate) fn fish_stand_reference()
+-> Option<forge_assets::tidewater_fish_stand::FishStandReference> {
+    FISH_STAND.with(|slot| slot.borrow().as_ref().map(|package| package.reference()))
+}
+
+pub(crate) fn fish_stand_package() -> Option<Rc<FishStandPackage>> {
+    FISH_STAND.with(|slot| slot.borrow().clone())
+}
+
+fn publish_fish_stand_ready() {
+    let ready = fish_stand_reference().is_some();
+    FISH_STAND_READY.with(|slot| {
+        if let Some(signal) = *slot.borrow() {
+            signal.set(ready);
+        }
+    });
+}
+
+fn invalidate_fish_stand() {
+    FISH_STAND.with(|slot| slot.replace(None));
+    PREPARED_FISH_STAND.with(|slot| slot.replace(None));
+    publish_fish_stand_ready();
+}
+
+pub(crate) fn is_fish_stand_asset(id: forge_core::AssetId) -> bool {
+    id == forge_assets::tidewater_fish_stand::asset_id()
 }
 
 pub(crate) fn published_generation() -> u64 {
@@ -252,6 +769,24 @@ pub(super) fn restore_terrain() -> Result<(), String> {
 
 pub(super) fn take_buildings() -> Option<PreparedBuildings> {
     PREPARED_BUILDINGS.with(|slot| slot.borrow_mut().take())
+}
+
+pub(super) fn take_fish_stand() -> Option<forge_engine::tidewater_stall::FishStandPrepared> {
+    PREPARED_FISH_STAND.with(|slot| slot.borrow_mut().take())
+}
+
+pub(super) fn restore_fish_stand() -> Result<(), String> {
+    if PREPARED_FISH_STAND.with(|slot| slot.borrow().is_some()) {
+        return Ok(());
+    }
+    let prepared = FISH_STAND.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .map(|package| forge_engine::tidewater_stall::FishStandPrepared::load(package.files()))
+            .transpose()
+    })?;
+    PREPARED_FISH_STAND.with(|slot| slot.replace(prepared));
+    Ok(())
 }
 
 pub(super) fn restore_buildings() -> Result<(), String> {
@@ -308,9 +843,21 @@ pub(super) fn LibraryControls() -> impl IntoView {
     let busy = RwSignal::new(false);
     let renderer = RwSignal::new(String::new());
     RENDER_STATUS.with(|slot| slot.replace(Some(renderer)));
+    let fish_stand_ready = RwSignal::new(fish_stand_reference().is_some());
+    FISH_STAND_READY.with(|slot| slot.replace(Some(fish_stand_ready)));
+    let boardwalk_ready = RwSignal::new(boardwalk_package().is_some());
+    BOARDWALK_READY.with(|slot| slot.replace(Some(boardwalk_ready)));
+    let pier_ready = RwSignal::new(pier_package().is_some());
+    PIER_READY.with(|slot| slot.replace(Some(pier_ready)));
+    let plaza_ready = RwSignal::new(plaza_package().is_some());
+    PLAZA_READY.with(|slot| slot.replace(Some(plaza_ready)));
     let status = RwSignal::new("Bibliothèque importée non vérifiée.".to_owned());
     on_cleanup(|| {
         RENDER_STATUS.with(|slot| slot.replace(None));
+        FISH_STAND_READY.with(|slot| slot.replace(None));
+        BOARDWALK_READY.with(|slot| slot.replace(None));
+        PIER_READY.with(|slot| slot.replace(None));
+        PLAZA_READY.with(|slot| slot.replace(None));
         next();
     });
     view! {
@@ -320,16 +867,21 @@ pub(super) fn LibraryControls() -> impl IntoView {
                 if busy.get_untracked() { return; }
                 let ticket = next();
                 busy.set(true);
+                invalidate_fish_stand();
+                invalidate_boardwalk();
+                invalidate_pier();
+                invalidate_plaza();
                 status.set("Vérification de la bibliothèque locale…".into());
                 wasm_bindgen_futures::spawn_local(async move {
-                    let result = load(ticket).await;
+                    let result = load(ticket, None).await;
                     if !current(ticket) { return; }
                     busy.set(false);
                     status.set(match result {
                         Ok((count, environment)) => {
                             let sky = if environment { " Ressources de ciel et de nuages vérifiées et chargées." } else { "" };
                             let plants = if plant_package().is_some() { " Ressources végétales chargées ; leur affichage reste à raccorder." } else { "" };
-                            format!("{count} bâtiments vérifiés et chargés en mémoire.{sky}{plants} Les bâtiments déjà placés seront projetés dans la carte importée. L’ajout depuis cette bibliothèque reste à raccorder.")
+                            let stand = if fish_stand_reference().is_some() { " L’échoppe de Joe est disponible dans Ajouter un objet depuis le catalogue." } else { "" };
+                            format!("{count} bâtiments vérifiés et chargés en mémoire.{sky}{plants} Les bâtiments déjà placés seront projetés dans la carte importée.{stand}")
                         },
                         Err(error) => format!("Bibliothèque indisponible : {error}"),
                     });

@@ -108,7 +108,13 @@ impl ViewGeometry {
     }
 
     pub fn mesh(&self, view: CdlodView) -> Result<Option<(Mesh, usize)>, String> {
-        let nodes = select_nodes(
+        let nodes = self.nodes(view)?;
+        Ok(Self::mesh_from_nodes(&nodes))
+    }
+
+    /// Ordered source tiles; camera motion alone does not change their vertex data.
+    pub fn nodes(&self, view: CdlodView) -> Result<Vec<CdlodNode>, String> {
+        select_nodes(
             source_lod_config(),
             CdlodRoot::Fixed {
                 origin_xz: [-1024.0; 2],
@@ -117,8 +123,12 @@ impl ViewGeometry {
             view,
             |origin, size| self.bounds.bounds_for(origin, size),
         )
-        .map_err(|e| e.to_string())?;
-        Ok((!nodes.is_empty()).then(|| (expanded_mesh(&nodes), nodes.len())))
+        .map_err(|e| e.to_string())
+    }
+
+    #[must_use]
+    pub fn mesh_from_nodes(nodes: &[CdlodNode]) -> Option<(Mesh, usize)> {
+        (!nodes.is_empty()).then(|| (expanded_mesh(nodes), nodes.len()))
     }
 }
 impl PreparedLod {

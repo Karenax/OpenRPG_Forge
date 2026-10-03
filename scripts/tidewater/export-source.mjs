@@ -8,6 +8,8 @@ import { pathToFileURL } from 'node:url';
 import { exportVegetationMaterials } from './export-vegetation-materials.mjs';
 import { exportTerrainMaterial } from './export-terrain-material.mjs';
 import { exportVillage } from './export-village.mjs';
+import { captureSourceLocalLights } from './capture-source-local-lights.mjs';
+import { prepareSourceAppLightFactories } from './source-app-light-factories.mjs';
 
 const PIN = '1438b1abfcaee3267092b75573014f4d9b4a983c';
 const [sourceArg, outputArg] = process.argv.slice(2);
@@ -42,6 +44,22 @@ const terrain = new TerrainData();
 const colliders = new Colliders();
 const scene = new Scene();
 const village = new Village({ scene, terrain, colliders });
+const [{ BoatModel }, lighting, { Game }, { Vector3, Color }, { STAND }, { CHANDLERY }, gear] = await Promise.all([
+  moduleAt('src/world/BoatModel.js'), moduleAt('src/materials/LocalLights.js'),
+  moduleAt('src/game/Game.js'), moduleAt('src/engine/index.js'),
+  moduleAt('src/game/FishStand.js'), moduleAt('src/game/Chandlery.js'), moduleAt('src/game/Gear.js'),
+]);
+const sourceLightBoat = new BoatModel();
+sourceLightBoat.group.position.copy(WORLD.boatDock.position);
+sourceLightBoat.group.rotation.y = WORLD.boatDock.heading;
+const appFactories = prepareSourceAppLightFactories({ sourceCommit: PIN, sourceInputs: inventory,
+  appBytes: readFileSync(join(source, 'src/App.js')), gameBytes: readFileSync(join(source, 'src/game/Game.js')),
+  Game, Vector3, Color, STAND, CHANDLERY, ...gear });
+const localLights = captureSourceLocalLights({
+  sourceCommit: PIN, lighting, village, boat: sourceLightBoat, sourceInputs: inventory,
+  terrain, appFactories,
+  gpu: GPU, captureMode: 'source-export-headless-gpu',
+});
 const { Vegetation } = await moduleAt('src/world/Vegetation.js');
 const vegetation = new Vegetation({ scene, terrain, village });
 // Same sampling of obstacle polylines as Vegetation.villageObstacles upstream.
@@ -105,6 +123,11 @@ json('vegetation/obstacles.json', { footprints, paths });
 json('village/layout.json', { buildings: village.buildings, footprints, foundation_checks: village.foundationChecks,
   lights: village.lights, pads: terrain.pads });
 json('world-layout.json', WORLD);
+json('source-local-lights.json', localLights);
+json('source-local-lights-acquisition.json', { ...appFactories.receipt,
+  descriptor_sha256: hash(Buffer.from(JSON.stringify(localLights, null, 2) + '\n')),
+  emitters: localLights.lights.length, registration_sets: localLights.sets,
+  phase_reacquisition_reproducible: false, full_emitter_inventory: localLights.full_application_inventory });
 const prototypes = {};
 for (const name of ['buildPalmNear','buildPalmFar','buildTreeNear','buildShrubNear','buildUnderstory','buildBananas','buildMonsteraMesh','buildBroadleaf']) {
   const result = plants[name](), geometry = result.geometry;
@@ -130,11 +153,14 @@ json('source-inventory.json', inventory);
 write('LICENSE-Tidewater.txt', readFileSync(join(source, 'LICENSE')));
 write('CREDITS-Tidewater.md', readFileSync(join(source, 'CREDITS.md')));
 json('manifest.json', { schema: 'forge.tidewater.source-export', version: 1,
+  capture_mode: 'source-export-headless-gpu', gpu_initialized: GPU.device !== null, browser_required: false,
   source: { url: 'https://github.com/dgreenheck/tidewater', commit: PIN },
   extractor: { node: process.version, sha256: hash(readFileSync(new URL(import.meta.url))),
     vegetation_materials_sha256: hash(readFileSync(new URL('./export-vegetation-materials.mjs',import.meta.url))),
     terrain_material_sha256: hash(readFileSync(new URL('./export-terrain-material.mjs',import.meta.url))),
     village_sha256: hash(readFileSync(new URL('./export-village.mjs',import.meta.url))),
+    local_lights_sha256: hash(readFileSync(new URL('./capture-source-local-lights.mjs',import.meta.url))),
+    app_light_factories_sha256: hash(readFileSync(new URL('./source-app-light-factories.mjs',import.meta.url))),
     rgba_readback_sha256: hash(readFileSync(new URL('./read-rgba-mips.mjs',import.meta.url))) },
   status: 'partial_source_extraction_not_forge_import', vegetation_counts: counts, files,
   missing: ['village_individual_meshes','village_fish_props','village_dynamic_animation','rock_instances','debris','reef','fauna','boat','gameplay','render_effects'],

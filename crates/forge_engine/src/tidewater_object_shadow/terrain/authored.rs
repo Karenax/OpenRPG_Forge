@@ -60,7 +60,7 @@ impl PreparedSource {
         })
     }
     #[allow(clippy::cast_possible_truncation)] // Fixed source domain and GPU f32 fields.
-    pub fn at(&self, view: CascadeView) -> Result<super::Input, Box<dyn Error>> {
+    pub fn select(&self, view: CascadeView) -> Result<super::Stream, Box<dyn Error>> {
         validate_view(view)?;
         let config = source_lod_config();
         let y = 1.0 / (view.fov_degrees * std::f64::consts::PI / 360.0).tan();
@@ -110,13 +110,9 @@ impl PreparedSource {
             .flat_map(f32::to_le_bytes)
             .collect();
         let count = u32::try_from(selection.len())?;
-        Ok(super::Input {
-            heights: self.heights.clone(),
-            edit_side: self.edit_side,
-            edits: self.edits.clone(),
+        Ok(super::Stream {
             nodes,
             count,
-            shader: self.shader.clone(),
             view_position: position.as_vec3().extend(0.0),
             morph: config
                 .morph_rows()?
@@ -125,6 +121,19 @@ impl PreparedSource {
                 .collect::<Vec<_>>()
                 .try_into()
                 .map_err(|_| "nine morph rows required")?,
+        })
+    }
+    pub fn at(&self, view: CascadeView) -> Result<super::Input, Box<dyn Error>> {
+        let stream = self.select(view)?;
+        Ok(super::Input {
+            heights: self.heights.clone(),
+            edit_side: self.edit_side,
+            edits: self.edits.clone(),
+            nodes: stream.nodes,
+            count: stream.count,
+            shader: self.shader.clone(),
+            view_position: stream.view_position,
+            morph: stream.morph,
         })
     }
 }

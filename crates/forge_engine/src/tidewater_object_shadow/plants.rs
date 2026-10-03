@@ -27,6 +27,24 @@ pub struct Input {
     pub mips: u32,
     pub camera: Vec4,
 }
+pub struct Stream {
+    pub records: Vec<u8>,
+    pub models: Vec<u8>,
+    pub count: u32,
+}
+impl Stream {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.count > 65536
+            || self.records.len() != self.count as usize * 32
+            || self.models.len() != self.count as usize * 64
+            || !super::finite_bytes(&self.records)
+            || !super::finite_bytes(&self.models)
+        {
+            return Err("Invalid plant shadow stream".into());
+        }
+        Ok(())
+    }
+}
 pub struct GpuBatch {
     pub pipeline: RenderPipeline,
     pub vertices: Buffer,
@@ -34,6 +52,9 @@ pub struct GpuBatch {
     pub index_count: u32,
     pub count: u32,
     pub groups: Vec<BindGroup>,
+    uniforms: Vec<UniformBuffer<Params>>,
+    records: Buffer,
+    models: Buffer,
 }
 #[derive(ShaderType)]
 struct Params {
@@ -67,7 +88,7 @@ impl Input {
         let mut total = 0_usize;
         for b in &self.batches {
             if b.kind > 1
-                || !(1..=65536).contains(&b.count)
+                || b.count > 65536
                 || b.vertices.is_empty()
                 || b.vertices.len() > 8_000_000
                 || !b.vertices.len().is_multiple_of(80)
@@ -96,6 +117,59 @@ impl Input {
         Ok(())
     }
 }
+
+impl GpuBatch {
+    pub fn update_cascades(
+        &mut self,
+        matrices: &[Mat4],
+        eyes: &[Vec4],
+        layers: &[usize],
+        device: &RenderDevice,
+        queue: &RenderQueue,
+    ) -> Result<(), String> {
+        if matrices.len() != 3
+            || eyes.len() != matrices.len()
+            || matrices.iter().any(|m| !m.is_finite())
+            || eyes.iter().any(|e| !e.is_finite())
+            || layers.iter().any(|&i| i >= matrices.len())
+            || self.uniforms.len() != matrices.len()
+        {
+            return Err("Invalid plant cascade update".into());
+        }
+        for &i in layers {
+            let u = &mut self.uniforms[i];
+            let p = u.get_mut();
+            p.clip = matrices[i];
+            p.shadow_camera = eyes[i];
+            u.write_buffer(device, queue);
+        }
+        Ok(())
+    }
+    pub fn update_stream(&mut self, stream: &Stream, queue: &RenderQueue) -> Result<(), String> {
+        stream.validate()?;
+        queue.write_buffer(&self.records, 0, &stream.records);
+        queue.write_buffer(&self.models, 0, &stream.models);
+        self.count = stream.count;
+        Ok(())
+    }
+    pub(super) fn update_motion(
+        &mut self,
+        camera: Vec4,
+        wind_time: Vec4,
+        gust_frame: Vec4,
+        device: &RenderDevice,
+        queue: &RenderQueue,
+    ) {
+        for uniform in &mut self.uniforms {
+            let params = uniform.get_mut();
+            params.main_camera = camera;
+            params.wind_time = wind_time;
+            params.gust_frame = gust_frame;
+            uniform.write_buffer(device, queue);
+        }
+    }
+}
+
 #[allow(clippy::too_many_lines)] // Uploads and explicit bind groups for the two source mask programs.
 pub fn prepare(
     p: &Input,
@@ -199,9 +273,23 @@ pub fn prepare(
                     usage,
                 })
             };
-            let records = buffer(&b.records, gpu::BufferUsages::STORAGE);
-            let models = buffer(&b.models, gpu::BufferUsages::STORAGE);
-            let groups = matrices
+            let records = buffer(
+                &[
+                    b.records.as_slice(),
+                    &vec![0_u8; (65536 - b.count as usize) * 32],
+                ]
+                .concat(),
+                gpu::BufferUsages::STORAGE | gpu::BufferUsages::COPY_DST,
+            );
+            let models = buffer(
+                &[
+                    b.models.as_slice(),
+                    &vec![0_u8; (65536 - b.count as usize) * 64],
+                ]
+                .concat(),
+                gpu::BufferUsages::STORAGE | gpu::BufferUsages::COPY_DST,
+            );
+            let uniforms = matrices
                 .iter()
                 .zip(eyes)
                 .map(|(&clip, &shadow_camera)| {
@@ -214,12 +302,18 @@ pub fn prepare(
                         gust_frame: Vec4::new(0.0, 0.0, 124.0, 0.0),
                     });
                     uniform.write_buffer(device, queue);
+                    uniform
+                })
+                .collect::<Vec<_>>();
+            let groups = uniforms
+                .iter()
+                .map(|uniform| {
                     if b.kind == 1 {
                         device.create_bind_group(
                             "canopy shadow",
                             &layout,
                             &BindGroupEntries::sequential((
-                                &uniform,
+                                uniform,
                                 records.as_entire_binding(),
                                 models.as_entire_binding(),
                                 &texture_view,
@@ -233,7 +327,7 @@ pub fn prepare(
                             "plant shadow",
                             &layout,
                             &BindGroupEntries::with_indices((
-                                (0, &uniform),
+                                (0, uniform),
                                 (1, records.as_entire_binding()),
                                 (2, models.as_entire_binding()),
                                 (5, &detail_view),
@@ -250,6 +344,9 @@ pub fn prepare(
                 index_count: u32::try_from(b.indices.len() / 4).expect("validated triangles"),
                 count: b.count,
                 groups,
+                uniforms,
+                records,
+                models,
             }
         })
         .collect())

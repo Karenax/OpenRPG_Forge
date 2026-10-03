@@ -1,0 +1,267 @@
+{
+  "schema_version": "0.1",
+  "creature_id": "creature.dragon-des-sources-closes",
+  "name": "Dragon des sources closes",
+  "subtitle": "Un ancien interlocuteur derrière les grilles de l'eau",
+  "editorial_status": "design-proposal-not-implemented",
+  "canonicality": "new-design-proposal",
+  "origin_notes": "Création originale du 27 septembre 2026 pour OpenRPG Forge, à partir d'archétypes généraux de fantasy. Texte, identité, écologie et valeurs conçus pour le ruleset Forge ; aucun texte, bloc de statistiques, récit ou nom signature d'un bestiaire tiers n'est repris.",
+  "major": false,
+  "classification": {
+    "nature": "dragon sapient amphibie",
+    "family": "dragons des bassins karstiques",
+    "rarity": "exceptionnel, présence territoriale durable",
+    "activity": "alternance de repos immergé et d'audiences aux heures fraîches",
+    "social": "solitaire par choix local, entretient des accords avec plusieurs communautés",
+    "threat": "critique",
+    "threat_reason": "Sa masse, ses mâchoires et sa maîtrise bornée de l'eau rendent le bassin dangereux ; il peut négocier, reconnaître une erreur et modifier un accord, sans moralité ni hostilité déterminées par son espèce."
+  },
+  "physique": {
+    "dimensions": "8 à 10 m de la tête à la queue, 2,50 m au garrot, ailes courtes de stabilisation",
+    "mass_kg": [
+      1800,
+      2700
+    ],
+    "locomotion": [
+      "nage puissante",
+      "marche quadrupède",
+      "glissade contrôlée dans une pente humide"
+    ],
+    "center_of_gravity": "Bas entre quatre membres écartés ; la queue sert de gouvernail dans l'eau et de contrepoids sur les marches.",
+    "silhouette": "Long dos couvert d'écailles gris vert, museau large, nageoires discrètes et ailes courtes incapables de soutenir un vol prolongé.",
+    "anatomy_zones": [
+      {
+        "zone": "tête et mâchoires",
+        "description": "Plaques épaisses au front, muqueuses et yeux exposés sur les côtés.",
+        "protection": 22
+      },
+      {
+        "zone": "dos",
+        "description": "Grandes écailles jointives qui dispersent les contacts obliques sans couvrir le ventre.",
+        "protection": 28
+      },
+      {
+        "zone": "gorge et ventre",
+        "description": "Petites écailles souples nécessaires à la respiration et à la flexion.",
+        "protection": 12
+      },
+      {
+        "zone": "membres et nageoires",
+        "description": "Articulations puissantes, membranes de direction fines et vulnérables.",
+        "protection": 14
+      }
+    ]
+  },
+  "habitats": [
+    "bassins karstiques alimentés par plusieurs résurgences",
+    "réservoirs souterrains anciens reliés à des jardins de surface"
+  ],
+  "ecology": {
+    "diet": "Poissons, végétaux aquatiques et produits apportés par échange ; limite sa chasse lorsque les bassins se reproduisent mal.",
+    "lifecycle": "Croissance lente et longue mémoire des variations de débit ; les individus âgés changent de bassin si le milieu ne peut plus les nourrir.",
+    "reproduction": "Ponte rare, discutée avec un partenaire de passage ; les jeunes sont élevés dans un bassin distinct dont la capacité alimentaire est vérifiée.",
+    "behavior": "Observe les niveaux, écoute les requêtes et compare les usages. Sa connaissance historique est précieuse mais peut devenir un prétexte à refuser un besoin nouveau.",
+    "niche": "Habitant majeur d'un réseau d'eau partagé ; ses accords ne lui donnent pas un droit naturel sur toute la ressource ni sur les personnes qui en dépendent.",
+    "environmental_impact": "Le curage qu'il pratique maintient certains chenaux et en ferme d'autres ; les migrations de poissons et les prélèvements humains demandent une concertation régulière."
+  },
+  "senses": [
+    "détecte les variations de pression dans l'eau à courte distance",
+    "vision nette à l'air et sous une eau claire, gênée par les sédiments",
+    "audition des voix dans les salles ouvertes, sans lecture des pensées"
+  ],
+  "communication": [
+    "parole lente, questions précises et reformulation des accords",
+    "signaux de queue pour avertir d'une entrée dans l'eau",
+    "tablettes de niveau conservées et ouvertes à la comparaison"
+  ],
+  "signs": [
+    "marches polies par un large ventre écailleux",
+    "tas de sédiments déposés hors des zones de ponte",
+    "repères de niveau gravés sur plusieurs générations de maçonnerie"
+  ],
+  "demeanor": {
+    "objectives": [
+      "garder une eau suffisante pour le bassin",
+      "faire respecter un accord explicite",
+      "éviter la rupture d'un ouvrage vieillissant"
+    ],
+    "fears": [
+      "effondrement d'une galerie occupée",
+      "assèchement simultané des résurgences",
+      "décision prise sur des mesures falsifiées"
+    ],
+    "morale": "Très ferme face à un risque hydraulique, mais disposé à reconnaître un relevé fiable et à négocier des restrictions réciproques.",
+    "escalation": "Il expose le désaccord, ferme physiquement une grille accessible, avertit par la queue puis attaque seulement si une personne force encore l'ouvrage ou le blesse.",
+    "retreat": "Se replie dans un bassin large après avoir dégagé une sortie pour les vivants ; ne transforme pas automatiquement une retraite en inondation."
+  },
+  "rules": {
+    "attributes": {
+      "strength": 10,
+      "dexterity": 5,
+      "constitution": 10,
+      "intelligence": 8,
+      "willpower": 9,
+      "perception": 8,
+      "presence": 8
+    },
+    "skills": {
+      "unarmed": 75,
+      "elementalism": 78,
+      "force_magic": 65,
+      "swimming": 80,
+      "lore": 70,
+      "persuasion": 66,
+      "vigilance": 72,
+      "investigation": 58
+    },
+    "resources": {
+      "vitality": 140,
+      "stamina": 127,
+      "mana": 106,
+      "balance": 120,
+      "focus": 108
+    },
+    "movement": "Marche 2,5 m/s, nage 6 m/s dans un chenal assez large ; glissade 4 m/s sur une pente humide contrôlée. Aucun vol soutenu ; les ailes courtes servent à stabiliser le corps.",
+    "protections": [
+      "Le dos écailleux est très protégé, mais gorge, ventre et membranes restent accessibles selon la position réelle.",
+      "La taille et l'ancienneté n'ajoutent aucune ressource en dehors des formules communes."
+    ],
+    "attacks": [
+      {
+        "name": "Patte de retenue",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "strength",
+        "impact": 38,
+        "reach": "arc frontal de 4 m, une patte",
+        "stamina_cost": 22,
+        "preparation": "1,5 seconde, épaule soulevée et griffe repliée",
+        "telegraph": "Le poids passe sur les trois autres membres et la patte montre sa paume.",
+        "effect": "Un contact contondant sur une cible ou un obstacle ; peut retenir un objet contre le sol tant que l'appui reste réel. Aucune immobilisation automatique d'une personne qui esquive ou conserve une issue.",
+        "counterplay": "Quitter l'arc pendant le transfert de poids, interposer une structure porteuse ou se déplacer vers le côté de la patte d'appui."
+      },
+      {
+        "name": "Prise des mâchoires",
+        "kind": "attack",
+        "visibility": "etablie",
+        "skill_id": "unarmed",
+        "attribute_id": "dexterity",
+        "impact": 32,
+        "reach": "3 m devant le museau",
+        "stamina_cost": 18,
+        "preparation": "1,2 seconde, tête abaissée et cou raccourci",
+        "telegraph": "Les narines se ferment et la mâchoire s'entrouvre sans souffle visible.",
+        "effect": "Une morsure physique contre la première cible rencontrée ; maintien au plus 2 secondes avant un nouveau choix d'action et un nouveau coût. Aucun engloutissement automatique ni effet élémentaire gratuit.",
+        "counterplay": "Sortir de l'axe, interposer une garde rigide ou obtenir une séparation en cessant l'action qui menaçait l'ouvrage."
+      }
+    ],
+    "abilities": [
+      {
+        "name": "Jet de retenue",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "elementalism",
+        "attribute_id": "willpower",
+        "impact": 26,
+        "reach": "jet de 6 m, largeur maximale de 0,5 m, depuis une eau visible",
+        "stamina_cost": 14,
+        "preparation": "2,4 secondes, patte posée dans l'eau",
+        "telegraph": "Une colonne basse se forme entre la patte et la surface avant de s'orienter.",
+        "effect": "Coûte 18 Mana à l'engagement, même si la concentration est ensuite rompue. Sous concentration pendant au plus 3 secondes, déplace au maximum 0,3 m³ d'eau déjà présente ; une seule cible peut subir l'Impact indiqué une seule fois. Ne crée pas d'eau, ne traverse pas une paroi et n'entraîne aucune noyade instantanée.",
+        "counterplay": "Sortir de la ligne annoncée, placer une paroi pleine entre soi et la colonne ou rompre la concentration avant sa projection."
+      },
+      {
+        "name": "Cloison de source",
+        "kind": "ability",
+        "visibility": "etablie",
+        "skill_id": "force_magic",
+        "attribute_id": "intelligence",
+        "impact": 0,
+        "reach": "un passage d'eau visible à 5 m, ouverture maximale de 1 m²",
+        "stamina_cost": 12,
+        "preparation": "3 secondes immobile, regard fixé sur l'ouverture",
+        "telegraph": "Un disque transparent se dessine et vibre au rythme de l'eau.",
+        "effect": "Coûte 20 Mana. Sous concentration pendant au plus 12 secondes, ralentit un débit d'au plus 20 litres par seconde dans une seule ouverture ; tout débit supérieur passe autour. Ne peut apparaître dans un corps, fermer un passage occupé ou écraser une personne. Le dragon ne peut maintenir simultanément Jet de retenue et Cloison de source.",
+        "counterplay": "Contourner l'ouverture, attendre la fin ou rompre la ligne de vue ; une arrivée d'eau supérieure à la limite empêche une fermeture totale."
+      }
+    ],
+    "resistances": [
+      {
+        "subject": "eau froide",
+        "mechanism": "La circulation et l'épaisseur des tissus retardent le refroidissement pendant une immersion ; un séjour prolongé en eau glacée finit par l'affaiblir."
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "subject": "sédiments en suspension",
+        "mechanism": "L'eau trouble masque les prises et les personnes présentes ; le dragon suspend les actions qui exigent une cible visible plutôt que de viser au hasard."
+      }
+    ],
+    "immunities": [],
+    "environmental_interactions": [
+      {
+        "input": "niveau d'eau inférieur aux prises habituelles",
+        "result": "magie de déplacement d'eau limitée par le volume réellement accessible",
+        "chain": "Le dragon doit rejoindre une autre prise ou renoncer au jet ; sa réserve de Mana ne remplace pas l'eau absente."
+      },
+      {
+        "input": "grille chargée de branches après une crue",
+        "result": "pression locale et besoin de curage avant toute fermeture",
+        "chain": "Les branches réduisent le passage tandis que l'eau continue d'arriver ; fermer davantage déplacerait le problème vers une galerie habitée."
+      }
+    ]
+  },
+  "field_knowledge": [
+    {
+      "status": "etabli",
+      "skill_id": "vigilance",
+      "difficulty": 18,
+      "fact": "Un jet exige de l'eau visible à proximité et une préparation sous concentration ; le dragon ne souffle pas une réserve infinie depuis ses poumons."
+    },
+    {
+      "status": "suppose",
+      "skill_id": "lore",
+      "difficulty": 26,
+      "fact": "Ses tablettes de niveau semblent conserver des cycles de sécheresse que les archives de surface ne couvrent plus."
+    },
+    {
+      "status": "secret",
+      "skill_id": "investigation",
+      "difficulty": 34,
+      "fact": "Sous le pavé aux trois spirales, un conduit oublié alimente encore le verger de Méral ; le dragon l'a exclu par erreur de ses relevés, et sa mesure complète peut résoudre le déficit attribué aux villages."
+    }
+  ],
+  "encounter_use": {
+    "roles": [
+      "interlocuteur d'un conflit de ressource",
+      "gardien contestable d'un ouvrage",
+      "adversaire puissant à espace limité"
+    ],
+    "telegraphs": [
+      "La queue frappe une fois l'eau avant qu'une grille soit fermée.",
+      "La colonne ou le disque visibles précèdent toute action magique."
+    ],
+    "noncombat_options": [
+      "Comparer les mesures avec des représentants des communautés et convenir de restrictions réciproques vérifiables.",
+      "Organiser un curage et une inspection des galeries pour distinguer fuite, obstruction et prélèvement légitime."
+    ],
+    "complications": [
+      "Une mesure falsifiée accuse à tort le village situé en aval.",
+      "Une fermeture utile au bassin menace les poissons migrateurs ou un accès de secours."
+    ]
+  },
+  "salvage": [
+    "Écailles naturellement tombées et explicitement cédées par le dragon, avec un usage convenu.",
+    "Pierres ou sédiments déclarés abandonnés après curage, sans prélèvement dans ses archives, son corps ou son lieu de repos."
+  ],
+  "illustration_status": "illustrated",
+  "plates": [
+    {
+      "image": "dragon-des-sources-closes-plate-v1.png",
+      "alt": "Un grand dragon gris vert repose sur les marches d’un bassin karstique. Son corps bas possède quatre pattes, de petites ailes de stabilisation et une longue queue plongée dans l’eau, près d’une ancienne grille.",
+      "caption": "Aux heures fraîches, l’habitant du bassin écoute les demandes et compare les niveaux.",
+      "prompt_key": "dragon-des-sources-closes-plate-v1"
+    }
+  ]
+}

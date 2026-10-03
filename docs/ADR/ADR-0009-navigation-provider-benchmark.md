@@ -1,10 +1,36 @@
 # ADR-0009 — Benchmark du fournisseur de navigation
 
 Date : 2026-09-01  
-Statut : **proposé, sélection de production bloquée**  
+Statut : **accepté le 2 octobre 2026 ; intégration et qualification produit en cours**
 Portée : branche `Rust`, Visual Valley, Bevy 0.19, runtime natif et cible WebAssembly  
 Complète : `ADR-0001-rust-webgpu-greenfield.md` et
 `ADR-0008-world-sketch-image-to-world.md`
+
+## Acceptation propriétaire du 2 octobre 2026
+
+Le propriétaire a répondu explicitement « Accepter et poursuivre l’intégration
+(recommandé) » au dossier NAV019 et à sa proposition concrète. La décision
+sélectionne Rerecast `=0.4.0` direct avec un seul fork local testé, Landmass
+`=0.9.2` direct et une conversion/adaptation Forge minimale, alimentée par
+les formes préparées du Rapier existant. Les wrappers Bevy Rerecast/Landmass
+et leurs forks de loaders restent au laboratoire. L'entretien du fork est
+accepté dans le projet OpenRPG Forge ; aucun envoi de PR upstream n'est autorisé.
+
+Les cinq conditions machine de la décision initiale passent dans le périmètre
+LAB décrit dans le [dossier NAV019](E:/OpenRPG_Forge/.gate3-evidence/20261002/navigation-kcc-019/decision-packet.md).
+Archive source `1e69a94372b810802aa2e7bd674e92f699d3358157831fe66a47997b31c005e2` ;
+inventaire `ca65d0f9aea042bfa98c3efff73eba112d4530b4d0c0c5de28ebe57587a4830d`.
+Les sources, rapports et hashes exécutés sont conservés. Les tests ont remplacé
+les exécutables natifs mesurés dans le cache ; ils ne sont pas archivés et
+tout nouveau replay nécessite reconstruction et revalidation. Cette limite
+était incluse dans la question acceptée.
+
+La [preuve d'acceptation](E:/OpenRPG_Forge/.gate3-evidence/20261002/navigation-owner-acceptance-001/proof.json)
+autorise l'intégration isolée puis la qualification des PNJ réels sur Tidewater
+courant : géométrie/colliders de même révision, profil produit exact, tuiles,
+obstacles/portes, absence de chemin, natif et navigateur réel. Aucun PASS produit,
+Gate 3 ou revue humaine de partie n'est déduit de la sélection. Les constats
+du benchmark initial ci-dessous restent datés et conservés.
 
 ## Contexte
 
@@ -92,7 +118,7 @@ n'est pas sélectionné.
 La dépendance transitive `getrandom 0.3.4` requise par l'évitement local active `wasm_js` uniquement
 pour la cible WebAssembly du benchmark. Aucun `rustflags` global n'est ajouté.
 
-## Décision
+## Décision initiale du 1er septembre 2026
 
 Le benchmark est **terminé**, mais aucun fournisseur de production n'est sélectionné. Rerecast +
 Landmass reste la pile préférée à réévaluer, pas une dépendance du runtime.
@@ -106,7 +132,7 @@ L'intégration est bloquée jusqu'à obtention de toutes les preuves suivantes :
 5. probe d'obstacle dynamique et exécution navigateur réelle, au-delà de la compilation WASM ;
 6. nouvelle exécution du benchmark et acceptation explicite de l'ADR.
 
-## Conséquences
+## Conséquences du verdict initial
 
 - Les crates candidates restent cantonnées au laboratoire Cargo autonome
   `tools/forge_navigation_benchmark`, exclu du workspace et muni de son propre lockfile.

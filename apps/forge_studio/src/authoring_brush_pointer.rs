@@ -73,6 +73,7 @@ pub(super) fn cancel() {
     report_mode(String::new());
     crate::authoring_species::selection::cancel();
     crate::authoring_building_projection::selection::cancel();
+    crate::authoring_imported_plants::selection::cancel();
     crate::authoring_assets::placements::gizmo::cancel();
     crate::authoring_assets::placements::selection::cancel();
     PICK.with(|slot| slot.replace(None));
@@ -109,6 +110,10 @@ pub(super) fn set_command_busy(busy: bool) {
     } else if !busy {
         set_preview_ready(PREVIEW_READY.with(Cell::get));
     }
+}
+
+pub(super) fn ready_for_tool() -> bool {
+    !PREVIEW_READY.with(Cell::get) && !COMMAND_BUSY.with(Cell::get)
 }
 
 /// Leaving the canvas or navigating cancels a held stroke, not the chosen tool.
@@ -227,6 +232,7 @@ pub(super) fn observe(event: &web_sys::MouseEvent, click: bool) {
         if PICK.with(|slot| slot.borrow().is_none()) {
             crate::authoring_assets::placements::selection::click(position);
             crate::authoring_building_projection::selection::click(position);
+            crate::authoring_imported_plants::selection::click(position);
             crate::authoring_species::selection::click(position);
         }
         CLICKED.with(|slot| slot.set(true));

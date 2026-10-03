@@ -1,5 +1,57 @@
 # forge_assets
 
+`source_mesh_shaders::SourceMeshShaderPackage` charge le contrat générique
+`forge.source-mesh-shaders` v1 par callbacks natifs/WASM, sans renderer ni
+JavaScript. Le hash gouverné du manifeste et les pins de tous les fichiers sont
+obligatoires. Layouts, matériaux, passes et uniformes source sont typés ; les
+ABI et valeurs non supportées échouent. `SourceUniformBlock::pack()` conserve
+les octets little endian et le padding source. `declared_requirements()` compte
+tous les bindings visibles déclarés pour l'admission GPU, y compris ceux que
+le shader n'utilise pas après optimisation.
+
+Le vérificateur exige le vrai paquet et l'oracle source épinglé :
+
+```text
+cargo run -p forge_assets --example verify_source_mesh_shaders -- PACKAGE_ROOT MANIFEST_SHA256 ORACLES_JSON ORACLES_SHA256
+```
+
+Il compare les octets packés et chaque site nommé, vérifie la lecture sync/async
+immédiate et exerce des refus sémantiques/intégrité. Le profil de fixture requis
+pour ces refus doit être présent ; son absence retourne une erreur. Le chargement
+ne compile pas les shaders et ne dessine pas sur GPU. Textures, buffers vivants,
+passes, providers du renderer et parité visuelle restent à raccorder.
+[Résultats locaux du paquet réel](../../docs/evidence/tidewater/2026-10-02-boat-shader-loader.md).
+
+`tidewater_boat::BoatPackage` lit le paquet bateau source v1 acquis au commit
+Tidewater `1438b1abfcaee3267092b75573014f4d9b4a983c`. L'appelant fournit le
+hash gouverné du manifeste ; `package_hash()` désigne le paquet canonique 319.
+Les callbacks synchrones/asynchrones apportent les octets, sans accès disque ni
+renderer dans ce crate. La lecture vérifie les budgets, chemins plats, pins et
+références transitives, graphe source, hiérarchie, repères, streams mesh,
+matériaux et déclarations de commande. Les sources de contrôleurs restent des
+références consultables ; elles ne sont jamais exécutées par le lecteur.
+
+`source_geometry` expose les références de buffers, repères et descripteurs
+d'exclusion d'eau réutilisables. Les indices u16/u32 sont décodés sans réparation.
+La coque originale est soudée exactement pour vérifier ses compteurs : 952
+vertices source, 910 soudés, 2 722 arêtes et **8 bords ouverts**. Son fingerprint
+reste celui de la source. La résolution fournit aussi le parent et le repère
+local ; le renderer doit appliquer son admission et la pose de l'instance.
+Cette résolution ne prouve pas la présence de tous les bateaux d'une scène.
+
+Le vérificateur CPU nécessite un vrai répertoire de paquet ; aucun fallback ni
+test silencieusement ignoré :
+
+```text
+cargo run -p forge_assets --example verify_tidewater_boat -- PACKAGE_ROOT
+```
+
+Il compare les lectures synchrones/asynchrones du paquet canonique, puis des
+copies volontairement invalides dont les pins sont recalculés pour atteindre
+les contrôles sémantiques. Le preflight du GLB d'inspection ne remplace pas le
+validateur glTF complet. Le chargement ne qualifie ni les sept shaders portés,
+ni le placement éditable Studio, ni la conduite du bateau, ni la parité visuelle.
+
 `asset_browser` fournit un index consultatif du rapport de kit gouverné existant :
 validation à la construction, tri par ID, recherche multiterme/catégorie avec
 normalisation des accents français. Ne vérifie pas les octets GLB et ne crée ni
@@ -51,3 +103,18 @@ refusées : le candidat gouverné utilise des ressources incorporées au buffer 
 Ce sous-ensemble volontairement strict ne remplace pas la validation complète des accessors,
 meshes ou collisions, ni le contrôle SHA-256. Il ne constitue pas un importeur glTF général.
 Le runtime l'applique avant Bevy ; le transport du kit dans le Studio reste à raccorder.
+
+`source_mesh_shaders` charge un paquet autonome de programmes WGSL avec hashes,
+ABI des blocs uniformes et layouts vertex/bindings. Le schéma v1 reste un contrat
+de transport historique. Le v2 ajoute les switches raster matériau, overrides de
+passe et politiques GPU explicites, comparées aux règles source avant préparation.
+Les lectures sync/async partagent les contrôles ; la vérification CPU ne prouve
+ni un dessin, ni l'apparence, ni la disponibilité des ressources de scène.
+La préparation GPU appartient à l'adapter Engine `source_mesh_pipeline`.
+
+`source_local_lights::ownership` construit un index uniquement depuis un paquet
+fermé et hashé. Il vérifie les ID résolus/non résolus, leurs repères et les
+références producteur ; un même repère ne peut revendiquer deux propriétaires.
+La sélection d'un objet utilise son token source exact et conserve l'ordre des
+lumières. Un token absent n'est pas déduit d'un nom, d'un kind ou d'une position.
+Cet index reste distinct de la résolution catalogue et des instances live Studio.

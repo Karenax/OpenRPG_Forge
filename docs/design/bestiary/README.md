@@ -2,9 +2,10 @@
 
 Statut : proposition éditoriale et mécanique, non implémentée dans le runtime Rust.
 
-Ce dossier porte la source structurée du premier volume du bestiaire. Le PDF, puis la visionneuse
-interactive, sont générés à partir des mêmes entrées afin d’éviter une divergence entre le livre et
-le jeu.
+Ce dossier porte la source structurée du premier volume du bestiaire. Le codex
+dynamique et les exports illustrés partagent ces entrées. L'édition textuelle
+v0.3 précède volontairement ses illustrations et son export livre ; voir les
+limites de sorties ci-dessous.
 
 ## Autorités épinglées
 
@@ -14,11 +15,11 @@ le jeu.
   (`1C3D1D588A825DEAFFC80130EE3E33E42479E0A5ACE9BD5485B91C0EBE538566`)
 - direction artistique : `openrpg-forge.design-system.fr.v0.1`
   (`875651CDE234E24B02BF0D533CA396078F215EF9F50C558E775E83FB6D5762BE`)
-- bestiaire : `openrpg-forge.bestiary.fr.v0.2`
+- bestiaire : `openrpg-forge.bestiary.fr.v0.3`
 
 ## Contrat éditorial
 
-Chaque créature ordinaire occupe une double page A4 : planche illustrée à gauche, fiche à droite.
+Dans l'export livre illustré, chaque créature ordinaire occupe une double page A4 : planche illustrée à gauche, fiche à droite.
 Les créatures majeures disposent de deux doubles pages. Une fiche distingue les observations
 établies, les hypothèses de terrain et les inconnues ; elle expose aussi les télégraphes, coûts,
 portées et contre-jeux de chaque capacité.
@@ -34,6 +35,37 @@ responsabilité locale et circonstances expliquent leurs capacités comme leurs 
 ascendance n’impose un alignement ou une hostilité, et chaque fiche conserve des issues non violentes.
 
 ## Données et sorties
+
+L'extension **Horizons sauvages** ajoute 30 créations originales inspirées de
+grands archétypes de fantasy : le corpus compte désormais **51 créatures**.
+Voir [la recherche et le parti pris](RESEARCH_HORIZONS_SAUVAGES_20260927.md).
+Les 21 fiches antérieures et leurs 26 planches sont préservées. Le premier lot
+illustré d'Horizons sauvages ajoute quatre planches originales (Chouette-cerf,
+Ronce-marcheuse, Dame des lucioles et Dragon des sources closes). Le deuxième lot
+ajoute les 26 illustrations restantes : **51 créatures illustrées, 56 planches**.
+Toutes les nouvelles fiches portent `illustration_status: illustrated` et une
+planche originale distincte. `expansion_wave.illustrated_entry_ids` énumère les
+30 créations illustrées ; l'état `complete` signifie une couverture visuelle
+complète, pas une qualification humaine, éditoriale finale ou runtime.
+
+Le codex dynamique courant est `E:/OpenRPG_Forge/launcher-aube`. Les anciens
+PDF et exports dans `output/bestiary` ne sont pas régénérés pour v0.3 et ne
+doivent pas être présentés comme un export complet des 51 entrées. Les sources
+illustrées sont désormais complètes ; l'export et sa validation restent distincts.
+
+Les prompts et empreintes du lot sont conservés dans
+`../assets/bestiary/provenance/provenance-horizons-art-01.json` et
+`../assets/bestiary/provenance/provenance-horizons-art-02.json`. La revue visuelle
+est une revue agent, pas une validation humaine ni une qualification runtime.
+
+Validation des sources et illustrations, sans qualification des anciennes sorties :
+
+```powershell
+python -B scripts/Test-Bestiary.py --source-only
+```
+
+Sans `--source-only`, les exigences PDF, doubles pages et ancienne visionneuse
+restent actives : elles ne sont pas déclarées satisfaites par cette livraison.
 
 - `bestiary.json` : source canonique commune au PDF et à la visionneuse ;
 - `entries/` : brouillons éditoriaux lisibles et historiques de conception ;

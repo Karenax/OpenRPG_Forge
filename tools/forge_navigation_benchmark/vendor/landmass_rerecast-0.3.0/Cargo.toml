@@ -1,0 +1,13 @@
+[package]
+name = "landmass_rerecast"
+version = "0.3.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/andriyDev/landmass"
+description = "Lab-only raw conversion between Rerecast and Landmass navigation meshes."
+
+[dependencies]
+bevy_landmass = { version = "0.12", default-features = false }
+bevy_math = { version = "0.19", default-features = false }
+bevy_rerecast = { version = "0.5", default-features = false }

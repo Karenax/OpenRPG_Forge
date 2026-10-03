@@ -8,6 +8,8 @@ param(
     [string]$BuildCacheDirectory = 'E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906',
     [string]$TemporaryDirectory = 'E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-temp-20260906',
     [string]$GovernedKit,
+    [ValidateSet('debug','release')][string]$ExpectedNavigationWorkerConfiguration = 'release',
+    [ValidatePattern('^[A-Za-z0-9_-]+$')][string]$BinaryName = 'forge-studio',
     [Nullable[int]]$WindowX,
     [Nullable[int]]$WindowY,
     [ValidateRange(1100,7680)][int]$WindowWidth = 1920,
@@ -32,6 +34,11 @@ if (($null -eq $WindowX) -ne ($null -eq $WindowY)) {
 }
 $repository = Split-Path -Parent $PSScriptRoot
 $studio = Join-Path $repository 'apps/forge_studio'
+# `cargo tauri build` compiles the manifest's [[bin]] target. Accepting another
+# filename can silently copy an older executable left in the shared cache.
+if ($BinaryName -ne 'forge-studio') {
+    throw 'BinaryName must match apps/forge_studio/Cargo.toml [[bin]]: forge-studio'
+}
 $frontendRoot = (Resolve-Path -LiteralPath $Frontend).Path
 if ($Authoring) {
     if (-not $GovernedKit) { throw 'Authoring requires an explicit GovernedKit source' }
@@ -64,8 +71,63 @@ if ($LASTEXITCODE -ne 0 -or $branch -ne 'Rust') { throw 'Requires the existing R
 if (-not (Test-Path -LiteralPath (Join-Path $frontendRoot 'index.html') -PathType Leaf)) {
     throw 'Frontend index.html missing'
 }
+if ($Authoring) {
+    $entry = [IO.File]::ReadAllText((Join-Path $frontendRoot 'index.html'))
+    if ($entry -match 'data-trunk\s+rel="rust"') {
+        throw 'Authoring frontend still has the unbuilt Trunk source index.html'
+    }
+    if (Test-Path -LiteralPath (Join-Path $frontendRoot 'forge-imports/forge-imports')) {
+        throw 'Authoring imports are nested one level too deep'
+    }
+    $frontendModule = Join-Path $frontendRoot 'forge_studio.js'
+    if (-not (Test-Path -LiteralPath $frontendModule -PathType Leaf)) {
+        throw 'Authoring frontend JavaScript module missing'
+    }
+    $moduleSource = [IO.File]::ReadAllText($frontendModule)
+    if ($moduleSource -notmatch 'wasm\.start\(\)' -or
+        $moduleSource -notmatch 'wasm\.__wbindgen_start\(\)') {
+        throw 'Authoring requires the web frontend startup; build WASM with --no-default-features --features web'
+    }
+}
 $wasm = Join-Path $frontendRoot 'forge_studio_bg.wasm'
 if ((Get-FileHash -LiteralPath $wasm).Hash -ne $ExpectedWasmSha256) { throw 'WASM hash mismatch' }
+foreach ($workerArtifact in @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js','forge-navigation-worker-manifest.json')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $frontendRoot $workerArtifact) -PathType Leaf)) {
+        throw "Navigation worker artifact missing: $workerArtifact. Run Build-NavigationWorker.ps1 for this frontend."
+    }
+}
+$workerManifest = Get-Content -LiteralPath (Join-Path $frontendRoot 'forge-navigation-worker-manifest.json') -Raw | ConvertFrom-Json
+if ($workerManifest.schema -ne 'forge.navigation-worker-build' -or $workerManifest.version -ne 1 -or
+    $workerManifest.build_only -ne $true -or $workerManifest.runtime_verified -ne $false -or
+    $workerManifest.source_unchanged_during_build -ne $true -or
+    $workerManifest.configuration -ne $ExpectedNavigationWorkerConfiguration) { throw 'Invalid navigation worker manifest/configuration.' }
+$expectedWorkerArtifacts = @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js')
+$expectedWorkerInputs = @('Cargo.toml','Cargo.lock','crates/forge_navigation/Cargo.toml','crates/forge_navigation/build.rs',
+    'third_party/rerecast-0.4.0/Cargo.toml','apps/forge_studio/forge-navigation-worker.js')
+foreach ($workerSourceDirectory in @('crates/forge_navigation/src','third_party/rerecast-0.4.0/src')) {
+    $expectedWorkerInputs += @(Get-ChildItem -LiteralPath (Join-Path $repository $workerSourceDirectory) -Recurse -File | ForEach-Object {
+        [IO.Path]::GetRelativePath($repository,$_.FullName).Replace('\','/')
+    })
+}
+$expectedWorkerInputs = @($expectedWorkerInputs | Sort-Object -Unique)
+foreach ($workerSet in @(
+    @{ actual=@($workerManifest.artifacts.path); expected=$expectedWorkerArtifacts },
+    @{ actual=@($workerManifest.source_pins.path); expected=$expectedWorkerInputs }
+)) {
+    if ($workerSet.actual.Count -ne $workerSet.expected.Count -or
+        @($workerSet.actual | Sort-Object -Unique).Count -ne $workerSet.actual.Count -or
+        @(Compare-Object -CaseSensitive -ReferenceObject $workerSet.expected -DifferenceObject $workerSet.actual).Count -ne 0) {
+        throw 'Navigation worker manifest has incomplete or duplicate pins.'
+    }
+}
+foreach ($workerArtifact in $workerManifest.artifacts) {
+    if ($workerArtifact.path -notin @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js')) { throw 'Unexpected navigation worker artifact path.' }
+    if ((Get-FileHash -LiteralPath (Join-Path $frontendRoot $workerArtifact.path)).Hash.ToLowerInvariant() -ne $workerArtifact.sha256) { throw 'Navigation worker artifact hash mismatch.' }
+}
+foreach ($workerInput in $workerManifest.source_pins) {
+    if ($workerInput.path -match '(^|[/\\])\.\.([/\\]|$)' -or [IO.Path]::IsPathRooted($workerInput.path)) { throw 'Invalid navigation worker source path.' }
+    if ((Get-FileHash -LiteralPath (Join-Path $repository $workerInput.path)).Hash.ToLowerInvariant() -ne $workerInput.sha256) { throw 'Navigation worker source is stale.' }
+}
 if ((Get-Item -LiteralPath $frontendRoot).Attributes -band [IO.FileAttributes]::ReparsePoint) {
     throw 'Frontend reparse points are not supported'
 }
@@ -129,7 +191,7 @@ if ($WaterMediumPreview) { $entryUrl += '&forge_water=clear-medium-preview' }
 if ($WaterReflectionPreview) { $entryUrl += '&forge_water=clear-reflections-preview' }
 if ($CloudPreview) { $entryUrl += '&forge_clouds=preview' }
 if ($ValidateOnly) {
-    [ordered]@{ status = 'INPUTS_VALID'; files = $pins.Count; build_executed = $false; window_x = $WindowX; window_y = $WindowY;
+    [ordered]@{ status = 'INPUTS_VALID'; files = $pins.Count; build_executed = $false; binary_name = $BinaryName; window_x = $WindowX; window_y = $WindowY;
         window_width = $WindowWidth; window_height = $WindowHeight;
         entry_url = $entryUrl; authoring = [bool]$Authoring; bridge_probe = [bool]$BridgeProbe } | ConvertTo-Json
     return
@@ -149,7 +211,7 @@ $relativeBundle = [IO.Path]::GetRelativePath($studio, $bundle).Replace('\', '/')
 if ([IO.Path]::IsPathRooted($relativeBundle) -or $relativeBundle -match '^[A-Za-z][A-Za-z0-9+.-]*:') {
     throw 'frontendDist must be a relative directory, never a drive URL'
 }
-$windowTitle = if ($Authoring) { 'OpenRPG Forge Studio · Gate 2 édition locale' } else { 'OpenRPG Forge Studio · Gate 1 candidat local' }
+$windowTitle = if ($Authoring) { 'OpenRPG Forge Studio · Édition locale' } else { 'OpenRPG Forge Studio · Gate 1 candidat local' }
 $config = [ordered]@{
     build = @{ beforeBuildCommand = $null; frontendDist = $relativeBundle }
     app = @{ windows = @(@{ label = 'main'; title = $windowTitle;
@@ -184,7 +246,7 @@ try {
     } finally { Pop-Location }
     # This name comes from [[bin]], not the CLI's package-name display.
     $executable = Join-Path $outputRoot 'forge-studio-candidate.exe'
-    Copy-Item -LiteralPath (Join-Path $env:CARGO_TARGET_DIR 'debug/forge-studio.exe') -Destination $executable
+    Copy-Item -LiteralPath (Join-Path $env:CARGO_TARGET_DIR "debug/$BinaryName.exe") -Destination $executable
     foreach ($pin in $pins) {
         foreach ($inputFile in @($inputPaths[$pin.path], (Join-Path $bundle $pin.path))) {
             if ((Get-FileHash -LiteralPath $inputFile).Hash -ne $pin.sha256) {
@@ -193,7 +255,7 @@ try {
         }
     }
     [ordered]@{ status = 'BUILD_ONLY'; recorded_at_utc = [DateTime]::UtcNow.ToString('o');
-        branch = $branch; executable_sha256 = (Get-FileHash -LiteralPath $executable).Hash;
+        branch = $branch; binary_name = $BinaryName; executable_sha256 = (Get-FileHash -LiteralPath $executable).Hash;
         build_cache_directory = $env:CARGO_TARGET_DIR; temporary_directory = $env:TEMP;
         entry_url = $entryUrl; authoring = [bool]$Authoring; bridge_probe = [bool]$BridgeProbe;
         frontend_pins = $pins; runtime_verified = $false; gate_qualified = $false
