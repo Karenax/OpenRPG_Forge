@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "launcher-main-window",
+  "description": "The local launcher prototype exposes one typed application command and the drag action needed by its custom title bar.",
+  "windows": ["main"],
+  "local": true,
+  "permissions": [
+    "allow-execute-launcher-command",
+    "core:window:allow-start-dragging"
+  ]
+}

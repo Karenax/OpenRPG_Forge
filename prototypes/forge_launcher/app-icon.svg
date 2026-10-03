@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="OpenRPG Forge, L’Aube des royaumes">
+  <rect width="512" height="512" rx="92" fill="#071b1b"/>
+  <path d="M256 68 297 215 444 256 297 297 256 444 215 297 68 256 215 215Z" fill="#d5b675"/>
+  <path d="M256 134 279 233 378 256 279 279 256 378 233 279 134 256 233 233Z" fill="#f0d9a5"/>
+  <circle cx="256" cy="256" r="34" fill="#173b35"/>
+  <path d="M256 155v52m0 98v52m-101-101h52m98 0h52" stroke="#173b35" stroke-width="12" stroke-linecap="round"/>
+</svg>
