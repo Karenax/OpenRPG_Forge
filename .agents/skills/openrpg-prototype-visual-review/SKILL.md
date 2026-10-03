@@ -1,6 +1,6 @@
 ---
 name: openrpg-prototype-visual-review
-description: Examiner visuellement un prototype, le Toolset, le runtime ou une fonctionnalité UI d'OpenRPG Forge. Utiliser lorsqu'une demande exige un prototype fonctionnel, une validation visuelle, une capture d'écran, une revue UX, un contrôle de fenêtre Godot, de terrain, de caméra, de HUD, de progression ou d'interaction. Ne pas déclencher pour des changements purement backend sans résultat visible.
+description: "Portée : checkout historique C#/Godot uniquement. Examiner visuellement un prototype, le Toolset, le runtime ou une fonctionnalité UI d'OpenRPG Forge. Utiliser lorsqu'une demande exige un prototype fonctionnel, une validation visuelle, une capture d'écran, une revue UX, un contrôle de fenêtre Godot, de terrain, de caméra, de HUD, de progression ou d'interaction. Ne pas déclencher pour des changements purement backend sans résultat visible. Pour Rust, consulter ses instructions propres sans transposer les chemins ou validations historiques."
 ---
 
 # Examiner visuellement le prototype OpenRPG

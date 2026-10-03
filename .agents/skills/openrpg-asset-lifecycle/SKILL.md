@@ -1,6 +1,6 @@
 ---
 name: openrpg-asset-lifecycle
-description: Gouverner le cycle de vie d'un asset OpenRPG Forge depuis l'acquisition jusqu'à la preuve visuelle et runtime. Utiliser pour les demandes d'Asset Vault, téléchargement CC0, licence, hash, catalogue, import 3D, GLB, Blender Worker, manifeste, collision, LOD, thumbnail, installation de pack, biome ou décoration de terrain. Toujours distinguer catalogué, téléchargé, normalisé, installé et prêt en production.
+description: "Portée : checkout historique C#/Godot uniquement. Gouverner le cycle de vie d'un asset OpenRPG Forge depuis l'acquisition jusqu'à la preuve visuelle et runtime. Utiliser pour les demandes d'Asset Vault, téléchargement CC0, licence, hash, catalogue, import 3D, GLB, Blender Worker, manifeste, collision, LOD, thumbnail, installation de pack, biome ou décoration de terrain. Toujours distinguer catalogué, téléchargé, normalisé, installé et prêt en production. Pour Rust, consulter ses instructions propres sans transposer les chemins ou validations historiques."
 ---
 
 # Gouverner le cycle de vie d'un asset

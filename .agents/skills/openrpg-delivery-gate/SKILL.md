@@ -1,6 +1,6 @@
 ---
 name: openrpg-delivery-gate
-description: Valider un jalon transversal, une clôture de vague ou une préparation de livraison dans OpenRPG Forge. Utiliser après plusieurs lots liés, après un changement de contrat partagé, avant d'annoncer un jalon terminé, ou lorsqu'une demande exige le portail global et des preuves reproductibles. Pour une modification courante, utiliser d'abord openrpg-targeted-verification. Ne pas utiliser pour une simple question de statut en lecture seule.
+description: "Portée : checkout historique C#/Godot uniquement. Valider un jalon transversal, une clôture de vague ou une préparation de livraison dans OpenRPG Forge. Utiliser après plusieurs lots liés, après un changement de contrat partagé, avant d'annoncer un jalon terminé, ou lorsqu'une demande exige le portail global et des preuves reproductibles. Pour une modification courante, utiliser d'abord openrpg-targeted-verification. Ne pas utiliser pour une simple question de statut en lecture seule. Pour Rust, consulter ses instructions propres sans transposer les chemins ou validations historiques."
 ---
 
 # Valider une livraison OpenRPG
@@ -9,7 +9,7 @@ Appliquer un contrôle proportionné au risque, puis produire des preuves exacte
 
 ## Établir le périmètre
 
-1. Confirmer la racine Git `E:\OpenRPG_Forge\OpenRPG_Forge`.
+1. Vérifier avec Git la racine `E:\OpenRPG_Forge\OpenRPG_Forge`.
 2. Lire intégralement `AGENTS.md`, puis `STATUS.md`, `TASKS_MVP.md` et les ADR ou documents du lot concerné.
 3. Examiner `git status --short`. Traiter les modifications préexistantes comme appartenant à l'utilisateur ; ne jamais les nettoyer, les restaurer ou les inclure par défaut.
 4. Identifier les fichiers touchés, les critères d'acceptation et les preuves attendues avant de modifier le projet.
@@ -33,7 +33,10 @@ dotnet run --project tools/Forge.ArchitectureGraph -- generate
 dotnet run --project tools/Forge.ArchitectureGraph -- check --full
 ```
 
-Pour une demande de diagnostic ou de statut uniquement, exécuter `check` sans `generate` et rapporter l'état observé.
+Pour une demande de statut ou d'audit en lecture seule, inspecter les sources et les preuves existantes
+sans lancer `dotnet run`, qui peut compiler ou restaurer. Exécuter `check` sans `generate` seulement
+si une validation exécutable est demandée et compatible avec ses restrictions ; distinguer alors
+le résultat actuel des preuves antérieures.
 
 ## Valider par paliers
 
@@ -53,7 +56,7 @@ Pour une demande de diagnostic ou de statut uniquement, exécuter `check` sans `
 
 4. Pour un changement documentaire seulement, limiter la validation aux contrôles applicables, à `git diff --check` et au graphe si le document est indexé.
 5. Si le tracker Aurora ou son plan est concerné, exécuter `scripts/Update-AuroraParityTracker.ps1 -Check` et `scripts/Update-CompleteFunctionBacklog.ps1 -Check`.
-6. Arrêter sur l'échec pertinent, conserver son message exact et diagnostiquer avant de poursuivre. Ne jamais déduire un succès global d'un test partiel.
+6. Interrompre la validation sur l'échec pertinent, conserver son message exact, diagnostiquer et corriger dans le périmètre autorisé, puis rejouer les contrôles affectés. Pour un diagnostic seul, rapporter sans modifier. Ne jamais déduire un succès global d'un test partiel.
 
 ## Rendre compte
 

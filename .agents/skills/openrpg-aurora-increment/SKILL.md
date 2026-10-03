@@ -1,6 +1,6 @@
 ---
 name: openrpg-aurora-increment
-description: Auditer, planifier ou livrer un incrément de parité Aurora dans OpenRPG Forge. Utiliser pour les demandes mentionnant Aurora, une gate G0-G13, un lot de parité, le tracker de couverture ou des feature IDs. Borner toute implémentation à un ensemble cohérent de une à cinq exigences et exiger des preuves avant de passer une ligne à Tested.
+description: "Portée : checkout historique C#/Godot uniquement. Auditer, planifier ou livrer un incrément de parité Aurora dans OpenRPG Forge. Utiliser pour les demandes mentionnant Aurora, une gate G0-G13, un lot de parité, le tracker de couverture ou des feature IDs. Borner toute implémentation à un ensemble cohérent de une à cinq exigences et exiger des preuves avant de passer une ligne à Tested. Pour Rust, consulter ses instructions propres sans transposer les chemins ou validations historiques."
 ---
 
 # Livrer un incrément Aurora borné
@@ -21,6 +21,9 @@ Préserver la démarche clean-room et distinguer recherche, plan, implémentatio
 - Pour une demande de plan, partir d'un seul lot `FC-*` ou le scinder sans dépasser cinq feature IDs, puis préciser critères d'acceptation, fichiers probables, tests et dépendances.
 - Pour une demande d'implémentation, sélectionner une à cinq feature IDs cohérentes. Ne pas détourner une tâche P0/P1 en cours au profit d'une priorité inférieure.
 
+La limite de cinq exigences borne un lot, pas la demande entière. Enchaîner les lots déjà autorisés
+sans nouvelle confirmation, en respectant les prérequis, gates et ordres d'arrêt.
+
 ## Implémenter l'incrément
 
 1. Définir le comportement utilisateur et les preuves attendues pour chaque feature ID.
@@ -33,7 +36,7 @@ Préserver la démarche clean-room et distinguer recherche, plan, implémentatio
 
 1. Ne marquer `Implemented` qu'avec une correspondance concrète dans le produit.
 2. Ne marquer `Tested` qu'avec un test automatisé ou une procédure reproductible liée.
-3. Utiliser `scripts/Update-AuroraParityTracker.ps1` pour régénérer le tracker lorsqu'une mise à jour est autorisée ; ne pas éditer le snapshot de recherche.
+3. Pour une implémentation autorisée, actualiser les preuves et statuts directement associés lorsque leurs critères sont satisfaits, sauf restriction explicite. Utiliser `scripts/Update-AuroraParityTracker.ps1` ; ne pas éditer le snapshot de recherche. Pour un audit ou une question de statut, rester en lecture seule.
 4. Régénérer `docs/planning/COMPLETE_FUNCTION_BACKLOG.md` avec `scripts/Update-CompleteFunctionBacklog.ps1`, puis exécuter son mode `-Check`.
 5. Mettre à jour les documents de clôture, `STATUS.md` et `TASKS_MVP.md` lorsque l'état réel change.
 6. Valider chaque incrément avec `$openrpg-targeted-verification`, en transmettant ses feature IDs et

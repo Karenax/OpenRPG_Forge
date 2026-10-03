@@ -8,6 +8,29 @@ contenus, règles ou actifs de Neverwinter Nights/D&D.
 
 Le produit doit rester utilisable sans IA, sans abonnement et sans outil propriétaire obligatoire.
 
+## Autonomie et portée de la demande
+
+- Une demande d'analyse ou de plan se termine par le livrable demandé, sans implémentation implicite.
+- Pour une réalisation autorisée, poursuivre les étapes nécessaires, corrections, validations et
+  documentation associée jusqu'aux critères convenus. Les petites tranches organisent le travail ;
+  elles ne créent pas de points d'approbation supplémentaires.
+- Ne clarifier que les informations manquantes qui changent matériellement le résultat et ne peuvent
+  pas être établies par inspection. Pour un choix courant et réversible dans le périmètre autorisé,
+  prendre une décision raisonnable et l'indiquer. Poursuivre les travaux indépendants d'une réponse.
+- Vérifier branche, worktree et diffs avec Git. Préserver les changements préexistants ; un arbre
+  modifié n'interdit pas le développement autorisé si le périmètre peut être isolé sans les écraser.
+  Demander une décision seulement pour un chevauchement impossible à résoudre sûrement.
+- Les acquisitions et qualifications exigeant un arbre propre conservent cette exigence. Ne pas
+  nettoyer, déplacer ou committer le travail d'autrui pour la satisfaire.
+- Une autorisation explicite encore active vaut pour l'action et le périmètre qu'elle couvre, même
+  si elle a été donnée dans un tour antérieur. Un commit local n'autorise pas un push. Les approbations
+  explicites de publication, de changement structurel, de délégation et de passage de gate restent
+  requises selon leurs règles ; cette section n'autorise pas de lancer des agents ou de nouvelles gates.
+- Respecter tout ordre d'arrêt. Un échec de validation bloque le verdict, pas le diagnostic : corriger
+  dans le périmètre autorisé et rejouer les contrôles affectés sans demander une permission de réparer.
+- Si une condition externe ou une approbation requise bloque réellement la suite, finir les parties
+  indépendantes autorisées puis indiquer précisément ce qui reste incomplet et ce qui le débloque.
+
 ## Sources de vérité
 
 Avant toute modification importante, lire :
@@ -42,7 +65,9 @@ Une décision enregistrée dans un ADR ne doit pas être renversée silencieusem
 - Ne pas créer de classe ou projet vide uniquement pour augmenter la couverture.
 - Une ligne ne passe `Tested` qu'avec une preuve automatisée ou une procédure reproductible liée
   dans le tracker projet.
-- Après une modification autorisée du tracker, régénérer puis vérifier aussi le plan exhaustif. Ne
+- Pour une implémentation autorisée, mettre à jour les preuves et le tracker directement associés
+  lorsque les critères sont satisfaits, sauf restriction explicite ; pour un audit ou un statut, rester
+  en lecture seule. Après modification du tracker, régénérer puis vérifier aussi le plan exhaustif. Ne
   jamais annoncer 100 % fonctionnel tant que les 717 lignes ne sont pas `Tested`.
 
 ## Pile imposée pour le MVP
@@ -69,7 +94,12 @@ Flux autorisé :
 
 `Studio/LegacyEditor/Runtime/MCP -> Application Commands -> Domain -> Persistence/Adapters`
 
-L’IA, les plugins et les interfaces ne modifient jamais directement les fichiers du projet. Toute mutation passe par le bus de commandes transactionnel et produit :
+Ces règles concernent les mutations des documents et modules réalisées par le produit Forge,
+ses interfaces et son MCP. Elles ne prescrivent pas le mécanisme d'édition du code source par
+l'agent de développement. Les éditions de code autorisées préservent ces garanties ; les opérations
+réalisées au moyen des outils Forge restent soumises à leur gouvernance.
+
+Dans le produit, l’IA, les plugins et les interfaces modifient les documents du projet via le bus de commandes transactionnel, qui produit :
 
 - un identifiant de commande ;
 - une révision de base ;
@@ -122,7 +152,7 @@ services, repositories, modèles et tests. Le code reste la source de vérité.
 - ne jamais charger intégralement `docs/architecture/graph.json` dans le contexte d’un agent ;
 - après toute modification d’un fichier source indexé ou des règles d’architecture, exécuter
   `dotnet run --project tools/Forge.ArchitectureGraph -- generate` ;
-- avant de terminer une intervention, vérifier la fraîcheur avec
+- après modification d’une entrée indexée ou pour une qualification du graphe, vérifier la fraîcheur avec
   `dotnet run --project tools/Forge.ArchitectureGraph -- check --full` ;
 - ne jamais corriger manuellement `graph.json` ou `overview.mmd`, car ces fichiers sont générés.
 
@@ -224,7 +254,12 @@ Le mode d’emploi et la signification des relations sont documentés dans
 
 ## Définition de terminé
 
-Une tâche est terminée uniquement si :
+Appliquer ces critères au type de tâche et aux éléments affectés : une analyse se clôt par son
+rapport ; une implémentation par ses validations pertinentes ; une qualification par son protocole
+complet. Une revue humaine explicitement requise reste une condition de qualification : son attente
+ne bloque pas les travaux indépendants autorisés et ne permet pas de déclarer la qualification achevée.
+
+Une implémentation est terminée uniquement si :
 
 - les critères d’acceptation sont satisfaits ;
 - le code compile ;

@@ -60,7 +60,9 @@ elles ne sont pas répétées à chaque correction interne d’un même lot.
   plafond de parallélisme pour éviter la saturation mémoire ;
 - ne pas réutiliser un smoke Godot si le build Debug, les scripts, les assets importés ou les paramètres
   de scène ont changé ;
-- si un test ciblé échoue, arrêter le lot et ne pas le regrouper avec le suivant ;
+- si un test ciblé échoue, interrompre la validation, diagnostiquer et corriger dans le périmètre
+  autorisé, puis rejouer les contrôles affectés ; ne pas valider ni regrouper le lot avec le suivant
+  avant résolution. Pour une demande de diagnostic seul, rapporter sans modifier ;
 - ne jamais partager un filtre entre plusieurs projets : utiliser `-TestFilterByProject`, et traiter
   zéro test exécuté comme un échec de sélection ;
 - si l’impact d’un fichier ne peut pas être déterminé, élargir la liste des projets de test ou lancer

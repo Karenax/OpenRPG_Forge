@@ -1,6 +1,6 @@
 ---
 name: openrpg-targeted-verification
-description: Planifier et exécuter les validations proportionnées d'une modification OpenRPG Forge. Utiliser pendant une implémentation, après un changement borné, pour choisir les tests d'un lot, ou lorsqu'un smoke Studio, runtime, asset, réseau ou distribution doit rester ciblé. Ne pas utiliser pour une simple lecture de statut sans validation demandée, ni comme preuve automatique de qualité visuelle.
+description: "Portée : checkout historique C#/Godot uniquement. Planifier et exécuter les validations proportionnées d'une modification OpenRPG Forge. Utiliser pendant une implémentation, après un changement borné, pour choisir les tests d'un lot, ou lorsqu'un smoke Studio, runtime, asset, réseau ou distribution doit rester ciblé. Ne pas utiliser pour une simple lecture de statut sans validation demandée, ni comme preuve automatique de qualité visuelle. Pour Rust, consulter ses instructions propres sans transposer les chemins ou validations historiques."
 ---
 
 # Valider OpenRPG de manière ciblée
@@ -10,12 +10,16 @@ quand le risque ou le jalon l'exige.
 
 ## Établir le périmètre
 
-1. Confirmer la racine `E:\OpenRPG_Forge\OpenRPG_Forge`, lire `AGENTS.md` et les sources de vérité
+1. Vérifier avec Git la racine `E:\OpenRPG_Forge\OpenRPG_Forge`, lire `AGENTS.md` et les sources de vérité
    du lot, puis inspecter `git status --short`.
 2. Identifier les fichiers modifiés, feature IDs, route Studio, scénario runtime et artefacts attendus.
 3. Pour du C# transversal, vérifier puis interroger le graphe selon `AGENTS.md`. Le planificateur
    exploite les relations de test quand elles existent et retombe sur la suite du projet lorsqu'elles
    sont absentes ou peu fiables.
+
+Ne solliciter l'utilisateur sur la destination que si plusieurs racines restent plausibles après
+inspection. Un échec du script ne clôt pas la mission : corriger dans le périmètre autorisé puis
+rejouer les contrôles affectés. Pour un diagnostic seul, rapporter sans modifier.
 
 ## Produire le plan avant les tests
 
@@ -55,7 +59,7 @@ changement de verrou ou dépendances absentes. L'exécuteur impose :
 - un filtre propre à chaque projet ;
 - un TRX et un nombre réel pour chaque étape .NET ;
 - l'échec si zéro test est exécuté, même si VSTest retourne zéro ;
-- l'arrêt au premier échec pertinent ;
+- l'arrêt du pipeline au premier échec pertinent, suivi du diagnostic et des corrections autorisées ;
 - un plan et un résumé sous `artifacts/verification/targeted/`.
 
 ## Utiliser les profils au bon moment
