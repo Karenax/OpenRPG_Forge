@@ -21,7 +21,7 @@ fn distribution_root() -> Result<PathBuf, String> {
         .ok_or_else(|| "Dossier du lanceur introuvable.".to_owned())
 }
 
-fn required_paths(root: &Path) -> [PathBuf; 8] {
+fn required_paths(root: &Path) -> [PathBuf; 15] {
     let data = root.join("data");
     [
         root.join("runtime/tidewater.exe"),
@@ -32,6 +32,13 @@ fn required_paths(root: &Path) -> [PathBuf; 8] {
         data.join("clouds/environment.json"),
         data.join(format!("workspace/{AREA_ID}")),
         data.join("buildings"),
+        root.join("content/debris/procedural/debris-native.json"),
+        root.join("content/debris/scanned/package.json"),
+        root.join("content/debris/scanned.wgsl"),
+        root.join("content/debris/pebbles/program.json"),
+        root.join("content/debris/pebbles/pebbles.wgsl"),
+        root.join("content/fish/game/package.json"),
+        root.join("content/fish/surface/package.json"),
     ]
 }
 
@@ -66,14 +73,31 @@ fn start_game(root: &Path) -> Result<Child, String> {
     if let Some(path) = missing_file(root) {
         return Err(format!("Fichier de l’île absent : {}", path.display()));
     }
-    let data = root.join("data");
     let (capture, log_path) = output_path()?;
     let log = File::create(&log_path)
         .map_err(|error| format!("Impossible d’ouvrir le journal du jeu : {error}"))?;
     let error_log = log
         .try_clone()
         .map_err(|error| format!("Impossible de préparer le journal du jeu : {error}"))?;
+    let mut command = game_command(root, &capture);
+    command
+        .stdout(Stdio::from(log))
+        .stderr(Stdio::from(error_log));
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(CREATE_NO_WINDOW);
+    }
+    command
+        .spawn()
+        .map_err(|error| format!("Impossible de démarrer l’île Tidewater : {error}"))
+}
+
+fn game_command(root: &Path, capture: &Path) -> Command {
+    let data = root.join("data");
+    let debris = root.join("content/debris");
     let mut command = Command::new(root.join("runtime/tidewater.exe"));
+    remove_development_overrides(&mut command, std::env::vars_os().map(|(name, _)| name));
     command
         .current_dir(root)
         .arg(data.join("scene"))
@@ -90,16 +114,42 @@ fn start_game(root: &Path) -> Result<Child, String> {
         .arg(data.join("buildings"))
         .arg(BUILDING_PACKAGE)
         .arg(OsStr::new("--walk"))
-        .stdout(Stdio::from(log))
-        .stderr(Stdio::from(error_log));
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(CREATE_NO_WINDOW);
-    }
+        .env("FORGE_TIDEWATER_DEBRIS_ROOT", debris.join("procedural"))
+        .env("FORGE_TIDEWATER_SCANNED_ROOT", debris.join("scanned"))
+        .env(
+            "FORGE_TIDEWATER_GAME_FISH_ROOT",
+            root.join("content/fish/game"),
+        )
+        .env(
+            "FORGE_TIDEWATER_FISH_PROP_ROOT",
+            root.join("content/fish/surface"),
+        )
+        .env(
+            "FORGE_TIDEWATER_PEBBLE_PROGRAM_ROOT",
+            debris.join("pebbles"),
+        )
+        .env(
+            "FORGE_TIDEWATER_SCANNED_PROGRAM",
+            debris.join("scanned.wgsl"),
+        )
+        .env_remove("FORGE_TIDEWATER_STATIC_POSTFX");
     command
-        .spawn()
-        .map_err(|error| format!("Impossible de démarrer l’île Tidewater : {error}"))
+}
+
+fn remove_development_overrides(
+    command: &mut Command,
+    names: impl IntoIterator<Item = std::ffi::OsString>,
+) {
+    for name in names {
+        // Windows environment names are case insensitive. Clear diagnostics
+        // only in the child; the launcher's environment remains untouched.
+        if name
+            .to_str()
+            .is_some_and(|name| name.to_ascii_uppercase().starts_with("FORGE_TIDEWATER_"))
+        {
+            command.env_remove(name);
+        }
+    }
 }
 
 pub(super) fn launch(game: &Mutex<Option<Child>>) -> LauncherResponse {
@@ -150,6 +200,70 @@ fn blocked(code: &str, reason: String) -> LauncherResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn launch_removes_inherited_diagnostics_without_changing_unrelated_settings() {
+        let mut command = Command::new("unused-test-program");
+        remove_development_overrides(
+            &mut command,
+            [
+                "FORGE_TIDEWATER_UNDERWATER_DISABLED",
+                "forge_tidewater_graphics_proof",
+                "FORGE_TIDEWATER_REFRACTION_PROOF",
+                "PATH",
+                "FORGE_AUTHORING_ROOT",
+            ]
+            .map(std::ffi::OsString::from),
+        );
+        let environment: std::collections::BTreeMap<_, _> = command.get_envs().collect();
+        for name in [
+            "FORGE_TIDEWATER_UNDERWATER_DISABLED",
+            "forge_tidewater_graphics_proof",
+            "FORGE_TIDEWATER_REFRACTION_PROOF",
+        ] {
+            assert_eq!(environment.get(OsStr::new(name)), Some(&None));
+        }
+        assert!(!environment.contains_key(OsStr::new("PATH")));
+        assert!(!environment.contains_key(OsStr::new("FORGE_AUTHORING_ROOT")));
+    }
+
+    #[test]
+    fn relocated_distribution_overrides_development_debris_paths() {
+        let root = std::env::temp_dir().join("Forge déplacé avec espaces");
+        let capture = root.join("captures/test.png");
+        let command = game_command(&root, &capture);
+        assert_eq!(command.get_program(), root.join("runtime/tidewater.exe"));
+        assert_eq!(command.get_current_dir(), Some(root.as_path()));
+        let environment: std::collections::BTreeMap<_, _> = command.get_envs().collect();
+        for (name, relative) in [
+            ("FORGE_TIDEWATER_DEBRIS_ROOT", "content/debris/procedural"),
+            ("FORGE_TIDEWATER_SCANNED_ROOT", "content/debris/scanned"),
+            ("FORGE_TIDEWATER_GAME_FISH_ROOT", "content/fish/game"),
+            ("FORGE_TIDEWATER_FISH_PROP_ROOT", "content/fish/surface"),
+            (
+                "FORGE_TIDEWATER_PEBBLE_PROGRAM_ROOT",
+                "content/debris/pebbles",
+            ),
+            (
+                "FORGE_TIDEWATER_SCANNED_PROGRAM",
+                "content/debris/scanned.wgsl",
+            ),
+        ] {
+            assert_eq!(
+                environment
+                    .get(OsStr::new(name))
+                    .copied()
+                    .flatten()
+                    .map(Path::new),
+                Some(root.join(relative).as_path())
+            );
+        }
+        assert_eq!(
+            environment.get(OsStr::new("FORGE_TIDEWATER_STATIC_POSTFX")),
+            Some(&None)
+        );
+        assert_eq!(command.get_args().last(), Some(OsStr::new("--walk")));
+    }
 
     #[test]
     fn package_requires_the_island_data_and_native_game() {

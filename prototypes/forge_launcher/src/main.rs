@@ -4,6 +4,7 @@ use forge_launcher_frontend::{LauncherCommand, LauncherResponse, LauncherSetting
 use std::{ffi::OsStr, process::Child, sync::Mutex};
 
 mod play;
+mod webview_probe;
 
 #[derive(Default)]
 struct LauncherState {
@@ -78,19 +79,72 @@ fn execute_window_action(window: &tauri::WebviewWindow, action: WindowAction) ->
     }
 }
 
+fn launcher_context() -> tauri::Context<tauri::Wry> {
+    tauri::generate_context!()
+}
+
+fn embedded_frontend_ready(context: &tauri::Context<tauri::Wry>) -> bool {
+    let assets = context.assets();
+    let Some(index) = assets.get(&"index.html".into()) else {
+        return false;
+    };
+    let Ok(html) = std::str::from_utf8(&index) else {
+        return false;
+    };
+    html.contains("<title>OpenRPG Forge — L’Aube des royaumes</title>")
+        && html.contains("src=\"desktop.js\"")
+        && ["desktop.js", "styles.css", "content.js", "app.js"]
+            .iter()
+            .all(|name| {
+                assets
+                    .get(&(*name).into())
+                    .is_some_and(|bytes| !bytes.is_empty())
+            })
+}
+
 fn main() {
+    let mut context = launcher_context();
     if std::env::args_os().nth(1).as_deref() == Some(OsStr::new("--verify-distributable")) {
         if cfg!(feature = "production") {
-            println!("FORGE_LAUNCHER_AUBE_FRONTEND_READY");
+            if !embedded_frontend_ready(&context) {
+                eprintln!(
+                    "L’interface Aube et son raccord desktop sont absents du contexte embarqué."
+                );
+                std::process::exit(1);
+            }
+            if std::env::args_os().nth(2).as_deref() == Some(OsStr::new("--debris-runtime")) {
+                println!("FORGE_LAUNCHER_DEBRIS_RUNTIME_V1");
+            } else if std::env::args_os().nth(2).as_deref() == Some(OsStr::new("--pebble-runtime"))
+            {
+                println!("FORGE_LAUNCHER_PEBBLE_RUNTIME_V1");
+            } else if std::env::args_os().nth(2).as_deref()
+                == Some(OsStr::new("--source-fish-runtime"))
+            {
+                println!("FORGE_LAUNCHER_SOURCE_FISH_RUNTIME_V1");
+            } else {
+                println!("FORGE_LAUNCHER_AUBE_FRONTEND_READY");
+            }
             return;
         }
         eprintln!("Ce lanceur dépend du serveur de développement local.");
         std::process::exit(1);
     }
+    let probe = webview_probe::Probe::parse().unwrap_or_else(|error| {
+        eprintln!("{error}");
+        std::process::exit(1);
+    });
+    probe.configure(&mut context);
     tauri::Builder::default()
         .manage(LauncherState::default())
-        .invoke_handler(tauri::generate_handler![execute_launcher_command])
-        .run(tauri::generate_context!())
+        .manage(probe)
+        .setup(webview_probe::setup)
+        .on_page_load(webview_probe::loaded)
+        .on_window_event(webview_probe::window_event)
+        .invoke_handler(tauri::generate_handler![
+            execute_launcher_command,
+            webview_probe::complete_launcher_probe
+        ])
+        .run(context)
         .expect("failed to run the OpenRPG Forge launcher prototype");
 }
 
@@ -98,6 +152,12 @@ fn main() {
 mod tests {
     use super::*;
     use forge_launcher_frontend::{DisplayMode, QualityPreset};
+
+    #[test]
+    #[cfg(feature = "production")]
+    fn production_context_contains_the_embedded_aube_frontend() {
+        assert!(embedded_frontend_ready(&launcher_context()));
+    }
 
     #[test]
     fn snapshot_reports_the_runtime_boundary_truthfully() {
