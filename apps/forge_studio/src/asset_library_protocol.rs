@@ -23,9 +23,26 @@ pub struct LibraryQuery {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum LibraryRequest {
-    Search { query: LibraryQuery },
-    Details { id: String, revision: String },
-    Thumbnail { id: String, revision: String },
+    Search {
+        query: LibraryQuery,
+    },
+    Details {
+        id: String,
+        revision: String,
+    },
+    Thumbnail {
+        id: String,
+        revision: String,
+    },
+    Model {
+        id: String,
+        revision: String,
+    },
+    /// Persisted placements pin content independently of a search-page revision.
+    ModelReference {
+        asset_id: forge_core::AssetId,
+        sha256: forge_core::ContentHash,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -88,4 +105,18 @@ pub enum LibraryResponse {
     Page { page: LibraryPage },
     Details { detail: Box<LibraryDetail> },
     Thumbnail { bytes: Vec<u8> },
+    Model { model: LibraryModel },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct LibraryModel {
+    pub id: String,
+    pub asset_id: forge_core::AssetId,
+    pub sha256: forge_core::ContentHash,
+    pub bytes: Vec<u8>,
+}
+
+/// A separate domain prevents collisions with assets in the distributed kit.
+pub fn vault_asset_id(id: &str) -> forge_core::AssetId {
+    forge_core::AssetId::deterministic(format!("asset-vault/v1:{id}"))
 }

@@ -35,6 +35,43 @@ impl Default for Clock {
 }
 
 impl Clock {
+    /// Preserve a measured source phase before the first live shadow submission.
+    pub fn from_acquired(
+        time: f64,
+        index: u32,
+        offset: [f64; 2],
+        dir: [f64; 2],
+        speed: f64,
+    ) -> Result<Self, &'static str> {
+        let clock = Self {
+            time,
+            index,
+            offset,
+            dir,
+            speed,
+        };
+        let pose = clock.pose();
+        if !time.is_finite()
+            || time < 0.0
+            || !pose.time.is_finite()
+            || !speed.is_finite()
+            || speed < 0.0
+            || !pose.speed.is_finite()
+            || offset
+                .iter()
+                .chain(dir.iter())
+                .any(|value| !value.is_finite())
+            || pose
+                .offset
+                .iter()
+                .chain(pose.dir.iter())
+                .any(|value| !value.is_finite())
+            || (dir[0].hypot(dir[1]) - 1.0).abs() > 1e-12
+        {
+            return Err("invalid acquired plant wind phase");
+        }
+        Ok(clock)
+    }
     #[must_use]
     pub fn new() -> Self {
         Self::default()
@@ -93,6 +130,26 @@ impl Clock {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn acquired_phase_survives_zero_delta_and_direction_changes() {
+        let mut clock = Clock::from_acquired(
+            2.0,
+            124,
+            [4.6152781366039095, 12.395318424021925],
+            [1.0, 0.0],
+            7.0,
+        )
+        .unwrap();
+        let before = clock.pose();
+        let pose = clock.advance(0.0, [0.0, 1.0], 7.0).unwrap();
+        assert_eq!(pose.time, before.time);
+        assert_eq!(pose.offset, before.offset);
+        let pose = clock.advance(1.0 / 60.0, [0.0, 1.0], 7.0).unwrap();
+        assert_eq!(pose.offset[0], before.offset[0]);
+        assert!((f64::from(pose.offset[1]) - (12.395318424021925 + 6.4 / 60.0)).abs() < 1e-6);
+        assert!(Clock::from_acquired(2.0, 124, [f64::NAN, 0.0], [1.0, 0.0], 7.0).is_err());
+    }
 
     #[test]
     fn starts_at_the_source_pose() {

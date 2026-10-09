@@ -15,10 +15,40 @@ pub(super) struct Frame {
     pub settings: Vec<u8>,
     pub atmosphere: Option<Vec<u8>>,
 }
+
+/// Immutable uniforms of the submitted cloud frame, for coherent dependent passes.
+pub struct SubmittedFrame {
+    pub step: u32,
+    pub view: usize,
+    /// Source controller frame index, elapsed seconds, delta seconds, padding.
+    /// This belongs to the submitted cloud transaction, not Bevy's wall clock.
+    pub clock: Vec4,
+    pub global: [u8; 720],
+    pub clouds: [Vec4; 5],
+}
+
+pub fn submitted_frame(world: &World) -> Result<SubmittedFrame, String> {
+    let frame = world
+        .get_resource::<Pending>()
+        .and_then(|p| p.0.as_ref())
+        .ok_or("No submitted cloud frame")?;
+    Ok(SubmittedFrame {
+        step: frame.step,
+        view: frame.output.view_index,
+        clock: Vec4::from_array(frame.output.frame[10]),
+        global: frame
+            .global
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Invalid cloud frame uniform size")?,
+        clouds: frame.output.public.map(Vec4::from_array),
+    })
+}
 impl Frame {
     pub fn view(&self) -> FrameView<'_> {
         FrameView {
-            index: self.step as usize - 1,
+            step: self.step,
+            final_acquired_frame: true,
             local: &self.local,
             global: &self.global,
             atmosphere: self.atmosphere.as_deref(),
@@ -60,6 +90,7 @@ pub fn submit(world: &mut World, output: &Output) -> Result<u32, String> {
         return Err("cloud generation not ready for a live frame".into());
     }
     let staged = world.resource::<StagedInput>();
+    let output = staged.quality.output(output);
     let global = staged
         .input
         .shadow
@@ -99,6 +130,7 @@ pub fn submit_solar(
         .ok_or("atmosphere lighting readback unavailable")??;
     let targets = world.resource::<crate::tidewater_atmosphere::Targets>();
     let staged = world.resource::<StagedInput>();
+    let output = staged.quality.output(output);
     let shared = staged
         .atmosphere
         .as_ref()
@@ -121,7 +153,7 @@ pub fn submit_solar(
     let atmosphere = targets
         .params
         .iter()
-        .flat_map(|v| v.to_array())
+        .flat_map(Vec4::to_array)
         .flat_map(f32::to_le_bytes)
         .collect();
     let step = world
@@ -140,34 +172,15 @@ pub fn submit_solar(
     Ok(step)
 }
 
-#[allow(clippy::cast_possible_truncation)]
 fn write_solar(
     global: &mut [u8],
     completed: &crate::tidewater_atmosphere::readback::Completed,
 ) -> Result<(), String> {
-    // Exact canonical Frame.js layout, verified by frame-lighting-layout-v1.json.
-    let fields = [
-        (592, completed.current_solar.key.to_array().to_vec()),
-        (604, vec![completed.current_solar.night]),
-        (608, completed.lighting.sun_color.to_vec()),
-        (624, completed.lighting.sky_irradiance.to_vec()),
-        (640, completed.lighting.horizon_color.to_vec()),
-    ];
-    if global.len() != 720
-        || fields
-            .iter()
-            .flat_map(|(_, v)| v)
-            .any(|v| !v.is_finite() || !(*v as f32).is_finite())
-    {
-        return Err("invalid live solar Frame uniforms".into());
-    }
-    for (offset, values) in fields {
-        for (index, value) in values.into_iter().enumerate() {
-            global[offset + index * 4..offset + index * 4 + 4]
-                .copy_from_slice(&(value as f32).to_le_bytes());
-        }
-    }
-    Ok(())
+    crate::tidewater_sky::frame_lighting::FrameLighting::new(
+        completed.current_solar,
+        &completed.lighting,
+    )?
+    .write_bytes(global)
 }
 
 fn validate(output: &Output) -> Result<(), String> {
@@ -252,6 +265,7 @@ mod tests {
         });
         world.insert_resource(Pending::default());
         world.insert_resource(StagedInput {
+            quality: default(),
             input: Arc::new(super::super::Input {
                 stepped: true,
                 shaders: default(),
@@ -259,6 +273,8 @@ mod tests {
                 shadow: Some(super::super::shadow::Input {
                     shader: String::new(),
                     noise: vec![],
+                    schedule: None,
+                    atmosphere_frames: None,
                     frames: vec![(vec![0; 544], vec![0; 720])],
                     trace: None,
                 }),
@@ -285,6 +301,27 @@ mod tests {
             .ready
             .store(false, Ordering::Release);
         assert!(!can_submit(&world));
+    }
+
+    #[test]
+    fn dependent_snapshot_preserves_submitted_uniforms_and_history() {
+        let mut world = world();
+        assert!(submitted_frame(&world).is_err());
+        let mut output = output();
+        output.view_index = 1;
+        output.public[2] = [1., 2., 3., 4.];
+        output.frame[10] = [124., 2., 1. / 60., 0.];
+        submit(&mut world, &output).unwrap();
+        let snapshot = submitted_frame(&world).unwrap();
+        assert_eq!(snapshot.step, 121);
+        assert_eq!(snapshot.view, 1);
+        assert_eq!(snapshot.clock, Vec4::new(124., 2., 1. / 60., 0.));
+        assert_eq!(snapshot.global, [0; 720]);
+        assert_eq!(snapshot.clouds[2], Vec4::new(1., 2., 3., 4.));
+        world.resource_mut::<Pending>().0 = None;
+        assert!(submitted_frame(&world).is_err());
+        // Snapshot is owned: replacing temporal history cannot change dependent inputs.
+        assert_eq!(snapshot.clouds[2], Vec4::new(1., 2., 3., 4.));
     }
     #[test]
     fn invalid_frame_preserves_pending_history() {

@@ -92,6 +92,7 @@ fn request(
     target: Res<graph::Target>,
     animation: Res<animation::State>,
     wind: Res<crate::walk_wind::Receipt>,
+    cadence: Res<super::shadow_rate::Proof>,
     mut held: ResMut<crate::walk_wind::HeldPose>,
     mut proof: ResMut<Proof>,
 ) {
@@ -101,6 +102,7 @@ fn request(
     }
     if smoke.ticks < smoke.minimum_ticks
         || !smoke.route.complete()
+        || (!proof.started && !cadence.window_ready())
         || proof.samples.len() == 3
         || proof.waiting
     {

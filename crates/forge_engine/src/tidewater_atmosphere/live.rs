@@ -48,6 +48,13 @@ pub fn update_parameters(
     let work = world
         .get_resource::<Work>()
         .ok_or("atmosphere work absent")?;
+    // MainWorld may advance before the previous RenderWorld finishes encoding.
+    // An unchanged pending request already owns its mask and revision: publishing
+    // another revision here turns the render pipeline's one-frame delay into a
+    // permanent recalculation, independently of the irradiance controller timer.
+    if !changed && !invalidate_static && !integrate {
+        return Ok(());
+    }
     let remaining = if work.encoded.load(Ordering::Acquire) == work.revision {
         0
     } else {
@@ -134,6 +141,36 @@ mod tests {
         let work = world.resource::<Work>();
         work.encoded.store(work.revision, Ordering::Release);
         update_parameters(&mut world, [0.0; 16], false, true).unwrap();
+        assert_eq!(world.resource::<Work>().mask, 0b1000);
+    }
+
+    #[test]
+    fn unchanged_pending_work_keeps_the_revision_until_render_catches_up() {
+        let mut world = scene();
+        let values = [0.0; 16];
+        let initial = world.resource::<Work>().revision;
+        for _ in 0..8 {
+            update_parameters(&mut world, values, false, false).unwrap();
+            assert_eq!(world.resource::<Work>().revision, initial);
+            assert_eq!(world.resource::<Work>().mask, 0b1111);
+        }
+        let mut changed = values;
+        changed[12] = 0.5;
+        update_parameters(&mut world, changed, false, false).unwrap();
+        let pending = world.resource::<Work>().revision;
+        assert_eq!(pending, initial + 1);
+        for _ in 0..8 {
+            update_parameters(&mut world, changed, false, false).unwrap();
+            assert_eq!(world.resource::<Work>().revision, pending);
+        }
+        world
+            .resource::<Work>()
+            .encoded
+            .store(pending, Ordering::Release);
+        update_parameters(&mut world, changed, false, false).unwrap();
+        assert_eq!(world.resource::<Work>().revision, pending);
+        update_parameters(&mut world, changed, false, true).unwrap();
+        assert_eq!(world.resource::<Work>().revision, pending + 1);
         assert_eq!(world.resource::<Work>().mask, 0b1000);
     }
 

@@ -107,6 +107,7 @@ pub enum Error {
     IncompleteAuxiliary,
     WrongTagOrGeneration,
     PipelinePending,
+    ConsumerPending,
     MissingBinding,
     InvalidTexture,
     AliasedTexture,
@@ -353,6 +354,9 @@ pub struct Prepared {
     packet: Packet,
     params: Params,
 }
+
+#[derive(Component, Clone, Debug)]
+pub struct PreparationFailure(Error);
 
 #[derive(Resource)]
 pub struct Pipeline {
@@ -639,18 +643,11 @@ fn texture_descriptor(size: UVec2, depth: bool, label: &'static str) -> TextureD
 }
 
 fn standard_perspective(packet: &ViewPacket) -> bool {
-    let m = packet.frame.clip_from_view;
-    m.is_finite()
-        && m.x_axis.x > 0.0
-        && m.y_axis.y > 0.0
-        && m.x_axis.y == 0.0
-        && m.x_axis.z == 0.0
-        && m.x_axis.w == 0.0
-        && m.y_axis.x == 0.0
-        && m.y_axis.z == 0.0
-        && m.y_axis.w == 0.0
-        && m.z_axis == Vec4::new(0.0, 0.0, 0.0, -1.0)
-        && m.w_axis == Vec4::new(0.0, 0.0, packet.frame.near_far.x, 0.0)
+    crate::finite_perspective::standard_reverse_perspective(
+        packet.frame.clip_from_view,
+        packet.frame.near_far.x,
+        packet.frame.near_far.y,
+    )
 }
 
 #[allow(
@@ -688,7 +685,7 @@ fn prepare(
     for entity in &stale {
         commands
             .entity(entity)
-            .remove::<(ResolveTargets, Prepared)>();
+            .remove::<(ResolveTargets, Prepared, PreparationFailure)>();
     }
     let Some(pipeline) = pipeline else {
         return;
@@ -814,12 +811,16 @@ fn prepare(
         })();
         match result {
             Ok(value) => {
-                commands.entity(entity).insert(value);
-            }
-            Err(_) => {
                 commands
                     .entity(entity)
-                    .remove::<(ResolveTargets, Prepared)>();
+                    .insert(value)
+                    .remove::<PreparationFailure>();
+            }
+            Err(error) => {
+                commands
+                    .entity(entity)
+                    .remove::<(ResolveTargets, Prepared)>()
+                    .insert(PreparationFailure(error));
             }
         }
     }
@@ -881,6 +882,7 @@ pub fn encode(
         &AuxTargets,
         Option<&ResolveTargets>,
         Option<&Prepared>,
+        Option<&PreparationFailure>,
         &ViewTarget,
         &ExtractedCamera,
         Option<&TemporalAntiAliasing>,
@@ -892,6 +894,7 @@ pub fn encode(
     auxiliary_observations: Res<AuxObservations>,
     hdr_observations: Res<HdrObservations>,
     observations: Res<ResolveObservations>,
+    consumer: Option<Res<super::consumer::ConsumerGate>>,
     acknowledgements: Res<ResolveAcknowledgements>,
     readback: Option<Res<super::resolve_readback::Observation>>,
     mut readback_jobs: Option<ResMut<super::resolve_readback::Jobs>>,
@@ -906,8 +909,18 @@ pub fn encode(
     mut context: RenderContext,
 ) {
     let (render_owner, render_runtime, render_observation) = render_owned_state;
-    let (_, packet, auxiliary, targets, prepared, target, camera, taa, owned_packet) =
-        view.into_inner();
+    let (
+        _,
+        packet,
+        auxiliary,
+        targets,
+        prepared,
+        preparation_failure,
+        target,
+        camera,
+        taa,
+        owned_packet,
+    ) = view.into_inner();
     let mut observation = ResolveObservation {
         tag: packet.tag,
         history_epoch: packet.frame.history_epoch,
@@ -942,8 +955,16 @@ pub fn encode(
         if !hdr_observations.complete(packet.tag) {
             return Err(Error::IncompleteHdrChain);
         }
-        let targets = targets.ok_or(Error::MissingBinding)?;
-        let prepared = prepared.ok_or(Error::MissingBinding)?;
+        if consumer
+            .as_deref()
+            .is_some_and(|gate| !gate.ready(packet.tag))
+        {
+            return Err(Error::ConsumerPending);
+        }
+        let preparation_error =
+            || preparation_failure.map_or(Error::MissingBinding, |failure| failure.0.clone());
+        let targets = targets.ok_or_else(preparation_error)?;
+        let prepared = prepared.ok_or_else(preparation_error)?;
         let pipeline = pipeline.ok_or(Error::PipelinePending)?;
         let resolve_pipeline = cache
             .get_render_pipeline(pipeline.resolve)

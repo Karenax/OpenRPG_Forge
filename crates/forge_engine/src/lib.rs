@@ -14,6 +14,7 @@ pub use bridge_crossing_probe::{
     BridgeCrossingProbePlugin, BridgeCrossingProbeStatus, BridgeTemporalLodStatus,
 };
 mod capture_readiness;
+pub mod finite_perspective;
 mod manual_placement_identity;
 pub use manual_placement_identity::ManualPlacementPart;
 #[cfg(feature = "physics-rapier")]
@@ -78,14 +79,19 @@ pub mod tidewater_air_haze;
 pub mod tidewater_assets;
 pub mod tidewater_atmosphere;
 #[cfg(feature = "physics-rapier")]
+pub mod tidewater_beach_props;
 pub mod tidewater_boardwalk;
 #[cfg(feature = "physics-rapier")]
 pub mod tidewater_boat;
 pub mod tidewater_caustics;
 pub mod tidewater_clouds;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_debris;
 pub mod tidewater_environment;
 pub mod tidewater_exposure;
 pub mod tidewater_film_grain;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_fish_props;
 pub mod tidewater_gtao;
 pub mod tidewater_hill_shadow;
 pub mod tidewater_hull_mask;
@@ -101,6 +107,8 @@ pub mod tidewater_ocean_geometry;
 pub mod tidewater_ocean_optics;
 #[cfg(feature = "physics-rapier")]
 pub mod tidewater_pier;
+pub mod tidewater_pier_animation;
+pub mod tidewater_pier_motion;
 pub mod tidewater_plants;
 pub mod tidewater_plaza;
 pub mod tidewater_refraction;
@@ -117,7 +125,9 @@ pub mod tidewater_terrain;
 pub mod tidewater_terrain_edits;
 pub mod tidewater_underwater;
 pub mod tidewater_underwater_lighting;
+pub mod tidewater_village_props;
 pub mod tidewater_water_query;
+pub mod tidewater_wind;
 pub use temporal_lod::{TemporalLod, TemporalLodError, TemporalLodPolicy, TemporalLodSample};
 #[cfg(feature = "physics-rapier")]
 mod terrain_quality;
@@ -162,6 +172,13 @@ pub use water::{
 pub mod source_fragment;
 #[cfg(feature = "physics-rapier")]
 mod source_fragment_loader;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_glb;
+#[cfg(feature = "physics-rapier")]
+pub mod source_graph_scene;
+pub mod source_graph_scene_geometry;
 mod weather;
 
 #[cfg(feature = "physics-rapier")]
@@ -181,15 +198,17 @@ pub use governed_asset_kit::{
     VisualValleyGovernedAssetKitPlugin,
 };
 #[cfg(feature = "physics-rapier")]
+pub use physics::ManualPlacementCollisionGeometry;
+#[cfg(feature = "physics-rapier")]
 pub(crate) use physics::build_terrain_heightfield_collider;
 #[cfg(feature = "physics-rapier")]
 pub use physics::{
     ManualPlacementCollision, ManualPlacementCollisionExpected, ManualPlacementCollisionFailed,
-    ManualPlacementCollisionPlugin, ManualPlacementCollisionStatus, ManualPlacementProjection,
-    PathSurfaceColliderIdentity, TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider,
-    TerrainPhysicsAdapterError, TerrainPhysicsPlugin, fish_stand_colliders,
-    manual_placements_ready, placement_transform, profiled_path_collider,
-    profiled_path_collider_present,
+    ManualPlacementCollisionNotRequired, ManualPlacementCollisionPlugin,
+    ManualPlacementCollisionStatus, ManualPlacementProjection, PathSurfaceColliderIdentity,
+    TERRAIN_PHYSICS_HZ, TerrainHeightfieldCollider, TerrainPhysicsAdapterError,
+    TerrainPhysicsPlugin, fish_stand_colliders, manual_placements_ready, placement_transform,
+    profiled_path_collider, profiled_path_collider_present,
 };
 #[cfg(feature = "physics-rapier")]
 pub use player_camera::PlayerCameraMode;

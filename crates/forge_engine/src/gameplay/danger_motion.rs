@@ -49,6 +49,29 @@ pub struct DangerMotionState {
     pub requested_translation: Option<Vec3>,
     /// Set only after a `KCCOutput` changed in the completed physical step.
     pub feedback_current: bool,
+    /// A provider-verified escape destination, used as next tick's intent.
+    pub escape_target: Option<Vec3>,
+}
+
+type DangerActors<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static DomainEntityId,
+        &'static Transform,
+        &'static mut KinematicCharacterController,
+        &'static mut DangerMotionState,
+    ),
+    With<DangerMotionActor>,
+>;
+
+struct EscapeRequest {
+    actor: forge_core::EntityId,
+    entity: Entity,
+    center: Vec3,
+    direction: Vec3,
+    distance: f32,
 }
 
 /// A neutral, human-scale KCC profile.  Gravity is supplied by `drive`, so
@@ -83,20 +106,12 @@ pub(super) fn drive(
     runtime: Res<GameplayRuntime>,
     mut navigation: ResMut<NavigationRuntime>,
     rapier: ReadRapierContext,
-    mut actors: Query<
-        (
-            Entity,
-            &DomainEntityId,
-            &Transform,
-            &mut KinematicCharacterController,
-            &mut DangerMotionState,
-        ),
-        With<DangerMotionActor>,
-    >,
+    mut actors: DangerActors,
 ) {
     let valid_simulation = runtime.is_ready() && ready.is_none_or(|ready| ready.0);
     let context = valid_simulation.then(|| rapier.single().ok()).flatten();
     let delta_seconds = time.timestep().as_secs_f32();
+    let mut blocked_escape_candidates = Vec::new();
 
     for (entity, domain, transform, mut controller, mut motion) in &mut actors {
         let Some(actor) = runtime.session.state().actors.get(&domain.0) else {
@@ -104,14 +119,7 @@ pub(super) fn drive(
             continue;
         };
         if !valid_simulation || actor.vitality == 0 {
-            navigation.intent(
-                domain.0,
-                transform.translation,
-                Vec3::ZERO,
-                None,
-                (false, 0),
-                false,
-            );
+            navigation.disable_actor(domain.0, transform.translation);
             stop(&mut controller, &mut motion);
             continue;
         }
@@ -128,16 +136,27 @@ pub(super) fn drive(
             .actor(domain.0)
             .map(|actor| &actor.patrol);
         let target = if direction == Vec3::ZERO {
+            motion.escape_target = None;
             patrol
                 .filter(|points| !points.is_empty())
                 .map(|points| engine(points[navigation.patrol_index(domain.0) % points.len()]))
         } else {
             context.as_ref().and_then(|context| {
-                flee_target(
+                let distance = runtime.session.document().profile.interaction_range_m * 1.5;
+                blocked_escape_candidates.push(EscapeRequest {
+                    actor: domain.0,
+                    entity,
+                    center: transform.translation,
+                    direction,
+                    distance,
+                });
+                flee_goal(
                     context,
                     entity,
-                    transform.translation
-                        + direction * runtime.session.document().profile.interaction_range_m * 1.5,
+                    &mut motion,
+                    transform.translation,
+                    direction,
+                    distance,
                 )
             })
         };
@@ -166,6 +185,12 @@ pub(super) fn drive(
         motion.feedback_current = false;
     }
     navigation.tick(delta_seconds);
+    select_escape_targets(
+        &mut navigation,
+        &mut actors,
+        context.as_ref(),
+        blocked_escape_candidates,
+    );
     for (_, domain, _, mut controller, mut motion) in &mut actors {
         let available = valid_simulation
             && runtime
@@ -178,25 +203,101 @@ pub(super) fn drive(
             stop(&mut controller, &mut motion);
             continue;
         }
-        let horizontal = navigation
-            .desired(domain.0)
-            .clamp_length_max(NPC_WALK_SPEED_MPS);
-        if motion.grounded && motion.vertical_velocity_mps < 0.0 {
-            motion.vertical_velocity_mps = 0.0;
-        }
-        motion.vertical_velocity_mps += NPC_GRAVITY_MPS2 * delta_seconds;
-        if !motion.vertical_velocity_mps.is_finite() {
-            stop(&mut controller, &mut motion);
-            continue;
-        }
-
-        controller.slide =
-            horizontal != Vec3::ZERO || !motion.grounded || motion.vertical_velocity_mps > 0.0;
-        controller.translation = Some(
-            horizontal * delta_seconds + Vec3::Y * motion.vertical_velocity_mps * delta_seconds,
+        apply_motion(
+            &mut controller,
+            &mut motion,
+            navigation.desired(domain.0),
+            delta_seconds,
         );
-        motion.requested_translation = controller.translation;
     }
+}
+
+fn select_escape_targets(
+    navigation: &mut NavigationRuntime,
+    actors: &mut DangerActors,
+    context: Option<&RapierContext>,
+    requests: Vec<EscapeRequest>,
+) {
+    let Some(context) = context else {
+        return;
+    };
+    for request in requests {
+        if navigation.needs_escape_search(request.actor)
+            && let Some(target) = navigation.reachable_escape_goal(
+                request.actor,
+                &escape_candidates(
+                    context,
+                    request.entity,
+                    request.center,
+                    request.direction,
+                    request.distance,
+                ),
+            )
+            && let Some((_, _, _, _, mut motion)) = actors
+                .iter_mut()
+                .find(|(_, domain, _, _, _)| domain.0 == request.actor)
+        {
+            motion.escape_target = Some(target);
+        }
+    }
+}
+
+fn flee_goal(
+    context: &RapierContext,
+    actor: Entity,
+    motion: &mut DangerMotionState,
+    center: Vec3,
+    direction: Vec3,
+    distance: f32,
+) -> Option<Vec3> {
+    let away = motion
+        .escape_target
+        .map(|target| (target - center).with_y(0.0));
+    if away
+        .is_some_and(|away| away.length() < 0.25 || away.normalize_or_zero().dot(direction) < 0.2)
+    {
+        motion.escape_target = None;
+    }
+    motion
+        .escape_target
+        .or_else(|| flee_target(context, actor, center + direction * distance))
+}
+
+fn apply_motion(
+    controller: &mut KinematicCharacterController,
+    motion: &mut DangerMotionState,
+    desired: Vec3,
+    delta_seconds: f32,
+) {
+    let horizontal = desired.clamp_length_max(NPC_WALK_SPEED_MPS);
+    if motion.grounded && motion.vertical_velocity_mps < 0.0 {
+        motion.vertical_velocity_mps = 0.0;
+    }
+    motion.vertical_velocity_mps += NPC_GRAVITY_MPS2 * delta_seconds;
+    if !motion.vertical_velocity_mps.is_finite() {
+        stop(controller, motion);
+        return;
+    }
+    controller.slide =
+        horizontal != Vec3::ZERO || !motion.grounded || motion.vertical_velocity_mps > 0.0;
+    controller.translation =
+        Some(horizontal * delta_seconds + Vec3::Y * motion.vertical_velocity_mps * delta_seconds);
+    motion.requested_translation = controller.translation;
+}
+
+fn escape_candidates(
+    context: &RapierContext,
+    actor: Entity,
+    center: Vec3,
+    away: Vec3,
+    distance: f32,
+) -> Vec<Vec3> {
+    [0.0_f32, 30.0, -30.0, 60.0, -60.0, 75.0, -75.0]
+        .into_iter()
+        .map(|angle| center + Quat::from_rotation_y(angle.to_radians()) * away * distance)
+        .chain(std::iter::once(center + away * distance * 0.5))
+        .filter_map(|candidate| flee_target(context, actor, candidate))
+        .collect()
 }
 
 fn flee_target(context: &RapierContext, actor: Entity, candidate: Vec3) -> Option<Vec3> {
@@ -220,6 +321,7 @@ fn stop(controller: &mut KinematicCharacterController, motion: &mut DangerMotion
     motion.collision_count = 0;
     motion.requested_translation = None;
     motion.feedback_current = false;
+    motion.escape_target = None;
 }
 
 /// Update grounded/collision evidence after Rapier writeback.  The next

@@ -1,0 +1,12 @@
+#pragma kernel Capture
+Texture2D<float4> SourceTexture;
+StructuredBuffer<uint4> Coordinates;
+RWStructuredBuffer<float4> Values;
+uint SampleCount;
+[numthreads(64,1,1)]
+void Capture(uint3 id : SV_DispatchThreadID) {
+ if(id.x < SampleCount) {
+  uint4 p=Coordinates[id.x];
+  Values[id.x]=SourceTexture.Load(int3(p.xy,p.z));
+ }
+}

@@ -11,10 +11,16 @@ use forge_engine::{
     tidewater_terrain::{lod::ViewGeometry, scene::ResidentTerrain},
 };
 use std::sync::Arc;
+#[path = "escape_menu.rs"]
+pub(super) mod escape_menu;
 #[path = "graphics.rs"]
-mod graphics;
+pub(super) mod graphics;
 #[path = "ladder_smoke.rs"]
 mod ladder_smoke;
+#[path = "camera_perf.rs"]
+pub(super) mod perf;
+#[path = "resident_tiles.rs"]
+mod resident_tiles;
 #[path = "walk_smoke.rs"]
 mod smoke;
 #[path = "swim_smoke.rs"]
@@ -34,8 +40,11 @@ pub(super) fn install_static_graphics(app: &mut App) -> Result<(), Box<dyn std::
 struct Walk {
     geometry: ViewGeometry,
     previous: Option<Transform>,
+    plant_camera: Option<Vec3>,
     terrain_nodes: Vec<forge_world::cdlod::CdlodNode>,
     ocean_nodes: Vec<forge_world::cdlod::CdlodNode>,
+    terrain_tiles: resident_tiles::ResidentTiles,
+    ocean_tiles: resident_tiles::ResidentTiles,
     ocean_updates: usize,
 }
 
@@ -43,7 +52,9 @@ struct Walk {
 struct LadderPrompt;
 
 fn walk_spawn(smoke: bool, ladder_test: bool, swim_test: bool) -> Vec2 {
-    if ladder_test {
+    if escape_menu::terrain_inland_requested() {
+        Vec2::new(-60.0, -190.0)
+    } else if ladder_test {
         Vec2::new(63.8, 35.1)
     } else if swim_test {
         Vec2::new(40.0, -50.0)
@@ -125,9 +136,9 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     .with_first_person(!smoke || swim_test || ladder_test)
     .with_ladders([PIER_LADDER]);
     let underwater = underwater_plugin(app)?;
-    if !smoke {
-        graphics::install(app)?;
-    }
+    // Bounded walks must exercise the same graphics chain and saved values as play.
+    graphics::install(app)?;
+    escape_menu::install(app)?;
     app.add_plugins(
         PlayerControllerPlugin::new(
             profile,
@@ -142,20 +153,36 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     .insert_resource(Walk {
         geometry,
         previous: None,
+        plant_camera: None,
         terrain_nodes: Vec::new(),
         ocean_nodes: Vec::new(),
+        terrain_tiles: resident_tiles::ResidentTiles::default(),
+        ocean_tiles: resident_tiles::ResidentTiles::default(),
         ocean_updates: 0,
     })
     .add_systems(PostStartup, (configure, buildings))
     .add_systems(
         Update,
-        (cursor.after(graphics::toggle), update_ladder_prompt),
+        (cursor.after(escape_menu::update), update_ladder_prompt),
     )
     .add_systems(
         PostUpdate,
-        (update, live_camera).after(bevy::transform::TransformSystems::Propagate),
+        (
+            // Mesh handles and visibility must reach the asset/visibility
+            // barriers together. Late CDLOD replacements otherwise extract a
+            // Mesh3d whose Added event (and GPU data) arrives one frame later.
+            update
+                .before(bevy::asset::AssetEventSystems)
+                .before(bevy::camera::visibility::VisibilitySystems::VisibilityPropagate),
+            live_camera,
+        )
+            .after(bevy::transform::TransformSystems::Propagate),
     );
-    if ladder_test {
+    if perf::requested() {
+        perf::install(app);
+    } else if escape_menu::proof_requested() {
+        escape_menu::install_proof(app);
+    } else if ladder_test {
         ladder_smoke::install(app);
     } else if swim_test {
         swim_smoke::install(app);
@@ -289,16 +316,17 @@ fn cursor(
     mut focus: ResMut<PlayerInputFocus>,
     mut windows: Query<(&Window, &mut CursorOptions)>,
     graphics: Option<Res<graphics::GraphicsState>>,
+    menu: Res<escape_menu::State>,
 ) {
     for (window, mut cursor) in &mut windows {
-        if graphics.as_ref().is_some_and(|graphics| graphics.open)
-            || keys.just_pressed(KeyCode::Escape)
-            || !window.focused
-        {
+        if menu.open || graphics.as_ref().is_some_and(|graphics| graphics.open) || !window.focused {
             focus.0 = false;
             cursor.grab_mode = CursorGrabMode::None;
             cursor.visible = true;
-        } else if mouse.just_pressed(MouseButton::Left) {
+        } else if keys.just_pressed(KeyCode::Escape)
+            || mouse.just_pressed(MouseButton::Left)
+            || menu.is_changed()
+        {
             focus.0 = true;
             cursor.grab_mode = CursorGrabMode::Locked;
             cursor.visible = false;
@@ -351,6 +379,7 @@ fn update(world: &mut World) {
             .resource::<super::clouds::Targets>()
             .ready
             .load(std::sync::atomic::Ordering::Acquire);
+    let ready = ready && super::debris::ready(world);
     world.resource_mut::<PlayerSimulationReady>().0 = ready;
     if !ready {
         return;
@@ -368,44 +397,68 @@ fn update(world: &mut World) {
     }) {
         return;
     }
+    let started = perf::start(world);
     let nodes = state
         .geometry
         .nodes(super::terrain_lod::source_view(&transform, &projection))
         .expect("walk terrain view");
+    perf::end(world, started, "terrain_selection");
+    let started = perf::start(world);
+    let state = world.resource::<Walk>();
     if !forge_world::cdlod::same_node_geometry(&state.terrain_nodes, &nodes) {
         let terrain = world
             .resource::<ResidentTerrain>()
             .entity
             .expect("terrain projection");
-        if let Some((mesh, _)) = ViewGeometry::mesh_from_nodes(&nodes) {
-            let handle = world.resource_mut::<Assets<Mesh>>().add(mesh);
-            world
-                .entity_mut(terrain)
-                .insert((Mesh3d(handle), Visibility::Inherited));
-        } else {
-            world.entity_mut(terrain).insert(Visibility::Hidden);
-        }
-        world.resource_mut::<Walk>().terrain_nodes = nodes;
+        world.resource_scope(|world, mut state: Mut<Walk>| {
+            state
+                .terrain_tiles
+                .select::<forge_engine::tidewater_terrain::lod::LodMaterial>(
+                    world,
+                    terrain,
+                    &nodes,
+                    |node| {
+                        ViewGeometry::mesh_from_nodes(std::slice::from_ref(node))
+                            .expect("one terrain tile")
+                            .0
+                    },
+                );
+            state.terrain_nodes = nodes;
+        });
     }
-    world.resource_scope(|world, mut plants: Mut<ResidentProof>| {
-        plants
-            .resident
-            .select(
-                world,
-                forge_engine::tidewater_plants::scene::View {
-                    camera: transform.translation,
-                    visibility: Visibility::Visible,
-                },
-            )
-            .expect("walk vegetation selection");
-    });
+    perf::end(world, started, "terrain_mesh");
+    // Vegetation selection is radial: orientation cannot alter its result.
+    // Keep its existing one-metre movement budget independently of yaw updates.
+    if world
+        .resource::<Walk>()
+        .plant_camera
+        .is_none_or(|position| position.distance_squared(transform.translation) >= 1.0)
+    {
+        let started = perf::start(world);
+        world.resource_scope(|world, mut plants: Mut<ResidentProof>| {
+            plants
+                .resident
+                .select(
+                    world,
+                    forge_engine::tidewater_plants::scene::View {
+                        camera: transform.translation,
+                        visibility: Visibility::Visible,
+                    },
+                )
+                .expect("walk vegetation selection");
+        });
+        world.resource_mut::<Walk>().plant_camera = Some(transform.translation);
+        perf::end(world, started, "plant_selection");
+    }
     update_ocean(world, &transform, &projection);
     world.resource_mut::<Walk>().previous = Some(transform);
 }
 
 fn update_ocean(world: &mut World, transform: &Transform, projection: &PerspectiveProjection) {
+    let started = perf::start(world);
     let nodes =
         super::ocean_geometry::view_nodes(transform, projection).expect("walk ocean selection");
+    perf::end(world, started, "ocean_selection");
     if forge_world::cdlod::same_node_geometry(&nodes, &world.resource::<Walk>().ocean_nodes) {
         return;
     }
@@ -413,11 +466,30 @@ fn update_ocean(world: &mut World, transform: &Transform, projection: &Perspecti
     let Ok(entity) = query.single(world) else {
         return;
     };
-    let mesh = world
-        .resource_mut::<Assets<Mesh>>()
-        .add(super::ocean_geometry::node_mesh(&nodes));
-    world.entity_mut(entity).insert(Mesh3d(mesh));
-    let mut state = world.resource_mut::<Walk>();
-    state.ocean_nodes = nodes;
-    state.ocean_updates += 1;
+    let started = perf::start(world);
+    world.resource_scope(|world, mut state: Mut<Walk>| {
+        state
+            .ocean_tiles
+            .select::<super::water_optics::WaterMaterial>(world, entity, &nodes, |node| {
+                super::ocean_geometry::node_mesh(std::slice::from_ref(node))
+            });
+        state.ocean_nodes = nodes;
+        state.ocean_updates += 1;
+    });
+    perf::end(world, started, "ocean_mesh");
+}
+
+pub(super) fn tile_entities(world: &World) -> Vec<Entity> {
+    let state = world.resource::<Walk>();
+    state
+        .terrain_tiles
+        .entities()
+        .into_iter()
+        .chain(state.ocean_tiles.entities())
+        .collect()
+}
+
+pub(super) fn tile_counts(world: &World) -> [[usize; 2]; 2] {
+    let state = world.resource::<Walk>();
+    [state.terrain_tiles.counts(), state.ocean_tiles.counts()]
 }

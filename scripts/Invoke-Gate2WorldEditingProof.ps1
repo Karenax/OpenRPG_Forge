@@ -1824,7 +1824,7 @@ function Install-WorldAudit {
     )
     $assetMode = if ($AssetPreviewDelay) { 'true' } else { 'false' }
     $expression = @"
-(() => {
+(async () => {
   const norm = value => (value ?? '').replace(/\s+/g, ' ').trim();
   const core = window.__TAURI__?.core;
   if (!core || typeof core.invoke !== 'function') throw new Error('Tauri core.invoke unavailable');
@@ -1837,7 +1837,15 @@ function Install-WorldAudit {
   let persistedEntries = [];
   try {
     const encoded = sessionStorage.getItem(storageKey);
-    if (encoded) persistedEntries = JSON.parse(encoded);
+    if (encoded) {
+      const stored = JSON.parse(encoded);
+      if (Array.isArray(stored)) persistedEntries = stored;
+      else if (stored?.encoding === 'gzip-base64') {
+        const bytes = Uint8Array.from(atob(stored.data), value => value.charCodeAt(0));
+        const decoded = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+        persistedEntries = JSON.parse(decoded);
+      } else throw new Error('unsupported persisted audit encoding');
+    }
     if (!Array.isArray(persistedEntries)) throw new Error('persisted audit entries are not an array');
   } catch (error) { throw new Error('Cannot restore the cross-reload world audit: ' + error); }
   const audit = {
@@ -1845,10 +1853,30 @@ function Install-WorldAudit {
     originalFetch, fetchDescriptor, hadOwnFetch:!!fetchDescriptor,
     storageKey, entries:persistedEntries, asset_mode:$assetMode,
     asset_path:'./forge-kit/assets/vv-tree-oak-a.glb', asset_transfer:null,
-    retry_next:null
+    retry_next:null, persistence_error:null,
+    next_index:persistedEntries.reduce((next, entry) => Math.max(next, entry.index + 1), 0)
   };
-  const persistEntries = () => sessionStorage.setItem(storageKey, JSON.stringify(audit.entries));
-  persistEntries();
+  // Keep observation-only Atelier polling in memory. Preserve every authoring
+  // request, receipt and failure across reloads using lossless compression.
+  const observationOnly = entry => entry.wire?.command === 'atelier' && entry.wire?.request?.operation === 'read';
+  let persistence = Promise.resolve();
+  const persistEntries = (entry, finalState = null) => {
+    if (entry && observationOnly(entry)) return persistence;
+    const encoded = JSON.stringify(audit.entries.filter(value => !observationOnly(value)).map(value => value === entry && finalState ? {...value, ...finalState} : value));
+    persistence = persistence.then(async () => {
+      try {
+        const stream = new Blob([encoded]).stream().pipeThrough(new CompressionStream('gzip'));
+        const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+        const chunks = [];
+        for (let offset = 0; offset < bytes.length; offset += 16384) chunks.push(String.fromCharCode(...bytes.subarray(offset, offset + 16384)));
+        sessionStorage.setItem(storageKey, JSON.stringify({encoding:'gzip-base64', data:btoa(chunks.join(''))}));
+        audit.persistence_error = null;
+      } catch (error) { audit.persistence_error = String(error); }
+    });
+    return persistence;
+  };
+  await persistEntries();
+  if (audit.persistence_error) throw new Error('Cannot persist the world audit: ' + audit.persistence_error);
   const sha256 = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2,'0')).join('');
   const stableJson = value => {
     if (value === null || typeof value !== 'object') return JSON.stringify(value);
@@ -1955,8 +1983,8 @@ function Install-WorldAudit {
         requestKind = wire?.command === 'authoring' && typeof wire?.request?.action === 'string' ? wire.request.action : null;
       } catch (error) { parseError = String(error); }
     }
-    const entry = ipcEndpoint ? { index:audit.entries.length, transport:'fetch', url:rawUrl, method:String(init?.method ?? 'GET').toUpperCase(), command:'execute_studio_command', request_kind:requestKind, wire, parse_error:parseError, request_sha256:null, zone_request_sha256:null, response_parse_error:null, attempts:[], started_at_ms:performance.now(), outcome:'pending' } : null;
-    if (entry) { audit.entries.push(entry); persistEntries(); }
+    const entry = ipcEndpoint ? { index:audit.next_index++, transport:'fetch', url:rawUrl, method:String(init?.method ?? 'GET').toUpperCase(), command:'execute_studio_command', request_kind:requestKind, wire, parse_error:parseError, request_sha256:null, zone_request_sha256:null, response_parse_error:null, attempts:[], started_at_ms:performance.now(), outcome:'pending' } : null;
+    if (entry) audit.entries.push(entry);
     if (!entry) return audit.originalFetch.apply(window, args);
     try {
       const commandId = String(wire?.request?.request?.command_id ?? '');
@@ -1966,7 +1994,10 @@ function Install-WorldAudit {
         try {
           entry.request_sha256 = requestPayload == null ? null : await hashJson(requestPayload);
           entry.zone_request_sha256 = wire?.request?.request == null ? null : await hashJson(wire.request.request);
+          await persistEntries(entry);
+          entry.transport_started_at_ms = performance.now();
           const first = await audit.originalFetch.apply(window, args);
+          entry.transport_response_at_ms = performance.now();
           try { entry.attempts.push({ index:0, http_status:first?.status ?? null, response:await summarizeResponse(first) }); }
           catch (error) { entry.response_parse_error='attempt 0: ' + String(error); entry.attempts.push({ index:0, http_status:first?.status ?? null, response:null }); }
           let returned = first;
@@ -1974,20 +2005,22 @@ function Install-WorldAudit {
             audit.retry_next.armed = false;
             audit.retry_next.matched = true;
             audit.retry_next.matched_entry_index = entry.index;
-            persistEntries();
+            await persistEntries(entry);
             const second = await audit.originalFetch.apply(window, args);
             try { entry.attempts.push({ index:1, http_status:second?.status ?? null, response:await summarizeResponse(second) }); }
             catch (error) { entry.response_parse_error=(entry.response_parse_error ? entry.response_parse_error + ' | ' : '') + 'attempt 1: ' + String(error); entry.attempts.push({ index:1, http_status:second?.status ?? null, response:null }); }
             returned = second;
           }
-          entry.outcome='resolved'; entry.completed_at_ms=performance.now(); entry.http_status=returned?.status ?? null; entry.synthetic_retry=retry; persistEntries();
+          const finalState = {outcome:'resolved', completed_at_ms:performance.now(), http_status:returned?.status ?? null, synthetic_retry:retry};
+          await persistEntries(entry, finalState);
+          Object.assign(entry, finalState);
           return returned;
         } catch (error) {
-          entry.outcome='rejected'; entry.completed_at_ms=performance.now(); entry.error=String(error); persistEntries(); throw error;
+          entry.outcome='rejected'; entry.completed_at_ms=performance.now(); entry.error=String(error); await persistEntries(entry); throw error;
         }
       })();
     } catch (error) {
-      entry.outcome='threw'; entry.completed_at_ms=performance.now(); entry.error=String(error); persistEntries();
+      entry.outcome='threw'; entry.completed_at_ms=performance.now(); entry.error=String(error); void persistEntries(entry);
       throw error;
     }
   };
@@ -2021,6 +2054,7 @@ function Get-WorldAuditSnapshot {
 (() => {
   const audit = window.__forgeGate2WorldAudit;
   if (!audit) throw new Error('world audit absent');
+  if (audit.persistence_error) throw new Error('World audit persistence failed: ' + audit.persistence_error);
   return { mechanism:audit.mechanism, asset_mode:audit.asset_mode, asset_path:audit.asset_path, asset_transfer:audit.asset_transfer ? { ...audit.asset_transfer } : null, retry_next:audit.retry_next ? { ...audit.retry_next } : null, entries:audit.entries.map(entry => ({ ...entry })), fetch_descriptor:audit.fetchDescriptor ? { writable:!!audit.fetchDescriptor.writable, configurable:!!audit.fetchDescriptor.configurable, enumerable:!!audit.fetchDescriptor.enumerable } : null };
 })()
 '@

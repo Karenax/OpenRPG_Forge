@@ -49,6 +49,7 @@ use std::sync::{
 const SHADER_HANDLE: Handle<Shader> = uuid_handle!("03527285-2084-48a1-b149-06db1f69079a");
 const CAMERA_SAMPLE_TOLERANCE_M: f32 = 0.75;
 const LENS_REACH_M: f32 = 0.35;
+pub mod medium;
 mod shafts;
 
 /// Orders consumers of the current camera immersion after its observation.
@@ -144,12 +145,18 @@ pub fn surface_query_shader_source(optical_shader: &str) -> Result<String, Strin
         || post.matches("fn lens_medium(").count() != 1
         || post.matches(DISTANCE_GUARD).count() != 1
         || post.matches("    let uv = input.uv;").count() != 1
+        || post.matches("fn setup_lens_medium_frame() {}").count() != 1
     {
         return Err("underwater endpoint shader anchor changed".into());
     }
     post = post.replacen(DISTANCE_GUARD, "", 1).replacen(
         "    let uv = input.uv;",
         "    setupUnderwaterHeightFrame();\n    let uv = input.uv;",
+        1,
+    );
+    post = post.replacen(
+        "fn setup_lens_medium_frame() {}",
+        "fn setup_lens_medium_frame() { setupUnderwaterHeightFrame(); }",
         1,
     );
     Ok(format!(
@@ -415,6 +422,8 @@ impl Plugin for TidewaterUnderwaterPlugin {
             .add_systems(
                 PostUpdate,
                 update
+                    .after(bevy::camera::CameraUpdateSystems)
+                    .after(crate::finite_perspective::EffectivePerspectiveSystems)
                     .after(bevy::transform::TransformSystems::Propagate)
                     .in_set(TidewaterUnderwaterUpdateSet),
             );
@@ -434,6 +443,16 @@ impl Plugin for TidewaterUnderwaterPlugin {
             .add_systems(
                 Render,
                 shafts::prepare.in_set(RenderSystems::PrepareBindGroups),
+            )
+            .add_systems(
+                Render,
+                medium::prepare.in_set(RenderSystems::PrepareBindGroups),
+            )
+            .add_systems(
+                Core3d,
+                medium::render
+                    .after(SourceHdrSystems::Gtao)
+                    .before(SourceHdrSystems::Haze),
             )
             .add_systems(
                 Core3d,
@@ -457,6 +476,8 @@ struct Settings {
     state: Vec4,
     /// x/y: perspective projection scale, z: enabled, w: shaft strength.
     projection: Vec4,
+    /// x/y: effective reverse-Z numerator and denominator offset.
+    depth_projection: Vec4,
     absorption: Vec4,
     scattering: Vec4,
     sun_direction: Vec4,
@@ -470,6 +491,7 @@ impl Settings {
             camera_world: Mat4::IDENTITY,
             state: Vec4::new(0.0, 0.1, 60_000.0, LENS_REACH_M),
             projection: Vec4::new(1.0, 1.0, 0.0, 0.0),
+            depth_projection: Vec4::new(0.1, 0.0, 0.0, 0.0),
             absorption: optics.absorption.extend(0.0),
             scattering: optics.scattering.extend(0.0),
             sun_direction: optics.sun_direction.normalize().extend(0.0),
@@ -498,12 +520,13 @@ fn update(
     shafts: Option<Res<shafts::Source>>,
     mut observation: ResMut<TidewaterUnderwaterObservation>,
     mut cameras: Query<
-        (&GlobalTransform, &Projection, &mut Settings),
+        (&GlobalTransform, &Camera, &Projection, &mut Settings),
         With<TidewaterUnderwaterCamera>,
     >,
 ) {
     let latest = source.queries.latest();
-    let Ok((transform, Projection::Perspective(perspective), mut settings)) = cameras.single_mut()
+    let Ok((transform, camera_view, Projection::Perspective(perspective), mut settings)) =
+        cameras.single_mut()
     else {
         return;
     };
@@ -535,17 +558,17 @@ fn update(
     } else {
         0.0
     };
-    let projection_y = 1.0 / (perspective.fov * 0.5).tan();
-    let projection_x = projection_y / perspective.aspect_ratio;
+    let clip = camera_view.clip_from_view();
 
     settings.camera_world = transform.to_matrix();
     settings.state = Vec4::new(camera.y, perspective.near, perspective.far, LENS_REACH_M);
     settings.projection = Vec4::new(
-        projection_x,
-        projection_y,
+        clip.x_axis.x,
+        clip.y_axis.y,
         if control.enabled { 1.0 } else { 0.0 },
         shafts_strength,
     );
+    settings.depth_projection = Vec4::new(clip.w_axis.z, clip.z_axis.z, 0.0, 0.0);
     settings.absorption = source.optics.absorption.extend(0.0);
     settings.scattering = source.optics.scattering.extend(0.0);
     settings.sun_direction = source.optics.sun_direction.normalize().extend(0.0);
@@ -645,7 +668,7 @@ fn render<F: QueryFilter + 'static, const HDR: bool>(
     let pipeline_id = specialized.specialize(
         &pipeline_cache,
         &pipeline,
-        (target.main_texture_format(), false),
+        (target.main_texture_format(), Pass::Composite),
     );
     let Some(render_pipeline) = pipeline_cache.get_render_pipeline(pipeline_id) else {
         return;
@@ -754,7 +777,11 @@ fn encode_shafts(
         surface_group,
         ..
     } = inputs;
-    let id = specialized.specialize(pipeline_cache, pipeline, (TextureFormat::Rgba16Float, true));
+    let id = specialized.specialize(
+        pipeline_cache,
+        pipeline,
+        (TextureFormat::Rgba16Float, Pass::Shafts),
+    );
     let Some(shaft_pipeline) = pipeline_cache.get_render_pipeline(id) else {
         return false;
     };
@@ -898,6 +925,7 @@ fn encode_medium(
 #[derive(Resource)]
 struct Pipeline {
     post_layout: BindGroupLayoutDescriptor,
+    medium_layout: BindGroupLayoutDescriptor,
     surface_layout: Option<BindGroupLayoutDescriptor>,
     surface_shader: Option<Handle<Shader>>,
     sampler: Sampler,
@@ -929,6 +957,7 @@ fn init_pipeline(
     );
     let sampler = device.create_sampler(&SamplerDescriptor::default());
     commands.insert_resource(Pipeline {
+        medium_layout: medium::layout(),
         post_layout,
         surface_layout: surface_shader
             .as_ref()
@@ -939,20 +968,32 @@ fn init_pipeline(
     });
 }
 
-impl SpecializedRenderPipeline for Pipeline {
-    type Key = (TextureFormat, bool);
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum Pass {
+    Composite,
+    Shafts,
+    Medium,
+}
 
-    fn specialize(&self, (format, shafts): Self::Key) -> RenderPipelineDescriptor {
+impl SpecializedRenderPipeline for Pipeline {
+    type Key = (TextureFormat, Pass);
+
+    fn specialize(&self, (format, kind): Self::Key) -> RenderPipelineDescriptor {
+        let post_layout = if kind == Pass::Medium {
+            &self.medium_layout
+        } else {
+            &self.post_layout
+        };
         let mut layout = if let Some(surface_layout) = &self.surface_layout {
             vec![
                 BindGroupLayoutDescriptor::new("unused tidewater view layout", &[]),
                 surface_layout.clone(),
-                self.post_layout.clone(),
+                post_layout.clone(),
             ]
         } else {
-            vec![self.post_layout.clone()]
+            vec![post_layout.clone()]
         };
-        if shafts {
+        if kind == Pass::Shafts {
             layout.push(shafts::layout());
         }
         RenderPipelineDescriptor {
@@ -961,7 +1002,14 @@ impl SpecializedRenderPipeline for Pipeline {
             vertex: self.fullscreen.to_vertex_state(),
             fragment: Some(FragmentState {
                 shader: self.surface_shader.clone().unwrap_or(SHADER_HANDLE),
-                entry_point: Some(if shafts { "shaft_fragment" } else { "fragment" }.into()),
+                entry_point: Some(
+                    match kind {
+                        Pass::Composite => "fragment",
+                        Pass::Shafts => "shaft_fragment",
+                        Pass::Medium => "lens_medium_fragment",
+                    }
+                    .into(),
+                ),
                 targets: vec![Some(ColorTargetState {
                     format,
                     blend: None,
@@ -1088,6 +1136,8 @@ mod tests {
         assert!(source.contains("return waterQueryHeightAtXZ(xz);"));
         assert!(source.contains("setupUnderwaterHeightFrame();"));
         assert!(!source.contains("if distance(endpoint.xz,"));
+        assert!(source.contains("fn setup_lens_medium_frame() { setupUnderwaterHeightFrame(); }"));
+        assert!(source.contains("fn lens_medium_fragment("));
     }
 
     #[test]

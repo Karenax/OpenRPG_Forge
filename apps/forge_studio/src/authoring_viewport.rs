@@ -298,6 +298,7 @@ fn launch_viewport(
             ..default()
         }))
         .add_plugins(forge_engine::source_fragment::SourceFragmentPlugin)
+        .add_plugins(forge_engine::source_graph::SourceGraphPlugin)
         .add_plugins(plugin)
         .insert_resource(forge_engine::DiagnosticsOverlaySettings { visible: false })
         .insert_resource(forge_engine::DiagnosticsOverlayTitle(

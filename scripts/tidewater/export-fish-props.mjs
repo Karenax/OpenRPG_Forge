@@ -1,0 +1,84 @@
+// SPDX-License-Identifier: MIT
+// Tidewater source copyright 2026 DRG Software Solutions LLC, commit 1438b1ab.
+// Observe source instance construction without changing placements or random calls.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
+
+const [sourceArg,outputArg]=process.argv.slice(2);
+if(!sourceArg||!outputArg)throw Error('SOURCE NEW_EXTERNAL_DIRECTORY required');
+if(process.versions.node!=='22.22.3')throw Error('Pinned Node 22.22.3 required');
+const source=path.resolve(sourceArg),output=path.resolve(outputArg);
+const pin='1438b1abfcaee3267092b75573014f4d9b4a983c';
+const git=(...args)=>execFileSync('git',['-C',source,...args],{encoding:'utf8'}).trim();
+if(git('rev-parse','HEAD')!==pin||git('status','--porcelain','--untracked-files=no'))throw Error('Unmodified pinned source required');
+const rel=path.relative(source,output);
+if(fs.existsSync(output)||!rel||(!rel.startsWith('..')&&!path.isAbsolute(rel)))throw Error('Fresh external output required');
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const at=f=>import(pathToFileURL(path.join(source,f)).href);
+await at('test/headless.mjs');
+const {GPU}=await at('src/engine/gpu/GPU.js');
+await GPU.init({headless:true});
+const {Scene}=await at('src/engine/index.js');
+const {TerrainData}=await at('src/world/TerrainData.js');
+const {Colliders}=await at('src/world/Colliders.js');
+const {Village}=await at('src/world/Village.js');
+const {FishProps}=await at('src/world/fish/FishProps.js');
+const build=()=>{const terrain=new TerrainData(),colliders=new Colliders();return {terrain,colliders,village:new Village({scene:new Scene(),terrain,colliders})};};
+const baseline=build();
+const fishMesh=baseline.village.group.children.find(mesh=>mesh.name==='village_fish');
+if(!fishMesh)throw Error('Source fish instance mesh absent');
+const instanceModule=fishMesh.material.modules.find(module=>module.bindings.fishPropsInstances);
+if(!instanceModule)throw Error('Source instance binding absent');
+const buffer=instanceModule.bindings.fishPropsInstances.storage;
+const readback=GPU.device.createBuffer({size:buffer.byteLength,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});
+const encoder=GPU.device.createCommandEncoder();
+encoder.copyBufferToBuffer(buffer.getGPU(),0,readback,0,buffer.byteLength);
+GPU.queue.submit([encoder.finish()]);
+await readback.mapAsync(GPUMapMode.READ);
+const baselineRecords=Buffer.from(new Uint8Array(readback.getMappedRange()).slice());
+readback.unmap();readback.destroy();
+const geometryDigest=geometry=>hash(Buffer.concat([...Object.values(geometry.attributes).map(attr=>Buffer.from(attr.array.buffer,attr.array.byteOffset,attr.array.byteLength)),Buffer.from(geometry.index.array.buffer,geometry.index.array.byteOffset,geometry.index.array.byteLength)]));
+const baselineGeometry=geometryDigest(fishMesh.geometry);
+const originalBuild=FishProps.prototype.build;
+const captures=[];
+FishProps.prototype.build=function(){
+  const items=structuredClone(this.items);
+  const mesh=originalBuild.call(this);
+  captures.push({items,batch:this.batch,kind0:Array.from(this.kind0),mesh});
+  return mesh;
+};
+let observed;
+try {observed=build();} finally {FishProps.prototype.build=originalBuild;}
+if(captures.length!==1)throw Error('Exactly one source fish batch required');
+const capture=captures[0];
+const records=Buffer.from(capture.batch.data.buffer);
+if(!records.equals(baselineRecords)||geometryDigest(capture.mesh.geometry)!==baselineGeometry)throw Error('Observation changed source fish geometry or instances');
+const digestSource=fs.readFileSync(new URL('./export-plaza-props.mjs',import.meta.url),'utf8');
+const first=digestSource.indexOf('function digest('),last=digestSource.indexOf('\nconst a = digest(',first);
+if(first<0||last<0)throw Error('Digest helper changed');
+const digest=Function('hash',`return (${digestSource.slice(first,last)})`)(hash);
+const a=digest(baseline),b=digest(observed);
+if(JSON.stringify(a)!==JSON.stringify(b)||hash(JSON.stringify(a))!=='e2f4799bb6f425afb4b9b800fb547528a037da15ad95f8c9d2182889c1e805f1')throw Error('Source scene differs from original acquisition');
+const keys=[...new Set(capture.items.map(item=>item.kind+':'+(item.species||'')))];
+if(capture.batch.kinds.length!==keys.length*3||capture.items.length*64!==records.length)throw Error('Source inventory differs');
+if(capture.kind0.some((kind,ordinal)=>kind!==keys.indexOf(capture.items[ordinal].kind+':'+(capture.items[ordinal].species||''))*3))throw Error('Source kind mapping differs');
+fs.mkdirSync(output);
+const write=(name,bytes)=>{fs.writeFileSync(path.join(output,name),bytes,{flag:'wx'});return {file:name,bytes:bytes.length,sha256:hash(bytes)};};
+const prototypes=keys.map((key,ordinal)=>({key,lods:[0,1,2].map(lod=>{
+  const kind=capture.batch.kinds[ordinal*3+lod],geometry=kind.geometry;
+  const attributes=Object.fromEntries(Object.entries(geometry.attributes).map(([name,attr])=>[name,{...write(`prototype-${ordinal}-lod-${lod}-${name}.bin`,Buffer.from(attr.array.buffer,attr.array.byteOffset,attr.array.byteLength)),item_size:attr.itemSize,component_type:attr.array.constructor.name}]));
+  return {lod,shadow:kind.shadow===true,shadow_only:kind.shadowOnly===true,vertices:geometry.attributes.position.count,triangles:geometry.index.count/3,attributes,indices:{...write(`prototype-${ordinal}-lod-${lod}-indices.bin`,Buffer.from(geometry.index.array.buffer,geometry.index.array.byteOffset,geometry.index.array.byteLength)),component_type:geometry.index.array.constructor.name}};
+})}));
+const instances=capture.items.map((item,ordinal)=>({source_id:`tidewater:${pin}:fish-prop:${ordinal}`,prototype:item.kind+':'+(item.species||''),kind0:capture.kind0[ordinal],source:item,record_f32:Array.from(capture.batch.data.slice(ordinal*16,(ordinal+1)*16))}));
+const sourceFiles=['LICENSE','src/world/fish/FishProps.js','src/world/fish/FishGeometry.js','src/world/fish/FishMaterial.js','src/world/fish/FishSpecies.js','src/world/reef/ReefBatch.js','src/world/Props.js','src/world/Village.js','src/materials/LODFade.js'];
+const provenance=Object.fromEntries(sourceFiles.map((name,i)=>[name,write(`source-${i}-${path.basename(name)}`,fs.readFileSync(path.join(source,name)))]));
+const propsSource=fs.readFileSync(path.join(source,'src/world/fish/FishProps.js'),'utf8');
+if(!propsSource.includes('const DRAW_RANGE = 90;')||!propsSource.includes('const SHADOW_RANGE = 22;'))throw Error('Source draw/shadow contract changed');
+const instanceStream=write('instances-f32.bin',records);
+write('fish-props.json',Buffer.from(JSON.stringify({schema:'forge.tidewater.fish-prop-source',version:1,source_commit:pin,node_version:process.versions.node,source_scene_digest:hash(JSON.stringify(a)),source_fish_geometry_sha256:baselineGeometry,source_instance_sha256:hash(baselineRecords),unchanged_source_scene:true,unchanged_fish_geometry_and_records:true,draw_range_m:90,shadow_range_m:22,prototypes,instances,instance_stream:instanceStream,provenance,limits:['Source acquisition only; Rust material, LOD, GPU rendering and Studio editing pending','Fish material and vertex bending must retain their dedicated source contract']},null,2)));
+if(git('status','--porcelain','--untracked-files=no'))throw Error('Source changed');
+console.log(JSON.stringify({instances:instances.length,prototypes:prototypes.length,lod_triangles:prototypes.map(p=>p.lods.map(lod=>lod.triangles)),source_unchanged:true}));
+GPU.device.destroy();process.exit(0);

@@ -21,7 +21,7 @@ const VILLAGE_LITE_SHADER: &str = include_str!("tidewater_caustics/village_lite.
 const LIGHT_MAP_LOOKUP: &str = include_str!("tidewater_caustics/light_map_lookup.wgsl");
 const UNDERWATER_SHADOW: &str = include_str!("tidewater_caustics/underwater_shadow.wgsl");
 
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct CausticSampleParams {
     /// Direction from water toward the sun, strength in W.
     pub sun_and_strength: Vec4,

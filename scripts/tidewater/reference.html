@@ -6,8 +6,73 @@
 // Development overlay only. Source App and effects are unchanged.
 import { App } from '/src/App.js';
 import { GPU } from '/src/engine/gpu/GPU.js';
-import { G } from '/src/engine/render/Frame.js';
+import { G, FrameUniforms } from '/src/engine/render/Frame.js';
+import { uGustOffset } from '/src/world/vegetation/VegNodes.js';
 const app = new App();
+const frameHistory = [];
+let acquisitionPhase = 'source-preparation';
+const sourceFrame = app.frame.bind(app);
+const vector = value => [value.x,value.y,value.z];
+const gpuBlock = block => {
+  const mirror = block._last;
+  if (!mirror) throw new Error('Source GPU uniform mirror missing');
+  const bytes = new Uint8Array(mirror.buffer,mirror.byteOffset,mirror.byteLength);
+  return btoa(String.fromCharCode(...bytes));
+};
+// Observe complete source transactions without changing App's frame ordering.
+app.frame = dt => {
+  const before = { global_time_s:G.time.value, gpu_frame:GPU.frame };
+  const cloud = app.clouds;
+  const sourceCloudUpdate = cloud.update;
+  let cloudInput, result;
+  cloud.update = function(delta,camera) {
+    cloudInput = {
+      dt:delta, underwater:G.cameraUnderwater.value>0.5,
+      wind_direction:[G.windDir.value.x,G.windDir.value.y],
+      light_direction:vector(G.sunDir.value),
+      coverage:this.coverage.value, resolution_scale:this.resolutionScale,
+    };
+    return sourceCloudUpdate.call(this,delta,camera);
+  };
+  try { result = sourceFrame(dt); }
+  finally { cloud.update = sourceCloudUpdate; }
+  if (!cloudInput) throw new Error('Source cloud update was not observed');
+  const cloudCamera = {
+    position:[...cloud.F.position.value].slice(0,3),
+    right:[...cloud.F.right.value].slice(0,3),
+    up:[...cloud.F.up.value].slice(0,3),
+    forward:[...cloud.F.forward.value].slice(0,3),
+    fov_degrees:app.camera.fov, aspect:app.camera.aspect, zoom:app.camera.zoom,
+  };
+  const cameraValues = [...cloudCamera.position,...cloudCamera.right,...cloudCamera.up,
+    ...cloudCamera.forward,cloudCamera.fov_degrees,cloudCamera.aspect,cloudCamera.zoom];
+  const cameraBytes = new Uint8Array(120);
+  const cameraView = new DataView(cameraBytes.buffer);
+  cameraValues.forEach((value,index)=>cameraView.setFloat64(index*8,value,true));
+  frameHistory.push({
+    phase:acquisitionPhase, dt, before,
+    after:{
+      global_time_s:G.time.value, gpu_frame:GPU.frame,
+      ocean_time_s:app.fft.time.value, ocean_time_scale:app.fft.timeScale,
+      cloud_clock:[...cloud.F.clock.value],
+      vegetation_gust_offset:[uGustOffset.value.x,uGustOffset.value.y],
+    },
+    cloud_camera:cloudCamera,
+    cloud_camera_f64le:btoa(String.fromCharCode(...cameraBytes)),
+    cloud_coverage:cloud.coverage.value, resolution_scale:cloud.resolutionScale,
+    cloud_input:cloudInput,
+    ocean_gpu_params:gpuBlock(app.fft.params),
+    cloud_gpu_blocks:{
+      frame:gpuBlock(cloud.frameBlock), settings:gpuBlock(cloud.settingsBlock),
+      public:gpuBlock(cloud.params), global:gpuBlock(FrameUniforms),
+      atmosphere:gpuBlock(cloud.atmosphere.params),
+    },
+    wind_direction:[G.windDir.value.x,G.windDir.value.y],
+    wind_speed:G.windSpeed.value, light_direction:vector(G.sunDir.value),
+    scope:'Observed source frame; camera basis consumed by Clouds.update',
+  });
+  return result;
+};
 const params = new URLSearchParams(location.search);
 const views = {
   coast: { position:[53.6,4.447713719743241,-77], yaw:Math.PI, pitch:-0.05 },
@@ -27,6 +92,7 @@ try {
   app.fly.velocity.set(0,0,0);
   // Reset time after upstream's own precompile frames; record remaining state.
   G.time.value = 0;
+  acquisitionPhase = 'reference-warmup';
   app.settings.timeOfDay = params.get('night') === '1' ? 22 : 16.2;
   app.settings.timeSpeed = 0;
   const warmupFrames = 120;
@@ -39,11 +105,32 @@ try {
     view:viewName, settings:app.settings, camera:{position:app.camera.position,quaternion:app.camera.quaternion,fov:app.camera.fov},
     output:[app.engine.width,app.engine.height], render_scale:app.engine.renderScale,
     time_s:G.time.value, warmup_frames:warmupFrames, step_s:1/60,
+    frame_history:frameHistory,
+    animation_clocks:{
+      global_time_s:G.time.value, global_dt_s:G.dt.value,
+      ocean_time_s:app.fft.time.value, ocean_time_scale:app.fft.timeScale,
+      cloud_clock:app.clouds.F?.clock?.value ? [...app.clouds.F.clock.value] : null,
+      wind_speed:G.windSpeed.value, wind_direction:[G.windDir.value.x,G.windDir.value.y],
+      vegetation_gust_offset:[uGustOffset.value.x,uGustOffset.value.y],
+      scope:'Actual source uniforms after acquisition; independent precompile histories are retained',
+    },
     adapter:GPU.adapter.info, gpu_frame:GPU.frame,
     vegetation_counts:Object.fromEntries(Object.entries(app.vegetation.records).filter(([,v])=>Array.isArray(v)).map(([k,v])=>[k,v.length])),
     limits:['no_performance_verdict','asynchronous_readback_and_precompile_state_not_yet_replay_qualified'],
   };
   document.title = 'READY — Tidewater ' + viewName;
+  window.forgeAcquireEnvironment = async () => {
+    const { acquire } = await import('/forge-reference-environment.js');
+    return acquire(app);
+  };
+  window.forgeAcquireCloudOutput = async () => {
+    const { acquire } = await import('/forge-reference-cloud-output.js');
+    return acquire(app);
+  };
+  window.forgeAcquireOceanOutput = async () => {
+    const { acquire } = await import('/forge-reference-ocean-output.js');
+    return acquire(app);
+  };
 } catch(error) {
   window.forgeReference = {status:'failed',message:error.message};
   document.title = 'FAILED — Tidewater reference';

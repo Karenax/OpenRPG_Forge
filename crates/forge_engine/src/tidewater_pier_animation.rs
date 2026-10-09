@@ -66,7 +66,8 @@ impl ResidentPierMotion {
                 source.pivot_world_m[0] - 55.0,
                 source.pivot_world_m[1],
                 source.pivot_world_m[2] + 64.0,
-            ).as_vec3();
+            )
+            .as_vec3();
             verify_pivot(world, matches[0], root, pivot)?;
             let state = LanternMotion {
                 t: source.t,
@@ -119,6 +120,41 @@ impl ResidentPierMotion {
             sign_pivot,
             sign_state,
         })
+    }
+
+    /// Reattach after a common placement edit while preserving elapsed motion.
+    /// Resolve the complete hierarchy before changing the resident state.
+    pub fn rebind(
+        &mut self,
+        world: &mut World,
+        package: &PierMotionPackage,
+        placement: &ManualPlacement,
+    ) -> Result<(), String> {
+        if placement.id != self.placement.id {
+            return Err("Pier motion rebind instance identity differs".into());
+        }
+        let mut next = Self::bind(world, package, placement)?;
+        if next.lanterns.len() != self.lanterns.len() {
+            return Err("Pier motion rebind source inventory differs".into());
+        }
+        for (new, old) in next.lanterns.iter_mut().zip(&self.lanterns) {
+            old.state.validate()?;
+            new.state = old.state;
+        }
+        self.sign_state.validate()?;
+        next.sign_state = self.sign_state;
+        for lantern in &next.lanterns {
+            world
+                .get_mut::<Transform>(lantern.entity)
+                .expect("Validated rebind pivot")
+                .rotation = lantern.state.rotation().as_quat();
+        }
+        world
+            .get_mut::<Transform>(next.sign)
+            .expect("Validated rebind sign")
+            .rotation = next.sign_state.rotation().as_quat();
+        *self = next;
+        Ok(())
     }
 
     /// Compute all states before committing any transforms or elapsed time.

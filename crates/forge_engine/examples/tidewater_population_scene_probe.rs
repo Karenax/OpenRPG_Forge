@@ -340,6 +340,7 @@ fn project(scene: &scene::Vegetation, camera: Vec3) -> Result<Vec<scene::Importe
 
 fn material() -> PlantMaterial {
     PlantMaterial {
+        scene_lighting: forge_engine::tidewater_material::scene_buffer::HANDLE.clone(),
         motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
         params: Params {
             i_pos: Vec4::ZERO,

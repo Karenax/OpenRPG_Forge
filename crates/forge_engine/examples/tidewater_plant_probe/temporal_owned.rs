@@ -36,6 +36,7 @@ const LABELS: [&str; 7] = [
 #[derive(Resource, Clone, Default, ExtractResource)]
 struct Intent {
     case: usize,
+    expects_stall_contact: bool,
 }
 #[derive(Clone)]
 struct Sample {
@@ -123,6 +124,27 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::Village,
         MaterialRole::Opaque,
     )?;
+    // Nature has the same acquired ABI; its actual installed source shader is derived.
+    temporal::register_material::<forge_engine::tidewater_debris::nature::NatureMaterial>(
+        app,
+        Family::Village,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_debris::pebble_material::PebbleMaterial>(
+        app,
+        Family::Pebble,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_debris::scanned_material::ScannedMaterial>(
+        app,
+        Family::Scanned,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_fish_props::material::FishMaterial>(
+        app,
+        Family::Fish,
+        MaterialRole::Opaque,
+    )?;
     temporal::register_material::<super::water_optics::WaterMaterial>(
         app,
         Family::Ocean,
@@ -133,6 +155,13 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::FishStand,
         MaterialRole::Opaque,
     )?;
+    if app.world().resource::<super::Probe>().fish_stand.is_some() {
+        temporal::register_material::<forge_engine::tidewater_stall::full_material::FullMaterial>(
+            app,
+            Family::FullStall,
+            MaterialRole::Opaque,
+        )?;
+    }
     temporal::register_material::<super::breaker_lip::LipMaterial>(
         app,
         Family::BreakerLip,
@@ -167,8 +196,12 @@ pub fn install(app: &mut App) -> Result<(), String> {
         return Err("Render-owned proof refuses existing outputs".into());
     }
     let bridge = Bridge::default();
+    let expects_stall_contact = app.world().resource::<super::Probe>().fish_stand.is_some();
     app.insert_resource(bridge.clone())
-        .init_resource::<Intent>()
+        .insert_resource(Intent {
+            case: 0,
+            expects_stall_contact,
+        })
         .add_plugins(ExtractResourcePlugin::<Intent>::default())
         .insert_resource(Proof {
             started: Instant::now(),
@@ -311,6 +344,7 @@ fn observe(
         With<refraction::CaptureCamera>,
     >,
     capture_targets: Option<Res<refraction::Targets>>,
+    stall_contact: Option<Res<forge_engine::tidewater_stall::contact_gpu::Observation>>,
     intent: Res<Intent>,
     bridge: Res<Bridge>,
     mut seen: ResMut<Seen>,
@@ -325,6 +359,9 @@ fn observe(
     let aux = auxiliary.snapshot(packet.tag.view);
     let medium = hdr.snapshot(packet.tag.view);
     let report = owner_report.snapshot();
+    let contact = stall_contact
+        .as_ref()
+        .and_then(|observation| observation.0.lock().ok().map(|report| report.clone()));
     let mut checks = Vec::<String>::new();
     let mut check = |valid: bool, reason: &str| {
         if !valid {
@@ -456,6 +493,20 @@ fn observe(
     // Camera history advances on a genuine temporal commit even when optics is
     // still bootstrapping. A missing refraction join must not make it stale.
     let history_commit_valid = checks.is_empty();
+    if intent.expects_stall_contact
+        && !contact.as_ref().is_some_and(|contact| {
+            contact.tag == Some(packet.tag)
+                && contact.source_owned
+                && contact.error.is_none()
+                && if packet.frame.needs_history_seed {
+                    contact.seed && !contact.history_matched
+                } else {
+                    !contact.seed && contact.history_matched
+                }
+        })
+    {
+        checks.push("stall-contact-same-camera-tag-matched-history-or-explicit-seed".into());
+    }
     let matching: Vec<_> = captures
         .iter()
         .filter(|(s, ..)| s.view == packet.tag.view)
@@ -513,7 +564,11 @@ fn observe(
                 "depth_cleared":r.previous_depth_cleared,"depth_copied":r.previous_depth_copied,"output_copied":r.output_copied,
                 "frames_encoded":r.frames_encoded,"error":format!("{:?}",r.error)})),
             "auxiliary":aux.as_ref().map(|a|format!("{a:?}")),"hdr":medium.as_ref().map(|h|format!("{h:?}")),
-            "refraction_join":capture_json,"refraction_join_valid":capture_ok}),
+            "refraction_join":capture_json,"refraction_join_valid":capture_ok,
+            "stall_contact_required":intent.expects_stall_contact,
+            "stall_contact":contact.as_ref().map(|contact|serde_json::json!({
+                "tag":contact.tag.map(|tag|serde_json::json!({"view_bits":tag.view.to_bits().to_string(),"serial":tag.serial})),
+                "source_owned":contact.source_owned,"history_matched":contact.history_matched,"seed":contact.seed,"error":contact.error}))}),
     };
     if let Ok(mut mail) = bridge.0.lock() {
         if mail.records.len() == MAIL_LIMIT {

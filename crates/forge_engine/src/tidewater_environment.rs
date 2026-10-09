@@ -1,4 +1,8 @@
 //! Scene-owned HDR environment data, usable by native and WebGPU adapters.
+pub mod controller;
+pub mod live;
+pub mod programs;
+pub mod resident;
 use bevy::{
     asset::RenderAssetUsages,
     image::{ImageFilterMode, ImageSampler, ImageSamplerDescriptor},

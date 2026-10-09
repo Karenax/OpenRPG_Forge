@@ -10,6 +10,7 @@ struct State {
     source: Option<(forge_core::ContentHash, u64)>,
     resident: Option<scene::resident::Resident>,
     shadow: Option<scene::shadow::Source>,
+    shadow_selection: Option<(Vec4, Vec<scene::shadow::SelectionObservation>)>,
     grass: Option<GrassState>,
     camera: Option<[u32; 3]>,
     materials: Vec<Handle<PlantMaterial>>,
@@ -67,6 +68,7 @@ pub(crate) fn ready(world: &World, expected_head: forge_core::ContentHash) -> bo
 
 fn retire(world: &mut World, state: &mut State) {
     state.shadow = None;
+    state.shadow_selection = None;
     if let Some(grass) = state.grass.take() {
         grass.resident.retire(world);
     }
@@ -214,14 +216,26 @@ pub(crate) fn shadow_input(
 }
 
 pub(crate) fn shadow_streams(
-    world: &World,
+    world: &mut World,
     camera: Vec4,
 ) -> Option<Result<Vec<forge_engine::tidewater_object_shadow::plants::Stream>, String>> {
-    world
-        .get_resource::<State>()?
-        .shadow
-        .as_ref()
-        .map(|source| source.select(camera))
+    let mut state = world.get_resource_mut::<State>()?;
+    let selected = state.shadow.as_ref()?.select_observed(camera);
+    Some(selected.map(|(streams, observation)| {
+        state.shadow_selection = Some((camera, observation));
+        streams
+    }))
+}
+
+pub(crate) fn shadow_selection_observation(world: &World) -> Option<serde_json::Value> {
+    let state = world.get_resource::<State>()?;
+    let (camera, groups) = state.shadow_selection.as_ref()?;
+    Some(serde_json::json!({
+        "scope": "CPU streams selected for shadow animation upload; not GPU depth coverage",
+        "source": state.source,
+        "camera": camera.to_array(),
+        "groups": groups,
+    }))
 }
 
 pub(crate) fn update(world: &mut World) {

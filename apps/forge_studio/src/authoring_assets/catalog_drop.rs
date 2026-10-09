@@ -49,10 +49,8 @@ pub(super) fn begin(
             return Err("Attendre la zone en mode édition avant de glisser un asset".into());
         }
         let source = head(state.get_untracked())?;
-        let browser = catalog.get_untracked().ok_or("Charger le catalogue")?;
-        let reference = browser
-            .reference(&name)
-            .map_err(|error| error.to_string())?;
+        let browser = super::catalog::resolve(catalog.get_untracked().as_ref(), &name)?;
+        let reference = browser.reference();
         Ok::<_, String>((source.content_hash()?, browser, reference))
     })();
     let (expected, browser, reference) = match setup {
@@ -79,16 +77,17 @@ pub(super) fn begin(
             }
         };
         busy.set(true);
-        super::placements::report("Dépôt reçu : contrôle du GLB avant aperçu…");
+        super::placements::report("Dépôt reçu : contrôle des ressources avant aperçu…");
         let browser = browser.clone();
         let name = name.clone();
         wasm_bindgen_futures::spawn_local(async move {
-            let checked = super::verify::check_reference(&browser, reference.0, reference.1).await;
+            let checked = browser.check().await;
             busy.set(false);
             if !super::preview::is_current(ticket) || selected.get_untracked() != name {
                 return;
             }
             let result = checked.and_then(|_| {
+                browser.still_available()?;
                 let current = head(state.get_untracked())?;
                 if current.content_hash()? != expected
                     || !crate::authoring_viewport::can_preview_asset()
@@ -97,7 +96,7 @@ pub(super) fn begin(
                 }
                 insertion::prepare(
                     &current,
-                    &name,
+                    &browser.label(&name),
                     reference,
                     (
                         Transform::IDENTITY,

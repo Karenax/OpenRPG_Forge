@@ -27,7 +27,7 @@ pub(super) fn LibraryWorkspace() -> impl IntoView {
     <main class="asset-library-standalone"><LibraryPageView close=close/></main> }
 }
 
-async fn read(request: &LibraryRequest) -> Result<LibraryResponse, String> {
+pub(crate) async fn read(request: &LibraryRequest) -> Result<LibraryResponse, String> {
     let arguments = js_sys::Object::new();
     let text = serde_json::to_string(request).map_err(|e| e.to_string())?;
     js_sys::Reflect::set(
@@ -270,7 +270,13 @@ fn LibraryPageView(close: Callback<()>) -> impl IntoView {
                     <Show when=move ||selected.get().is_empty()><div class="asset-empty"><h2>"Examinez un asset"</h2><p>"Sélectionnez une vignette pour afficher sa fiche et ses informations de placement."</p></div></Show>
                     <Show when=move ||detail_busy.get()><p role="status">"Chargement de la fiche…"</p></Show>
                     <Show when=move ||!detail_error.get().is_empty()><p class="asset-error" role="alert">{move ||detail_error.get()}</p></Show>
-                    {move ||detail.get().map(|value|view!{<AssetDetails value=value revision=page.get_untracked().map(|p|p.revision).unwrap_or_default()/>})}
+                    {move ||detail.get().map(|value| {
+                        let revision = page.get_untracked().map(|p|p.revision).unwrap_or_default();
+                        view!{
+                            <crate::authoring_assets::vault::VaultActions card=value.card.clone() revision=revision.clone() selected=selected close=close/>
+                            <AssetDetails value=value revision=revision/>
+                        }
+                    })}
                 </aside>
             </div>
         </section>

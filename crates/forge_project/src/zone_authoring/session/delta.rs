@@ -227,6 +227,78 @@ struct Archive {
     commands: Vec<StoredCommand>,
 }
 
+fn stored_command(
+    receipt: &ZoneReceipt,
+    previous: &ZoneCorrections,
+) -> Result<StoredCommand, String> {
+    let request = &receipt.request;
+    let action = match &request.action {
+        ZoneAction::Edit(value) => {
+            Action::Edit(Box::new(CorrectionsDelta::between(previous, value)?))
+        }
+        other => Action::Other(other.clone()),
+    };
+    Ok(StoredCommand {
+        command_id: request.command_id,
+        expected_revision: request.expected_revision,
+        expected_hash: request.expected_hash,
+        action,
+        audit: receipt.audit.clone(),
+        receipt_hash: canonical_json_sha256(receipt).map_err(|error| error.to_string())?,
+    })
+}
+
+/// Derived byte accounting only; archives still use the unchanged encoder.
+pub(super) struct SizeCache {
+    header_without_version: usize,
+    commands_bytes: usize,
+    expanded_bytes: usize,
+    previous_edit: ZoneCorrections,
+}
+
+impl SizeCache {
+    pub(super) fn new(
+        migration: &ZoneMigrationProposal,
+        head: &ZoneAuthoringHead,
+    ) -> Result<Self, String> {
+        let header = encode(migration, head, &[])?;
+        Ok(Self {
+            header_without_version: header.len() - version(&[]).to_string().len(),
+            commands_bytes: 0,
+            expanded_bytes: 0,
+            previous_edit: ZoneCorrections::default(),
+        })
+    }
+
+    pub(super) fn candidate(
+        &self,
+        receipts: &[ZoneReceipt],
+        receipt: &ZoneReceipt,
+    ) -> Result<(usize, usize, usize), String> {
+        let mut expanded = self.expanded_bytes;
+        check_expansion(&mut expanded, &receipt.request)?;
+        let command = stored_command(receipt, &self.previous_edit)?;
+        let command_bytes = canonical_json_bytes(&command)
+            .map_err(|error| error.to_string())?
+            .len();
+        let new_version = version(receipts).max(version(std::slice::from_ref(receipt)));
+        let total = self.header_without_version
+            + new_version.to_string().len()
+            + self.commands_bytes
+            + command_bytes
+            + receipts.len();
+        Ok((total, command_bytes, expanded))
+    }
+
+    pub(super) fn accept(&mut self, receipt: &ZoneReceipt, command_bytes: usize, expanded: usize) {
+        self.commands_bytes += command_bytes;
+        self.expanded_bytes = expanded;
+        if let ZoneAction::Edit(value) = &receipt.request.action {
+            self.previous_edit = (**value).clone();
+        }
+    }
+}
+
 pub(super) fn encode(
     migration: &ZoneMigrationProposal,
     head: &ZoneAuthoringHead,
@@ -241,22 +313,10 @@ pub(super) fn encode(
     for receipt in receipts {
         let request = &receipt.request;
         check_expansion(&mut expanded_bytes, request)?;
-        let action = match &request.action {
-            ZoneAction::Edit(value) => {
-                let delta = CorrectionsDelta::between(&previous, value)?;
-                previous = (**value).clone();
-                Action::Edit(Box::new(delta))
-            }
-            other => Action::Other(other.clone()),
-        };
-        commands.push(StoredCommand {
-            command_id: request.command_id,
-            expected_revision: request.expected_revision,
-            expected_hash: request.expected_hash,
-            action,
-            audit: receipt.audit.clone(),
-            receipt_hash: canonical_json_sha256(receipt).map_err(|e| e.to_string())?,
-        });
+        commands.push(stored_command(receipt, &previous)?);
+        if let ZoneAction::Edit(value) = &request.action {
+            previous = (**value).clone();
+        }
     }
     let bytes = canonical_json_bytes(&Archive {
         schema: "forge.zone-edit-session".into(),
@@ -373,6 +433,46 @@ fn check_expansion(total: &mut usize, request: &ZoneRequest) -> Result<(), Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn incremental_size_matches_real_encoding_across_edits_undo_redo_and_reload() {
+        let terrain = crate::authoring::new_terrain("count", "zone", "Size").unwrap();
+        let mut session = ZoneEditSession::from_initial_terrain(terrain).unwrap();
+        for index in 0..12 {
+            let mut corrections = session.head().corrections.clone();
+            corrections.name = Some(format!("Édition {index} \"\\\n"));
+            for action in [
+                ZoneAction::edit(corrections),
+                ZoneAction::Undo,
+                ZoneAction::Redo,
+            ] {
+                let request = ZoneRequest {
+                    command_id: CommandId::deterministic(format!(
+                        "count-{}",
+                        session.audit().len()
+                    )),
+                    expected_revision: session.head().revision,
+                    expected_hash: session.head().content_hash().unwrap(),
+                    action,
+                };
+                let receipt = session.preview(&request).unwrap();
+                let expected = session
+                    .delta_size
+                    .as_ref()
+                    .unwrap()
+                    .candidate(session.audit(), &receipt)
+                    .unwrap()
+                    .0;
+                session.execute(&request).unwrap();
+                assert_eq!(expected, session.delta_archive_bytes().unwrap().len());
+            }
+            if index % 3 == 0 {
+                session =
+                    ZoneEditSession::from_archive_bytes(&session.delta_archive_bytes().unwrap())
+                        .unwrap();
+            }
+        }
+    }
 
     #[test]
     fn expansion_budget_and_signed_zero_are_exact() {

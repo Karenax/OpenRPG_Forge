@@ -1,5 +1,12 @@
 # forge_assets
 
+Le lecteur `source_graph_attributes` conserve les canaux UV supplémentaires
+présents (1 à 7), en Vec2 glTF et en Vec4 source distincts. Un canal absent
+reste absent ; les valeurs originales ne sont ni retournées ni normalisées.
+Les comptes, encodages, valeurs finies et budgets mémoire sont contrôlés avant
+admission. Les canaux hors de cette plage sont refusés explicitement.
+
+
 `source_mesh_shaders::SourceMeshShaderPackage` charge le contrat générique
 `forge.source-mesh-shaders` v1 par callbacks natifs/WASM, sans renderer ni
 JavaScript. Le hash gouverné du manifeste et les pins de tous les fichiers sont

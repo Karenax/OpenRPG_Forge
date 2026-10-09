@@ -14,6 +14,11 @@ pub struct ManualPlacementCollisionExpected {
     pub primitives: Vec<Entity>,
 }
 
+/// Derived only from a verified prototype that explicitly has no solid primitives.
+/// This is renderer state, not a user-authored waiver for missing collisions.
+#[derive(Component, Clone, Copy, Debug)]
+pub struct ManualPlacementCollisionNotRequired(pub EntityId);
+
 #[derive(Component, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ManualPlacementCollisionStatus {
     MissingPrimitives,
@@ -26,7 +31,7 @@ pub(super) fn observe(world: &mut World) {
     let updates: Vec<_> = world
         .query::<(Entity, &ManualPlacementCollisionExpected)>()
         .iter(world)
-        .map(|(root, expected)| (root, inspect(world, expected)))
+        .map(|(root, expected)| (root, inspect(world, root, expected)))
         .collect();
     for (root, status) in updates {
         if world.get::<ManualPlacementCollisionStatus>(root) != Some(&status) {
@@ -37,9 +42,17 @@ pub(super) fn observe(world: &mut World) {
 
 pub(super) fn inspect(
     world: &World,
+    root: Entity,
     expected: &ManualPlacementCollisionExpected,
 ) -> ManualPlacementCollisionStatus {
     use ManualPlacementCollisionStatus as Status;
+    if let Some(policy) = world.get::<ManualPlacementCollisionNotRequired>(root) {
+        return if policy.0 == expected.placement && expected.primitives.is_empty() {
+            Status::Registered { primitives: 0 }
+        } else {
+            Status::Failed("noncolliding_prototype_contract_mismatch")
+        };
+    }
     if expected.primitives.is_empty() {
         return Status::MissingPrimitives;
     }
@@ -138,6 +151,46 @@ fn synchronized(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn verified_noncolliding_policy_is_explicit_and_bound_to_the_placement() {
+        let mut world = World::new();
+        let id = EntityId::deterministic("noncolliding-contract");
+        let root = world.spawn_empty().id();
+        let mut expected = ManualPlacementCollisionExpected {
+            placement: id,
+            primitives: Vec::new(),
+        };
+        assert_eq!(
+            inspect(&world, root, &expected),
+            ManualPlacementCollisionStatus::MissingPrimitives
+        );
+        world
+            .entity_mut(root)
+            .insert(ManualPlacementCollisionNotRequired(id));
+        assert_eq!(
+            inspect(&world, root, &expected),
+            ManualPlacementCollisionStatus::Registered { primitives: 0 }
+        );
+        expected.placement = EntityId::deterministic("wrong-placement");
+        assert_eq!(
+            inspect(&world, root, &expected),
+            ManualPlacementCollisionStatus::Failed("noncolliding_prototype_contract_mismatch")
+        );
+        expected.placement = id;
+        expected.primitives.push(Entity::PLACEHOLDER);
+        assert_eq!(
+            inspect(&world, root, &expected),
+            ManualPlacementCollisionStatus::Failed("noncolliding_prototype_contract_mismatch")
+        );
+        world
+            .entity_mut(root)
+            .remove::<ManualPlacementCollisionNotRequired>();
+        assert_eq!(
+            inspect(&world, root, &expected),
+            ManualPlacementCollisionStatus::Failed("missing_or_replaced_collision_primitive")
+        );
+    }
     use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin};
 
     #[test]
@@ -162,7 +215,7 @@ mod tests {
             primitives: vec![primitive],
         };
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Waiting {
                 registered: 0,
                 expected: 1
@@ -171,12 +224,12 @@ mod tests {
         app.update();
         app.world_mut().run_schedule(FixedUpdate);
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Registered { primitives: 1 }
         );
         expected.primitives.push(primitive);
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Failed("duplicate_collision_primitive")
         );
         expected.primitives.pop();
@@ -184,7 +237,7 @@ mod tests {
             .entity_mut(primitive)
             .insert(ManualPlacementCollisionFailed("invalid"));
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Failed("invalid")
         );
         app.world_mut()
@@ -194,7 +247,7 @@ mod tests {
             .entity_mut(primitive)
             .insert(RapierContextEntityLink(Entity::PLACEHOLDER));
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Waiting {
                 registered: 0,
                 expected: 1
@@ -202,12 +255,12 @@ mod tests {
         );
         app.world_mut().despawn(primitive);
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::Failed("missing_or_replaced_collision_primitive")
         );
         expected.primitives.clear();
         assert_eq!(
-            inspect(app.world(), &expected),
+            inspect(app.world(), Entity::PLACEHOLDER, &expected),
             ManualPlacementCollisionStatus::MissingPrimitives
         );
     }

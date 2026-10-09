@@ -18,7 +18,7 @@ use std::{
     fs,
     io::Write,
     path::{Path, PathBuf},
-    sync::atomic::Ordering,
+    sync::{Arc, Mutex, atomic::Ordering},
     time::Duration,
 };
 mod controller;
@@ -42,6 +42,18 @@ struct Output {
 #[derive(Component)]
 struct Item {
     index: usize,
+}
+
+#[derive(Resource)]
+struct CapturedTargets(Arc<Mutex<Option<Targets>>>);
+
+fn capture_targets(world: &mut World) {
+    let Some(targets) = world.get_resource::<Targets>().cloned() else {
+        return;
+    };
+    if let Ok(mut captured) = world.resource::<CapturedTargets>().0.lock() {
+        *captured = Some(targets);
+    }
 }
 const SIZES: [u32; 10] = [1024, 64, 256, 240, 240, 960, 960, 960, 960, 512];
 const HEIGHTS: [u32; 10] = [1024, 64, 256, 135, 135, 540, 540, 540, 540, 160];
@@ -383,6 +395,7 @@ fn run_package(
         Ok(bytes)
     })?;
     let prepared = PreparedEnvironment::new(&package)?;
+    let bootstrap_frames = u32::try_from(package.bootstrap_frames())?;
     assert_eq!(
         prepared.environment.data.as_deref(),
         package.file("environment-cube.bin")
@@ -411,10 +424,10 @@ fn run_package(
     } else if reload {
         forge_engine::tidewater_atmosphere::register(&mut app)?;
         forge_engine::tidewater_clouds::register(&mut app)?;
-        app.insert_resource(PendingEnvironments(vec![
-            PreparedEnvironment::new(&package)?,
-            prepared,
-        ]));
+        app.insert_resource(PendingEnvironments(
+            vec![PreparedEnvironment::new(&package)?, prepared],
+            bootstrap_frames,
+        ));
         app.add_systems(Update, stage_environments.before(readback));
     } else {
         let atmosphere =
@@ -445,14 +458,49 @@ fn run_package(
         app.insert_resource(PreviewMode);
         app.add_systems(Update, preview_output);
     }
+    let captured = Arc::new(Mutex::new(None));
+    app.insert_resource(CapturedTargets(captured.clone()));
+    app.add_systems(
+        Update,
+        capture_targets
+            .after(stage_environments)
+            .before(readback)
+            .before(preview_output),
+    );
     if app.run() != AppExit::Success {
         return Err("package environment GPU proof failed".into());
     }
+    let targets = captured
+        .lock()
+        .map_err(|_| "GPU result capture lock poisoned")?
+        .clone()
+        .ok_or("GPU result targets were not captured before runner exit")?;
+    if targets.completed_steps.load(Ordering::Acquire) != bootstrap_frames
+        || targets.submissions.load(Ordering::Acquire) != bootstrap_frames
+        || !targets.ready.load(Ordering::Acquire)
+    {
+        return Err("package GPU sequence did not complete every acquired frame".into());
+    }
+    fs::write(
+        output.join("package-execution.json"),
+        serde_json::to_vec_pretty(&serde_json::json!({
+            "manifest_sha256": forge_core::bytes_sha256(&manifest).to_string(),
+            "bootstrap_frames": bootstrap_frames,
+            "completed_steps": targets.completed_steps.load(Ordering::Acquire),
+            "render_graph_submissions": targets.submissions.load(Ordering::Acquire),
+            "reload": reload,
+            "preview": preview,
+            "visual_parity": false,
+        }))?,
+    )?;
     Ok(())
 }
 
 #[derive(Resource)]
-struct PendingEnvironments(Vec<forge_engine::tidewater_scene_environment::PreparedEnvironment>);
+struct PendingEnvironments(
+    Vec<forge_engine::tidewater_scene_environment::PreparedEnvironment>,
+    u32,
+);
 
 fn stage_environments(world: &mut World) {
     let frame = world.resource::<FrameCount>().0;
@@ -493,8 +541,9 @@ fn stage_environments(world: &mut World) {
     assert_eq!(targets.completed_steps.load(Ordering::Acquire), 0);
     if let Some(previous) = previous {
         assert_ne!(previous.images, targets.images);
-        assert_eq!(previous.completed_steps.load(Ordering::Acquire), 120);
-        assert_eq!(previous.submissions.load(Ordering::Acquire), 120);
+        let expected = world.resource::<PendingEnvironments>().1;
+        assert_eq!(previous.completed_steps.load(Ordering::Acquire), expected);
+        assert_eq!(previous.submissions.load(Ordering::Acquire), expected);
     }
     println!("staged environment at frame {frame}");
     if world.resource::<PendingEnvironments>().0.is_empty() {

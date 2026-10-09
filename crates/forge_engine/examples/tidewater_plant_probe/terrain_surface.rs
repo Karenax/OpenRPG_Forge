@@ -23,6 +23,7 @@ pub fn load(
         .cloned()
         .unwrap_or_else(|| CausticMaterialInputs::disabled(images));
     materials.add(TerrainMaterial {
+        scene_lighting: forge_engine::tidewater_material::scene_buffer::HANDLE.clone(),
         shore_state: placeholder.clone(),
         shore_lace: placeholder,
         shore_params: [UVec4::ZERO; 3],

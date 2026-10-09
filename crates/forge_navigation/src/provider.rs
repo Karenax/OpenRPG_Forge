@@ -170,11 +170,16 @@ fn config(input: &TileInput, source_bounds: Aabb3d) -> Result<Config, String> {
     if source_bounds.max.y - source_bounds.min.y > 512.0 {
         return Err("navigation tile vertical span budget exceeded".into());
     }
+    // A shared world-space vertical lattice keeps neighboring tile portals at
+    // compatible heights when a local obstacle changes the source minimum.
+    // This is the same radius/4 step configured below in ConfigBuilder.
+    let cell_height = input.profile.radius_m / 4.0;
+    let aligned_min_y = ((source_bounds.min.y - 0.1) / cell_height).floor() * cell_height;
     let (min, max) = input.key.bounds(input.profile);
     let border = input.profile.border_m();
     Ok(ConfigBuilder {
         aabb: Aabb3d {
-            min: Vec3::new(min[0] - border, source_bounds.min.y - 0.1, min[1] - border),
+            min: Vec3::new(min[0] - border, aligned_min_y, min[1] - border),
             max: Vec3::new(
                 max[0] + border,
                 source_bounds.max.y + input.profile.height_m,

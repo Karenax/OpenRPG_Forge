@@ -19,6 +19,8 @@ mod coupled;
 mod grass_gpu;
 #[path = "walk_navigation.rs"]
 mod navigation;
+#[path = "walk_render_diagnostics.rs"]
+mod render_diagnostics;
 #[path = "walk_shadow_rate.rs"]
 mod shadow_rate;
 #[path = "walk_shadow_readback.rs"]
@@ -40,6 +42,12 @@ struct Smoke {
     frame_intervals: Vec<f64>,
     throttle_30hz: bool,
     route: navigation::Route,
+    camera_turn: bool,
+    previous_camera_rotation: Option<Quat>,
+    moving_camera_frames: u32,
+    moving_frames_with_blur: u32,
+    moving_frames_with_taa: u32,
+    turn_capture_requested: bool,
 }
 
 #[derive(Clone, Copy, serde::Serialize)]
@@ -62,6 +70,7 @@ pub(super) fn install(app: &mut App) {
     wind::install(app);
     shadows::install(app);
     shadow_rate::install(app);
+    render_diagnostics::install(app);
     grass_gpu::install(app);
     let route = navigation::Route::new();
     app.insert_resource(Smoke {
@@ -75,11 +84,16 @@ pub(super) fn install(app: &mut App) {
         sample_step: if long { 1500 } else { 150 },
         throttle_30hz: std::env::var("FORGE_TIDEWATER_SMOKE_30HZ").as_deref() == Ok("1"),
         route,
+        camera_turn: std::env::var("FORGE_TIDEWATER_SMOKE_CAMERA_TURN").as_deref() == Ok("1"),
         ..default()
     })
     .add_systems(FixedUpdate, drive.before(PlayerControllerSet::Drive))
     .add_systems(Update, (fft_readback, timing, finish.after(timing)))
-    .add_systems(Last, throttle);
+    .add_systems(Last, throttle)
+    .add_systems(
+        PostUpdate,
+        observe_camera_motion.after(bevy::transform::TransformSystems::Propagate),
+    );
 }
 
 /// Bounded test-only pacing: the interactive walk never installs this system.
@@ -155,10 +169,58 @@ fn drive(
             } else {
                 Vec2::ZERO
             },
+            look_delta: if smoke.camera_turn && (60..240).contains(&smoke.ticks) {
+                Vec2::new(
+                    if (smoke.ticks / 30) % 2 == 0 {
+                        8.0
+                    } else {
+                        -8.0
+                    },
+                    0.0,
+                )
+            } else {
+                Vec2::ZERO
+            },
             ..default()
         }
     };
     command.submit(input).expect("finite walk command");
+}
+
+fn observe_camera_motion(
+    mut commands: Commands,
+    mut smoke: ResMut<Smoke>,
+    probe: Res<Probe>,
+    cameras: Query<
+        (
+            &GlobalTransform,
+            Option<&bevy::post_process::motion_blur::MotionBlur>,
+            Option<&bevy::anti_alias::taa::TemporalAntiAliasing>,
+        ),
+        With<forge_engine::ForgePlayerCamera>,
+    >,
+) {
+    if !smoke.camera_turn {
+        return;
+    }
+    let Ok((camera, blur, taa)) = cameras.single() else {
+        return;
+    };
+    let rotation = camera.compute_transform().rotation;
+    let previous = smoke.previous_camera_rotation.replace(rotation);
+    if previous.is_some_and(|q| q.angle_between(rotation).abs() > 0.0001) {
+        smoke.moving_camera_frames += 1;
+        smoke.moving_frames_with_blur += u32::from(blur.is_some());
+        smoke.moving_frames_with_taa += u32::from(taa.is_some());
+        if smoke.ticks >= 90 && !smoke.turn_capture_requested {
+            smoke.turn_capture_requested = true;
+            commands
+                .spawn(Screenshot::primary_window())
+                .observe(save_to_disk(
+                    probe.screenshot.with_extension("camera-turn.png"),
+                ));
+        }
+    }
 }
 
 fn timing(
@@ -221,6 +283,10 @@ fn finish(
         Res<Assets<crate::spray_sprites::SprayMaterial>>,
         Res<Assets<crate::breaker_lip::LipMaterial>>,
     ),
+    source_fish: Option<Res<crate::source_fish::Receipt>>,
+    shadow_sources: Option<Res<crate::object_shadow::live::Sources>>,
+    diagnostics: Res<bevy::diagnostic::DiagnosticsStore>,
+    graphics: Res<super::graphics::GraphicsState>,
     mut exit: MessageWriter<AppExit>,
 ) {
     let feedback = feedback.statistics();
@@ -294,7 +360,13 @@ fn finish(
             smoke.throttle_30hz,
         )
         && shadow_rate.valid();
-    let pass = functional_pass && cadence_pass;
+    let source_fish_requested = probe
+        .fish_stand_content
+        .as_ref()
+        .is_some_and(|content| content.source.is_some());
+    let source_fish_pass =
+        !source_fish_requested || source_fish.as_ref().is_some_and(|receipt| receipt.valid());
+    let pass = functional_pass && cadence_pass && source_fish_pass;
     let mut receipt = serde_json::json!({"pass":pass,"ticks":smoke.ticks,"grounded_ticks":smoke.grounded,
         "functional_pass":functional_pass,"cadence_pass":cadence_pass,
         "window_pacing":"Winit continuous in both focus states; AutoVsync; 1920x1080",
@@ -319,7 +391,26 @@ fn finish(
         "shadow_cadence_pass":shadow_rate.valid(),"shadow_cadence":&*shadow_rate,
         "shadow_pass_ratios":shadow_rate.rates(),
         "scope":"controller commands, full native scene; OS keyboard and building traversal not qualified"});
+    // Keep this diagnostic outside the already large object macro: an extra
+    // field there exceeds serde_json's default macro expansion recursion limit.
+    receipt["plant_caster_selection"] = serde_json::json!(
+        shadow_sources
+            .as_ref()
+            .and_then(|sources| sources.selection_observation())
+    );
     receipt["water_time_scale"] = serde_json::json!(water_time_scale);
+    receipt["render_diagnostics"] = render_diagnostics::report(&diagnostics);
+    receipt["graphics_values"] = graphics.values_receipt();
+    receipt["camera_motion_observation"] = serde_json::json!({
+        "requested": smoke.camera_turn,
+        "moving_frames": smoke.moving_camera_frames,
+        "moving_frames_with_blur": smoke.moving_frames_with_blur,
+        "moving_frames_with_taa": smoke.moving_frames_with_taa,
+        "capture_requested": smoke.turn_capture_requested,
+    });
+    receipt["source_fish_requested"] = serde_json::json!(source_fish_requested);
+    receipt["source_fish_preparation_pass"] = serde_json::json!(source_fish_pass);
+    receipt["source_fish"] = serde_json::json!(source_fish.as_deref());
     receipt["navigation"] = serde_json::json!({
         "route":smoke.route,"pass":smoke.route.valid(),
         "grass_updates":grass.0.updates,"grass_samples":grass.0.samples,

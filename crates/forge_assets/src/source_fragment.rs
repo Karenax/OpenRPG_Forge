@@ -67,6 +67,10 @@ pub struct SourceBasePng {
 /// Projection uses successive lerps, not normalized triplanar weights.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Independent source texture transfer flags are preserved by the versioned wire contract"
+)]
 pub struct SourceWorldBlendProgram {
     pub red_tint: [f64; 3],
     pub green_tint: [f64; 3],
@@ -95,12 +99,20 @@ pub struct SourceWorldBlendProgram {
 fn unit_uv_scale() -> [f64; 2] {
     [1.0, 1.0]
 }
+#[allow(
+    clippy::float_cmp,
+    reason = "Only an exact authored identity scale may be omitted from serialization"
+)]
 fn is_unit_uv_scale(value: &[f64; 2]) -> bool {
     *value == unit_uv_scale()
 }
 fn enabled() -> bool {
     true
 }
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "Serde skip_serializing_if requires a borrowed field"
+)]
 fn is_enabled(value: &bool) -> bool {
     *value
 }
@@ -199,7 +211,7 @@ impl SourceWorldBlendProgram {
     ) -> [f64; 3] {
         let luminance = base
             .iter()
-            .zip([0.2126729, 0.7151522, 0.0721750])
+            .zip([0.212_672_9, 0.715_152_2, 0.072_175_0])
             .map(|(a, b)| a * b)
             .sum::<f64>();
         let midpoint = 0.5_f64.powf(2.2);
@@ -227,12 +239,12 @@ impl SourceFragmentContract {
     pub fn validate(&self) -> Result<(), &'static str> {
         if !matches!(
             (self.schema_version, self.world_blend.is_some()),
-            (1, false) | (2 | 3, true) | (4, _) | (5 | 6, false)
+            (1 | 5 | 6, false) | (2 | 3, true) | (4, _)
         ) {
             return Err("unsupported source fragment schema");
         }
         if let Some(scale) = self.surface_uv_scale {
-            if !matches!(self.schema_version, 4 | 5 | 6) {
+            if !matches!(self.schema_version, 4..=6) {
                 return Err("independent surface UV scale requires source schema 4 or 5");
             }
             if scale.iter().any(|v| !v.is_finite() || v.abs() > 65536.0) {
@@ -261,12 +273,11 @@ impl SourceFragmentContract {
         if self.base_png.is_some() != (self.schema_version == 6) {
             return Err("original base PNG declaration requires source schema 6");
         }
-        if let Some(base) = &self.base_png {
-            if base.image.sha256.len() != 64
-                || !base.image.sha256.bytes().all(|b| b.is_ascii_hexdigit())
-            {
-                return Err("original base PNG SHA-256 required");
-            }
+        if let Some(base) = &self.base_png
+            && (base.image.sha256.len() != 64
+                || !base.image.sha256.bytes().all(|b| b.is_ascii_hexdigit()))
+        {
+            return Err("original base PNG SHA-256 required");
         }
         if let Some(program) = &self.world_blend {
             program.validate()?;
@@ -480,9 +491,9 @@ mod tests {
             sha256: "b".repeat(64),
         };
         SourceWorldBlendProgram {
-            red_tint: [0.16981131, 0.121135354, 0.106532566],
-            green_tint: [0.4056604, 0.37351373, 0.36547706],
-            blue_tint: [0.3962264, 0.3482556, 0.33081168],
+            red_tint: [0.169_811_31, 0.121_135_354, 0.106_532_566],
+            green_tint: [0.405_660_4, 0.373_513_73, 0.365_477_06],
+            blue_tint: [0.396_226_4, 0.348_255_6, 0.330_811_68],
             base_saturation: 1.0,
             base_power: 1.0,
             mask_uv_scale: [1.0, 1.0],

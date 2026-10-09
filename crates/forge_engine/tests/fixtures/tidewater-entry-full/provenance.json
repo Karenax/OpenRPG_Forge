@@ -1,0 +1,50 @@
+{
+  "schema": "forge.test-fixture-provenance.v1",
+  "scope": "Real Tidewater terrain and authored convex boardwalk boxes for bounded locomotion regression; not whole-world qualification",
+  "source018_manifest_sha256": "8a0b307866527b24ddfee51e972c91f89fd59f07d3e54e6786bf4601a2035a78",
+  "files": [
+    {
+      "path": "tidewater-entry/tile.f32",
+      "sha256": "fc6968ed7726f74f00a352b06486458af99345711bdee94896ea1bfad89dfd07",
+      "size_bytes": 66564
+    },
+    {
+      "path": "tidewater-entry-full/boardwalks.json",
+      "sha256": "b35f4e9a77fca526eb6a5fa38bfc5ad42116951f19776d69c84cafaf720f4cb1",
+      "size_bytes": 88685
+    },
+    {
+      "path": "tidewater-entry-full/terrain-document.json",
+      "sha256": "50b659ee8700f901d78019bc4ee3d5365614047954587301d315c570c530d219",
+      "size_bytes": 1288
+    },
+    {
+      "path": "tidewater-entry-full/terrain-samples.bin",
+      "sha256": "be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3",
+      "size_bytes": 16777216
+    }
+  ],
+  "terrain_source_blob_sha256": "be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3",
+  "sampled_tile_center": [
+    64,
+    0,
+    -64
+  ],
+  "sampled_tile_scale": [
+    128,
+    1,
+    128
+  ],
+  "sampled_tile_rows": 129,
+  "sampled_tile_columns": 129,
+  "sampling": "Canonical sampled-terrain f64 bilinear evaluation, then f32; column-major Rapier heightfield",
+  "boardwalk_source_frame": [
+    55,
+    0,
+    -65.21
+  ],
+  "preparation_evidence": "integrated-public-shore-entry-terrain-preparation-020-001 and integrated-public-shore-boardwalk-correspondence-020-001",
+  "production_source_gates_not_inferred": true,
+  "distribution_license_qualification_not_inferred": true,
+  "gate_qualified": false
+}

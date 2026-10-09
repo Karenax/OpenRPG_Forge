@@ -192,20 +192,55 @@ fn verify_references(session: &WorkspaceSession, objects: &ZoneObjectStore) -> R
     let heads = std::iter::once(session.head())
         .chain(session.audit().iter().flat_map(|r| [&r.before, &r.after]));
     let mut total_bytes = 0;
+    let mut pending = Vec::new();
     for head in heads {
         for project in &head.projects {
             for zone in project.modules.iter().flat_map(|m| &m.zones) {
                 if seen.insert((project.id, zone.area_id, zone.archive_hash, zone.head_hash)) {
-                    // Bound each read by the remaining budget, charging actual bytes.
-                    let bytes = objects.read_with_budget(
-                        project.id,
-                        zone,
-                        256 * 1024 * 1024 - total_bytes,
-                    )?;
-                    total_bytes += bytes.len();
+                    // Reserve physical sizes before concurrent replay. Each read is
+                    // bounded by its reservation and rechecks bytes, identity and sources.
+                    let size = objects.verification_size(zone)?;
+                    if size > 256 * 1024 * 1024 - total_bytes {
+                        return Err(
+                            "Zone object exceeds remaining archive verification budget".into()
+                        );
+                    }
+                    total_bytes += size;
+                    pending.push((project.id, zone, size));
                 }
             }
         }
     }
-    Ok(())
+    if pending.is_empty() {
+        return Ok(());
+    }
+    // Keep at most four domain replays resident, without a second persistence path.
+    // Join every worker before releasing the workspace authority or returning an error.
+    let workers = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(4)
+        .min(pending.len());
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = pending
+            .chunks(pending.len().div_ceil(workers))
+            .map(|chunk| {
+                scope.spawn(move || {
+                    for (project, zone, size) in chunk {
+                        objects.read_with_budget(*project, zone, *size)?;
+                    }
+                    Ok::<(), String>(())
+                })
+            })
+            .collect();
+        let mut result = Ok(());
+        for handle in handles {
+            let worker = handle
+                .join()
+                .unwrap_or_else(|_| Err("Archive verification worker panicked".into()));
+            if result.is_ok() {
+                result = worker;
+            }
+        }
+        result
+    })
 }

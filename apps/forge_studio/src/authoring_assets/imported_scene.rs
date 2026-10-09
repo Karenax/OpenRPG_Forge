@@ -1,5 +1,8 @@
 //! Canonical imported placements in the same scene, selection and gizmo path.
+mod debris;
 mod local_lights;
+mod motion;
+mod wind;
 use super::{imported_buildings, placements};
 use bevy::{
     asset::RenderAssetUsages,
@@ -11,17 +14,21 @@ use forge_engine::{
         ResidentLibrary, ResidentMeshes, materials,
         scene::{PreparedScene, ResidentScene},
     },
+    tidewater_beach_props::{PreparedBeachProps, ResidentBeachProps},
     tidewater_boardwalk::{PreparedBoardwalk, ResidentBoardwalk},
     tidewater_material::VillageMaterial,
     tidewater_pier::{PreparedPier, ResidentPier},
     tidewater_plaza::{PreparedPlaza, ResidentPlaza},
     tidewater_scene_environment::ResidentEnvironment,
+    tidewater_village_props::{PreparedVillageProps, ResidentVillageProps},
 };
 use forge_project::zone_authoring::placements::ManualPlacement;
 use std::{cell::RefCell, collections::BTreeMap, sync::atomic::Ordering};
 
 type Receipt = (
     u64,
+    Vec<ManualPlacement>,
+    Vec<ManualPlacement>,
     Vec<ManualPlacement>,
     Vec<ManualPlacement>,
     Vec<ManualPlacement>,
@@ -35,46 +42,76 @@ pub(super) fn focus(id: forge_core::EntityId) -> bool {
         || placements::desired_boardwalks().iter().any(|p| p.id == id)
         || placements::desired_piers().iter().any(|p| p.id == id);
     let imported = imported || placements::desired_plaza_props().iter().any(|p| p.id == id);
+    let imported = imported
+        || placements::desired_village_props()
+            .iter()
+            .any(|p| p.id == id);
+    let imported = imported || placements::desired_beach_props().iter().any(|p| p.id == id);
+    let imported = imported || placements::desired_debris().iter().any(|p| p.id == id);
     if imported {
         FOCUS.with(|slot| slot.set(Some(id)));
     }
     imported
 }
-thread_local! { static READY: RefCell<Result<Option<Receipt>,String>> = const { RefCell::new(Ok(Some((0,Vec::new(),Vec::new(),Vec::new(),Vec::new())))) }; }
+thread_local! { static READY: RefCell<Result<Option<Receipt>,String>> = const { RefCell::new(Ok(Some((0,Vec::new(),Vec::new(),Vec::new(),Vec::new(),Vec::new(),Vec::new())))) }; }
 #[derive(Resource, Default)]
 struct State {
+    lighting: Option<materials::LightingBindings>,
     key: Option<LightingKey>,
     materials: BTreeMap<String, Handle<VillageMaterial>>,
     sources: Option<Vec<ManualPlacement>>,
     boardwalk_sources: Option<Vec<ManualPlacement>>,
     pier_sources: Option<Vec<ManualPlacement>>,
     plaza_sources: Option<Vec<ManualPlacement>>,
+    village_props_sources: Option<Vec<ManualPlacement>>,
+    beach_props_sources: Option<Vec<ManualPlacement>>,
     failed: bool,
     bounce: Option<(u64, Handle<Image>, Vec4)>,
 }
 
 pub(super) fn ready() -> Result<bool, String> {
-    if !local_lights::ready()? {
+    if !debris::ready(
+        imported_buildings::published_generation(),
+        &placements::desired_debris(),
+    )? {
+        return Ok(false);
+    }
+    if !wind::ready()? || !motion::ready()? || !local_lights::ready()? {
         return Ok(false);
     }
     let desired = placements::desired_imports();
     let boardwalks = placements::desired_boardwalks();
     let piers = placements::desired_piers();
     let plaza = placements::desired_plaza_props();
+    let village_props = placements::desired_village_props();
+    let beach_props = placements::desired_beach_props();
     READY.with(|slot| match &*slot.borrow() {
         Err(error) => Err(error.clone()),
         Ok(None) => Ok(false),
-        Ok(Some((generation, sources, boardwalk_sources, pier_sources, plaza_sources))) => {
-            Ok(*generation == imported_buildings::published_generation()
-                && *sources == desired
-                && *boardwalk_sources == boardwalks
-                && *pier_sources == piers
-                && *plaza_sources == plaza)
-        }
+        Ok(Some((
+            generation,
+            sources,
+            boardwalk_sources,
+            pier_sources,
+            plaza_sources,
+            village_props_sources,
+            beach_props_sources,
+        ))) => Ok(*generation == imported_buildings::published_generation()
+            && *sources == desired
+            && *boardwalk_sources == boardwalks
+            && *pier_sources == piers
+            && *plaza_sources == plaza
+            && *village_props_sources == village_props
+            && *beach_props_sources == beach_props),
     })
 }
 pub(super) fn install(app: &mut App) {
+    if let Err(error) = wind::install(app) {
+        READY.with(|slot| *slot.borrow_mut() = Err(error));
+    }
+    motion::install(app);
     local_lights::install(app);
+    debris::install(app);
     app.add_plugins(MaterialPlugin::<VillageMaterial>::default())
         .init_resource::<State>()
         .add_systems(
@@ -93,25 +130,31 @@ pub(crate) fn update(world: &mut World) {
         let boardwalks=placements::desired_boardwalks();
         let piers=placements::desired_piers();
         let plaza=placements::desired_plaza_props();
+        let village_props=placements::desired_village_props();
+        let beach_props=placements::desired_beach_props();
         let generation=imported_buildings::published_generation();
-        if desired.is_empty() && boardwalks.is_empty() && piers.is_empty() && plaza.is_empty()
+        if desired.is_empty() && boardwalks.is_empty() && piers.is_empty() && plaza.is_empty() && village_props.is_empty() && beach_props.is_empty()
             && imported_buildings::boardwalk_package().is_none()
             && imported_buildings::pier_package().is_none()
-            && imported_buildings::plaza_package().is_none() {
+            && imported_buildings::plaza_package().is_none()
+            && imported_buildings::village_props_package().is_none()
+            && imported_buildings::beach_props_package().is_none() {
             if state.sources.as_ref().is_none_or(|sources| !sources.is_empty()) {
                 clear(world);
                 state.sources=Some(Vec::new());
                 state.boardwalk_sources=Some(Vec::new());
                 state.pier_sources=Some(Vec::new());
                 state.plaza_sources=Some(Vec::new());
+                state.village_props_sources=Some(Vec::new());
+                state.beach_props_sources=Some(Vec::new());
                 state.failed=false;
             }
             let synchronized=world.get_resource::<ResidentScene>().is_some_and(|scene|scene.is_synchronized(world));
-            let _ = READY.with(|slot| slot.replace(Ok(synchronized.then_some((generation,desired,boardwalks,piers,plaza)))));
+            let _ = READY.with(|slot| slot.replace(Ok(synchronized.then_some((generation,desired,boardwalks,piers,plaza,village_props,beach_props)))));
             return;
         }
         if state.sources.as_ref()!=Some(&desired) || state.boardwalk_sources.as_ref()!=Some(&boardwalks)
-            || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) { state.failed=false; }
+            || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) || state.village_props_sources.as_ref()!=Some(&village_props) || state.beach_props_sources.as_ref()!=Some(&beach_props) { state.failed=false; }
         let Some(environment)=world.get_resource::<ResidentEnvironment>() else { return; };
         let Some(hill)=world.get_resource::<forge_engine::tidewater_hill_shadow::Images>() else { return; };
         let Some(shadows)=world.get_resource::<crate::authoring_imported_shadows::Receiver>() else { return; };
@@ -120,14 +163,16 @@ pub(crate) fn update(world: &mut World) {
         if state.failed || !environment.clouds.ready.load(Ordering::Acquire) { return; }
         if state.key!=Some(key) || state.sources.as_ref()!=Some(&desired)
             || state.boardwalk_sources.as_ref()!=Some(&boardwalks)
-            || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) {
+            || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) || state.village_props_sources.as_ref()!=Some(&village_props) || state.beach_props_sources.as_ref()!=Some(&beach_props) {
             let _ = READY.with(|slot| slot.replace(Ok(None)));
-            let result=replace(world,&mut state,&desired,&boardwalks,&piers,&plaza,key);
+            let result=replace(world,&mut state,&desired,[&boardwalks,&piers,&plaza,&village_props,&beach_props],key);
             if let Err(error)=result {
                 state.sources=Some(desired);
                 state.boardwalk_sources=Some(boardwalks);
                 state.pier_sources=Some(piers);
                 state.plaza_sources=Some(plaza);
+                state.village_props_sources=Some(village_props);
+                state.beach_props_sources=Some(beach_props);
                 state.key=Some(key);
                 state.failed=true;
                 clear(world);
@@ -145,15 +190,40 @@ pub(crate) fn update(world: &mut World) {
             })
             && imported_buildings::plaza_package().is_none_or(|_| {
                 world.get_resource::<ResidentPlaza>().is_some_and(|plaza| plaza.is_synchronized(world))
+            })
+            && imported_buildings::village_props_package().is_none_or(|_| {
+                world.get_resource::<ResidentVillageProps>().is_some_and(|props| props.is_synchronized(world))
+            })
+            && imported_buildings::beach_props_package().is_none_or(|_| {
+                world.get_resource::<ResidentBeachProps>().is_some_and(|props| props.is_synchronized(world))
             });
         if synchronized {
-            let changed=READY.with(|slot| slot.borrow().as_ref().ok().and_then(|v|v.as_ref()).is_none_or(|(g,p,b,q,r)|*g!=generation || *p!=desired || *b!=boardwalks || *q!=piers || *r!=plaza));
-            let _ = READY.with(|slot| slot.replace(Ok(Some((generation,desired.clone(),boardwalks.clone(),piers.clone(),plaza.clone())))));
-            if changed { placements::report(format!("{} bâtiments, {} passerelles, {} quais et {} accessoires de place éditables projetés · surfaces synchronisées dans Rapier. Rendu visuel à qualifier.",desired.len(),boardwalks.len(),piers.len(),plaza.len())); }
+            let changed=READY.with(|slot| slot.borrow().as_ref().ok().and_then(|v|v.as_ref()).is_none_or(|(g,p,b,q,r,v,a)|*g!=generation || *p!=desired || *b!=boardwalks || *q!=piers || *r!=plaza || *v!=village_props || *a!=beach_props));
+            let _ = READY.with(|slot| slot.replace(Ok(Some((generation,desired.clone(),boardwalks.clone(),piers.clone(),plaza.clone(),village_props.clone(),beach_props.clone())))));
+            if changed { placements::report(format!("{} bâtiments, {} passerelles, {} quais, {} accessoires de place, {} accessoires de village et {} accessoires de plage éditables projetés · surfaces synchronisées dans Rapier. Rendu visuel à qualifier.",desired.len(),boardwalks.len(),piers.len(),plaza.len(),village_props.len(),beach_props.len())); }
         } else {
             let _ = READY.with(|slot| slot.replace(Ok(None)));
         }
     });
+    let generation = imported_buildings::published_generation();
+    let sources = placements::desired_debris();
+    let shared = world.resource::<State>().materials.clone();
+    let projected = if let Some(input) = imported_buildings::debris_input() {
+        debris::project(
+            world,
+            &input.geometry,
+            &input.input.collisions,
+            &input.input.nature_program,
+            generation,
+            &sources,
+            &shared,
+        )
+    } else {
+        debris::clear(world, generation)
+    };
+    if let Err(error) = projected {
+        placements::report(format!("Décors importés non projetés : {error}"));
+    }
     focus_current(world);
 }
 
@@ -177,10 +247,28 @@ fn focus_current(world: &World) {
     let plaza_parts = world
         .get_resource::<ResidentPlaza>()
         .and_then(|resident| resident.authored_parts(world, id));
+    let village_parts = world
+        .get_resource::<ResidentVillageProps>()
+        .and_then(|resident| resident.authored_parts(world, id));
+    let beach_parts = world
+        .get_resource::<ResidentBeachProps>()
+        .and_then(|resident| resident.authored_parts(world, id));
+    let debris_parts = world
+        .get_resource::<forge_engine::tidewater_debris::scene::ResidentScene>()
+        .and_then(|resident| {
+            resident
+                .instances
+                .iter()
+                .find(|instance| instance.source.id == id)
+        })
+        .map(|instance| instance.parts.clone());
     let Some(parts) = building_parts
         .or(boardwalk_parts)
         .or(pier_parts)
         .or(plaza_parts)
+        .or(village_parts)
+        .or(beach_parts)
+        .or(debris_parts)
     else {
         return;
     };
@@ -223,6 +311,12 @@ fn clear(world: &mut World) {
     }
     if let Some(plaza) = world.remove_resource::<ResidentPlaza>() {
         plaza.retire(world);
+    }
+    if let Some(props) = world.remove_resource::<ResidentVillageProps>() {
+        props.retire(world);
+    }
+    if let Some(props) = world.remove_resource::<ResidentBeachProps>() {
+        props.retire(world);
     }
 }
 
@@ -284,8 +378,10 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
         .materials
         .iter()
         .map(|(name, params)| {
-            materials::prepare(params, &library.textures, &lighting)
-                .map(|material| (name.clone(), material))
+            materials::prepare(params, &library.textures, &lighting).map(|mut material| {
+                material.shared_scene_lighting = true;
+                (name.clone(), material)
+            })
         })
         .collect::<Result<Vec<_>, _>>()?;
     if state.key.is_none_or(|previous| previous.0 != key.0) {
@@ -299,7 +395,29 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
             state.materials.insert(name, assets.add(material));
         }
     }
+    state.lighting = Some(lighting);
     Ok(())
+}
+
+pub(super) fn lighting(world: &World) -> Option<materials::LightingBindings> {
+    let state = world.get_resource::<State>()?;
+    if state.key?.0 != imported_buildings::published_generation() {
+        return None;
+    }
+    state.lighting.clone()
+}
+
+/// Clone the actual resident common receiver bindings, including live buffers.
+pub(super) fn resident_lighting_material(world: &World) -> Option<VillageMaterial> {
+    let state = world.get_resource::<State>()?;
+    if state.key?.0 != imported_buildings::published_generation() {
+        return None;
+    }
+    let handle = state.materials.values().next()?;
+    world
+        .get_resource::<Assets<VillageMaterial>>()?
+        .get(handle)
+        .cloned()
 }
 
 fn refresh_bounce(
@@ -347,10 +465,9 @@ fn refresh_bounce(
 fn stage_side_structures(
     world: &mut World,
     state: &State,
-    boardwalks: &[ManualPlacement],
-    piers: &[ManualPlacement],
-    plaza: &[ManualPlacement],
+    side: [&[ManualPlacement]; 5],
 ) -> Result<(), String> {
+    let [boardwalks, piers, plaza, village_props, beach_props] = side;
     if let Some(previous) = world.remove_resource::<ResidentBoardwalk>() {
         previous.retire(world);
     }
@@ -397,6 +514,36 @@ fn stage_side_structures(
     } else if !plaza.is_empty() {
         return Err("Paquet des accessoires de place éditables absent".into());
     }
+    if let Some(previous) = world.remove_resource::<ResidentVillageProps>() {
+        previous.retire(world);
+    }
+    if let Some(package) = imported_buildings::village_props_package() {
+        let prepared = PreparedVillageProps::from_package(&package)?;
+        let resident = prepared.stage_authored(world, &state.materials, village_props)?;
+        for &(root, id, transform) in resident.authored_roots() {
+            world
+                .entity_mut(root)
+                .insert(placements::gizmo::PlacementRoot(id, transform));
+        }
+        world.insert_resource(resident);
+    } else if !village_props.is_empty() {
+        return Err("Paquet des accessoires de village éditables absent".into());
+    }
+    if let Some(previous) = world.remove_resource::<ResidentBeachProps>() {
+        previous.retire(world);
+    }
+    if let Some(package) = imported_buildings::beach_props_package() {
+        let prepared = PreparedBeachProps::from_package(&package)?;
+        let resident = prepared.stage_authored(world, &state.materials, beach_props)?;
+        for &(root, id, transform) in resident.authored_roots() {
+            world
+                .entity_mut(root)
+                .insert(placements::gizmo::PlacementRoot(id, transform));
+        }
+        world.insert_resource(resident);
+    } else if !beach_props.is_empty() {
+        return Err("Paquet des accessoires de plage éditables absent".into());
+    }
     Ok(())
 }
 
@@ -404,15 +551,16 @@ fn replace(
     world: &mut World,
     state: &mut State,
     desired: &[ManualPlacement],
-    boardwalks: &[ManualPlacement],
-    piers: &[ManualPlacement],
-    plaza: &[ManualPlacement],
+    side: [&[ManualPlacement]; 5],
     key: LightingKey,
 ) -> Result<(), String> {
+    let [boardwalks, piers, plaza, village_props, beach_props] = side;
     let rebuild = state.sources.as_deref() != Some(desired)
         || state.boardwalk_sources.as_deref() != Some(boardwalks)
         || state.pier_sources.as_deref() != Some(piers)
         || state.plaza_sources.as_deref() != Some(plaza)
+        || state.village_props_sources.as_deref() != Some(village_props)
+        || state.beach_props_sources.as_deref() != Some(beach_props)
         || state.key.is_none_or(|previous| previous.0 != key.0);
     if state.key != Some(key) {
         refresh_materials(world, state, key)?;
@@ -431,7 +579,11 @@ fn replace(
         world.resource::<Assets<VillageMaterial>>(),
     )?;
     prepared.stage(world);
-    stage_side_structures(world, state, boardwalks, piers, plaza)?;
+    stage_side_structures(
+        world,
+        state,
+        [boardwalks, piers, plaza, village_props, beach_props],
+    )?;
     let roots = world
         .resource::<ResidentScene>()
         .instances
@@ -447,6 +599,8 @@ fn replace(
     state.boardwalk_sources = Some(boardwalks.to_vec());
     state.pier_sources = Some(piers.to_vec());
     state.plaza_sources = Some(plaza.to_vec());
+    state.village_props_sources = Some(village_props.to_vec());
+    state.beach_props_sources = Some(beach_props.to_vec());
     state.key = Some(key);
     Ok(())
 }

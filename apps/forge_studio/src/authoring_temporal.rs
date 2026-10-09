@@ -91,6 +91,11 @@ fn register_source(app: &mut App) -> Result<(), String> {
         Family::FishStand,
         MaterialRole::Opaque,
     )?;
+    temporal::register_material::<forge_engine::tidewater_stall::full_material::FullMaterial>(
+        app,
+        Family::FullStall,
+        MaterialRole::Opaque,
+    )?;
     temporal::phase::register_sky_material::<forge_engine::tidewater_sky::SkyMaterial>(app)?;
     temporal::phase::register_standard_opaque(app)?;
     Ok(())

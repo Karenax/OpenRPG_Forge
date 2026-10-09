@@ -189,6 +189,16 @@ fn disconnected_destination_never_falls_back_to_a_straight_kcc_command() {
         .find(|actor| actor.actor == npc)
         .unwrap();
     assert_eq!(observation.status, NavigationStatus::NoPath);
+    assert_eq!(observation.provider_state.as_deref(), Some("NoPath"));
+    let diagnostic = observation.route_diagnostic.as_ref().unwrap();
+    assert!(diagnostic.start_sample.is_some() && diagnostic.goal_sample.is_some());
+    assert!(diagnostic.start_error.is_none() && diagnostic.goal_error.is_none());
+    assert_eq!(
+        diagnostic.path_error.as_deref(),
+        Some("No path was found between the start and end points.")
+    );
+    assert!(diagnostic.path_steps.is_none());
+    assert_eq!(diagnostic.animation_links, 0);
     assert!(Vec3::from_array(observation.desired_velocity).length() < f32::EPSILON);
     assert!(observation.grounded && observation.collision_count > 0);
 }
@@ -387,6 +397,33 @@ fn step_until(app: &mut App, timeout: Duration, mut done: impl FnMut(&mut App) -
         if done(app) {
             return;
         }
+    }
+    panic!(
+        "navigation condition timed out: tiles={:?}, actors={:?}",
+        app.world().resource::<NavigationRuntime>().tiles(),
+        app.world().resource::<NavigationRuntime>().actors()
+    );
+}
+
+// The heat fixtures run real asynchronous navmesh jobs. ManualDuration advances
+// 1/60 s per app.update, so a tight pump would consume the actor's 100 heat ticks
+// while only milliseconds pass for the worker. Keep every production fixed-step
+// system active, but do not simulate faster than the authored 60 Hz frame cadence.
+fn step_until_paced(app: &mut App, timeout: Duration, mut done: impl FnMut(&mut App) -> bool) {
+    let deadline = Instant::now() + timeout;
+    while Instant::now() < deadline {
+        let frame_started = Instant::now();
+        app.update();
+        std::thread::yield_now();
+        if done(app) {
+            return;
+        }
+        std::thread::sleep(
+            app.world()
+                .resource::<Time<Fixed>>()
+                .timestep()
+                .saturating_sub(frame_started.elapsed()),
+        );
     }
     panic!(
         "navigation condition timed out: tiles={:?}, actors={:?}",
@@ -709,72 +746,9 @@ fn changing_installed_door_state_invalidates_only_affected_tiles() {
 
 #[test]
 fn living_idle_actor_prewarms_then_physically_escapes_an_authored_heat_danger() {
-    use forge_core::CommandId;
-    use forge_gameplay::{GameAction, GameRequest, ObjectDefinition, ObjectKind, ObjectPhysics};
-    let (mut app, _door, npc) = app();
-    let mut document = app
-        .world()
-        .resource::<GameplayRuntime>()
-        .session()
-        .document()
-        .clone();
-    let definition = document
-        .actors
-        .iter_mut()
-        .find(|actor| actor.id == npc)
-        .unwrap();
-    definition.position = CoreVec3::new(-8.0, 0.95, -10.0);
-    definition.patrol.clear();
-    definition.flees_danger = true;
-    let fire = id("idle-flee-fire");
-    document.objects.push(ObjectDefinition {
-        id: fire,
-        name: "Authored heat source".into(),
-        position: CoreVec3::new(-8.0, 0.5, -11.5),
-        kind: ObjectKind::Prop,
-        physics: ObjectPhysics {
-            body_half_extents_m: CoreVec3::new(0.3, 0.5, 0.3),
-            flammable: true,
-            heat_damage_per_tick: 1,
-            ..ObjectPhysics::default()
-        },
-    });
-    let mut runtime =
-        GameplayRuntime::new(document, ContentHash::from_bytes([0x99; 32]), None, false).unwrap();
-    runtime.set_enabled(true);
-    app.insert_resource(runtime);
-    step_until(&mut app, Duration::from_secs(30), |app| {
-        let nav = app.world().resource::<NavigationRuntime>();
-        nav.actors().iter().any(|actor| {
-            actor.actor == npc && actor.target.is_none() && !actor.required_tiles.is_empty()
-        }) && nav.active_jobs() == 0
-            && nav.pending_jobs() == 0
-            && !nav.tiles().is_empty()
-            && nav.tiles().iter().all(|tile| {
-                matches!(
-                    tile.status,
-                    NavigationStatus::Ready | NavigationStatus::EmptySource
-                )
-            })
-    });
+    let (mut app, npc, fire) = heat_escape_fixture(false, false);
     let projected = entity(&mut app, npc);
     let before = app.world().get::<Transform>(projected).unwrap().translation;
-    let (player, sequence) = {
-        let runtime = app.world().resource::<GameplayRuntime>();
-        (
-            runtime.session().document().player,
-            runtime.session().state().sequence,
-        )
-    };
-    app.world_mut()
-        .resource_mut::<GameplayRuntime>()
-        .queue(GameRequest {
-            command_id: CommandId::deterministic("navigation-product/ignite-idle-danger"),
-            expected_sequence: sequence,
-            actor: player,
-            action: GameAction::Ignite { object: fire },
-        })
-        .unwrap();
     let mut saw_fleeing = false;
     let mut saw_ground = false;
     step_until(&mut app, Duration::from_secs(30), |app| {
@@ -1123,5 +1097,295 @@ fn over_budget_corridors_cancel_generation_and_recover_after_authored_removal() 
     assert_eq!(
         app.world().resource::<NavigationRuntime>().actors().len(),
         1
+    );
+}
+
+fn heat_escape_fixture(blocked: bool, enclosed: bool) -> (App, EntityId, EntityId) {
+    use forge_core::CommandId;
+    use forge_gameplay::{GameAction, GameRequest, ObjectDefinition, ObjectKind, ObjectPhysics};
+    let (mut app, _door, npc) = app();
+    let mut document = app
+        .world()
+        .resource::<GameplayRuntime>()
+        .session()
+        .document()
+        .clone();
+    let definition = document
+        .actors
+        .iter_mut()
+        .find(|actor| actor.id == npc)
+        .unwrap();
+    definition.position = CoreVec3::new(-8.0, 0.95, -10.0);
+    definition.patrol.clear();
+    definition.flees_danger = true;
+    let fire = id("idle-flee-fire");
+    document.objects.push(ObjectDefinition {
+        id: fire,
+        name: "Authored heat source".into(),
+        position: CoreVec3::new(-8.0, 0.5, -11.5),
+        kind: ObjectKind::Prop,
+        physics: ObjectPhysics {
+            body_half_extents_m: CoreVec3::new(0.3, 0.5, 0.3),
+            flammable: true,
+            heat_damage_per_tick: 1,
+            ..ObjectPhysics::default()
+        },
+    });
+    let mut runtime =
+        GameplayRuntime::new(document, ContentHash::from_bytes([0x99; 32]), None, false).unwrap();
+    runtime.set_enabled(true);
+    app.insert_resource(runtime);
+    if blocked {
+        app.world_mut().spawn((
+            RigidBody::Fixed,
+            Collider::cuboid(100.0, 2.0, 0.2),
+            Transform::from_xyz(-8.0, 2.0, -7.0),
+        ));
+    }
+    if enclosed {
+        for (center, half) in [
+            (Vec3::new(-8.0, 2.0, -8.0), Vec3::new(4.0, 2.0, 0.2)),
+            (Vec3::new(-8.0, 2.0, -13.5), Vec3::new(4.0, 2.0, 0.2)),
+            (Vec3::new(-11.0, 2.0, -10.75), Vec3::new(0.2, 2.0, 3.0)),
+            (Vec3::new(-5.0, 2.0, -10.75), Vec3::new(0.2, 2.0, 3.0)),
+        ] {
+            app.world_mut().spawn((
+                RigidBody::Fixed,
+                Collider::cuboid(half.x, half.y, half.z),
+                Transform::from_translation(center),
+            ));
+        }
+    }
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        let nav = app.world().resource::<NavigationRuntime>();
+        nav.actors().iter().any(|actor| {
+            actor.actor == npc && actor.target.is_none() && !actor.required_tiles.is_empty()
+        }) && nav.active_jobs() == 0
+            && nav.pending_jobs() == 0
+            && !nav.tiles().is_empty()
+            && nav.tiles().iter().all(|tile| {
+                matches!(
+                    tile.status,
+                    NavigationStatus::Ready | NavigationStatus::EmptySource
+                )
+            })
+    });
+    let (player, sequence) = {
+        let runtime = app.world().resource::<GameplayRuntime>();
+        (
+            runtime.session().document().player,
+            runtime.session().state().sequence,
+        )
+    };
+    app.world_mut()
+        .resource_mut::<GameplayRuntime>()
+        .queue(GameRequest {
+            command_id: CommandId::deterministic("navigation-product/ignite-idle-danger"),
+            expected_sequence: sequence,
+            actor: player,
+            action: GameAction::Ignite { object: fire },
+        })
+        .unwrap();
+    (app, npc, fire)
+}
+
+#[test]
+fn blocked_primary_heat_escape_selects_a_reachable_goal_and_moves_through_real_kcc() {
+    let (mut app, npc, _fire) = heat_escape_fixture(true, false);
+    let projected = entity(&mut app, npc);
+    let before = app.world().get::<Transform>(projected).unwrap().translation;
+    let mut saw_no_path = false;
+    let mut saw_selection = false;
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        let nav = app.world().resource::<NavigationRuntime>();
+        let observation = nav
+            .actors()
+            .into_iter()
+            .find(|actor| actor.actor == npc)
+            .unwrap();
+        saw_no_path |= observation.provider_state.as_deref() == Some("NoPath");
+        saw_selection |= app
+            .world()
+            .get::<DangerMotionState>(projected)
+            .unwrap()
+            .escape_target
+            .is_some();
+        let center = app.world().get::<Transform>(projected).unwrap().translation;
+        let vitality = app
+            .world()
+            .resource::<GameplayRuntime>()
+            .session()
+            .state()
+            .actors[&npc]
+            .vitality;
+        center.distance(Vec3::new(-8.0, 0.5, -11.5)) > 3.0 && vitality > 0
+    });
+    let after = app.world().get::<Transform>(projected).unwrap().translation;
+    assert!(
+        saw_no_path && saw_selection,
+        "must exercise actual disconnected primary and alternate selection"
+    );
+    assert!((after - before).with_y(0.0).length() > 1.4);
+    assert!(
+        after.z < -7.6,
+        "KCC must not cross the full-width blocking wall"
+    );
+    assert!(
+        app.world()
+            .resource::<NavigationRuntime>()
+            .actors()
+            .iter()
+            .any(|actor| actor.actor == npc && actor.reachable_goal_queries > 0)
+    );
+}
+
+#[test]
+fn enclosed_heat_escape_caches_failed_queries_and_never_requests_horizontal_fallback() {
+    let (mut app, npc, _fire) = heat_escape_fixture(false, true);
+    let projected = entity(&mut app, npc);
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        app.world()
+            .resource::<NavigationRuntime>()
+            .actors()
+            .iter()
+            .any(|actor| actor.actor == npc && actor.reachable_goal_queries > 0)
+    });
+    let before = app.world().get::<Transform>(projected).unwrap().translation;
+    let count = app
+        .world()
+        .resource::<NavigationRuntime>()
+        .actors()
+        .into_iter()
+        .find(|actor| actor.actor == npc)
+        .unwrap()
+        .reachable_goal_queries;
+    assert!(count <= 8);
+    for _ in 0..30 {
+        app.update();
+        let motion = app.world().get::<DangerMotionState>(projected).unwrap();
+        assert!(motion.escape_target.is_none());
+        assert!(
+            motion
+                .requested_translation
+                .is_none_or(|request| request.with_y(0.0).length() < 0.0001)
+        );
+        let observation = app
+            .world()
+            .resource::<NavigationRuntime>()
+            .actors()
+            .into_iter()
+            .find(|actor| actor.actor == npc)
+            .unwrap();
+        assert_eq!(
+            observation.reachable_goal_queries, count,
+            "unchanged failed route must not repeat A* searches"
+        );
+    }
+    let after = app.world().get::<Transform>(projected).unwrap().translation;
+    assert!((after - before).with_y(0.0).length() < 0.001);
+    // An unrelated wall edit must invalidate the negative cache, even though
+    // the actor is still enclosed and none of the destinations become valid.
+    let wall = app
+        .world_mut()
+        .query::<(Entity, &Transform)>()
+        .iter(app.world())
+        .find_map(|(entity, transform)| {
+            (transform.translation == Vec3::new(-8.0, 2.0, -13.5)).then_some(entity)
+        })
+        .unwrap();
+    let affected = TileKey { x: -1, z: -1 };
+    install_invalidation_witness(&mut app, affected);
+    app.world_mut()
+        .get_mut::<Transform>(wall)
+        .unwrap()
+        .translation
+        .z -= 0.1;
+    app.update();
+    assert_eq!(
+        app.world()
+            .resource::<InvalidationWitness>()
+            .0
+            .as_ref()
+            .unwrap()
+            .status,
+        NavigationStatus::Stale
+    );
+    assert!(
+        app.world()
+            .get::<DangerMotionState>(projected)
+            .unwrap()
+            .requested_translation
+            .is_none_or(|request| request.with_y(0.0).length() < 0.0001)
+    );
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        app.world()
+            .resource::<NavigationRuntime>()
+            .actors()
+            .iter()
+            .any(|actor| actor.actor == npc && actor.reachable_goal_queries > count)
+    });
+    assert!(
+        app.world()
+            .get::<DangerMotionState>(projected)
+            .unwrap()
+            .escape_target
+            .is_none()
+    );
+}
+
+#[test]
+fn selected_escape_goal_survives_source_warmup_without_actuating_a_stale_route() {
+    let (mut app, npc, _fire) = heat_escape_fixture(true, false);
+    let projected = entity(&mut app, npc);
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        app.world()
+            .get::<DangerMotionState>(projected)
+            .unwrap()
+            .escape_target
+            .is_some()
+    });
+    let target = app
+        .world()
+        .get::<DangerMotionState>(projected)
+        .unwrap()
+        .escape_target
+        .unwrap();
+    let before = app.world().get::<Transform>(projected).unwrap().translation;
+    let builds = app
+        .world()
+        .resource::<NavigationRuntime>()
+        .completed_builds();
+    app.world_mut()
+        .resource_mut::<forge_engine::navigation::NavigationPolicy>()
+        .replace("ac".repeat(32), vec![], std::collections::BTreeMap::new())
+        .unwrap();
+    app.update();
+    let motion = app.world().get::<DangerMotionState>(projected).unwrap();
+    assert_eq!(motion.escape_target, Some(target));
+    assert!(
+        motion
+            .requested_translation
+            .is_none_or(|request| request.with_y(0.0).length() < 0.0001)
+    );
+    let expected_feet = target - Vec3::Y * 0.95;
+    let observation = app
+        .world()
+        .resource::<NavigationRuntime>()
+        .actors()
+        .into_iter()
+        .find(|actor| actor.actor == npc)
+        .unwrap();
+    assert!(Vec3::from_array(observation.target.unwrap()).abs_diff_eq(expected_feet, 0.0001));
+    step_until_paced(&mut app, Duration::from_secs(30), |app| {
+        let center = app.world().get::<Transform>(projected).unwrap().translation;
+        let nav = app.world().resource::<NavigationRuntime>();
+        nav.completed_builds() > builds && (center - before).with_y(0.0).length() > 0.05
+    });
+    assert_eq!(
+        app.world()
+            .get::<DangerMotionState>(projected)
+            .unwrap()
+            .escape_target,
+        Some(target)
     );
 }

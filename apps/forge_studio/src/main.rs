@@ -18,18 +18,60 @@ async fn read_asset_library(request: String) -> Result<String, String> {
         return Err("Requête de bibliothèque trop volumineuse".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
-        use forge_studio_frontend::{asset_library_native::Library, asset_library_protocol::LibraryRequest};
-        static LIBRARY: OnceLock<Mutex<Result<Library, String>>> = OnceLock::new();
+        use forge_studio_frontend::asset_library_protocol::LibraryRequest;
         let request: LibraryRequest = serde_json::from_str(&request).map_err(|e| e.to_string())?;
-        let library = LIBRARY.get_or_init(|| Mutex::new(
+        if matches!(
+            request,
+            LibraryRequest::Model { .. } | LibraryRequest::ModelReference { .. }
+        ) {
+            return Err("Utiliser le transfert binaire des modèles".into());
+        }
+        let response = execute_library_request(request)?;
+        serde_json::to_string(&response).map_err(|e| e.to_string())
+    })
+    .await
+    .map_err(|e| format!("Lecture interrompue : {e}"))?
+}
+
+fn execute_library_request(
+    request: forge_studio_frontend::asset_library_protocol::LibraryRequest,
+) -> Result<forge_studio_frontend::asset_library_protocol::LibraryResponse, String> {
+    use forge_studio_frontend::asset_library_native::Library;
+    static LIBRARY: OnceLock<Mutex<Result<Library, String>>> = OnceLock::new();
+    let library = LIBRARY.get_or_init(|| Mutex::new(
             std::env::var_os("OPENRPG_ASSET_VAULT")
                 .ok_or_else(|| "Définissez OPENRPG_ASSET_VAULT puis relancez le Studio pour ouvrir votre bibliothèque locale.".to_owned())
                 .and_then(|root| Library::new(std::path::Path::new(&root)))
         ));
-        let mut guard = library.lock().map_err(|_| "Bibliothèque temporairement indisponible".to_owned())?;
-        let response = guard.as_mut().map_err(|e| e.clone())?.execute(request)?;
-        serde_json::to_string(&response).map_err(|e| e.to_string())
-    }).await.map_err(|e| format!("Lecture interrompue : {e}"))?
+    let mut guard = library
+        .lock()
+        .map_err(|_| "Bibliothèque temporairement indisponible".to_owned())?;
+    guard.as_mut().map_err(|e| e.clone())?.execute(request)
+}
+
+/// Raw IPC avoids expanding a GLB into a JSON array of decimal bytes.
+#[tauri::command]
+async fn read_asset_model(request: String) -> Result<tauri::ipc::Response, String> {
+    if request.len() > 8192 {
+        return Err("Requête de modèle trop volumineuse".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        use forge_studio_frontend::asset_library_protocol::{LibraryRequest, LibraryResponse};
+        let request: LibraryRequest = serde_json::from_str(&request).map_err(|e| e.to_string())?;
+        if !matches!(
+            request,
+            LibraryRequest::Model { .. } | LibraryRequest::ModelReference { .. }
+        ) {
+            return Err("Requête de modèle attendue".into());
+        }
+        let LibraryResponse::Model { model } = execute_library_request(request)? else {
+            return Err("Réponse de modèle inattendue".into());
+        };
+        forge_studio_frontend::asset_library_model_wire::encode(model)
+            .map(tauri::ipc::Response::new)
+    })
+    .await
+    .map_err(|e| format!("Lecture interrompue : {e}"))?
 }
 
 fn with_authoring_host<T>(
@@ -278,7 +320,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             execute_studio_command,
-            read_asset_library
+            read_asset_library,
+            read_asset_model
         ])
         .run(tauri::generate_context!())
         .expect("failed to run OpenRPG Forge Studio");
@@ -485,10 +528,11 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 3);
+        assert_eq!(permissions.len(), 4);
         assert_eq!(permissions[0], "allow-execute-studio-command");
         assert_eq!(permissions[1], "allow-read-asset-library");
-        assert_eq!(permissions[2], "core:window:deny-set-title");
+        assert_eq!(permissions[2], "allow-read-asset-model");
+        assert_eq!(permissions[3], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
@@ -496,7 +540,11 @@ mod tests {
             .collect();
         assert_eq!(
             granted,
-            ["allow-execute-studio-command", "allow-read-asset-library"]
+            [
+                "allow-execute-studio-command",
+                "allow-read-asset-library",
+                "allow-read-asset-model"
+            ]
         );
     }
 

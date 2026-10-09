@@ -26,6 +26,8 @@ pub struct Input {
     pub size: u32,
     pub mips: u32,
     pub camera: Vec4,
+    /// Current visible pose for a newly staged generation; probes may omit it.
+    pub initial_motion: Option<super::graph::animation::Motion>,
 }
 pub struct Stream {
     pub records: Vec<u8>,
@@ -68,6 +70,12 @@ struct Params {
 
 impl Input {
     pub(super) fn validate(&self, matrices: &[Mat4], eyes: &[Vec4]) -> Result<(), String> {
+        if let Some(motion) = self.initial_motion {
+            motion.validate()?;
+            if motion.main_camera != self.camera {
+                return Err("Initial plant shadow motion camera differs from its streams".into());
+            }
+        }
         if !(1..=4).contains(&matrices.len())
             || matrices.len() != eyes.len()
             || matrices.iter().any(|m| !m.is_finite())
@@ -298,8 +306,12 @@ pub fn prepare(
                         main_camera: p.camera,
                         shadow_camera,
                         lod_range: b.range,
-                        wind_time: Vec4::new(1.0, 0.0, 6.0, 2.0),
-                        gust_frame: Vec4::new(0.0, 0.0, 124.0, 0.0),
+                        wind_time: p
+                            .initial_motion
+                            .map_or(Vec4::new(1.0, 0.0, 6.0, 2.0), |motion| motion.wind_time),
+                        gust_frame: p
+                            .initial_motion
+                            .map_or(Vec4::new(0.0, 0.0, 124.0, 0.0), |motion| motion.gust_frame),
                     });
                     uniform.write_buffer(device, queue);
                     uniform

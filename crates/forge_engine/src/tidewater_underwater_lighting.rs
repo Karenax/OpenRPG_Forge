@@ -76,15 +76,15 @@ struct Pipeline {
     id: gpu::CachedComputePipelineId,
     layout: gpu::BindGroupLayoutDescriptor,
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct OutputKey {
+    waves: gpu::TextureViewId,
+    level: gpu::TextureViewId,
+    frame: gpu::BufferId,
+    lighting: gpu::BufferId,
+}
 #[derive(Resource, Default)]
-struct GroupCache(
-    Option<(
-        gpu::TextureViewId,
-        gpu::TextureViewId,
-        gpu::BufferId,
-        gpu::BindGroup,
-    )>,
-);
+struct GroupCache(Option<(OutputKey, gpu::BindGroup)>);
 
 pub fn install_neutral(world: &mut World) -> Result<(), String> {
     let mut buffers = world
@@ -141,13 +141,26 @@ pub fn register(
     app.world_mut()
         .spawn(Readback::buffer(frame.clone()))
         .observe(receive);
+    let lighting = crate::tidewater_air_haze::lighting::storage();
+    let lighting = app
+        .world_mut()
+        .resource_mut::<Assets<ShaderBuffer>>()
+        .add(lighting);
+    let encoded_frames = Arc::new(AtomicU64::new(0));
+    let lighting_targets = crate::tidewater_air_haze::lighting::Targets::new(
+        lighting,
+        frame.clone(),
+        encoded_frames.clone(),
+    );
+    crate::tidewater_air_haze::lighting::observe_gpu(app, &lighting_targets);
+    app.insert_resource(lighting_targets);
     app.insert_resource(Targets {
         bindings: Bindings {
             waves,
             level,
             frame,
         },
-        encoded_frames: default(),
+        encoded_frames,
         observation: default(),
     })
     .init_resource::<Control>()
@@ -155,6 +168,7 @@ pub fn register(
     .add_plugins((
         ExtractResourcePlugin::<Targets>::default(),
         ExtractResourcePlugin::<Surface>::default(),
+        ExtractResourcePlugin::<crate::tidewater_air_haze::lighting::Targets>::default(),
     ));
     app.sub_app_mut(RenderApp)
         .init_resource::<GroupCache>()
@@ -215,6 +229,7 @@ fn init_pipeline(
                     gpu::TextureFormat::Rgba16Float,
                     gpu::StorageTextureAccess::WriteOnly,
                 ),
+                storage_buffer_sized(false, gpu::BufferSize::new(48)),
             ),
         ),
     );
@@ -307,23 +322,36 @@ struct RenderInputs<'w> {
     materials: Res<'w, ErasedRenderAssets<PreparedMaterial>>,
 }
 
+#[derive(SystemParam)]
+struct RenderState<'w> {
+    pipeline: Res<'w, Pipeline>,
+    cache: Res<'w, gpu::PipelineCache>,
+    surface: Res<'w, Surface>,
+    targets: Res<'w, Targets>,
+    lighting: Res<'w, crate::tidewater_air_haze::lighting::Targets>,
+}
+
 #[allow(
     clippy::needless_pass_by_value,
     reason = "Bevy render system parameters"
 )]
 fn encode(
-    state: (
-        Res<Pipeline>,
-        Res<gpu::PipelineCache>,
-        Res<Surface>,
-        Res<Targets>,
-    ),
+    state: RenderState,
     assets: RenderInputs,
     allocators: Res<MaterialBindGroupAllocators>,
     mut groups: ResMut<GroupCache>,
     mut context: RenderContext,
 ) {
-    let (pipeline, cache, surface, targets) = state;
+    let RenderState {
+        pipeline,
+        cache,
+        surface,
+        targets,
+        lighting,
+    } = state;
+    if !lighting.same_generation(&targets) {
+        return;
+    }
     let RenderInputs {
         images,
         buffers,
@@ -332,10 +360,11 @@ fn encode(
     let Some(compute) = cache.get_compute_pipeline(pipeline.id) else {
         return;
     };
-    let (Some(waves), Some(level), Some(frame), Some(material)) = (
+    let (Some(waves), Some(level), Some(frame), Some(light), Some(material)) = (
         images.get(&targets.bindings.waves),
         images.get(&targets.bindings.level),
         buffers.get(&targets.bindings.frame),
+        buffers.get(&lighting.buffer),
         materials.get(surface.0),
     ) else {
         return;
@@ -347,20 +376,15 @@ fn encode(
     else {
         return;
     };
-    let key = (
-        waves.texture_view.id(),
-        level.texture_view.id(),
-        frame.buffer.id(),
-    );
-    if groups
-        .0
-        .as_ref()
-        .is_none_or(|previous| (previous.0, previous.1, previous.2) != key)
-    {
+    let key = OutputKey {
+        waves: waves.texture_view.id(),
+        level: level.texture_view.id(),
+        frame: frame.buffer.id(),
+        lighting: light.buffer.id(),
+    };
+    if groups.0.as_ref().is_none_or(|previous| previous.0 != key) {
         groups.0 = Some((
-            key.0,
-            key.1,
-            key.2,
+            key,
             context.render_device().create_bind_group(
                 "underwater map outputs",
                 &cache.get_bind_group_layout(&pipeline.layout),
@@ -368,11 +392,12 @@ fn encode(
                     frame.buffer.as_entire_binding(),
                     &waves.texture_view,
                     &level.texture_view,
+                    light.buffer.as_entire_binding(),
                 )),
             ),
         ));
     }
-    let Some((_, _, _, outputs)) = &groups.0 else {
+    let Some((_, outputs)) = &groups.0 else {
         return;
     };
     let mut pass = context
@@ -385,7 +410,14 @@ fn encode(
     pass.set_bind_group(1, group, &[]);
     pass.set_bind_group(2, outputs, &[]);
     pass.dispatch_workgroups(64, 64, 2);
-    targets.encoded_frames.fetch_add(1, Ordering::Relaxed);
+    drop(pass);
+    let sequence = targets
+        .encoded_frames
+        .fetch_add(1, Ordering::AcqRel)
+        .wrapping_add(1);
+    if !lighting.record(&surface, sequence) {
+        warn!("Optical lighting publication lock is poisoned");
+    }
 }
 
 #[cfg(test)]

@@ -155,7 +155,7 @@ fn validate_view(view: CascadeView) -> Result<(), &'static str> {
         || axes[1].dot(axes[2]).abs() > 1e-6
         || (m.determinant() - 1.0).abs() > 1e-6
         || !view.near.is_finite()
-        || !(0.001..=0.1).contains(&view.near)
+        || !(0.001..=f64::from(0.1_f32)).contains(&view.near)
         || !view.fov_degrees.is_finite()
         || !(1.0..=170.0).contains(&view.fov_degrees)
         || !view.aspect.is_finite()
@@ -251,5 +251,155 @@ fn fit(
         far,
         info: [far_slice, texel, config.normal_bias[i], far - near],
         blend: [x, y, mn, mf],
+    }
+}
+
+impl CascadeView {
+    /// Adapt a single-precision rigid camera without weakening the double-precision contract.
+    pub fn from_camera_matrix(
+        matrix: bevy::math::Mat4,
+        near: f32,
+        fov: f32,
+        aspect: f32,
+    ) -> Result<Self, &'static str> {
+        let m = matrix.as_dmat4();
+        let [x, y, z] = [
+            m.x_axis.truncate(),
+            m.y_axis.truncate(),
+            m.z_axis.truncate(),
+        ];
+        // Looking-to constructs a basis and then a quaternion in f32. Accept only
+        // rounding-sized drift, never camera scale, shear, reflection or a singular basis.
+        let tolerance = 32.0 * f64::from(f32::EPSILON);
+        if !m.is_finite()
+            || [m.x_axis.w, m.y_axis.w, m.z_axis.w, m.w_axis.w - 1.0]
+                .iter()
+                .any(|v| v.abs() > 1e-9)
+            || [x, y, z]
+                .iter()
+                .any(|v| (v.length_squared() - 1.0).abs() > tolerance)
+            || [x.dot(y), x.dot(z), y.dot(z), m.determinant() - 1.0]
+                .iter()
+                .any(|v| v.abs() > tolerance)
+        {
+            return Err("invalid single-precision rigid camera");
+        }
+        let x = x.normalize();
+        let y = (y - x * x.dot(y)).normalize();
+        let z = x.cross(y);
+        let view = Self {
+            world_from_view: DMat4::from_cols(
+                x.extend(0.0),
+                y.extend(0.0),
+                z.extend(0.0),
+                m.w_axis,
+            ),
+            near: f64::from(near),
+            fov_degrees: f64::from(fov).to_degrees(),
+            aspect: f64::from(aspect),
+        };
+        validate_view(view)?;
+        Ok(view)
+    }
+}
+
+#[cfg(test)]
+mod camera_precision_tests {
+    use super::*;
+    fn camera(near: f64) -> CascadeView {
+        CascadeView {
+            world_from_view: DMat4::IDENTITY,
+            near,
+            fov_degrees: 60.0,
+            aspect: 16.0 / 9.0,
+        }
+    }
+    #[test]
+    fn bevy_near_plane_survives_promotion_to_double_precision() {
+        let near = f64::from(0.1_f32);
+        assert!(near > 0.1);
+        let mut cascades = SunCascades::new(CascadeConfig::default()).unwrap();
+        let updated = cascades
+            .update(camera(near), DVec3::new(0.3, 0.9, 0.1).normalize(), true)
+            .unwrap();
+        assert_eq!(updated, vec![0, 1, 2]);
+    }
+    #[test]
+    fn near_planes_outside_the_camera_contract_are_rejected() {
+        for near in [
+            0.0,
+            0.0009,
+            f64::from(f32::from_bits(0.1_f32.to_bits() + 1)),
+            f64::NAN,
+            f64::INFINITY,
+        ] {
+            assert!(validate_view(camera(near)).is_err());
+        }
+        for near in [0.001, 0.01, 0.1] {
+            assert!(validate_view(camera(near)).is_ok());
+        }
+    }
+    #[test]
+    fn invalid_camera_basis_remains_rejected() {
+        let mut view = camera(f64::from(0.1_f32));
+        view.world_from_view = DMat4::from_scale(DVec3::splat(2.0));
+        assert!(validate_view(view).is_err());
+    }
+}
+
+#[cfg(test)]
+mod interactive_camera_tests {
+    use super::*;
+    use bevy::prelude::{Mat4, Quat, Transform, Vec3};
+    #[test]
+    fn player_looking_to_sweep_remains_rigid() {
+        let mut formerly_rejected = 0;
+        for yi in 0..1440 {
+            for pi in 0..180 {
+                let yaw = (yi as f32) * std::f32::consts::TAU / 1440.0;
+                let pitch = -1.5 + (pi as f32) * 3.0 / 179.0;
+                let rotation = Quat::from_rotation_y(yaw) * Quat::from_rotation_x(pitch);
+                let matrix = Transform::from_translation(Vec3::new(40.0, 4.5, -96.0))
+                    .looking_to(rotation * Vec3::NEG_Z, Vec3::Y)
+                    .to_matrix();
+                let raw = CascadeView {
+                    world_from_view: matrix.as_dmat4(),
+                    near: f64::from(0.05_f32),
+                    fov_degrees: 60.0,
+                    aspect: 16.0 / 9.0,
+                };
+                formerly_rejected += usize::from(validate_view(raw).is_err());
+                let view = CascadeView::from_camera_matrix(
+                    matrix,
+                    0.05,
+                    60.0_f32.to_radians(),
+                    16.0 / 9.0,
+                )
+                .unwrap();
+                assert!(validate_view(view).is_ok());
+                assert_eq!(view.world_from_view.w_axis, matrix.as_dmat4().w_axis);
+            }
+        }
+        assert!(formerly_rejected > 0);
+        println!(
+            "259200 player orientations accepted; {formerly_rejected} rejected before adapter"
+        );
+    }
+    #[test]
+    fn adapter_rejects_real_invalid_cameras() {
+        for m in [
+            Mat4::from_scale(Vec3::splat(1.001)),
+            Mat4::from_scale(Vec3::splat(2.0)),
+            Mat4::ZERO,
+            Mat4::from_scale(Vec3::new(-1.0, 1.0, 1.0)),
+            Mat4::from_translation(Vec3::splat(f32::NAN)),
+        ] {
+            assert!(CascadeView::from_camera_matrix(m, 0.05, 1.0, 16.0 / 9.0).is_err());
+        }
+        for near in [0.0, 1.0, f32::NAN] {
+            assert!(
+                CascadeView::from_camera_matrix(Mat4::IDENTITY, near, 1.0, 16.0 / 9.0).is_err()
+            );
+        }
     }
 }

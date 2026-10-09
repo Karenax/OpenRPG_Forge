@@ -1,0 +1,37 @@
+{
+  "status": "REAL_TIDEWATER_SEAM_HEIGHTFIELDS_PREPARED_NOT_RUN",
+  "source_blob": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-gameplay-revalidation-floor-v12-001\\revalidated-authoring-root\\workspace-v1\\source-blobs\\be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3.bin",
+  "source_blob_sha256": "be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3",
+  "sampling": "Source sampled_terrain.rs pixel-center bilinear f64 height_at, then f32; same 129x129 column-major tiles and 128m scale as sampled_terrain_physics.rs",
+  "tiles": [
+    {
+      "file": "tile-z-384.f32",
+      "sha256": "50cf40a19986434a28288426451c3adbd994a20a89a87ecd7b3baacac9e118c9",
+      "center": [
+        64,
+        0,
+        -320
+      ],
+      "samples": 16641
+    },
+    {
+      "file": "tile-z-256.f32",
+      "sha256": "7df5393280789c3b9c04442d992559ea38c65a7bd70fe919dfe1ef74c2702661",
+      "center": [
+        64,
+        0,
+        -192
+      ],
+      "samples": 16641
+    }
+  ],
+  "start_anchor": [
+    22.99871253967285,
+    50.281734466552734,
+    -255.71043395996094
+  ],
+  "failure_ui_sha256": "fdeed2808f78581325fd8ba4b55d0dae6224cff4ac302d2c34767496bc6526f9",
+  "production_code_changed": false,
+  "runtime_qualified": false,
+  "gate_qualified": false
+}

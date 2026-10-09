@@ -74,6 +74,12 @@ fn update(world: &mut World) {
         aspect: f64::from(projection.aspect_ratio),
         zoom: 1.0,
     };
+    let solar = crate::walk::escape_menu::solar_frame(world);
+    if solar.is_some_and(|frame| {
+        forge_engine::tidewater_atmosphere::readback::latest(world, frame).is_none()
+    }) {
+        return;
+    }
     let now = world.resource::<Time>().elapsed_secs_f64();
     let underwater = world
         .get_resource::<forge_engine::tidewater_underwater::TidewaterUnderwaterObservation>()
@@ -92,7 +98,11 @@ fn update(world: &mut World) {
             .controller
             .update(input)
             .map_err(str::to_owned)?;
-        let step = tidewater_clouds::live::submit(world, &output)?;
+        let step = if let Some(frame) = solar {
+            tidewater_clouds::live::submit_solar(world, &output, frame)?
+        } else {
+            tidewater_clouds::live::submit(world, &output)?
+        };
         live.previous_time = Some(now);
         live.source.last = output.clone();
         Ok((step, output))
@@ -136,14 +146,16 @@ fn publish(world: &mut World, output: &cloud_controller::Output) {
     }
     macro_rules! bind {
         ($kind:ty) => {
-            // iter_mut marks every asset Modified, even when the value is unchanged.
+            // Scene shaders read only the shadow row. Publishing the sky's
+            // camera basis here invalidates every vegetation specialization
+            // during yaw, despite leaving its shading inputs unchanged.
             let mut assets = world.resource_mut::<Assets<$kind>>();
             let changed: Vec<_> = assets
                 .iter()
-                .filter_map(|(id, material)| (material.clouds != params).then_some(id))
+                .filter_map(|(id, material)| (material.clouds[4] != params[4]).then_some(id))
                 .collect();
             for id in changed {
-                assets.get_mut(id).expect("resident material").clouds = params;
+                assets.get_mut(id).expect("resident material").clouds[4] = params[4];
             }
         };
     }
@@ -156,12 +168,12 @@ fn publish(world: &mut World, output: &cloud_controller::Output) {
     let mut lod = world.resource_mut::<Assets<super::terrain_lod::LodMaterial>>();
     let changed: Vec<_> = lod
         .iter()
-        .filter_map(|(id, material)| (material.base.clouds != params).then_some(id))
+        .filter_map(|(id, material)| (material.base.clouds[4] != params[4]).then_some(id))
         .collect();
     for id in changed {
         lod.get_mut(id)
             .expect("resident terrain material")
             .base
-            .clouds = params;
+            .clouds[4] = params[4];
     }
 }

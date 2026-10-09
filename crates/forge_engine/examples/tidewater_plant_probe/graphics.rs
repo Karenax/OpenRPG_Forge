@@ -33,6 +33,9 @@ use forge_engine::{
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+#[path = "source_final_post.rs"]
+mod source_final_post;
+
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq)]
 #[serde(default)]
 #[serde(deny_unknown_fields)]
@@ -75,7 +78,8 @@ impl Default for Values {
             film_grain: 0.012,
             haze: 1.6,
             bounce_light: 1.0,
-            motion_blur_degrees: 180.0,
+            // Keep camera movement readable; cinematic blur remains opt-in.
+            motion_blur_degrees: 0.0,
             lens_flare: 1.0,
             underwater_shafts: 1.0,
             underwater_lighting: 1.0,
@@ -162,7 +166,7 @@ impl Values {
 }
 
 #[derive(Resource)]
-pub(super) struct GraphicsState {
+pub(crate) struct GraphicsState {
     values: Values,
     pub open: bool,
     path: Option<PathBuf>,
@@ -175,6 +179,10 @@ struct SourceExposureCurve(Handle<AutoExposureCompensationCurve>);
 struct SourceExposureMask(Handle<Image>);
 
 impl GraphicsState {
+    pub(crate) fn values_receipt(&self) -> serde_json::Value {
+        serde_json::json!(self.values)
+    }
+
     fn load() -> Self {
         // The static scene capture can show the actual menu for visual QA.
         // Normal play always starts with the panel closed.
@@ -351,6 +359,9 @@ struct Step {
 }
 
 pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
+    if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1") {
+        app.add_plugins(source_final_post::PluginSourceFinal);
+    }
     app.add_plugins((
         AutoExposurePlugin,
         TidewaterFilmGrainPlugin,
@@ -541,7 +552,7 @@ fn apply(
     commands
         .entity(camera)
         .insert(TidewaterGtao::new(state.values.ambient_occlusion));
-    // The 1×1 visibility pass branches before depth reads at zero, while the
+    // The 1x1 visibility pass branches before depth reads at zero, while the
     // camera keeps its ping-pong render topology for stable auto exposure.
     commands
         .entity(camera)
@@ -588,6 +599,42 @@ fn apply(
         commands
             .entity(camera)
             .remove::<(DepthPrepass, MotionVectorPrepass)>();
+    }
+    if std::env::var("FORGE_TIDEWATER_SOURCE_FINAL_POST").as_deref() == Ok("1") {
+        // Candidate owns these operations in the source HDR order. Other effects
+        // remain native inputs and need independent parity qualification.
+        commands
+            .entity(camera)
+            .remove::<(
+                AutoExposure,
+                Bloom,
+                Vignette,
+                TidewaterFilmGrain,
+                ContrastAdaptiveSharpening,
+            )>()
+            .insert((
+                Tonemapping::None,
+                Msaa::Off,
+                ColorGrading::default(),
+                source_final_post::Controls {
+                    grade: Vec4::new(
+                        state.values.vignette,
+                        state.values.saturation,
+                        state.values.contrast,
+                        0.02,
+                    ),
+                    // UI EV and source linear exposure are distinct. Anchor .4 EV
+                    // to the captured source default .55; each EV adds one stop.
+                    effects: Vec4::new(
+                        state.values.film_grain,
+                        state.values.bloom,
+                        0.55 * (state.values.exposure_ev - 0.4).exp2(),
+                        state.values.auto_exposure,
+                    ),
+                    timing: Vec4::new(0.0, 0.0, state.values.sharpen, 0.0),
+                    frame: UVec4::ZERO,
+                },
+            ));
     }
 }
 
@@ -659,7 +706,7 @@ fn spawn_panel(
             ));
             panel.spawn((
                 Text::new(
-                    "H/F10 : fermer  |  R : défauts  |  Molette : défiler  |  Sauvegarde auto",
+                    "Échap : retour  |  H/F10 : fermer  |  R : défauts  |  Molette : défiler  |  Sauvegarde auto",
                 ),
                 TextFont {
                     font_size: FontSize::Px(13.0),
@@ -1006,5 +1053,42 @@ mod tests {
             Some(&Visibility::Hidden)
         );
         std::fs::remove_file(path).expect("remove isolated graphics profile");
+    }
+}
+
+/// Drive the real contrast button only in the explicit isolated menu proof.
+pub(super) fn press_contrast_for_proof(world: &mut World) -> Result<f32, &'static str> {
+    let before = world.resource::<GraphicsState>().values.contrast;
+    let mut buttons = world.query::<(&Step, &mut Interaction)>();
+    for (step, mut interaction) in buttons.iter_mut(world) {
+        if matches!(step.setting, Setting::Contrast) && step.direction > 0.0 {
+            *interaction = Interaction::Pressed;
+            return Ok((before + 0.01).clamp(0.8, 1.3));
+        }
+    }
+    Err("contrast button missing")
+}
+
+/// Diagnostic-only transitions through the same renderer settings system as the menu.
+pub(super) fn terrain_transition(world: &mut World, index: usize) {
+    let changes = [
+        (Setting::TemporalAa, 1.0),
+        (Setting::TemporalAa, 0.0),
+        (Setting::Fxaa, 0.0),
+        (Setting::Fxaa, 1.0),
+        (Setting::AutoExposure, 0.0),
+        (Setting::AutoExposure, 1.0),
+        (Setting::AmbientOcclusion, 0.0),
+        (Setting::AmbientOcclusion, 1.0),
+        (Setting::Haze, 0.0),
+        (Setting::Haze, 1.6),
+        (Setting::WaterRefractionCapture, 0.0),
+        (Setting::WaterRefractionCapture, 1.0),
+    ];
+    if let Some(&(setting, value)) = changes.get(index) {
+        *world
+            .resource_mut::<GraphicsState>()
+            .values
+            .field_mut(setting) = value;
     }
 }

@@ -63,6 +63,82 @@ pub fn update_camera(
     }
 }
 
+/// Publish the resident atmosphere's completed irradiance to the native optical
+/// frame using the presentation menu's fixed solar clock. A stale acquired sun
+/// is refused by the shared readback contract.
+/// This is not a source-history or producing-frame-tag synchronization proof.
+pub fn update_lighting(world: &mut World) {
+    use forge_engine::{
+        tidewater_atmosphere::{self, readback},
+        tidewater_sky::{frame_lighting::FrameLighting, solar},
+    };
+    let Some(targets) = world
+        .get_resource::<tidewater_atmosphere::Targets>()
+        .cloned()
+    else {
+        return;
+    };
+    let Some(transmittance) = targets.images.first() else {
+        return;
+    };
+    if world
+        .get_resource::<Assets<WaterMaterial>>()
+        .is_none_or(|materials| {
+            !materials
+                .iter()
+                .any(|(_, material)| &material.transmittance == transmittance)
+        })
+    {
+        return;
+    }
+    let frame = crate::walk::escape_menu::solar_frame(world).unwrap_or_else(|| {
+        *solar::Clock::new(default())
+            .expect("validated source solar defaults")
+            .frame()
+    });
+    let Some(completed) = readback::latest(world, frame) else {
+        // The presentation controller owns readback scheduling while its solar
+        // clock is installed. Static probes retain their original one-shot path.
+        if crate::walk::escape_menu::solar_frame(world).is_none()
+            && targets.ready.load(std::sync::atomic::Ordering::Acquire)
+            && !readback::is_pending(world)
+            && let Err(error) = readback::request(world, frame)
+        {
+            warn!("Native optical lighting readback refused: {error}");
+        }
+        return;
+    };
+    let completed = match completed {
+        Ok(completed) => completed,
+        Err(error) => {
+            warn!("Native optical lighting completion refused: {error}");
+            // Clear a retired/error snapshot; never publish it to a new scene.
+            readback::cancel(world);
+            return;
+        }
+    };
+    let lighting = match FrameLighting::new(frame, &completed.lighting) {
+        Ok(lighting) => lighting,
+        Err(error) => {
+            warn!("Native optical lighting payload refused: {error}");
+            return;
+        }
+    };
+    let mut materials = world.resource_mut::<Assets<WaterMaterial>>();
+    for (_, material) in materials.iter_mut() {
+        if &material.transmittance != transmittance {
+            continue;
+        }
+        let mut words = material.frame.map(|value| value.to_array());
+        lighting.write_words(&mut words);
+        let next = words.map(UVec4::from_array);
+        if material.frame != next || material.atmosphere != targets.params {
+            material.frame = next;
+            material.atmosphere = targets.params;
+        }
+    }
+}
+
 /// Keep the derived view bound to the adapter's main camera, including the
 /// static proof camera which does not carry `ForgePlayerCamera`.
 pub fn select_refraction_camera(world: &mut World) {
@@ -85,8 +161,16 @@ pub fn update_refraction(
     observation: Res<forge_engine::tidewater_refraction::Observation>,
     mut materials: ResMut<Assets<WaterMaterial>>,
 ) {
-    for (_, material) in materials.iter_mut() {
-        material.refraction_ready.x = f32::from(observation.ready);
+    let ready = f32::from(observation.ready);
+    let changed: Vec<_> = materials
+        .iter()
+        .filter(|(_, material)| material.refraction_ready.x.to_bits() != ready.to_bits())
+        .map(|(id, _)| id)
+        .collect();
+    for id in changed {
+        if let Some(mut material) = materials.get_mut(id) {
+            material.refraction_ready.x = ready;
+        }
     }
 }
 
@@ -585,6 +669,13 @@ pub fn setup(
         commands
             .entity(entity)
             .remove::<MeshMaterial3d<super::ocean_geometry::OceanGeometryMaterial>>()
-            .insert(MeshMaterial3d(material));
+            .insert((
+                MeshMaterial3d(material),
+                forge_engine::tidewater_refraction::CaptureConsumer {
+                    // This captured wave inventory remains inside the expanded
+                    // rest bounds; all axes include ample FFT/shore displacement.
+                    padding: Vec3::splat(32.0),
+                },
+            ));
     }
 }

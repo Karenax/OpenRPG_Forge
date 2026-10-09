@@ -48,6 +48,9 @@ pub struct TidewaterPlayerState {
     climb_held: bool,
     rapier_contact: RapierContact,
     wall_candidates: Vec<Entity>,
+    kcc_feedback_tick: u64,
+    kcc_feedback_translation: [Vec3; 2],
+    kcc_contacts: Vec<(Entity, Option<Vec3>)>,
 }
 
 #[derive(Default)]
@@ -64,6 +67,18 @@ enum BackendSync {
 }
 
 impl TidewaterPlayerState {
+    /// Runtime-only witnesses from the last actual Rapier KCC output.
+    #[must_use]
+    pub fn kcc_contacts(&self) -> &[(Entity, Option<Vec3>)] {
+        &self.kcc_contacts
+    }
+
+    /// Tick and requested/resolved translations belonging to these witnesses.
+    #[must_use]
+    pub const fn kcc_feedback(&self) -> (u64, [Vec3; 2]) {
+        (self.kcc_feedback_tick, self.kcc_feedback_translation)
+    }
+
     /// Last KCC ground contact before adaptation to source locomotion.
     #[must_use]
     pub const fn rapier_grounded(&self) -> bool {
@@ -160,6 +175,9 @@ impl Plugin for TidewaterPlayerPlugin {
             ground_height: 0.0,
             rapier_contact: RapierContact::default(),
             wall_candidates: Vec::new(),
+            kcc_feedback_tick: 0,
+            kcc_feedback_translation: [Vec3::ZERO; 2],
+            kcc_contacts: Vec::new(),
             swim_entries: 0,
             walk_returns: 0,
             ladder_nearby: false,
@@ -379,8 +397,10 @@ fn resolve(
         return;
     };
     if finish_backend_sync(&mut state, &transform, &mut motion, &mut snapshot) {
+        state.kcc_contacts.clear();
         return;
     }
+    observe_kcc_contacts(&mut state, motion.fixed_tick, output);
     state.rapier_contact.grounded = motion.grounded;
     state.rapier_contact.sliding_down_slope = snapshot.sliding_down_slope;
     let anchor = transform.translation - Vec3::Y * half_height(state.collider_mode);
@@ -399,17 +419,21 @@ fn resolve(
         state.motion.mode,
         controller.min_slope_slide_angle,
     );
-    let (anchor, support) =
-        walking_support(&state.motion, &motion, anchor, ground, capsule_support);
+    // Preserve a collision-resolved ascent while the controller is grounded.
+    // Lowering these intermediate poses to the terrain ray prevents successive
+    // autostep sweeps from reaching the tread above the capsule's centre ray.
+    let collision_rise = resolved_collision_rise(output, controller.normal_nudge_factor);
+    let (anchor, support) = walking_support(
+        &state.motion,
+        &motion,
+        anchor,
+        ground,
+        capsule_support,
+        collision_rise,
+    );
     let before = state.motion.mode;
     state.motion.resolve(anchor, support);
-    if state.motion.mode == Mode::Walk && state.motion.grounded && state.motion.velocity.y <= 0.0 {
-        if let Some(output) = output {
-            remember_wall_candidates(&mut state.wall_candidates, output, &controller);
-        }
-    } else {
-        state.wall_candidates.clear();
-    }
+    remember_grounded_wall_candidates(&mut state, &controller, output);
     state.ground_height = ground;
     state.ladder_nearby = false;
     state.ladder_climbing = false;
@@ -498,17 +522,43 @@ fn resolve_ground_support(
     (ground, capsule_support)
 }
 
+fn resolved_collision_rise(
+    output: Option<&KinematicCharacterControllerOutput>,
+    normal_nudge_factor: f32,
+) -> bool {
+    output.is_some_and(|output| {
+        let contacts = u16::try_from(output.collisions.len()).unwrap_or(u16::MAX);
+        let noise = normal_nudge_factor * (f32::from(contacts) + 1.0);
+        output.effective_translation.y > output.desired_translation.y.max(0.0) + noise
+    })
+}
+
+fn remember_grounded_wall_candidates(
+    state: &mut TidewaterPlayerState,
+    controller: &KinematicCharacterController,
+    output: Option<&KinematicCharacterControllerOutput>,
+) {
+    if state.motion.mode == Mode::Walk && state.motion.grounded && state.motion.velocity.y <= 0.0 {
+        if let Some(output) = output {
+            remember_wall_candidates(&mut state.wall_candidates, output, controller);
+        }
+    } else {
+        state.wall_candidates.clear();
+    }
+}
+
 fn walking_support(
     source: &State,
     motion: &PlayerMotionState,
     mut anchor: Vec3,
     ground: f32,
     capsule_support: bool,
+    collision_rise: bool,
 ) -> (Vec3, f32) {
     // Normalize the flat contact skin to source feet. On slopes a capsule needs
     // more vertical clearance, so keep its collision-resolved anchor instead.
     let grounded_walk = source.mode == Mode::Walk && motion.grounded && source.velocity.y <= 0.0;
-    if grounded_walk && (anchor.y - ground).abs() < 0.06 {
+    if grounded_walk && !collision_rise && (anchor.y - ground).abs() < 0.06 {
         anchor.y = ground;
     }
     // Rapier's slide flag also includes intentional movement on walkable slopes.
@@ -535,6 +585,28 @@ fn nearby_walkable_support(
     // tolerance; a distant ray floor or quasi-wall must not fabricate support.
     let normal_clearance = (anchor.y - point.y + RADIUS) * normal_up - RADIUS;
     normal_up >= min_slope_slide_angle.cos() && normal_clearance.abs() < 0.06
+}
+
+fn observe_kcc_contacts(
+    state: &mut TidewaterPlayerState,
+    tick: u64,
+    output: Option<&KinematicCharacterControllerOutput>,
+) {
+    state.kcc_contacts.clear();
+    state.kcc_feedback_tick = tick;
+    state.kcc_feedback_translation = output.map_or([Vec3::ZERO; 2], |output| {
+        [output.desired_translation, output.effective_translation]
+    });
+    if let Some(output) = output {
+        state
+            .kcc_contacts
+            .extend(output.collisions.iter().map(|collision| {
+                (
+                    collision.entity,
+                    collision.hit.details.map(|hit| hit.normal1),
+                )
+            }));
+    }
 }
 
 fn remember_wall_candidates(
@@ -610,6 +682,22 @@ fn player_query_filter(
     filter
 }
 
+fn wall_drive_collider<'a>(
+    context: &'a RapierContext<'_>,
+    entity: Entity,
+    candidates: &mut Vec<Entity>,
+) -> Option<&'a bevy_rapier3d::rapier::prelude::Collider> {
+    let collider = context
+        .colliders
+        .entity2collider()
+        .get(&entity)
+        .and_then(|handle| context.colliders.colliders.get(*handle));
+    if collider.is_none() {
+        candidates.clear();
+    }
+    collider
+}
+
 fn constrain_wall_drive(
     context: &RapierContext<'_>,
     entity: Entity,
@@ -620,12 +708,7 @@ fn constrain_wall_drive(
     if candidates.is_empty() {
         return desired;
     }
-    let Some(handle) = context.colliders.entity2collider().get(&entity) else {
-        candidates.clear();
-        return desired;
-    };
-    let Some(collider) = context.colliders.colliders.get(*handle) else {
-        candidates.clear();
+    let Some(collider) = wall_drive_collider(context, entity, candidates) else {
         return desired;
     };
     let horizontal = desired.with_y(0.0);
@@ -656,7 +739,7 @@ fn constrain_wall_drive(
     }
     #[cfg(test)]
     timer.preflight();
-    let (translation, grounded, noise) =
+    let (translation, grounded, noise, blocking_contacts) =
         predict_wall_drive(context, controller, desired, base_filter, collider, true);
     if !grounded {
         return desired;
@@ -667,6 +750,13 @@ fn constrain_wall_drive(
     let mut constrained = desired;
     let mut without_stairs = None;
     for (target, normal) in normals {
+        // A fresh short cast may see the border of a neighbouring heightfield
+        // while the actual sweep resolves only walkable support. Attribute
+        // missing progress to a wall only when that sweep hit the same collider
+        // with an opposing, non-walkable normal.
+        if !blocking_contacts.contains(&target) {
+            continue;
+        }
         let demand = -desired.with_y(0.0).dot(normal);
         let progress = -translation.with_y(0.0).dot(normal);
         if progress >= demand - noise {
@@ -694,7 +784,16 @@ fn constrain_wall_drive(
                 predict_wall_drive(context, controller, desired, base_filter, collider, false).0
             });
             if translation.y > control.y + noise
-                && progress > -control.with_y(0.0).dot(normal) + noise
+                && (progress > -control.with_y(0.0).dot(normal) + noise
+                    || predicts_bounded_step_recovery(
+                        context,
+                        controller,
+                        base_filter,
+                        collider,
+                        desired,
+                        normal,
+                        noise,
+                    ))
             {
                 continue;
             }
@@ -798,7 +897,7 @@ fn predict_wall_drive(
     filter: QueryFilter,
     collider: &bevy_rapier3d::rapier::prelude::Collider,
     stairs: bool,
-) -> (Vec3, bool, f32) {
+) -> (Vec3, bool, f32, Vec<Entity>) {
     let raw = bevy_rapier3d::rapier::control::KinematicCharacterController {
         up: controller.up.normalize(),
         offset: controller.offset,
@@ -810,6 +909,7 @@ fn predict_wall_drive(
         normal_nudge_factor: controller.normal_nudge_factor,
     };
     let mut collisions = 0_u8;
+    let mut blocking_contacts = Vec::new();
     #[cfg(test)]
     let mut observed = Vec::new();
     let predicted = context.with_query_pipeline(filter, |pipeline| {
@@ -823,6 +923,14 @@ fn predict_wall_drive(
                 #[cfg(not(test))]
                 let _ = collision;
                 collisions = collisions.saturating_add(1);
+                let normal = collision.hit.normal1;
+                if normal.dot(controller.up).abs() <= controller.max_slope_climb_angle.cos()
+                    && normal.with_y(0.0).dot(desired.with_y(0.0)) < 0.0
+                    && let Some(entity) = context.colliders.collider_entity(collision.handle)
+                    && !blocking_contacts.contains(&entity)
+                {
+                    blocking_contacts.push(entity);
+                }
                 #[cfg(test)]
                 observed.push((
                     context.colliders.collider_entity(collision.handle),
@@ -841,7 +949,12 @@ fn predict_wall_drive(
         );
     }
     let noise = controller.normal_nudge_factor * (f32::from(collisions) + 1.0);
-    (predicted.translation, predicted.grounded, noise)
+    (
+        predicted.translation,
+        predicted.grounded,
+        noise,
+        blocking_contacts,
+    )
 }
 
 fn finish_backend_sync(
@@ -878,3 +991,67 @@ const fn half_height(mode: Mode) -> f32 {
 #[cfg(test)]
 #[path = "tidewater_player_tests.rs"]
 mod tests;
+
+// A convex step may start with a small backwards ascent before crossing its
+// rounded capsule contact. Predict only a bounded, grounded, height-limited
+// continuation; Rapier still owns every actual pose and contact.
+fn predicts_bounded_step_recovery(
+    context: &RapierContext<'_>,
+    controller: &KinematicCharacterController,
+    filter: QueryFilter,
+    collider: &bevy_rapier3d::rapier::prelude::Collider,
+    desired: Vec3,
+    normal: Vec3,
+    initial_noise: f32,
+) -> bool {
+    let Some(step) = controller.autostep else {
+        return false;
+    };
+    let shape = collider.shape();
+    let up = controller.up.normalize();
+    let extent = shape.compute_local_aabb().extents().dot(up.abs());
+    let max_height = match step.max_height {
+        CharacterLength::Absolute(value) => value,
+        CharacterLength::Relative(value) => value * extent,
+    };
+    let demand = -desired.with_y(0.0).dot(normal);
+    let raw = bevy_rapier3d::rapier::control::KinematicCharacterController {
+        up,
+        offset: controller.offset,
+        slide: controller.slide,
+        autostep: controller.autostep,
+        max_slope_climb_angle: controller.max_slope_climb_angle,
+        min_slope_slide_angle: controller.min_slope_slide_angle,
+        snap_to_ground: controller.snap_to_ground,
+        normal_nudge_factor: controller.normal_nudge_factor,
+    };
+    context.with_query_pipeline(filter, |pipeline| {
+        let initial = *collider.position();
+        let mut pose = initial;
+        let mut contacts = 0_u16;
+        for _ in 0..8 {
+            let movement = raw.move_shape(
+                context.simulation.integration_parameters.dt,
+                &pipeline.query_pipeline,
+                shape,
+                &pose,
+                desired,
+                |_| contacts = contacts.saturating_add(1),
+            );
+            if !movement.grounded {
+                return false;
+            }
+            pose.translation += movement.translation;
+            let delta = pose.translation - initial.translation;
+            let noise = initial_noise + controller.normal_nudge_factor * f32::from(contacts);
+            let rise = delta.dot(up);
+            if !delta.is_finite() || rise > max_height + noise {
+                return false;
+            }
+            if rise > noise && -delta.with_y(0.0).dot(normal) > demand + noise {
+                return true;
+            }
+        }
+        false
+    })
+}

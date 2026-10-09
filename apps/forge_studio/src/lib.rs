@@ -22,6 +22,7 @@ use forge_world::{
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+pub mod asset_library_model_wire;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod asset_library_native;
 pub mod asset_library_protocol;

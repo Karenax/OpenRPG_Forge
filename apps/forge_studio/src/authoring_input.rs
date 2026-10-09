@@ -469,6 +469,14 @@ pub(super) fn publish(
     );
     if let Some(clouds) = imported_clouds {
         let _ = write!(text, " · nuages dynamiques {} images", clouds.submitted);
+        if let Some((hours, reader)) = clouds.solar_readback {
+            let _ = write!(
+                text,
+                " · soleil {hours:.2} h · retour atmosphère GPU terminé {reader:?}"
+            );
+        } else {
+            text.push_str(" · éclairage solaire acquis, premier retour GPU en attente");
+        }
     }
     if let Some(ocean) = imported_ocean {
         let steps = ocean

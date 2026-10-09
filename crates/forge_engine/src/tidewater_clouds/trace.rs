@@ -34,7 +34,7 @@ impl Input {
         cache: &mut Option<Cache>,
         history_views: Option<[&gpu::WgpuTextureView; 5]>,
         atmosphere_views: Option<[&gpu::WgpuTextureView; 2]>,
-    ) {
+    ) -> Option<super::sampling::Encoded> {
         let cache = cache.get_or_insert_with(|| {
             let mut inputs = Vec::new();
             for (index, (width, height)) in
@@ -166,8 +166,9 @@ impl Input {
                 usage: gpu::BufferUsages::UNIFORM,
             })
         };
+        let mut latest_history = None;
         for frame in frames {
-            if temporal.is_none() && frame.index != 119 {
+            if temporal.is_none() && !frame.final_acquired_frame {
                 continue;
             }
             let local = uniform(frame.local);
@@ -246,7 +247,12 @@ impl Input {
                 pass.set_pipeline(pipeline);
                 pass.set_bind_group(0, &*group0, &[]);
                 pass.set_bind_group(1, &*group1, &[]);
-                pass.dispatch_workgroups(30, 17, 1);
+                let [x, y] = if super::quality::dense_packet(frame.local) {
+                    [120, 68]
+                } else {
+                    [30, 17]
+                };
+                pass.dispatch_workgroups(x, y, 1);
             }
             if let (Some(panorama), Some(history)) = (&panorama, history_views) {
                 let g0 = device.create_bind_group(
@@ -288,10 +294,15 @@ impl Input {
                 pass.set_pipeline(panorama);
                 pass.set_bind_group(0, &*g0, &[]);
                 pass.set_bind_group(1, &*g1, &[]);
-                if frame.panorama_full {
-                    pass.dispatch_workgroups(64, 20, 1);
+                let multiplier = if super::quality::dense_packet(frame.local) {
+                    2
                 } else {
-                    pass.dispatch_workgroups(16, 5, 1);
+                    1
+                };
+                if frame.panorama_full {
+                    pass.dispatch_workgroups(64 * multiplier, 20 * multiplier, 1);
+                } else {
+                    pass.dispatch_workgroups(16 * multiplier, 5 * multiplier, 1);
                 }
             }
             if frame.trace_view
@@ -337,7 +348,11 @@ impl Input {
                 pass.set_bind_group(0, &*g0, &[]);
                 pass.set_bind_group(1, &*g1, &[]);
                 pass.dispatch_workgroups(120, 68, 1);
+                drop(pass);
+                latest_history =
+                    super::sampling::Encoded::from_frame(frame.local, frame.view_index, frame.step);
             }
         }
+        latest_history
     }
 }

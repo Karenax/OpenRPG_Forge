@@ -39,6 +39,10 @@ const VISIBILITY_SHADER_HANDLE: Handle<Shader> =
     uuid_handle!("d830e89b-c170-4c56-b682-3bd116c51dc2");
 
 pub struct TidewaterLensFlarePlugin;
+
+/// Orders consumers of the composed flare before their final grading pass.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TidewaterLensFlarePass;
 impl Plugin for TidewaterLensFlarePlugin {
     fn build(&self, app: &mut App) {
         load_internal_asset!(
@@ -80,12 +84,15 @@ impl Plugin for TidewaterLensFlarePlugin {
                     // The static GPU probe produced an unlit output when this
                     // pass ran before PostProcess. Keep it after the resolved
                     // post chain and before the final air-haze/upscale pass.
-                    render.after(Core3dSystems::PostProcess).before(
-                        crate::tidewater_air_haze::render::<
-                            false,
-                            Without<crate::tidewater_temporal::resolve::ResolveEnabled>,
-                        >,
-                    ),
+                    render
+                        .in_set(TidewaterLensFlarePass)
+                        .after(Core3dSystems::PostProcess)
+                        .before(
+                            crate::tidewater_air_haze::render::<
+                                false,
+                                Without<crate::tidewater_temporal::resolve::ResolveEnabled>,
+                            >,
+                        ),
                 ),
             );
     }
@@ -124,7 +131,12 @@ fn update(
     lights: Query<(&DirectionalLight, &GlobalTransform)>,
     village_materials: Res<Assets<VillageMaterial>>,
     immersion: Option<Res<TidewaterUnderwaterObservation>>,
-    mut views: Query<(&GlobalTransform, &Projection, &mut TidewaterLensFlare)>,
+    mut views: Query<(
+        &GlobalTransform,
+        &Camera,
+        &Projection,
+        &mut TidewaterLensFlare,
+    )>,
     mut reported: Local<bool>,
 ) {
     // Imported scene lighting is the same HDR atmosphere sample used by the
@@ -157,8 +169,8 @@ fn update(
     let above_water = immersion
         .as_ref()
         .is_none_or(|state| !matches!(state.immersion, TidewaterImmersion::FullyImmersed));
-    for (camera, projection, mut flare) in &mut views {
-        let clip = projection.get_clip_from_view()
+    for (camera, camera_view, projection, mut flare) in &mut views {
+        let clip = camera_view.clip_from_view()
             * camera
                 .to_matrix()
                 .inverse()

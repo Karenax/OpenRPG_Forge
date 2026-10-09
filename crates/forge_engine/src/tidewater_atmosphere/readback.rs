@@ -5,7 +5,6 @@ use crate::{
     tidewater_sky::{solar, solar_lighting},
 };
 use bevy::{
-    ecs as bevy_ecs,
     prelude::*,
     render::gpu_readback::{Readback, ReadbackComplete},
     render::storage::ShaderBuffer,
@@ -165,10 +164,10 @@ fn receive(
     if state.received.swap(true, Ordering::AcqRel) {
         return;
     }
-    let result = if !state.generation.current(targets.as_deref()) {
-        Err("Completed readback belongs to a retired atmosphere generation".into())
-    } else {
+    let result = if state.generation.current(targets.as_deref()) {
         solar_lighting::Readback::decode(&event.data)
+    } else {
+        Err("Completed readback belongs to a retired atmosphere generation".into())
     };
     commands.entity(state.reader).despawn();
     commands.insert_resource(Snapshot {

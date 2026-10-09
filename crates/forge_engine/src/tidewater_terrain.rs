@@ -5,7 +5,7 @@ use bevy::{
     shader::ShaderRef,
 };
 
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct TerrainSettings {
     pub wind: Vec4,
     pub sun: Vec4,
@@ -13,8 +13,10 @@ pub struct TerrainSettings {
     pub flags: Vec4,
 }
 
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, PartialEq)]
 pub struct TerrainMaterial {
+    #[storage(54, read_only)]
+    pub scene_lighting: Handle<bevy::render::storage::ShaderBuffer>,
     #[texture(0)]
     #[sampler(1)]
     pub normal: Handle<Image>,
@@ -89,7 +91,9 @@ pub fn install_shader(app: &mut App, source: &str) -> Result<(), String> {
     if source.trim().is_empty() || source.len() > 1_000_000 {
         return Err("Invalid terrain surface shader".into());
     }
-    let source = crate::tidewater_object_shadow::receiver::shader_source(source)?;
+    let lighting = crate::tidewater_material::scene_uniform::prepare(source)?;
+    crate::tidewater_material::scene_buffer::install(app.world_mut(), &lighting.seed)?;
+    let source = crate::tidewater_object_shadow::receiver::shader_source(&lighting.shader)?;
     let source = crate::tidewater_caustics::terrain_shader_source(&source)?;
     crate::tidewater_object_shadow::receiver::install(app.world_mut())?;
     app.world_mut()

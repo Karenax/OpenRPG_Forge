@@ -22,6 +22,8 @@ pub struct ReviewedZone {
 }
 
 impl ReviewedZone {
+    /// # Errors
+    /// Rejects oversized, altered or invalid archives, including failed replay.
     pub fn from_bytes(bytes: &[u8], expected: ContentHash) -> Result<Self, String> {
         if bytes.len() > MAX_ZONE_HEAD_BYTES {
             return Err("Zone archive exceeds 4 MiB".into());
@@ -61,10 +63,22 @@ impl ReviewedZone {
 
 pub struct ZoneObjectStore {
     root: PathBuf,
+    // Cache replay results only. Every read still verifies physical bytes and sources.
+    verified: std::sync::Mutex<std::collections::BTreeMap<ContentHash, VerifiedArchive>>,
+}
+
+#[derive(Clone)]
+struct VerifiedArchive {
+    reference: ZoneReference,
+    project_id: ProjectId,
+    sources: std::collections::BTreeMap<ContentHash, usize>,
 }
 
 impl ZoneObjectStore {
     /// `authority` is the reserved workspace-v1 directory, not a source zone.
+    ///
+    /// # Errors
+    /// Rejects filesystem failures and a linked or non-directory object store.
     pub fn open(authority: &Path) -> Result<Self, String> {
         let root = authority.join("objects");
         match fs::create_dir(&root) {
@@ -76,11 +90,17 @@ impl ZoneObjectStore {
         if !metadata.is_dir() || metadata.file_type().is_symlink() {
             return Err("Object directory must not be a link".into());
         }
-        Ok(Self { root })
+        Ok(Self {
+            root,
+            verified: std::sync::Mutex::default(),
+        })
     }
 
     /// Stage, flush, then publish atomically without replacing any
     /// existing object. A crash before publication cannot expose a partial object.
+    ///
+    /// # Errors
+    /// Rejects invalid sources, incompatible existing objects and filesystem failures.
     pub fn publish(&self, reviewed: &ReviewedZone) -> Result<(), String> {
         self.verify_sources(reviewed)?;
         let final_path = self.path(reviewed.reference.archive_hash);
@@ -117,6 +137,8 @@ impl ZoneObjectStore {
         result.and(cleanup)
     }
 
+    /// # Errors
+    /// Rejects changed bytes, invalid replay or sources, incompatible identity and I/O errors.
     pub fn read(&self, project: ProjectId, reference: &ZoneReference) -> Result<Vec<u8>, String> {
         self.read_with_budget(project, reference, MAX_ZONE_HEAD_BYTES)
     }
@@ -148,14 +170,55 @@ impl ZoneObjectStore {
         if bytes.len() > limit {
             return Err("Zone object exceeds remaining archive verification budget".into());
         }
-        let reviewed = ReviewedZone::from_bytes(&bytes, reference.archive_hash)?;
+        if bytes_sha256(&bytes) != reference.archive_hash {
+            return Err("Zone archive differs from reviewed byte hash".into());
+        }
+        let cached = self
+            .verified
+            .lock()
+            .map_err(|_| "Archive verification cache poisoned")?
+            .get(&reference.archive_hash)
+            .cloned();
+        let reviewed = if let Some(cached) = cached {
+            cached
+        } else {
+            let replayed = ReviewedZone::from_bytes(&bytes, reference.archive_hash)?;
+            VerifiedArchive {
+                reference: replayed.reference,
+                project_id: replayed.project_id,
+                sources: replayed.sources,
+            }
+        };
         if reviewed.project_id != project || reviewed.reference != *reference {
             return Err("Zone object has incompatible project, area or domain-head hash".into());
         }
-        self.verify_sources(&reviewed)?;
+        self.verify_source_map(&reviewed.sources)?;
+        let mut cache = self
+            .verified
+            .lock()
+            .map_err(|_| "Archive verification cache poisoned")?;
+        // Bound derived memory independently of the workspace history size.
+        if cache.len() >= 1024 {
+            cache.clear();
+        }
+        cache.insert(reference.archive_hash, reviewed);
         Ok(bytes)
     }
 
+    pub(super) fn verification_size(&self, reference: &ZoneReference) -> Result<usize, String> {
+        let metadata = fs::symlink_metadata(self.path(reference.archive_hash))
+            .map_err(|error| error.to_string())?;
+        if !metadata.is_file()
+            || metadata.file_type().is_symlink()
+            || metadata.len() > MAX_ZONE_HEAD_BYTES as u64
+        {
+            return Err("Object must be a regular zone archive of at most 4 MiB".into());
+        }
+        usize::try_from(metadata.len()).map_err(|error| error.to_string())
+    }
+
+    /// # Errors
+    /// Returns any archive, identity, source or filesystem error found by `read`.
     pub fn verify(&self, project: ProjectId, reference: &ZoneReference) -> Result<(), String> {
         self.read(project, reference).map(|_| ())
     }
@@ -165,13 +228,20 @@ impl ZoneObjectStore {
     }
 
     fn verify_sources(&self, reviewed: &ReviewedZone) -> Result<(), String> {
-        if reviewed.sources.is_empty() {
+        self.verify_source_map(&reviewed.sources)
+    }
+
+    fn verify_source_map(
+        &self,
+        sources: &std::collections::BTreeMap<ContentHash, usize>,
+    ) -> Result<(), String> {
+        if sources.is_empty() {
             return Ok(());
         }
         let store = super::source_blobs::SourceBlobStore::open_existing(
             self.root.parent().ok_or("Missing workspace authority")?,
         )?;
-        for (&hash, &bytes) in &reviewed.sources {
+        for (&hash, &bytes) in sources {
             store.read(hash, bytes)?;
         }
         Ok(())
@@ -204,6 +274,26 @@ mod tests {
         assert_eq!(
             store
                 .read_with_budget(reviewed.project_id(), reviewed.reference(), bytes.len())
+                .unwrap(),
+            bytes
+        );
+        assert_eq!(store.verified.lock().unwrap().len(), 1);
+        // Warm entries must still reject a different domain reference or physical bytes.
+        let mut wrong_reference = reviewed.reference().clone();
+        wrong_reference.head_hash = ContentHash::from_bytes([0; 32]);
+        assert!(store.read(reviewed.project_id(), &wrong_reference).is_err());
+        let mut altered = bytes.clone();
+        altered[0] ^= 1;
+        fs::write(store.path(reviewed.reference().archive_hash), &altered).unwrap();
+        assert!(
+            store
+                .read(reviewed.project_id(), reviewed.reference())
+                .is_err()
+        );
+        fs::write(store.path(reviewed.reference().archive_hash), &bytes).unwrap();
+        assert_eq!(
+            store
+                .read(reviewed.project_id(), reviewed.reference())
                 .unwrap(),
             bytes
         );

@@ -1,0 +1,7 @@
+"""Compare projection replay against original references and thresholds."""
+from pathlib import Path
+BASE=Path(__file__).with_name('compare_firepit_source_shadow_context_v1.py')
+source=BASE.read_text('utf-8').replace('firepit-source-shadow-context-native-v1','firepit-source-shadow-raster-zero-control-native-v1')
+source=source.replace('firepit-source-shadow-context-comparison-v1','firepit-source-shadow-raster-zero-control-comparison-v1')
+source=source.replace('firepit-source-shadow-context-case-v1','firepit-source-shadow-raster-zero-control-case-v1')
+exec(compile(source,str(BASE),'exec'),globals())

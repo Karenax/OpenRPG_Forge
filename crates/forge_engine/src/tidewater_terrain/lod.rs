@@ -45,11 +45,11 @@ const NODE: MeshVertexAttribute =
     MeshVertexAttribute::new("TerrainLodNode", 0x7457_0004, VertexFormat::Float32x4);
 pub type LodMaterial = ExtendedMaterial<super::TerrainMaterial, LodExtension>;
 
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct LodSettings {
     pub morph: [Vec4; 9],
 }
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, PartialEq)]
 pub struct LodExtension {
     #[texture(100, filterable = false)]
     pub height: Handle<Image>,

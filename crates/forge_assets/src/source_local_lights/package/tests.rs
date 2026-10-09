@@ -155,27 +155,27 @@ fn source_local_lights_package_refuses_paths_bounds_aliases_and_unclaimed_files_
         match change {
             0 => {
                 input.manifest["files"]["../escape"] =
-                    json!({"bytes":1,"sha256":bytes_sha256(b"x")})
+                    json!({"bytes":1,"sha256":bytes_sha256(b"x")});
             }
             1 => {
                 input.manifest["files"]["source/CON.txt"] =
-                    json!({"bytes":1,"sha256":bytes_sha256(b"x")})
+                    json!({"bytes":1,"sha256":bytes_sha256(b"x")});
             }
             2 => {
                 input.manifest["files"]["source/trailing. "] =
-                    json!({"bytes":1,"sha256":bytes_sha256(b"x")})
+                    json!({"bytes":1,"sha256":bytes_sha256(b"x")});
             }
             3 => {
                 input.manifest["files"]["LIGHTS.JSON"] =
-                    input.manifest["files"]["lights.json"].clone()
+                    input.manifest["files"]["lights.json"].clone();
             }
             4 => {
                 input.manifest["files"]["source/src/lighting.js"]["bytes"] =
-                    json!(MAX_MEMBER_BYTES + 1)
+                    json!(MAX_MEMBER_BYTES + 1);
             }
             5 => {
                 input.manifest["files"]["unclaimed"] =
-                    json!({"bytes":1,"sha256":bytes_sha256(b"x")})
+                    json!({"bytes":1,"sha256":bytes_sha256(b"x")});
             }
             6 => input.manifest["descriptor"]["sha256"] = json!(bytes_sha256(b"other")),
             7 => input.manifest["license"] = input.manifest["descriptor"].clone(),

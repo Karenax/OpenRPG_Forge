@@ -5,7 +5,44 @@ use leptos::prelude::*;
 use std::cell::Cell;
 
 thread_local! {
-    static WORK_LIGHT: Cell<bool> = const { Cell::new(true) };
+    static WORK_LIGHT: Cell<Option<bool>> = const { Cell::new(None) };
+}
+
+const PREFERENCE_KEY: &str = "forge.studio.work-light.v1";
+
+// Switching between editing and playtest reloads the WebGPU viewport. Keep
+// this inspection preference in the window session, never in authored data.
+fn enabled() -> bool {
+    WORK_LIGHT.with(|state| {
+        if let Some(value) = state.get() {
+            return value;
+        }
+        let value = web_sys::window()
+            .and_then(|window| window.session_storage().ok().flatten())
+            .and_then(|storage| storage.get_item(PREFERENCE_KEY).ok().flatten())
+            .and_then(|value| match value.as_str() {
+                "true" => Some(true),
+                "false" => Some(false),
+                _ => None,
+            })
+            .unwrap_or(true);
+        state.set(Some(value));
+        value
+    })
+}
+
+fn set_enabled(value: bool) {
+    WORK_LIGHT.with(|state| state.set(Some(value)));
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.session_storage().ok().flatten())
+        && storage
+            .set_item(PREFERENCE_KEY, if value { "true" } else { "false" })
+            .is_err()
+    {
+        web_sys::console::warn_1(
+            &"Le choix d’éclairage de travail ne peut pas être conservé après rechargement.".into(),
+        );
+    }
 }
 
 #[derive(Component)]
@@ -33,14 +70,14 @@ type CameraLighting<'w, 's> = Query<
 
 #[component]
 pub(super) fn LightingControls() -> impl IntoView {
-    let enabled = RwSignal::new(WORK_LIGHT.with(Cell::get));
+    let enabled = RwSignal::new(enabled());
     view! {
         <label>
             <input type="checkbox" prop:checked=move || enabled.get()
                 on:change=move |event| {
                     let checked = event_target_checked(&event);
                     enabled.set(checked);
-                    WORK_LIGHT.with(|state| state.set(checked));
+                    set_enabled(checked);
                 }/>
             "Éclairage de travail — temporaire, actif aussi en playtest"
         </label>
@@ -53,7 +90,7 @@ pub(super) fn install(app: &mut App) {
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
 fn apply(mut commands: Commands, cameras: CameraLighting<'_, '_>) {
-    let enabled = WORK_LIGHT.with(Cell::get);
+    let enabled = enabled();
     for (entity, view, ambient, original) in &cameras {
         // The hidden overview camera must not light the scene during playtest.
         let enabled = enabled && view.is_active;

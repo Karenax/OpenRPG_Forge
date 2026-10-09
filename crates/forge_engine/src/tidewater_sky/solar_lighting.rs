@@ -21,7 +21,9 @@ impl Readback {
             ))
         });
         if values.iter().any(|v| !v.is_finite() || *v < 0.0)
-            || [3, 7, 11].iter().any(|i| values[*i] != 1.0)
+            || [3, 7, 11]
+                .iter()
+                .any(|i| values[*i].to_bits() != 1.0_f64.to_bits())
         {
             return Err("Invalid atmosphere readback values".into());
         }

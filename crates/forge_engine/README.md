@@ -1,5 +1,24 @@
 # forge_engine
 
+L'adapter `source_graph_mesh_from_glb` conserve les canaux UV supplémentaires
+dans le mesh Bevy : UV1 utilise l'attribut standard secondaire, UV2 à UV7 et
+les Vec4 source gardent des attributs distincts. Il ne crée aucun canal absent.
+Cette conservation des buffers ne prouve pas leur consommation par un shader,
+la parité graphique Unity ou le raccordement dans Studio.
+
+Les tangentes standard et source sont optionnelles au transport : leur absence
+reste une absence dans le mesh Bevy. Une déclaration invalide reste refusée.
+Le pipeline source exige encore son entrée tangente ; son admission nécessite
+un raccordement séparé des valeurs GPU mesurées et ne découle pas de ce lecteur.
+
+`prepare_source_graph_imported_texture` prépare une image Bevy à partir du
+stockage importé mesuré : BC1/BC3 ou RGBA8, format sRGB explicite, chaîne de
+mipmaps complète, SHA global et par niveau, et sampler source. Il refuse les
+blocs tronqués, niveaux absents ou offsets incohérents. Le host doit encore
+qualifier le support BC de son device, l’orientation et le décodage des normales
+avant admission au rendu ; cette préparation CPU ne prouve aucun de ces points.
+
+
 `tidewater_boat::PreparedBoat` projects a verified `BoatPackage` into a disposable
 authoring frame. Its 14 source nodes retain their parentage and local poses;
 the 12 visible meshes preserve position, normal, UV, linear colour, `aux` and

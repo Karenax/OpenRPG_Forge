@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex};
 pub struct LiveStep {
     pub step: u32,
     pub time: f64,
+    /// Unscaled application delta, as packed by App.js into the global Frame.
+    /// Wave time can advance faster without changing the foam integration delta.
     pub dt: f32,
 }
 
@@ -59,13 +61,16 @@ impl LiveTimeline {
         if elapsed < previous {
             return;
         }
-        let delta = ((elapsed - previous) * self.time_scale).min(0.1);
+        // Engine.js caps App.frame's delta before OceanFFT applies timeScale.
+        // Capping after scaling suppresses the requested wave speed on slow frames.
+        let source_delta = (elapsed - previous).min(0.1);
+        let delta = source_delta * self.time_scale;
         if delta == 0.0 {
             return;
         }
         self.previous_elapsed = Some(elapsed);
         #[allow(clippy::cast_possible_truncation)]
-        let dt = delta as f32;
+        let dt = source_delta as f32;
         self.pending = Some(LiveStep {
             step: self.next,
             time: self.time + delta,
@@ -99,8 +104,8 @@ impl LiveTimeline {
     }
 
     fn set_time_scale(&mut self, scale: f64) -> Result<(), &'static str> {
-        if !scale.is_finite() || scale <= 0.0 {
-            return Err("live ocean time scale must be finite and positive");
+        if !scale.is_finite() || scale <= 0.0 || 0.1 * scale > f64::from(f32::MAX) {
+            return Err("live ocean time scale must be finite, positive and GPU representable");
         }
         if self.pending.is_some() {
             return Err("live ocean time scale cannot change while a transaction is pending");
@@ -145,11 +150,42 @@ impl Default for LiveClock {
 }
 
 impl LiveClock {
+    /// Resume after the validated acquired sequence, preserving its exact time.
+    pub fn from_bootstrap(frames: u32, time: f64) -> Result<Self, &'static str> {
+        if !(1..=256).contains(&frames)
+            || !time.is_finite()
+            || time < 0.0
+            || time > f64::from(f32::MAX)
+        {
+            return Err("invalid acquired ocean clock");
+        }
+        Ok(Self(Arc::new(Mutex::new(LiveTimeline {
+            next: frames + 1,
+            time,
+            ..LiveTimeline::default()
+        }))))
+    }
     pub fn offer(&self, elapsed: f64) {
         self.0
             .lock()
             .expect("live ocean clock mutex")
             .offer(elapsed);
+    }
+
+    /// Publish only when the renderer has encoded the final acquired FFT step.
+    /// Construction alone must not expose a completed GPU transaction.
+    pub(crate) fn publish_bootstrap(&self, frame: LiveStep) -> Result<(), &'static str> {
+        let mut timeline = self.0.lock().expect("live ocean clock mutex");
+        if timeline.completed.is_some()
+            || timeline.pending.is_some()
+            || frame.step.checked_add(1) != Some(timeline.next)
+            || frame.time.to_bits() != timeline.time.to_bits()
+            || frame.dt.to_bits() != (1.0_f32 / 60.0).to_bits()
+        {
+            return Err("acquired ocean completion differs from validated bootstrap");
+        }
+        timeline.completed = Some(frame);
+        Ok(())
     }
 
     #[must_use]
@@ -175,7 +211,7 @@ impl LiveClock {
 
     /// Sets the simulation seconds advanced per real second for future transactions.
     ///
-    /// The final simulation delta remains capped at 100 ms. A pending transaction
+    /// The source delta is capped at 100 ms before scaling. A pending transaction
     /// must drain before changing scale so its timestamp retains one clear contract.
     pub fn set_time_scale(&self, scale: f64) -> Result<(), &'static str> {
         self.0
@@ -214,6 +250,73 @@ impl LiveClock {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn acquired_bootstrap_resumes_without_losing_preparation_frames() {
+        let mut time = 0.0;
+        for _ in 0..124 {
+            time += 1.0 / 60.0;
+        }
+        let clock = LiveClock::from_bootstrap(124, time).unwrap();
+        clock.offer(10.0);
+        clock.offer(10.0 + 1.0 / 60.0);
+        let step = clock.pending(125).unwrap();
+        assert_eq!(step.step, 125);
+        assert!((step.time - (time + 1.0 / 60.0)).abs() < 1e-12);
+        for (count, value) in [
+            (0, time),
+            (257, time),
+            (124, f64::NAN),
+            (124, f64::INFINITY),
+            (124, -1.0),
+        ] {
+            assert!(LiveClock::from_bootstrap(count, value).is_err());
+        }
+    }
+
+    #[test]
+    fn acquired_frame_is_visible_only_after_final_bootstrap_encoding() {
+        let mut time = 0.0;
+        for _ in 0..124 {
+            time += 1.0 / 60.0;
+        }
+        let clock = LiveClock::from_bootstrap(124, time).unwrap();
+        clock.pause();
+        assert_eq!(clock.completed(124), None);
+        let acquired = LiveStep {
+            step: 124,
+            time,
+            dt: 1.0 / 60.0,
+        };
+        for invalid in [
+            LiveStep {
+                step: 123,
+                ..acquired
+            },
+            LiveStep {
+                time: 2.0,
+                ..acquired
+            },
+            LiveStep {
+                dt: 0.0,
+                ..acquired
+            },
+        ] {
+            assert!(clock.publish_bootstrap(invalid).is_err());
+            assert_eq!(clock.completed(124), None);
+        }
+        clock.publish_bootstrap(acquired).unwrap();
+        assert_eq!(clock.completed(124), Some(acquired));
+        assert!(clock.snapshot().quiescent);
+        assert!(clock.publish_bootstrap(acquired).is_err());
+        clock.resume_at(10.0).unwrap();
+        clock.offer(10.0 + 1.0 / 60.0);
+        assert_eq!(clock.completed(124), Some(acquired));
+        let next = clock.pending(125).unwrap();
+        clock.acknowledge(125);
+        assert_eq!(clock.completed(125), Some(next));
+        assert_eq!(clock.completed(124), None);
+    }
 
     fn advance_for_one_second(fps: u32) -> LiveTimeline {
         let mut timeline = LiveTimeline::default();
@@ -276,17 +379,51 @@ mod tests {
         timeline.offer(1.0);
         let first = timeline.pending(121).expect("clamped frame");
         assert_eq!(first.dt.to_bits(), 0.1_f32.to_bits());
+        assert!((first.time - 2.125).abs() < 0.000_001);
         timeline.acknowledge(121);
         timeline.offer(1.01);
         let second = timeline.pending(122).expect("following frame");
-        assert!((second.dt - 0.0125).abs() < 0.000_001);
+        assert!((second.dt - 0.01).abs() < 0.000_001);
+        assert!((second.time - 2.1375).abs() < 0.000_001);
+    }
+
+    #[test]
+    fn source_global_delta_is_independent_of_wave_time_scale() {
+        for scale in [0.75, 1.0, 1.25, 1.5] {
+            let mut timeline = LiveTimeline::default();
+            timeline.set_time_scale(scale).unwrap();
+            timeline.offer(0.0);
+            let mut elapsed = 0.0_f64;
+            let mut source_wave_time = 2.0;
+            for delta in [1.0_f64 / 60.0, 0.025, 0.25] {
+                elapsed += delta;
+                // App._frame packs the capped application dt; OceanFFT.update
+                // separately adds dt * timeScale to OceanParams.time.
+                let source_dt = delta.min(0.1);
+                source_wave_time += source_dt * scale;
+                timeline.offer(elapsed);
+                let frame = timeline.pending.unwrap();
+                #[allow(clippy::cast_possible_truncation)]
+                let expected_global_dt = source_dt as f32;
+                assert_eq!(frame.dt.to_bits(), expected_global_dt.to_bits());
+                assert!((frame.time - source_wave_time).abs() < 0.000_001);
+                timeline.acknowledge(frame.step);
+            }
+        }
     }
 
     #[test]
     fn time_scale_rejects_invalid_values_and_an_undrained_transaction() {
         let clock = LiveClock::default();
         let before = clock.snapshot();
-        for invalid in [0.0, -1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+        for invalid in [
+            0.0,
+            -1.0,
+            f64::NAN,
+            f64::INFINITY,
+            f64::NEG_INFINITY,
+            f64::MAX,
+        ] {
             assert!(clock.set_time_scale(invalid).is_err());
             assert_eq!(clock.snapshot(), before);
         }

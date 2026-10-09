@@ -2,6 +2,8 @@
 //! Callers install the verified shader bytes and provide the same environment maps.
 use crate::tidewater_mesh::{DATA, TINT};
 pub mod local_lights;
+pub mod scene_buffer;
+pub mod scene_uniform;
 use bevy::{
     mesh::MeshVertexBufferLayoutRef,
     pbr::{MaterialPipeline, MaterialPipelineKey},
@@ -14,7 +16,7 @@ pub const VILLAGE_SHADER: Handle<Shader> =
 
 /// Scene-owned direct light and diffuse environment, independently updateable
 /// from building textures. Vec4 storage preserves WGSL uniform-array alignment.
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct SceneLighting {
     pub sun_direction: Vec4,
     pub sun_color: Vec4,
@@ -47,16 +49,8 @@ pub fn install_shader(app: &mut App, source: &str) -> Result<(), Box<dyn std::er
 }
 
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
-    if source.trim().is_empty() || source.len() > 1_000_000 {
-        return Err("Invalid building shader size".into());
-    }
-    let source = crate::tidewater_object_shadow::receiver::shader_source(source)?;
-    let source = crate::tidewater_caustics::village_shader_source(&source)?;
-    let source = ground_bounce_shader_source(&source)?;
-    let source = local_lights::shader_source(&source)?;
-    crate::tidewater_object_shadow::receiver::install(world)?;
-    crate::tidewater_underwater_lighting::install_neutral(world)?;
-    local_lights::gpu::install_neutral(world)?;
+    let source = scene_shader_source(source)?;
+    install_scene_receivers(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("Building shader assets unavailable")?
@@ -65,6 +59,26 @@ pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
             Shader::from_wgsl(source, "tidewater-package-village.wgsl"),
         )
         .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Shared scene receivers for procedural materials with the qualified lighting seams.
+pub(crate) fn scene_shader_source(source: &str) -> Result<String, String> {
+    if source.trim().is_empty() || source.len() > 1_000_000 {
+        return Err("Invalid building shader size".into());
+    }
+    let source = crate::tidewater_object_shadow::receiver::shader_source(source)?;
+    let source = crate::tidewater_caustics::village_shader_source(&source)?;
+    let source = ground_bounce_shader_source(&source)?;
+    let source = local_lights::shader_source(&source)?;
+    scene_buffer::receiver::shader_source(&source, "VillageSceneLighting")
+}
+
+pub(crate) fn install_scene_receivers(world: &mut World) -> Result<(), String> {
+    scene_buffer::receiver::install(world)?;
+    crate::tidewater_object_shadow::receiver::install(world)?;
+    crate::tidewater_underwater_lighting::install_neutral(world)?;
+    local_lights::gpu::install_neutral(world)?;
     Ok(())
 }
 
@@ -113,7 +127,7 @@ fn sourceGroundBounce(s: LightingSurface, P: vec3f, N: vec3f) -> vec3f {
 "
     ))
 }
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct ObjectShadowSettings {
     pub matrices: [Mat4; 4],
     pub cascades: [Vec4; 4],
@@ -148,7 +162,7 @@ impl Default for ObjectShadowSettings {
         }
     }
 }
-#[derive(Clone, Debug, ShaderType)]
+#[derive(Clone, Debug, PartialEq, ShaderType)]
 pub struct Settings {
     pub wind: Vec4,
     pub color: Vec4,
@@ -159,10 +173,15 @@ pub struct Settings {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct Key {
     pub kind: u8,
+    pub shared_scene_lighting: bool,
 }
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone, PartialEq)]
 #[bind_group_data(Key)]
 pub struct VillageMaterial {
+    #[storage(55, read_only)]
+    pub scene_buffer: Handle<bevy::render::storage::ShaderBuffer>,
+    /// CPU metadata remains available to scene effects; this flag selects the GPU receiver.
+    pub shared_scene_lighting: bool,
     #[storage(54, read_only)]
     pub local_lights: Handle<bevy::render::storage::ShaderBuffer>,
     #[uniform(18)]
@@ -209,7 +228,10 @@ pub struct VillageMaterial {
 }
 impl From<&VillageMaterial> for Key {
     fn from(value: &VillageMaterial) -> Self {
-        Self { kind: value.kind }
+        Self {
+            kind: value.kind,
+            shared_scene_lighting: value.shared_scene_lighting,
+        }
     }
 }
 impl Material for VillageMaterial {
@@ -246,6 +268,17 @@ impl Material for VillageMaterial {
             DATA.at_shader_location(4),
         ])?];
         let define = format!("VILLAGE_KIND_{}", key.bind_group_data.kind);
+        if key.bind_group_data.shared_scene_lighting {
+            descriptor
+                .vertex
+                .shader_defs
+                .push(scene_buffer::receiver::DEFINE.into());
+            if let Some(fragment) = &mut descriptor.fragment {
+                fragment
+                    .shader_defs
+                    .push(scene_buffer::receiver::DEFINE.into());
+            }
+        }
         descriptor.vertex.shader_defs.push(define.clone().into());
         if let Some(fragment) = &mut descriptor.fragment {
             fragment.shader_defs.push(define.into());

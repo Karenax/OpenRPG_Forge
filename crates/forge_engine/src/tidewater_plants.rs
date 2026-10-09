@@ -36,7 +36,9 @@ pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     if source.trim().is_empty() || source.len() > 1_000_000 {
         return Err("Invalid plant shader source".into());
     }
-    let derived = motion::shader_source(source)?;
+    let lighting = crate::tidewater_material::scene_uniform::prepare(source)?;
+    crate::tidewater_material::scene_buffer::install(world, &lighting.seed)?;
+    let derived = motion::shader_source(&lighting.shader)?;
     let derived = crate::tidewater_object_shadow::receiver::shader_source(&derived)?;
     let derived = with_source_derivative_directive(derived);
     crate::tidewater_object_shadow::receiver::install(world)?;
@@ -89,6 +91,8 @@ pub struct Params {
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 #[bind_group_data(PlantKey)]
 pub struct PlantMaterial {
+    #[storage(54, read_only)]
+    pub scene_lighting: Handle<ShaderBuffer>,
     #[uniform(0)]
     pub params: Params,
     #[texture(1)]

@@ -50,6 +50,8 @@ pub fn load(
         shader,
         noise,
         frames,
+        schedule: None,
+        atmosphere_frames: None,
         trace: if with_trace {
             Some(super::trace::load(
                 root,

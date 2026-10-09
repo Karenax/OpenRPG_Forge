@@ -6,15 +6,72 @@ use forge_assets::{
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
+mod catalog;
 pub(crate) mod catalog_drop;
+pub(crate) mod fish_props_scene;
+mod fish_shadow_scene;
 pub(crate) mod fish_stand_scene;
 pub(crate) mod imported_buildings;
 pub(crate) mod imported_environment;
 pub(crate) mod imported_scene;
+mod model_read_gate;
 pub(crate) mod objects;
 mod placement_controls;
 pub(crate) mod placements;
 pub(crate) mod preview;
+#[allow(
+    dead_code,
+    reason = "Initial source host contexts await preview/placement routing"
+)]
+mod source_graph_bootstrap;
+#[allow(
+    dead_code,
+    reason = "Dynamic source frames await viewport pass activation"
+)]
+mod source_graph_context;
+#[allow(
+    dead_code,
+    reason = "Explicit frame updates await source-scene viewport activation"
+)]
+mod source_graph_frame;
+#[allow(
+    dead_code,
+    reason = "Shared source scene host awaits viewport pass activation"
+)]
+mod source_graph_host;
+#[allow(
+    dead_code,
+    reason = "Shared intake awaits qualified viewport attachment and resource routing"
+)]
+mod source_graph_intake;
+#[allow(
+    dead_code,
+    reason = "Source light transport is being qualified before viewport activation"
+)]
+mod source_graph_lights;
+mod source_graph_preview;
+#[allow(
+    dead_code,
+    reason = "Source intake and pass routing are being qualified before viewport activation"
+)]
+mod source_graph_resources;
+mod source_graph_route;
+#[allow(
+    dead_code,
+    reason = "Shared lifecycle installed before preview/placement routing"
+)]
+mod source_graph_runtime;
+#[allow(
+    dead_code,
+    reason = "Source intake and pass routing are being qualified before viewport activation"
+)]
+mod source_graph_scene;
+#[allow(
+    dead_code,
+    reason = "Native LOD driver remains to be qualified before reveal"
+)]
+mod source_graph_state;
+pub(crate) mod vault;
 pub(crate) mod verify;
 
 thread_local! {
@@ -48,6 +105,7 @@ pub(super) fn AssetBrowserControls(
     inspected: RwSignal<Option<forge_core::EntityId>>,
     on_command: Callback<Result<forge_project::authoring::AuthoringRequest, String>>,
 ) -> impl IntoView {
+    catalog::mount(imported_buildings::catalog_entries);
     let browser = RwSignal::new(None::<AssetBrowser>);
     let query = RwSignal::new(String::new());
     let category = RwSignal::new(String::new());
@@ -85,23 +143,16 @@ pub(super) fn AssetBrowserControls(
     });
     Effect::new(move |_| {
         if let Some(link) = atelier {
-            link.catalog.set(browser.with(|browser| {
-                browser
-                    .as_ref()
-                    .map(|catalog| {
-                        catalog
-                            .report()
-                            .assets
-                            .iter()
-                            .take(4096)
-                            .map(|asset| crate::atelier_protocol::CatalogItem {
-                                id: asset.id.clone(),
-                                category: category_label(&asset.kind).to_owned(),
-                            })
-                            .collect()
+            link.catalog.set(
+                catalog::entries(browser.get().as_ref())
+                    .into_iter()
+                    .take(4096)
+                    .map(|entry| crate::atelier_protocol::CatalogItem {
+                        id: entry.id,
+                        category: category_label(&entry.kind).to_owned(),
                     })
-                    .unwrap_or_default()
-            }));
+                    .collect(),
+            );
         }
     });
     let busy = RwSignal::new(false);
@@ -114,23 +165,36 @@ pub(super) fn AssetBrowserControls(
     });
     PREVIEW_STATUS.with(|slot| slot.replace(Some(preview_output)));
     on_cleanup(|| {
+        catalog::unmount();
         catalog_drop::cancel();
         preview::cancel();
         PREVIEW_STATUS.with(|slot| slot.replace(None));
     });
     let status = RwSignal::new(
-        "Catalogue non chargé. Les placements exigent une zone convertie et un GLB vérifié."
+        "Catalogue non chargé. Les placements exigent une zone convertie et des ressources vérifiées."
             .to_owned(),
     );
     let matches = Memo::new(move |_| {
-        browser.get().map(|browser| {
-            let category = category.get();
-            browser
-                .search(
-                    &query.get(),
-                    (!category.is_empty()).then_some(category.as_str()),
-                )
-                .map(|assets| assets.into_iter().cloned().collect::<Vec<_>>())
+        let raw_query = query.get();
+        let query = catalog::search_terms(&raw_query);
+        let category = category.get();
+        Some(if raw_query.len() > 256 {
+            Err("Recherche limitée à 256 octets".to_owned())
+        } else {
+            Ok(catalog::entries(browser.get().as_ref())
+                .into_iter()
+                .filter(|entry| {
+                    let terms = catalog::search_terms(&format!(
+                        "{} {} {} {}",
+                        entry.id,
+                        entry.label,
+                        entry.kind,
+                        category_label(&entry.kind)
+                    ));
+                    (category.is_empty() || entry.kind == category)
+                        && query.split_whitespace().all(|word| terms.contains(word))
+                })
+                .collect::<Vec<_>>())
         })
     });
     let load = move |()| {
@@ -180,13 +244,13 @@ pub(super) fn AssetBrowserControls(
                         let id = asset.id.clone();
                         let drag_id = id.clone();
                         let selected_id = id.clone();
-                        view! { <button draggable="false" title=format!("{} · {}", asset.id, category_label(&asset.kind)) aria-pressed=move || (selected.get() == selected_id).to_string()
+                        view! { <button draggable="false" data-catalog-asset-id=asset.id.clone() title=format!("{} · {}", asset.label, category_label(&asset.kind)) aria-pressed=move || (selected.get() == selected_id).to_string()
                             on:dragstart=move |event| event.prevent_default()
                             on:mousedown=move |event| {
                                 if host_busy.get_untracked() { event.prevent_default(); return; }
                                 catalog_drop::begin(&event, state, browser, selected, busy, drag_id.clone(), on_command);
                             }
-                            on:click=move |event| { if !catalog_drop::consume_click(&event) { cancel_preview(); selected.set(id.clone()); verification.set(String::new()); } }>{crate::atelier_ui::asset_glyph(&asset.kind)}<span>{asset.id.clone()}</span><small>{category_label(&asset.kind).to_owned()}</small></button> }
+                            on:click=move |event| { if !catalog_drop::consume_click(&event) { cancel_preview(); selected.set(id.clone()); verification.set(String::new()); } }>{crate::atelier_ui::asset_glyph(&asset.kind)}<span>{asset.label.clone()}</span><small>{category_label(&asset.kind).to_owned()}</small></button> }
                     }).collect_view()}</div>
                 </div> }.into_any(),
                 Err(reason) => view! { <p>{reason}</p> }.into_any(),
@@ -201,6 +265,13 @@ pub(super) fn AssetBrowserControls(
             <section hidden=move ||workspace.get()!="catalog" aria-label="Informations du catalogue">
             <imported_buildings::LibraryControls/>
             <details><summary>"Fiche de l’objet du catalogue"</summary>
+            {move || catalog::imported().into_iter().find(|entry| entry.id == selected.get()).map(|entry| view! {
+                <section aria-label="Fiche asset" style="overflow-wrap:anywhere">
+                    <h3>{entry.label}</h3><p>{entry.provenance}</p>
+                    <p>{format!("Asset : {} · SHA-256 de la référence : {}", entry.reference.0, entry.reference.1)}</p>
+                    <p>"Ressources importées vérifiées en mémoire. Utilisez Placer / manipuler pour préparer un aperçu sur le terrain puis Appliquer."</p>
+                </section>
+            })}
             {move || browser.get().and_then(|catalog| {
                 let report = catalog.report();
                 report.assets.iter().find(|asset| asset.id == selected.get()).map(|asset| view! {

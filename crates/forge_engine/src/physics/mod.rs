@@ -1,14 +1,19 @@
 mod authoring_paths;
 mod manual_assets;
+mod manual_triangle;
 pub use authoring_paths::{
     PathSurfaceColliderIdentity, profiled_path_collider, profiled_path_collider_present,
 };
+pub use manual_triangle::ManualPlacementCollisionGeometry;
 mod manual_projection;
 mod manual_readiness;
 pub use manual_projection::{
     ManualPlacementProjection, manual_placements_ready, placement_transform,
 };
-pub use manual_readiness::{ManualPlacementCollisionExpected, ManualPlacementCollisionStatus};
+pub use manual_readiness::{
+    ManualPlacementCollisionExpected, ManualPlacementCollisionNotRequired,
+    ManualPlacementCollisionStatus,
+};
 pub(crate) use manual_readiness::{static_collider_ready, static_sensor_ready};
 mod terrain;
 pub use manual_assets::{

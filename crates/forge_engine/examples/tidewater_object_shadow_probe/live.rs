@@ -14,8 +14,24 @@ pub struct Sources {
     tracker: Tracker,
     terrain: PreparedSource,
     plants: super::plants::Source,
+    selection: Option<Selection>,
 }
+
+#[derive(serde::Serialize)]
+pub struct Selection {
+    scope: &'static str,
+    frame_index: u32,
+    camera: [f32; 4],
+    groups: Vec<forge_engine::tidewater_plants::scene::shadow::SelectionObservation>,
+}
+
 impl Sources {
+    pub fn set_sun(&mut self, sun: bevy::math::DVec3) -> Result<(), String> {
+        self.tracker.set_sun(sun)
+    }
+    pub fn selection_observation(&self) -> Option<&Selection> {
+        self.selection.as_ref()
+    }
     pub fn frame(
         &mut self,
         view: CascadeView,
@@ -23,13 +39,20 @@ impl Sources {
         flush: bool,
     ) -> Result<Frame, Box<dyn Error>> {
         let terrain = self.terrain.select(view)?;
-        let plants = self.plants.select(view.world_from_view.w_axis.as_vec4())?;
+        let camera = view.world_from_view.w_axis.as_vec4();
+        let (plants, groups) = self.plants.select_observed(camera)?;
         if flush {
             self.tracker.invalidate();
         }
         let mut frame = self.tracker.next(view, index)?;
         frame.terrain = Some(terrain);
         frame.plants = plants;
+        self.selection = Some(Selection {
+            scope: "CPU caster streams supplied to live shadow frame; not GPU depth coverage",
+            frame_index: index,
+            camera: camera.to_array(),
+            groups,
+        });
         Ok(frame)
     }
 }
@@ -62,6 +85,7 @@ pub fn install(
         tracker: Tracker::new(sun)?,
         terrain: super::terrain::source(root, &fixture, Some(files))?,
         plants: source,
+        selection: None,
     });
     Ok(super::install_input(app, input))
 }

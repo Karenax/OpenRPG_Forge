@@ -8,9 +8,10 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         gpu_readback::{Readback, ReadbackComplete},
         render_asset::RenderAssets,
-        renderer::{RenderContext, RenderDevice, RenderGraph},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems},
         storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
@@ -43,6 +44,7 @@ const NAMES: [&str; 9] = [
     "mipB-1",
 ];
 const TOTAL: usize = 256 * 256 * 4;
+pub mod acquired;
 /// Dependents may consume the published FFT images after this render-system set.
 #[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OceanComputeSet;
@@ -105,9 +107,16 @@ struct Input {
     shaders: Vec<String>,
     params: [u8; 224],
     frames: u32,
+    acquired: Option<Arc<Vec<acquired::Step>>>,
+    acquired_manifest: Option<String>,
 }
 #[derive(Resource, Clone)]
 pub struct Targets {
+    /// Last bootstrap step shared with coupled consumers before live continuation.
+    pub bootstrap_steps: u32,
+    /// Exact source uniforms for downstream coupled static bootstrap passes.
+    pub acquired: Option<Arc<Vec<acquired::Step>>>,
+    pub acquired_manifest: Option<String>,
     /// Most recently encoded simulation step; images may be consumed after `OceanComputeSet`.
     pub completed_steps: Arc<AtomicU32>,
     /// Upper step allowed by a coupled consumer; unlimited by default.
@@ -188,7 +197,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         .insert_resource(targets)
         .add_systems(
             RenderGraph,
-            compute.in_set(OceanComputeSet).before(camera_driver),
+            compute
+                .in_set(OceanComputeSet)
+                .in_set(RenderGraphSystems::Render)
+                .before(camera_driver),
         );
     if args.len() == 4 {
         enable_stepping(&mut app);
@@ -224,15 +236,25 @@ pub fn install(
     if output.as_ref().is_some_and(|p| p.exists()) {
         return Err("ocean output already exists".into());
     }
-    let input = load(root, frames)?;
-    let targets = create_targets(app, frames, &input.params);
+    let input = match acquired::load()? {
+        Some(input) => input,
+        None => load(root, frames)?,
+    };
+    let mut targets = create_targets(app, input.frames, &input.params);
+    targets.acquired.clone_from(&input.acquired);
+    targets
+        .acquired_manifest
+        .clone_from(&input.acquired_manifest);
     app.insert_resource(targets.clone());
     app.sub_app_mut(RenderApp)
         .insert_resource(input)
         .insert_resource(targets.clone())
         .add_systems(
             RenderGraph,
-            compute.in_set(OceanComputeSet).before(camera_driver),
+            compute
+                .in_set(OceanComputeSet)
+                .in_set(RenderGraphSystems::Render)
+                .before(camera_driver),
         );
     if output.is_none() {
         targets.readback_complete.store(true, Ordering::Release);
@@ -309,6 +331,8 @@ fn load(root: &Path, frames: u32) -> Result<Input, Box<dyn Error>> {
         shaders,
         params,
         frames,
+        acquired: None,
+        acquired_manifest: None,
     })
 }
 #[allow(clippy::too_many_lines)] // Shared allocation of six work buffers and all mip readbacks.
@@ -405,6 +429,9 @@ fn create_targets(app: &mut App, frames: u32, params: &[u8; 224]) -> Targets {
         }
     }
     Targets {
+        bootstrap_steps: frames,
+        acquired: None,
+        acquired_manifest: None,
         completed_steps: Arc::new(AtomicU32::new(0)),
         permitted_step: Arc::new(AtomicU32::new(u32::MAX)),
         sizes: std::array::from_fn(|i| {
@@ -527,23 +554,33 @@ fn compute(
         input.frames
     };
     let dt = live_step.map_or(1.0_f32 / 60.0, |frame| frame.dt);
-    let mut frame_bytes = [0_u8; 720];
-    frame_bytes[584..588].copy_from_slice(&dt.to_le_bytes());
-    let frame_uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
-        label: Some("native ocean frame dt"),
-        contents: &frame_bytes,
-        usage: wgpu::BufferUsages::UNIFORM,
-    });
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let compute_span = recorder.time_span(context.command_encoder(), "tidewater_ocean");
     for step in first..=last {
         let mut params = input.params;
+        let mut frame_bytes = [0_u8; 720];
+        frame_bytes[584..588].copy_from_slice(&dt.to_le_bytes());
         if let Some(frame) = live_step {
             debug_assert_eq!(step, frame.step);
             time = frame.time;
+        } else if step > 0 && input.acquired.is_some() {
+            let acquired = &input.acquired.as_ref().expect("acquired frames")[step as usize - 1];
+            params = acquired.params;
+            frame_bytes = acquired.global;
+            time = f64::from(f32::from_le_bytes(
+                params[212..216].try_into().expect("ocean time"),
+            ));
         } else if step > 0 {
             time += 1.0 / 60.0;
         }
         #[allow(clippy::cast_possible_truncation)]
         params[212..216].copy_from_slice(&(time as f32).to_le_bytes());
+        let frame_uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
+            label: Some("native ocean frame dt"),
+            contents: &frame_bytes,
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
         let uniform = device.create_buffer_with_data(&wgpu::util::BufferInitDescriptor {
             label: Some("native ocean step"),
             contents: &params,
@@ -644,6 +681,7 @@ fn compute(
             pass.dispatch_workgroups(x, y, z);
         }
     }
+    compute_span.end(context.command_encoder());
     targets.completed_steps.store(last, Ordering::Release);
     if let Some(state) = stepping.as_mut() {
         state.next = last + 1;
@@ -700,10 +738,6 @@ fn readback(
         }
         return;
     }
-    if frame.0 > 600 {
-        exit.write(AppExit::error());
-        return;
-    }
     if output.requested || !targets.ready.load(Ordering::Acquire) {
         return;
     }
@@ -756,6 +790,13 @@ fn readback(
                             output.completed += 1;
                             if output.completed == targets.copies.len() {
                                 targets.readback_complete.store(true, Ordering::Release);
+                                info!(
+                                    main_frame = frame.0,
+                                    completed_steps =
+                                        targets.completed_steps.load(Ordering::Acquire),
+                                    readbacks = output.completed,
+                                    "Ocean initialization complete"
+                                );
                             }
                             output.last_frame = frame.0;
                         }

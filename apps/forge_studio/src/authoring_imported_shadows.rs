@@ -1,4 +1,5 @@
 //! Publish complete shadow generations, then animate their resident casters.
+mod prop_observation;
 use crate::{
     authoring_assets::{imported_buildings, imported_scene},
     authoring_imported_plants,
@@ -28,7 +29,6 @@ struct Source {
     environment: AssetId<Image>,
     roots: Vec<Entity>,
     plants: Option<forge_core::ContentHash>,
-    caster_poses: Vec<u32>,
     sun: [u32; 4],
 }
 #[derive(Clone, PartialEq)]
@@ -48,14 +48,26 @@ struct State {
     generations: u64,
     diagnostics_time: f64,
 }
-pub(crate) fn install(app: &mut App) {
-    app.init_resource::<State>().add_systems(
-        PostUpdate,
-        update
-            .after(imported_scene::update)
-            .after(authoring_imported_plants::update)
-            .after(bevy::transform::TransformSystems::Propagate),
-    );
+pub(crate) fn install(app: &mut App) -> Result<(), String> {
+    let acquired = forge_engine::tidewater_wind::AcquiredFrame::reference()?;
+    let clock = wind::Clock::from_acquired(
+        acquired.global_time_s,
+        acquired.global_frame,
+        acquired.vegetation_gust_offset,
+        acquired.wind_direction,
+        acquired.wind_speed,
+    )
+    .map_err(str::to_owned)?;
+    app.insert_resource(State { clock, ..default() })
+        .add_systems(
+            PostUpdate,
+            update
+                .after(imported_scene::update)
+                .after(crate::authoring_assets::fish_stand_scene::update)
+                .after(authoring_imported_plants::update)
+                .after(bevy::transform::TransformSystems::Propagate),
+        );
+    Ok(())
 }
 fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String> {
     let transform = world
@@ -81,10 +93,8 @@ fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String>
         ]
         .map(f32::to_bits),
     );
-    let mut caster_poses = Vec::new();
-    for (entity, model) in scene::opaque_parts(world)? {
+    for (entity, _) in opaque_parts(world)? {
         roots.push(entity);
-        caster_poses.extend(model.to_cols_array().map(f32::to_bits));
     }
     let view = CascadeView {
         world_from_view: DMat4::from_rotation_translation(
@@ -110,7 +120,6 @@ fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String>
                 environment: environment.environment.id(),
                 roots,
                 plants: authoring_imported_plants::shadow_head(world),
-                caster_poses,
                 sun: environment
                     .scene_lighting
                     .sun_direction
@@ -122,6 +131,17 @@ fn snapshot(world: &World, camera: Entity) -> Result<(Key, CascadeView), String>
         view,
     ))
 }
+/// The frame model order must match buildings followed by the acquired Debris draws.
+fn opaque_parts(world: &World) -> Result<Vec<(Entity, Mat4)>, String> {
+    let mut parts = scene::opaque_parts(world)?;
+    if let Some(debris) =
+        world.get_resource::<forge_engine::tidewater_debris::scene::ResidentScene>()
+    {
+        parts.extend(debris.shadow_parts(world)?);
+    }
+    Ok(parts)
+}
+
 fn update(world: &mut World) {
     if !crate::authoring_viewport::can_project_sources() || !world.contains_resource::<Receiver>() {
         return;
@@ -238,7 +258,28 @@ fn publish_diagnostics(world: &mut World) {
         return;
     };
     let statistics = animation.statistics();
-    let diagnostics = serde_json::json!({
+    // Keep the new clock fields outside the large established diagnostic
+    // macro; adding them there exceeds serde_json's expansion depth.
+    let clock_diagnostics = serde_json::json!({
+        "wind_pose": {
+            "time": state.clock.pose().time,
+            "direction": state.clock.pose().dir,
+            "speed": state.clock.pose().speed,
+            "offset": state.clock.pose().offset,
+            "frame_index": state.clock.pose().index,
+        },
+        "scene_wind": world.get_resource::<forge_engine::tidewater_wind::WindFrame>()
+            .map(|wind| serde_json::json!({ "time": wind.time_seconds(),
+                "direction": wind.wind().direction, "speed": wind.wind().speed })),
+        "virtual_time_s": world.resource::<Time<Virtual>>().elapsed_secs_f64(),
+        "cloud_clock": forge_engine::tidewater_clouds::live::submitted_frame(world).ok()
+            .map(|frame| serde_json::json!({ "submitted_step": frame.step,
+                "frame_index": frame.clock.x, "time": frame.clock.y, "dt": frame.clock.z,
+                "encoded_step": world.get_resource::<forge_engine::tidewater_clouds::Targets>()
+                    .map(|targets| targets.completed_steps.load(Ordering::Acquire)),
+                "scope": "submitted uniforms and encoded commands, not GPU completion or pixel parity" })),
+    });
+    let mut diagnostics = serde_json::json!({
         "refraction_capture": world.get_resource::<forge_engine::tidewater_refraction::Observation>()
             .map(|observation| serde_json::json!({ "state": observation,
                 "gpu": world.get_resource::<forge_engine::tidewater_refraction::GpuObservation>(),
@@ -260,6 +301,7 @@ fn publish_diagnostics(world: &mut World) {
         "sequence": statistics.last_sequence,
         "layer_mask": statistics.last_mask,
         "plant_lighting_refreshes": crate::authoring_imported_plants::lighting_refresh_count(world),
+        "plant_caster_selection": crate::authoring_imported_plants::shadow_selection_observation(world),
         "comparison_hold": crate::authoring_immersion::held(world),
         "camera_signature": crate::authoring_immersion::camera_signature(world),
         "ocean_clock": forge_engine::tidewater_ocean::live_clock(world).map(|clock| {
@@ -332,6 +374,13 @@ fn publish_diagnostics(world: &mut World) {
             "walk_returns": player.walk_returns,
         })),
     });
+    if let serde_json::Value::Object(fields) = clock_diagnostics {
+        diagnostics
+            .as_object_mut()
+            .expect("diagnostics are a JSON object")
+            .extend(fields);
+    }
+    diagnostics["source_prop_projection"] = prop_observation::observe(world);
     if let Some(canvas) = web_sys::window()
         .and_then(|window| window.document())
         .and_then(|document| document.get_element_by_id("forge-authoring-canvas"))
@@ -379,12 +428,31 @@ fn prepare(
         .truncate()
         .as_dvec3()
         .normalize();
-    let mut input = scene::prepare(view, sun, scene::buildings(world)?, Some(terrain))?;
+    let mut draws = scene::buildings(world)?;
+    if let Some(debris) =
+        world.get_resource::<forge_engine::tidewater_debris::scene::ResidentScene>()
+    {
+        draws.extend(debris.shadow_draws(world)?);
+    }
+    let mut input = scene::prepare(view, sun, draws, Some(terrain))?;
     if source.plants.is_some() && input.settings.enabled > 0.5 {
         input.plants = Some(
             authoring_imported_plants::shadow_input(world, input.settings.camera)
                 .ok_or("Plant shadow source absent")??,
         );
+        if let Some(plants) = &mut input.plants {
+            let pose = state.clock.pose();
+            plants.initial_motion = Some(graph::animation::Motion {
+                main_camera: plants.camera,
+                wind_time: Vec4::new(pose.dir[0], pose.dir[1], pose.speed, pose.time),
+                gust_frame: Vec4::new(
+                    pose.offset[0],
+                    pose.offset[1],
+                    f32::from(u8::try_from(pose.index % 64).expect("six frame bits")),
+                    0.0,
+                ),
+            });
+        }
     }
     Ok(input)
 }
@@ -399,12 +467,24 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
         return Ok(());
     }
     let now = world.resource::<Time>().elapsed_secs_f64();
-    let dt = state.previous_time.map_or(0.0, |previous| now - previous);
+    // Engine.js caps the source application's frame delta at 0.1 seconds.
+    // A delayed shadow submission must not accelerate leaves relative to the
+    // ocean and cloud transactions by consuming the whole waiting interval.
+    let dt = state
+        .previous_time
+        .map_or(0.0, |previous| (now - previous).min(0.1));
     let mut clock = state.clock.clone();
     let pose = if crate::authoring_immersion::held(world) {
         clock.pose()
     } else {
-        clock.advance(dt, [1.0, 0.0], 6.0).map_err(str::to_owned)?
+        // Visible leaves and their shadow deformation must use the same
+        // imported-scene wind as the source materials and pier pendulums.
+        let wind = world
+            .resource::<forge_engine::tidewater_wind::WindFrame>()
+            .wind();
+        clock
+            .advance(dt, wind.direction, wind.speed)
+            .map_err(str::to_owned)?
     };
     let frame_index = u8::try_from(pose.index % 64).expect("six frame bits");
     let motion = graph::animation::Motion {
@@ -438,6 +518,23 @@ fn animate(world: &mut World, state: &mut State, view: CascadeView) -> Result<()
             .as_mut()
             .ok_or("Cascades végétales absentes")?;
         let mut frame = tracker.next(view, u32::from(frame_index))?;
+        let parts = opaque_parts(world)?;
+        let expected = &state
+            .committed
+            .as_ref()
+            .ok_or("Shadow generation absent")?
+            .source
+            .roots;
+        if parts.len() != expected.len()
+            || parts
+                .iter()
+                .zip(expected)
+                .any(|((entity, _), expected)| entity != expected)
+        {
+            tracker.invalidate();
+            return Err("Opaque shadow caster identities changed".into());
+        }
+        frame.opaque_models = Some(parts.into_iter().map(|(_, model)| model).collect());
         frame.terrain = Some(terrain);
         frame.plants = plants;
         frame.validate()?;

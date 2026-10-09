@@ -67,6 +67,30 @@ pub struct ActorNavigationObservation {
     pub collision_count: usize,
     pub feedback_tick: Option<u64>,
     pub requested_translation: Option<[f32; 3]>,
+    /// Exact provider state, separate from the portable actuation status.
+    pub provider_state: Option<String>,
+    pub route_diagnostic: Option<RouteDiagnostic>,
+    /// Bounded live-provider queries for alternative danger destinations.
+    pub reachable_goal_queries: u64,
+}
+/// Query-only evidence from the same live islands after their provider update.
+#[derive(Clone, Debug, Serialize)]
+pub struct RouteDiagnostic {
+    pub start: [f32; 3],
+    pub goal: [f32; 3],
+    pub source_generation: u64,
+    pub completed_builds: u64,
+    pub start_sample: Option<[f32; 3]>,
+    pub goal_sample: Option<[f32; 3]>,
+    pub start_island: Option<String>,
+    pub goal_island: Option<String>,
+    pub start_type_index: Option<usize>,
+    pub goal_type_index: Option<usize>,
+    pub start_error: Option<String>,
+    pub goal_error: Option<String>,
+    pub path_error: Option<String>,
+    pub path_steps: Option<usize>,
+    pub animation_links: usize,
 }
 pub(super) struct TileRecord {
     pub stamp: Option<u64>,
@@ -77,6 +101,7 @@ pub(super) struct Route {
     pub agent: AgentId,
     pub observation: ActorNavigationObservation,
     pub patrol_index: usize,
+    pub escape_search: Option<super::reachable::EscapeSearch>,
 }
 #[cfg(not(target_arch = "wasm32"))]
 pub(super) struct NativeJob {
@@ -217,6 +242,7 @@ impl NavigationRuntime {
             Route {
                 agent: self.archipelago.add_agent(agent),
                 patrol_index: 0,
+                escape_search: None,
                 observation: ActorNavigationObservation {
                     actor,
                     status: NavigationStatus::WaitingForSource,
@@ -229,6 +255,9 @@ impl NavigationRuntime {
                     collision_count: 0,
                     feedback_tick: None,
                     requested_translation: None,
+                    provider_state: None,
+                    route_diagnostic: None,
+                    reachable_goal_queries: 0,
                 },
             }
         });
@@ -236,6 +265,7 @@ impl NavigationRuntime {
         route.observation.actual_velocity = actual.to_array();
         route.observation.target = target.map(|target| target.to_array());
         route.observation.grounded = grounded;
+        route.observation.provider_state = None;
         route.observation.collision_count = collisions;
         // Living idle actors warm their current neighbourhood before a danger
         // produces a destination. This cache preparation never actuates movement.
@@ -263,6 +293,9 @@ impl NavigationRuntime {
         } else {
             NavigationStatus::WaitingForSource
         };
+    }
+    pub(crate) fn disable_actor(&mut self, actor: EntityId, center: Vec3) {
+        self.intent(actor, center, Vec3::ZERO, None, (false, 0), false);
     }
     pub(crate) fn tick(&mut self, dt: f32) {
         let budget_valid = self.required().len() <= MAX_TILES;
@@ -311,8 +344,12 @@ impl NavigationRuntime {
                 continue;
             };
             if agent.paused {
+                route.escape_search = None;
+                route.observation.provider_state = None;
+                route.observation.route_diagnostic = None;
                 continue;
             }
+            route.observation.provider_state = Some(format!("{:?}", agent.state()));
             route.observation.status = match agent.state() {
                 AgentState::Moving => NavigationStatus::Moving,
                 AgentState::ReachedTarget => NavigationStatus::Reached,
@@ -326,6 +363,40 @@ impl NavigationRuntime {
             };
             if route.observation.status == NavigationStatus::Moving {
                 route.observation.desired_velocity = agent.get_desired_velocity().to_array();
+            }
+            if matches!(
+                route.observation.status,
+                NavigationStatus::NoPath | NavigationStatus::OutsideMesh
+            ) {
+                if let Some(goal) = route.observation.target {
+                    let start = route.observation.feet;
+                    let reusable =
+                        route
+                            .observation
+                            .route_diagnostic
+                            .as_ref()
+                            .is_some_and(|previous| {
+                                previous.source_generation == self.token
+                                    && previous.completed_builds == self.builds
+                                    && Vec3::from_array(previous.start)
+                                        .distance(Vec3::from_array(start))
+                                        < self.profile.radius_m * 0.5
+                                    && Vec3::from_array(previous.goal)
+                                        .distance(Vec3::from_array(goal))
+                                        < self.profile.radius_m * 0.5
+                            });
+                    if !reusable {
+                        route.observation.route_diagnostic = Some(diagnose_route(
+                            &self.archipelago,
+                            start,
+                            goal,
+                            self.token,
+                            self.builds,
+                        ));
+                    }
+                }
+            } else {
+                route.observation.route_diagnostic = None;
             }
         }
     }
@@ -442,6 +513,71 @@ impl NavigationRuntime {
             }
         }
     }
+}
+
+fn diagnose_route(
+    archipelago: &Archipelago<ForgeCoordinates>,
+    start: [f32; 3],
+    goal: [f32; 3],
+    source_generation: u64,
+    completed_builds: u64,
+) -> RouteDiagnostic {
+    let distance = &archipelago.archipelago_options.point_sample_distance;
+    let start_sample = archipelago.sample_point(point(start), distance);
+    let goal_sample = archipelago.sample_point(point(goal), distance);
+    let mut diagnostic = RouteDiagnostic {
+        start,
+        goal,
+        source_generation,
+        completed_builds,
+        start_sample: start_sample
+            .as_ref()
+            .ok()
+            .map(|sample| sample.point().to_array()),
+        goal_sample: goal_sample
+            .as_ref()
+            .ok()
+            .map(|sample| sample.point().to_array()),
+        start_island: start_sample
+            .as_ref()
+            .ok()
+            .map(|sample| format!("{:?}", sample.island())),
+        goal_island: goal_sample
+            .as_ref()
+            .ok()
+            .map(|sample| format!("{:?}", sample.island())),
+        start_type_index: start_sample
+            .as_ref()
+            .ok()
+            .map(landmass::SampledPoint::type_index),
+        goal_type_index: goal_sample
+            .as_ref()
+            .ok()
+            .map(landmass::SampledPoint::type_index),
+        start_error: start_sample.as_ref().err().map(ToString::to_string),
+        goal_error: goal_sample.as_ref().err().map(ToString::to_string),
+        path_error: None,
+        path_steps: None,
+        animation_links: 0,
+    };
+    if let (Ok(start), Ok(goal)) = (&start_sample, &goal_sample) {
+        match archipelago.find_path(
+            start,
+            goal,
+            &std::collections::HashMap::default(),
+            landmass::PermittedAnimationLinks::default(),
+        ) {
+            Ok(path) => {
+                diagnostic.path_steps = Some(path.len());
+                diagnostic.animation_links = path
+                    .iter()
+                    .filter(|step| matches!(step, landmass::PathStep::AnimationLink { .. }))
+                    .count();
+            }
+            Err(error) => diagnostic.path_error = Some(error.to_string()),
+        }
+    }
+    diagnostic
 }
 
 fn corridor(start: Vec3, end: Vec3, profile: AgentProfile) -> Result<BTreeSet<TileKey>, String> {

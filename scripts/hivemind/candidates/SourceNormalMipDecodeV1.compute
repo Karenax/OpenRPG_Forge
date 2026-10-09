@@ -1,0 +1,22 @@
+#pragma kernel Capture
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+Texture2D<float4> SourceTexture;
+StructuredBuffer<uint4> Coordinates;
+RWStructuredBuffer<float4> Values;
+int SampleCount;
+[numthreads(64,1,1)]
+void Capture(uint3 id:SV_DispatchThreadID) {
+    if(id.x >= (uint)SampleCount) return;
+    uint4 p=Coordinates[id.x];
+    float4 packed=SourceTexture.Load(int3(p.xy,p.z));
+    Values[3*id.x]=packed;
+    Values[3*id.x+1]=float4(UnpackNormal(packed),packed.a);
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+    Values[3*id.x+2]=float4(2,0,0,0);
+#elif defined(UNITY_NO_DXT5nm)
+    Values[3*id.x+2]=float4(0,0,0,0);
+#else
+    Values[3*id.x+2]=float4(1,0,0,0);
+#endif
+}

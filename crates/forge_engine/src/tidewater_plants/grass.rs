@@ -521,6 +521,7 @@ mod tests {
 
     fn material() -> PlantMaterial {
         PlantMaterial {
+            scene_lighting: crate::tidewater_material::scene_buffer::HANDLE.clone(),
             params: super::super::Params {
                 i_pos: Vec4::ZERO,
                 i_dat: Vec4::ZERO,

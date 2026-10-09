@@ -10,6 +10,10 @@ commit='1438b1abfcaee3267092b75573014f4d9b4a983c'
 fixture=json.loads((scene/'fixture.json').read_text())
 atmos=json.loads((scene/'atmosphere.json').read_text())
 env=json.loads((cloud/'environment.json').read_text())
+controller_frames=env.get('controller_frames')
+if controller_frames is not None:
+    assert isinstance(controller_frames,list) and 1<=len(controller_frames)<=256
+bootstrap_frames=len(controller_frames) if controller_frames is not None else 120
 assert fixture['source']['commit']==atmos['source_commit']==env['source_commit']==commit
 files={}
 def include(name,raw):
@@ -30,7 +34,7 @@ for name in ['cloud-weather.wgsl','cloud-bounds.wgsl','cloud-shadow.wgsl','cloud
     checked(cloud,env,name)
 for level in range(7):
     checked(cloud,env,f'cloud-volume-m{level}.rgba8.bin')
-for step in range(1,121):
+for step in range(1,bootstrap_frames+1):
     for kind in ['global','atmosphere']:
         checked(cloud,env,f'cloud-step{step:03}-{kind}.bin')
 license=(upstream/'LICENSE').read_bytes()
@@ -38,6 +42,8 @@ assert b'MIT License' in license and b'Permission is hereby granted' in license
 include('LICENSE-Tidewater.txt',license)
 manifest=dict(schema='forge.tidewater.environment-package',version=1,source_commit=commit,
     files={name:dict(sha256=hashlib.sha256(raw).hexdigest(),bytes=len(raw)) for name,raw in sorted(files.items())})
+if bootstrap_frames!=120:
+    manifest.update(version=2,bootstrap_frames=bootstrap_frames)
 raw=json.dumps(manifest,indent=2).encode()
 out.mkdir()
 for name,data in files.items(): (out/name).write_bytes(data)

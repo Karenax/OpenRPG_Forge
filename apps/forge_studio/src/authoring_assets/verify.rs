@@ -59,7 +59,19 @@ pub(crate) async fn check(asset: &GovernedAssetKitAsset) -> Result<Vec<u8>, Stri
         .collect::<Vec<_>>()
         .join("/");
     let bytes = crate::governed_kit::transport::fetch(&path, 64 * 1024 * 1024).await?;
-    if ContentHash::from_bytes(Sha256::digest(&bytes).into()) != asset.glb.sha256 {
+    check_bytes(&bytes, asset.glb.sha256)?;
+    Ok(bytes)
+}
+
+/// Shared admission for the deployed kit and private Vault transport.
+pub(crate) fn check_bytes(bytes: &[u8], expected: ContentHash) -> Result<(), String> {
+    if bytes.len() > crate::asset_library_model_wire::MAX_MODEL_BYTES {
+        return Err(format!(
+            "Modèle trop volumineux ({} Mio)",
+            crate::asset_library_model_wire::MAX_MODEL_BYTES / (1024 * 1024)
+        ));
+    }
+    if ContentHash::from_bytes(Sha256::digest(bytes).into()) != expected {
         return Err("SHA-256 différent du manifeste".into());
     }
     let header: &[u8; 20] = bytes
@@ -69,5 +81,5 @@ pub(crate) async fn check(asset: &GovernedAssetKitAsset) -> Result<Vec<u8>, Stri
     let length = forge_assets::governed_glb_json_length(header, bytes.len() as u64)
         .map_err(|e| e.to_string())?;
     forge_assets::validate_governed_glb_json(&bytes[20..20 + length]).map_err(|e| e.to_string())?;
-    Ok(bytes)
+    Ok(())
 }

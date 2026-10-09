@@ -7,10 +7,12 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::RenderAssets,
         render_resource as gpu,
-        renderer::{RenderContext, RenderDevice, RenderGraph},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems},
+        storage::GpuShaderBuffer,
         texture::GpuImage,
     },
 };
@@ -20,6 +22,8 @@ use std::sync::{
 };
 pub mod acquisition_controller;
 pub mod live;
+pub mod quality;
+pub mod sampling;
 pub(crate) mod validation;
 use validation::validate;
 pub mod shadow;
@@ -44,6 +48,8 @@ pub struct Targets {
     pub images: Vec<Handle<Image>>,
     pub ready: Arc<AtomicBool>,
 }
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CloudCompute;
 const SIZES: [u32; 10] = [1024, 64, 256, 240, 240, 960, 960, 960, 960, 512];
 const HEIGHTS: [u32; 10] = [1024, 64, 256, 135, 135, 540, 540, 540, 540, 160];
 const NAMES: [&str; 10] = [
@@ -56,10 +62,13 @@ struct Execution {
     next: usize,
     settings: Option<bevy::render::render_resource::Buffer>,
     shadow: Option<shadow::Cache>,
+    observer: Option<Vec<u8>>,
+    atmosphere_prepared: Option<crate::tidewater_atmosphere::prepared::Prepared>,
 }
 #[allow(clippy::struct_excessive_bools)]
 pub(super) struct FrameView<'a> {
-    pub index: usize,
+    pub step: u32,
+    pub final_acquired_frame: bool,
     pub local: &'a [u8],
     pub global: &'a [u8],
     pub atmosphere: Option<&'a [u8]>,
@@ -78,6 +87,10 @@ fn compute(
     images: Res<RenderAssets<GpuImage>>,
     queue: Res<bevy::render::renderer::RenderQueue>,
     pending: Res<live::Pending>,
+    mut sampling: ResMut<sampling::Sampling>,
+    atmosphere_input: Option<Res<crate::tidewater_atmosphere::KernelInput>>,
+    atmosphere_targets: Option<Res<crate::tidewater_atmosphere::Targets>>,
+    buffers: Option<Res<RenderAssets<GpuShaderBuffer>>>,
 ) {
     let live = pending.0.as_deref().filter(|f| {
         targets.ready.load(Ordering::Acquire)
@@ -95,6 +108,7 @@ fn compute(
         .as_ref()
         .is_some_and(|g| Arc::ptr_eq(g, &targets.ready))
     {
+        sampling.reset();
         *execution = Execution {
             generation: Some(targets.ready.clone()),
             ..default()
@@ -124,6 +138,45 @@ fn compute(
     } else {
         None
     };
+    if live.is_none()
+        && let Some(observers) = input
+            .shadow
+            .as_ref()
+            .and_then(|shadow| shadow.atmosphere_frames.as_ref())
+    {
+        let Some(params) = observers.get(execution.next) else {
+            return;
+        };
+        let (Some(kernel), Some(target), Some(buffers), Some(shared)) = (
+            atmosphere_input.as_ref(),
+            atmosphere_targets.as_ref(),
+            buffers.as_ref(),
+            atmosphere.as_ref(),
+        ) else {
+            return;
+        };
+        if !Arc::ptr_eq(&shared.ready, &target.ready) {
+            return;
+        }
+        if execution.observer.as_deref() != Some(params.as_slice()) {
+            if !crate::tidewater_atmosphere::encode_observer(
+                kernel,
+                target,
+                params,
+                &device,
+                context.command_encoder(),
+                &images,
+                buffers,
+                &mut execution.atmosphere_prepared,
+            ) {
+                return;
+            }
+            execution.observer = Some(params.clone());
+        }
+    }
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let compute_span = recorder.time_span(context.command_encoder(), "tidewater_clouds");
     let Execution {
         next,
         settings,
@@ -197,12 +250,16 @@ fn compute(
             pass.dispatch_workgroups(SIZES[index] / 8, SIZES[index] / 8, 1);
         }
     }
+    let bootstrap_frames = input
+        .shadow
+        .as_ref()
+        .map_or(120, |shadow| shadow.frames.len());
     let end = if let Some(frame) = live {
         frame.step as usize
     } else if input.stepped {
-        (*next + 1).min(120)
+        (*next + 1).min(bootstrap_frames)
     } else {
-        120
+        bootstrap_frames
     };
     if let Some(shadow) = &input.shadow {
         let frames: Vec<_> = if let Some(frame) = live {
@@ -215,14 +272,27 @@ fn compute(
                 .skip(*next)
                 .take(end - *next)
                 .map(|(index, (local, global))| FrameView {
-                    index,
+                    step: u32::try_from(index + 1).expect("bounded cloud bootstrap"),
+                    final_acquired_frame: index + 1 == bootstrap_frames,
                     local,
                     global,
-                    atmosphere: None,
-                    shadow_full: index == 0,
-                    panorama_full: index == 0,
-                    trace_view: true,
-                    view_index: index % 2,
+                    atmosphere: shadow
+                        .atmosphere_frames
+                        .as_ref()
+                        .map(|params| params[index].as_slice()),
+                    shadow_full: shadow
+                        .schedule
+                        .as_ref()
+                        .map_or(index == 0, |s| s[index].shadow_full),
+                    panorama_full: shadow
+                        .schedule
+                        .as_ref()
+                        .map_or(index == 0, |s| s[index].panorama_full),
+                    trace_view: shadow.schedule.as_ref().is_none_or(|s| s[index].trace_view),
+                    view_index: shadow
+                        .schedule
+                        .as_ref()
+                        .map_or(index % 2, |s| s[index].view_index),
                 })
                 .collect()
         };
@@ -234,7 +304,7 @@ fn compute(
                 usage: gpu::BufferUsages::UNIFORM,
             })
         });
-        shadow.encode(
+        let encoded = shadow.encode(
             &device,
             &queue,
             context.command_encoder(),
@@ -261,14 +331,18 @@ fn compute(
             &frames,
             shadow_cache,
         );
+        if let Some(encoded) = encoded {
+            let _ = sampling.record(encoded, &targets);
+        }
     }
+    compute_span.end(context.command_encoder());
     *next = end;
     targets.completed_steps.store(
         u32::try_from(end).expect("bounded cloud step"),
         Ordering::Release,
     );
     targets.submissions.fetch_add(1, Ordering::AcqRel);
-    if end == 120 {
+    if end == bootstrap_frames {
         targets.ready.store(true, Ordering::Release);
     }
 }
@@ -276,6 +350,7 @@ fn compute(
 struct StagedInput {
     input: Arc<Input>,
     atmosphere: Option<SharedAtmosphere>,
+    quality: quality::CloudTraceQuality,
 }
 #[derive(Resource)]
 struct Registered;
@@ -293,14 +368,18 @@ pub fn register(app: &mut App) -> Result<(), String> {
         ExtractResourcePlugin::<Targets>::default(),
         ExtractResourcePlugin::<live::Pending>::default(),
     ));
-    app.sub_app_mut(RenderApp).add_systems(
-        RenderGraph,
-        compute
-            .after(crate::tidewater_atmosphere::AtmosphereCompute)
-            .before(camera_driver)
-            .run_if(resource_exists::<StagedInput>)
-            .run_if(resource_exists::<Targets>),
-    );
+    app.sub_app_mut(RenderApp)
+        .init_resource::<sampling::Sampling>()
+        .add_systems(
+            RenderGraph,
+            compute
+                .in_set(CloudCompute)
+                .after(crate::tidewater_atmosphere::AtmosphereCompute)
+                .in_set(RenderGraphSystems::Render)
+                .before(camera_driver)
+                .run_if(resource_exists::<StagedInput>)
+                .run_if(resource_exists::<Targets>),
+        );
     app.insert_resource(Registered);
     Ok(())
 }
@@ -339,15 +418,26 @@ pub fn stage(
 ) -> Result<Targets, String> {
     validate_shared(&input, count, shared.as_ref())?;
     ensure_registered(world)?;
+    let quality = world
+        .get_resource::<quality::CloudTraceQuality>()
+        .copied()
+        .unwrap_or_default();
+    let mut input = input;
+    quality.prepare(&mut input)?;
     let images = SIZES
         .into_iter()
         .take(count)
         .enumerate()
         .map(|(index, size)| {
+            let [width, height] = match index {
+                3 | 4 => quality.source_size(),
+                9 => quality.panorama_size(),
+                _ => [size, HEIGHTS[index]],
+            };
             let mut image = Image::new_uninit(
                 gpu::Extent3d {
-                    width: size,
-                    height: HEIGHTS[index],
+                    width,
+                    height,
                     depth_or_array_layers: 1,
                 },
                 gpu::TextureDimension::D2,
@@ -389,6 +479,7 @@ pub fn stage(
     world.insert_resource(StagedInput {
         input: Arc::new(input),
         atmosphere: shared,
+        quality,
     });
     world.insert_resource(targets.clone());
     world.insert_resource(live::Pending::default());

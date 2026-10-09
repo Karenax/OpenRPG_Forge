@@ -1,5 +1,6 @@
 //! Imported terrain projection in the existing Studio canvas.
 //! The imported edit and playtest views share terrain, ocean and collision projection.
+mod solar;
 use crate::authoring_assets::imported_buildings;
 use bevy::ecs::system::SystemParam;
 use bevy::{ecs as bevy_ecs, prelude::*};
@@ -49,6 +50,7 @@ pub(crate) struct LiveCloudTime {
     failed: bool,
     environment: Option<AssetId<Image>>,
     pub(crate) submitted: u64,
+    pub(crate) solar_readback: Option<(f64, Entity)>,
 }
 
 #[derive(Resource)]
@@ -170,6 +172,7 @@ pub(crate) fn launch(
             }),
             ..default()
         }));
+        app.add_plugins(forge_engine::source_graph::SourceGraphPlugin);
         if playtest.is_some() {
             app.add_plugins((
                 bevy::post_process::auto_exposure::AutoExposurePlugin,
@@ -184,9 +187,9 @@ pub(crate) fn launch(
         // building projection as procedural zones. Imported plants stay intact;
         // clearing their footprint remains an explicit authoring operation.
         crate::authoring_building_projection::install(&mut app);
-        crate::authoring_imported_shadows::install(&mut app);
         app.add_plugins(hill::HillShadowPlugin);
-        let result = crate::authoring_imported_plants::install(&mut app)
+        let result = crate::authoring_imported_shadows::install(&mut app)
+            .and_then(|()| crate::authoring_imported_plants::install(&mut app))
             .and_then(|()| scene::register(&mut app))
             .and_then(|()| shadows::register(&mut app))
             .and_then(|()| crate::authoring_assets::imported_environment::install(&mut app));
@@ -779,6 +782,8 @@ fn update_live_clouds(world: &mut World) {
         .get_resource::<ProjectionState>()
         .is_some_and(|state| state.acknowledged && !state.pending && !state.failed)
         || !tidewater_clouds::live::can_submit(world)
+        || (forge_engine::tidewater_environment::live::is_staged(world)
+            && !forge_engine::tidewater_environment::live::can_submit(world))
         || world.resource::<LiveCloudTime>().failed
     {
         return;
@@ -812,18 +817,67 @@ fn update_live_clouds(world: &mut World) {
             .get_resource::<forge_engine::tidewater_underwater::TidewaterUnderwaterObservation>()
             .is_some_and(|observation| observation.camera_underwater());
         input.dt = dt;
+        let solar = solar::advance(world, &mut environment, dt, camera.position[1])?;
+        if let Some(frame) = solar {
+            input.light_direction = frame.key.to_array();
+        }
+        if !forge_engine::tidewater_material::scene_buffer::ownership::gpu_owned(
+            world,
+            &forge_engine::tidewater_material::scene_buffer::HANDLE,
+        ) {
+            forge_engine::tidewater_material::scene_buffer::publish(
+                world,
+                &environment.scene_lighting,
+            )?;
+        }
         let output = environment
             .cloud_continuation
             .controller
             .update(input)
             .map_err(str::to_owned)?;
-        tidewater_clouds::live::submit(world, &output)?;
+        if let Some(frame) = solar {
+            tidewater_clouds::live::submit_solar(world, &output, frame)?;
+        } else {
+            // Keep the acquired seed until the first current-generation GPU
+            // irradiance event. Encoded commands alone are not a readback.
+            tidewater_clouds::live::submit(world, &output)?;
+        }
+        if forge_engine::tidewater_environment::live::is_staged(world) {
+            let submitted = tidewater_clouds::live::submitted_frame(world)?;
+            let sky = world
+                .resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+                .iter()
+                .find(|(_, sky)| sky.transmittance == environment.atmosphere.images[0])
+                .map(|(_, sky)| [sky.settings.moon_disk, sky.settings.stars_time_night])
+                .ok_or("Ciel de cette génération absent")?;
+            let atmosphere = world
+                .resource::<forge_engine::tidewater_atmosphere::Targets>()
+                .params;
+            forge_engine::tidewater_environment::live::submit(
+                world,
+                forge_engine::tidewater_environment::live::FrameInput {
+                    dt,
+                    sun: atmosphere[3].truncate().as_dvec3().to_array(),
+                    force: false,
+                    global: submitted.global,
+                    atmosphere,
+                    clouds: submitted.clouds,
+                    sky,
+                    cloud_step: submitted.step,
+                    cloud_view: submitted.view,
+                },
+            )?;
+        }
         environment.cloud_continuation.input = input;
         environment.cloud_continuation.last = output.clone();
         environment.cloud_view = output.public.map(Vec4::from_array);
-        Ok::<_, String>((output, environment.cloud_view))
+        Ok::<_, String>((
+            output,
+            environment.cloud_view,
+            solar.map(|frame| frame.hours),
+        ))
     });
-    let (output, params) = match result {
+    let (output, params, solar_hours) = match result {
         Ok(value) => value,
         Err(error) => {
             world.resource_mut::<LiveCloudTime>().failed = true;
@@ -833,9 +887,12 @@ fn update_live_clouds(world: &mut World) {
             return;
         }
     };
+    let solar_readback =
+        solar_hours.zip(forge_engine::tidewater_atmosphere::readback::last_completed_reader(world));
     let mut time = world.resource_mut::<LiveCloudTime>();
     time.previous = Some(now);
     time.submitted += 1;
+    time.solar_readback = solar_readback;
     let view =
         world.resource::<tidewater_clouds::Targets>().images[5 + output.view_index * 2].clone();
     for (_, material) in world

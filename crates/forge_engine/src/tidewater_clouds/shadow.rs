@@ -13,7 +13,18 @@ pub struct Input {
     pub shader: String,
     pub noise: Vec<Vec<u8>>,
     pub frames: Vec<(Vec<u8>, Vec<u8>)>,
+    /// Acquired controller decisions; legacy fixed-camera probes may omit them.
+    pub schedule: Option<Vec<Schedule>>,
+    /// Effective observer parameters for each acquired frame on a shared atmosphere.
+    pub atmosphere_frames: Option<Vec<Vec<u8>>>,
     pub trace: Option<super::trace::Input>,
+}
+#[derive(Clone, Copy)]
+pub struct Schedule {
+    pub shadow_full: bool,
+    pub panorama_full: bool,
+    pub trace_view: bool,
+    pub view_index: usize,
 }
 impl Input {
     #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -30,7 +41,7 @@ impl Input {
         atmosphere_views: Option<[&gpu::WgpuTextureView; 2]>,
         frames: &[super::FrameView<'_>],
         cache: &mut Option<Cache>,
-    ) {
+    ) -> Option<super::sampling::Encoded> {
         let cache = cache.get_or_insert_with(|| {
             let noise = device.create_texture(&gpu::TextureDescriptor {
                 label: Some("original cloud noise"),
@@ -165,7 +176,7 @@ impl Input {
             pass.dispatch_workgroups(32, if frame.shadow_full { 32 } else { 8 }, 1);
         }
         if let (Some(trace), Some(views)) = (&self.trace, trace_views) {
-            trace.encode(
+            return trace.encode(
                 device,
                 queue,
                 encoder,
@@ -180,5 +191,6 @@ impl Input {
                 atmosphere_views,
             );
         }
+        None
     }
 }

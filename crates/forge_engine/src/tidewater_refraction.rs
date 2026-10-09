@@ -32,6 +32,8 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
 };
 
+mod demand;
+pub use demand::CaptureConsumer;
 mod mirror;
 mod observation;
 pub use observation::{GpuObservation, observe_while_held};
@@ -76,6 +78,15 @@ impl Default for Control {
     fn default() -> Self {
         Self { enabled: true }
     }
+}
+
+/// Per-frame synchronization counts; these do not establish GPU completion.
+#[derive(Resource, Default, Clone, serde::Serialize)]
+pub struct Activity {
+    pub demanded: bool,
+    pub material_updates: u32,
+    pub renderable_updates: u32,
+    pub suspended_frames: u64,
 }
 
 /// CPU state and encoded-command count, not GPU texture-readback evidence.
@@ -146,6 +157,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
     })
     .init_resource::<Control>()
     .init_resource::<Observation>()
+    .init_resource::<Activity>()
     .init_resource::<mirror::State>()
     .add_plugins((
         MaterialPlugin::<TerrainCapture>::default(),

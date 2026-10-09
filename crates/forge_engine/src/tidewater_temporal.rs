@@ -17,6 +17,7 @@ use bevy::{
 };
 
 pub mod base_readback;
+pub mod consumer;
 pub mod frame;
 pub mod hdr;
 pub mod observation;
@@ -101,6 +102,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
             )
                 .chain()
                 .after(CameraUpdateSystems)
+                .after(crate::finite_perspective::EffectivePerspectiveSystems)
                 .after(bevy::transform::TransformSystems::Propagate)
                 .before(crate::tidewater_refraction::Synchronize),
         )

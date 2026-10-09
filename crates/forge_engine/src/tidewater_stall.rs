@@ -5,6 +5,12 @@
 //! and material texture arrays, but does not claim that source WGSL has been
 //! transposed into a Bevy shader.  See `FishStandMaterialInputs::limitations`.
 use crate::tidewater_material::SceneLighting;
+pub(crate) mod contact_camera;
+pub mod contact_frame;
+pub mod contact_gpu;
+pub mod full_material;
+pub mod full_scene;
+pub mod full_shader;
 use bevy::{
     asset::RenderAssetUsages,
     image::{ImageAddressMode, ImageFilterMode, ImageSampler, ImageSamplerDescriptor},
@@ -93,6 +99,8 @@ pub struct FishStandPrepared {
     pub mesh: Mesh,
     pub textures: BTreeMap<String, Image>,
     pub placement: Placement,
+    /// Original JSON coordinates for terrain sampling, before GPU f32 projection.
+    pub height_sample_xz: [f64; 2],
     pub limitations: Vec<String>,
 }
 
@@ -104,6 +112,7 @@ impl FishStandPrepared {
             mesh: self.mesh.clone(),
             textures: self.textures.clone(),
             placement: self.placement.clone(),
+            height_sample_xz: self.height_sample_xz,
             limitations: self.limitations.clone(),
         }
     }
@@ -121,7 +130,11 @@ pub struct FishStandResident {
 /// sign/dial layers.  Its compact lighting is deliberately not the upstream
 /// `standard()` WGSL material; `limitations` records each omitted response.
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+#[bind_group_data(FishStandLightingKey)]
 pub struct FishStandMaterial {
+    #[storage(55, read_only)]
+    pub scene_buffer: Handle<bevy::render::storage::ShaderBuffer>,
+    pub shared_scene_lighting: bool,
     #[texture(0, dimension = "2d_array")]
     #[sampler(1)]
     pub surf_a: Handle<Image>,
@@ -155,6 +168,8 @@ impl FishStandMaterial {
                 .ok_or("FishStand texture unresolved")
         };
         Ok(Self {
+            scene_buffer: crate::tidewater_material::scene_buffer::HANDLE.clone(),
+            shared_scene_lighting: false,
             surf_a: texture("surf_a")?,
             surf_n: texture("surf_n")?,
             surf_r: texture("surf_r")?,
@@ -164,6 +179,15 @@ impl FishStandMaterial {
             signs: texture("signs")?,
             scene_lighting,
         })
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct FishStandLightingKey(bool);
+
+impl From<&FishStandMaterial> for FishStandLightingKey {
+    fn from(material: &FishStandMaterial) -> Self {
+        Self(material.shared_scene_lighting)
     }
 }
 
@@ -181,7 +205,7 @@ impl Material for FishStandMaterial {
         _: &MaterialPipeline,
         descriptor: &mut RenderPipelineDescriptor,
         layout: &MeshVertexBufferLayoutRef,
-        _: MaterialPipelineKey<Self>,
+        key: MaterialPipelineKey<Self>,
     ) -> Result<(), bevy::material::specialize::SpecializedMeshPipelineError> {
         if descriptor.vertex.shader.id() == FISH_STAND_SHADER.id() {
             descriptor.vertex.buffers = vec![layout.0.get_layout(&[
@@ -194,21 +218,30 @@ impl Material for FishStandMaterial {
             ])?];
         }
         descriptor.primitive.cull_mode = Some(Face::Back);
+        if key.bind_group_data.0 {
+            let define = crate::tidewater_material::scene_buffer::receiver::DEFINE;
+            descriptor.vertex.shader_defs.push(define.into());
+            if let Some(fragment) = &mut descriptor.fragment {
+                fragment.shader_defs.push(define.into());
+            }
+        }
         Ok(())
     }
 }
 
 /// Install the embedded adapter shader without an `AssetServer` fallback.
 pub fn install_shader(app: &mut App) -> Result<(), String> {
+    crate::tidewater_material::scene_buffer::receiver::install(app.world_mut())?;
+    let source = crate::tidewater_material::scene_buffer::receiver::shader_source(
+        include_str!("tidewater_stall.wgsl"),
+        "FishStandSceneLighting",
+    )?;
     app.world_mut()
         .get_resource_mut::<Assets<Shader>>()
         .ok_or("FishStand shader assets unavailable")?
         .insert(
             FISH_STAND_SHADER.id(),
-            Shader::from_wgsl(
-                include_str!("tidewater_stall.wgsl"),
-                "tidewater-fish-stand.wgsl",
-            ),
+            Shader::from_wgsl(source, "tidewater-fish-stand.wgsl"),
         )
         .map_err(|e| e.to_string())?;
     Ok(())
@@ -216,12 +249,26 @@ pub fn install_shader(app: &mut App) -> Result<(), String> {
 
 impl FishStandPrepared {
     pub fn load(files: &BTreeMap<String, Vec<u8>>) -> Result<Self, String> {
-        let description: FishStandDescription = serde_json::from_slice(
-            files
-                .get("fish-stand.json")
-                .ok_or("Missing fish stand descriptor")?,
-        )
-        .map_err(|e| e.to_string())?;
+        #[derive(Deserialize)]
+        struct SamplePosition {
+            x: f64,
+            z: f64,
+        }
+        #[derive(Deserialize)]
+        struct SampleDescriptor {
+            placement: SamplePosition,
+        }
+        let descriptor = files
+            .get("fish-stand.json")
+            .ok_or("Missing fish stand descriptor")?;
+        let sample: SampleDescriptor =
+            serde_json::from_slice(descriptor).map_err(|e| e.to_string())?;
+        let height_sample_xz = [sample.placement.x, sample.placement.z];
+        if !height_sample_xz.into_iter().all(f64::is_finite) {
+            return Err("Non-finite FishStand terrain sampling coordinate".into());
+        }
+        let description: FishStandDescription =
+            serde_json::from_slice(descriptor).map_err(|e| e.to_string())?;
         if description.schema != "forge.tidewater.fish-stand-bevy-input"
             || description.version != 1
             || description.source_commit != SOURCE_COMMIT
@@ -299,6 +346,7 @@ impl FishStandPrepared {
             mesh,
             textures,
             placement: description.placement,
+            height_sample_xz,
             limitations: description.material.limitations,
         })
     }

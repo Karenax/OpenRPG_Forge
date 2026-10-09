@@ -8,16 +8,17 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         gpu_readback::{Readback, ReadbackComplete},
         render_asset::RenderAssets,
-        renderer::{RenderContext, RenderDevice, RenderGraph, RenderQueue},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems, RenderQueue},
         storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
     window::ExitCondition,
     winit::WinitPlugin,
 };
-use forge_engine::spray_budget::{HeadSample, SprayBudget};
+use forge_engine::spray_budget::{HeadSample, SequencedHeadSample, SprayBudget};
 use std::{
     collections::{BTreeMap, BTreeSet},
     error::Error,
@@ -48,14 +49,41 @@ enum BudgetMode {
 struct BudgetFeedback {
     controller: SprayBudget,
     latest: Option<(u32, HeadSample)>,
+    completed: BTreeMap<u32, HeadSample>,
     encoded_step: u32,
     encoded_time: f64,
     requested_step: u32,
     rows: Vec<serde_json::Value>,
 }
 
+impl BudgetFeedback {
+    fn accept_bootstrap_sample(
+        &mut self,
+        step: u32,
+        sample: HeadSample,
+    ) -> Result<bool, &'static str> {
+        // Bevy can deliver multiple in-flight copies before observer despawn propagates.
+        // A completed step is idempotent, even after the GPU advances to the next step.
+        if self.completed.contains_key(&step) {
+            return Ok(false);
+        }
+        if self.encoded_step != step {
+            return Err("bootstrap feedback does not match the encoded GPU step");
+        }
+        if self.latest.is_some_and(|value| value.0 >= step) {
+            return Err("bootstrap feedback is not a new ordered sample");
+        }
+        self.completed.insert(step, sample);
+        self.latest = Some((step, sample));
+        Ok(true)
+    }
+}
+#[cfg(test)]
+mod bootstrap_feedback_tests;
+
 #[derive(Resource)]
 struct Input {
+    bootstrap_steps: u32,
     budget_mode: BudgetMode,
     coupled: Option<super::shore_sim::CoupledInput>,
     history: bool,
@@ -69,6 +97,7 @@ struct Input {
 }
 #[derive(Resource, Clone)]
 pub struct Targets {
+    pub bootstrap_steps: u32,
     pub completed_steps: Arc<std::sync::atomic::AtomicU32>,
     budget: Option<Arc<Mutex<BudgetFeedback>>>,
     pub shore_state: Option<Handle<Image>>,
@@ -327,6 +356,7 @@ fn load(
         }
     }
     Ok(Input {
+        bootstrap_steps: 120,
         budget_mode,
         coupled: None,
         history,
@@ -517,12 +547,27 @@ pub fn install(
 fn configure(
     app: &mut App,
     source: &Path,
-    input: Input,
+    mut input: Input,
     root: PathBuf,
     exit_when_complete: bool,
 ) -> Result<Targets, Box<dyn Error>> {
     if root.exists() {
         return Err("crest output exists".into());
+    }
+    if input.history {
+        let steps = app
+            .world()
+            .resource::<super::ocean::Targets>()
+            .bootstrap_steps;
+        if !(1..=4096).contains(&steps)
+            || (input.budget_mode == BudgetMode::Recorded && input.budgets.len() != steps as usize)
+        {
+            return Err(
+                "Coupled history requires a bounded FFT bootstrap and matching recorded budgets"
+                    .into(),
+            );
+        }
+        input.bootstrap_steps = steps;
     }
     let manifest_bytes = fs::read(source.join("spray.json"))?;
     let manifest: serde_json::Value = serde_json::from_slice(&manifest_bytes)?;
@@ -537,7 +582,7 @@ fn configure(
         sizes.push(768 * 768 * 4);
     }
     if input.history {
-        sizes.push(120 * 4);
+        sizes.push(input.bootstrap_steps as usize * 4);
     }
     if input.coupled.is_some() {
         sizes.push(768 * 768 * 8);
@@ -587,6 +632,7 @@ fn configure(
         Some(Arc::new(Mutex::new(BudgetFeedback {
             controller: SprayBudget::new(32768)?,
             latest: None,
+            completed: BTreeMap::new(),
             encoded_step: 0,
             encoded_time: 0.0,
             requested_step: 0,
@@ -596,6 +642,7 @@ fn configure(
         None
     };
     let targets = Targets {
+        bootstrap_steps: input.bootstrap_steps,
         completed_steps: Arc::new(std::sync::atomic::AtomicU32::new(0)),
         budget,
         shore_state,
@@ -609,15 +656,15 @@ fn configure(
         root.join("probe.json"),
         serde_json::to_vec_pretty(&serde_json::json!({
             "schema":"forge.tidewater.native-spray-emission-probe", "version":1,
-            "mode":if input.budget_mode == BudgetMode::Native {"native_history_120_native_budget"} else if input.history {"native_history_120_source_budget"}else if input.replay {"paired_source_particle_update"}else if input.integrate {"isolated_source_fft_integrated_frame1"}else{"isolated_source_fft_frame1"}, "source_commit":"1438b1abfcaee3267092b75573014f4d9b4a983c",
+            "mode":if input.budget_mode == BudgetMode::Native {format!("native_history_{}_native_budget", input.bootstrap_steps)} else if input.history {format!("native_history_{}_source_budget", input.bootstrap_steps)}else if input.replay {"paired_source_particle_update".to_owned()}else if input.integrate {"isolated_source_fft_integrated_frame1".to_owned()}else{"isolated_source_fft_frame1".to_owned()}, "source_commit":"1438b1abfcaee3267092b75573014f4d9b4a983c",
             "source_manifest_sha256":forge_core::bytes_sha256(&manifest_bytes).to_string(), "source_acquisition_manifest_sha256":acquired_manifest_hash,
             "native_stations_sha256":forge_core::bytes_sha256(&input.stations).to_string(),
             "adapted_kernel_sha256":forge_core::bytes_sha256(&input.files["kernel.wgsl"]).to_string(),
-            "snapshots":if input.history {vec![120]} else {input.steps.clone()}, "source_crest_results_uploaded":false, "source_particle_results_uploaded":input.replay, "source_particle_expected_outputs_uploaded":false, "source_particle_initial_state_uploaded":input.replay, "crest_kernel_executed":!input.replay,
+            "bootstrap_frames":input.bootstrap_steps, "snapshots":if input.history {vec![input.bootstrap_steps]} else {input.steps.clone()}, "source_crest_results_uploaded":false, "source_particle_results_uploaded":input.replay, "source_particle_expected_outputs_uploaded":false, "source_particle_initial_state_uploaded":input.replay, "crest_kernel_executed":!input.replay,
             "shore_source_manifest_sha256":input.coupled.as_ref().map(super::shore_sim::CoupledInput::manifest_sha256),
             "shore_coupled":input.coupled.is_some(), "source_shore_state_uploaded":false,
             "source_fft_textures_uploaded":!input.history, "source_budget_schedule":input.history && input.budget_mode == BudgetMode::Recorded, "native_budget_feedback":input.budget_mode == BudgetMode::Native,
-            "integration":input.integrate, "limits":if input.history {vec!["native FFT and particle history for 120 steps", if input.budget_mode == BudgetMode::Native {"native GPU head feedback; controlled one-step simulation latency"} else {"source emission budget replay"}, if input.coupled.is_some() {"native shore consumes preceding deposit before emission"} else {"deposits cleared each step; shore state not coupled"}, "no spray rendering"]}else{vec!["source FFT snapshot as paired input", "single update step", "no coupled shore update or sprite rendering"]}
+            "integration":input.integrate, "limits":if input.history {vec!["native FFT and particle history for configured bootstrap steps", if input.budget_mode == BudgetMode::Native {"native GPU head feedback; controlled one-step simulation latency"} else {"source emission budget replay"}, if input.coupled.is_some() {"native shore consumes preceding deposit before emission"} else {"deposits cleared each step; shore state not coupled"}, "no spray rendering"]}else{vec!["source FFT snapshot as paired input", "single update step", "no coupled shore update or sprite rendering"]}
         }))?,
     )?;
     app.insert_resource(targets.clone())
@@ -633,7 +680,11 @@ fn configure(
             },
             integrate: input.integrate,
             replay: input.replay,
-            step: if input.history { 120 } else { input.steps[0] },
+            step: if input.history {
+                input.bootstrap_steps
+            } else {
+                input.steps[0]
+            },
             root,
             requested: false,
             received: if input.replay {
@@ -652,6 +703,7 @@ fn configure(
             RenderGraph,
             compute
                 .after(super::ocean::OceanComputeSet)
+                .in_set(RenderGraphSystems::Render)
                 .before(camera_driver),
         );
     Ok(targets)
@@ -789,7 +841,10 @@ fn compute(
     } else {
         None
     };
-    let live_step = if input.history && native_step > 120 && live.is_some() {
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let compute_span = recorder.time_span(context.command_encoder(), "tidewater_shore_spray");
+    let live_step = if input.history && native_step > input.bootstrap_steps && live.is_some() {
         Some(
             clock
                 .as_ref()
@@ -858,6 +913,15 @@ fn compute(
                 .flat_map(u32::to_le_bytes)
                 .collect();
             ocean_bytes[212..216].copy_from_slice(&time.to_le_bytes());
+            if let Some(acquired) = &ocean.as_ref().expect("ocean").acquired {
+                if native_step <= input.bootstrap_steps {
+                    let source = &acquired[native_step as usize - 1];
+                    frame_bytes = source.global.to_vec();
+                    ocean_bytes = source.params.to_vec();
+                    // Frame.cameraPos follows eight mat4 uniforms; BreakersParams starts with it.
+                    params_bytes[..12].copy_from_slice(&source.global[512..524]);
+                }
+            }
             #[allow(clippy::cast_possible_truncation)]
             // The source packs a double budget as f32 for GPU emission.
             let budget = if let Some(shared) = &targets.budget {
@@ -866,8 +930,10 @@ fn compute(
                 input.budgets[native_step as usize - 1]
             };
             params_bytes[28..32].copy_from_slice(&budget.to_le_bytes());
-            spray_bytes[..4].copy_from_slice(&native_step.to_le_bytes());
-            if let Some(camera) = &camera {
+            spray_bytes[..4].copy_from_slice(&frame_bytes[576..580]);
+            if let Some(camera) = &camera
+                && live_step.is_some()
+            {
                 camera.apply(native_step, &mut params_bytes);
             }
             if let Some(shore_input) = &input.coupled {
@@ -1046,7 +1112,7 @@ fn compute(
         }
     }
     if input.history {
-        if native_step <= 120 {
+        if native_step <= input.bootstrap_steps {
             context.command_encoder().copy_buffer_to_buffer(
                 &gpu[4].buffer,
                 0,
@@ -1057,7 +1123,7 @@ fn compute(
         }
         if let Some(shared) = &targets.budget {
             let mut feedback = shared.lock().expect("budget mutex");
-            if native_step <= 120 {
+            if native_step <= input.bootstrap_steps {
                 assert_eq!(
                     feedback.latest.map(|v| v.0),
                     if native_step == 1 {
@@ -1069,18 +1135,45 @@ fn compute(
                 );
             }
             let emitter = feedback.controller.value();
-            let latest = feedback.latest;
-            feedback
-                .controller
-                .after_emission(latest.map(|v| v.1))
-                .expect("ordered native feedback");
+            let acquired = ocean.as_ref().expect("ocean").acquired.as_ref();
+            let acquired_step = acquired.and_then(|steps| steps.get(native_step as usize - 1));
+            let observed_order = acquired_step.and_then(|step| step.feedback_frame);
+            let latest = match observed_order {
+                Some(Some(frame)) => Some((
+                    frame,
+                    *feedback
+                        .completed
+                        .get(&frame)
+                        .expect("acquired callback requires a completed native GPU head"),
+                )),
+                Some(None) => None,
+                None => feedback.latest,
+            };
+            if acquired.is_some() {
+                feedback
+                    .controller
+                    .after_sequenced_emission(latest.map(|(step, sample)| SequencedHeadSample {
+                        sequence: u64::from(step),
+                        sample,
+                    }))
+                    .expect("ordered acquired native feedback");
+            } else {
+                feedback
+                    .controller
+                    .after_emission(latest.map(|v| v.1))
+                    .expect("ordered native feedback");
+            }
             let next_budget = feedback.controller.value();
-            if native_step <= 120 {
-                feedback.rows.push(serde_json::json!({"frame":native_step,"time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time)}));
+            let feedback_time = acquired
+                .and_then(|steps| steps.get(native_step as usize - 1))
+                .map_or(progress.1, |step| step.global_time);
+            if native_step <= input.bootstrap_steps {
+                let native_latest_frame = feedback.latest.map(|value| value.0);
+                feedback.rows.push(serde_json::json!({"frame":native_step,"time":feedback_time,"ocean_time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time),"source_feedback_observed":observed_order.is_some(),"source_feedback_frame":observed_order.flatten(),"native_latest_frame":native_latest_frame}));
             }
             feedback.encoded_step = native_step;
-            feedback.encoded_time = progress.1;
-            if native_step > 120 {
+            feedback.encoded_time = feedback_time;
+            if native_step > input.bootstrap_steps {
                 live_feedback
                     .as_ref()
                     .expect("live feedback installed")
@@ -1116,7 +1209,8 @@ fn compute(
                 .expect("live ocean clock")
                 .acknowledge(native_step);
         }
-        if native_step < 120 {
+        if native_step < input.bootstrap_steps {
+            compute_span.end(context.command_encoder());
             return;
         }
     }
@@ -1124,6 +1218,7 @@ fn compute(
         let image = public_shore.expect("coupled shore image");
         sim.publish(context.command_encoder(), &image.texture);
         if was_ready {
+            compute_span.end(context.command_encoder());
             return;
         }
         context.command_encoder().copy_texture_to_buffer(
@@ -1143,6 +1238,7 @@ fn compute(
             },
         );
     }
+    compute_span.end(context.command_encoder());
     targets.ready.store(true, Ordering::Release);
 }
 fn readback(
@@ -1150,13 +1246,10 @@ fn readback(
     targets: Res<Targets>,
     mut output: ResMut<Output>,
     frame: Res<FrameCount>,
+    time: Res<Time<Real>>,
     mut exit: MessageWriter<AppExit>,
     ocean: Option<Res<super::ocean::Targets>>,
 ) {
-    if frame.0 > 600 && !targets.readback_complete.load(Ordering::Acquire) {
-        exit.write(AppExit::error());
-        return;
-    }
     if output.received.len() == targets.buffers.len() {
         if let Some(path) = output.budget_report.take() {
             let feedback = targets
@@ -1165,14 +1258,22 @@ fn readback(
                 .expect("native budget")
                 .lock()
                 .expect("budget mutex");
-            let report = serde_json::json!({"schema":"forge.tidewater.native-spray-budget","version":1,"steps":120,"feedback":"native_gpu_head_previous_simulation_step","source_schedule_loaded":false,"schedule":feedback.rows,"limits":["simulation waits for each head readback to match controlled source acquisition latency","not a real-time performance qualification"]});
+            let report = serde_json::json!({"schema":"forge.tidewater.native-spray-budget","version":1,"steps":targets.bootstrap_steps,"feedback":"native_gpu_heads_with_acquired_callback_order_when_observed","source_schedule_loaded":false,"source_feedback_order_replayed":feedback.rows.iter().any(|row| row["source_feedback_observed"].as_bool() == Some(true)),"schedule":feedback.rows,"limits":["native head completion barrier; acquired callback order controls which completed head is consumed","no source particle heads or source budget values injected","not a real-time performance qualification"]});
             if let Err(error) = fs::write(path, serde_json::to_vec_pretty(&report).expect("JSON")) {
                 eprintln!("{error}");
                 exit.write(AppExit::error());
                 return;
             }
         }
-        targets.readback_complete.store(true, Ordering::Release);
+        if !targets.readback_complete.swap(true, Ordering::AcqRel) {
+            info!(
+                main_frame = frame.0,
+                elapsed_seconds = time.elapsed_secs_f64(),
+                completed_steps = targets.completed_steps.load(Ordering::Acquire),
+                readbacks = output.received.len(),
+                "Spray initialization complete"
+            );
+        }
         if output.completion == Completion::Exit
             && frame.0 >= output.last_frame + 8
             && ocean
@@ -1226,7 +1327,7 @@ fn readback(
                         ]
                     };
                     let name = if item.0 == 7 {
-                        "frame-0120-shore.rgba16.bin".to_owned()
+                        format!("frame-{:04}-shore.rgba16.bin", output.step)
                     } else if item.0 == 6 {
                         "history-head.u32.bin".to_owned()
                     } else {
@@ -1235,7 +1336,7 @@ fn readback(
                     let expected = if item.0 == 7 {
                         768 * 768 * 8
                     } else if item.0 == 6 {
-                        120 * 4
+                        output.step as usize * 4
                     } else if item.0 == 0 {
                         output.bytes
                     } else if item.0 == 5 {
@@ -1274,7 +1375,7 @@ fn read_budget(
     let (step, time) = {
         let mut feedback = shared.lock().expect("budget mutex");
         let step = feedback.encoded_step;
-        if step == 0 || step >= 120 || step == feedback.requested_step {
+        if step == 0 || step >= targets.bootstrap_steps || step == feedback.requested_step {
             return;
         }
         feedback.requested_step = step;
@@ -1289,23 +1390,39 @@ fn read_budget(
                   mut commands: Commands,
                   mut exit: MessageWriter<AppExit>| {
                 let Ok(bytes) = <[u8; 4]>::try_from(event.data.as_slice()) else {
+                    error!(
+                        step,
+                        bytes = event.data.len(),
+                        "Invalid bootstrap spray feedback size"
+                    );
                     exit.write(AppExit::error());
                     return;
                 };
                 let mut feedback = shared.lock().expect("budget mutex");
-                if feedback.encoded_step != step || feedback.latest.is_some_and(|v| v.0 >= step) {
-                    exit.write(AppExit::error());
-                    return;
+                let sample = HeadSample {
+                    time,
+                    head: u32::from_le_bytes(bytes),
+                };
+                match feedback.accept_bootstrap_sample(step, sample) {
+                    Ok(true) => {
+                        // Release the next FFT/shore/spray step exactly once.
+                        permitted.store(step + 1, Ordering::Release);
+                        commands.entity(event.entity).despawn();
+                    }
+                    Ok(false) => {
+                        debug!(
+                            step,
+                            encoded = feedback.encoded_step,
+                            "Ignoring duplicate bootstrap spray readback"
+                        );
+                    }
+                    Err(error) => {
+                        error!(%error, step, encoded = feedback.encoded_step,
+                            latest = ?feedback.latest.map(|value| value.0),
+                            "Bootstrap spray feedback rejected");
+                        exit.write(AppExit::error());
+                    }
                 }
-                feedback.latest = Some((
-                    step,
-                    HeadSample {
-                        time,
-                        head: u32::from_le_bytes(bytes),
-                    },
-                ));
-                permitted.store(step + 1, Ordering::Release);
-                commands.entity(event.entity).despawn();
             },
         );
 }

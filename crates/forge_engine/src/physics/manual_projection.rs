@@ -37,7 +37,7 @@ pub fn manual_placements_ready(world: &mut World, accepted: &[ManualPlacement]) 
                         .iter()
                         .all(|&entity| belongs_to(world, entity, root))
                     && matches!(
-                        manual_readiness::inspect(world, expected),
+                        manual_readiness::inspect(world, root, expected),
                         ManualPlacementCollisionStatus::Registered { .. }
                     )
             })

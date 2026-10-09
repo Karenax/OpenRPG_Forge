@@ -15,7 +15,7 @@ pub struct Motion {
     pub gust_frame: Vec4,
 }
 impl Motion {
-    fn validate(self) -> Result<(), String> {
+    pub(crate) fn validate(self) -> Result<(), String> {
         if !self.main_camera.is_finite()
             || !self.wind_time.is_finite()
             || !self.gust_frame.is_finite()
@@ -113,6 +113,9 @@ pub fn submit_frame(
     let input = world
         .get_resource::<KernelInput>()
         .ok_or("shadow inputs absent")?;
+    if let Some(models) = &frame.opaque_models {
+        crate::tidewater_object_shadow::validate_models(models, input.0.draws.len())?;
+    }
     if !target.ready.load(Ordering::Acquire)
         || input.0.plants.as_ref().map_or(0, |p| p.batches.len()) != frame.plants.len()
         || input.0.terrain.is_some() != frame.terrain.is_some()
@@ -179,9 +182,12 @@ mod tests {
             fov_degrees: 60.0,
             aspect: 16.0 / 9.0,
         };
+        let mut first = tracker.next(view, 1).unwrap();
+        let old_pose = Mat4::from_translation(Vec3::new(10.0, 2.0, 3.0));
+        first.opaque_models = Some(vec![old_pose]);
         let mut main = State {
             sequence: 1,
-            frame: Some(Arc::new(tracker.next(view, 1).unwrap())),
+            frame: Some(Arc::new(first)),
             ..default()
         };
         assert!(!main.can_submit());
@@ -190,11 +196,22 @@ mod tests {
         assert!(main.can_submit());
         assert!(!main.is_idle());
         main.sequence = 2;
-        main.frame = Some(Arc::new(tracker.next(view, 2).unwrap()));
+        let mut second = tracker.next(view, 2).unwrap();
+        let new_pose = Mat4::from_translation(Vec3::new(10.0, 2.5, 3.0));
+        second.opaque_models = Some(vec![new_pose]);
+        main.frame = Some(Arc::new(second));
         assert!(!main.can_submit());
         assert_eq!(snapshot.sequence, 1);
         assert_eq!(snapshot.frame.as_ref().unwrap().settings.frame_index, 1);
         assert_eq!(main.frame.as_ref().unwrap().settings.frame_index, 2);
+        assert_eq!(
+            snapshot.frame.as_ref().unwrap().opaque_models,
+            Some(vec![old_pose])
+        );
+        assert_eq!(
+            main.frame.as_ref().unwrap().opaque_models,
+            Some(vec![new_pose])
+        );
         snapshot.record_encoded(&[0, 2], false);
         assert_eq!(main.encoded.load(Ordering::Acquire), 1);
         assert!(!main.needs_recovery());

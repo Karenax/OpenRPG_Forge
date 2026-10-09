@@ -426,6 +426,48 @@ fn exact_turn_in_retry_is_idempotent_and_cannot_duplicate_reward() {
 }
 
 #[test]
+fn exhausted_stamina_refuses_attack_atomically_and_survives_resume() {
+    let (mut document, ids) = fixture();
+    document.profile.max_stamina = document.profile.attack_stamina_cost;
+    let original = document.clone();
+    let source_hash = ContentHash::from_bytes([19; 32]);
+    let mut session = GameSession::new(document, source_hash).unwrap();
+    session
+        .execute(
+            &request(
+                "last-stamina",
+                0,
+                ids.player,
+                GameAction::Attack { target: ids.guard },
+            ),
+            visible(),
+        )
+        .unwrap();
+    assert_eq!(session.state().actors[&ids.player].stamina, 0);
+    assert_eq!(session.state().actors[&ids.guard].vitality, 62);
+    let exhausted_state = session.state().clone();
+    let refused_attack = request(
+        "exhausted-attack",
+        1,
+        ids.player,
+        GameAction::Attack { target: ids.guard },
+    );
+    let error = session.execute(&refused_attack, visible()).unwrap_err();
+    assert!(matches!(error, GameplayError::ActionRefused(_)));
+    assert_eq!(session.state(), &exhausted_state);
+    assert_eq!(session.document(), &original);
+
+    let bytes = session.save_bytes().unwrap();
+    let mut resumed = GameSession::resume(original.clone(), source_hash, &bytes, false).unwrap();
+    assert_eq!(resumed.state(), &exhausted_state);
+    let error = resumed.execute(&refused_attack, visible()).unwrap_err();
+    assert!(matches!(error, GameplayError::ActionRefused(_)));
+    assert_eq!(resumed.state(), &exhausted_state);
+    assert_eq!(resumed.save_bytes().unwrap(), bytes);
+    assert_eq!(resumed.document(), &original);
+}
+
+#[test]
 fn full_inventory_rolls_back_pickup_and_keeps_the_quest_object() {
     let (document, ids) = fixture();
     let original = document.clone();

@@ -18,10 +18,52 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[derive(Resource)]
+pub(super) struct ResidentStall {
+    pub entity: Entity,
+    pub resident: forge_engine::tidewater_stall::FishStandResident,
+}
+
+fn placement_transform(
+    probe: &Probe,
+    prepared: &FishStandPrepared,
+) -> Result<Transform, Box<dyn Error>> {
+    let y = probe
+        .terrain
+        .as_ref()
+        .map(|terrain| {
+            terrain.height_at(prepared.height_sample_xz[0], prepared.height_sample_xz[1])
+        })
+        .transpose()?
+        .map_or(Ok(0.0), |height| checked_f32(height, "fish terrain height"))?;
+    Ok(
+        Transform::from_xyz(prepared.placement.x, y, prepared.placement.z)
+            .with_rotation(Quat::from_rotation_y(prepared.placement.yaw_radians)),
+    )
+}
+
+/// Source FishStand.js marks its static opaque StallKit mesh as a caster.
+/// Use the same terrain placement and source positions as the visible stall.
+pub fn shadow_draw(
+    probe: &Probe,
+) -> Result<Option<forge_engine::tidewater_object_shadow::OpaqueDraw>, Box<dyn Error>> {
+    let Some(prepared) = probe.fish_stand.as_ref() else {
+        return Ok(None);
+    };
+    let pose = placement_transform(probe, prepared)?;
+    Ok(Some(
+        forge_engine::tidewater_object_shadow::OpaqueDraw::from_mesh(
+            &prepared.mesh,
+            pose.to_matrix(),
+        )?,
+    ))
+}
+
 #[derive(Clone)]
 pub struct FishStandContent {
     root: PathBuf,
     fish: Vec<Fish>,
+    pub(super) source: Option<std::sync::Arc<super::source_fish::Inputs>>,
 }
 
 // Fish descriptors are authored as JSON numbers (f64 in serde_json), while
@@ -85,11 +127,18 @@ pub fn load(scene_root: &Path) -> Result<Option<FishStandPrepared>, Box<dyn Erro
 }
 
 pub fn load_content(scene_root: &Path) -> Result<Option<FishStandContent>, Box<dyn Error>> {
+    let source = super::source_fish::load()?;
     let Some(bundle) = scene_root.parent() else {
+        if source.is_some() {
+            return Err("Native source fish require a scene bundle".into());
+        }
         return Ok(None);
     };
     let root = bundle.join("fish-stand-fish");
     if !root.is_dir() {
+        if source.is_some() {
+            return Err("Native source fish require the stall content bundle".into());
+        }
         return Ok(None);
     }
     let value: serde_json::Value = serde_json::from_slice(&fs::read(root.join("fish.json"))?)?;
@@ -129,7 +178,7 @@ pub fn load_content(scene_root: &Path) -> Result<Option<FishStandContent>, Box<d
     for item in &fish {
         let _ = fish_mesh(&root, item)?;
     }
-    Ok(Some(FishStandContent { root, fish }))
+    Ok(Some(FishStandContent { root, fish, source }))
 }
 
 fn floats(bytes: &[u8], width: usize) -> Result<Vec<Vec<f32>>, Box<dyn Error>> {
@@ -242,13 +291,8 @@ pub fn setup(
     let Some(prepared) = probe.fish_stand.as_ref() else {
         return;
     };
-    let y = probe
-        .terrain
-        .as_ref()
-        .and_then(|terrain| terrain.height_at(49.9, -74.6).ok())
-        .map_or(0.0, |height| {
-            checked_f32(height, "fish terrain height").expect("validated canonical terrain height")
-        });
+    let pose = placement_transform(&probe, prepared).expect("validated canonical stand placement");
+    let y = pose.translation.y;
     let resident = prepared.clone_for_probe().stage(&mut meshes, &mut images);
     let lighting = probe
         .village
@@ -258,14 +302,16 @@ pub fn setup(
         .clone();
     let material = FishStandMaterial::from_resident(&resident, lighting)
         .expect("validated FishStand texture handles");
-    commands.spawn((
-        Name::new("FishStandStall source mesh (array-material preview)"),
-        Mesh3d(resident.mesh),
-        MeshMaterial3d(materials.add(material)),
-        Transform::from_xyz(resident.placement.x, y, resident.placement.z)
-            .with_rotation(Quat::from_rotation_y(resident.placement.yaw_radians)),
-        NoFrustumCulling,
-    ));
+    let entity = commands
+        .spawn((
+            Name::new("FishStandStall source mesh (array-material preview)"),
+            Mesh3d(resident.mesh.clone()),
+            MeshMaterial3d(materials.add(material)),
+            pose,
+            NoFrustumCulling,
+        ))
+        .id();
+    commands.insert_resource(ResidentStall { entity, resident });
     let Some(content) = probe.fish_stand_content.as_ref() else {
         return;
     };
@@ -291,6 +337,10 @@ pub fn setup(
         .observe(start_joe_idle)
         .id();
     commands.entity(stand).add_child(joe);
+    if content.source.is_some() {
+        // The source adapter stages all three LODs and their dedicated material.
+        return;
+    }
     for (index, fish) in content.fish.iter().enumerate() {
         let mesh = fish_mesh(&content.root, fish).expect("validated FishGeometry payload");
         let pose =

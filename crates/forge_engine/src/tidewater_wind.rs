@@ -4,6 +4,8 @@ use bevy::{
     math::{DVec4, Vec4},
     prelude::Resource,
 };
+mod acquisition;
+pub use acquisition::AcquiredFrame;
 
 #[derive(Clone, Copy, Debug, Resource)]
 pub struct WindFrame {
@@ -53,13 +55,14 @@ impl WindFrame {
         Ok(())
     }
 
-    /// Global shader time advances by the full frame delta, as in the source.
-    /// Pendulums separately retain their original 0.1-second integration clamp.
+    /// Advance by Engine.js's source application delta (at most 0.1 seconds).
+    /// The Bevy frame delta can be larger; it must not accelerate material wind
+    /// relative to the source ocean, clouds and pendulum integrators.
     pub fn advance(&mut self, delta_seconds: f64) -> Result<(), String> {
         if !delta_seconds.is_finite() || delta_seconds < 0.0 {
             return Err("Imported scene wind delta is invalid".into());
         }
-        let next = Self::new(self.time_seconds + delta_seconds, self.wind)?;
+        let next = Self::new(self.time_seconds + delta_seconds.min(0.1), self.wind)?;
         *self = next;
         Ok(())
     }
@@ -82,5 +85,32 @@ impl WindFrame {
             self.time_seconds,
         )
         .as_vec4()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn global_clock_uses_source_engine_delta_including_slow_frames() {
+        let mut frame = WindFrame::source_defaults(2.0).expect("acquired global time");
+        let mut source_time = 2.0;
+        for delta in [1.0_f64 / 60.0, 0.25, 0.0, 0.031, 1.2, 0.001] {
+            // Engine.js clamps the application delta before App.frame.
+            source_time += delta.min(0.1);
+            frame.advance(delta).expect("finite source frame");
+            assert_eq!(frame.time_seconds(), source_time);
+        }
+    }
+
+    #[test]
+    fn invalid_delta_does_not_replace_an_acquired_frame() {
+        let mut frame = WindFrame::source_defaults(2.0).expect("acquired global time");
+        let before = frame.material_uniform();
+        for delta in [f64::NAN, f64::INFINITY, -1.0] {
+            assert!(frame.advance(delta).is_err());
+            assert_eq!(frame.material_uniform(), before);
+        }
     }
 }

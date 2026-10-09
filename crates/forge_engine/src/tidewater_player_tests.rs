@@ -22,6 +22,336 @@ use forge_world::{VisualValleyPlayerControllerRecipe, sampled_terrain::SampledTe
 use std::{sync::Arc, time::Duration};
 
 #[test]
+fn adjacent_heightfield_tiles_preserve_raw_kcc_walkable_slope_crossing() {
+    let (mut app, _) = prepared_app(0.0);
+    let floors: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    for floor in floors {
+        app.world_mut().despawn(floor);
+    }
+    let slope = -35.0_f32.to_radians().tan();
+    for center in [-1.0, 1.0] {
+        let heights: Vec<f32> = (0_u16..3)
+            .flat_map(|column| std::iter::repeat_n((center - 1.0 + f32::from(column)) * slope, 3))
+            .collect();
+        app.world_mut().spawn((
+            Collider::heightfield(heights, 3, 3, Vec3::new(2.0, 1.0, 4.0)),
+            Transform::from_xyz(center, 0.0, 0.0),
+        ));
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    let entity = bindings(&app).player_entity;
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let handle = context.colliders.entity2collider()[&entity];
+    let collider = &context.colliders.colliders[handle];
+    let raw = bevy_rapier3d::rapier::control::KinematicCharacterController {
+        offset: CharacterLength::Absolute(0.01),
+        slide: true,
+        autostep: Some(CharacterAutostep {
+            max_height: CharacterLength::Absolute(0.4),
+            min_width: CharacterLength::Absolute(0.2),
+            include_dynamic_bodies: false,
+        }),
+        max_slope_climb_angle: 45.0_f32.to_radians(),
+        min_slope_slide_angle: 50.0_f32.to_radians(),
+        snap_to_ground: Some(CharacterLength::Absolute(0.3)),
+        ..default()
+    };
+    let clearance = RADIUS * (35.0_f32.to_radians().cos().recip() - 1.0);
+    let mut pose = bevy_rapier3d::rapier::math::Pose::from_translation(Vec3::new(
+        0.8,
+        0.8 * slope + WALK_HEIGHT * 0.5 + clearance + 0.012,
+        0.0,
+    ));
+    let mut last_contacts = Vec::new();
+    for _ in 0..60 {
+        last_contacts.clear();
+        let movement = context.with_query_pipeline(
+            QueryFilter::default().exclude_collider(entity),
+            |pipeline| {
+                raw.move_shape(
+                    1.0 / 60.0,
+                    &pipeline.query_pipeline,
+                    collider.shape(),
+                    &pose,
+                    Vec3::new(-0.03, -9.81 / 3600.0, 0.0),
+                    |hit| {
+                        last_contacts.push((
+                            context.colliders.collider_entity(hit.handle),
+                            hit.hit.normal1,
+                        ));
+                    },
+                )
+            },
+        );
+        pose.translation += movement.translation;
+    }
+    eprintln!(
+        "adjacent 35-degree heightfields final={:?}, contacts={last_contacts:?}",
+        pose.translation
+    );
+    assert!(
+        pose.translation.x < -RADIUS,
+        "The capsule must fully clear the shared seam on a walkable slope"
+    );
+}
+
+#[test]
+fn real_tidewater_seam_wall_guard_preserves_forward_demand() {
+    let (mut app, _) = prepared_app(0.0);
+    let floors: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    for floor in floors {
+        app.world_mut().despawn(floor);
+    }
+    let tiles: [(&[u8], f32); 2] = [
+        (
+            include_bytes!("../tests/fixtures/tidewater-seam/tile-z-384.f32"),
+            -320.0,
+        ),
+        (
+            include_bytes!("../tests/fixtures/tidewater-seam/tile-z-256.f32"),
+            -192.0,
+        ),
+    ];
+    for (bytes, center_z) in tiles {
+        let heights: Vec<f32> = bytes
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|chunk| f32::from_le_bytes(*chunk))
+            .collect();
+        assert_eq!(heights.len(), 129 * 129);
+        app.world_mut().spawn((
+            Collider::heightfield(heights, 129, 129, Vec3::new(128.0, 1.0, 128.0)),
+            Transform::from_xyz(64.0, 0.0, center_z),
+        ));
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    let entity = bindings(&app).player_entity;
+    let anchor: [f32; 3] = serde_json::from_str(include_str!(
+        "../tests/fixtures/tidewater-seam/start-anchor.json"
+    ))
+    .expect("captured public anchor");
+    app.world_mut()
+        .get_mut::<Transform>(entity)
+        .expect("player transform")
+        .translation = Vec3::from_array(anchor) + Vec3::Y * (WALK_HEIGHT * 0.5);
+    for _ in 0..4 {
+        app.update();
+    }
+    // Exercise candidate revalidation separately from history collection. Both
+    // tile identifiers represent possible earlier edge contacts, not proof of
+    // the unobserved public wall-candidate list.
+    let mut candidates: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    let controller = app
+        .world()
+        .get::<KinematicCharacterController>(entity)
+        .expect("player KCC")
+        .clone();
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let desired = Vec3::new(0.0, -9.81 / 3600.0, -0.05);
+    let constrained = constrain_wall_drive(&context, entity, &controller, desired, &mut candidates);
+    eprintln!(
+        "real Tidewater guard desired={desired:?}, constrained={constrained:?}, retained={candidates:?}"
+    );
+    assert!(
+        constrained.z < -0.01,
+        "Fresh wall-candidate revalidation must preserve demand across this walkable real seam"
+    );
+}
+
+#[test]
+fn real_tidewater_tiles_preserve_raw_kcc_crossing_at_forest_stop() {
+    let (mut app, _) = prepared_app(0.0);
+    let floors: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    for floor in floors {
+        app.world_mut().despawn(floor);
+    }
+    let tiles: [(&[u8], f32); 2] = [
+        (
+            include_bytes!("../tests/fixtures/tidewater-seam/tile-z-384.f32"),
+            -320.0,
+        ),
+        (
+            include_bytes!("../tests/fixtures/tidewater-seam/tile-z-256.f32"),
+            -192.0,
+        ),
+    ];
+    for (bytes, center_z) in tiles {
+        let heights: Vec<f32> = bytes
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .map(|chunk| f32::from_le_bytes(*chunk))
+            .collect();
+        assert_eq!(heights.len(), 129 * 129);
+        app.world_mut().spawn((
+            Collider::heightfield(heights, 129, 129, Vec3::new(128.0, 1.0, 128.0)),
+            Transform::from_xyz(64.0, 0.0, center_z),
+        ));
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    let entity = bindings(&app).player_entity;
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let handle = context.colliders.entity2collider()[&entity];
+    let collider = &context.colliders.colliders[handle];
+    let raw = bevy_rapier3d::rapier::control::KinematicCharacterController {
+        offset: CharacterLength::Absolute(0.01),
+        slide: true,
+        autostep: Some(CharacterAutostep {
+            max_height: CharacterLength::Absolute(0.4),
+            min_width: CharacterLength::Absolute(0.2),
+            include_dynamic_bodies: false,
+        }),
+        max_slope_climb_angle: 45.0_f32.to_radians(),
+        min_slope_slide_angle: 50.0_f32.to_radians(),
+        snap_to_ground: Some(CharacterLength::Absolute(0.3)),
+        ..default()
+    };
+    let anchor: [f32; 3] = serde_json::from_str(include_str!(
+        "../tests/fixtures/tidewater-seam/start-anchor.json"
+    ))
+    .expect("captured public anchor");
+    let mut pose = bevy_rapier3d::rapier::math::Pose::from_translation(
+        Vec3::from_array(anchor) + Vec3::Y * (WALK_HEIGHT * 0.5),
+    );
+    let mut last_contacts = Vec::new();
+    for _ in 0..60 {
+        last_contacts.clear();
+        let movement = context.with_query_pipeline(
+            QueryFilter::default().exclude_collider(entity),
+            |pipeline| {
+                raw.move_shape(
+                    1.0 / 60.0,
+                    &pipeline.query_pipeline,
+                    collider.shape(),
+                    &pose,
+                    Vec3::new(0.0, -9.81 / 3600.0, -0.05),
+                    |hit| {
+                        last_contacts.push((
+                            context.colliders.collider_entity(hit.handle),
+                            hit.hit.normal1,
+                        ));
+                    },
+                )
+            },
+        );
+        pose.translation += movement.translation;
+    }
+    eprintln!(
+        "real Tidewater forest seam start={anchor:?}, final={:?}, contacts={last_contacts:?}",
+        pose.translation
+    );
+    assert!(
+        pose.translation.z < -257.0,
+        "The raw KCC must cross the real Tidewater seam from the captured forest stop"
+    );
+}
+
+#[test]
+fn elevated_room_floor_preserves_raw_kcc_forward_translation() {
+    let (mut app, _) = prepared_app(0.0);
+    let floor = app
+        .world_mut()
+        .spawn((
+            Collider::cuboid(0.5, 0.5, 0.5),
+            Transform::from_xyz(46.0, 6.549_617_3, -145.0).with_scale(Vec3::new(8.0, 0.2, 6.0)),
+        ))
+        .id();
+    for _ in 0..4 {
+        app.update();
+    }
+    let entity = bindings(&app).player_entity;
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let handle = context.colliders.entity2collider()[&entity];
+    let collider = &context.colliders.colliders[handle];
+    let raw = bevy_rapier3d::rapier::control::KinematicCharacterController {
+        offset: CharacterLength::Absolute(0.01),
+        slide: true,
+        autostep: None,
+        snap_to_ground: None,
+        ..default()
+    };
+    let desired = Vec3::new(0.0, -0.002_725_124_4, -0.050_003_05);
+    let mut failures = Vec::new();
+    for x in [45.954_227, 46.0] {
+        for z in [-146.72815, -145.0] {
+            for clearance in [0.0, 0.0001, 0.005, 0.01, 0.02] {
+                let pose = bevy_rapier3d::rapier::math::Pose::from_translation(Vec3::new(
+                    x,
+                    6.649_617 + WALK_HEIGHT * 0.5 + clearance,
+                    z,
+                ));
+                let mut contacts = Vec::new();
+                let movement = context.with_query_pipeline(
+                    QueryFilter::default().exclude_collider(entity),
+                    |pipeline| {
+                        raw.move_shape(
+                            1.0 / 60.0,
+                            &pipeline.query_pipeline,
+                            collider.shape(),
+                            &pose,
+                            desired,
+                            |hit| {
+                                contacts.push((
+                                    context.colliders.collider_entity(hit.handle),
+                                    hit.hit.normal1,
+                                ));
+                            },
+                        )
+                    },
+                );
+                if movement.translation.z >= -0.049 {
+                    failures.push((x, z, clearance, movement.translation, contacts));
+                }
+            }
+        }
+    }
+    eprintln!("elevated scaled floor={floor:?}, 20 actual sweeps, failures={failures:?}");
+    assert!(
+        failures.is_empty(),
+        "A horizontal floor must retain forward movement after its gravity contact"
+    );
+}
+
+#[test]
 #[allow(
     clippy::float_cmp,
     reason = "Ground contact explicitly resets vertical velocity to zero; retain the exact stop assertion."
@@ -544,7 +874,7 @@ fn assert_moving_player_brakes_and_stays_on_walkable_slope(degrees: f32) {
     settle(&mut app, 90);
     let start_position = motion(&app).position;
     eprintln!(
-        "tidewater braking {degrees}° start position={start_position:?}, grounded={}",
+        "tidewater braking {degrees}Â° start position={start_position:?}, grounded={}",
         motion(&app).grounded
     );
 
@@ -558,7 +888,7 @@ fn assert_moving_player_brakes_and_stays_on_walkable_slope(degrees: f32) {
     settle(&mut app, 24);
     let moving = motion(&app).clone();
     eprintln!(
-        "tidewater braking {degrees}° moving position={:?}, velocity={:?}, grounded={}",
+        "tidewater braking {degrees}Â° moving position={:?}, velocity={:?}, grounded={}",
         moving.position, moving.velocity, moving.grounded
     );
     assert!(
@@ -577,7 +907,7 @@ fn assert_moving_player_brakes_and_stays_on_walkable_slope(degrees: f32) {
     let release_displacement = stopped.position.xz().distance(release_position.xz());
     let stopped_output = player_controller_output(&mut app);
     eprintln!(
-        "tidewater braking {degrees}° stopped position={:?}, velocity={:?}, grounded={}, kcc_grounded={}, kcc_sliding={}, release_displacement_m={release_displacement}",
+        "tidewater braking {degrees}Â° stopped position={:?}, velocity={:?}, grounded={}, kcc_grounded={}, kcc_sliding={}, release_displacement_m={release_displacement}",
         stopped.position,
         stopped.velocity,
         stopped.grounded,
@@ -1152,4 +1482,268 @@ fn player_controller_translation(app: &mut App) -> Option<Vec3> {
         .single(world)
         .expect("one player controller")
         .translation
+}
+
+#[test]
+fn real_tidewater_boardwalk_entry_guard_preserves_recoverable_step() {
+    let (mut app, _) = prepared_app(0.0);
+    let floors: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    for floor in floors {
+        app.world_mut().despawn(floor);
+    }
+    let bytes = include_bytes!("../tests/fixtures/tidewater-entry/tile.f32");
+    let heights = bytes
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|b| f32::from_le_bytes(*b))
+        .collect();
+    app.world_mut().spawn((
+        Collider::heightfield(heights, 129, 129, Vec3::new(128.0, 1.0, 128.0)),
+        Transform::from_xyz(64.0, 0.0, -64.0),
+    ));
+    let board = app
+        .world_mut()
+        .spawn((
+            crate::physics::yawed_box_collider(
+                Vec3::new(0.9, 0.281_936_14, 0.521_314_6),
+                -2.829_825_6,
+            )
+            .expect("verified box"),
+            Transform::from_xyz(42.753_773, 3.681_234, -106.722_855),
+        ))
+        .id();
+    for _ in 0..4 {
+        app.update();
+    }
+    let entity = bindings(&app).player_entity;
+    app.world_mut()
+        .get_mut::<Transform>(entity)
+        .expect("transform")
+        .translation = Vec3::new(42.667_072, 3.699_310_3 + WALK_HEIGHT * 0.5, -107.56561);
+    for _ in 0..4 {
+        app.update();
+    }
+    let controller = app
+        .world()
+        .get::<KinematicCharacterController>(entity)
+        .expect("KCC")
+        .clone();
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let desired = Vec3::new(0.0, -9.81 / 3600.0, 0.05);
+    let mut candidates = vec![board];
+    let constrained = constrain_wall_drive(&context, entity, &controller, desired, &mut candidates);
+    eprintln!(
+        "boardwalk entry desired={desired:?} constrained={constrained:?} candidates={candidates:?}"
+    );
+    assert!(
+        constrained.z > 0.02,
+        "Recoverable source step must retain forward demand instead of projecting into terrain-box deadlock: {constrained:?}"
+    );
+}
+
+fn prepare_real_tidewater_entry_app() -> App {
+    let (mut app, _) = prepared_app(0.0);
+    let document: forge_project::TerrainDocument = serde_json::from_str(include_str!(
+        "../tests/fixtures/tidewater-entry-full/terrain-document.json"
+    ))
+    .expect("canonical terrain document");
+    let plan = Arc::new(
+        SampledTerrainPlan::from_document(
+            &document,
+            include_bytes!("../tests/fixtures/tidewater-entry-full/terrain-samples.bin"),
+        )
+        .expect("pinned raster"),
+    );
+    app.world_mut().resource_mut::<Surface>().terrain = plan;
+    let floors: Vec<Entity> = {
+        let world = app.world_mut();
+        world
+            .query_filtered::<Entity, (With<Collider>, Without<ForgePlayerCharacter>)>()
+            .iter(world)
+            .collect()
+    };
+    for floor in floors {
+        app.world_mut().despawn(floor);
+    }
+    let bytes = include_bytes!("../tests/fixtures/tidewater-entry/tile.f32");
+    let heights = bytes
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|b| f32::from_le_bytes(*b))
+        .collect();
+    app.world_mut().spawn((
+        Collider::heightfield(heights, 129, 129, Vec3::new(128.0, 1.0, 128.0)),
+        Transform::from_xyz(64.0, 0.0, -64.0),
+    ));
+    app
+}
+
+fn spawn_real_tidewater_entry_boardwalks(app: &mut App) -> (Vec<Entity>, Entity) {
+    let boardwalks: serde_json::Value = serde_json::from_str(include_str!(
+        "../tests/fixtures/tidewater-entry-full/boardwalks.json"
+    ))
+    .expect("pinned boardwalk projection");
+    let mut board_entities = Vec::new();
+    let mut observed_board = None;
+    for segment in boardwalks["boardwalks"].as_array().expect("segments") {
+        let vec3 = |v: &serde_json::Value| {
+            Vec3::from_array(serde_json::from_value(v.clone()).expect("source vector"))
+        };
+        assert_eq!(
+            segment["source_frame"]["rotation_xyzw"],
+            serde_json::json!([0, 0, 0, 1])
+        );
+        assert_eq!(
+            segment["source_frame"]["scale"],
+            serde_json::json!([1, 1, 1])
+        );
+        let frame = vec3(&segment["source_frame"]["translation_m"]);
+        for b in segment["colliders"]["boxes"].as_array().expect("boxes") {
+            if b["solid"].as_bool() != Some(true) {
+                continue;
+            }
+            let collider = crate::physics::yawed_box_collider(
+                vec3(&b["half"]),
+                serde_json::from_value(b["yaw"].clone()).expect("source yaw"),
+            )
+            .expect("source box");
+            let center = frame + vec3(&b["center"]);
+            let entity = app
+                .world_mut()
+                .spawn((collider, Transform::from_translation(center)))
+                .id();
+            board_entities.push(entity);
+            if center.distance(Vec3::new(42.753_773, 3.681_234, -106.722_855)) < 0.0001 {
+                observed_board = Some(entity);
+            }
+        }
+    }
+    (
+        board_entities,
+        observed_board.expect("observed blocking box"),
+    )
+}
+
+fn observe_source_deck_sample(
+    app: &mut App,
+    entity: Entity,
+    board_entities: &[Entity],
+    sample: u32,
+) {
+    if sample.is_multiple_of(10) || sample == 119 {
+        let state = app.world().resource::<TidewaterPlayerState>();
+        let anchor = state.motion.position;
+        eprintln!(
+            "DECK_SAMPLE sample={sample} anchor={anchor:?} velocity={:?} grounded={} ground_height={} feedback={:?} deck_contact_ids={:?}",
+            state.motion.velocity,
+            state.motion.grounded,
+            state.ground_height,
+            state.kcc_feedback(),
+            state
+                .kcc_contacts()
+                .iter()
+                .filter(|(e, _)| board_entities.contains(e))
+                .collect::<Vec<_>>()
+        );
+        let mut ctx_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+        let rapier = ctx_state.get(app.world()).expect("diagnostic context");
+        let context = rapier.single().expect("single context");
+        let support = context.cast_ray_and_get_normal(
+            anchor + Vec3::Y * 0.45,
+            Vec3::NEG_Y,
+            4096.0,
+            true,
+            QueryFilter::default()
+                .exclude_collider(entity)
+                .exclude_sensors(),
+        );
+        eprintln!(
+            "DECK_RAY sample={sample} support={support:?} source_deck={}",
+            support
+                .as_ref()
+                .is_some_and(|(e, _)| board_entities.contains(e))
+        );
+    }
+}
+
+#[test]
+fn real_tidewater_boardwalk_entry_full_motion_advances_over_deck() {
+    let mut app = prepare_real_tidewater_entry_app();
+    let (board_entities, observed_board) = spawn_real_tidewater_entry_boardwalks(&mut app);
+    let anchor = Vec3::new(42.667_072, 3.699_310_3, -107.56561);
+    let entity = bindings(&app).player_entity;
+    app.world_mut()
+        .get_mut::<Transform>(entity)
+        .expect("transform")
+        .translation = anchor + Vec3::Y * (WALK_HEIGHT * 0.5);
+    {
+        let mut state = app.world_mut().resource_mut::<TidewaterPlayerState>();
+        state.motion.position = anchor;
+        state.motion.velocity = Vec3::ZERO;
+        state.motion.grounded = true;
+        state.motion.mode = Mode::Walk;
+        state.ground_height = anchor.y;
+        state.wall_candidates = vec![observed_board];
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    start(&mut app);
+    submit(
+        &mut app,
+        PlayerControlCommand {
+            move_axis: Vec2::new(0.3, -1.0),
+            ..default()
+        },
+    );
+    app.world_mut()
+        .resource_mut::<TidewaterPlayerState>()
+        .wall_candidates = vec![observed_board];
+    let mut deck_support = false;
+    for sample in 0..120 {
+        app.update();
+        observe_source_deck_sample(&mut app, entity, &board_entities, sample);
+        deck_support |= app
+            .world()
+            .resource::<TidewaterPlayerState>()
+            .kcc_contacts()
+            .iter()
+            .any(|(entity, normal)| {
+                board_entities.contains(entity)
+                    && normal.is_some_and(|n| n.y > 45.0_f32.to_radians().cos())
+            });
+    }
+    assert!(
+        deck_support,
+        "Crossing requires observed walkable support on a source deck box, not terrain beside it"
+    );
+    let after = motion(&app);
+    eprintln!(
+        "full source deck start={anchor:?} final={:?} grounded={} contacts={:?}",
+        after.position,
+        after.grounded,
+        app.world()
+            .resource::<TidewaterPlayerState>()
+            .kcc_contacts()
+    );
+    assert!(
+        after.position.z > -105.5,
+        "Full ECS controller must pass the source deck entry: {:?}",
+        after.position
+    );
+    assert!(
+        after.grounded,
+        "Source deck crossing must keep real support"
+    );
+    assert!(after.position.is_finite());
 }

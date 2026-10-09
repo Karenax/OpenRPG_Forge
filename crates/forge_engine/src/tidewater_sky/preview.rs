@@ -24,7 +24,12 @@ const LAYER: usize = 31;
 #[derive(Component)]
 pub struct PreviewCamera;
 /// Scene tools ignore the temporary offscreen reference view.
-pub type SceneCameraFilter = (With<Camera3d>, Without<PreviewCamera>);
+/// The scene tools operate on the visible camera, never an offscreen capture.
+pub type SceneCameraFilter = (
+    With<Camera3d>,
+    Without<PreviewCamera>,
+    Without<crate::tidewater_refraction::CaptureCamera>,
+);
 #[derive(Resource)]
 pub struct Snapshot(pub Result<Vec<u8>, String>);
 #[derive(Resource)]
@@ -183,5 +188,23 @@ fn watchdog(state: Option<Res<Active>>, frame: Res<FrameCount>, mut commands: Co
         commands.entity(state.reader).despawn();
         commands.remove_resource::<Active>();
         commands.insert_resource(Snapshot(Err("Sky preview timed out".into())));
+    }
+}
+
+#[cfg(test)]
+mod camera_filter_tests {
+    use super::*;
+
+    #[test]
+    fn scene_tools_keep_the_visible_camera_when_offscreen_cameras_exist() {
+        let mut world = World::new();
+        let visible = world.spawn(Camera3d::default()).id();
+        world.spawn((Camera3d::default(), PreviewCamera));
+        world.spawn((
+            Camera3d::default(),
+            crate::tidewater_refraction::CaptureCamera,
+        ));
+        let mut cameras = world.query_filtered::<Entity, SceneCameraFilter>();
+        assert_eq!(cameras.single(&world).unwrap(), visible);
     }
 }

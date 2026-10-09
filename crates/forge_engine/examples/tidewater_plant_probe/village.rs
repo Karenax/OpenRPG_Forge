@@ -15,6 +15,8 @@ use forge_engine::tidewater_assets::{
     MaterialParameters as MaterialData, materials as building_materials,
 };
 pub use forge_engine::tidewater_material::VillageMaterial;
+#[derive(Resource)]
+pub struct SharedMaterials(pub Vec<Handle<VillageMaterial>>);
 use forge_engine::tidewater_mesh::VillageMeshBytes;
 #[derive(Deserialize)]
 struct Description {
@@ -236,12 +238,15 @@ pub fn setup(
         .collect::<Result<Vec<_>, _>>()
         .expect("village material dependencies validated before scene setup");
     let handles: Vec<_> = prepared.into_iter().map(|m| materials.add(m)).collect();
+    commands.insert_resource(SharedMaterials(handles.clone()));
     for n in &v.description.nodes {
-        commands.spawn((
+        let deforming = materials
+            .get(&handles[n.material])
+            .is_none_or(|material| material.kind >= 6);
+        let mut entity = commands.spawn((
             Mesh3d(mesh_handles[&n.geometry].clone()),
             MeshMaterial3d(handles[n.material].clone()),
             Transform::from_matrix(Mat4::from_cols_array(&n.matrix_world)),
-            NoFrustumCulling,
             NotShadowCaster,
             if n.visible
                 && matches!(
@@ -254,6 +259,11 @@ pub fn setup(
                 Visibility::Hidden
             },
         ));
+        // Only immutable opaque geometry uses Bevy's rest-mesh bounds. The
+        // acquired animated/transparent kinds retain their existing policy.
+        if deforming {
+            entity.insert(NoFrustumCulling);
+        }
     }
     info!(
         nodes = v.description.nodes.len(),

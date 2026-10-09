@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use std::collections::BTreeMap;
 
 /// Runtime-owned lighting resources, never serialized into an asset descriptor.
+#[derive(Clone)]
 pub struct LightingBindings {
     pub scene_lighting: SceneLighting,
     pub environment: Handle<Image>,
@@ -53,6 +54,8 @@ pub fn prepare(
         .collect::<Result<Vec<_>, _>>()?;
     resolved.resize(4, resolved[0].clone());
     Ok(VillageMaterial {
+        scene_buffer: crate::tidewater_material::scene_buffer::HANDLE.clone(),
+        shared_scene_lighting: false,
         local_lights: crate::tidewater_material::local_lights::gpu::BUFFER.clone(),
         scene_lighting: lighting.scene_lighting.clone(),
         environment: lighting.environment.clone(),

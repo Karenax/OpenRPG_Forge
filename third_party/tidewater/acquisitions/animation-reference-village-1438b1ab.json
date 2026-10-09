@@ -1,0 +1,75 @@
+{
+  "status": "ready_reference_only",
+  "source_commit": "1438b1abfcaee3267092b75573014f4d9b4a983c",
+  "view": "village",
+  "settings": {
+    "timeOfDay": 16.2,
+    "sunAzimuth": 0,
+    "timeSpeed": 0,
+    "exposure": 0.55,
+    "renderScale": 1
+  },
+  "camera": {
+    "position": {
+      "x": 42,
+      "y": 14,
+      "z": -90
+    },
+    "quaternion": {
+      "_x": -0.09983341664682815,
+      "_y": 0,
+      "_z": 0,
+      "_w": 0.9950041652780258,
+      "_onChangeCallback": {}
+    },
+    "fov": 62
+  },
+  "output": [
+    1920,
+    1080
+  ],
+  "render_scale": 1,
+  "time_s": 1.9999999999999978,
+  "warmup_frames": 120,
+  "step_s": 0.016666666666666666,
+  "animation_clocks": {
+    "global_time_s": 1.9999999999999978,
+    "global_dt_s": 0.016666666666666666,
+    "ocean_time_s": 2.066666666666664,
+    "ocean_time_scale": 1,
+    "cloud_clock": [
+      123,
+      2.066666666666664,
+      0.016666666666666666,
+      0
+    ],
+    "wind_speed": 7,
+    "wind_direction": [
+      0.34893735911823864,
+      0.9371460502032696
+    ],
+    "vegetation_gust_offset": [
+      4.6152781366039095,
+      12.395318424021925
+    ],
+    "scope": "Actual source uniforms after acquisition; independent precompile histories are retained"
+  },
+  "adapter": {},
+  "gpu_frame": 124,
+  "vegetation_counts": {
+    "palms": 233,
+    "trees": 12745,
+    "bananas": 188,
+    "shrubs": 5598,
+    "youngPalms": 268,
+    "ferns": 44548,
+    "monsteras": 1693,
+    "elephantEars": 24,
+    "heliconias": 70,
+    "strelitzias": 16
+  },
+  "limits": [
+    "no_performance_verdict",
+    "asynchronous_readback_and_precompile_state_not_yet_replay_qualified"
+  ]
+}

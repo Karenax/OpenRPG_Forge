@@ -116,10 +116,12 @@ fn update(world: &mut World) {
     };
     let transform = camera.compute_transform();
     let projection = projection.clone();
+    let started = super::walk::perf::start(world);
     world.resource_scope(|world, mut live: Mut<Live>| {
         if let Err(error) = live.update(world, transform, &projection) {
             error!(%error, "grass navigation failed");
             world.write_message(bevy::app::AppExit::error());
         }
     });
+    super::walk::perf::end(world, started, "grass_selection");
 }

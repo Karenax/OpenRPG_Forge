@@ -33,7 +33,7 @@ pub(crate) fn validate(
     };
     if !shader(&shadow.shader)
         || shadow.noise.len() != 7
-        || shadow.frames.len() != 120
+        || !(1..=256).contains(&shadow.frames.len())
         || shadow
             .noise
             .iter()
@@ -45,6 +45,34 @@ pub(crate) fn validate(
             .any(|(local, global)| !floats(local, 544) || global.len() != 720)
     {
         return Err("invalid cloud shadow inputs".into());
+    }
+    if shadow
+        .schedule
+        .as_ref()
+        .map_or(shadow.frames.len() != 120, |schedule| {
+            schedule.len() != shadow.frames.len()
+                || schedule.iter().any(|frame| frame.view_index > 1)
+        })
+    {
+        return Err("invalid or missing acquired cloud schedule".into());
+    }
+    if let Some(frames) = &shadow.atmosphere_frames {
+        let Some(base) = atmosphere else {
+            return Err("acquired observer sequence requires a shared atmosphere".into());
+        };
+        let baseline: Vec<_> = base
+            .iter()
+            .flat_map(bevy::math::Vec4::to_array)
+            .flat_map(f32::to_le_bytes)
+            .collect();
+        if !input.stepped
+            || frames.len() != shadow.frames.len()
+            || frames
+                .iter()
+                .any(|params| !crate::tidewater_atmosphere::observer::validate(params, &baseline))
+        {
+            return Err("invalid acquired atmosphere observer sequence".into());
+        }
     }
     let Some(trace) = &shadow.trace else {
         return if count == 3 {

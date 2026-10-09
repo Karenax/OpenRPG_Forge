@@ -72,7 +72,12 @@ impl Plugin for TidewaterGtaoPlugin {
             ExtractComponentPlugin::<TidewaterGtao>::default(),
             UniformComponentPlugin::<TidewaterGtao>::default(),
         ))
-        .add_systems(PostUpdate, update);
+        .add_systems(
+            PostUpdate,
+            update
+                .after(bevy::camera::CameraUpdateSystems)
+                .after(crate::finite_perspective::EffectivePerspectiveSystems),
+        );
         let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
             return;
         };
@@ -152,9 +157,9 @@ impl TidewaterGtao {
     }
 }
 
-fn update(mut views: Query<(&Projection, &mut TidewaterGtao)>) {
-    for (projection, mut ao) in &mut views {
-        let clip = projection.get_clip_from_view();
+fn update(mut views: Query<(&Camera, &mut TidewaterGtao)>) {
+    for (camera, mut ao) in &mut views {
+        let clip = camera.clip_from_view();
         ao.clip_from_view = clip;
         ao.view_from_clip = clip.inverse();
         ao.options.x = if std::env::var_os("FORGE_TIDEWATER_AO_DEBUG").is_some() {

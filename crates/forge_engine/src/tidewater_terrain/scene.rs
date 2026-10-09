@@ -37,6 +37,7 @@ pub struct PreparedTerrain {
     edited: bool,
     fragment: Shader,
     vertex: Shader,
+    lighting_seed: crate::tidewater_material::scene_uniform::Seed,
 }
 
 #[derive(Resource, Clone)]
@@ -91,8 +92,8 @@ impl PreparedTerrain {
         };
         // This authored path installs its own shader and bypasses install_shader.
         // It must read the matrices of the depth layers encoded by the live graph.
-        let fragment =
-            crate::tidewater_object_shadow::receiver::shader_source(text("terrain.wgsl")?)?;
+        let lighting = crate::tidewater_material::scene_uniform::prepare(text("terrain.wgsl")?)?;
+        let fragment = crate::tidewater_object_shadow::receiver::shader_source(&lighting.shader)?;
         let fragment = Shader::from_wgsl(
             crate::tidewater_caustics::terrain_shader_source(&fragment)?,
             "tidewater-package-terrain.wgsl",
@@ -107,6 +108,7 @@ impl PreparedTerrain {
             normal,
             edited,
             fragment,
+            lighting_seed: lighting.seed,
             vertex: Shader::from_wgsl(vertex, "tidewater-edited-terrain.wgsl"),
         })
     }
@@ -126,6 +128,7 @@ impl PreparedTerrain {
                 .get_resource::<Assets<Image>>()
                 .ok_or("Terrain images unavailable")?,
         )?;
+        crate::tidewater_material::scene_buffer::install(world, &self.lighting_seed)?;
         let normal = normals::Shared::stage(
             &self.normal,
             self.edited,
@@ -157,6 +160,7 @@ impl PreparedTerrain {
                 settings: geometry.settings,
             };
             let base = TerrainMaterial {
+                scene_lighting: crate::tidewater_material::scene_buffer::HANDLE.clone(),
                 normal: normal.image.clone(),
                 splat: surface.splat,
                 detail: surface.detail,

@@ -8,6 +8,8 @@ param(
     [Parameter(ParameterSetName = 'Run')][string]$FixtureSourceRoot = 'E:\OpenRPG_Forge\.tidewater-integration\studio-tidewater-review-20260927-001',
     [Parameter(ParameterSetName = 'Run')][guid]$ZoneUuid = 'e620dd19-ead9-5913-a6d6-0f93109148c0',
     [Parameter(ParameterSetName = 'Run')][ValidateRange(30, 180)][int]$InteractionTimeoutSeconds = 120,
+    [Parameter(ParameterSetName = 'Run')][string]$ExpectedInitialInventory,
+    [Parameter(ParameterSetName = 'Run')][string]$ExpectedInitialInventorySha256,
     [Parameter(ParameterSetName = 'Run')][switch]$RequireOceanFft,
     [Parameter(ParameterSetName = 'Run')][switch]$RequireOceanGeometry,
     [Parameter(ParameterSetName = 'Run')][switch]$RequireOceanOptics,
@@ -37,6 +39,8 @@ $callerInputs = @{
     FixtureSourceRoot = $FixtureSourceRoot
     ZoneUuid = $ZoneUuid
     InteractionTimeoutSeconds = $InteractionTimeoutSeconds
+    ExpectedInitialInventory = $ExpectedInitialInventory
+    ExpectedInitialInventorySha256 = $ExpectedInitialInventorySha256
     RequireOceanFft = [bool]$RequireOceanFft
     RequireOceanGeometry = [bool]$RequireOceanGeometry
     RequireOceanOptics = [bool]$RequireOceanOptics
@@ -178,13 +182,24 @@ function Open-ManagedTidewaterZone {
 
 function Assert-StandPlacement {
     param([Parameter(Mandatory)][object]$Placement)
-    if ([string]$Placement.name -cne 'Échoppe Tidewater' -or
+    if ([string]$Placement.name -cne 'Échoppe de Joe' -or
         [string]$Placement.asset_id -cne $standAssetId -or
         [string]$Placement.asset_hash -cne $bundlePin -or
         [string]$Placement.id -cnotmatch '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' -or
         $null -eq $Placement.transform) {
         throw 'FishStand placement identity, bundle pin, name or transform differs from the reviewed proposal.'
     }
+}
+
+function Test-StandObjectInventory {
+    param([Parameter(Mandatory)]$State, [Parameter(Mandatory)][object[]]$Expected)
+    $actual = @($State.placement_options)
+    if ($actual.Count -ne $Expected.Count) { return $false }
+    foreach ($entry in $Expected) {
+        $matching = @($actual | Where-Object { [string]$_.value -ceq [string]$entry.id })
+        if ($matching.Count -ne 1 -or [string]$matching[0].text -cne [string]$entry.label) { return $false }
+    }
+    return $true
 }
 
 function Wait-StandLibrary {
@@ -199,10 +214,10 @@ function Wait-StandLibrary {
   const summary=[...document.querySelectorAll('summary')].find(x=>n(x.textContent)==='Bibliothèque de bâtiments importés');
   const details=summary?.closest('details');
   const outputs=[...(details?.querySelectorAll('output')??[])].map(x=>n(x.textContent));
-  const button=[...document.querySelectorAll('button')].find(x=>n(x.textContent)==='Placer l’échoppe Tidewater vérifiée');
+  const button=[...document.querySelectorAll('.gold-asset-cards button')].find(x=>x.dataset.catalogAssetId==='verified-package/941b533a-8d35-54ce-9fff-96d07b6b4439');
   const error=outputs.find(x=>x.startsWith('Bibliothèque indisponible :'))??'';
   return {ready:outputs.some(x=>x.includes('bâtiments vérifiés et chargés en mémoire')) && !!button,
-    terminal:!!error, reason:error||outputs.join(' | '), outputs, stand_button_present:!!button};
+    terminal:!!error, reason:error||outputs.join(' | '), outputs, stand_catalog_entry_present:!!button};
 })()
 '@
 }
@@ -274,6 +289,44 @@ if ($sourceObjectBefore.Sha256 -cne $sourcePin -or @(Get-StandArchivePlacements 
 $web = Join-Path (Split-Path -Parent $candidate) 'web'
 $imports = Join-Path $web 'forge-imports'
 Assert-TreeHasNoReparsePoints -LiteralPath $web -Description 'Candidate frontend'
+$expectedInitialUi = @(Get-StandArchivePlacements -Archive $sourceArchive | ForEach-Object {
+    [pscustomobject]@{ id=[string]$_.id; label=[string]$_.name }
+})
+if ($ExpectedInitialInventory) {
+    if (-not $ExpectedInitialInventorySha256 -or
+        (Get-FileSha256 -LiteralPath $ExpectedInitialInventory) -cne (Get-NormalizedSha256 -Value $ExpectedInitialInventorySha256)) {
+        throw 'Expected common-object inventory pin differs.'
+    }
+    $inventory = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($ExpectedInitialInventory))
+    if ($inventory.schema -cne 'forge.tidewater.stand-smoke-inventory' -or $inventory.version -ne 1 -or
+        [string]$inventory.fixture_sha256 -cne $sourcePin -or [string]$inventory.area_id -cne $zoneId -or
+        $inventory.accepted_manual -ne 23 -or
+        (Get-FileSha256 -LiteralPath (Join-Path $imports 'buildings.json')) -cne [string]$inventory.building_index_sha256) {
+        throw 'Expected inventory does not attest this source fixture and building index.'
+    }
+    $inventoryEntries = @($inventory.entries)
+    if ($inventoryEntries.Count -ne ($inventory.accepted_manual + $inventory.inherited_sources) -or
+        @($inventoryEntries.id | Sort-Object -Unique).Count -ne $inventoryEntries.Count) {
+        throw 'Expected common-object inventory has missing or duplicate identities.'
+    }
+    foreach ($manual in @(Get-StandArchivePlacements -Archive $sourceArchive)) {
+        $record = @($inventoryEntries | Where-Object { [string]$_.id -ceq [string]$manual.id })
+        if ($record.Count -ne 1 -or [string]$record[0].label -cne [string]$manual.name -or
+            [string]$record[0].asset_id -cne [string]$manual.asset_id -or
+            [string]$record[0].asset_hash -cne [string]$manual.asset_hash) {
+            throw 'Expected inventory changed a pinned manual placement.'
+        }
+    }
+    foreach ($pin in $inventory.resource_pins.PSObject.Properties) {
+        $resource = [IO.Path]::GetFullPath((Join-Path $web $pin.Name))
+        $prefix = [IO.Path]::GetFullPath($web).TrimEnd('\') + '\'
+        if (-not $resource.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) -or
+            (Get-FileSha256 -LiteralPath $resource) -cne [string]$pin.Value) {
+            throw 'Expected inventory resource path or hash differs.'
+        }
+    }
+    $expectedInitialUi = $inventoryEntries
+}
 $library = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText((Join-Path $imports 'buildings.json')))
 if ($RequireShoreSim) {
     if (-not $RequireOceanOptics) { throw 'ShoreSim requires the optical ocean preview.' }
@@ -432,15 +485,41 @@ try {
     [void](Wait-StandLibrary -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds)
     [void](Open-ManagedTidewaterZone -Socket $socket -ZoneId $zoneId -TimeoutSeconds $InteractionTimeoutSeconds -OpenWorkspace)
     [void](Install-WorldAudit -Socket $socket)
+    [void](Invoke-UiClick -Socket $socket -Text 'Objets' -Selector '[data-authoring-tab-button]')
+    [void](Wait-WorldState -Socket $socket -Description 'Pinned initial placement inventory after managed zone load' -TimeoutSeconds $InteractionTimeoutSeconds -Predicate {
+        param($state)
+        Test-StandObjectInventory -State $state -Expected $expectedInitialUi
+    })
     $initial = Get-WorldState -Socket $socket
-    if (@($initial.placement_options).Count -ne 23) { throw 'Studio did not open all 23 Tidewater placements.' }
+    $initial | ConvertTo-Json -Depth 60 | Set-Content -LiteralPath (Join-Path $output 'initial-world-state.json') -Encoding utf8
+    $initialDiagnostic = Invoke-CdpExpression -Socket $socket -Expression @'
+(() => { const n=v=>(v??'').replace(/\s+/g,' ').trim();
+  return {labels:[...document.querySelectorAll('label')].filter(x=>x.querySelector('select')).map(x=>({label:n(x.textContent),options:[...x.querySelector('select').options].map(y=>({id:y.value,label:n(y.textContent)}))})),
+    outputs:[...document.querySelectorAll('output')].map(x=>n(x.textContent)),
+    catalog:[...document.querySelectorAll('.gold-asset-cards button')].map(x=>({id:x.dataset.catalogAssetId,label:n(x.textContent)}))}; })()
+'@
+    $initialDiagnostic | ConvertTo-Json -Depth 60 | Set-Content -LiteralPath (Join-Path $output 'initial-object-inventory.json') -Encoding utf8
+    if (-not (Test-StandObjectInventory -State $initial -Expected $expectedInitialUi)) { throw 'Studio object identities or names differ from the pinned fixture/package inventory. See initial-object-inventory.json.' }
     [void](Invoke-UiClick -Socket $socket -Text 'Objets' -Selector '[data-authoring-tab-button]')
     [void](Invoke-UiClick -Socket $socket -Text 'Placer / manipuler')
+    # The summary includes a live count; read its actual label before opening it.
+    $catalogSummary = Invoke-CdpExpression -Socket $socket -Expression @'
+(() => { const summaries=[...document.querySelectorAll('details.gold-library > summary')];
+  if(summaries.length!==1) throw new Error('Expected one common catalog summary');
+  return (summaries[0].textContent??'').replace(/\s+/g,' ').trim(); })()
+'@
+    [void](Open-DetailsBySummary -Socket $socket -Summary ([string]$catalogSummary))
+    # Physical click on the label inside the pinned card, not its combined name/category text.
+    [void](Invoke-UiClick -Socket $socket -Text 'Échoppe de Joe' -Selector ".gold-asset-cards button[data-catalog-asset-id='verified-package/$standAssetId'] span")
+    [void](Wait-CdpReady -Socket $socket -Description 'Common catalog selected stand' -TimeoutSeconds 15 -Expression @"
+(() => { const card=document.querySelector('.gold-asset-cards button[data-catalog-asset-id="verified-package/$standAssetId"]');
+  return {ready:card?.getAttribute('aria-pressed')==='true',reason:'stand catalog selection pending'}; })()
+"@)
     [void](Open-DetailsBySummary -Socket $socket -Summary 'Ajouter un objet depuis le catalogue')
     $preview = $null
     foreach ($point in @(Get-StandClickCandidates -Socket $socket)) {
         $before = Get-WorldState -Socket $socket
-        [void](Invoke-UiClick -Socket $socket -Text "Placer l’échoppe Tidewater vérifiée")
+        [void](Invoke-UiClick -Socket $socket -Text "Placer l’asset sélectionné sur le terrain")
         Send-CdpMouseClick -Socket $socket -X $point.x -Y $point.y
         try {
             $preview = Wait-NewPreview -Socket $socket -PreviousCount ([int]$before.audit_counts.preview_zone) -DiffNeedle '1 ajout(s)' -TimeoutSeconds ([Math]::Min($InteractionTimeoutSeconds, 45))
@@ -458,6 +537,7 @@ try {
     if ($proposal.Count -ne 24 -or $new.Count -ne 1) { throw 'FishStand preview did not add exactly one placement.' }
     $placed = $new[0]
     Assert-StandPlacement -Placement $placed
+    $expectedAfterUi = @($expectedInitialUi) + @([pscustomobject]@{ id=[string]$placed.id; label=[string]$placed.name })
     if (-not (Test-ArchiveSnapshotsEqual -Before $cloneBefore -After (Get-ArchiveSnapshot -LiteralPath $archive)) -or
         -not (Test-ArchiveSnapshotsEqual -Before $workspaceBefore -After (Get-ArchiveSnapshot -LiteralPath $workspaceArchive)) -or
         -not (Test-ArchiveSnapshotsEqual -Before $originalObjectBefore -After (Get-ArchiveSnapshot -LiteralPath $originalObject))) {
@@ -469,7 +549,7 @@ try {
         param($state)
         [int]$state.audit_counts.apply_zone -eq ([int]$beforeApply.audit_counts.apply_zone + 1) -and
             [int]$state.audit_pending -eq 0 -and $state.diff_hidden -and
-            @($state.placement_options).Count -eq 24
+            (Test-StandObjectInventory -State $state -Expected $expectedAfterUi)
     })
     $applyEntry = Get-RequiredAuditedEntry -Snapshot (Get-WorldAuditSnapshot -Socket $socket) -RequestKind 'apply_zone'
     if (-not (Test-AuditReceiptsEqual -Left (Get-RequiredAuditReceipt -Entry $previewEntry) -Right (Get-RequiredAuditReceipt -Entry $applyEntry))) {
@@ -535,7 +615,7 @@ try {
     $reopened = Wait-WorldState -Socket $socket -Description 'FishStand reopened in Tidewater' -TimeoutSeconds $InteractionTimeoutSeconds -Predicate {
         param($state)
         [int]$state.audit_pending -eq 0 -and
-            @($state.placement_options).Count -eq 24 -and
+            (Test-StandObjectInventory -State $state -Expected $expectedAfterUi) -and
             @($state.placement_options.value) -contains [string]$placed.id
     }
     [void](Wait-CdpReady -Socket $socket -Description 'reopened Tidewater terrain projection' -TimeoutSeconds $InteractionTimeoutSeconds -Expression @'
@@ -1042,7 +1122,10 @@ try {
 catch {
     $failure = $_.Exception.Message
     if ($null -ne $socket -and $socket.State -eq [Net.WebSockets.WebSocketState]::Open) {
-        try { $failureState = Get-WorldState -Socket $socket } catch { Write-Verbose $_.Exception.Message }
+        try {
+            $failureState = Get-WorldState -Socket $socket
+            $failureState | ConvertTo-Json -Depth 60 | Set-Content -LiteralPath (Join-Path $output 'failure-world-state.json') -Encoding utf8
+        } catch { Write-Verbose $_.Exception.Message }
         try { $browserErrors = @(Invoke-CdpExpression -Socket $socket -Expression 'window.__forgeSmokeErrors??[]') }
         catch { Write-Verbose $_.Exception.Message }
         try { $screenshots.Add((Save-CdpScreenshot -Socket $socket -LiteralPath (Join-Path $output 'fish-stand-failure.png'))) }
@@ -1093,6 +1176,8 @@ $ledger = [ordered]@{
     isolated_archive_after=(Get-ArchiveSnapshot -LiteralPath $archive)
     isolated_workspace_after=(Get-ArchiveSnapshot -LiteralPath $workspaceArchive)
     zone_uuid=$zoneId; initial_placements=23; expected_final_placements=24
+    expected_initial_ui_objects=$expectedInitialUi.Count; expected_final_ui_objects=($expectedInitialUi.Count + 1)
+    expected_inventory_sha256=$ExpectedInitialInventorySha256
     fish_stand_asset_id=$standAssetId; fish_stand_bundle_sha256=$bundlePin
     accepted_placement=$placed; saved_workspace=$saved; saved_object_path=$savedObjectPath; saved_object=$savedObject
     authoring_pass=($null -ne $reopened -and $sourcePreserved)

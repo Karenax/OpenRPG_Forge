@@ -4,6 +4,7 @@ use super::{checked_file, plant_shader};
 use bevy::prelude::Vec4;
 pub(super) use forge_engine::tidewater_object_shadow::plants::Input as Plants;
 use forge_engine::tidewater_object_shadow::plants::{Batch, Stream};
+use forge_engine::tidewater_plants::scene::shadow::SelectionObservation;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 
@@ -30,26 +31,54 @@ pub(super) struct Source {
     groups: Vec<Group>,
 }
 struct Group {
+    name: String,
     pos: Vec<u8>,
     dat: Vec<u8>,
     models: Vec<u8>,
     radii: Vec<u8>,
     radius: f64,
     capacity: usize,
+    range: [f32; 3],
 }
 impl Source {
     pub(super) fn select(&self, camera: Vec4) -> Result<Vec<Stream>, Box<dyn Error>> {
+        self.select_observed(camera).map(|(streams, _)| streams)
+    }
+
+    pub(super) fn select_observed(
+        &self,
+        camera: Vec4,
+    ) -> Result<(Vec<Stream>, Vec<SelectionObservation>), Box<dyn Error>> {
         if !camera.is_finite() {
             return Err("invalid plant selection camera".into());
         }
-        Ok(self
+        let mut observations = Vec::with_capacity(self.groups.len());
+        let streams = self
             .groups
             .iter()
             .map(|group| {
-                let ids = select(&group.pos, &group.radii, camera, group.radius)
-                    .into_iter()
-                    .take(group.capacity)
-                    .collect::<Vec<_>>();
+                let mut ids = select(&group.pos, &group.radii, camera, group.radius);
+                let candidates = ids.len();
+                ids.truncate(group.capacity);
+                let distances = ids.iter().map(|&i| {
+                    bevy::prelude::Vec3::new(
+                        value(&group.pos, i * 4),
+                        value(&group.pos, i * 4 + 1),
+                        value(&group.pos, i * 4 + 2),
+                    )
+                    .distance(camera.truncate())
+                });
+                observations.push(SelectionObservation {
+                    group: group.name.clone(),
+                    candidates,
+                    submitted: ids.len(),
+                    capacity_dropped: candidates - ids.len(),
+                    lod_range: group.range,
+                    max_base_distance: distances.clone().reduce(f32::max),
+                    submitted_beyond_lod_end: distances
+                        .filter(|distance| *distance >= group.range[2])
+                        .count(),
+                });
                 Stream {
                     records: ids
                         .iter()
@@ -68,7 +97,8 @@ impl Source {
                     count: u32::try_from(ids.len()).expect("plant capacity"),
                 }
             })
-            .collect())
+            .collect();
+        Ok((streams, observations))
     }
 }
 
@@ -254,12 +284,14 @@ fn build(
             return Err("invalid plant capacity".into());
         }
         source_groups.push(Group {
+            name: name.to_owned(),
             pos: pos.clone(),
             dat: dat.clone(),
             models: models.clone(),
             radii: radii.clone(),
             radius,
             capacity,
+            range: serde_json::from_value::<[f32; 3]>(level["range"].clone())?,
         });
         let ids = if live {
             Vec::new()
@@ -381,6 +413,7 @@ fn build(
             size,
             mips,
             camera,
+            initial_motion: None,
         },
         Source {
             groups: source_groups,

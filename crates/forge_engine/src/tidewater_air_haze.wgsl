@@ -2,6 +2,7 @@
 // Source-derived aerial perspective from Tidewater AirHaze.js and Atmosphere.js.
 
 #import bevy_core_pipeline::fullscreen_vertex_shader::FullscreenVertexOutput
+#import forge::tidewater_air_haze_core::haze_layer_depth
 
 struct HazeSettings {
     camera_world: mat4x4<f32>,
@@ -22,17 +23,6 @@ const MARINE_SIGMA: f32 = 1.5e-4;
 const MARINE_H: f32 = 110.0;
 const AEROSOL_SIGMA: f32 = 3.2e-5;
 const AEROSOL_H: f32 = 1400.0;
-
-fn layer_depth(sigma: f32, height: f32, camera_height: f32, view_y: f32, distance: f32) -> f32 {
-    let base = exp(-camera_height / height) * sigma;
-    let k = view_y * distance / height;
-    let integral = select(
-        height * (1.0 - exp(-k)) / view_y,
-        distance,
-        abs(k) < 1e-3,
-    );
-    return base * integral;
-}
 
 fn horizon_sky(direction: vec3<f32>) -> vec3<f32> {
     let dir = normalize(vec3(direction.x, max(direction.y, 0.02), direction.z));
@@ -84,13 +74,15 @@ fn fragment(input: FullscreenVertexOutput) -> @location(0) vec4<f32> {
     let uv = input.uv;
     let ray = vec3((uv.x * 2.0 - 1.0) / haze.projection.x,
                    ((1.0 - uv.y) * 2.0 - 1.0) / haze.projection.y, -1.0);
-    let distance = min(haze.projection.w / depth * length(ray), 60000.0);
+    // Reverse-Z: depth = -A + B / distance_along_view_axis. For an
+    // infinite projection A is zero; finite projections require both terms.
+    let distance = min(haze.projection.w / (depth + haze.control.w) * length(ray), 60000.0);
     if haze.control.z > 0.5 {
         return vec4(clamp(depth * 1000.0, 0.0, 1.0), clamp(distance / 2000.0, 0.0, 1.0), 0.0, 1.0);
     }
     let direction = normalize((haze.camera_world * vec4(ray, 0.0)).xyz);
-    let tau = (layer_depth(MARINE_SIGMA, MARINE_H, haze.projection.z, direction.y, distance) +
-               layer_depth(AEROSOL_SIGMA, AEROSOL_H, haze.projection.z, direction.y, distance))
+    let tau = (haze_layer_depth(MARINE_SIGMA, MARINE_H, haze.projection.z, direction.y, distance) +
+               haze_layer_depth(AEROSOL_SIGMA, AEROSOL_H, haze.projection.z, direction.y, distance))
               * haze.control.x;
     let transmit = exp(-tau);
 #ifdef TIDEWATER_SOURCE_HDR

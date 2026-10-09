@@ -105,6 +105,7 @@ pub struct ZoneEditSession {
     cursor: usize,
     compact_archive: bool,
     delta_archive: bool,
+    delta_size: Option<delta::SizeCache>,
 }
 
 impl ZoneEditSession {
@@ -137,6 +138,7 @@ impl ZoneEditSession {
     pub fn from_migration(migration: ZoneMigrationProposal) -> Result<Self, String> {
         // A proposal may have been deserialized directly; never trust unchecked fields.
         let checked = ZoneMigrationProposal::from_bytes(&migration.to_bytes()?)?;
+        let delta_size = Some(delta::SizeCache::new(&migration, checked.head())?);
         let session = Self {
             head: checked.head().clone(),
             migration,
@@ -145,6 +147,7 @@ impl ZoneEditSession {
             cursor: 0,
             compact_archive: false,
             delta_archive: false,
+            delta_size,
         };
         session.archive_bytes()?;
         Ok(session)
@@ -271,9 +274,18 @@ impl ZoneEditSession {
             resulting_hash: candidate.content_hash()?,
             audit,
         };
-        let mut receipts = self.receipts.clone();
-        receipts.push(receipt.clone());
-        self.encode(&candidate, &receipts)?;
+        // A fitting delta archive is already an accepted fallback for every
+        // current format. Count its exact bytes without re-encoding old commands.
+        let delta_fits = self
+            .delta_size
+            .as_ref()
+            .and_then(|size| size.candidate(&self.receipts, &receipt).ok())
+            .is_some_and(|(bytes, _, _)| bytes <= MAX_ZONE_HEAD_BYTES);
+        if !delta_fits {
+            let mut receipts = self.receipts.clone();
+            receipts.push(receipt.clone());
+            self.encode(&candidate, &receipts)?;
+        }
         Ok(receipt)
     }
 
@@ -290,6 +302,17 @@ impl ZoneEditSession {
             return Ok(receipt);
         }
         let receipt = self.preview_with_audit(request, audit)?;
+        let size_update = self
+            .delta_size
+            .as_ref()
+            .and_then(|size| size.candidate(&self.receipts, &receipt).ok());
+        if let (Some(size), Some((_, command_bytes, expanded))) =
+            (&mut self.delta_size, size_update)
+        {
+            size.accept(&receipt, command_bytes, expanded);
+        } else {
+            self.delta_size = None;
+        }
         match request.action {
             ZoneAction::Edit(_)
             | ZoneAction::Regenerate(_)

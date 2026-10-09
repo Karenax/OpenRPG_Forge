@@ -1,10 +1,11 @@
 //! Shared imported-scene wind clock and shader upload, derived from source Frame.
 use bevy::prelude::*;
 use forge_engine::{
+    tidewater_debris::nature::NatureMaterial,
     tidewater_material::VillageMaterial,
     tidewater_plants::PlantMaterial,
     tidewater_terrain::{TerrainMaterial, lod::LodMaterial},
-    tidewater_wind::WindFrame,
+    tidewater_wind::{AcquiredFrame, WindFrame},
 };
 use std::cell::RefCell;
 
@@ -14,9 +15,10 @@ thread_local! {
 
 pub(super) fn install(app: &mut App) -> Result<(), String> {
     READY.with(|slot| *slot.borrow_mut() = Ok(false));
-    // Frame.js starts global simulation time at zero. The acquired pendulum
-    // phases remain separate immutable inputs to each authored instance.
-    app.insert_resource(WindFrame::source_defaults(0.0)?)
+    // Resume the captured global phase; acquired pendulums keep their own phases.
+    let acquired = AcquiredFrame::reference()?;
+    app.insert_resource(acquired.wind_frame()?)
+        .insert_resource(acquired)
         .add_systems(Update, advance_clock)
         .add_systems(
             PostUpdate,
@@ -68,6 +70,11 @@ fn upload(world: &mut World) {
         }
     }
     if let Some(mut materials) = world.get_resource_mut::<Assets<LodMaterial>>() {
+        for (_, material) in materials.iter_mut() {
+            material.base.settings.wind = uniform;
+        }
+    }
+    if let Some(mut materials) = world.get_resource_mut::<Assets<NatureMaterial>>() {
         for (_, material) in materials.iter_mut() {
             material.base.settings.wind = uniform;
         }

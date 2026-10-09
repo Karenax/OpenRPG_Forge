@@ -90,13 +90,26 @@ type Pending = (
 fn materialize(
     mut commands: Commands,
     meshes: Res<Assets<Mesh>>,
-    pending: Query<(Entity, &Mesh3d), Pending>,
+    pending: Query<
+        (
+            Entity,
+            &Mesh3d,
+            Option<&super::ManualPlacementCollisionGeometry>,
+        ),
+        Pending,
+    >,
 ) {
-    for (entity, mesh) in &pending {
+    for (entity, mesh, geometry) in &pending {
         let Some(mesh) = meshes.get(mesh) else {
             continue;
         };
-        match convex_collider(mesh) {
+        let prepared = match geometry.copied().unwrap_or_default() {
+            super::ManualPlacementCollisionGeometry::ConvexPrimitive => convex_collider(mesh),
+            super::ManualPlacementCollisionGeometry::TriangleMesh => {
+                super::manual_triangle::triangle_collider(mesh)
+            }
+        };
+        match prepared {
             Ok(collider) => {
                 commands.entity(entity).insert(collider);
             }

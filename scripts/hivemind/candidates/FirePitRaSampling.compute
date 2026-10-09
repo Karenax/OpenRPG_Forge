@@ -1,0 +1,12 @@
+#pragma kernel SampleSource
+Texture2D<float4> SourceTexture;
+SamplerState sampler_SourceTexture;
+RWStructuredBuffer<float4> Samples;
+float MipLevel;
+[numthreads(8, 8, 1)]
+void SampleSource(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= 64 || id.y >= 64) return;
+    float2 uv = (float2(id.xy) + 0.5) / 64.0;
+    Samples[id.x + id.y * 64] = SourceTexture.SampleLevel(sampler_SourceTexture, uv, MipLevel);
+}

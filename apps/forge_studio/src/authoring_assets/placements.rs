@@ -31,7 +31,7 @@ mod physics_status;
 pub(crate) mod selection;
 struct Prepared {
     placements: Vec<ManualPlacement>,
-    assets: BTreeMap<AssetKey, (String, Vec<u8>)>,
+    assets: BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout)>,
 }
 enum Request {
     Clear,
@@ -68,7 +68,10 @@ pub(crate) fn focus(id: forge_core::EntityId) {
             );
             return;
         }
-        if !super::imported_scene::focus(id) && !super::fish_stand_scene::focus(id) {
+        if !super::imported_scene::focus(id)
+            && !super::fish_stand_scene::focus(id)
+            && !super::fish_props_scene::focus(id)
+        {
             FOCUS.with(|slot| slot.set(Some(id)));
         }
     }
@@ -159,11 +162,53 @@ pub(super) fn desired_plaza_props() -> Vec<ManualPlacement> {
     })
 }
 
+pub(super) fn desired_village_props() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| {
+                super::imported_buildings::is_village_props_asset(placement.asset_id)
+            })
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_beach_props() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_beach_props_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_debris() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_debris_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
 pub(super) fn desired_fish_stands() -> Vec<ManualPlacement> {
     DESIRED.with(|slot| {
         slot.borrow()
             .iter()
             .filter(|placement| super::imported_buildings::is_fish_stand_asset(placement.asset_id))
+            .cloned()
+            .collect()
+    })
+}
+
+pub(super) fn desired_fish_props() -> Vec<ManualPlacement> {
+    DESIRED.with(|slot| {
+        slot.borrow()
+            .iter()
+            .filter(|placement| super::imported_buildings::is_fish_props_asset(placement.asset_id))
             .cloned()
             .collect()
     })
@@ -184,7 +229,8 @@ pub(crate) fn proposal_ready() -> Result<bool, String> {
     Ok(READY.with(Cell::get)
         && REQUEST.with(|s| s.borrow().is_none())
         && super::imported_scene::ready()?
-        && super::fish_stand_scene::ready()?)
+        && super::fish_stand_scene::ready()?
+        && super::fish_props_scene::ready()?)
 }
 
 pub(crate) fn accepted_projection(
@@ -203,6 +249,7 @@ pub(crate) fn accepted_projection(
         && READY.with(Cell::get)
         && super::imported_scene::ready() == Ok(true)
         && super::fish_stand_scene::ready() == Ok(true)
+        && super::fish_props_scene::ready() == Ok(true)
 }
 
 pub(crate) fn proposal(
@@ -272,6 +319,10 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
                 && !super::imported_buildings::is_boardwalk_asset(p.asset_id)
                 && !super::imported_buildings::is_pier_asset(p.asset_id)
                 && !super::imported_buildings::is_plaza_asset(p.asset_id)
+                && !super::imported_buildings::is_village_props_asset(p.asset_id)
+                && !super::imported_buildings::is_beach_props_asset(p.asset_id)
+                && !super::imported_buildings::is_debris_asset(p.asset_id)
+                && !super::imported_buildings::is_fish_props_asset(p.asset_id)
         })
         .collect();
     let resident = RESIDENT.with(|slot| slot.borrow().clone());
@@ -291,12 +342,40 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
             total += size;
         } else {
             if catalog.is_none() {
-                catalog = Some(super::load_browser().await?);
+                catalog = Some(super::load_browser().await);
             }
             let browser = catalog.as_ref().ok_or("Catalogue indisponible")?;
-            let (asset, bytes) = super::verify::check_reference(browser, key.0, key.1).await?;
+            let (name, bytes, layout) = match browser {
+                Ok(browser) => match browser.resolve(key.0, key.1) {
+                    Ok(asset) => (
+                        asset.id.clone(),
+                        super::verify::check(asset).await?,
+                        super::preview::SceneLayout::CatalogLod0,
+                    ),
+                    Err(forge_assets::asset_browser::AssetResolutionError::Missing(_)) => {
+                        let model = super::vault::reference(key.0, key.1).await?;
+                        (
+                            model.id,
+                            model.bytes,
+                            super::preview::SceneLayout::AutonomousScene,
+                        )
+                    }
+                    Err(error) => return Err(error.to_string()),
+                },
+                Err(kit_error) => {
+                    let model = super::vault::reference(key.0, key.1)
+                        .await
+                        .map_err(|e| format!("Catalogue : {kit_error}; Vault : {e}"))?;
+                    (
+                        model.id,
+                        model.bytes,
+                        super::preview::SceneLayout::AutonomousScene,
+                    )
+                }
+            };
+            super::source_graph_route::require_ordinary_loader(&bytes)?;
             total += bytes.len();
-            assets.insert(key, (asset.id, bytes));
+            assets.insert(key, (name, bytes, layout));
         }
         if total > 256 * 1024 * 1024 {
             return Err("Budget de fichiers placements dépassé (256 Mio)".into());
@@ -311,6 +390,7 @@ struct Object {
     root: Entity,
     handle: Handle<WorldAsset>,
     name: String,
+    layout: super::preview::SceneLayout,
     frame: Option<(Vec3, f32)>,
     parts: Vec<Entity>,
 }
@@ -319,6 +399,7 @@ struct Object {
 struct PlacementVisualReady;
 struct ResidentAsset {
     name: String,
+    layout: super::preview::SceneLayout,
     handle: Handle<WorldAsset>,
     path: String,
     bytes: usize,
@@ -414,7 +495,7 @@ impl Projection {
         }
         self.epoch = EPOCH.with(Cell::get);
         let previous = self.retain_reusable(&prepared.placements, commands);
-        for (key, (name, bytes)) in prepared.assets {
+        for (key, (name, bytes, layout)) in prepared.assets {
             if self.assets.contains_key(&key) {
                 continue;
             }
@@ -432,6 +513,7 @@ impl Projection {
                 key,
                 ResidentAsset {
                     name,
+                    layout,
                     handle,
                     path,
                     bytes: size,
@@ -491,6 +573,7 @@ impl Projection {
                 root,
                 handle: asset.handle.clone(),
                 name: asset.name.clone(),
+                layout: asset.layout,
                 source: placement,
                 frame: None,
                 parts: Vec::new(),
@@ -592,6 +675,7 @@ fn update(
     instances: Query<&WorldInstance>,
     spawner: Res<WorldInstanceSpawner>,
     nodes: super::preview::PreviewNodes,
+    collision_extras: Query<&bevy::gltf::GltfExtras>,
     diagnostic_nodes: DiagnosticNodes,
     mut state: Local<Projection>,
 ) {
@@ -638,6 +722,7 @@ fn update(
         &instances,
         &spawner,
         &nodes,
+        &collision_extras,
     );
     match result {
         Ok(true) => {
@@ -647,7 +732,7 @@ fn update(
             state.ready = true;
             READY.with(|slot| slot.set(current(state.epoch)));
             report(format!(
-                "{} placements LOD0 projetés · préparation UCX demandée ; Jouer attend les collisions synchronisées.",
+                "{} placements projetés · préparation des collisions demandée ; Jouer attend leur synchronisation.",
                 state.objects.len()
             ));
         }
@@ -686,6 +771,7 @@ fn qualify(
     instances: &Query<&WorldInstance>,
     spawner: &WorldInstanceSpawner,
     nodes: &super::preview::PreviewNodes,
+    collision_extras: &Query<&bevy::gltf::GltfExtras>,
 ) -> Result<bool, &'static str> {
     for object in &mut state.objects {
         if object.frame.is_some() {
@@ -700,14 +786,15 @@ fn qualify(
         if !spawner.instance_is_ready(**instance) {
             continue;
         }
-        object.frame = super::preview::configure(
+        let frame = super::preview::configure_layout(
             object.root,
             &object.name,
+            object.layout,
             spawner.iter_instance_entities(**instance),
             nodes,
             commands,
         )?;
-        if object.frame.is_some() {
+        if frame.is_some() {
             let mut primitives = Vec::new();
             let parts = spawner
                 .iter_instance_entities(**instance)
@@ -718,15 +805,29 @@ fn qualify(
                     .is_ok_and(|(_, _, mesh, _, _)| mesh.is_some())
                     && super::preview::is_collision(entity, object.root, &object.name, nodes)
                 {
+                    let geometry = super::preview::collision_geometry(
+                        entity,
+                        object.root,
+                        &object.name,
+                        nodes,
+                        collision_extras,
+                    )?
+                    .ok_or("Collision refusée : rôle source non résolu.")?;
                     primitives.push(entity);
                     commands
                         .entity(entity)
-                        .insert(forge_engine::ManualPlacementCollision(object.id));
+                        .insert((forge_engine::ManualPlacementCollision(object.id), geometry));
                 }
                 if nodes
                     .get(entity)
                     .is_ok_and(|(_, _, mesh, _, _)| mesh.is_some())
-                    && super::preview::is_lod0(entity, object.root, &object.name, nodes)
+                    && super::preview::is_renderable(
+                        entity,
+                        object.root,
+                        &object.name,
+                        object.layout,
+                        nodes,
+                    )
                 {
                     commands
                         .entity(entity)
@@ -741,6 +842,9 @@ fn qualify(
                 });
             object.parts = parts;
         }
+        // A failed source collision declaration must be retried/refused, never
+        // skipped next frame because visual framing alone was already cached.
+        object.frame = frame;
     }
     Ok(state.objects.iter().all(|o| o.frame.is_some()))
 }

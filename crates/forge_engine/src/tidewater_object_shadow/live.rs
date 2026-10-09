@@ -15,6 +15,8 @@ pub struct Frame {
     pub layers: Vec<usize>,
     pub terrain: Option<terrain::Stream>,
     pub plants: Vec<plants::Stream>,
+    /// Ordered poses for the resident opaque draws; geometry remains resident.
+    pub opaque_models: Option<Vec<Mat4>>,
     pub update_index: u64,
 }
 
@@ -46,6 +48,13 @@ impl Frame {
         for stream in &self.plants {
             stream.validate()?;
         }
+        if self
+            .opaque_models
+            .as_ref()
+            .is_some_and(|models| models.iter().any(|model| !model.is_finite()))
+        {
+            return Err("Invalid live opaque caster pose".into());
+        }
         Ok(())
     }
 }
@@ -71,6 +80,18 @@ impl Tracker {
 
     pub fn invalidate(&mut self) {
         self.cascades.invalidate();
+    }
+
+    /// Refresh every cascade when the scene light changes, retaining draw cadence.
+    pub fn set_sun(&mut self, sun: DVec3) -> Result<(), String> {
+        if !sun.is_finite() || (sun.length_squared() - 1.0).abs() > 1.0e-6 {
+            return Err("Invalid live shadow sun".into());
+        }
+        if self.sun != sun {
+            self.sun = sun;
+            self.invalidate();
+        }
+        Ok(())
     }
 
     pub fn next(&mut self, view: CascadeView, frame_index: u32) -> Result<Frame, String> {
@@ -102,6 +123,7 @@ impl Tracker {
             layers,
             terrain: None,
             plants: Vec::new(),
+            opaque_models: None,
             update_index: next,
         })
     }
@@ -111,6 +133,28 @@ impl Tracker {
 mod tests {
     use super::*;
     use bevy::math::DMat4;
+    #[test]
+    fn changed_sun_refreshes_all_cascades_without_resetting_cadence() {
+        let sun = DVec3::new(0.3, 0.8, 0.2).normalize();
+        let mut tracker = Tracker::new(sun).unwrap();
+        let view = CascadeView {
+            world_from_view: DMat4::IDENTITY,
+            near: 0.06,
+            fov_degrees: 60.0,
+            aspect: 16.0 / 9.0,
+        };
+        let old = tracker.next(view, 37).unwrap();
+        assert!(tracker.set_sun(DVec3::ZERO).is_err());
+        assert_eq!(tracker.sun, sun);
+        tracker
+            .set_sun(DVec3::new(-0.4, 0.7, 0.1).normalize())
+            .unwrap();
+        let next = tracker.next(view, 38).unwrap();
+        next.validate().unwrap();
+        assert_eq!(next.update_index, old.update_index + 1);
+        assert_eq!(next.layers, vec![0, 1, 2]);
+        assert_ne!(next.settings.matrices[0], old.settings.matrices[0]);
+    }
     #[test]
     fn navigation_preserves_non_due_cascades_and_source_cadence() {
         let mut tracker = Tracker::new(DVec3::new(0.3, 0.8, 0.2).normalize()).unwrap();

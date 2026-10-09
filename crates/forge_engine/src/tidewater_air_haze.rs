@@ -10,11 +10,12 @@ use bevy::{
     ecs::query::QueryFilter,
     prelude::*,
     render::{
-        RenderApp, RenderStartup,
+        Render, RenderApp, RenderStartup, RenderSystems,
         extract_component::{
             ComponentUniforms, DynamicUniformIndex, ExtractComponent, ExtractComponentPlugin,
             UniformComponentPlugin,
         },
+        extract_resource::ExtractResourcePlugin,
         render_asset::RenderAssets,
         render_resource::{
             BindGroupEntries, BindGroupLayoutDescriptor, BindGroupLayoutEntries, ColorTargetState,
@@ -40,24 +41,97 @@ use crate::tidewater_temporal::{
 use crate::{tidewater_atmosphere, tidewater_underwater::TidewaterUnderwaterObservation};
 
 const SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa109f");
+const CORE_SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa109e");
+const VOLUME_SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a0");
+const MARCH_SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a1");
+const RADIAL_SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a2");
+const CLOUD_VIEW_SHADER_HANDLE: Handle<Shader> =
+    uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a3");
+const MASK_SHADER_HANDLE: Handle<Shader> = uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a4");
+const COMPOSITE_SHADER_HANDLE: Handle<Shader> =
+    uuid_handle!("b9056f9a-02e2-4edc-bf75-511e66aa10a5");
+
+mod clock;
+pub mod lighting;
+pub mod moon;
+pub mod passes;
+mod render_volume;
+pub mod scene;
+pub mod targets;
 
 pub struct TidewaterAirHazePlugin;
 
+/// Orders consumers of the completed haze image without exposing render internals.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TidewaterAirHazePass;
+
 impl Plugin for TidewaterAirHazePlugin {
     fn build(&self, app: &mut App) {
+        load_internal_asset!(
+            app,
+            CORE_SHADER_HANDLE,
+            "tidewater_air_haze_core.wgsl",
+            Shader::from_wgsl
+        );
         load_internal_asset!(
             app,
             SHADER_HANDLE,
             "tidewater_air_haze.wgsl",
             Shader::from_wgsl
         );
+        load_internal_asset!(
+            app,
+            VOLUME_SHADER_HANDLE,
+            "tidewater_air_haze_volume.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            MARCH_SHADER_HANDLE,
+            "tidewater_air_haze_march.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            RADIAL_SHADER_HANDLE,
+            "tidewater_air_haze_radial.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            CLOUD_VIEW_SHADER_HANDLE,
+            "tidewater_air_haze_cloud_view.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            MASK_SHADER_HANDLE,
+            "tidewater_air_haze_mask.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            COMPOSITE_SHADER_HANDLE,
+            "tidewater_air_haze_composite.wgsl",
+            Shader::from_wgsl
+        );
         app.add_plugins((
             ExtractComponentPlugin::<TidewaterAirHaze>::default(),
+            ExtractComponentPlugin::<clock::Clock>::default(),
             UniformComponentPlugin::<TidewaterAirHaze>::default(),
+            ExtractResourcePlugin::<scene::Inputs>::default(),
+            ExtractResourcePlugin::<moon::Inputs>::default(),
         ))
+        .init_resource::<scene::Inputs>()
+        .init_resource::<moon::Inputs>()
+        .add_systems(PostUpdate, scene::refresh)
+        .add_systems(PostUpdate, moon::refresh)
+        .add_systems(PostUpdate, clock::update)
         .add_systems(
             PostUpdate,
             update
+                .after(bevy::camera::CameraUpdateSystems)
+                .after(crate::finite_perspective::EffectivePerspectiveSystems)
                 .after(bevy::transform::TransformSystems::Propagate)
                 .after(crate::tidewater_underwater::TidewaterUnderwaterUpdateSet),
         );
@@ -67,16 +141,25 @@ impl Plugin for TidewaterAirHazePlugin {
         render_app
             .init_resource::<SpecializedRenderPipelines<Pipeline>>()
             .add_systems(RenderStartup, init_pipeline)
+            .add_systems(RenderStartup, passes::init)
+            .add_systems(RenderStartup, render_volume::init)
+            .add_systems(
+                Render,
+                targets::prepare.in_set(RenderSystems::PrepareBindGroups),
+            )
             .add_systems(
                 Core3d,
                 render::<false, Without<ResolveEnabled>>
+                    .in_set(TidewaterAirHazePass)
                     .after(Core3dSystems::PostProcess)
                     .before(ui_pass)
                     .before(upscaling),
             )
             .add_systems(
                 Core3d,
-                render::<true, With<ResolveEnabled>>.in_set(SourceHdrSystems::Haze),
+                render_volume::render
+                    .in_set(SourceHdrSystems::Haze)
+                    .in_set(TidewaterAirHazePass),
             );
     }
 }
@@ -84,9 +167,9 @@ impl Plugin for TidewaterAirHazePlugin {
 #[derive(Component, Clone, Copy, Debug, ExtractComponent, ShaderType)]
 pub struct TidewaterAirHaze {
     camera_world: Mat4,
-    /// x/y: projection scale; z: camera height above sea; w: near plane.
+    /// x/y: effective projection scale; z: camera height above sea; w: depth numerator.
     projection: Vec4,
-    /// x: density (source default 1.6); y: camera in air.
+    /// x: density; y: camera in air; z: diagnostic; w: depth denominator offset.
     control: Vec4,
     atmosphere: [Vec4; 4],
 }
@@ -117,7 +200,12 @@ impl TidewaterAirHaze {
 fn update(
     atmosphere: Option<Res<tidewater_atmosphere::Targets>>,
     immersion: Option<Res<TidewaterUnderwaterObservation>>,
-    mut views: Query<(&GlobalTransform, &Projection, &mut TidewaterAirHaze)>,
+    mut views: Query<(
+        &GlobalTransform,
+        &Camera,
+        &Projection,
+        &mut TidewaterAirHaze,
+    )>,
 ) {
     let Some(atmosphere) = atmosphere else { return };
     let camera_in_air = immersion.as_ref().is_none_or(|state| {
@@ -126,18 +214,19 @@ fn update(
             crate::tidewater_underwater::TidewaterImmersion::FullyImmersed
         )
     });
-    for (transform, projection, mut haze) in &mut views {
-        let Projection::Perspective(perspective) = projection else {
+    for (transform, camera, projection, mut haze) in &mut views {
+        let Projection::Perspective(_) = projection else {
             continue;
         };
-        let y = 1.0 / (perspective.fov * 0.5).tan();
+        let clip = camera.clip_from_view();
         haze.camera_world = transform.to_matrix();
         haze.projection = Vec4::new(
-            y / perspective.aspect_ratio,
-            y,
+            clip.x_axis.x,
+            clip.y_axis.y,
             transform.translation().y.max(0.0),
-            perspective.near,
+            clip.w_axis.z,
         );
+        haze.control.w = clip.z_axis.z;
         haze.control.y = if camera_in_air { 1.0 } else { 0.0 };
         haze.control.z = if std::env::var_os("FORGE_TIDEWATER_HAZE_DEBUG_DEPTH").is_some() {
             1.0

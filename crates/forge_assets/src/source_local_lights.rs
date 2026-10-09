@@ -486,6 +486,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "This fixture verifies lossless preservation of exact captured positions and f64 phase"
+    )]
     fn source_local_lights_preserve_pose_phase_and_explicit_absence() {
         let loaded = load(&fixture()).unwrap();
         let document = loaded.document();

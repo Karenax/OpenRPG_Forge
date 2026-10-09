@@ -20,6 +20,16 @@ pub(super) struct Proof {
 }
 
 impl Proof {
+    /// The controlled wind capture must leave enough live frames to measure cadence.
+    /// Readiness does not require a passing cadence: an invalid result must still finish.
+    pub fn window_ready(&self) -> bool {
+        self.start.zip(self.end).is_some_and(|(start, end)| {
+            end.main_frame
+                .checked_sub(start.main_frame)
+                .is_some_and(|frames| frames >= 120)
+        })
+    }
+
     pub fn complete(&self) -> bool {
         self.frozen
     }
@@ -60,6 +70,47 @@ impl Proof {
             layer_rates[1],
             layer_rates[2],
         ])
+    }
+}
+
+#[cfg(test)]
+mod window_readiness_tests {
+    use super::{Proof, Snapshot};
+
+    #[test]
+    fn wind_capture_waits_for_full_live_window() {
+        let mut proof = Proof {
+            start: Some(Snapshot {
+                main_frame: 561,
+                ..Default::default()
+            }),
+            end: Some(Snapshot {
+                main_frame: 671,
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        assert!(!proof.window_ready());
+        proof.end.as_mut().unwrap().main_frame = 681;
+        assert!(proof.window_ready());
+        // Enough samples must allow reporting failed submission cadence, not hang.
+        assert!(!proof.valid());
+    }
+
+    #[test]
+    fn missing_or_reversed_window_is_not_ready() {
+        let mut proof = Proof::default();
+        assert!(!proof.window_ready());
+        proof.start = Some(Snapshot {
+            main_frame: 561,
+            ..Default::default()
+        });
+        assert!(!proof.window_ready());
+        proof.end = Some(Snapshot {
+            main_frame: 560,
+            ..Default::default()
+        });
+        assert!(!proof.window_ready());
     }
 }
 

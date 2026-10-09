@@ -9,6 +9,9 @@ target/
 /apps/forge_studio/dist/
 /apps/forge_studio/.trunk/
 /apps/forge_studio/gen/
+/apps/forge_hub/gen/
+!/apps/forge_hub/Cargo.lock
+!/tools/forge_delivery/Cargo.lock
 /apps/forge_studio/src-tauri/target/
 /artifacts/forge-runtime/
 /artifacts/forge-studio/

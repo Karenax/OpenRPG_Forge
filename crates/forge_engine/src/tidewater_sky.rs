@@ -1,4 +1,5 @@
 //! Clear-sky background using native atmosphere LUTs on the scene's device.
+pub mod frame_lighting;
 pub mod solar;
 pub mod solar_lighting;
 use bevy::{
@@ -54,9 +55,22 @@ pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     shaders
         .insert(
             SKY_SHADER.id(),
-            Shader::from_wgsl(source.to_owned(), "tidewater-sky.wgsl"),
+            Shader::from_wgsl(filter_cloud_view(source), "tidewater-sky.wgsl"),
         )
         .map_err(|e| e.to_string())
+}
+
+fn filter_cloud_view(source: &str) -> String {
+    let sample = "textureSampleLevel( cloudsView, smpLinearClamp, uv, 0.0 )";
+    if !source.contains(sample) {
+        return source.to_owned();
+    }
+    let filtered = source.replace(sample, "forgeCloudViewFiltered( uv )");
+    format!(
+        "{}\n{}",
+        filtered,
+        include_str!("tidewater_sky/cloud_filter.wgsl")
+    )
 }
 
 /// A camera-facing background drawn at far depth; scene settings belong to the caller.

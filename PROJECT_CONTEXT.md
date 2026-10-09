@@ -1,5 +1,16 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Exigence propriétaire du 8 octobre 2026 — moteur générique
+
+Objectif enrichi, avec toute la portée précédente conservée :
+
+> Intégrer Tidewater dans OpenRPG Forge Rust/Bevy pour obtenir la même carte complète et les mêmes effets visuels que la référence figée, avec assets réutilisables et carte éditable dans Studio, comportements prévus au plan, validation native/WebGPU et comparaisons visuelles documentées. Préserver le travail existant et ne pas publier implicitement. Les éléments liés au moteur doivent être intégrés aux systèmes communs et utilisables par les futures cartes. Leurs noms de modules, fichiers, types, API, shaders, paramètres et contrats moteur ne doivent pas contenir d’indicatif Tidewater. Les références Tidewater sont réservées au contenu de cette carte, aux acquisitions, aux scènes de référence, aux preuves et aux mentions de provenance/licence nécessaires.
+
+Critères ajoutés : intégrer réellement les fonctions réutilisables aux systèmes et réglages communs ; retirer les indicatifs Tidewater des noms et contrats moteur ; supprimer toute dépendance au nom/slug/assets de la carte ; vérifier leur fonctionnement sur une autre carte ou scène indépendante, sur les parcours natif/WebGPU concernés. Un simple renommage ne suffit pas. Préserver le contenu spécifique, les licences et les preuves historiques lors des déplacements et renommages.
+
+Cette exigence reste à réaliser pour les modules actuels `tidewater_*`. L’objectif reste en pause à la demande du propriétaire ; cet amendement ne relance ni développement ni tests.
+
+
 ## Gate 3 active — décision propriétaire du 1er octobre 2026
 
 Gate 2 est clôturée pour la poursuite locale par validation explicite du
@@ -9,6 +20,16 @@ Objectif actif : clôturer Gate 3 avec une aventure jouable créée dans Studio
 sur la map Tidewater Rust. Les contrats et comportements de gameplay restent
 génériques ; le contenu de l'aventure appartient au module. Aucune publication
 Git implicite. Les états datés ci-dessous décrivent leurs étapes historiques.
+
+Revalidation CI du 5 octobre 2026 : le run Rust du 3 octobre
+`37125741497`, sur `6b001dbed0fdf1c002d43cf507c60eece1119130`, a réellement
+exécuté ses quatre jobs. Supply-chain passe ; Windows/Linux échouent à Clippy
+et WASM au hook de construction du worker de navigation. L’exception de
+facturation ADR-0006 est donc automatiquement expirée pour la condition CI.
+Le candidat local Gate 3 doit encore recevoir une CI distante réelle PASS sur
+son commit exact avant clôture ; les preuves locales ne remplacent pas ces
+résultats. Les récits historiques de facturation ci-dessous restent datés.
+Cette vérification n’a lancé aucun workflow et n’autorise aucune publication.
 
 ## Chantier Tidewater autorisé — 24 septembre 2026
 

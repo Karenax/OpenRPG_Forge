@@ -70,7 +70,7 @@ pub(super) fn PlacementControls(
                 disabled=move || !grid_enabled.get() prop:value=move || grid_step.get()
                 on:input=move |ev| grid_step.set(event_target_value(&ev))/></label>
             </details>
-            <button class="authoring-primary" disabled=move || catalog.get().is_none() || selected.get().is_empty() on:click=move |_| {
+            <button class="authoring-primary" disabled=move || busy.get() || host_busy.get() || selected.get().is_empty() on:click=move |_| {
                 let grid = grid_enabled.get_untracked().then(|| grid_step.get_untracked());
                 let settings = settings(&scale.get_untracked(), &yaw.get_untracked(), &offset.get_untracked(), grid.as_deref());
                 match settings { Ok(settings) => arm(state, catalog, selected, busy, settings, on_command), Err(e) => on_command.run(Err(e)) }
@@ -165,9 +165,9 @@ fn arm(
 ) {
     let setup = (|| {
         let head = head(state.get_untracked())?;
-        let catalog = catalog.get_untracked().ok_or("Charger le catalogue")?;
         let name = selected.get_untracked();
-        let reference = catalog.reference(&name).map_err(|e| e.to_string())?;
+        let catalog = super::catalog::resolve(catalog.get_untracked().as_ref(), &name)?;
+        let reference = catalog.reference();
         Ok::<_, String>((head, catalog, name, reference))
     })();
     let (head, catalog, name, reference) = match setup {
@@ -182,7 +182,7 @@ fn arm(
     busy.set(true);
     super::placements::report("Vérification de l’asset avant placement…");
     wasm_bindgen_futures::spawn_local(async move {
-        let result = super::verify::check_reference(&catalog, reference.0, reference.1).await;
+        let result = catalog.check().await;
         busy.set(false);
         if !super::preview::is_current(ticket) || selected.get_untracked() != name {
             return;
@@ -194,11 +194,13 @@ fn arm(
         super::placements::report(
             "Cliquer le terrain pour prévisualiser le placement. Échap annule.",
         );
+        let display_name = catalog.label(&name);
         crate::authoring_brush_pointer::arm(
             2.0,
             false,
             Callback::new(move |points: Result<Vec<[f32; 2]>, String>| {
                 let request = (|| {
+                    catalog.still_available()?;
                     let current = self::head(state.get_untracked())?;
                     if current.content_hash()? != head.content_hash()? {
                         return Err(
@@ -206,7 +208,7 @@ fn arm(
                         );
                     }
                     let point = *points?.first().ok_or("Cliquer un point du terrain")?;
-                    insertion::prepare(&current, &name, reference, settings, point)
+                    insertion::prepare(&current, &display_name, reference, settings, point)
                 })();
                 if let Err(reason) = &request {
                     super::placements::report(format!("Placement refusé : {reason}"));

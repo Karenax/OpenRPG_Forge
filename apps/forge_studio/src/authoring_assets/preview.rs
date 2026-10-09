@@ -8,6 +8,7 @@ use bevy::{
         },
     },
     camera::{primitives::Aabb, visibility::VisibilitySystems},
+    ecs as bevy_ecs,
     gltf::GltfAssetLabel,
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstance, WorldInstanceSpawner},
@@ -24,8 +25,20 @@ thread_local! {
 }
 
 enum PreviewRequest {
-    Show(String, Vec<u8>),
+    Show(String, Vec<u8>, SceneLayout),
     Clear,
+}
+
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(super) enum PreviewSystems {
+    Requests,
+}
+
+/// The admitted source determines scene interpretation, never a pack or name.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum SceneLayout {
+    CatalogLod0,
+    AutonomousScene,
 }
 
 pub(super) fn cancel() {
@@ -39,10 +52,18 @@ pub(super) fn ticket() -> u64 {
 }
 
 pub(super) fn submit(ticket: u64, id: String, bytes: Vec<u8>) -> bool {
+    submit_layout(ticket, id, bytes, SceneLayout::CatalogLod0)
+}
+
+pub(super) fn submit_scene(ticket: u64, id: String, bytes: Vec<u8>) -> bool {
+    submit_layout(ticket, id, bytes, SceneLayout::AutonomousScene)
+}
+
+fn submit_layout(ticket: u64, id: String, bytes: Vec<u8>, layout: SceneLayout) -> bool {
     if !is_current(ticket) {
         return false;
     }
-    REQUEST.with(|request| request.replace(Some(PreviewRequest::Show(id, bytes))));
+    REQUEST.with(|request| request.replace(Some(PreviewRequest::Show(id, bytes, layout))));
     true
 }
 
@@ -61,9 +82,12 @@ pub(crate) fn register(app: &mut App) {
     app.add_systems(
         PostUpdate,
         update
+            .in_set(PreviewSystems::Requests)
             .after(bevy::transform::TransformSystems::Propagate)
             .after(VisibilitySystems::CalculateBounds),
     );
+    super::source_graph_runtime::register(app);
+    super::source_graph_preview::register(app);
     super::placements::register(app);
 }
 
@@ -89,14 +113,14 @@ pub(super) type PreviewNodes<'w, 's> = Query<
 
 #[derive(Default)]
 struct PreviewState {
-    active: Option<(Entity, Handle<WorldAsset>, String, String)>,
+    active: Option<(Entity, Handle<WorldAsset>, String, String, SceneLayout)>,
     ready: bool,
     started: f64,
 }
 
 impl PreviewState {
     fn clear(&mut self, commands: &mut Commands) {
-        if let Some((entity, _, path, _)) = self.active.take() {
+        if let Some((entity, _, path, _, _)) = self.active.take() {
             commands.entity(entity).despawn();
             ROOT.with(|root| root.remove_asset(Path::new(&path)));
             crate::authoring_camera::leave_preview();
@@ -116,8 +140,20 @@ fn update(
     mut state: Local<PreviewState>,
 ) {
     if let Some(request) = REQUEST.with(|request| request.borrow_mut().take()) {
+        super::source_graph_preview::cancel();
         state.clear(&mut commands);
-        if let PreviewRequest::Show(id, bytes) = request {
+        if let PreviewRequest::Show(id, bytes, layout) = request {
+            match super::source_graph_route::read(&bytes) {
+                Ok(Some(_)) => {
+                    super::source_graph_preview::submit(id, bytes);
+                    return;
+                }
+                Ok(None) => {}
+                Err(reason) => {
+                    super::preview_status(&format!("Aperçu refusé : {reason}"));
+                    return;
+                }
+            }
             let path = format!("{}.glb", EPOCH.with(Cell::get));
             ROOT.with(|root| root.insert_asset(Path::new(&path), bytes));
             let handle = server
@@ -130,11 +166,11 @@ fn update(
                     Name::new("Aperçu temporaire · non sauvegardé"),
                 ))
                 .id();
-            state.active = Some((entity, handle, path, id));
+            state.active = Some((entity, handle, path, id, layout));
             state.started = time.elapsed_secs_f64();
         }
     }
-    let Some((root, handle, _, id)) = &state.active else {
+    let Some((root, handle, _, id, layout)) = &state.active else {
         return;
     };
     if state.ready {
@@ -154,9 +190,10 @@ fn update(
     if !spawner.instance_is_ready(**instance) {
         return;
     }
-    let framing = configure(
+    let framing = configure_layout(
         *root,
         id,
+        *layout,
         spawner.iter_instance_entities(**instance),
         &nodes,
         &mut commands,
@@ -175,13 +212,31 @@ fn update(
     // Isolated presentation position above the zone; coordinates are not persisted.
     crate::authoring_camera::frame_preview(pivot, distance);
     super::preview_status(
-        "Aperçu LOD0 chargé au-dessus de la zone, sans collision ni placement. Rotation et zoom disponibles ; rendu à inspecter.",
+        "Aperçu chargé au-dessus de la zone, sans collision ni placement. Rotation et zoom disponibles ; rendu à inspecter.",
     );
 }
 
 pub(super) fn configure(
     root: Entity,
     id: &str,
+    entities: impl Iterator<Item = Entity>,
+    nodes: &PreviewNodes,
+    commands: &mut Commands,
+) -> Result<Option<(Vec3, f32)>, &'static str> {
+    configure_layout(
+        root,
+        id,
+        SceneLayout::CatalogLod0,
+        entities,
+        nodes,
+        commands,
+    )
+}
+
+pub(super) fn configure_layout(
+    root: Entity,
+    id: &str,
+    layout: SceneLayout,
     entities: impl Iterator<Item = Entity>,
     nodes: &PreviewNodes,
     commands: &mut Commands,
@@ -194,7 +249,7 @@ pub(super) fn configure(
         let Ok((_, _, Some(_), transform, bounds)) = nodes.get(entity) else {
             continue;
         };
-        let show = is_lod0(entity, root, id, nodes);
+        let show = is_renderable(entity, root, id, layout, nodes);
         commands.entity(entity).insert(if show {
             Visibility::Inherited
         } else {
@@ -224,7 +279,7 @@ pub(super) fn configure(
         }
     }
     if visible == 0 {
-        return Err("Aperçu refusé : aucune primitive LOD0 identifiée dans ce kit.");
+        return Err("Aperçu refusé : aucune primitive de rendu identifiée dans cette scène.");
     }
     if pending {
         return Ok(None);
@@ -246,7 +301,7 @@ pub(super) fn is_lod0(mut entity: Entity, root: Entity, id: &str, nodes: &Previe
         };
         if let Some(name) = name {
             let name = name.as_str();
-            if name.starts_with("UCX_") {
+            if name.starts_with("UCX_") || name.starts_with("UTM_") {
                 return false;
             }
             if let Some(suffix) = name.strip_prefix(id) {
@@ -266,6 +321,34 @@ pub(super) fn is_lod0(mut entity: Entity, root: Entity, id: &str, nodes: &Previe
     false
 }
 
+pub(super) fn is_renderable(
+    mut entity: Entity,
+    root: Entity,
+    id: &str,
+    layout: SceneLayout,
+    nodes: &PreviewNodes,
+) -> bool {
+    if layout == SceneLayout::CatalogLod0 {
+        return is_lod0(entity, root, id, nodes);
+    }
+    // A normalized Vault entry already selects its own scene and LOD variant.
+    // Keep its primitive names intact; do not infer a kit naming convention.
+    for _ in 0..128 {
+        if entity == root {
+            return true;
+        }
+        let Ok((name, parent, _, _, _)) = nodes.get(entity) else {
+            return false;
+        };
+        if name.is_some_and(|n| n.as_str().starts_with("UCX_") || n.as_str().starts_with("UTM_")) {
+            return false;
+        }
+        let Some(parent) = parent else { return false };
+        entity = parent.parent();
+    }
+    false
+}
+
 /// UCX role belonging to this verified asset only; render LODs are never colliders.
 pub(super) fn is_collision(
     mut entity: Entity,
@@ -273,7 +356,7 @@ pub(super) fn is_collision(
     id: &str,
     nodes: &PreviewNodes,
 ) -> bool {
-    let prefix = format!("UCX_{id}");
+    let prefixes = [format!("UCX_{id}"), format!("UTM_{id}")];
     for _ in 0..128 {
         if entity == root {
             return false;
@@ -282,10 +365,12 @@ pub(super) fn is_collision(
             return false;
         };
         if let Some(name) = name {
-            if let Some(suffix) = name.as_str().strip_prefix(&prefix) {
-                return suffix.is_empty() || suffix.starts_with('_');
+            for prefix in &prefixes {
+                if let Some(suffix) = name.as_str().strip_prefix(prefix) {
+                    return suffix.is_empty() || suffix.starts_with('_');
+                }
             }
-            if name.as_str().starts_with("UCX_") {
+            if name.as_str().starts_with("UCX_") || name.as_str().starts_with("UTM_") {
                 return false;
             }
         }
@@ -295,4 +380,81 @@ pub(super) fn is_collision(
         entity = parent.parent();
     }
     false
+}
+
+/// Only an explicit source declaration admits a concave triangle collision mesh.
+/// Older UCX primitives retain the existing convex contract.
+pub(super) fn collision_geometry(
+    mut entity: Entity,
+    root: Entity,
+    id: &str,
+    nodes: &PreviewNodes,
+    extras: &Query<&bevy::gltf::GltfExtras>,
+) -> Result<Option<forge_engine::ManualPlacementCollisionGeometry>, &'static str> {
+    let convex_prefix = format!("UCX_{id}");
+    let triangle_prefix = format!("UTM_{id}_");
+    for _ in 0..128 {
+        if entity == root {
+            return Ok(None);
+        }
+        let Ok((name, parent, mesh, _, _)) = nodes.get(entity) else {
+            return Ok(None);
+        };
+        if let Some(name) = name {
+            let name = name.as_str();
+            if name
+                .strip_prefix(&convex_prefix)
+                .is_some_and(|s| s.is_empty() || s.starts_with('_'))
+            {
+                return Ok(Some(
+                    forge_engine::ManualPlacementCollisionGeometry::ConvexPrimitive,
+                ));
+            }
+            if let Some(component) = name.strip_prefix(&triangle_prefix) {
+                // Bevy gives the primitive child the same mesh name. The source
+                // declaration belongs to its owning glTF node, not that child.
+                if mesh.is_some() {
+                    let Some(parent) = parent else {
+                        return Err("Collision refusée : nœud source absent.");
+                    };
+                    entity = parent.parent();
+                    continue;
+                }
+                let invalid =
+                    "Collision concave refusée : déclaration source absente ou incompatible.";
+                let raw = extras.get(entity).map_err(|_| invalid)?;
+                if raw.value.len() > 65_536 {
+                    return Err(invalid);
+                }
+                let declaration: serde_json::Value =
+                    serde_json::from_str(&raw.value).map_err(|_| invalid)?;
+                let shape = &declaration["openrpg_collision"];
+                let hash = declaration["source_prefab_sha256"]
+                    .as_str()
+                    .ok_or(invalid)?;
+                if declaration["source_role"].as_str() != Some("collision")
+                    || declaration["source_component_id"].as_str() != Some(component)
+                    || component.is_empty()
+                    || shape["schema"].as_str() != Some("source-collider.v1")
+                    || shape["kind"].as_str() != Some("triangle_mesh")
+                    || shape["source_convex"].as_bool() != Some(false)
+                    || hash.len() != 64
+                    || !hash.bytes().all(|c| c.is_ascii_hexdigit())
+                {
+                    return Err(invalid);
+                }
+                return Ok(Some(
+                    forge_engine::ManualPlacementCollisionGeometry::TriangleMesh,
+                ));
+            }
+            if name.starts_with("UCX_") || name.starts_with("UTM_") {
+                return Ok(None);
+            }
+        }
+        let Some(parent) = parent else {
+            return Ok(None);
+        };
+        entity = parent.parent();
+    }
+    Err("Collision refusée : hiérarchie source invalide.")
 }

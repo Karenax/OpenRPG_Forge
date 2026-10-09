@@ -1,6 +1,8 @@
 //! Shared three-cascade depth graph with generation-scoped late adoption.
 #![allow(clippy::needless_pass_by_value)]
 use super::{OpaqueDraw, plants, terrain};
+use crate::tidewater_debris::scanned_shadow_runtime as scanned_shadow;
+use crate::tidewater_fish_props::shadow as fish_shadow;
 use crate::tidewater_material::ObjectShadowSettings as Settings;
 use bevy::{
     asset::RenderAssetUsages,
@@ -8,10 +10,11 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::RenderAssets,
         render_resource as gpu,
-        renderer::{RenderContext, RenderDevice, RenderGraph, RenderQueue},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems, RenderQueue},
         storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
@@ -22,6 +25,8 @@ use std::sync::{
 };
 #[path = "animation.rs"]
 pub mod animation;
+#[path = "fish_extract.rs"]
+mod fish_extract;
 
 pub struct Input {
     pub settings: Settings,
@@ -94,6 +99,14 @@ struct Prepared {
     opaque: super::OpaqueBatch,
     terrain: Option<terrain::Gpu>,
     plants: Vec<plants::GpuBatch>,
+    fish: Option<(Arc<Vec<fish_shadow::MaskedMesh>>, fish_shadow::gpu::Batch)>,
+    fish_pose: Option<(Vec<fish_shadow::gpu::Pose>, f32)>,
+    scanned: Option<(
+        Arc<Vec<scanned_shadow::MeshBytes>>,
+        Arc<String>,
+        scanned_shadow::gpu::Batch,
+    )>,
+    scanned_pose: Option<(Vec<scanned_shadow::Pose>, u32)>,
 }
 
 pub fn register(app: &mut App) -> Result<(), String> {
@@ -108,9 +121,14 @@ pub fn register(app: &mut App) -> Result<(), String> {
         ExtractResourcePlugin::<Target>::default(),
         ExtractResourcePlugin::<animation::State>::default(),
     ));
+    app.sub_app_mut(RenderApp)
+        .add_systems(bevy::render::ExtractSchedule, fish_extract::extract);
+    app.sub_app_mut(RenderApp)
+        .add_systems(bevy::render::ExtractSchedule, scanned_shadow::extract);
     app.sub_app_mut(RenderApp).add_systems(
         RenderGraph,
         draw.before(camera_driver)
+            .in_set(RenderGraphSystems::Render)
             .run_if(resource_exists::<KernelInput>)
             .run_if(resource_exists::<Target>),
     );
@@ -180,6 +198,10 @@ fn prepare(
 ) -> Prepared {
     Prepared {
         ready,
+        fish: None,
+        fish_pose: None,
+        scanned: None,
+        scanned_pose: None,
         opaque: super::prepare(&input.draws, &input.matrices, device, queue)
             .expect("validated opaque casters and cascades"),
         plants: input.plants.as_ref().map_or_else(Vec::new, |p| {
@@ -204,11 +226,70 @@ fn draw(
     prepared: Option<ResMut<Prepared>>,
     animation: Res<animation::State>,
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
+    fish_frame: Option<Res<fish_shadow::Frame>>,
+    scanned_frame: Option<Res<scanned_shadow::Frame>>,
 ) {
     let motion = animation
         .motion
         .filter(|_| animation.sequence > animation.encoded.load(Ordering::Acquire));
-    if target.ready.load(Ordering::Acquire) && motion.is_none() {
+    let fish_frame = fish_frame.filter(|frame| frame.target == target.image);
+    let scanned_frame =
+        scanned_frame.filter(|frame| frame.target == target.image && target.settings.enabled > 0.5);
+    let scanned_resident = prepared.as_ref().and_then(|p| p.scanned.as_ref());
+    let scanned_changed = match (scanned_frame.as_ref(), scanned_resident) {
+        (Some(frame), Some((meshes, shader, batch))) => {
+            !Arc::ptr_eq(&frame.meshes, meshes)
+                || !Arc::ptr_eq(&frame.shader, shader)
+                || frame.poses.len() != batch.draws.len()
+        }
+        (None, None) => false,
+        _ => true,
+    };
+    let scanned_pose = prepared.as_ref().and_then(|p| p.scanned_pose.as_ref());
+    let scanned_pose_changed = match (scanned_frame.as_ref(), scanned_pose) {
+        (Some(frame), Some((poses, _))) => frame.poses != *poses,
+        (None, None) => false,
+        _ => true,
+    };
+    let scanned_index = animation
+        .frame
+        .as_ref()
+        .map_or(input.0.settings.frame_index, |frame| {
+            frame.settings.frame_index
+        });
+    let scanned_phase_changed = scanned_frame.as_ref().is_some_and(|frame| {
+        frame.poses.iter().any(|p| p.enabled)
+            && scanned_pose.is_none_or(|(_, phase)| *phase != scanned_index)
+    });
+    let resident_fish = prepared
+        .as_ref()
+        .and_then(|prepared| prepared.fish.as_ref());
+    let fish_changed = match (fish_frame.as_ref(), resident_fish) {
+        (Some(frame), Some((meshes, _))) => !Arc::ptr_eq(&frame.meshes, meshes),
+        (None, None) => false,
+        _ => true,
+    };
+    let fish_pose = prepared
+        .as_ref()
+        .and_then(|prepared| prepared.fish_pose.as_ref());
+    let fish_pose_changed = match (fish_frame.as_ref(), fish_pose) {
+        (Some(frame), Some((poses, _))) => frame.poses != *poses,
+        (None, None) => false,
+        _ => true,
+    };
+    let fish_clock_changed = fish_frame.as_ref().is_some_and(|frame| {
+        frame.poses.iter().any(|pose| pose.enabled)
+            && fish_pose.is_none_or(|(_, time)| time.to_bits() != frame.time.to_bits())
+    });
+    if target.ready.load(Ordering::Acquire)
+        && motion.is_none()
+        && !fish_changed
+        && !fish_pose_changed
+        && !fish_clock_changed
+        && !scanned_changed
+        && !scanned_pose_changed
+        && !scanned_phase_changed
+    {
         return;
     }
     let Some(image) = images.get(&target.image) else {
@@ -223,7 +304,11 @@ fn draw(
     };
     let live = motion.and(animation.frame.as_deref());
     let recovered = motion.is_some() && animation.needs_recovery();
-    let layers = if recovered {
+    // Fish and scanned visibility and LOD fades change with the camera every frame.
+    // Their current poses update only the scheduled live cascades, like source
+    // vegetation; forcing all layers here destroys the 1/2/4 frame cadence.
+    // Without a live frame the fallback below still refreshes all three layers.
+    let layers = if recovered || fish_changed || scanned_changed {
         &[0, 1, 2][..]
     } else {
         live.map_or(&[0, 1, 2][..], |frame| frame.layers.as_slice())
@@ -241,6 +326,78 @@ fn draw(
             &super::receiver::bytes(frame.settings.clone()),
         );
     }
+    if let Some(frame) = fish_frame {
+        let matrices = animation
+            .frame
+            .as_ref()
+            .map_or(&input.0.settings.matrices[..3], |frame| {
+                &frame.settings.matrices[..3]
+            });
+        if fish_changed {
+            prepared.fish = Some((
+                frame.meshes.clone(),
+                fish_shadow::gpu::prepare(
+                    &frame.shader,
+                    &frame.meshes,
+                    &frame.poses,
+                    matrices,
+                    frame.time,
+                    &device,
+                    &queue,
+                )
+                .expect("validated source masked fish depth"),
+            ));
+        }
+        if let Some((_, batch)) = &mut prepared.fish {
+            batch
+                .update(&frame.poses, matrices, layers, frame.time, &device, &queue)
+                .expect("validated source masked fish poses");
+        }
+        prepared.fish_pose = Some((frame.poses.clone(), frame.time));
+    } else {
+        prepared.fish = None;
+        prepared.fish_pose = None;
+    }
+    if let Some(frame) = scanned_frame {
+        let matrices = animation
+            .frame
+            .as_ref()
+            .map_or(&input.0.settings.matrices[..3], |frame| {
+                &frame.settings.matrices[..3]
+            });
+        if scanned_changed {
+            prepared.scanned = Some((
+                frame.meshes.clone(),
+                frame.shader.clone(),
+                scanned_shadow::gpu::prepare(
+                    &frame.shader,
+                    &frame.meshes,
+                    &frame.poses,
+                    matrices,
+                    scanned_index,
+                    &device,
+                    &queue,
+                )
+                .expect("validated scanned source depth frame"),
+            ));
+        }
+        if let Some((_, _, batch)) = &mut prepared.scanned {
+            batch
+                .update(
+                    &frame.poses,
+                    matrices,
+                    layers,
+                    scanned_index,
+                    &device,
+                    &queue,
+                )
+                .expect("validated scanned source caster poses");
+        }
+        prepared.scanned_pose = Some((frame.poses.clone(), scanned_index));
+    } else {
+        prepared.scanned = None;
+        prepared.scanned_pose = None;
+    }
     // This graph encodes one pose per submission. Queue writes precede its depth
     // passes and retain the uniform buffers already referenced by the bind groups.
     if let Some(motion) = motion {
@@ -254,6 +411,9 @@ fn draw(
             );
         }
     }
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let shadow_span = recorder.time_span(context.command_encoder(), "tidewater_object_shadow");
     for &layer in layers {
         let view = image.texture.create_view(&gpu::TextureViewDescriptor {
             dimension: Some(gpu::TextureViewDimension::D2),
@@ -298,7 +458,33 @@ fn draw(
             pass.set_index_buffer(*p.indices.slice(..), gpu::IndexFormat::Uint32);
             pass.draw_indexed(0..p.index_count, 0, 0..p.count);
         }
+        if let Some((_, fish)) = &prepared.fish {
+            pass.set_pipeline(&fish.pipeline);
+            for draw in &fish.draws {
+                if !draw.enabled {
+                    continue;
+                }
+                pass.set_bind_group(0, &*draw.groups[layer], &[]);
+                pass.set_vertex_buffer(0, *draw.vertices.slice(..));
+                pass.set_index_buffer(*draw.indices.slice(..), gpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..draw.count, 0, 0..1);
+            }
+        }
+        if let Some((_, _, scanned)) = &prepared.scanned {
+            pass.set_pipeline(&scanned.pipeline);
+            for draw in &scanned.draws {
+                if !draw.enabled {
+                    continue;
+                }
+                let geometry = &scanned.geometry[draw.asset];
+                pass.set_bind_group(0, &*draw.groups[layer], &[]);
+                pass.set_vertex_buffer(0, *geometry.vertices.slice(..));
+                pass.set_index_buffer(*geometry.indices.slice(..), gpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..geometry.count, 0, 0..1);
+            }
+        }
     }
+    shadow_span.end(context.command_encoder());
     target.ready.store(true, Ordering::Release);
     if motion.is_some() {
         let statistics = animation.record_encoded(layers, recovered);
@@ -327,7 +513,13 @@ fn update_frame(
     let matrices = &frame.settings.matrices[..3];
     prepared
         .opaque
-        .update_cascades(matrices, layers, device, queue)
+        .update_poses_and_cascades(
+            matrices,
+            layers,
+            frame.opaque_models.as_deref(),
+            device,
+            queue,
+        )
         .expect("validated resident opaque cascades");
     if let (Some(gpu), Some(stream)) = (&mut prepared.terrain, &frame.terrain) {
         gpu.update_stream(stream, device, queue)

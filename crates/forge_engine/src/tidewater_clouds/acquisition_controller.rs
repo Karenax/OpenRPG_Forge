@@ -9,33 +9,63 @@ pub struct Continuation {
     pub last: crate::cloud_controller::Output,
 }
 
+/// Preserve the exact source basis, including signed zero, across JSON metadata.
+fn basis_column(basis: &Value, name: &str) -> Result<[f64; 3], Box<dyn Error>> {
+    let values = basis[name]
+        .as_array()
+        .ok_or("missing camera basis column")?;
+    if values.len() != 3 {
+        return Err("camera basis column must contain three bit patterns".into());
+    }
+    let mut column = [0.0; 3];
+    for (destination, value) in column.iter_mut().zip(values) {
+        *destination = f64::from_bits(value.as_u64().ok_or("invalid camera basis bits")?);
+        if !destination.is_finite() {
+            return Err("non-finite camera basis".into());
+        }
+    }
+    Ok(column)
+}
+
 #[allow(clippy::many_single_char_names)]
 fn input(meta: &Value) -> Result<Input, Box<dyn Error>> {
     let n = |v: &Value| v.as_f64().ok_or("missing number");
     let c = &meta["camera"];
-    let [x, y, z, w] = [
-        n(&c["quaternion"]["_x"])?,
-        n(&c["quaternion"]["_y"])?,
-        n(&c["quaternion"]["_z"])?,
-        n(&c["quaternion"]["_w"])?,
-    ];
-    let (x2, y2, z2) = (x + x, y + y, z + z);
-    let camera = Camera {
-        position: [
-            n(&c["position"]["x"])?,
-            n(&c["position"]["y"])?,
-            n(&c["position"]["z"])?,
-        ],
-        right: [1.0 - (y * y2 + z * z2), x * y2 + w * z2, x * z2 - w * y2],
-        up: [x * y2 - w * z2, 1.0 - (x * x2 + z * z2), y * z2 + w * x2],
-        forward: [
-            -(x * z2 + w * y2),
-            -(y * z2 - w * x2),
-            -(1.0 - (x * x2 + y * y2)),
-        ],
-        fov_degrees: n(&c["fov"])?,
-        aspect: c["aspect"].as_f64().unwrap_or(1920.0 / 1080.0),
-        zoom: c["zoom"].as_f64().unwrap_or(1.0),
+    let camera = if let Some(basis) = c.get("basis_bits") {
+        Camera {
+            position: basis_column(basis, "position")?,
+            right: basis_column(basis, "right")?,
+            up: basis_column(basis, "up")?,
+            forward: basis_column(basis, "forward")?,
+            fov_degrees: n(&c["fov"])?,
+            aspect: n(&c["aspect"])?,
+            zoom: n(&c["zoom"])?,
+        }
+    } else {
+        let [x, y, z, w] = [
+            n(&c["quaternion"]["_x"])?,
+            n(&c["quaternion"]["_y"])?,
+            n(&c["quaternion"]["_z"])?,
+            n(&c["quaternion"]["_w"])?,
+        ];
+        let (x2, y2, z2) = (x + x, y + y, z + z);
+        Camera {
+            position: [
+                n(&c["position"]["x"])?,
+                n(&c["position"]["y"])?,
+                n(&c["position"]["z"])?,
+            ],
+            right: [1.0 - (y * y2 + z * z2), x * y2 + w * z2, x * z2 - w * y2],
+            up: [x * y2 - w * z2, 1.0 - (x * x2 + z * z2), y * z2 + w * x2],
+            forward: [
+                -(x * z2 + w * y2),
+                -(y * z2 - w * x2),
+                -(1.0 - (x * x2 + y * y2)),
+            ],
+            fov_degrees: n(&c["fov"])?,
+            aspect: c["aspect"].as_f64().unwrap_or(1920.0 / 1080.0),
+            zoom: c["zoom"].as_f64().unwrap_or(1.0),
+        }
     };
     let input = Input {
         camera,
@@ -196,5 +226,38 @@ mod tests {
         let meta = json!({ "controller_frames": [] });
         assert!(generate(&meta).is_err());
         assert!(continuation(&meta).is_err());
+    }
+
+    #[test]
+    fn acquired_basis_preserves_signed_zero_without_a_quaternion() {
+        let mut meta = meta();
+        meta["camera"].as_object_mut().unwrap().remove("quaternion");
+        let bits = |v: [f64; 3]| v.map(f64::to_bits);
+        meta["camera"]["basis_bits"] = json!({
+            "position": bits([42.0, 14.0, -90.0]),
+            "right": bits([1.0, -0.0, 0.0]),
+            "up": bits([0.0, 1.0, -0.0]),
+            "forward": bits([-0.0, 0.0, -1.0]),
+        });
+        let acquired = input(&meta).unwrap();
+        assert_eq!(acquired.camera.right[1].to_bits(), (-0.0_f64).to_bits());
+        assert_eq!(acquired.camera.up[2].to_bits(), (-0.0_f64).to_bits());
+        assert_eq!(acquired.camera.forward[0].to_bits(), (-0.0_f64).to_bits());
+        assert!(generate(&meta).is_ok());
+    }
+
+    #[test]
+    fn malformed_acquired_basis_is_rejected_without_quaternion_fallback() {
+        for bad in [
+            json!({}),
+            json!({"right": [0, 0]}),
+            json!({"right": [0, -1, 0]}),
+        ] {
+            let mut meta = meta();
+            meta["camera"]["basis_bits"] = bad;
+            assert!(generate(&meta).is_err());
+        }
+        let basis = json!({"position": [0, 0, 0], "right": [f64::NAN.to_bits(), 0, 0]});
+        assert!(basis_column(&basis, "right").is_err());
     }
 }

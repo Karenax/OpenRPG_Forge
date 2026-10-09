@@ -40,6 +40,20 @@ def verified_file(root, name, entry):
     return path
 
 
+def verified_bootstrap(manifest, schema):
+    """Match the renderer's legacy 120-frame and explicit acquired contracts."""
+    assert manifest["schema"] == schema
+    assert manifest["source_commit"] == "1438b1abfcaee3267092b75573014f4d9b4a983c"
+    assert type(manifest["version"]) is int
+    if manifest["version"] == 1:
+        assert "bootstrap_frames" not in manifest
+        return 120
+    assert manifest["version"] == 2
+    count = manifest.get("bootstrap_frames")
+    assert type(count) is int and 1 <= count <= 256
+    return count
+
+
 def fish_stand_entries(bundle, expected, building_pin=None):
     """Return the 53 manifest-pinned stand, Joe and fish reader inputs."""
     preview = load_module("package-preview-scene")
@@ -111,8 +125,14 @@ def main(argv=None):
     parser.add_argument("--pier-package-sha256")
     parser.add_argument("--plaza-package-root", type=Path)
     parser.add_argument("--plaza-package-sha256")
+    parser.add_argument("--village-props-package-root", type=Path)
+    parser.add_argument("--village-props-package-sha256")
+    parser.add_argument("--beach-props-package-root", type=Path)
+    parser.add_argument("--beach-props-package-sha256")
     parser.add_argument("--source-local-lights-root", type=Path)
     parser.add_argument("--source-local-lights-sha256")
+    parser.add_argument("--debris-native-root", type=Path)
+    parser.add_argument("--debris-native-sha256")
     args = parser.parse_args(argv)
     assert bool(args.fish_stand_bundle) == bool(args.fish_stand_sha256)
     assert bool(args.ocean_package_root) == bool(args.ocean_package_sha256)
@@ -122,7 +142,10 @@ def main(argv=None):
     assert bool(args.boardwalk_package_root) == bool(args.boardwalk_package_sha256)
     assert bool(args.pier_package_root) == bool(args.pier_package_sha256)
     assert bool(args.plaza_package_root) == bool(args.plaza_package_sha256)
+    assert bool(args.village_props_package_root) == bool(args.village_props_package_sha256)
+    assert bool(args.beach_props_package_root) == bool(args.beach_props_package_sha256)
     assert bool(args.source_local_lights_root) == bool(args.source_local_lights_sha256)
+    assert bool(args.debris_native_root) == bool(args.debris_native_sha256)
     assert len(args.supplemental) in (0, 2, 4, 6)
 
     raw = (args.source / "package.json").read_bytes()
@@ -138,7 +161,7 @@ def main(argv=None):
         env_bytes = (env_root / "package.json").read_bytes()
         assert digest(env_bytes) == str(env_pin)
         env_manifest = json.loads(env_bytes)
-        assert env_manifest["schema"] == "forge.tidewater.environment-package" and env_manifest["version"] == 1
+        verified_bootstrap(env_manifest, "forge.tidewater.environment-package")
         environment = (str(env_pin), env_bytes, [(name, verified_file(env_root, name, entry)) for name, entry in env_manifest["files"].items()])
     if len(args.supplemental) >= 4:
         terrain_packager = load_module("package-terrain-assets")
@@ -159,8 +182,7 @@ def main(argv=None):
         ocean_bytes = (args.ocean_package_root / "package.json").read_bytes()
         assert digest(ocean_bytes) == args.ocean_package_sha256
         ocean_manifest = json.loads(ocean_bytes)
-        assert ocean_manifest["schema"] == "forge.tidewater.ocean-input-package"
-        assert ocean_manifest["version"] == 1
+        verified_bootstrap(ocean_manifest, "forge.tidewater.ocean-input-package")
         ocean_files = [(name, verified_file(args.ocean_package_root, name, entry))
                        for name, entry in ocean_manifest["files"].items()]
         ocean = (args.ocean_package_sha256, ocean_bytes, ocean_files)
@@ -218,6 +240,30 @@ def main(argv=None):
         pier_files = [(name, verified_file(args.pier_package_root, name, entry))
                       for name, entry in pier_manifest["files"].items()]
         pier = (args.pier_package_sha256, pier_bytes, pier_files)
+    village_props = None
+    if args.village_props_package_root:
+        village_bytes = (args.village_props_package_root / "package.json").read_bytes()
+        assert digest(village_bytes) == args.village_props_package_sha256
+        village_manifest = json.loads(village_bytes)
+        assert village_manifest["schema"] == "forge.tidewater.village-package"
+        assert village_manifest["version"] == 1
+        assert village_manifest["source_commit"] == manifest["source_commit"]
+        assert village_manifest["building_material_library_sha256"] == digest((args.source / "materials.json").read_bytes())
+        village_files = [(name, verified_file(args.village_props_package_root, name, entry))
+                         for name, entry in village_manifest["files"].items()]
+        village_props = (args.village_props_package_sha256, village_bytes, village_files)
+    beach_props = None
+    if args.beach_props_package_root:
+        beach_bytes = (args.beach_props_package_root / "package.json").read_bytes()
+        assert digest(beach_bytes) == args.beach_props_package_sha256
+        beach_manifest = json.loads(beach_bytes)
+        assert beach_manifest["schema"] == "forge.tidewater.beach-package"
+        assert beach_manifest["version"] == 1
+        assert beach_manifest["source_commit"] == manifest["source_commit"]
+        assert beach_manifest["building_material_library_sha256"] == digest((args.source / "materials.json").read_bytes())
+        beach_files = [(name, verified_file(args.beach_props_package_root, name, entry))
+                       for name, entry in beach_manifest["files"].items()]
+        beach_props = (args.beach_props_package_sha256, beach_bytes, beach_files)
     plaza = None
     if args.plaza_package_root:
         plaza_bytes = (args.plaza_package_root / "package.json").read_bytes()
@@ -244,6 +290,24 @@ def main(argv=None):
         light_files = [(name, verified_file(args.source_local_lights_root, name, entry))
                        for name, entry in light_manifest["files"].items()]
         local_lights = (args.source_local_lights_sha256, light_bytes, light_files)
+
+    debris_native = None
+    if args.debris_native_root:
+        debris_bytes = (args.debris_native_root / "debris-native.json").read_bytes()
+        assert len(debris_bytes) <= 1_048_576
+        assert digest(debris_bytes) == args.debris_native_sha256 == "63e9abf5736fa043765366c78e7eea3688b62ce641b43c7a9db3bed34f528216"
+        debris_manifest = json.loads(debris_bytes)
+        assert debris_manifest["schema"] == "forge.tidewater.debris-native-input"
+        assert debris_manifest["version"] == 1
+        assert debris_manifest["source_commit"] == manifest["source_commit"]
+        assert len(debris_manifest["files"]) == 4909
+        assert sum(entry["bytes"] for entry in debris_manifest["files"].values()) <= 32 * 1024 * 1024
+        debris_files = []
+        for name, entry in debris_manifest["files"].items():
+            assert entry["bytes"] <= 8 * 1024 * 1024
+            assert all(part not in ("", ".", "..") and "\\" not in part and ":" not in part for part in name.split("/"))
+            debris_files.append((name, verified_file(args.debris_native_root, name, entry)))
+        debris_native = (args.debris_native_sha256, debris_bytes, debris_files, debris_manifest)
 
     root = args.destination / "forge-imports"
     package = root / args.expected
@@ -332,6 +396,20 @@ def main(argv=None):
         (plaza_destination / "package.json").write_bytes(plaza_manifest)
         for name, path in plaza_files:
             shutil.copyfile(path, plaza_destination / name)
+    if village_props:
+        village_pin, village_manifest, village_files = village_props
+        village_destination = root / village_pin
+        village_destination.mkdir()
+        (village_destination / "package.json").write_bytes(village_manifest)
+        for name, path in village_files:
+            shutil.copyfile(path, village_destination / name)
+    if beach_props:
+        beach_pin, beach_manifest, beach_files = beach_props
+        beach_destination = root / beach_pin
+        beach_destination.mkdir()
+        (beach_destination / "package.json").write_bytes(beach_manifest)
+        for name, path in beach_files:
+            shutil.copyfile(path, beach_destination / name)
     if local_lights:
         light_pin, light_manifest, light_files = local_lights
         light_destination = root / light_pin
@@ -341,6 +419,16 @@ def main(argv=None):
             target = light_destination / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
+    if debris_native:
+        debris_pin, debris_bytes, debris_files, debris_manifest = debris_native
+        debris_destination = root / debris_pin
+        debris_destination.mkdir()
+        (debris_destination / "debris-native.json").write_bytes(debris_bytes)
+        for name, path in debris_files:
+            target = debris_destination / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, target)
+            verified_file(debris_destination, name, debris_manifest["files"][name])
     (root / "buildings.json").write_text(json.dumps({
         "schema": "forge.imported-building-library", "version": 1, "package_sha256": args.expected,
         **({"environment_sha256": environment[0]} if environment else {}),
@@ -354,11 +442,15 @@ def main(argv=None):
         **({"boardwalk_sha256": boardwalk[0]} if boardwalk else {}),
         **({"pier_sha256": pier[0]} if pier else {}),
         **({"plaza_sha256": plaza[0]} if plaza else {}),
+        **({"village_props_sha256": village_props[0]} if village_props else {}),
+        **({"beach_props_sha256": beach_props[0]} if beach_props else {}),
         **({"source_local_lights_sha256": local_lights[0]} if local_lights else {}),
+        **({"debris_native_sha256": debris_native[0]} if debris_native else {}),
     }, indent=2), encoding="utf-8")
     print(json.dumps({"package_sha256": args.expected, "payloads": len(verified),
                       "fish_stand_payloads": len(fish_stand[2]) if fish_stand else 0,
                       "source_local_light_payloads": len(local_lights[2]) if local_lights else 0,
+                      "debris_native_payloads": len(debris_native[2]) if debris_native else 0,
                       "site_root": str(args.destination)}))
 
 

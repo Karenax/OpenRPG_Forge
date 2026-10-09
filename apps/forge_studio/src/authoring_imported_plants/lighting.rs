@@ -19,6 +19,17 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
         .get_resource::<Assets<LodMaterial>>()?
         .get(terrain.material.as_ref()?)?;
     let sun = environment.scene_lighting.sun_direction;
+    let acquired = world.get_resource::<forge_engine::tidewater_wind::AcquiredFrame>()?;
+    let wind = acquired.wind_frame().ok()?.material_uniform();
+    let gust_lod = bevy::math::DVec4::new(
+        acquired.vegetation_gust_offset[0],
+        acquired.vegetation_gust_offset[1],
+        0.0,
+        10000.0,
+    )
+    .as_vec4();
+    let lod_end_frame =
+        bevy::math::DVec4::new(10001.0, f64::from(acquired.global_frame), 0.0, 0.0).as_vec4();
     let key = Key(
         [
             environment.environment.id(),
@@ -32,14 +43,15 @@ pub(super) fn material(world: &World) -> Option<(Key, PlantMaterial)> {
     Some((
         key,
         PlantMaterial {
+            scene_lighting: forge_engine::tidewater_material::scene_buffer::HANDLE.clone(),
             motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
             params: Params {
                 i_pos: Vec4::ZERO,
                 i_dat: Vec4::ZERO,
-                wind: Vec4::new(1., 0., 6., 2.),
-                gust_lod: Vec4::new(0., 0., 0., 10000.),
+                wind,
+                gust_lod,
                 sun_night: sun,
-                lod_end_frame: Vec4::new(10001., 124., 0., 0.),
+                lod_end_frame,
             },
             detail: textures.detail.clone(),
             leaf: textures.leaf.clone(),

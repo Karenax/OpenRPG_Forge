@@ -85,22 +85,22 @@ fn source_local_lights_ownership_refuses_invalid_partition_and_conflicting_refer
             }
             6 => {
                 observation["resolved"][0]["light_id"] =
-                    observation["resolved"][1]["light_id"].clone()
+                    observation["resolved"][1]["light_id"].clone();
             }
             7 => observation["resolved"][0]["light_id"] = json!(bytes_sha256(b"unknown")),
             8 => observation["resolved"][0]["owner_frame"] = json!("world"),
             9 => {
-                observation["resolved"][0]["source_binding"]["producer_path"] = json!("missing.js")
+                observation["resolved"][0]["source_binding"]["producer_path"] = json!("missing.js");
             }
             10 => observation["resolved"][0]["source_binding"]["anchor"] = json!(""),
             11 => {
                 observation["resolved"][0]["source_binding"]["source_object_id"] =
-                    json!("invalid\nkey")
+                    json!("invalid\nkey");
             }
             12 => observation["resolved"][0]["source_binding"]["ordinal"] = Value::Null,
             13 => {
                 observation["resolved"][0]["source_binding"]["source_object_id"] =
-                    json!("different-object")
+                    json!("different-object");
             }
             14 => observation["unresolved_light_ids"] = json!([descriptor.document().lights[0].id]),
             _ => observation["unexpected"] = json!(true),

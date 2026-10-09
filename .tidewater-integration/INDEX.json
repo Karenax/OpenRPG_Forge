@@ -1,0 +1,450 @@
+{
+  "33dcfa67001f3d9b17ab": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-retouch-temp-002",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "648153df73e9aad8cfb0": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-retouch-temp-003",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "778764d8690f9b1dfaaa": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-room-retouch-playtest-runtime-002-temp",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "770cf47287f05a00cb47": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-room-retouch-runtime-001-temp",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "41a8746b1b604fafbd2e": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-room-retouch-v4-runtime-001-temp",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "a9ed86451b1bf29b7ef6": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-room-retouch-v4-runtime-002-temp",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "fd8c9934c0e5ae5ed1fa": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-room-retouch-v4-runtime-003-temp",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 0,
+    "logical_bytes": 0
+  },
+  "6059b7cf3d33d91e587a": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\grain-strong-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 28
+  },
+  "8da6dfead7f8c14d16b9": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\grain-on-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 29
+  },
+  "080b1e5d6b9872181520": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-package-016-profile",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 33
+  },
+  "7268b093f38f2756d290": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-tiny-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 35
+  },
+  "d8cf34b245d19a0e87e3": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-on-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 45
+  },
+  "716c6f46021b40645cb2": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-off-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 45
+  },
+  "f0d2ab5c797ec100cb35": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-zero-lowev-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 46
+  },
+  "fd4fcf93127cc1193abe": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-noexposure-off-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 49
+  },
+  "94cb849fcff60c9cf81e": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\grain-auto-off-and-grain-off",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 52
+  },
+  "9510452b338521afdb07": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-haze-noexposure-tiny-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 53
+  },
+  "ffa267ec61cfcf3a4b46": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\grain-auto-off-and-grain-on",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 54
+  },
+  "0f12084f26d706f85990": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-ao-on-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 55
+  },
+  "91049b9603acfcef8689": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-ao-off-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 55
+  },
+  "e9093c35f0f6a0a0711b": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-ao-debug-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 55
+  },
+  "976393790d0aea91a2ec": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\paired-village-postfx-profile-20260929-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 57
+  },
+  "462b455b96b8fd5ae571": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\paired-seaward-postfx-profile-20260929-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 57
+  },
+  "bbd541cbf64c880bd59a": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-ao-fixed-on-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 101
+  },
+  "863760e6aeaff06ab68c": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-ao-fixed-off-20260928",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 101
+  },
+  "0ec6eb4d5b54a876f05c": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\stall-surface-gpu-20261006-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 105
+  },
+  "c89c3663dc6d2d19229a": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare1-ao0-020",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 138
+  },
+  "e3e6e105b259fc67976b": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare0-ao0-020",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 138
+  },
+  "5b326df8583ef4aebf4d": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-village-ao1-019",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 140
+  },
+  "10fa96c2dced08fafac0": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-village-ao0-019",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 140
+  },
+  "8c474fb44bf5f992c407": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare1-019",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 140
+  },
+  "cddaad9a5d7df2111f82": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare0-019",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 140
+  },
+  "004ef984f72c14b4d40a": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-click-proof-007",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 146
+  },
+  "9ceb8c5070e3596c3469": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-ab-20260928-auto-on",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 154
+  },
+  "e4bb3c4efbed72748b1d": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-ab-20260928-auto-off",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 154
+  },
+  "66a23136303be0c97e69": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\hardlink-capability-20261003-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 6,
+    "logical_bytes": 160
+  },
+  "f4dcb45e711495f5c907": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-taa-ab-20260928-on",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 179
+  },
+  "6af0e689981051fa44f1": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-taa-ab-20260928-off",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 179
+  },
+  "588e5716978e6eb37d23": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\pebble-temporal-20261006-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 184
+  },
+  "151fd0a9071e082a6b93": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-package-010-click-20260928-default",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 223
+  },
+  "5f084232478b2af026c0": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-package-010-bounce-click-20260928-default",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 224
+  },
+  "c18b9794b78c7d90876a": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\pebble-shared-shader-rust-20261006-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 230
+  },
+  "c8a4b9af9da841b2f611": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-fixed-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 235
+  },
+  "f4d0b1a3a3949b75bc4b": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-ev04-sharp02-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 235
+  },
+  "14777f76ddf09a483390": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-auto-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 235
+  },
+  "04d7913c84f93f589db6": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-ev04-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 236
+  },
+  "21e6848e49db07c1c301": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-ev02-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 236
+  },
+  "831cd8b0533cc6699970": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\graphics-static-ev04-sharp02-fxaa0-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 251
+  },
+  "96efd4de150fabc03999": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-package024-graphics-check-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 264
+  },
+  "1a0209a1907cd99166b5": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare1-minimal-020",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 302
+  },
+  "6cce8a9bebcb9f0ac3b9": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\profile-sun-flare0-minimal-020",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 302
+  },
+  "b5a9997ee8a1a9982535": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-selected-binary-guards-20261006-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 2,
+    "logical_bytes": 648
+  },
+  "82a8a0cfdbbbfbd4b2ac": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\world-audit-persistence-proof-20261004-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 3,
+    "logical_bytes": 827
+  },
+  "b3dd02d26dffd09eb720": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\temporal-owned-native-runtime-265",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 829
+  },
+  "421dcdae257f280133a9": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\beach-runtime-proof-20261004-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 3,
+    "logical_bytes": 876
+  },
+  "dfec2720bd4f3444de8c": {
+    "source": "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\.tidewater-integration",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 3,
+    "logical_bytes": 986
+  },
+  "242682a3113548c6c666": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\windows-pebble-negative-20261006-v1",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 3,
+    "logical_bytes": 1080
+  },
+  "ddeba14ab51221d173d5": {
+    "source": "E:\\OpenRPG_Forge\\.gate3-evidence\\20261002\\tidewater-final-replay-order-root-review-001",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1203
+  },
+  "d2df40f1412aba247a6c": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\walk-1d586542f74e40318d1a7dd0125af5ef.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  },
+  "2961ffb2dea86f98a3ef": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-walk-ocean-001.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  },
+  "cce2d3fa8f90a50b97c5": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-walk-001.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  },
+  "056a7551ae2be5fad887": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-village-ao-debug-blur-019.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  },
+  "3d89eea3c1188e8e0ee5": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-underwater-land-regression-001.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  },
+  "2b142ade6e2e2696dcbc": {
+    "source": "E:\\OpenRPG_Forge\\.tidewater-integration\\native-underwater-eulerian-height-004.spray",
+    "receipt_bundle": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\receipts\\group-0001-895477a8fb38.json.gz",
+    "archive": "F:\\OpenRPG_Forge\\relocated-work\\Tidewater\\archives\\group-0001-895477a8fb38.tar.gz",
+    "files": 1,
+    "logical_bytes": 1368
+  }
+}

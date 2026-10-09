@@ -1,4 +1,5 @@
 //! GPU preparation of a verified library; authored scene state remains authoritative.
+mod programs;
 use super::imported_buildings;
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_engine::tidewater_scene_environment::ResidentEnvironment;
@@ -23,6 +24,7 @@ struct PreviewGeneration(std::sync::Arc<std::sync::atomic::AtomicBool>, u64);
 pub(crate) fn install(app: &mut App) -> Result<(), String> {
     forge_engine::tidewater_atmosphere::register(app)?;
     forge_engine::tidewater_clouds::register(app)?;
+    forge_engine::tidewater_environment::live::register(app)?;
     imported_buildings::restore_environment()?;
     imported_buildings::restore_buildings()?;
     imported_buildings::restore_terrain()?;
@@ -34,6 +36,7 @@ pub(crate) fn install(app: &mut App) -> Result<(), String> {
     forge_engine::tidewater_sky::preview::install(app);
     super::imported_scene::install(app);
     super::fish_stand_scene::install(app)?;
+    super::fish_props_scene::install(app);
     app.add_systems(Update, update);
     Ok(())
 }
@@ -84,6 +87,7 @@ fn update(world: &mut World) {
             Ok(resident) => {
                 hide_preview();
                 world.insert_resource(resident);
+                programs::request(world);
                 world.insert_resource(Preparing);
                 imported_buildings::render_status("Calcul de l'environnement en cours.".into());
             }
@@ -106,6 +110,7 @@ fn update(world: &mut World) {
                 .into(),
         );
     }
+    programs::update(world);
     update_preview(world);
 }
 

@@ -25,7 +25,9 @@ param(
     [switch]$WaterMediumPreview,
     [switch]$WaterReflectionPreview,
     [switch]$CloudPreview,
-    [switch]$ValidateOnly
+    [switch]$ValidateOnly,
+    [string]$FrozenSourceDirectory,
+    [ValidatePattern('^[0-9a-fA-F]{64}$')][string]$ExpectedSourceManifestSha256
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -64,10 +66,50 @@ if ($CandidateView -and -not (Test-Path -LiteralPath (Join-Path $frontendRoot 'f
     throw 'Candidate view document missing'
 }
 $outputRoot = [IO.Path]::GetFullPath($Output)
-if ([IO.Path]::GetPathRoot($outputRoot) -ne 'E:\') { throw 'Candidate output must stay on E:' }
+$importWorkRoot = [IO.Path]::GetFullPath('F:/OpenRPG_ImportWork').TrimEnd('\') + '\'
+if ([IO.Path]::GetPathRoot($outputRoot) -ne 'E:\' -and
+    -not $outputRoot.StartsWith($importWorkRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Candidate output must stay on E: or inside F:/OpenRPG_ImportWork'
+}
 if (Test-Path -LiteralPath $outputRoot) { throw 'Output already exists; refusing overwrite' }
 $branch = & git -C $repository branch --show-current
 if ($LASTEXITCODE -ne 0 -or $branch -ne 'Rust') { throw 'Requires the existing Rust branch' }
+# An isolated candidate must validate its worker against the sources it compiles,
+# while ordinary builds continue to validate the current repository.
+if ($FrozenSourceDirectory -or $ExpectedSourceManifestSha256) {
+    if (-not $ValidateOnly -or -not $FrozenSourceDirectory -or -not $ExpectedSourceManifestSha256) {
+        throw 'Frozen sources require ValidateOnly, a source directory and its manifest hash.'
+    }
+    $frozenRoot = (Resolve-Path -LiteralPath $FrozenSourceDirectory).Path
+    $sourceManifestPath = Join-Path (Split-Path -Parent $frozenRoot) 'source-inputs.json'
+    if ((Get-FileHash -LiteralPath $sourceManifestPath).Hash.ToLowerInvariant() -ne $ExpectedSourceManifestSha256.ToLowerInvariant()) {
+        throw 'Frozen source manifest hash mismatch.'
+    }
+    if ((Get-Item -LiteralPath $frozenRoot).Attributes -band [IO.FileAttributes]::ReparsePoint) {
+        throw 'Frozen source reparse points are not supported.'
+    }
+    $frozenEntries = @(Get-ChildItem -LiteralPath $frozenRoot -Recurse -Force)
+    if ($frozenEntries | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }) {
+        throw 'Frozen source reparse points are not supported.'
+    }
+    $sourceManifest = Get-Content -LiteralPath $sourceManifestPath -Raw | ConvertFrom-Json
+    $sourcePins = @($sourceManifest.files.PSObject.Properties)
+    $actualSourcePaths = @($frozenEntries | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+        [IO.Path]::GetRelativePath($frozenRoot,$_.FullName).Replace('\','/')
+    })
+    if (-not $sourcePins.Count -or @(Compare-Object -CaseSensitive -ReferenceObject @($sourcePins.Name) -DifferenceObject $actualSourcePaths).Count -ne 0) {
+        throw 'Frozen source manifest does not cover the exact source file set.'
+    }
+    foreach ($sourcePin in $sourcePins) {
+        if ([IO.Path]::IsPathRooted($sourcePin.Name) -or $sourcePin.Name -match '(^|[/\\])\.\.([/\\]|$)') {
+            throw 'Invalid frozen source path.'
+        }
+        if ((Get-FileHash -LiteralPath (Join-Path $frozenRoot $sourcePin.Name)).Hash.ToLowerInvariant() -ne $sourcePin.Value.sha256) {
+            throw "Frozen source hash mismatch: $($sourcePin.Name)"
+        }
+    }
+    $repository = $frozenRoot
+}
 if (-not (Test-Path -LiteralPath (Join-Path $frontendRoot 'index.html') -PathType Leaf)) {
     throw 'Frontend index.html missing'
 }
@@ -206,14 +248,16 @@ foreach ($pin in $pins) {
     Copy-Item -LiteralPath $inputPaths[$pin.path] -Destination $destination
     if ((Get-FileHash -LiteralPath $destination).Hash -ne $pin.sha256) { throw 'Frontend changed during copy' }
 }
-# A Windows absolute forward-slash path is parsed by Tauri as a URL (scheme e:).
+# A Windows absolute string is parsed as a URL. The Files variant accepts
+# directory inputs and recursively embeds them with their directory as prefix.
 $relativeBundle = [IO.Path]::GetRelativePath($studio, $bundle).Replace('\', '/')
+$frontendDist = $relativeBundle
 if ([IO.Path]::IsPathRooted($relativeBundle) -or $relativeBundle -match '^[A-Za-z][A-Za-z0-9+.-]*:') {
-    throw 'frontendDist must be a relative directory, never a drive URL'
+    $frontendDist = @($bundle)
 }
 $windowTitle = if ($Authoring) { 'OpenRPG Forge Studio · Édition locale' } else { 'OpenRPG Forge Studio · Gate 1 candidat local' }
 $config = [ordered]@{
-    build = @{ beforeBuildCommand = $null; frontendDist = $relativeBundle }
+    build = @{ beforeBuildCommand = $null; frontendDist = $frontendDist }
     app = @{ windows = @(@{ label = 'main'; title = $windowTitle;
         url = $entryUrl;
         width = $WindowWidth; height = $WindowHeight; minWidth = 1100; minHeight = 700; resizable = $true;

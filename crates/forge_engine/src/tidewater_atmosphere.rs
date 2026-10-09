@@ -4,6 +4,8 @@
 mod acquisition;
 pub mod controller;
 mod live;
+pub(crate) mod observer;
+pub(crate) mod prepared;
 pub mod readback;
 pub use acquisition::from_acquisition;
 use bevy::{
@@ -12,10 +14,11 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::RenderAssets,
         render_resource as gpu,
-        renderer::{RenderContext, RenderDevice, RenderGraph},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems},
         storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
@@ -63,7 +66,7 @@ pub struct Targets {
     pub ready: Arc<AtomicBool>,
 }
 #[derive(Resource, Clone, ExtractResource)]
-struct KernelInput(Arc<Input>);
+pub(crate) struct KernelInput(Arc<Input>);
 #[derive(Resource)]
 struct Registered;
 
@@ -88,6 +91,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
         RenderGraph,
         compute
             .in_set(AtmosphereCompute)
+            .in_set(RenderGraphSystems::Render)
             .before(camera_driver)
             .run_if(resource_exists::<KernelInput>)
             .run_if(resource_exists::<Targets>)
@@ -157,7 +161,7 @@ pub fn stage(world: &mut World, input: Input) -> Result<Targets, String> {
     world.insert_resource(Work::default());
     Ok(targets)
 }
-#[allow(clippy::too_many_lines)] // Four ordered kernels share native LUTs and one parameter block.
+#[allow(clippy::too_many_lines, clippy::too_many_arguments)] // Four ordered kernels share native LUTs and one parameter block.
 fn compute(
     mut context: RenderContext,
     input: Res<KernelInput>,
@@ -166,6 +170,7 @@ fn compute(
     device: Res<RenderDevice>,
     images: Res<RenderAssets<GpuImage>>,
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
+    mut prepared: Local<Option<prepared::Prepared>>,
 ) {
     if work.encoded.load(Ordering::Acquire) == work.revision {
         return;
@@ -181,44 +186,108 @@ fn compute(
     if views.len() != 3 {
         return;
     }
-    let input = &input.0;
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let compute_span = recorder.time_span(context.command_encoder(), "tidewater_atmosphere");
+    let params: Vec<_> = targets
+        .params
+        .iter()
+        .flat_map(Vec4::to_array)
+        .flat_map(f32::to_le_bytes)
+        .collect();
+    encode(
+        &input,
+        &targets,
+        &mut prepared,
+        &params,
+        work.mask,
+        &device,
+        context.command_encoder(),
+        &views,
+        irr,
+    );
+    compute_span.end(context.command_encoder());
+    targets.ready.store(true, Ordering::Release);
+    work.encoded.store(work.revision, Ordering::Release);
+}
+
+pub(crate) fn ensure_registered(world: &World) -> Result<(), String> {
+    if !world.contains_resource::<Registered>()
+        || !world.contains_resource::<Assets<Image>>()
+        || !world.contains_resource::<Assets<ShaderBuffer>>()
+    {
+        return Err("atmosphere must be registered before staging".into());
+    }
+    Ok(())
+}
+
+/// Rebuild observer-dependent LUTs before an acquired cloud frame on this device.
+/// Static scattering parameters must match the resident atmosphere exactly.
+#[allow(clippy::too_many_arguments)] // Observer commands use the existing device and generation cache.
+pub(crate) fn encode_observer(
+    input: &KernelInput,
+    targets: &Targets,
+    params: &[u8],
+    device: &RenderDevice,
+    encoder: &mut gpu::CommandEncoder,
+    images: &RenderAssets<GpuImage>,
+    buffers: &RenderAssets<GpuShaderBuffer>,
+    prepared: &mut Option<prepared::Prepared>,
+) -> bool {
+    let baseline: Vec<_> = targets
+        .params
+        .iter()
+        .flat_map(Vec4::to_array)
+        .flat_map(f32::to_le_bytes)
+        .collect();
+    if !observer::validate(params, &baseline) {
+        return false;
+    }
+    let Some(irr) = buffers.get(&targets.irradiance) else {
+        return false;
+    };
+    let views: Vec<_> = targets
+        .images
+        .iter()
+        .filter_map(|h| images.get(h))
+        .collect();
+    if views.len() != 3 {
+        return false;
+    }
+    encode(
+        input, targets, prepared, params, 0b1100, device, encoder, &views, irr,
+    );
+    true
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+fn encode(
+    input: &KernelInput,
+    targets: &Targets,
+    cache: &mut Option<prepared::Prepared>,
+    params: &[u8],
+    mask: u8,
+    device: &RenderDevice,
+    encoder: &mut gpu::CommandEncoder,
+    views: &[&GpuImage],
+    irr: &GpuShaderBuffer,
+) {
+    let prepared = prepared::get(cache, input, targets, device);
     let uniform = device.create_buffer_with_data(&gpu::BufferInitDescriptor {
         label: Some("native atmosphere inputs"),
-        contents: &targets
-            .params
-            .iter()
-            .flat_map(|v| v.to_array())
-            .flat_map(f32::to_le_bytes)
-            .collect::<Vec<_>>(),
+        contents: params,
         usage: gpu::BufferUsages::UNIFORM,
     });
-    let sampler = device.create_sampler(&gpu::SamplerDescriptor {
-        mag_filter: gpu::FilterMode::Linear,
-        min_filter: gpu::FilterMode::Linear,
-        ..default()
-    });
-    for (index, source) in input.shaders.iter().enumerate() {
-        if work.mask & (1 << index) == 0 {
+    for (index, pipeline) in prepared.pipelines.iter().enumerate() {
+        if mask & (1 << index) == 0 {
             continue;
         }
-        let shader = device.create_and_validate_shader_module(gpu::ShaderModuleDescriptor {
-            label: Some(NAMES[index]),
-            source: gpu::ShaderSource::Wgsl(source.as_str().into()),
-        });
-        let pipeline = device.create_compute_pipeline(&gpu::RawComputePipelineDescriptor {
-            label: Some(NAMES[index]),
-            layout: None,
-            module: &shader,
-            entry_point: Some("main"),
-            compilation_options: default(),
-            cache: None,
-        });
         let g0_entries = if index == 0 {
             vec![]
         } else {
             vec![gpu::BindGroupEntry {
                 binding: 2,
-                resource: gpu::BindingResource::Sampler(&sampler),
+                resource: gpu::BindingResource::Sampler(&prepared.sampler),
             }]
         };
         let g0 = device.create_bind_group(
@@ -260,13 +329,11 @@ fn compute(
             &pipeline.get_bind_group_layout(1).into(),
             &entries,
         );
-        let mut pass = context
-            .command_encoder()
-            .begin_compute_pass(&gpu::ComputePassDescriptor {
-                label: Some(NAMES[index]),
-                ..default()
-            });
-        pass.set_pipeline(&pipeline);
+        let mut pass = encoder.begin_compute_pass(&gpu::ComputePassDescriptor {
+            label: Some(NAMES[index]),
+            ..default()
+        });
+        pass.set_pipeline(pipeline);
         pass.set_bind_group(0, &*g0, &[]);
         pass.set_bind_group(1, &*g1, &[]);
         let (x, y) = if index < 3 {
@@ -277,16 +344,4 @@ fn compute(
         };
         pass.dispatch_workgroups(x, y, 1);
     }
-    targets.ready.store(true, Ordering::Release);
-    work.encoded.store(work.revision, Ordering::Release);
-}
-
-pub(crate) fn ensure_registered(world: &World) -> Result<(), String> {
-    if !world.contains_resource::<Registered>()
-        || !world.contains_resource::<Assets<Image>>()
-        || !world.contains_resource::<Assets<ShaderBuffer>>()
-    {
-        return Err("atmosphere must be registered before staging".into());
-    }
-    Ok(())
 }

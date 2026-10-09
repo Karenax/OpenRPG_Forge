@@ -40,6 +40,19 @@ foreach ($name in $commonInputs.Keys) {
     if ($null -ne $commonInputs[$name]) { Set-Variable -Name $name -Value $commonInputs[$name] }
 }
 
+# Keep each CDP evaluation inside the configured interaction budget. Initial
+# imported-scene shader work may occupy the WebView thread longer than the
+# shared helper's 15-second default; do not cancel its socket prematurely.
+$script:commonCdpExpression = ${function:Invoke-CdpExpression}
+function Invoke-CdpExpression {
+    param(
+        [Parameter(Mandatory)][System.Net.WebSockets.ClientWebSocket]$Socket,
+        [Parameter(Mandatory)][string]$Expression,
+        [ValidateRange(1, 180)][int]$TimeoutSeconds = $InteractionTimeoutSeconds
+    )
+    & $script:commonCdpExpression -Socket $Socket -Expression $Expression -TimeoutSeconds $TimeoutSeconds
+}
+
 # Keep the shared CDP actions, but resolve only controls exposed by the current Studio mode.
 # The shared helpers also serve other scenarios and remain unchanged by this bounded smoke.
 $commonVisibleUiJavaScript = @'
@@ -774,7 +787,7 @@ Assert-TreeHasNoReparsePoints -LiteralPath $webRoot -Description 'Isolated candi
 $frontendPins = @(Get-ChildItem -LiteralPath $webRoot -Recurse -Force -File | Sort-Object FullName | ForEach-Object {
     [pscustomobject]@{ path = $_.FullName; sha256 = (Get-FileSha256 -LiteralPath $_.FullName) }
 })
-$wasmFiles = @(Get-ChildItem -LiteralPath $webRoot -File -Filter '*_bg.wasm')
+$wasmFiles = @(Get-ChildItem -LiteralPath $webRoot -File -Filter 'forge_studio_bg.wasm')
 if ($wasmFiles.Count -ne 1) { throw 'Candidate frontend must contain exactly one Studio *_bg.wasm artifact.' }
 $wasmPath = $wasmFiles[0].FullName
 $wasmBefore = Get-FileSha256 -LiteralPath $wasmPath
@@ -1030,6 +1043,8 @@ try {
 }
 catch {
     $failure = $_.Exception.Message
+    [IO.File]::WriteAllText((Join-Path $output 'failure-detail.txt'),
+        (($_ | Out-String) + [Environment]::NewLine + $_.ScriptStackTrace), [Text.UTF8Encoding]::new($false))
     if ($null -ne $socket -and $socket.State -eq [Net.WebSockets.WebSocketState]::Open) {
         try { $failureState = Get-WorldState -Socket $socket } catch { Write-Verbose $_.Exception.Message }
         try { $screenshots.Add((Save-CdpScreenshot -Socket $socket -LiteralPath (Join-Path $output 'common-failure.png'))) } catch { Write-Warning $_.Exception.Message }

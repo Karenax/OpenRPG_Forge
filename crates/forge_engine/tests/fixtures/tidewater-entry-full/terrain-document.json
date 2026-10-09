@@ -1,0 +1,56 @@
+{
+  "area_id": "e620dd19-ead9-5913-a6d6-0f93109148c0",
+  "coordinate_system": {
+    "handedness": "right",
+    "length_unit": "metre",
+    "up_axis": "y"
+  },
+  "extent_m": {
+    "size_x_m": 2048.0,
+    "size_z_m": 2048.0
+  },
+  "height_sampling": {
+    "algorithm": "sampled_raster_v1",
+    "amplitude_m": 0.0,
+    "base_elevation_m": 0.0,
+    "base_frequency_cycles_per_m": 1.0,
+    "lacunarity": 2.0,
+    "octaves": 1,
+    "persistence": 0.5,
+    "sample_spacing_m": 1.0
+  },
+  "material_layers": [
+    {
+      "display_name": "Herbe",
+      "id": "grass"
+    },
+    {
+      "display_name": "Terre",
+      "id": "earth"
+    },
+    {
+      "display_name": "Roche",
+      "id": "rock"
+    }
+  ],
+  "name": "Tidewater island",
+  "project_id": "5891ed77-e056-54b1-bf45-fe2e49896ccf",
+  "revision": 1,
+  "sampled_source": {
+    "encoding": "float32_le",
+    "height": 2048,
+    "origin_xz_m": [
+      -1024.0,
+      -1024.0
+    ],
+    "outside_height_m": -90.0,
+    "sample_spacing_m": 1.0,
+    "samples_sha256": "be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3",
+    "schema": "forge.sampled-terrain",
+    "schema_version": 1,
+    "width": 2048
+  },
+  "schema": "forge.terrain",
+  "schema_version": 4,
+  "seed": 0
+}

@@ -61,7 +61,7 @@ pub(super) fn install(app: &mut App) {
 }
 
 #[allow(clippy::too_many_lines)] // One exclusive commit keeps visible wind, streams and cascade metadata together.
-fn update(world: &mut World) {
+pub(super) fn update(world: &mut World) {
     if world.resource::<QualificationHold>().0 {
         return;
     }
@@ -86,14 +86,25 @@ fn update(world: &mut World) {
         return;
     };
     let position = camera.translation();
-    let view = control
-        .view
-        .unwrap_or(forge_engine::sun_cascades::CascadeView {
-            world_from_view: camera.to_matrix().as_dmat4(),
-            near: f64::from(projection.near),
-            fov_degrees: f64::from(projection.fov).to_degrees(),
-            aspect: f64::from(projection.aspect_ratio),
-        });
+    let view = match control.view.map_or_else(
+        || {
+            forge_engine::sun_cascades::CascadeView::from_camera_matrix(
+                camera.to_matrix(),
+                projection.near,
+                projection.fov,
+                projection.aspect_ratio,
+            )
+        },
+        Ok,
+    ) {
+        Ok(view) => view,
+        Err(error) => {
+            error!(%error, matrix = ?camera.to_matrix(), near = projection.near,
+                fov = projection.fov, aspect = projection.aspect_ratio, "invalid player shadow camera");
+            world.write_message(bevy::app::AppExit::error());
+            return;
+        }
+    };
     let controlled_motion = control.motion;
     let now = world.resource::<Time>().elapsed_secs_f64();
     let mut live = world.resource_mut::<Live>();
@@ -125,6 +136,7 @@ fn update(world: &mut World) {
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     // Validated low six frame bits, also held by the GPU smoke.
     let frame_index = motion.gust_frame.z as u32;
+    let started = super::walk::perf::start(world);
     let frame = match world
         .resource_mut::<crate::object_shadow::live::Sources>()
         .frame(
@@ -139,6 +151,7 @@ fn update(world: &mut World) {
             return;
         }
     };
+    super::walk::perf::end(world, started, "shadow_selection");
     world.resource_mut::<CascadeControl>().advance = false;
     let metadata = (
         frame.update_index,

@@ -11,7 +11,10 @@ pub struct Source {
     detail: Vec<u8>,
 }
 
+const SHADOW_DISTANCE_SCALE: f32 = 1.5;
+
 struct Group {
+    name: String,
     kind: u8,
     vertices: Vec<u8>,
     indices: Vec<u8>,
@@ -112,22 +115,32 @@ impl Source {
                 .flatten()
                 .collect();
             groups.push(Group {
+                name: group.name.clone(),
                 kind: level.description.kind,
                 vertices,
                 indices,
                 range: Vec4::new(
                     0.0,
-                    level.description.range[0],
-                    level.description.range[1],
-                    level.description.range[2],
+                    level.description.range[0] * SHADOW_DISTANCE_SCALE,
+                    level.description.range[1] * SHADOW_DISTANCE_SCALE,
+                    level.description.range[2] * SHADOW_DISTANCE_SCALE,
                 ),
                 records: group.records.clone(),
                 models: group.models.clone(),
                 positions: group.records.iter().map(|record| record.i_pos).collect(),
-                radii: group.query_radii.clone(),
-                query_radius: group.query_radius,
+                radii: group
+                    .query_radii
+                    .iter()
+                    .map(|r| r * SHADOW_DISTANCE_SCALE.powi(2))
+                    .collect(),
+                query_radius: group.query_radius * f64::from(SHADOW_DISTANCE_SCALE),
                 cell_size: group.cell_size,
-                capacity: level.description.capacity,
+                capacity: level
+                    .description
+                    .capacity
+                    .saturating_mul(9)
+                    .div_ceil(4)
+                    .min(65536),
             });
         }
         if groups.len() != 5 {
@@ -145,17 +158,39 @@ impl Source {
     }
 
     pub fn select(&self, camera: Vec4) -> Result<Vec<plants::Stream>, String> {
+        self.select_observed(camera).map(|(streams, _)| streams)
+    }
+
+    /// Observe the exact CPU selection used for upload, not GPU depth coverage.
+    pub fn select_observed(
+        &self,
+        camera: Vec4,
+    ) -> Result<(Vec<plants::Stream>, Vec<SelectionObservation>), String> {
         if !camera.is_finite() {
             return Err("Invalid plant shadow camera".into());
         }
-        Ok(self
+        let mut observations = Vec::with_capacity(self.groups.len());
+        let streams = self
             .groups
             .iter()
             .map(|group| {
-                let ids = selected(group, camera.truncate())
-                    .into_iter()
-                    .take(group.capacity)
-                    .collect::<Vec<_>>();
+                let mut ids = selected(group, camera.truncate());
+                let candidates = ids.len();
+                ids.truncate(group.capacity);
+                let distances = ids.iter().map(|&index| {
+                    group.positions[index]
+                        .truncate()
+                        .distance(camera.truncate())
+                });
+                observations.push(SelectionObservation {
+                    group: group.name.clone(),
+                    candidates,
+                    submitted: ids.len(),
+                    capacity_dropped: candidates - ids.len(),
+                    lod_range: group.range.yzw().to_array(),
+                    max_base_distance: distances.clone().reduce(f32::max),
+                    submitted_beyond_lod_end: distances.filter(|d| *d >= group.range.w).count(),
+                });
                 plants::Stream {
                     records: ids
                         .iter()
@@ -179,7 +214,8 @@ impl Source {
                     count: u32::try_from(ids.len()).expect("validated plant capacity"),
                 }
             })
-            .collect())
+            .collect();
+        Ok((streams, observations))
     }
 
     pub fn at(&self, camera: Vec4) -> Result<plants::Input, String> {
@@ -206,11 +242,25 @@ impl Source {
             size: 1024,
             mips: 11,
             camera,
+            initial_motion: None,
         })
     }
 }
 
-// Keep the same near-source selection as the visible LOD, including edited trees.
+#[derive(Clone, Debug, serde::Serialize)]
+pub struct SelectionObservation {
+    pub group: String,
+    pub candidates: usize,
+    pub submitted: usize,
+    pub capacity_dropped: usize,
+    pub lod_range: [f32; 3],
+    pub max_base_distance: Option<f32>,
+    /// Geometric observation only: source dither/deformation may use a transition band.
+    pub submitted_beyond_lod_end: usize,
+}
+
+// Shadow selection extends the visible near-source range, including edited trees.
+// Per-record radii are squared distances; they scale by the square of the distance factor.
 fn selected(group: &Group, camera: Vec3) -> Vec<usize> {
     let x = f64::from(camera.x);
     let z = f64::from(camera.z);
@@ -270,6 +320,7 @@ mod tests {
             Vec4::new(400.0, 0.0, 2.0, 1.0),
         ];
         let group = Group {
+            name: "edited-tree".into(),
             kind: 0,
             vertices: Vec::new(),
             indices: Vec::new(),
@@ -316,8 +367,9 @@ mod tests {
             Mat4::from_translation(Vec3::Y),
             Mat4::from_translation(Vec3::Z),
         ];
-        let source = Source {
+        let mut source = Source {
             groups: vec![Group {
+                name: "test-tree".into(),
                 kind: 0,
                 vertices: vec![1],
                 indices: vec![2],
@@ -364,5 +416,19 @@ mod tests {
         assert_eq!(input.batches[0].count, stream.count);
         assert_eq!(input.batches[0].records, stream.records);
         assert_eq!(input.batches[0].models, stream.models);
+
+        let (observed_streams, observations) = source.select_observed(Vec4::ZERO).unwrap();
+        assert_eq!(observed_streams[0].records, stream.records);
+        assert_eq!(observations[0].candidates, 2); // Radius boundary excluded.
+        assert_eq!(observations[0].submitted, 2);
+        assert_eq!(observations[0].capacity_dropped, 0);
+        assert_eq!(observations[0].max_base_distance, Some(3.0));
+        source.groups[0].capacity = 1;
+        let (bounded_streams, observations) = source.select_observed(Vec4::ZERO).unwrap();
+        assert_eq!(bounded_streams[0].count, 1);
+        assert_eq!(observations[0].submitted, 1);
+        assert_eq!(observations[0].capacity_dropped, 1);
+        assert_eq!(observations[0].max_base_distance, Some(1.0));
+        assert!(source.select_observed(Vec4::splat(f32::NAN)).is_err());
     }
 }

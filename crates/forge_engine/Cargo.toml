@@ -12,6 +12,8 @@ default = ["native"]
 native = ["physics-rapier"]
 web = ["bevy/webgpu", "physics-rapier"]
 qualification = ["physics-rapier"]
+# Purchased fixtures stay outside the repository and require an explicit local path.
+private-source-fixtures = []
 physics-rapier = ["dep:bevy_rapier3d", "dep:forge_assets", "dep:forge_navigation"]
 
 [dependencies]

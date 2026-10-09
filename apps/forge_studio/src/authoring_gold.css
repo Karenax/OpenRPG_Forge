@@ -459,3 +459,8 @@ html[data-forge-zone-open="true"] .forge-workspace-welcome { display:none; }
   .forge-compass { min-width:0; max-width:180px; }
 }
 @media (prefers-reduced-motion:reduce) { .forge-compass-cardinals { transition:none; } }
+
+/* Keep long asset labels inside their card; the complete label remains in its title. */
+.authoring-tools .gold-asset-cards button { min-width:0; overflow:hidden; }
+.authoring-tools .gold-asset-cards span { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.gold-asset-cards small { min-width:0; max-width:100%; overflow-wrap:anywhere; }

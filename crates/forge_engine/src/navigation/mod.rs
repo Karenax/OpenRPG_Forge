@@ -2,12 +2,14 @@
 mod cache;
 mod curved_obstacles;
 mod geometry;
+mod reachable;
 mod runtime;
 #[cfg(target_arch = "wasm32")]
 mod worker;
 use bevy::prelude::*;
 pub use cache::{
     ActorNavigationObservation, NavigationRuntime, NavigationStatus, NavigationTileObservation,
+    RouteDiagnostic,
 };
 pub use forge_navigation::{AgentProfile, AreaVolume, PROVIDER_SOURCE_SHA256, TileKey};
 pub(crate) use runtime::{guard, refresh};

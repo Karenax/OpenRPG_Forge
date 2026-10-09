@@ -171,3 +171,21 @@ Les vérifications isolées couvrent désormais les 23 identités bâtiments et 
 buffer lumineux avec et sans packet temporel. La collecte du produit est en
 validation ; l'activation du paquet, le dessin réel et les comparaisons visibles
 restent ouverts. Ces résultats ne requalifient pas l'exposition ni la parité.
+
+Suite : [raccord solaire, atmosphère et éclairage partagé dans Studio](2026-10-03-solar-environment.md).
+Le nouveau raccord utilise les retours atmosphériques GPU terminés pour alimenter
+nuages, environnement et optique d'eau, avec des diagnostics distinguant l'attente
+de la lecture effective. Les contrôles WASM passent ; le nouveau candidat solaire
+est en compilation et sa copie runtime isolée est prête. La cadence GPU, les ombres
+visibles et la parité avec la référence restent à vérifier sur ce candidat.
+
+Suite : [surface complète de l'étal et raccord poisson natif](2026-10-06-stall-surface-parity.md).
+Les validations isolées de surface/contact et le check Web de Studio sont
+documentés séparément du dessin de scène. Le parcours natif prépare désormais
+les cinq poissons affichés et les 78 décoratifs avec leurs surfaces et masques
+source ; sa compilation et ses comparaisons visibles restent ouvertes. Les
+contrôles de distribution exigent ce nouvel inventaire et les preuves du binaire
+exact. Les tests de commande du launcher courant passent dans un harnais sans
+Tauri ; son contrôle Tauri complet passe ensuite et un candidat launcher dev
+avec l'interface Aube embarquée est construit et vérifié par marqueurs. Aucun nouveau paquet portable
+ni parité complète n'est qualifié par ces résultats.

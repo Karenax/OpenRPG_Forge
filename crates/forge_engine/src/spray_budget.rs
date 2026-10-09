@@ -9,11 +9,19 @@ pub struct HeadSample {
     pub head: u32,
 }
 
+/// GPU submission order is independent of a simulation clock that can be reset.
+#[derive(Clone, Copy, Debug)]
+pub struct SequencedHeadSample {
+    pub sequence: u64,
+    pub sample: HeadSample,
+}
+
 #[derive(Debug)]
 pub struct SprayBudget {
     capacity: u32,
     value: f64,
     history: VecDeque<HeadSample>,
+    latest_sequence: Option<SequencedHeadSample>,
 }
 
 impl SprayBudget {
@@ -25,6 +33,7 @@ impl SprayBudget {
             capacity,
             value: 0.3,
             history: VecDeque::new(),
+            latest_sequence: None,
         })
     }
 
@@ -43,11 +52,50 @@ impl SprayBudget {
         if !sample.time.is_finite() || sample.time < 0.0 {
             return Err("invalid spray sample time");
         }
+        if self.latest_sequence.is_some() {
+            return Err("cannot mix sequenced and time-ordered spray feedback");
+        }
         if let Some(last) = self.history.back()
             && (sample.time < last.time || (sample.time == last.time && sample.head != last.head))
         {
             return Err("spray head sample is stale or inconsistent");
         }
+        self.apply_sample(sample);
+        Ok(())
+    }
+
+    /// Accept a clock rewind only when a newer GPU submission proves sample order.
+    /// Repeated submissions must preserve their original timestamp and head.
+    /// A controller uses either this API or time-ordered feedback for its lifetime.
+    pub fn after_sequenced_emission(
+        &mut self,
+        latest: Option<SequencedHeadSample>,
+    ) -> Result<(), &'static str> {
+        let Some(latest) = latest else {
+            return Ok(());
+        };
+        let sample = latest.sample;
+        if !sample.time.is_finite() || sample.time < 0.0 {
+            return Err("invalid spray sample time");
+        }
+        if self.latest_sequence.is_none() && !self.history.is_empty() {
+            return Err("cannot mix sequenced and time-ordered spray feedback");
+        }
+        if let Some(previous) = self.latest_sequence
+            && (latest.sequence < previous.sequence
+                || (latest.sequence == previous.sequence
+                    && (sample.time.to_bits() != previous.sample.time.to_bits()
+                        || sample.head != previous.sample.head)))
+        {
+            return Err("spray head submission is stale or inconsistent");
+        }
+        self.apply_sample(sample);
+        self.latest_sequence = Some(latest);
+        Ok(())
+    }
+
+    #[allow(clippy::float_cmp)] // Source history deduplicates timestamps exactly.
+    fn apply_sample(&mut self, sample: HeadSample) {
         if self
             .history
             .back()
@@ -60,9 +108,10 @@ impl SprayBudget {
         }
         if self.history.len() > 1 {
             let first = self.history[0];
-            let dt = sample.time - first.time;
+            let last = self.history.back().expect("nonempty budget history");
+            let dt = last.time - first.time;
             if dt > 1.0 {
-                let rate = f64::from(sample.head.wrapping_sub(first.head)) / dt;
+                let rate = f64::from(last.head.wrapping_sub(first.head)) / dt;
                 let target = f64::from(self.capacity) / 2.0;
                 let want = if rate > 1.0 {
                     self.value * (target / rate).sqrt()
@@ -72,7 +121,6 @@ impl SprayBudget {
                 self.value = (self.value + (want - self.value) * 0.04).clamp(0.05, 1.0);
             }
         }
-        Ok(())
     }
 }
 
@@ -86,6 +134,107 @@ mod tests {
     )]
     fn sample(time: f64, head: u32) -> Option<HeadSample> {
         Some(HeadSample { time, head })
+    }
+
+    #[allow(
+        clippy::unnecessary_wraps,
+        reason = "Mirrors optional GPU readback samples in the sequenced API."
+    )]
+    fn sequenced(sequence: u64, time: f64, head: u32) -> Option<SequencedHeadSample> {
+        Some(SequencedHeadSample {
+            sequence,
+            sample: HeadSample { time, head },
+        })
+    }
+
+    #[test]
+    fn newer_submission_at_same_time_keeps_source_history_head() {
+        let mut changed_head = SprayBudget::new(32768).unwrap();
+        let mut repeated_head = SprayBudget::new(32768).unwrap();
+        for budget in [&mut changed_head, &mut repeated_head] {
+            budget
+                .after_sequenced_emission(sequenced(1, 0.0, 0))
+                .unwrap();
+            budget
+                .after_sequenced_emission(sequenced(2, 2.0, 1000))
+                .unwrap();
+        }
+        changed_head
+            .after_sequenced_emission(sequenced(3, 2.0, 2000))
+            .unwrap();
+        repeated_head
+            .after_sequenced_emission(sequenced(2, 2.0, 1000))
+            .unwrap();
+        assert_eq!(changed_head.value(), repeated_head.value());
+        assert_eq!(changed_head.history.len(), 2);
+        assert_eq!(changed_head.history[1].head, 1000);
+    }
+
+    #[test]
+    fn submission_order_allows_clock_rewind_without_clearing_history() {
+        let mut budget = SprayBudget::new(32768).unwrap();
+        budget
+            .after_sequenced_emission(sequenced(4, 4.0 / 60.0, 40))
+            .unwrap();
+        budget
+            .after_sequenced_emission(sequenced(5, 1.0 / 60.0, 50))
+            .unwrap();
+        assert_eq!(budget.history.len(), 2);
+        assert_eq!(budget.history[0].head, 40);
+        assert_eq!(budget.history[1].head, 50);
+        assert_eq!(budget.value(), 0.3);
+    }
+
+    #[test]
+    fn sequenced_stale_and_inconsistent_returns_preserve_controller() {
+        let mut budget = SprayBudget::new(32768).unwrap();
+        budget
+            .after_sequenced_emission(sequenced(5, 0.1, 50))
+            .unwrap();
+        for bad in [
+            sequenced(4, 0.2, 51),
+            sequenced(5, 0.2, 50),
+            sequenced(5, 0.1, 51),
+            sequenced(6, f64::NAN, 60),
+        ] {
+            assert!(budget.after_sequenced_emission(bad).is_err());
+            assert_eq!(budget.history.len(), 1);
+            assert_eq!(budget.latest_sequence.unwrap().sequence, 5);
+            assert_eq!(budget.value(), 0.3);
+        }
+    }
+
+    #[test]
+    fn repeated_submission_steers_without_duplicate_history() {
+        let mut budget = SprayBudget::new(32768).unwrap();
+        budget
+            .after_sequenced_emission(sequenced(1, 0.0, 0))
+            .unwrap();
+        budget
+            .after_sequenced_emission(sequenced(2, 2.0, 1000))
+            .unwrap();
+        let before = budget.value();
+        budget
+            .after_sequenced_emission(sequenced(2, 2.0, 1000))
+            .unwrap();
+        assert!(budget.value() > before);
+        assert_eq!(budget.history.len(), 2);
+    }
+
+    #[test]
+    fn feedback_ordering_modes_cannot_be_mixed() {
+        let mut timed = SprayBudget::new(32768).unwrap();
+        timed.after_emission(sample(0.0, 0)).unwrap();
+        assert!(
+            timed
+                .after_sequenced_emission(sequenced(1, 0.1, 1))
+                .is_err()
+        );
+        let mut ordered = SprayBudget::new(32768).unwrap();
+        ordered
+            .after_sequenced_emission(sequenced(1, 0.0, 0))
+            .unwrap();
+        assert!(ordered.after_emission(sample(0.1, 1)).is_err());
     }
 
     #[test]

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OpenRPG Forge",
+  "version": "0.1.0",
+  "identifier": "org.openrpg.forge.hub",
+  "build": { "frontendDist": "ui" },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [{ "title": "OpenRPG Forge", "width": 1100, "height": 760, "minWidth": 900, "minHeight": 650 }],
+    "security": { "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost; script-src 'self'; style-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'" }
+  },
+  "bundle": { "active": false }
+}

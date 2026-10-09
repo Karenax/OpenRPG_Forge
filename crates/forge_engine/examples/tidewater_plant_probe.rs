@@ -21,6 +21,8 @@ use bevy::{
 };
 use serde::Deserialize;
 use std::{collections::BTreeMap, error::Error, path::PathBuf};
+#[path = "tidewater_plant_probe/acquired_environment.rs"]
+mod acquired_environment;
 #[path = "tidewater_atmosphere_probe/mod.rs"]
 mod atmosphere;
 #[path = "tidewater_plant_probe/breaker_lip.rs"]
@@ -38,8 +40,12 @@ mod caustics_proof;
 #[allow(dead_code)]
 #[path = "tidewater_cloud_weather_probe/mod.rs"]
 mod clouds;
+#[path = "tidewater_plant_probe/debris.rs"]
+mod debris;
 #[path = "tidewater_plant_probe/fish_stand.rs"]
 mod fish_stand;
+#[path = "tidewater_plant_probe/full_stall.rs"]
+mod full_stall;
 #[path = "tidewater_plant_probe/grass.rs"]
 mod grass;
 #[path = "tidewater_plant_probe/hill_shadow.rs"]
@@ -50,16 +56,22 @@ mod object_shadow;
 mod ocean;
 #[path = "tidewater_plant_probe/ocean_geometry.rs"]
 mod ocean_geometry;
+#[path = "tidewater_plant_probe/pebbles.rs"]
+mod pebbles;
 #[path = "tidewater_plant_probe/picking_proof.rs"]
 mod picking_proof;
 #[path = "tidewater_plant_probe/refraction_proof.rs"]
 mod refraction_proof;
+#[path = "tidewater_plant_probe/scanned_debris.rs"]
+mod scanned_debris;
 #[path = "tidewater_plant_probe/shore_field.rs"]
 mod shore_field;
 #[path = "tidewater_shore_sim_probe/mod.rs"]
 mod shore_sim;
 #[path = "tidewater_plant_probe/sky.rs"]
 mod sky;
+#[path = "tidewater_plant_probe/source_fish.rs"]
+mod source_fish;
 #[path = "tidewater_spray_probe/mod.rs"]
 mod spray;
 #[path = "tidewater_plant_probe/spray_sprites.rs"]
@@ -170,6 +182,15 @@ struct Probe {
 
 #[derive(Resource)]
 struct ProbeEnvironment(Handle<Image>);
+
+/// Values published by setup into the static visible plant materials.
+#[derive(Resource, serde::Serialize)]
+struct StaticVegetationPose {
+    wind_time: [f32; 4],
+    gust_offset: [f32; 2],
+    frame_index: u32,
+    acquired_source_frame: bool,
+}
 
 #[derive(Clone, Copy)]
 enum PlantProjection {
@@ -399,6 +420,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         building_package::load(&package, hash, &mut files)?;
     }
     building_placements::apply(&mut files)?;
+    let acquired_environment = acquired_environment::load(
+        &mut files,
+        fixture.camera_pose.as_ref(),
+        matches!(plant_projection, PlantProjection::Static),
+    )?;
+    if acquired_environment.is_some() && !with_clouds {
+        return Err("Acquired environment requires the shared sky/cloud scene".into());
+    }
     let get = |name: &str| files.get(name).ok_or("missing fixture file");
     if files.contains_key("spray-sprites.wgsl") != with_spray {
         return Err("spray material mode and fixture must match".into());
@@ -695,6 +724,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         None
     };
+    // Opt-in fixed-pose comparison: visible plants and depth casters consume
+    // the same retained source frame. Live play keeps its own wind clock.
+    if std::env::var("FORGE_TIDEWATER_STATIC_SOURCE_FRAME").as_deref() == Ok("1") {
+        if matches!(
+            plant_projection,
+            PlantProjection::Walk | PlantProjection::WalkSmoke | PlantProjection::WalkLongSmoke
+        ) {
+            return Err("Acquired static source frame is unavailable during live play".into());
+        }
+        app.insert_resource(forge_engine::tidewater_wind::AcquiredFrame::reference()?);
+    }
     app.insert_resource(Probe {
         grass,
         hill_heights,
@@ -757,9 +797,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                     title: "OpenRPG Forge — Tidewater".into(),
                     resolution: bevy::window::WindowResolution::new(1920, 1080)
                         .with_scale_factor_override(1.0),
-                    resizable: false,
+                    mode: if matches!(plant_projection, PlantProjection::Walk) {
+                        WindowMode::BorderlessFullscreen(MonitorSelection::Primary)
+                    } else {
+                        WindowMode::Windowed
+                    },
+                    resizable: matches!(plant_projection, PlantProjection::Walk),
                     enabled_buttons: bevy::window::EnabledButtons {
-                        maximize: false,
+                        maximize: matches!(plant_projection, PlantProjection::Walk),
                         ..default()
                     },
                     ..default()
@@ -772,12 +817,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             plugins
         }
     })
+    .add_plugins(forge_engine::finite_perspective::FinitePerspectivePlugin)
     .add_plugins(MaterialPlugin::<PlantMaterial>::default())
     .add_plugins(MaterialPlugin::<terrain_surface::TerrainMaterial>::default())
     .add_plugins(MaterialPlugin::<terrain_lod::LodMaterial>::default())
     .add_plugins(MaterialPlugin::<village::VillageMaterial>::default())
     .add_plugins(MaterialPlugin::<
+        forge_engine::tidewater_debris::nature::NatureMaterial,
+    >::default())
+    .add_plugins(MaterialPlugin::<
+        forge_engine::tidewater_debris::scanned_material::ScannedMaterial,
+    >::default())
+    .add_plugins(MaterialPlugin::<
+        forge_engine::tidewater_debris::pebble_material::PebbleMaterial,
+    >::default())
+    .add_plugins(MaterialPlugin::<
         forge_engine::tidewater_stall::FishStandMaterial,
+    >::default())
+    .add_plugins(MaterialPlugin::<
+        forge_engine::tidewater_stall::full_material::FullMaterial,
     >::default())
     .add_plugins(MaterialPlugin::<sky::SkyMaterial>::default())
     .add_plugins(MaterialPlugin::<ocean_geometry::OceanGeometryMaterial>::default())
@@ -793,6 +851,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             setup_terrain,
             terrain_lod::setup,
             village::setup,
+            debris::setup,
+            pebbles::setup,
+            scanned_debris::setup,
             fish_stand::setup,
             sky::setup,
             ocean_geometry::setup,
@@ -801,11 +862,60 @@ fn main() -> Result<(), Box<dyn Error>> {
             .chain(),
     )
     .add_systems(Update, (picking_proof::start_if_ready, capture).chain())
+    .add_systems(PostUpdate, debris::update)
+    .add_systems(
+        PostUpdate,
+        pebbles::update.after(bevy::camera::visibility::VisibilitySystems::UpdateFrusta),
+    )
+    .add_systems(
+        PostUpdate,
+        scanned_debris::update
+            .after(bevy::camera::visibility::VisibilitySystems::UpdateFrusta)
+            .before(bevy::asset::AssetEventSystems)
+            .before(bevy::camera::visibility::VisibilitySystems::CheckVisibility),
+    )
     .add_systems(
         PostUpdate,
         water_optics::update_camera.after(bevy::transform::TransformSystems::Propagate),
+    )
+    .add_systems(
+        PostUpdate,
+        water_optics::update_lighting.after(water_optics::update_camera),
     );
     forge_engine::tidewater_terrain::scene::register(&mut app)?;
+    if let Some(input) = scanned_debris::load()? {
+        if !with_object_depth {
+            return Err("Native scanned Debris requires the shared object shadow graph".into());
+        }
+        app.insert_resource(scanned_debris::Requested);
+        app.insert_resource(input);
+    }
+    if let Some(input) = debris::load()? {
+        if !with_object_depth {
+            return Err("Native Debris requires the shared object shadow graph".into());
+        }
+        app.insert_resource(object_shadow::AdditionalOpaqueDraws(input.shadow_draws()?));
+        app.insert_resource(debris::Requested);
+        app.insert_resource(input);
+    }
+    if pebbles::requested() {
+        if !app.world().contains_resource::<debris::Requested>() {
+            return Err("Native Pebbles require the verified Debris package".into());
+        }
+        app.insert_resource(pebbles::Requested);
+    }
+    if with_object_depth {
+        if let Some(draw) = fish_stand::shadow_draw(app.world().resource::<Probe>())? {
+            if let Some(mut additional) = app
+                .world_mut()
+                .get_resource_mut::<object_shadow::AdditionalOpaqueDraws>()
+            {
+                additional.0.push(draw);
+            } else {
+                app.insert_resource(object_shadow::AdditionalOpaqueDraws(vec![draw]));
+            }
+        }
+    }
     if with_geometry {
         water_scene::install(&mut app);
         app.insert_resource(ocean_geometry::Enabled(water_diagnostic));
@@ -847,19 +957,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             &mut app,
             std::str::from_utf8(get("sky.wgsl")?)?,
         )?;
-        let atmosphere = atmosphere::install(&mut app, &root)?;
-        if let Some(cloud_root) = cloud_root {
-            let targets = clouds::install(
-                &mut app,
-                &cloud_root,
-                clouds::SharedAtmosphere {
-                    images: atmosphere.images,
-                    ready: atmosphere.ready,
-                    params: atmosphere.params,
-                },
-                get("cloud-view-params.bin")?,
-            )?;
+        app.insert_resource(forge_engine::tidewater_clouds::quality::CloudTraceQuality::Dense);
+        if let Some(acquired) = acquired_environment {
+            let targets = acquired.install(&mut app)?;
             sky::install_clouds(&mut app, get("cloud-view-params.bin")?, targets)?;
+        } else {
+            let atmosphere = atmosphere::install(&mut app, &root)?;
+            if let Some(cloud_root) = cloud_root {
+                let targets = clouds::install(
+                    &mut app,
+                    &cloud_root,
+                    clouds::SharedAtmosphere {
+                        images: atmosphere.images,
+                        ready: atmosphere.ready,
+                        params: atmosphere.params,
+                    },
+                    get("cloud-view-params.bin")?,
+                )?;
+                sky::install_clouds(&mut app, get("cloud-view-params.bin")?, targets)?;
+            }
         }
     }
     if let Some(ocean_root) = ocean_root {
@@ -987,6 +1103,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if let Some(shader) = files.get("village.wgsl") {
         forge_engine::tidewater_material::install_shader(&mut app, std::str::from_utf8(shader)?)?;
+        if app.world().resource::<Probe>().fish_stand.is_some() {
+            forge_engine::tidewater_stall::full_material::stage_shader(
+                app.world_mut(),
+                std::str::from_utf8(shader)?,
+            )?;
+        }
     }
     forge_engine::tidewater_stall::install_shader(&mut app)?;
     forge_engine::tidewater_plants::stage_shader(
@@ -1015,6 +1137,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else if std::env::var_os("FORGE_TIDEWATER_STATIC_POSTFX").is_some() {
         walk::install_static_graphics(&mut app)?;
     }
+    if matches!(plant_projection, PlantProjection::Walk) {
+        app.add_systems(Update, toggle_play_window);
+    }
     if matches!(plant_projection, PlantProjection::Walk)
         && std::env::var_os("FORGE_TIDEWATER_FULLSCREEN").is_some()
     {
@@ -1027,6 +1152,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             temporal_aux::install(&mut app)?;
         }
+    }
+    full_stall::install(&mut app)?;
+    if app
+        .world()
+        .resource::<Probe>()
+        .fish_stand_content
+        .as_ref()
+        .is_some_and(|content| content.source.is_some())
+    {
+        if !with_object_depth {
+            return Err("Native source fish require the shared object shadow graph".into());
+        }
+        source_fish::install(&mut app, std::str::from_utf8(get("village.wgsl")?)?)?;
     }
     if app.run() != AppExit::Success {
         return Err("native render probe failed".into());
@@ -1072,6 +1210,7 @@ fn setup_environment(mut commands: Commands, probe: Res<Probe>, mut images: ResM
 fn setup(
     mut commands: Commands,
     probe: Res<Probe>,
+    acquired: Option<Res<forge_engine::tidewater_wind::AcquiredFrame>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<PlantMaterial>>,
@@ -1106,12 +1245,31 @@ fn setup(
     let params = ProbeParams {
         i_pos: base.extend(instance.s),
         i_dat: Vec4::new(instance.la, instance.l, instance.height, instance.seed),
-        wind: Vec4::new(1.0, 0.0, 6.0, 2.0),
-        gust_lod: Vec4::new(0.0, 0.0, 0.0, 10000.0),
+        wind: acquired
+            .as_ref()
+            .map_or(Vec4::new(1.0, 0.0, 6.0, 2.0), |frame| {
+                frame
+                    .wind_frame()
+                    .expect("validated acquired wind")
+                    .material_uniform()
+            }),
+        gust_lod: acquired
+            .as_ref()
+            .map_or(Vec4::new(0.0, 0.0, 0.0, 10000.0), |frame| {
+                bevy::math::DVec4::new(
+                    frame.vegetation_gust_offset[0],
+                    frame.vegetation_gust_offset[1],
+                    0.0,
+                    10000.0,
+                )
+                .as_vec4()
+            }),
         sun_night: sun.extend(0.0),
         lod_end_frame: Vec4::new(
             10001.0,
-            124.0,
+            acquired.as_ref().map_or(124.0, |frame| {
+                f32::from(u8::try_from(frame.global_frame % 64).expect("six source frame bits"))
+            }),
             0.0,
             if matches!(probe.mode, ProbeMode::Silhouette | ProbeMode::GrassCoverage) {
                 1.0
@@ -1120,6 +1278,14 @@ fn setup(
             },
         ),
     };
+    commands.insert_resource(StaticVegetationPose {
+        wind_time: params.wind.to_array(),
+        gust_offset: [params.gust_lod.x, params.gust_lod.y],
+        frame_index: acquired
+            .as_ref()
+            .map_or(124, |frame| frame.global_frame % 64),
+        acquired_source_frame: acquired.is_some(),
+    });
     let instances = buffers.add(ShaderBuffer::from(
         probe
             .canopy
@@ -1128,6 +1294,7 @@ fn setup(
     ));
     let (grass_heights, grass_mask) = grass::textures(&probe, &mut images);
     let material = PlantMaterial {
+        scene_lighting: forge_engine::tidewater_material::scene_buffer::HANDLE.clone(),
         motion: forge_engine::tidewater_plants::motion::DEFAULT_BUFFER.clone(),
         grass_heights,
         grass_mask,
@@ -1190,6 +1357,7 @@ fn spawn_camera(commands: &mut Commands, probe: &Probe, base: Vec3) {
         return;
     }
     let mut camera = commands.spawn((
+        scanned_debris::MainCamera,
         Camera3d {
             depth_texture_usages: (bevy::render::render_resource::TextureUsages::RENDER_ATTACHMENT
                 | bevy::render::render_resource::TextureUsages::COPY_SRC
@@ -1206,6 +1374,9 @@ fn spawn_camera(commands: &mut Commands, probe: &Probe, base: Vec3) {
         camera_projection(probe),
     ));
     // Install the same graphics chain as the playable camera for static A/B captures.
+    if probe.camera_pose.is_some() {
+        camera.insert(forge_engine::finite_perspective::FinitePerspectiveDepth);
+    }
     if std::env::var_os("FORGE_TIDEWATER_STATIC_POSTFX").is_some() {
         camera.insert(forge_engine::ForgePlayerCamera);
     }
@@ -1226,7 +1397,7 @@ fn camera_projection(probe: &Probe) -> Projection {
         .camera_pose
         .as_ref()
         .map_or((45.0_f32, 0.1, 20000.0), |pose| {
-            (pose.fov_degrees, 0.06, 60000.0)
+            (pose.fov_degrees, 0.1, 60000.0)
         });
     Projection::Perspective(PerspectiveProjection {
         fov: fov.to_radians(),
@@ -1359,7 +1530,12 @@ fn mipped_image(meta: &LeafTexture, bytes: &[u8]) -> Image {
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // Independent render completion resources and readback observer.
 fn capture(
     mut commands: Commands,
-    frame: Res<FrameCount>,
+    capture_state: (
+        Res<FrameCount>,
+        Option<Res<walk::graphics::GraphicsState>>,
+        Option<Res<StaticVegetationPose>>,
+        Option<Res<acquired_environment::Receipt>>,
+    ),
     mut probe: ResMut<Probe>,
     mut exit: MessageWriter<AppExit>,
     hill: Res<hill_shadow::Images>,
@@ -1378,6 +1554,7 @@ fn capture(
         Option<Res<temporal_owned::Proof>>,
     ),
 ) {
+    let (frame, graphics_state, vegetation_pose, acquired_environment) = capture_state;
     if probe.failed {
         exit.write(AppExit::error());
         return;
@@ -1427,6 +1604,48 @@ fn capture(
                     .load(std::sync::atomic::Ordering::Acquire)
         })
     {
+        let receipt = serde_json::json!({
+            "schema": "forge.tidewater.static-capture-runtime",
+            "version": 1,
+            "requested_at_main_frame": frame.0,
+            "configured_camera": probe.camera_pose.as_ref().map(|pose| serde_json::json!({
+                "position": pose.position,
+                "rotation": pose.rotation,
+                "fov_degrees": pose.fov_degrees,
+            })),
+            "graphics_values": graphics_state.as_ref().map(|state| state.values_receipt()),
+            "visible_vegetation_pose": vegetation_pose.as_deref(),
+            "acquired_environment": acquired_environment.as_deref(),
+            "cloud_completed_steps": clouds.as_ref().map(|targets| targets.completed_steps.load(std::sync::atomic::Ordering::Acquire)),
+            "acquired_ocean": ocean.as_ref().and_then(|targets| targets.acquired_manifest.as_ref().map(|manifest| serde_json::json!({
+                "manifest_sha256": manifest,
+                "bootstrap_frames": targets.bootstrap_steps,
+                "completed_steps": targets.completed_steps.load(std::sync::atomic::Ordering::Acquire),
+                "coupled_globals_shared": targets.acquired.is_some(),
+            }))),
+            "visual_parity": false,
+            "limits": [
+                "MainWorld values at screenshot request; asynchronous image completion follows",
+                "Other animation clocks and GPU uniform readbacks not covered",
+                "No whole-map, performance, Studio or portable qualification",
+            ],
+        });
+        let written = (|| -> Result<(), Box<dyn std::error::Error>> {
+            use std::io::Write;
+            let bytes = serde_json::to_vec_pretty(&receipt)?;
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(probe.screenshot.with_extension("capture.json"))?
+                .write_all(&bytes)?;
+            Ok(())
+        })();
+        if let Err(error) = written {
+            error!(%error, "static capture runtime receipt failed");
+            probe.failed = true;
+            exit.write(AppExit::error());
+            return;
+        }
         probe.requested = true;
         picking_proof::request(&mut commands);
         if let Some(object) = object.filter(|_| probe.object_readback == ShadowReadback::Pending) {
@@ -1559,5 +1778,22 @@ fn observe_pipelines(
         probe.ready_frames.saturating_add(1)
     } else {
         0
+    };
+}
+
+fn toggle_play_window(
+    keys: Res<ButtonInput<KeyCode>>,
+    mut windows: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if !keys.just_pressed(KeyCode::F11) {
+        return;
+    }
+    let Ok(mut window) = windows.single_mut() else {
+        return;
+    };
+    window.mode = if matches!(window.mode, WindowMode::Windowed) {
+        WindowMode::BorderlessFullscreen(MonitorSelection::Primary)
+    } else {
+        WindowMode::Windowed
     };
 }

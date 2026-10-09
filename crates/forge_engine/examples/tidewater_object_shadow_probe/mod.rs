@@ -2,6 +2,7 @@
 #![allow(clippy::needless_pass_by_value)]
 #[path = "../tidewater_plant_probe/vegetation_scene/canonical.rs"]
 pub(crate) mod canonical;
+pub mod isolated_lod;
 #[allow(
     dead_code,
     reason = "The shared module is driven by tidewater_plant_probe; the static object-shadow example does not install its live source resource"
@@ -271,7 +272,38 @@ pub fn install_disabled(app: &mut App) {
     );
 }
 
-fn install_input(app: &mut App, input: Input) -> Target {
+/// Additive source casters supplied by an independently verified native layer.
+#[derive(Resource)]
+pub struct AdditionalOpaqueDraws(pub Vec<Draw>);
+
+fn install_input(app: &mut App, mut input: Input) -> Target {
+    if let (Some(frame), Some(plants)) = (
+        app.world()
+            .get_resource::<forge_engine::tidewater_wind::AcquiredFrame>(),
+        input.plants.as_mut(),
+    ) {
+        plants.initial_motion = Some(
+            forge_engine::tidewater_object_shadow::graph::animation::Motion {
+                main_camera: plants.camera,
+                wind_time: frame
+                    .wind_frame()
+                    .expect("validated acquired wind")
+                    .material_uniform(),
+                gust_frame: bevy::math::DVec4::new(
+                    frame.vegetation_gust_offset[0],
+                    frame.vegetation_gust_offset[1],
+                    f64::from(frame.global_frame % 64),
+                    0.0,
+                )
+                .as_vec4(),
+            },
+        );
+    }
+    if let Some(extra) = app.world_mut().remove_resource::<AdditionalOpaqueDraws>() {
+        if input.settings.enabled > 0.5 {
+            input.draws.extend(extra.0);
+        }
+    }
     forge_engine::tidewater_object_shadow::graph::install(app, input)
         .expect("validated scene inputs and initialized rendering")
 }

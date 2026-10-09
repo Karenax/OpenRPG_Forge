@@ -564,6 +564,35 @@ impl PreparedOptics {
     }
 }
 
+/// Publish validated solar frame fields without changing camera/wave/immersion
+/// state. The scene must supply atmosphere parameters from that same frame;
+/// this operation alone does not refresh the environment or enable a solar cycle.
+pub fn update_lighting(
+    world: &mut World,
+    lighting: &crate::tidewater_sky::frame_lighting::FrameLighting,
+    atmosphere: [Vec4; 4],
+) -> Result<(), String> {
+    if atmosphere.iter().any(|value| !value.is_finite()) {
+        return Err("Invalid ocean atmosphere parameters".into());
+    }
+    let handle = world
+        .get_resource::<ResidentOptics>()
+        .ok_or("Ocean optics absent")?
+        .material
+        .clone();
+    let mut materials = world
+        .get_resource_mut::<Assets<OpticalMaterial>>()
+        .ok_or("Ocean optical materials absent")?;
+    let mut material = materials
+        .get_mut(&handle)
+        .ok_or("Ocean optical material missing")?;
+    let mut words = material.frame.map(|value| value.to_array());
+    lighting.write_words(&mut words);
+    material.frame = words.map(UVec4::from_array);
+    material.atmosphere = atmosphere;
+    Ok(())
+}
+
 pub fn update(world: &mut World, camera: Entity) -> Result<(), String> {
     crate::tidewater_refraction::select_camera(world, camera);
     crate::tidewater_hull_mask::select_camera(world, Some(camera));

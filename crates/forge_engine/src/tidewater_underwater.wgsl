@@ -7,6 +7,7 @@ struct Settings {
     camera_world: mat4x4<f32>,
     state: vec4<f32>,
     projection: vec4<f32>,
+    depth_projection: vec4<f32>,
     absorption: vec4<f32>,
     scattering: vec4<f32>,
     sun_direction: vec4<f32>,
@@ -33,11 +34,10 @@ const MENISCUS_BAND_PIXELS: f32 = 9.0;
 const MENISCUS_SEARCH_PIXELS: i32 = 16;
 
 fn view_z(depth: f32) -> f32 {
-    let near = settings.state.y;
     if depth <= 1e-7 {
         return -600.0;
     }
-    return -near / depth;
+    return -settings.depth_projection.x / (depth + settings.depth_projection.y);
 }
 
 fn view_ray(uv: vec2<f32>) -> vec3<f32> {
@@ -102,6 +102,18 @@ fn lens_medium(uv: vec2<f32>) -> f32 {
         return select(0.0, 1.0, settings.state.x < water_queries.results[0].x);
     }
     return select(0.0, 1.0, endpoint.y < queried_height_at(endpoint.xz));
+}
+
+// The standalone query packet already contains the same-frame height. The
+// combined optical shader replaces this hook with its live FFT/shore setup.
+fn setup_lens_medium_frame() {}
+
+// Export precisely the classification used by the underwater composite. Haze
+// consumes this R16Float result; surface alpha alone cannot classify the lens.
+@fragment
+fn lens_medium_fragment(input: FullscreenVertexOutput) -> @location(0) vec4<f32> {
+    setup_lens_medium_frame();
+    return vec4(lens_medium(input.uv), 0.0, 0.0, 1.0);
 }
 
 fn lens_medium_offset(

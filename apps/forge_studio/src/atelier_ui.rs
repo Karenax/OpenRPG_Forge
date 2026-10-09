@@ -41,6 +41,8 @@ pub(super) fn periodic(callback: impl Fn() + 'static) {
 
 #[derive(Clone, Copy)]
 pub(super) struct Link {
+    /// Shared within this main window, including siblings of AuthoringControls.
+    pub main: RwSignal<Option<MainBindings>>,
     pub open: RwSignal<bool>,
     pub map_only: RwSignal<bool>,
     pub status: RwSignal<String>,
@@ -54,6 +56,7 @@ pub(super) struct Link {
 impl Link {
     pub fn new() -> Self {
         Self {
+            main: RwSignal::new(None),
             open: RwSignal::new(false),
             map_only: RwSignal::new(false),
             status: RwSignal::new(String::new()),
@@ -132,6 +135,10 @@ pub(super) fn bind_main(bindings: MainBindings) {
     let Some(link) = use_context::<Link>() else {
         return;
     };
+    link.main.set(Some(bindings));
+    on_cleanup(move || {
+        let _ = link.main.try_set(None);
+    });
     let in_flight = RwSignal::new(false);
     let previous = RwSignal::new(None::<Snapshot>);
     // Rebuild the compact presentation only when its dependencies change, not

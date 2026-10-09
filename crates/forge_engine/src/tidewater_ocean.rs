@@ -12,10 +12,11 @@ use bevy::{
     prelude::*,
     render::{
         RenderApp,
+        diagnostic::RecordDiagnostics,
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::RenderAssets,
         render_resource as gpu,
-        renderer::{RenderContext, RenderDevice, RenderGraph},
+        renderer::{RenderContext, RenderDevice, RenderGraph, RenderGraphSystems},
         storage::{GpuShaderBuffer, ShaderBuffer},
         texture::GpuImage,
     },
@@ -41,7 +42,6 @@ const NAMES: [&str; 9] = [
     "mipB-1",
 ];
 const TOTAL: usize = 256 * 256 * 4;
-const BOOTSTRAP_STEPS: u32 = 120;
 const TIME_SCALE: f64 = 1.5;
 
 /// Downstream water and shore passes can consume these images after the FFT submission.
@@ -51,13 +51,21 @@ pub struct OceanComputeSet;
 struct Input {
     shaders: [String; 9],
     params: [u8; 224],
+    bootstrap_steps: u32,
+    bootstrap_time: f64,
+    frames: Option<Vec<AcquiredFrame>>,
+}
+
+struct AcquiredFrame {
+    params: [u8; 224],
+    global: [u8; 720],
 }
 
 /// CPU validated source inputs, without any GPU or filesystem handle.
 pub struct PreparedOcean(Input);
 
 impl PreparedOcean {
-    /// Match the native probe's exact initial and 120-step source uniforms.
+    /// Validate initial spectrum and every explicit acquired FFT frame before staging.
     pub fn new(package: &OceanPackage) -> Result<Self, String> {
         let file = |name: &str| {
             package
@@ -87,12 +95,27 @@ impl PreparedOcean {
         }
         let mut expected = params;
         let mut time = 0.0_f64;
-        for _ in 0..BOOTSTRAP_STEPS {
+        let bootstrap_steps =
+            u32::try_from(package.bootstrap_frames()).map_err(|error| error.to_string())?;
+        let mut acquired = Vec::new();
+        for step in 1..=bootstrap_steps {
             time += 1.0 / 60.0;
+            #[allow(clippy::cast_possible_truncation)]
+            expected[212..216].copy_from_slice(&(time as f32).to_le_bytes());
+            if package.has_acquired_frames() {
+                if file(&format!("ocean-step{step:03}-params.bin"))? != expected {
+                    return Err(format!("Ocean acquired uniforms differ at frame {step}"));
+                }
+                let global = file(&format!("ocean-step{step:03}-frame.bin"))?
+                    .try_into()
+                    .map_err(|_| "Ocean acquired global uniform layout mismatch")?;
+                acquired.push(AcquiredFrame {
+                    params: expected,
+                    global,
+                });
+            }
         }
-        #[allow(clippy::cast_possible_truncation)]
-        expected[212..216].copy_from_slice(&(time as f32).to_le_bytes());
-        if file("frame-120-params.bin")? != expected {
+        if !package.has_acquired_frames() && file("frame-120-params.bin")? != expected {
             return Err("Ocean 120-step uniforms differ from source".into());
         }
         let shaders = NAMES
@@ -105,7 +128,13 @@ impl PreparedOcean {
             .collect::<Result<Vec<_>, String>>()?
             .try_into()
             .map_err(|_| "Ocean kernel count mismatch".to_owned())?;
-        Ok(Self(Input { shaders, params }))
+        Ok(Self(Input {
+            shaders,
+            params,
+            bootstrap_steps,
+            bootstrap_time: time,
+            frames: package.has_acquired_frames().then_some(acquired),
+        }))
     }
 
     /// Publish a new generation in the existing renderer. Previous generations remain
@@ -118,7 +147,9 @@ impl PreparedOcean {
             return Err("Ocean renderer must be registered before staging".into());
         }
         let targets = create_targets(world, &self.0.params);
-        let clock = live_clock::LiveClock::default();
+        let clock =
+            live_clock::LiveClock::from_bootstrap(self.0.bootstrap_steps, self.0.bootstrap_time)
+                .map_err(str::to_owned)?;
         clock.set_time_scale(TIME_SCALE).map_err(str::to_owned)?;
         world.insert_resource(StagedInput(Arc::new(self.0)));
         world.insert_resource(targets.clone());
@@ -147,6 +178,20 @@ pub struct Targets {
     pub sizes: [Vec4; 4],
     pub parameters: [UVec4; 14],
     buffers: Vec<Handle<ShaderBuffer>>,
+}
+
+impl Targets {
+    /// Resident h0, waveData and foam buffers for acquisition readbacks.
+    /// Their COPY_SRC usage is part of ShaderBuffer's existing allocation.
+    #[must_use]
+    pub fn readback_buffers(&self) -> [Handle<ShaderBuffer>; 3] {
+        // create_targets always allocates these six private work buffers.
+        [
+            self.buffers[0].clone(),
+            self.buffers[1].clone(),
+            self.buffers[3].clone(),
+        ]
+    }
 }
 
 /// Last coherent FFT simulation timestamp for visible water materials.
@@ -188,6 +233,7 @@ pub fn register(app: &mut App) -> Result<(), String> {
         RenderGraph,
         compute
             .in_set(OceanComputeSet)
+            .in_set(RenderGraphSystems::Render)
             .before(camera_driver)
             .run_if(resource_exists::<StagedInput>)
             .run_if(resource_exists::<Targets>)
@@ -329,9 +375,12 @@ fn compute(
     } else {
         None
     };
-    if !targets.ready.load(Ordering::Acquire) && execution.next > BOOTSTRAP_STEPS {
+    if !targets.ready.load(Ordering::Acquire) && execution.next > staged.0.bootstrap_steps {
         return;
     }
+    let diagnostics = context.diagnostic_recorder();
+    let recorder = diagnostics.as_deref();
+    let compute_span = recorder.time_span(context.command_encoder(), "tidewater_ocean");
     let views: Vec<Vec<_>> = textures
         .iter()
         .map(|texture| {
@@ -374,11 +423,6 @@ fn compute(
     let dt = live.map_or(1.0_f32 / 60.0, |frame| frame.dt);
     let mut frame_bytes = [0_u8; 720];
     frame_bytes[584..588].copy_from_slice(&dt.to_le_bytes());
-    let frame_uniform = device.create_buffer_with_data(&gpu::BufferInitDescriptor {
-        label: Some("tidewater ocean frame dt"),
-        contents: &frame_bytes,
-        usage: gpu::BufferUsages::UNIFORM,
-    });
     let mut params = staged.0.params;
     if let Some(frame) = live {
         debug_assert_eq!(step, frame.step);
@@ -388,6 +432,19 @@ fn compute(
     }
     #[allow(clippy::cast_possible_truncation)]
     params[212..216].copy_from_slice(&(execution.time as f32).to_le_bytes());
+    if live.is_none()
+        && step > 0
+        && let Some(frames) = &staged.0.frames
+    {
+        let acquired = &frames[usize::try_from(step - 1).expect("bounded acquired FFT frame")];
+        params = acquired.params;
+        frame_bytes = acquired.global;
+    }
+    let frame_uniform = device.create_buffer_with_data(&gpu::BufferInitDescriptor {
+        label: Some("tidewater ocean frame dt"),
+        contents: &frame_bytes,
+        usage: gpu::BufferUsages::UNIFORM,
+    });
     let uniform = device.create_buffer_with_data(&gpu::BufferInitDescriptor {
         label: Some("tidewater ocean step"),
         contents: &params,
@@ -486,9 +543,18 @@ fn compute(
         };
         pass.dispatch_workgroups(x, y, z);
     }
+    compute_span.end(context.command_encoder());
     targets.completed_steps.store(step, Ordering::Release);
     execution.next = step + 1;
-    if step == BOOTSTRAP_STEPS {
+    if step == staged.0.bootstrap_steps {
+        clock
+            .0
+            .publish_bootstrap(live_clock::LiveStep {
+                step,
+                time: execution.time,
+                dt: 1.0 / 60.0,
+            })
+            .expect("final encoded step matches validated acquired bootstrap");
         targets.ready.store(true, Ordering::Release);
     }
     if live.is_some() {

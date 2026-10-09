@@ -100,7 +100,7 @@ impl PierMotionPackage {
             verify(entry, &bytes)?;
             files.insert(name.clone(), bytes);
         }
-        Self::finish(index, files, geometry)
+        Self::finish(&index, &files, geometry)
     }
 
     pub async fn load_async<F, Fut>(
@@ -119,12 +119,16 @@ impl PierMotionPackage {
             verify(entry, &bytes)?;
             files.insert(name.clone(), bytes);
         }
-        Self::finish(index, files, geometry)
+        Self::finish(&index, &files, geometry)
     }
 
+    #[allow(
+        clippy::float_cmp,
+        reason = "Captured initial state must retain exact rest values and identity rotations before simulation"
+    )]
     fn finish(
-        index: Manifest,
-        files: BTreeMap<String, Vec<u8>>,
+        index: &Manifest,
+        files: &BTreeMap<String, Vec<u8>>,
         geometry: &PierPackage,
     ) -> Result<Self, String> {
         let license = &files[&index.license.file];

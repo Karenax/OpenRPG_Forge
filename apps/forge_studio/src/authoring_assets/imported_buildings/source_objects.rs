@@ -1,8 +1,9 @@
 //! Import adapter: source object metadata comes from verified packages, never UI presets.
 mod binding;
 use super::{
-    boardwalk_templates, fish_stand_package, pier_template, plant_package, plaza_templates,
-    terrain_package,
+    beach_props_templates, boardwalk_templates, debris_templates, fish_props_templates,
+    fish_stand_package, pier_template, plant_package, plaza_templates, terrain_package,
+    village_props_templates,
 };
 use binding::SourcePose;
 use forge_core::{ContentHash, Transform, UnitQuaternion, Vec3};
@@ -63,6 +64,42 @@ pub(crate) fn source_placements(head: &ZoneAuthoringHead) -> Result<Vec<ManualPl
             template.source_id,
             template.asset_id,
             forge_assets::tidewater_plaza::package_hash(),
+            template.transform,
+        )?;
+    }
+    for template in village_props_templates() {
+        add(
+            template.source_id.clone(),
+            template.source_id,
+            template.asset_id,
+            forge_assets::tidewater_village_props::package_hash(),
+            template.transform,
+        )?;
+    }
+    for template in beach_props_templates() {
+        add(
+            template.source_id.clone(),
+            template.source_id,
+            template.asset_id,
+            forge_assets::tidewater_beach_props::package_hash(),
+            template.transform,
+        )?;
+    }
+    for template in debris_templates() {
+        add(
+            template.source_id,
+            template.kind,
+            template.asset_id,
+            forge_assets::tidewater_debris::package_hash(),
+            template.transform,
+        )?;
+    }
+    for template in fish_props_templates() {
+        add(
+            template.source_id.clone(),
+            template.source_id,
+            template.asset_id,
+            forge_assets::tidewater_fish_props::package_hash(),
             template.transform,
         )?;
     }

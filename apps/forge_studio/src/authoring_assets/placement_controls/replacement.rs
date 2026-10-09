@@ -39,16 +39,16 @@ pub(super) fn ReplacementControls(
                     let ids = placements.iter().filter(|p| p.id == id || (matching.get_untracked()
                         && p.asset_id == source.asset_id && p.asset_hash == source.asset_hash))
                         .map(|p| p.id).collect();
-                    let browser = catalog.get_untracked().ok_or("Charger le catalogue")?;
                     let name = selected.get_untracked();
-                    let reference = browser.reference(&name).map_err(|e| e.to_string())?;
+                    let browser = super::super::catalog::resolve(catalog.get_untracked().as_ref(), &name)?;
+                    let reference = browser.reference();
                     let request = edit(state.get_untracked(), PlacementEdit::ReplaceAsset {
                         ids, expected_asset_id: source.asset_id, expected_asset_hash: source.asset_hash,
                         asset_id: reference.0, asset_hash: reference.1,
                     })?;
-                    Ok::<_, String>((original.content_hash()?, browser, name, reference, request))
+                    Ok::<_, String>((original.content_hash()?, browser, name, request))
                 })();
-                let (hash, browser, name, reference, request) = match setup {
+                let (hash, browser, name, request) = match setup {
                     Ok(value) => value,
                     Err(error) => { on_command.run(Err(error)); return; }
                 };
@@ -56,10 +56,11 @@ pub(super) fn ReplacementControls(
                 let ticket = super::super::preview::ticket();
                 busy.set(true);
                 wasm_bindgen_futures::spawn_local(async move {
-                    let checked = super::super::verify::check_reference(&browser, reference.0, reference.1).await;
+                    let checked = browser.check().await;
                     busy.set(false);
                     if !super::super::preview::is_current(ticket) || selected.get_untracked() != name { return; }
                     let result = checked.and_then(|_| {
+                        browser.still_available()?;
                         if head(state.get_untracked())?.content_hash()? != hash {
                             return Err("Zone modifiée ; recommencer l’examen du remplacement".into());
                         }
@@ -88,11 +89,11 @@ fn replacement_scope(
         .iter()
         .find(|p| p.id == id)
         .ok_or("Objet absent")?;
-    let catalog = catalog.ok_or("Charger le catalogue pour choisir la cible")?;
-    let reference = catalog.reference(target).map_err(|e| e.to_string())?;
-    let source_name = catalog
-        .resolve(source.asset_id, source.asset_hash)
-        .map_or_else(|_| source.asset_id.to_string(), |asset| asset.id.clone());
+    let reference = super::super::catalog::resolve(catalog, target)?.reference();
+    let source_name = super::super::catalog::entries(catalog)
+        .into_iter()
+        .find(|entry| entry.reference == (source.asset_id, source.asset_hash))
+        .map_or_else(|| source.asset_id.to_string(), |entry| entry.label);
     let (count, locked) = placements
         .iter()
         .filter(|p| {

@@ -12,6 +12,15 @@
 
 use std::{error::Error as StdError, fmt, ops::Range};
 
+#[path = "fish.rs"]
+mod fish;
+#[path = "full_stall.rs"]
+mod full_stall;
+#[path = "pebble.rs"]
+mod pebble;
+#[path = "scanned.rs"]
+mod scanned;
+
 pub const PACKET: &str = include_str!("packet.wgsl");
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -19,6 +28,12 @@ pub enum Family {
     TerrainLod,
     Plant,
     Village,
+    /// Acquired camera-following opaque field; source static world reprojection.
+    Pebble,
+    /// Acquired scanned instances with source LOD dithering and static reprojection.
+    Scanned,
+    /// Acquired opaque fish with real previous mesh model and source LOD coverage.
+    Fish,
     Ocean,
     /// Source late premultiplied lip, static world reprojection and real opacity.
     BreakerLip,
@@ -26,6 +41,8 @@ pub enum Family {
     Spray,
     /// Current bounded Forge `StallKit` adapter, not source beauty qualification.
     FishStand,
+    /// Complete opaque StallKit shading with the acquired array/mesh attributes.
+    FullStall,
 }
 
 #[derive(Debug)]
@@ -128,6 +145,15 @@ pub fn derive(family: Family, vertex: &str, fragment: &str) -> Result<Derived, E
                     Ok(format!("{prefix}\nvar alpha=1.0;\n#ifdef VILLAGE_KIND_6\nalpha=s.alpha;\n#endif\nreturn tidewater_auxiliary_world(vs.P,vs.tidewater_previous_P,alpha,1.0,vec4f(0.0));\n"))
                 }).map_err(&error)?;
         }
+        Family::Pebble => {
+            (vertex, fragment) = pebble::derive(&vertex, &fragment).map_err(&error)?;
+        }
+        Family::Scanned => {
+            (vertex, fragment) = scanned::derive(&vertex, &fragment).map_err(&error)?;
+        }
+        Family::Fish => {
+            (vertex, fragment) = fish::derive(&vertex, &fragment).map_err(&error)?;
+        }
         Family::Ocean => {
             require(&vertex, "let s=waterSurfaceVertex(node,grid.xz);", 1).map_err(&error)?;
             require(
@@ -143,6 +169,9 @@ pub fn derive(family: Family, vertex: &str, fragment: &str) -> Result<Derived, E
         }
         Family::FishStand => {
             (vertex, fragment) = fish_stand(vertex, fragment).map_err(&error)?;
+        }
+        Family::FullStall => {
+            (vertex, fragment) = full_stall::derive(&vertex, &fragment).map_err(&error)?;
         }
         Family::BreakerLip | Family::Spray => {
             fragment = late_world(family, &vertex, &fragment).map_err(&error)?;
@@ -277,8 +306,11 @@ fn entries(family: Family, vertex: &str, fragment: &str) -> Result<usize, &'stat
     let entry = match family {
         Family::TerrainLod => "fn vertex(v:LodInput)->VertexOutput {",
         Family::Plant => "fn vertex(v:ProbeVertex)->ProbeOut {",
-        Family::Village => "fn vertex(input:Input)->Output {",
+        Family::Village | Family::Pebble | Family::Scanned | Family::Fish => {
+            "fn vertex(input:Input)->Output {"
+        }
         Family::FishStand => "fn vertex(input: Input) -> Output {",
+        Family::FullStall => "fn vertex(input:StallVertexInput)->StallVertexOutput {",
         Family::BreakerLip => {
             "fn vertex(@location(0) position:vec3f,@location(1) sheetId:vec4f)->LipVertex{"
         }
@@ -711,6 +743,7 @@ mod tests {
             Family::Village,
             Family::Ocean,
             Family::FishStand,
+            Family::FullStall,
         ] {
             assert!(
                 derive(

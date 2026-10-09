@@ -55,6 +55,27 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::Village,
         MaterialRole::Opaque,
     )?;
+    // Nature has the same acquired ABI; its actual installed source shader is derived.
+    temporal::register_material::<forge_engine::tidewater_debris::nature::NatureMaterial>(
+        app,
+        Family::Village,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_debris::pebble_material::PebbleMaterial>(
+        app,
+        Family::Pebble,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_debris::scanned_material::ScannedMaterial>(
+        app,
+        Family::Scanned,
+        MaterialRole::Opaque,
+    )?;
+    temporal::register_material::<forge_engine::tidewater_fish_props::material::FishMaterial>(
+        app,
+        Family::Fish,
+        MaterialRole::Opaque,
+    )?;
     temporal::register_material::<super::water_optics::WaterMaterial>(
         app,
         Family::Ocean,
@@ -65,6 +86,13 @@ pub fn install(app: &mut App) -> Result<(), String> {
         Family::FishStand,
         MaterialRole::Opaque,
     )?;
+    if app.world().resource::<super::Probe>().fish_stand.is_some() {
+        temporal::register_material::<forge_engine::tidewater_stall::full_material::FullMaterial>(
+            app,
+            Family::FullStall,
+            MaterialRole::Opaque,
+        )?;
+    }
     temporal::register_material::<super::breaker_lip::LipMaterial>(
         app,
         Family::BreakerLip,
@@ -339,6 +367,24 @@ fn advance(world: &mut World) {
                 return Err("Instrumented proof lacks its three paired two-callback snapshots".into());
             }
             if !proof.screenshot_requested {
+                // The source-final observer publishes only after 124 actual GPU
+                // completions. Do not exit this combined probe before its receipt.
+                if let Some(path) = std::env::var_os("FORGE_TIDEWATER_SOURCE_FINAL_TRACE") {
+                    let path = PathBuf::from(path);
+                    if !path.is_file() {
+                        return Ok(());
+                    }
+                    let trace: serde_json::Value = serde_json::from_slice(
+                        &std::fs::read(&path).map_err(|error| error.to_string())?,
+                    )
+                    .map_err(|error| error.to_string())?;
+                    if trace["completed"].as_u64().is_none_or(|count| count < 124)
+                        || trace["actual_gpu_copies"] != true
+                        || trace["source_exposure_injected"] != false
+                    {
+                        return Err("Source final GPU trace lacks its real 124-image history".into());
+                    }
+                }
                 let path = proof.screenshot.clone();
                 world
                     .spawn(Screenshot::primary_window())
@@ -352,6 +398,20 @@ fn advance(world: &mut World) {
             return Ok(());
         }
         if proof.request.is_none() {
+            // Keep the camera static until the optional exact final-frame HDR
+            // readback is complete. No file or GPU ordinal is fabricated here.
+            if proof.captures.is_empty()
+                && let Some(folder) = std::env::var_os("FORGE_TIDEWATER_FINAL_HDR_CAPTURE")
+            {
+                let path = PathBuf::from(folder).join("planes.json");
+                if !path.is_file() { return Ok(()) }
+                let receipt: serde_json::Value = serde_json::from_slice(
+                    &std::fs::read(path).map_err(|error| error.to_string())?,
+                ).map_err(|error| error.to_string())?;
+                if receipt["submitted"] != 124 || receipt["actual_gpu_readback"] != true {
+                    return Err("Exact final HDR capture lacks submission124 GPU receipt".into());
+                }
+            }
             let ready = if proof.source_resolve {
                 frames.committed_resolve >= 40 && world.get_resource::<temporal::resolve::ResolveObservations>()
                     .and_then(|observations| observations.snapshot(view))

@@ -6,6 +6,12 @@ struct UnderwaterMapFrame { origins: vec4f, stamp: vec4u };
 @group(2) @binding(0) var<storage, read_write> uwBakeFrame: UnderwaterMapFrame;
 @group(2) @binding(1) var uwOutWaves: texture_storage_2d_array<rgba16float, write>;
 @group(2) @binding(2) var uwOutLevel: texture_storage_2d_array<rgba16float, write>;
+struct ForgeHazeLighting {
+    sun_sea: vec4f,
+    sun_color: vec4f,
+    sky_immersion: vec4f,
+}
+@group(2) @binding(3) var<storage, read_write> forgeHazeLighting: ForgeHazeLighting;
 
 struct UnderwaterLongWaves { height: f32, slope: vec2f, foam: f32 };
 fn underwaterLongWaves(xz: vec2f, texel: f32) -> UnderwaterLongWaves {
@@ -48,6 +54,12 @@ fn forge_underwater_light_maps(@builtin(global_invocation_id) gid: vec3u) {
     if (all(gid == vec3u(0))) {
         uwBakeFrame.origins = vec4f(origin0, origin1);
         uwBakeFrame.stamp = vec4u(frame.frameIndex, bitcast<u32>(frame.time), 512u, 2u);
+        // Capture fields unpacked from the actual prepared optical GPU uniform.
+        // Only this invocation writes them; the following render pass reads the
+        // snapshot after this entire compute dispatch, on the same device.
+        forgeHazeLighting.sun_sea = vec4f(frame.sunDir, frame.seaLevel);
+        forgeHazeLighting.sun_color = vec4f(frame.sunColor, 0.0);
+        forgeHazeLighting.sky_immersion = vec4f(frame.skyIrradiance, frame.cameraUnderwater);
     }
     let layer = i32(gid.z);
     let texel = select(0.25, 2.0, layer == 1);

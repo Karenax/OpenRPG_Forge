@@ -28,6 +28,8 @@ struct Entry {
 struct Manifest {
     schema: String,
     version: u32,
+    #[serde(default)]
+    bootstrap_frames: Option<usize>,
     source_commit: String,
     source_bundle_sha256: ContentHash,
     files: BTreeMap<String, Entry>,
@@ -39,6 +41,7 @@ struct Manifest {
 pub struct OceanPackage {
     files: BTreeMap<String, Vec<u8>>,
     source_bundle_sha256: ContentHash,
+    bootstrap_frames: usize,
 }
 
 impl OceanPackage {
@@ -49,16 +52,18 @@ impl OceanPackage {
         mut read: impl FnMut(&str, usize) -> Result<Vec<u8>, String>,
     ) -> Result<Self, String> {
         let metadata = parse(manifest, expected)?;
+        let bootstrap_frames = metadata.bootstrap_frames.unwrap_or(120);
         let mut files = BTreeMap::new();
         for (name, entry) in metadata.files {
             let bytes = read(&name, entry.bytes)?;
             verify(&entry, &bytes)?;
             files.insert(name, bytes);
         }
-        verify_inner(&files)?;
+        verify_inner(&files, metadata.version, bootstrap_frames)?;
         Ok(Self {
             files,
             source_bundle_sha256: metadata.source_bundle_sha256,
+            bootstrap_frames,
         })
     }
 
@@ -73,16 +78,18 @@ impl OceanPackage {
         Fut: std::future::Future<Output = Result<Vec<u8>, String>>,
     {
         let metadata = parse(manifest, expected)?;
+        let bootstrap_frames = metadata.bootstrap_frames.unwrap_or(120);
         let mut files = BTreeMap::new();
         for (name, entry) in metadata.files {
             let bytes = read(name.clone(), entry.bytes).await?;
             verify(&entry, &bytes)?;
             files.insert(name, bytes);
         }
-        verify_inner(&files)?;
+        verify_inner(&files, metadata.version, bootstrap_frames)?;
         Ok(Self {
             files,
             source_bundle_sha256: metadata.source_bundle_sha256,
+            bootstrap_frames,
         })
     }
 
@@ -95,32 +102,53 @@ impl OceanPackage {
     pub fn source_bundle_sha256(&self) -> ContentHash {
         self.source_bundle_sha256
     }
+
+    #[must_use]
+    pub fn bootstrap_frames(&self) -> usize {
+        self.bootstrap_frames
+    }
+
+    /// Explicit acquired frames are absent from the historical v1 package.
+    #[must_use]
+    pub fn has_acquired_frames(&self) -> bool {
+        self.files.contains_key("ocean-step001-params.bin")
+    }
 }
 
-fn required() -> BTreeSet<String> {
-    let mut names: BTreeSet<_> = [
-        "ocean.json",
-        "params-initial.bin",
-        "frame-120-frame.bin",
-        "frame-120-params.bin",
-        "LICENSE-Tidewater.txt",
-    ]
-    .into_iter()
-    .map(str::to_owned)
-    .collect();
+fn required(version: u32, frames: usize) -> BTreeSet<String> {
+    let mut names: BTreeSet<_> = ["ocean.json", "params-initial.bin", "LICENSE-Tidewater.txt"]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
     names.extend(KERNELS.map(|name| format!("{name}.wgsl")));
+    if version == 1 {
+        names.extend(["frame-120-frame.bin".into(), "frame-120-params.bin".into()]);
+    } else {
+        for step in 1..=frames {
+            names.insert(format!("ocean-step{step:03}-params.bin"));
+            names.insert(format!("ocean-step{step:03}-frame.bin"));
+        }
+    }
     names
 }
 
 fn parse(bytes: &[u8], expected: ContentHash) -> Result<Manifest, String> {
-    if bytes.len() > 8 * 1024 || bytes_sha256(bytes) != expected {
+    if bytes.len() > 256 * 1024 || bytes_sha256(bytes) != expected {
         return Err("Ocean manifest pin mismatch or size limit".into());
     }
     let manifest: Manifest = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
+    let frames = match (manifest.version, manifest.bootstrap_frames) {
+        (1, None) => 120,
+        (2, Some(count)) if (1..=256).contains(&count) => count,
+        _ => return Err("Unsupported ocean acquisition length".into()),
+    };
+    if manifest.version == 1 && bytes.len() > 8 * 1024 {
+        return Err("Ocean v1 manifest size limit".into());
+    }
     if manifest.schema != "forge.tidewater.ocean-input-package"
-        || manifest.version != 1
         || manifest.source_commit != COMMIT
-        || manifest.files.keys().cloned().collect::<BTreeSet<_>>() != required()
+        || manifest.files.keys().cloned().collect::<BTreeSet<_>>()
+            != required(manifest.version, frames)
     {
         return Err("Unsupported or incomplete ocean input package".into());
     }
@@ -133,7 +161,12 @@ fn parse(bytes: &[u8], expected: ContentHash) -> Result<Manifest, String> {
             .checked_add(entry.bytes)
             .ok_or("Ocean input size overflow")?;
     }
-    if total > 256 * 1024 {
+    let maximum = if manifest.version == 1 {
+        256 * 1024
+    } else {
+        1024 * 1024
+    };
+    if total > maximum {
         return Err("Ocean input package size limit".into());
     }
     Ok(manifest)
@@ -146,7 +179,11 @@ fn verify(entry: &Entry, bytes: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
-fn verify_inner(files: &BTreeMap<String, Vec<u8>>) -> Result<(), String> {
+fn verify_inner(
+    files: &BTreeMap<String, Vec<u8>>,
+    version: u32,
+    frames: usize,
+) -> Result<(), String> {
     let metadata: serde_json::Value =
         serde_json::from_slice(&files["ocean.json"]).map_err(|error| error.to_string())?;
     if metadata["schema"] != "forge.tidewater.ocean-probe"
@@ -157,6 +194,9 @@ fn verify_inner(files: &BTreeMap<String, Vec<u8>>) -> Result<(), String> {
     {
         return Err("Ocean source metadata mismatch".into());
     }
+    if version == 2 && metadata["bootstrap_frames"].as_u64() != Some(frames as u64) {
+        return Err("Ocean inner acquisition length mismatch".into());
+    }
     for (name, bytes) in files {
         if name == "ocean.json" || name == "LICENSE-Tidewater.txt" {
             continue;
@@ -166,12 +206,31 @@ fn verify_inner(files: &BTreeMap<String, Vec<u8>>) -> Result<(), String> {
             return Err(format!("Ocean source metadata pin mismatch: {name}"));
         }
     }
-    if files["params-initial.bin"].len() != 224
-        || files["frame-120-params.bin"].len() != 224
-        || files["frame-120-frame.bin"].len() != 720
-        || files["frame-120-frame.bin"][584..588] != (1.0_f32 / 60.0).to_le_bytes()
-    {
+    if files["params-initial.bin"].len() != 224 {
         return Err("Ocean source uniform layout mismatch".into());
+    }
+    let pairs = if version == 1 {
+        vec![(
+            "frame-120-params.bin".to_owned(),
+            "frame-120-frame.bin".to_owned(),
+        )]
+    } else {
+        (1..=frames)
+            .map(|step| {
+                (
+                    format!("ocean-step{step:03}-params.bin"),
+                    format!("ocean-step{step:03}-frame.bin"),
+                )
+            })
+            .collect()
+    };
+    for (params, frame) in pairs {
+        if files[&params].len() != 224
+            || files[&frame].len() != 720
+            || files[&frame][584..588] != (1.0_f32 / 60.0).to_le_bytes()
+        {
+            return Err("Ocean source uniform layout mismatch".into());
+        }
     }
     Ok(())
 }
@@ -226,6 +285,87 @@ mod tests {
             "files":entries
         }))
         .unwrap()
+    }
+
+    fn acquired_inputs(count: usize) -> BTreeMap<String, Vec<u8>> {
+        let mut files = inputs();
+        let frame = files.remove("frame-120-frame.bin").unwrap();
+        let params = files.remove("frame-120-params.bin").unwrap();
+        for step in 1..=count {
+            files.insert(format!("ocean-step{step:03}-frame.bin"), frame.clone());
+            files.insert(format!("ocean-step{step:03}-params.bin"), params.clone());
+        }
+        let pins: BTreeMap<_, _> = files
+            .iter()
+            .filter(|(name, _)| !["ocean.json", "LICENSE-Tidewater.txt"].contains(&name.as_str()))
+            .map(|(name, bytes)| (name.clone(), bytes_sha256(bytes).to_string()))
+            .collect();
+        let mut inner: serde_json::Value = serde_json::from_slice(&files["ocean.json"]).unwrap();
+        inner["bootstrap_frames"] = json!(count);
+        inner["files"] = json!(pins);
+        files.insert("ocean.json".into(), serde_json::to_vec(&inner).unwrap());
+        files
+    }
+
+    fn acquired_manifest(files: &BTreeMap<String, Vec<u8>>, count: usize) -> serde_json::Value {
+        let mut value: serde_json::Value = serde_json::from_slice(&manifest(files)).unwrap();
+        value["version"] = json!(2);
+        value["bootstrap_frames"] = json!(count);
+        value
+    }
+
+    fn accepts(files: &BTreeMap<String, Vec<u8>>, value: &serde_json::Value) -> bool {
+        let bytes = serde_json::to_vec(value).unwrap();
+        OceanPackage::load(&bytes, bytes_sha256(&bytes), |name, _| {
+            Ok(files[name].clone())
+        })
+        .is_ok()
+    }
+
+    #[test]
+    fn acquired_preparation_frames_load_with_their_complete_dependency_set() {
+        let files = acquired_inputs(124);
+        let bytes = serde_json::to_vec(&acquired_manifest(&files, 124)).unwrap();
+        let package = OceanPackage::load(&bytes, bytes_sha256(&bytes), |name, _| {
+            Ok(files[name].clone())
+        })
+        .unwrap();
+        assert_eq!(package.bootstrap_frames(), 124);
+        assert!(package.has_acquired_frames());
+        assert!(package.file("ocean-step124-frame.bin").is_some());
+        assert!(package.file("frame-120-frame.bin").is_none());
+        assert_eq!(package.files.len(), 260);
+    }
+
+    #[test]
+    fn acquisition_count_is_bounded_and_cannot_relabel_a_legacy_package() {
+        let files = acquired_inputs(124);
+        let mut value = acquired_manifest(&files, 124);
+        value.as_object_mut().unwrap().remove("bootstrap_frames");
+        assert!(!accepts(&files, &value));
+        for count in [0, 257] {
+            assert!(!accepts(&files, &acquired_manifest(&files, count)));
+        }
+        let legacy = inputs();
+        let mut value: serde_json::Value = serde_json::from_slice(&manifest(&legacy)).unwrap();
+        value["bootstrap_frames"] = json!(120);
+        assert!(!accepts(&legacy, &value));
+        let mut missing = files.clone();
+        missing.remove("ocean-step124-frame.bin");
+        assert!(!accepts(&missing, &acquired_manifest(&missing, 124)));
+        assert!(!accepts(&files, &acquired_manifest(&files, 123)));
+    }
+
+    #[test]
+    fn acquired_inner_count_must_match_the_outer_manifest() {
+        let files = acquired_inputs(123);
+        let mut value = acquired_manifest(&files, 124);
+        let complete = acquired_inputs(124);
+        value["files"] = acquired_manifest(&complete, 124)["files"].clone();
+        let mut mismatched = complete;
+        mismatched.insert("ocean.json".into(), files["ocean.json"].clone());
+        value["files"]["ocean.json"] = json!({"sha256":bytes_sha256(&mismatched["ocean.json"]),"bytes":mismatched["ocean.json"].len()});
+        assert!(!accepts(&mismatched, &value));
     }
 
     #[test]

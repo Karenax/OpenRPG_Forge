@@ -4,10 +4,11 @@
 //! module accepts a client-supplied filesystem path, and the Vault is never
 //! written to.
 use crate::asset_library_protocol::{
-    LibraryCard, LibraryDetail, LibraryFacets, LibraryPage, LibraryQuery, LibraryRequest,
-    LibraryResponse,
+    LibraryCard, LibraryDetail, LibraryFacets, LibraryModel, LibraryPage, LibraryQuery,
+    LibraryRequest, LibraryResponse, vault_asset_id,
 };
 use serde_json::Value;
+mod history;
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -24,6 +25,7 @@ const MAX_ASSETS: usize = 100_000;
 const MAX_ID: usize = 512;
 const MAX_QUERY: usize = 256;
 const MAX_THUMBNAIL: u64 = 512 * 1024;
+const MAX_MODEL: u64 = crate::asset_library_model_wire::MAX_MODEL_BYTES as u64;
 const MAX_SOURCE_SUPPORT: u64 = 128 * 1024 * 1024;
 const DEFAULT_LIMIT: usize = 24;
 const MAX_LIMIT: usize = 48;
@@ -263,6 +265,38 @@ impl Library {
                     }
                     LibraryResponse::Thumbnail { bytes }
                 }
+                LibraryRequest::Model { id, revision } => {
+                    let asset = Self::pinned_asset(snapshot, &id, &revision)?;
+                    LibraryResponse::Model {
+                        model: self.read_model(asset)?,
+                    }
+                }
+                LibraryRequest::ModelReference { asset_id, sha256 } => {
+                    let mut matches = snapshot
+                        .assets
+                        .iter()
+                        .filter(|asset| vault_asset_id(&asset.card.id) == asset_id);
+                    let asset = matches.next().ok_or("référence du Vault inconnue")?;
+                    if matches.next().is_some() {
+                        return Err("référence du Vault ambiguë".to_owned());
+                    }
+                    if asset.card.availability != "converted_model" {
+                        return Err("source conservée non plaçable".to_owned());
+                    }
+                    // Check the saved pin before reading any payload.
+                    if forge_core::ContentHash::parse(required(&asset.details, "model_sha256")?)
+                        .map_err(|e| e.to_string())?
+                        != sha256
+                    {
+                        LibraryResponse::Model {
+                            model: self.read_historical_model(snapshot, asset, sha256)?,
+                        }
+                    } else {
+                        LibraryResponse::Model {
+                            model: self.read_model(asset)?,
+                        }
+                    }
+                }
             }
         };
         #[cfg(test)]
@@ -278,6 +312,36 @@ impl Library {
             return Err(error);
         }
         Ok(response)
+    }
+
+    fn read_model(&self, asset: &StoredAsset) -> Result<LibraryModel, String> {
+        if asset.card.availability != "converted_model" {
+            return Err("source conservée non plaçable".to_owned());
+        }
+        let path = self
+            .resolve_access(asset, false)?
+            .model
+            .ok_or("modèle absent")?;
+        let bytes = read_model_limited(&path, MAX_MODEL)?;
+        let expected = required(&asset.details, "model_sha256")?;
+        if !same_hash(&bytes, expected) {
+            return Err("empreinte de modèle incohérente".to_owned());
+        }
+        // Envelope admission only; the existing governed GLB validator must
+        // still run before GPU loading. This does not qualify geometry/rendering.
+        if bytes.len() < 20
+            || &bytes[..4] != b"glTF"
+            || u32::from_le_bytes(bytes[4..8].try_into().unwrap()) != 2
+            || u32::from_le_bytes(bytes[8..12].try_into().unwrap()) as usize != bytes.len()
+        {
+            return Err("enveloppe GLB invalide ou tronquée".to_owned());
+        }
+        Ok(LibraryModel {
+            id: asset.card.id.clone(),
+            asset_id: vault_asset_id(&asset.card.id),
+            sha256: forge_core::ContentHash::from_bytes(Sha256::digest(&bytes).into()),
+            bytes,
+        })
     }
 
     fn verify_registry_pins(&self, expected: &[u8], support: Option<&[u8]>) -> Result<(), String> {
@@ -1331,6 +1395,34 @@ fn same_value(left: &Value, left_key: &str, right: &Value, right_key: &str) -> b
 fn parse_json(raw: &[u8], label: &str) -> Result<Value, String> {
     serde_json::from_slice(raw).map_err(|error| format!("JSON {label} invalide: {error}"))
 }
+
+/// Reserve packet headroom before reading a bounded model. Metadata size is
+/// checked first; shrink/growth during reading remains a refusal.
+fn read_model_limited(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
+    let file = fs::File::open(path).map_err(|error| format!("lecture refusée: {error}"))?;
+    let metadata = file
+        .metadata()
+        .map_err(|error| format!("lecture refusée: {error}"))?;
+    if !metadata.is_file() || metadata.len() > limit {
+        return Err("fichier absent, non régulier ou trop volumineux".to_owned());
+    }
+    let body_len = usize::try_from(metadata.len()).map_err(|_| "taille de modèle invalide")?;
+    let capacity = body_len
+        .checked_add(crate::asset_library_model_wire::MODEL_HEADER_HEADROOM)
+        .ok_or("taille de modèle invalide")?;
+    let mut bytes = Vec::new();
+    bytes
+        .try_reserve_exact(capacity)
+        .map_err(|error| format!("allocation de modèle refusée: {error}"))?;
+    file.take(metadata.len().saturating_add(1))
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("lecture impossible: {error}"))?;
+    if bytes.len() != body_len {
+        return Err("modèle modifié pendant la lecture".to_owned());
+    }
+    Ok(bytes)
+}
+
 fn read_limited(path: &Path, limit: u64) -> Result<Vec<u8>, String> {
     let file = fs::File::open(path).map_err(|error| format!("lecture refusée: {error}"))?;
     if !file
@@ -1465,7 +1557,165 @@ mod tests {
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    fn fixture() -> (PathBuf, String) {
+    #[test]
+    fn vault_model_transport_refuses_preserved_sources_and_invalid_envelopes() {
+        let (root, _) = fixture();
+        let support_id = add_source_support(&root);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        assert!(
+            library
+                .execute(LibraryRequest::Model {
+                    id: support_id.clone(),
+                    revision: page.revision.clone(),
+                })
+                .unwrap_err()
+                .contains("non plaçable")
+        );
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id(&support_id),
+                    sha256: forge_core::ContentHash::from_bytes([0; 32]),
+                })
+                .unwrap_err()
+                .contains("non plaçable")
+        );
+        // This fixture has matching metadata hashes but deliberately contains
+        // only three bytes. Metadata integrity is not model admission.
+        assert!(
+            library
+                .execute(LibraryRequest::Model {
+                    id: "demo.arbre-eclaire".into(),
+                    revision: page.revision,
+                })
+                .unwrap_err()
+                .contains("GLB")
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn vault_model_transport_refuses_oversized_payload_before_reading() {
+        let (root, revision) = fixture();
+        let file = fs::OpenOptions::new()
+            .write(true)
+            .open(root.join("normalized/demo/models/a.glb"))
+            .unwrap();
+        file.set_len(MAX_MODEL + 1).unwrap();
+        drop(file);
+        let mut library = Library::new(&root).unwrap();
+        assert!(
+            library
+                .execute(LibraryRequest::Model {
+                    id: "demo.arbre-eclaire".into(),
+                    revision,
+                })
+                .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn vault_model_transport_pins_selection_and_persisted_content() {
+        let (root, _) = fixture();
+        let catalog_path = root.join("normalized/demo/catalog.v1.json");
+        let pack = root.join("metadata/rev/demo/one");
+        let mut details: Value =
+            serde_json::from_slice(&fs::read(pack.join("details.v1.json")).unwrap()).unwrap();
+        let mut profiles: Value =
+            serde_json::from_slice(&fs::read(pack.join("profiles.v1.json")).unwrap()).unwrap();
+        let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path).unwrap()).unwrap();
+        // Minimal GLB envelope, deliberately not a geometry/runtime qualification.
+        let json = br#"{"asset":{"version":"2.0"}}  "#;
+        let mut bytes = b"glTF".to_vec();
+        bytes.extend_from_slice(&2_u32.to_le_bytes());
+        bytes.extend_from_slice(&((20 + json.len()) as u32).to_le_bytes());
+        bytes.extend_from_slice(&(json.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(b"JSON");
+        bytes.extend_from_slice(json);
+        let hash = sha256(&bytes);
+        details["assets"][0]["model_sha256"] = hash.clone().into();
+        profiles["profiles"][0]["model_content_sha256"] = hash.clone().into();
+        catalog["assets"][0]["sha256"] = hash.clone().into();
+        fs::write(root.join("normalized/demo/models/a.glb"), &bytes).unwrap();
+        write_pack_fixture(&root, "demo", details, profiles, catalog, &catalog_path);
+        let mut library = Library::new(&root).unwrap();
+        let LibraryResponse::Page { page } = library
+            .execute(LibraryRequest::Search {
+                query: LibraryQuery::default(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        let id = page.assets[0].id.clone();
+        let LibraryResponse::Model { model } = library
+            .execute(LibraryRequest::Model {
+                id: id.clone(),
+                revision: page.revision.clone(),
+            })
+            .unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(model.bytes, bytes);
+        assert_eq!(model.asset_id, vault_asset_id(&id));
+        assert!(matches!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: model.asset_id,
+                    sha256: model.sha256
+                })
+                .unwrap(),
+            LibraryResponse::Model { .. }
+        ));
+        assert!(
+            library
+                .execute(LibraryRequest::Model {
+                    id,
+                    revision: "stale".into()
+                })
+                .is_err()
+        );
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: model.asset_id,
+                    sha256: forge_core::ContentHash::from_bytes([0; 32])
+                })
+                .is_err()
+        );
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: vault_asset_id("unknown"),
+                    sha256: model.sha256
+                })
+                .is_err()
+        );
+        let last = bytes.len() - 1;
+        bytes[last] ^= 1;
+        fs::write(root.join("normalized/demo/models/a.glb"), bytes).unwrap();
+        assert!(
+            library
+                .execute(LibraryRequest::ModelReference {
+                    asset_id: model.asset_id,
+                    sha256: model.sha256
+                })
+                .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    pub(super) fn fixture() -> (PathBuf, String) {
         let root = std::env::temp_dir().join(format!(
             "forge-library-{}",
             SystemTime::now()
@@ -2931,5 +3181,37 @@ mod tests {
             }
             let _ = fs::remove_dir_all(root);
         }
+    }
+}
+
+#[cfg(test)]
+mod model_headroom_tests {
+    use super::*;
+    #[test]
+    fn model_reader_reserves_packet_headroom_and_refuses_oversized_or_non_regular_files() {
+        let root =
+            std::env::temp_dir().join(format!("forge-model-headroom-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        let path = root.join("body.bin");
+        fs::write(&path, b"original-body").unwrap();
+        let body = read_model_limited(&path, 13).unwrap();
+        assert_eq!(body, b"original-body");
+        assert!(
+            body.capacity() >= body.len() + crate::asset_library_model_wire::MODEL_HEADER_HEADROOM
+        );
+        let pointer = body.as_ptr();
+        let id = "headroom-model".to_owned();
+        let model = LibraryModel {
+            asset_id: vault_asset_id(&id),
+            sha256: forge_core::bytes_sha256(&body),
+            id,
+            bytes: body,
+        };
+        let packet = crate::asset_library_model_wire::encode(model).unwrap();
+        assert_eq!(packet.as_ptr(), pointer);
+        assert!(read_model_limited(&path, 12).is_err());
+        assert!(read_model_limited(&root, 13).is_err());
+        fs::remove_file(&path).unwrap();
+        fs::remove_dir(&root).unwrap();
     }
 }
