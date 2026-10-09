@@ -1,4 +1,0 @@
-void main()
-{
-    variable("encounter.warden.state", "exited");
-}

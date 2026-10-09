@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup />
-  <ItemGroup>
-    <ProjectReference Include="..\Forge.Network\Forge.Network.csproj" />
-  </ItemGroup>
-</Project>

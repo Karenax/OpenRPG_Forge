@@ -1,6 +1,0 @@
-interface:
-  display_name: "OpenRPG Delivery Gate"
-  short_description: "Valider une livraison OpenRPG avec preuves"
-  default_prompt: "Use $openrpg-delivery-gate to validate this bounded OpenRPG change with reproducible evidence."
-policy:
-  allow_implicit_invocation: true

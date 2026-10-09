@@ -1,6 +1,0 @@
-interface:
-  display_name: "OpenRPG Visual Review"
-  short_description: "Inspecter le prototype fonctionnel visuellement"
-  default_prompt: "Use $openrpg-prototype-visual-review to inspect this OpenRPG prototype through a real user-visible scenario."
-policy:
-  allow_implicit_invocation: true

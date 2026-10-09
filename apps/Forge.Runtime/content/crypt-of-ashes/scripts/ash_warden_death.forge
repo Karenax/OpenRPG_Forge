@@ -1,6 +1,0 @@
-void main()
-{
-    variable("warden.defeated", "true");
-    say("Le Gardien des Cendres est vaincu. Rejoignez la sortie lumineuse.");
-    quest("crypt-of-ashes");
-}

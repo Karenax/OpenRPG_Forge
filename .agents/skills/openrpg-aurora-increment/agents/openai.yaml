@@ -1,6 +1,0 @@
-interface:
-  display_name: "OpenRPG Aurora Increment"
-  short_description: "Livrer un incrément Aurora borné et prouvé"
-  default_prompt: "Use $openrpg-aurora-increment to deliver the next bounded Aurora increment with linked evidence."
-policy:
-  allow_implicit_invocation: true

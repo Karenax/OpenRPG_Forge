@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup />
-  <ItemGroup>
-    <ProjectReference Include="..\Forge.Domain\Forge.Domain.csproj" />
-    <ProjectReference Include="..\Forge.RpgKit.Domain\Forge.RpgKit.Domain.csproj" />
-  </ItemGroup>
-</Project>

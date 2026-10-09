@@ -1,5 +1,0 @@
-using Forge.LiveDirector.Authoring;
-using Forge.Mcp.LiveDirector;
-using Forge.Network.Authoring;
-using Forge.Network.Operations;
-namespace Forge.Mcp.Tests.LiveDirector; public sealed class LiveDirectorNarrativeAgentServiceTests { [Fact] public void R130_PlanApplyRevert() { var i = LiveDirectorNarrativeProfile.CreateDefault(); var s = new LiveDirectorNarrativeAgentService(i); Assert.Equal(i, s.Get("quest")); var c = i with { ServerRevision = 1 }; var id = Guid.NewGuid(); Assert.True(s.Plan(new(id, 0, "gm", NetworkRole.GameMaster, NetworkAuthorityScope.Server, c)).Succeeded); Assert.True(s.Apply(id).Applied); Assert.Equal(i, s.Revert("gm", NetworkRole.GameMaster).Profile); } [Fact] public void R130_ScopeAndUnknownRejected() { var i = LiveDirectorNarrativeProfile.CreateDefault(); var s = new LiveDirectorNarrativeAgentService(i); Assert.Contains(s.Plan(new(Guid.NewGuid(), 0, "p", NetworkRole.Player, (NetworkAuthorityScope)99, i with { ServerRevision = 1 })).Diagnostics, x => x.Code == "LIVE_NARRATIVE_SCOPE_INVALID"); Assert.False(s.Apply(Guid.NewGuid()).Succeeded); } }

@@ -1,4 +1,0 @@
-void main()
-{
-    variable("crypt.script.last", "merchant_rule");
-}

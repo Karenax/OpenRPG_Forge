@@ -1,4 +1,0 @@
-void main()
-{
-    variable("crypt.script.last", "pillar_attack");
-}

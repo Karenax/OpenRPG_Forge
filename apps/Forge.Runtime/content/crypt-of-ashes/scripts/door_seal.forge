@@ -1,4 +1,0 @@
-void main()
-{
-    variable("crypt.script.last", "door_seal");
-}
