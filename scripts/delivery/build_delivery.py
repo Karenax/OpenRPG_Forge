@@ -190,6 +190,7 @@ def main():
         "Les assets sont séparés des applications. La bibliothèque privée complète se prépare à part.\n"
         "Cette livraison locale n’est pas une release qualifiée ni une clôture de Gate 3.\n", encoding="utf-8")
     write(args.output / "input-provenance.json", dict(schema="forge.delivery.inputs.v1",
+          assembly_script_sha256=digest(Path(__file__)),
           source_revision=args.source_revision, studio_sha256=digest(args.studio),
           studio_build_proof_sha256=digest(args.studio_proof), game_sha256=digest(runtime),
           source_manifest_sha256=digest(args.source_manifest) if args.source_manifest else None,
