@@ -371,7 +371,7 @@ type CameraEffectsQuery<'w, 's> = Query<
     (
         Option<&'static forge_engine::tidewater_gtao::TidewaterGtao>,
         Option<&'static forge_engine::tidewater_lens_flare::TidewaterLensFlare>,
-        Option<&'static forge_engine::tidewater_air_haze::TidewaterAirHaze>,
+        Option<&'static forge_engine::atmospheric_haze::AirHazeSettings>,
         Option<&'static bevy::post_process::motion_blur::MotionBlur>,
     ),
     bevy::ecs::query::With<forge_engine::ForgePlayerCamera>,

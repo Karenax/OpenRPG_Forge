@@ -11,6 +11,10 @@ fn floats(bytes: &[u8], size: usize) -> bool {
             .iter()
             .all(|v| f32::from_le_bytes(*v).is_finite())
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Source validation and GPU operations remain in execution order so rejection and resource mutation boundaries are auditable"
+)]
 pub(crate) fn validate(
     input: &Input,
     count: usize,

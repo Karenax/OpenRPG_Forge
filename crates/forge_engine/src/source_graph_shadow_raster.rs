@@ -15,6 +15,7 @@ pub struct SourceGraphShadowRasterState {
     clockwise_front_face: Option<bool>,
 }
 impl SourceGraphShadowRasterState {
+    #[must_use]
     pub fn is_orthographic_view(key: bevy::pbr::MeshPipelineKey) -> bool {
         key.intersection(bevy::pbr::MeshPipelineKey::VIEW_PROJECTION_RESERVED_BITS)
             == bevy::pbr::MeshPipelineKey::VIEW_PROJECTION_ORTHOGRAPHIC
@@ -38,10 +39,12 @@ impl SourceGraphShadowRasterState {
     }
     /// Explicit backend orientation for the resolved source shadow projection.
     /// No convention is inferred from an asset identity or a default view.
+    #[must_use]
     pub fn with_front_face(mut self, face: FrontFace) -> Self {
         self.clockwise_front_face = Some(face == FrontFace::Cw);
         self
     }
+    #[must_use]
     pub fn front_face(self) -> Option<FrontFace> {
         self.clockwise_front_face
             .map(|cw| if cw { FrontFace::Cw } else { FrontFace::Ccw })
@@ -91,19 +94,20 @@ mod tests {
     use super::*;
     use bevy::render::render_resource::DepthStencilState;
     fn descriptor() -> RenderPipelineDescriptor {
-        let mut d = RenderPipelineDescriptor::default();
-        d.depth_stencil = Some(DepthStencilState {
-            format: TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
-            depth_compare: Some(CompareFunction::GreaterEqual),
-            stencil: Default::default(),
-            bias: DepthBiasState {
-                constant: 3,
-                slope_scale: 0.25,
-                clamp: 0.0,
-            },
-        });
-        d
+        RenderPipelineDescriptor {
+            depth_stencil: Some(DepthStencilState {
+                format: TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(CompareFunction::GreaterEqual),
+                stencil: bevy::render::render_resource::StencilState::default(),
+                bias: DepthBiasState {
+                    constant: 3,
+                    slope_scale: 0.25,
+                    clamp: 0.0,
+                },
+            }),
+            ..Default::default()
+        }
     }
 
     #[test]
@@ -188,7 +192,7 @@ mod tests {
                 1 => depth.depth_compare = Some(CompareFunction::LessEqual),
                 2 => depth.depth_write_enabled = Some(false),
                 _ => d.depth_stencil = None,
-            };
+            }
             let before = d.depth_stencil.clone();
             let primitive_before = d.primitive;
             assert!(policy.apply(&mut d, true, true, true).is_err());

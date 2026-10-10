@@ -150,6 +150,10 @@ impl PreparedScene {
     ///
     /// # Errors
     /// Rejects a missing owner or a collision frame that differs from the mesh prototype.
+    #[allow(
+        clippy::float_cmp,
+        reason = "Captured collision and mesh frames must match exactly; tolerance would admit different source geometry."
+    )]
     pub fn with_collision_frames(
         mut self,
         geometry: &PreparedDebris,
@@ -178,6 +182,10 @@ impl PreparedScene {
     }
 
     /// Adopt one fully prepared batch; derived render state never edits authoring documents.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Source validation and GPU operations remain in execution order so rejection and resource mutation boundaries are auditable"
+    )]
     pub fn stage(self, world: &mut World) {
         let templates: BTreeMap<_, Vec<_>> = self
             .templates

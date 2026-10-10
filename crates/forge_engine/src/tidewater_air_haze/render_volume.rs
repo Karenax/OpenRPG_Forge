@@ -58,7 +58,7 @@ pub(super) struct Inputs<'w> {
     uniforms: Res<'w, ComponentUniforms<TidewaterAirHaze>>,
     images: Res<'w, RenderAssets<GpuImage>>,
     buffers: Res<'w, RenderAssets<GpuShaderBuffer>>,
-    scene: Res<'w, scene::Inputs>,
+    scene: Res<'w, crate::atmospheric_haze::scene::Inputs>,
     moon: Res<'w, moon::Inputs>,
     object: Option<Res<'w, tidewater_object_shadow::graph::Target>>,
     clouds: Option<Res<'w, tidewater_clouds::Targets>>,
@@ -79,6 +79,7 @@ type HazeView = (
     &'static targets::Targets,
     &'static tidewater_underwater::medium::Target,
     &'static Clock,
+    &'static crate::atmospheric_haze::AirHazeSettings,
 );
 
 fn draw(
@@ -109,13 +110,17 @@ fn draw(
     pass.draw(0..3, 0..1);
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The render pass keeps attachment, bind group, draw and diagnostic ordering visible in one operation"
+)]
 pub(super) fn render(
     view: ViewQuery<HazeView, With<ResolveEnabled>>,
     inputs: Inputs,
     mut context: RenderContext,
     mut reported: Local<bool>,
 ) {
-    let (target, depth, haze, index, frame, targets, medium, clock) = view.into_inner();
+    let (target, depth, haze, index, frame, targets, medium, clock, settings) = view.into_inner();
     if !inputs.hdr.ready_for(frame.tag, HdrRole::Haze)
         || target.main_texture_format() != TextureFormat::Rgba16Float
     {
@@ -130,7 +135,7 @@ pub(super) fn render(
     if !medium.encoded_for(frame.tag, size)
         || targets::Dimensions::from_output(
             frame.packet.sizes.zw(),
-            1.0,
+            settings.resolution_scale(),
             context.render_device().limits().max_texture_dimension_2d,
         ) != Some(targets.dimensions)
         || !inputs.programs.programs_ready(&inputs.cache)
@@ -161,12 +166,16 @@ pub(super) fn render(
     else {
         return;
     };
-    if !selected.encoded_for(object, clouds, optics, surface, lighting)
+    let Some(current) = scene::current(object, clouds, optics, surface, lighting) else {
+        return;
+    };
+    if !selected.encoded_for(&current)
         || !sampling.encoded_for(clouds)
         || !moon.encoded_for(atmosphere)
     {
         return;
     }
+    let selected = &selected.resources;
     let (
         Some(object_depth),
         Some(hill),
@@ -185,7 +194,7 @@ pub(super) fn render(
         inputs.images.get(&sampling.panorama),
         inputs.images.get(&moon.sky),
         inputs.buffers.get(&selected.live_shadow),
-        inputs.buffers.get(&selected.source_lighting),
+        inputs.buffers.get(&selected.lighting),
         inputs.uniforms.uniforms().binding(),
     )
     else {
@@ -202,11 +211,16 @@ pub(super) fn render(
     let device = context.render_device();
     let uniforms = passes::Uniforms::upload(
         passes::Volume {
-            control: Vec4::new(haze.density(), 1.0, 1.0, f32::from(clock.0)),
+            control: Vec4::new(
+                settings.density(),
+                settings.shafts(),
+                if settings.enabled { 1.0 } else { 0.0 },
+                f32::from(clock.0),
+            ),
             terrain_domain: selected.terrain_domain,
             cloud_rectangle: selected.cloud_rectangle,
             // Screen position/fade are evaluated from the resident lighting on GPU.
-            screen: Vec4::ZERO,
+            screen: Vec4::new(0.0, 0.0, if settings.god_rays { 1.0 } else { 0.0 }, 0.0),
         },
         device,
         &inputs.queue,

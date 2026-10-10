@@ -78,27 +78,33 @@ impl LanternMotion {
     /// Invalid input preserves the previous state.
     pub fn advance(&mut self, dt: f64, wind: Wind) -> Result<(), String> {
         self.validate()?;
-        let (n, h) = steps(dt, wind)?;
+        let (step_count, step_duration) = steps(dt, wind)?;
         let mut next = *self;
-        let v = wind.speed;
+        let wind_speed = wind.speed;
         let [wx, wz] = wind.direction;
-        let w = 5.4;
+        let frequency = 5.4;
         let damping = 0.05;
-        for _ in 0..n {
-            next.t += h;
-            let t = next.t;
-            let p = next.ph;
+        for _ in 0..step_count {
+            next.t += step_duration;
+            let time = next.t;
+            let phase = next.ph;
             let gust = 1.0
-                + 0.4 * (t * 0.73 + p).sin() * (t * 0.31 + p * 0.5).sin()
-                + 0.25 * (t * 2.3 + (t * 0.9 + p).sin() * 1.5).sin();
-            let px = 0.0011 * v * v * gust * wx
-                + 0.0012 * v * (t * 1.9 + p + (t * 0.53).sin() * 2.0).sin();
-            let pz = 0.0011 * v * v * gust * wz
-                + 0.0012 * v * (t * 1.6 + p * 1.7 + (t * 0.41).sin() * 2.0).sin();
-            next.vx += (w * w * (px - next.x) - 2.0 * damping * w * next.vx) * h;
-            next.x += next.vx * h;
-            next.vz += (w * w * (pz - next.z) - 2.0 * damping * w * next.vz) * h;
-            next.z += next.vz * h;
+                + 0.4 * (time * 0.73 + phase).sin() * (time * 0.31 + phase * 0.5).sin()
+                + 0.25 * (time * 2.3 + (time * 0.9 + phase).sin() * 1.5).sin();
+            let px = 0.0011 * wind_speed * wind_speed * gust * wx
+                + 0.0012 * wind_speed * (time * 1.9 + phase + (time * 0.53).sin() * 2.0).sin();
+            let pz = 0.0011 * wind_speed * wind_speed * gust * wz
+                + 0.0012
+                    * wind_speed
+                    * (time * 1.6 + phase * 1.7 + (time * 0.41).sin() * 2.0).sin();
+            next.vx += (frequency * frequency * (px - next.x)
+                - 2.0 * damping * frequency * next.vx)
+                * step_duration;
+            next.x += next.vx * step_duration;
+            next.vz += (frequency * frequency * (pz - next.z)
+                - 2.0 * damping * frequency * next.vz)
+                * step_duration;
+            next.z += next.vz * step_duration;
         }
         next.validate()?;
         *self = next;
@@ -129,27 +135,29 @@ impl SignMotion {
 
     pub fn advance(&mut self, dt: f64, wind: Wind) -> Result<(), String> {
         self.validate()?;
-        let (n, h) = steps(dt, wind)?;
+        let (step_count, step_duration) = steps(dt, wind)?;
         let mut next = *self;
-        let v = wind.speed;
+        let wind_speed = wind.speed;
         let [wx, wz] = wind.direction;
-        let w = 4.9;
+        let frequency = 4.9;
         let wt = 10.5;
-        for _ in 0..n {
-            next.t += h;
-            let t = next.t;
+        for _ in 0..step_count {
+            next.t += step_duration;
+            let time = next.t;
             let gust = 1.0
-                + 0.35 * (t * 0.73 + 1.3).sin() * (t * 0.31).sin()
-                + 0.22 * (t * 2.1 + (t * 0.9).sin()).sin()
-                + 0.1 * (t * 5.3 + 2.0).sin();
-            let push = -0.0033 * v * v * gust * wz * wz.abs()
-                - 0.0009 * v * (t * 1.7 + (t * 0.43).sin() * 2.0).sin();
-            next.av +=
-                (w * w * (push * next.a.cos() - next.a.sin()) - 2.0 * 0.07 * w * next.av) * h;
-            next.a += next.av * h;
-            let twist = 0.004 * v * v * wx * wz * gust + 0.0015 * v * (t * 2.9 + 1.1).sin();
-            next.bv += (wt * wt * (twist - next.b) - 2.0 * 0.12 * wt * next.bv) * h;
-            next.b += next.bv * h;
+                + 0.35 * (time * 0.73 + 1.3).sin() * (time * 0.31).sin()
+                + 0.22 * (time * 2.1 + (time * 0.9).sin()).sin()
+                + 0.1 * (time * 5.3 + 2.0).sin();
+            let push = -0.0033 * wind_speed * wind_speed * gust * wz * wz.abs()
+                - 0.0009 * wind_speed * (time * 1.7 + (time * 0.43).sin() * 2.0).sin();
+            next.av += (frequency * frequency * (push * next.a.cos() - next.a.sin())
+                - 2.0 * 0.07 * frequency * next.av)
+                * step_duration;
+            next.a += next.av * step_duration;
+            let twist = 0.004 * wind_speed * wind_speed * wx * wz * gust
+                + 0.0015 * wind_speed * (time * 2.9 + 1.1).sin();
+            next.bv += (wt * wt * (twist - next.b) - 2.0 * 0.12 * wt * next.bv) * step_duration;
+            next.b += next.bv * step_duration;
         }
         next.validate()?;
         *self = next;

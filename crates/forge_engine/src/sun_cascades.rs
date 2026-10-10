@@ -354,10 +354,10 @@ mod interactive_camera_tests {
     #[test]
     fn player_looking_to_sweep_remains_rigid() {
         let mut formerly_rejected = 0;
-        for yi in 0..1440 {
-            for pi in 0..180 {
-                let yaw = (yi as f32) * std::f32::consts::TAU / 1440.0;
-                let pitch = -1.5 + (pi as f32) * 3.0 / 179.0;
+        for yi in 0_u16..1440 {
+            for pi in 0_u8..180 {
+                let yaw = f32::from(yi) * std::f32::consts::TAU / 1440.0;
+                let pitch = -1.5 + f32::from(pi) * 3.0 / 179.0;
                 let rotation = Quat::from_rotation_y(yaw) * Quat::from_rotation_x(pitch);
                 let matrix = Transform::from_translation(Vec3::new(40.0, 4.5, -96.0))
                     .looking_to(rotation * Vec3::NEG_Z, Vec3::Y)

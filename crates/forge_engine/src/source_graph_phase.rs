@@ -1,7 +1,7 @@
 //! Phase metadata for source graph materials. Original graph code retains
 //! all alpha and shadow terminal expressions; no native cutoff replaces them.
-use super::{SourceGraphExtension, SourceGraphMaterial};
-use bevy::{material::OpaqueRendererMethod, prelude::*};
+use super::{SourceGraphExtension, SourceGraphMaterial, SourceGraphPhaseMaterial};
+use bevy::prelude::*;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Reflect)]
 pub enum SourceGraphSurfacePhase {
@@ -10,6 +10,7 @@ pub enum SourceGraphSurfacePhase {
     Transparent,
 }
 impl SourceGraphSurfacePhase {
+    #[must_use]
     pub fn from_original_flags(transparent: bool, alpha_test: bool) -> Self {
         if transparent {
             Self::Transparent
@@ -19,25 +20,24 @@ impl SourceGraphSurfacePhase {
             Self::Opaque
         }
     }
-    /// Bevy classifies the phase by AlphaMode's variant, independent of the
+    /// Bevy classifies the phase by `AlphaMode`'s variant, independent of the
     /// Mask payload. Zero here is a routing marker, NOT a source alpha cutoff.
     /// All source vertex/fragment/prepass stages replace native PBR stages and
     /// perform their own graph-derived clipping. Never pass this base alone to
-    /// a MeshMaterial3d<StandardMaterial> or native clipping shader.
-    fn base(self) -> StandardMaterial {
-        StandardMaterial {
+    /// a standalone phase-only base; source stages own clipping.
+    fn base(self) -> SourceGraphPhaseMaterial {
+        SourceGraphPhaseMaterial {
             alpha_mode: match self {
                 Self::Opaque => AlphaMode::Opaque,
                 Self::AlphaTest => AlphaMode::Mask(0.0),
                 Self::Transparent => AlphaMode::Blend,
             },
-            opaque_render_method: OpaqueRendererMethod::Forward,
-            ..Default::default()
         }
     }
 }
 /// Source stages own clipping, BRDF, and RGBA blending. The base supplies only
-/// native phase metadata; SourceGraphForwardState sets the actual blend factors.
+/// native phase metadata; `SourceGraphForwardState` sets the actual blend factors.
+#[must_use]
 pub fn source_graph_material(
     extension: SourceGraphExtension,
     phase: SourceGraphSurfacePhase,
@@ -51,6 +51,7 @@ pub fn source_graph_material(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::material::OpaqueRendererMethod;
     use bevy::pbr::Material;
     use bevy::pbr::{MeshPipelineKey, alpha_mode_pipeline_key};
     #[test]
@@ -118,13 +119,13 @@ mod tests {
             );
             match phase {
                 SourceGraphSurfacePhase::Opaque => {
-                    assert_eq!(Material::alpha_mode(&base), AlphaMode::Opaque)
+                    assert_eq!(Material::alpha_mode(&base), AlphaMode::Opaque);
                 }
                 SourceGraphSurfacePhase::AlphaTest => {
-                    assert!(matches!(Material::alpha_mode(&base), AlphaMode::Mask(_)))
+                    assert!(matches!(Material::alpha_mode(&base), AlphaMode::Mask(_)));
                 }
                 SourceGraphSurfacePhase::Transparent => {
-                    assert_eq!(Material::alpha_mode(&base), AlphaMode::Blend)
+                    assert_eq!(Material::alpha_mode(&base), AlphaMode::Blend);
                 }
             }
         }

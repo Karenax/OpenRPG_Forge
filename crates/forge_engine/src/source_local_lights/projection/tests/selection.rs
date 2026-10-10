@@ -107,6 +107,10 @@ fn source_local_lights_selection_refuses_empty_unknown_duplicate_and_overflow() 
 }
 
 #[test]
+#[expect(
+    clippy::float_cmp,
+    reason = "Exact source flags and preserved payload values must not admit a tolerance"
+)]
 fn source_local_lights_selection_instances_move_replace_and_retire_independently() {
     let document = inventory();
     let (mut app, camera, owner, _) = scene();

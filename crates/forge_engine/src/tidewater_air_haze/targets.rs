@@ -134,6 +134,7 @@ type SelectedViews<'w, 's> = Query<
     (
         Entity,
         &'static crate::tidewater_temporal::frame::ViewPacket,
+        &'static crate::atmospheric_haze::AirHazeSettings,
         Option<&'static Targets>,
     ),
     (
@@ -149,10 +150,10 @@ pub(super) fn prepare(
     device: Res<RenderDevice>,
     mut cache: ResMut<TextureCache>,
 ) {
-    for (entity, frame, existing) in &views {
+    for (entity, frame, settings, existing) in &views {
         let Some(dimensions) = Dimensions::from_output(
             frame.packet.sizes.zw(),
-            1.0,
+            settings.resolution_scale(),
             device.limits().max_texture_dimension_2d,
         ) else {
             commands.entity(entity).remove::<Targets>();

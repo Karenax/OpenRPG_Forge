@@ -11,6 +11,65 @@ pub struct SourceGraphScalarParameterContract {
     pub values: SourceGraphBlob,
 }
 
+impl SourceGraphMaterialContract {
+    pub fn read_scalar_parameters(
+        &self,
+        views: &[&[u8]],
+    ) -> Result<Option<SourceMaterialScalarParameters>, SourceGraphContractError> {
+        let declares_scalars = |stage: &SourceGraphBlob| {
+            let source = std::str::from_utf8(blob(stage, views)?)
+                .map_err(|_| SourceGraphContractError::InvalidShader)?;
+            Ok::<_, SourceGraphContractError>(source.lines().any(|line| {
+                let code = line.split("//").next().unwrap_or_default();
+                let compact: String = code.split_whitespace().collect();
+                compact.contains("@binding(120)") && compact.contains("var<uniform>")
+            }))
+        };
+        let forward = declares_scalars(&self.forward)?;
+        let prepass = declares_scalars(&self.prepass)?;
+        if forward != prepass || forward != self.scalar_parameters.is_some() {
+            return Err(SourceGraphContractError::ScalarParameters);
+        }
+        let Some(contract) = &self.scalar_parameters else {
+            return Ok(None);
+        };
+        if self.schema_version != 5
+            || contract.names.is_empty()
+            || contract.names.len() > SOURCE_SCALAR_CAPACITY
+            || contract.names.iter().any(|name| name.len() > 256)
+        {
+            return Err(SourceGraphContractError::ScalarParameters);
+        }
+        let bytes = blob(&contract.values, views)?;
+        if bytes.len() != SOURCE_SCALAR_CAPACITY * 4 {
+            return Err(SourceGraphContractError::ScalarParameters);
+        }
+        let slots = contract
+            .names
+            .iter()
+            .enumerate()
+            .map(|(index, name)| {
+                let offset = index * 4;
+                (
+                    name.clone(),
+                    f32::from_le_bytes(
+                        bytes[offset..offset + 4]
+                            .try_into()
+                            .expect("checked packet length"),
+                    ),
+                )
+            })
+            .collect();
+        let parameters = SourceMaterialScalarParameters::from_compiler_slots(slots)
+            .map_err(|_| SourceGraphContractError::ScalarParameters)?;
+        // Reject nonfinite values, undeclared trailing values, and noncanonical padding.
+        if parameters.little_endian_uniform_bytes().as_slice() != bytes {
+            return Err(SourceGraphContractError::ScalarParameters);
+        }
+        Ok(Some(parameters))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,7 +104,10 @@ mod tests {
         let values = c.read_scalar_parameters(&[STAGE, &p]).unwrap().unwrap();
         assert_eq!(values.little_endian_uniform_bytes(), p);
         assert_eq!(values.slot("measured_mask_g"), Some(1));
-        assert_eq!(values.vec4_lanes()[0], [1., 1., 0., 0.]);
+        assert_eq!(
+            values.vec4_lanes()[0].map(f32::to_bits),
+            [1.0_f32, 1.0, 0.0, 0.0].map(f32::to_bits)
+        );
         let json = serde_json::to_vec(&c).unwrap();
         let reopened: SourceGraphMaterialContract = serde_json::from_slice(&json).unwrap();
         assert_eq!(reopened, c);
@@ -103,64 +165,5 @@ mod tests {
             sha256: bytes_sha256(other),
         };
         assert!(c.validate_integrity(&[STAGE, &p, other]).is_err());
-    }
-}
-
-impl SourceGraphMaterialContract {
-    pub fn read_scalar_parameters(
-        &self,
-        views: &[&[u8]],
-    ) -> Result<Option<SourceMaterialScalarParameters>, SourceGraphContractError> {
-        let declares_scalars = |stage: &SourceGraphBlob| {
-            let source = std::str::from_utf8(blob(stage, views)?)
-                .map_err(|_| SourceGraphContractError::InvalidShader)?;
-            Ok::<_, SourceGraphContractError>(source.lines().any(|line| {
-                let code = line.split("//").next().unwrap_or_default();
-                let compact: String = code.split_whitespace().collect();
-                compact.contains("@binding(120)") && compact.contains("var<uniform>")
-            }))
-        };
-        let forward = declares_scalars(&self.forward)?;
-        let prepass = declares_scalars(&self.prepass)?;
-        if forward != prepass || forward != self.scalar_parameters.is_some() {
-            return Err(SourceGraphContractError::ScalarParameters);
-        }
-        let Some(contract) = &self.scalar_parameters else {
-            return Ok(None);
-        };
-        if self.schema_version != 5
-            || contract.names.is_empty()
-            || contract.names.len() > SOURCE_SCALAR_CAPACITY
-            || contract.names.iter().any(|name| name.len() > 256)
-        {
-            return Err(SourceGraphContractError::ScalarParameters);
-        }
-        let bytes = blob(&contract.values, views)?;
-        if bytes.len() != SOURCE_SCALAR_CAPACITY * 4 {
-            return Err(SourceGraphContractError::ScalarParameters);
-        }
-        let slots = contract
-            .names
-            .iter()
-            .enumerate()
-            .map(|(index, name)| {
-                let offset = index * 4;
-                (
-                    name.clone(),
-                    f32::from_le_bytes(
-                        bytes[offset..offset + 4]
-                            .try_into()
-                            .expect("checked packet length"),
-                    ),
-                )
-            })
-            .collect();
-        let parameters = SourceMaterialScalarParameters::from_compiler_slots(slots)
-            .map_err(|_| SourceGraphContractError::ScalarParameters)?;
-        // Reject nonfinite values, undeclared trailing values, and noncanonical padding.
-        if parameters.little_endian_uniform_bytes().as_slice() != bytes {
-            return Err(SourceGraphContractError::ScalarParameters);
-        }
-        Ok(Some(parameters))
     }
 }

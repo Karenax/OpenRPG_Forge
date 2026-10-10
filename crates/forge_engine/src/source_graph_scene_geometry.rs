@@ -59,6 +59,10 @@ fn unsigned(value: &Value) -> Result<usize, String> {
 /// Prepare the complete selected static scene before changing host entities or
 /// assets. Root placement, transforms, ordinary primitives and material indices
 /// stay explicit. No name, pack, module, PBR substitute or texture is inferred.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Source scene nodes and primitive ranges are checked before the complete immutable geometry packet is returned"
+)]
 pub fn prepare_source_graph_scene_geometry(
     glb: &SourceGraphGlb<'_>,
     selected_scene: Option<usize>,

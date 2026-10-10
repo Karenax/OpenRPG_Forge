@@ -568,6 +568,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn invalid_input_does_not_advance_light_history_or_publish_nan() {
         let mut collector = Collector::default();
         collector.toggle_flashlight(true);
@@ -602,6 +606,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn live_child_pose_and_registration_inventory_follow_ecs_lifecycle() {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, TransformPlugin));

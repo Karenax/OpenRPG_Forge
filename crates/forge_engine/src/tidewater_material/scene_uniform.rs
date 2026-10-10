@@ -35,6 +35,10 @@ fn vector(source: &str) -> Result<(&str, [f32; 3]), String> {
 
 /// Accept only the acquired terrain/plant lighting interfaces, never guess a
 /// different shader's meaning. Binding 54 must be supplied by its material.
+#[expect(
+    clippy::float_cmp,
+    reason = "Exact source flags and preserved payload values must not admit a tolerance"
+)]
 pub fn prepare(source: &str) -> Result<Prepared, String> {
     if source.len() > 1_000_000
         || source.contains("@binding(54)")
@@ -78,7 +82,7 @@ pub fn prepare(source: &str) -> Result<Prepared, String> {
     }
     let sh_start = source.find(sh_anchor).unwrap();
     let sh_end = source[sh_start..]
-        .find(";")
+        .find(';')
         .ok_or("unterminated SH array")?
         + sh_start
         + 1;
@@ -132,10 +136,14 @@ mod tests {
     fn source() -> String {
         format!(
             "fn setup() {{ frame.sunDir=vec3f(0,1,0); }}\nfn shade() {{ direct(frame.sunDir,vec3f(2,3,4)*terrainSunShadowAt(P)*cloudsShadow(P.xz)); }}\nconst envSH=array<vec3f,9>({});\nfn indirect() {{ return envSH[ 0 ].rgb; }}",
-            vec!["vec3f(0.1,0.2,0.3)"; 9].join(",")
+            ["vec3f(0.1,0.2,0.3)"; 9].join(",")
         )
     }
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn replaces_light_and_sh_while_preserving_shadow_factors() {
         let prepared = prepare(&source()).unwrap();
         assert_eq!(prepared.seed.color, [2.0, 3.0, 4.0]);

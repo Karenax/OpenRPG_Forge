@@ -87,6 +87,10 @@ pub(super) fn dense_packet(local: &[u8]) -> bool {
 mod tests {
     use super::*;
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn dense_trace_refreshes_every_history_texel_and_preserves_validity() {
         assert_eq!(CloudTraceQuality::sampling(1.0), [0.0, 0.0, 1.0, 1.0]);
         assert_eq!(CloudTraceQuality::sampling(0.0), [0.0, 0.0, 1.0, 0.0]);

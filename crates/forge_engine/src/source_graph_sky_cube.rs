@@ -66,7 +66,7 @@ impl SourceGraphSkyCubeBinding {
 }
 
 impl SourceGraphSkyCube {
-    /// Input order is mip, then cube, then CubemapFace (+X,-X,+Y,-Y,+Z,-Z),
+    /// Input order is mip, then cube, then `CubemapFace` (+X,-X,+Y,-Y,+Z,-Z),
     /// then row/column. All native mips are retained, including empty tail mips.
     pub fn from_mip_major_rgba16f_le(
         bytes: &[u8],
@@ -104,8 +104,8 @@ impl SourceGraphSkyCube {
         if bytes_sha256(bytes) != expected_sha256 {
             return Err("Source sky storage SHA mismatch");
         }
-        for channel in bytes.chunks_exact(2) {
-            let bits = u16::from_le_bytes(channel.try_into().unwrap());
+        for channel in bytes.as_chunks::<2>().0 {
+            let bits = u16::from_le_bytes(*channel);
             if bits & 0x7c00 == 0x7c00 {
                 return Err("Source sky half channel is nonfinite");
             }
@@ -138,7 +138,10 @@ impl SourceGraphSkyCube {
             min_filter: ImageFilterMode::Linear,
             mipmap_filter: ImageFilterMode::Linear,
             lod_min_clamp: 0.0,
-            lod_max_clamp: (mip_count - 1) as f32,
+            lod_max_clamp: f32::from(
+                u16::try_from(mip_count - 1)
+                    .map_err(|_| "Source sky mip count exceeds sampler limits")?,
+            ),
             ..default()
         });
         Ok(Self { image })
@@ -174,6 +177,10 @@ mod tests {
             .collect()
     }
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn all_mips_and_cubes_preserved_in_one_shared_linear_image() {
         for cubes in [1, 2] {
             let bytes = valid(cubes);
@@ -300,28 +307,28 @@ mod tests {
                 8 => image.texture_view_descriptor = None,
                 9 => {
                     image.texture_view_descriptor.as_mut().unwrap().dimension =
-                        Some(TextureViewDimension::D2Array)
+                        Some(TextureViewDimension::D2Array);
                 }
                 10 => {
                     image
                         .texture_view_descriptor
                         .as_mut()
                         .unwrap()
-                        .base_mip_level = 1
+                        .base_mip_level = 1;
                 }
                 11 => {
                     image
                         .texture_view_descriptor
                         .as_mut()
                         .unwrap()
-                        .base_array_layer = 6
+                        .base_array_layer = 6;
                 }
                 12 => {
                     image
                         .texture_view_descriptor
                         .as_mut()
                         .unwrap()
-                        .mip_level_count = Some(2)
+                        .mip_level_count = Some(2);
                 }
                 _ => unreachable!(),
             }

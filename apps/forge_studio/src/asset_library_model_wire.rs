@@ -63,7 +63,11 @@ pub fn encode(model: LibraryModel) -> Result<Vec<u8>, String> {
     wire.resize(wire_len, 0);
     wire.copy_within(..body_len, body_start);
     wire[..8].copy_from_slice(MAGIC);
-    wire[8..PREFIX].copy_from_slice(&(json.len() as u32).to_le_bytes());
+    wire[8..PREFIX].copy_from_slice(
+        &u32::try_from(json.len())
+            .map_err(|_| "Model header exceeds wire format limits")?
+            .to_le_bytes(),
+    );
     wire[PREFIX..body_start].copy_from_slice(&json);
     Ok(wire)
 }

@@ -1,6 +1,18 @@
 //! Exclude other occluders so a disappearing depth footprint is attributable.
-use super::*;
+use super::{Input, Output, Settings, checked_file, plants, readback};
+use bevy::{
+    app::{AppExit, ScheduleRunnerPlugin},
+    prelude::*,
+    window::ExitCondition,
+    winit::WinitPlugin,
+};
+use serde_json::Value;
+use std::{error::Error, fs, io::Write, path::PathBuf, time::Duration};
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The isolated source instance and GPU depth capture are kept together for the standalone occluder probe"
+)]
 pub fn run() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if !matches!(args.len(), 4 | 5) {
@@ -52,7 +64,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     let record_index = if tree_only {
         batch
             .records
-            .chunks_exact(32)
+            .as_chunks::<32>()
+            .0
+            .iter()
             .position(|record| {
                 f32::from_le_bytes(record[20..24].try_into().expect("four bytes")) >= 0.0
             })
@@ -64,8 +78,10 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     batch.records = batch.records[record_index * 32..(record_index + 1) * 32].to_vec();
     batch.models = batch.models[record_index * 64..(record_index + 1) * 64].to_vec();
     let numbers: Vec<_> = batch.records[..16]
-        .chunks_exact(4)
-        .map(|b| f32::from_le_bytes(b.try_into().expect("four bytes")))
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .map(|b| f32::from_le_bytes(*b))
         .collect();
     let base = Vec3::new(numbers[0], numbers[1], numbers[2]);
     let metadata = serde_json::json!({

@@ -518,8 +518,51 @@ fn resolve_ground_support(
             capsule_support = hit.time_of_impact > 0.0
                 && nearby_walkable_support(anchor, hit.point, hit.normal, min_slope_slide_angle);
         }
+        if mode == Mode::Walk && !capsule_support {
+            // A vertical centre ray can miss a tread supporting the lower
+            // capsule sphere at its edge. Validate that same sphere against
+            // current geometry within the existing six-centimetre tolerance.
+            // Keep ray/terrain height for water depth; walking_support still
+            // requires Rapier grounding and rejects upward jump velocity.
+            capsule_support =
+                nearby_lower_capsule_support(&context, entity, anchor, min_slope_slide_angle);
+        }
     }
     (ground, capsule_support)
+}
+
+fn nearby_lower_capsule_support(
+    context: &RapierContext<'_>,
+    entity: Entity,
+    anchor: Vec3,
+    min_slope_slide_angle: f32,
+) -> bool {
+    let clearance = 0.06;
+    let sphere = bevy_rapier3d::rapier::geometry::Ball::new(RADIUS);
+    context
+        .cast_shape(
+            anchor + Vec3::Y * (RADIUS + clearance),
+            Quat::IDENTITY,
+            Vec3::NEG_Y,
+            &sphere,
+            bevy_rapier3d::prelude::ShapeCastOptions {
+                max_time_of_impact: clearance * 2.0,
+                target_distance: 0.0,
+                stop_at_penetration: true,
+                compute_impact_geometry_on_penetration: true,
+            },
+            QueryFilter::default()
+                .exclude_sensors()
+                .exclude_collider(entity),
+        )
+        .is_some_and(|(_, hit)| {
+            hit.time_of_impact > 0.0
+                && hit.time_of_impact < clearance * 2.0
+                && hit.details.is_some_and(|details| {
+                    details.normal1.is_finite()
+                        && details.normal1.dot(Vec3::Y) >= min_slope_slide_angle.cos()
+                })
+        })
 }
 
 fn resolved_collision_rise(

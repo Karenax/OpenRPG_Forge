@@ -81,6 +81,10 @@ impl SourceUnlitForwardExtension {
         let mut textures = images.into_iter().map(Some).chain(std::iter::repeat(None));
         let bindings = SourceGraphExtension {
             program_key: SourceGraphKey {
+                requires_native_srgb_encoder: false,
+                native_srgb_encoder_ready: false,
+                requires_deferred_srgb: false,
+                deferred_srgb_ready: false,
                 requires_preintegrated_brdf: false,
                 preintegrated_brdf_ready: false,
                 requires_sky_cube: false,
@@ -102,6 +106,10 @@ impl SourceUnlitForwardExtension {
             source,
             scalars,
             diffuse_probe: crate::source_graph::SourceGraphDiffuseProbeUniforms::default(),
+            native_srgb_thresholds: None,
+            native_srgb_binding: None,
+            native_srgb_validated: false,
+            deferred_srgb_lookup: None,
             preintegrated_brdf: None,
             sky_cube: None,
             sky_cube_binding: None,
@@ -341,8 +349,8 @@ mod tests {
                 format: TextureFormat::Depth32Float,
                 depth_write_enabled: Some(true),
                 depth_compare: Some(CompareFunction::Less),
-                stencil: Default::default(),
-                bias: Default::default(),
+                stencil: bevy::render::render_resource::StencilState::default(),
+                bias: bevy::render::render_resource::DepthBiasState::default(),
             }),
             ..Default::default()
         }

@@ -21,7 +21,16 @@ use bevy::{
         camera::TemporalJitter,
         extract_resource::{ExtractResource, ExtractResourcePlugin},
         render_asset::RenderAssets,
-        render_resource::{binding_types::uniform_buffer, *},
+        render_resource::{
+            BindGroup, BindGroupEntries, BindGroupLayoutDescriptor, BindGroupLayoutEntries, Buffer,
+            BufferInitDescriptor, BufferUsages, CachedRenderPipelineId, ColorTargetState,
+            ColorWrites, CompareFunction, DepthStencilState, Extent3d, FragmentState, IndexFormat,
+            LoadOp, Operations, PipelineCache, PrimitiveState, RenderPassColorAttachment,
+            RenderPassDepthStencilAttachment, RenderPassDescriptor, RenderPipelineDescriptor,
+            ShaderStages, ShaderType, StoreOp, TextureDimension, TextureFormat, TextureUsages,
+            UniformBuffer, VertexFormat, VertexState, VertexStepMode,
+            binding_types::uniform_buffer,
+        },
         renderer::{RenderContext, RenderDevice, RenderQueue, ViewQuery},
         storage::{GpuShaderBuffer, ShaderBuffer},
         sync_world::MainEntity,
@@ -46,7 +55,7 @@ pub use shaders::water_shader_source;
 pub struct Targets {
     pub distance: Handle<Image>,
     pub depth: Handle<Image>,
-    /// Stable storage allocation, reset in RenderWorld before selected-view work.
+    /// Stable storage allocation, reset in `RenderWorld` before selected-view work.
     pub readiness: Handle<ShaderBuffer>,
 }
 
@@ -304,6 +313,10 @@ struct ObjectUniform {
     world_from_local: Mat4,
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters must be owned SystemParam values, not borrowed Res wrappers"
+)]
 fn initialize(mut commands: Commands, source: Res<ShaderSource>, cache: Res<PipelineCache>) {
     let view_layout = BindGroupLayoutDescriptor::new(
         "Hull actual view",
@@ -383,6 +396,18 @@ struct Prepared {
 }
 
 #[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters must be owned SystemParam values, not borrowed Res wrappers"
+)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "Ordered source validation and GPU preparation remain a single auditable operation"
+)]
+#[expect(
+    clippy::type_complexity,
+    reason = "The selected render-view query keeps the Bevy pass inputs explicit"
+)]
 fn prepare(
     snapshot: Res<Snapshot>,
     targets: Res<Targets>,
@@ -423,6 +448,7 @@ fn prepare(
     let Some((entity, main, view, packet, jitter, resolution)) = matching.next() else {
         return;
     };
+    let registered = u32::try_from(snapshot.volumes.len());
     let mut encoding = Encoding {
         view: main.id(),
         render_view: entity,
@@ -430,7 +456,7 @@ fn prepare(
         generation: snapshot.generation,
         revision: snapshot.revision,
         size: snapshot.size,
-        registered: snapshot.volumes.len() as u32,
+        registered: registered.unwrap_or(u32::MAX),
         active: 0,
         encoded: 0,
         cleared: false,
@@ -438,6 +464,11 @@ fn prepare(
         active_published: false,
         errors: snapshot.errors.clone(),
     };
+    if registered.is_err() {
+        encoding
+            .errors
+            .push("Hull registration count exceeds the GPU counter limit".into());
+    }
     if !flag_initialized {
         encoding
             .errors
@@ -586,7 +617,8 @@ fn prepare(
             entity: volume.entity,
             group,
             _uniform: uniform,
-            indices: volume.geometry.indices.len() as u32,
+            indices: u32::try_from(volume.geometry.indices.len())
+                .expect("validated hull index count fits the GPU draw counter"),
         });
     }
     prepared.view = Some(entity);
@@ -594,6 +626,10 @@ fn prepare(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Bevy system parameters must be owned SystemParam values, not borrowed Res wrappers"
+)]
 fn encode(
     view: ViewQuery<&ViewUniformOffset>,
     targets: Res<Targets>,

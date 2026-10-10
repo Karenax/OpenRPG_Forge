@@ -174,6 +174,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn explicit_caster_follows_common_parent_edits_and_removal() {
         use bevy::{
             asset::RenderAssetUsages, mesh::Indices, render::render_resource::PrimitiveTopology,

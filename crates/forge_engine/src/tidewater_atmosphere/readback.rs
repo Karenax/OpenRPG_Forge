@@ -235,7 +235,7 @@ mod tests {
                 start_offset_and_size,
                 ..
             } => assert_eq!(*start_offset_and_size, Some((0, 48))),
-            _ => panic!("buffer required"),
+            Readback::Texture { .. } => panic!("buffer required"),
         }
         assert!(latest(&world, frame).is_none());
         complete(&mut world, reader);

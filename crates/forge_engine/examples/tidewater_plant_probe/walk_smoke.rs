@@ -29,6 +29,10 @@ mod shadows;
 mod wind;
 
 #[derive(Resource, Default)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Independent requested measurements and input modes are retained as separate diagnostic flags"
+)]
 struct Smoke {
     ticks: u32,
     start: Option<Vec3>,
@@ -171,7 +175,7 @@ fn drive(
             },
             look_delta: if smoke.camera_turn && (60..240).contains(&smoke.ticks) {
                 Vec2::new(
-                    if (smoke.ticks / 30) % 2 == 0 {
+                    if (smoke.ticks / 30).is_multiple_of(2) {
                         8.0
                     } else {
                         -8.0
@@ -187,6 +191,10 @@ fn drive(
     command.submit(input).expect("finite walk command");
 }
 
+#[expect(
+    clippy::type_complexity,
+    reason = "Bevy camera queries declare their component tuple and filters in the SystemParam signature"
+)]
 fn observe_camera_motion(
     mut commands: Commands,
     mut smoke: ResMut<Smoke>,

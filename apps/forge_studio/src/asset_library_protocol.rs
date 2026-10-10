@@ -117,6 +117,7 @@ pub struct LibraryModel {
 }
 
 /// A separate domain prevents collisions with assets in the distributed kit.
+#[must_use]
 pub fn vault_asset_id(id: &str) -> forge_core::AssetId {
     forge_core::AssetId::deterministic(format!("asset-vault/v1:{id}"))
 }

@@ -48,10 +48,10 @@ pub fn register_source_graph_shaders(
             format!("source-graph://{hash}.wgsl"),
         );
         shader.validate_shader = ValidateShader::Enabled;
-        if let ShaderImport::Custom(name) = &shader.import_path {
-            if !name.starts_with("forge_source_graph::") {
-                return Err("Source graph library import name is not privately owned");
-            }
+        if let ShaderImport::Custom(name) = &shader.import_path
+            && !name.starts_with("forge_source_graph::")
+        {
+            return Err("Source graph library import name is not privately owned");
         }
         if let Some((other, previous)) = pending.get(&uuid) {
             if *other != hash {
@@ -95,26 +95,25 @@ pub fn register_source_graph_shaders(
         pending.insert(uuid, (hash, shader));
         result.push(uuid);
     }
-    for (_, (_, shader)) in &pending {
+    for (_, shader) in pending.values() {
         for import in &shader.imports {
-            if let ShaderImport::Custom(name) = import {
-                if name.starts_with("forge_source_graph::")
-                    && !pending
-                        .values()
-                        .any(|(_, library)| library.import_path == *import)
-                {
-                    return Err("Source shader private dependency is absent from atomic batch");
-                }
+            if let ShaderImport::Custom(name) = import
+                && name.starts_with("forge_source_graph::")
+                && !pending
+                    .values()
+                    .any(|(_, library)| library.import_path == *import)
+            {
+                return Err("Source shader private dependency is absent from atomic batch");
             }
         }
     }
     for (uuid, (hash, shader)) in pending {
-        if !registry.owned.contains_key(&uuid) {
+        registry.owned.entry(uuid).or_insert_with(|| {
             assets
                 .insert(aid(uuid), shader)
                 .expect("UUID asset insertion is infallible");
-            registry.owned.insert(uuid, hash);
-        }
+            hash
+        });
     }
     Ok(result)
 }

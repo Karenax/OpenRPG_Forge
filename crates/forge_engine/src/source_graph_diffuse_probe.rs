@@ -26,6 +26,10 @@ impl SourceGraphDiffuseProbeUniforms {
     /// Input coefficients already include cosine convolution in linear source units.
     /// The explicit rigid basis may reflect axes; translation never affects normals.
     /// Nonfinite, scaled and sheared mappings are refused rather than normalized.
+    #[expect(
+        clippy::float_cmp,
+        reason = "The source basis must be exactly affine; accepting a tolerance would admit projective matrices"
+    )]
     pub fn from_preconvolved(
         coefficients: [Vec4; 7],
         source_from_target: Mat4,
@@ -71,8 +75,16 @@ mod tests {
     use super::*;
     use bevy::{prelude::Vec3, render::render_resource::encase::UniformBuffer};
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn admits_reflection_and_strips_translation_without_changing_coefficients() {
-        let coefficients = std::array::from_fn(|i| Vec4::splat(i as f32));
+        let coefficients = std::array::from_fn(|i| {
+            Vec4::splat(f32::from(
+                u8::try_from(i).expect("SH coefficient index is below seven"),
+            ))
+        });
         let basis = Mat4::from_scale_rotation_translation(
             Vec3::new(-1.0, 1.0, 1.0),
             bevy::prelude::Quat::IDENTITY,

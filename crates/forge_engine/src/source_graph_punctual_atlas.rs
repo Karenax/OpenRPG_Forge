@@ -36,10 +36,15 @@ impl SourceGraphPunctualViewport {
         })
     }
 
+    #[must_use]
     pub fn values(self) -> [f32; 4] {
         [self.x, self.y, self.width, self.height]
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "The layout constructor restricts dimensions to 2^24 so every integer dimension is exactly representable in Float32"
+    )]
     pub fn validate(self, atlas: SourceGraphPunctualAtlasLayout) -> Result<(), &'static str> {
         Self::resolved(self.x, self.y, self.width, self.height)?;
         if self.x + self.width > atlas.width as f32 || self.y + self.height > atlas.height as f32 {
@@ -64,6 +69,7 @@ impl SourceGraphPunctualAtlasLayout {
         Ok(Self { width, height })
     }
 
+    #[must_use]
     pub fn descriptor(self) -> TextureDescriptor<'static> {
         TextureDescriptor {
             label: Some("source-punctual-d16-atlas"),
@@ -96,7 +102,7 @@ impl SourceGraphPunctualAtlasLayout {
             format: TextureFormat::Depth16Unorm,
             depth_write_enabled: Some(true),
             depth_compare: Some(wgpu::CompareFunction::GreaterEqual),
-            stencil: Default::default(),
+            stencil: wgpu::StencilState::default(),
             bias: DepthBiasState {
                 constant,
                 slope_scale,
@@ -128,9 +134,11 @@ pub struct SourceGraphPunctualAtlas {
 }
 
 impl SourceGraphPunctualAtlas {
+    #[must_use]
     pub fn texture(&self) -> &Texture {
         &self.texture
     }
+    #[must_use]
     pub fn view(&self) -> &TextureView {
         &self.view
     }
@@ -163,6 +171,10 @@ impl SourceGraphPunctualAtlas {
         self.render_inner(encoder, viewports, true, draw)
     }
 
+    #[expect(
+        clippy::cast_precision_loss,
+        reason = "The layout constructor restricts dimensions to 2^24 so viewport dimensions are exactly representable in Float32"
+    )]
     fn render_inner(
         &self,
         encoder: &mut CommandEncoder,
@@ -215,7 +227,7 @@ impl SourceGraphPunctualAtlas {
 /// The paired fragment predicate is required to clip XY to the original face;
 /// the hardware continues to clip perspective Z/W. Source alpha/displacement
 /// remains the responsibility of the original shader program.
-pub const SOURCE_GRAPH_PUNCTUAL_ATLAS_MAPPING_WGSL: &str = r#"
+pub const SOURCE_GRAPH_PUNCTUAL_ATLAS_MAPPING_WGSL: &str = r"
 fn source_punctual_atlas_position(clip: vec4<f32>, rect: vec4<f32>, extent: vec2<f32>) -> vec4<f32> {
     let scale = rect.zw / extent;
     let center = (2.0 * rect.xy + rect.zw) / extent;
@@ -225,7 +237,7 @@ fn source_punctual_atlas_position(clip: vec4<f32>, rect: vec4<f32>, extent: vec2
 fn source_punctual_atlas_contains(pixel: vec2<f32>, rect: vec4<f32>) -> bool {
     return all(pixel >= rect.xy) && all(pixel < rect.xy + rect.zw);
 }
-"#;
+";
 
 #[cfg(test)]
 mod tests {
@@ -245,6 +257,10 @@ mod tests {
         );
     }
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn fractional_source_viewports_keep_their_exact_float_bits() {
         let a = SourceGraphPunctualAtlasLayout::resolved(4096, 4096).unwrap();
         let edge = f32::from_bits(0x44aa_aaab);
@@ -305,6 +321,10 @@ mod tests {
         }
     }
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn reversed_raster_is_explicit_and_retains_resolved_sign() {
         let d = SourceGraphPunctualAtlasLayout::reversed_depth_state(-1, -2.5, 0.0).unwrap();
         assert_eq!(d.format, TextureFormat::Depth16Unorm);

@@ -123,6 +123,10 @@ fn image(width: u32, height: u32) -> Image {
     clippy::needless_pass_by_value,
     reason = "Bevy render systems require owned system parameter wrappers."
 )]
+#[expect(
+    clippy::type_complexity,
+    reason = "Bevy view queries declare their component tuple and filters in the SystemParam signature"
+)]
 fn copy_opaque_depth(
     view: ViewQuery<(
         &ViewDepthTexture,

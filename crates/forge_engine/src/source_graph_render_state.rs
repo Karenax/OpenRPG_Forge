@@ -111,30 +111,31 @@ mod tests {
         ColorTargetState, ColorWrites, DepthStencilState, FragmentState, TextureFormat,
     };
     fn descriptor() -> RenderPipelineDescriptor {
-        let mut d = RenderPipelineDescriptor::default();
-        d.fragment = Some(FragmentState {
-            targets: vec![
-                Some(ColorTargetState {
-                    format: TextureFormat::Rgba16Float,
-                    blend: None,
-                    write_mask: ColorWrites::ALL,
-                }),
-                Some(ColorTargetState {
-                    format: TextureFormat::Rgba16Float,
-                    blend: None,
-                    write_mask: ColorWrites::RED,
-                }),
-            ],
+        RenderPipelineDescriptor {
+            fragment: Some(FragmentState {
+                targets: vec![
+                    Some(ColorTargetState {
+                        format: TextureFormat::Rgba16Float,
+                        blend: None,
+                        write_mask: ColorWrites::ALL,
+                    }),
+                    Some(ColorTargetState {
+                        format: TextureFormat::Rgba16Float,
+                        blend: None,
+                        write_mask: ColorWrites::RED,
+                    }),
+                ],
+                ..Default::default()
+            }),
+            depth_stencil: Some(DepthStencilState {
+                format: TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(CompareFunction::GreaterEqual),
+                stencil: bevy::render::render_resource::StencilState::default(),
+                bias: bevy::render::render_resource::DepthBiasState::default(),
+            }),
             ..Default::default()
-        });
-        d.depth_stencil = Some(DepthStencilState {
-            format: TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
-            depth_compare: Some(CompareFunction::GreaterEqual),
-            stencil: Default::default(),
-            bias: Default::default(),
-        });
-        d
+        }
     }
     fn cloud_hdrp() -> SourceGraphForwardState {
         SourceGraphForwardState {
@@ -200,6 +201,10 @@ mod tests {
         assert_eq!(before, d);
     }
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The complete physical source fixture table is kept with its assertions for review of all admitted cases"
+    )]
     fn source_graph_render_state_all48_physical_source_fixtures_preserve_secondary_target() {
         let rows = [
             SourceGraphForwardState {

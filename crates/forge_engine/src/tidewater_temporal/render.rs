@@ -40,7 +40,7 @@ pub enum HullRequirement {
 
 /// A scene adapter must attest its complete explicit hull inventory and return
 /// the dedicated distance-pass encoding shared by beauty and auxiliary water.
-/// The RGBA8 water mask is never a substitute for the source R16Float hull mask.
+/// The RGBA8 water mask is never a substitute for the source `R16Float` hull mask.
 /// Zero active draws is valid for a registered hull outside the frustum or for
 /// a camera inside its expanded local bounds; it is not a no-hulls assertion.
 #[derive(Resource)]

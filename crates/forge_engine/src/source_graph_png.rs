@@ -21,17 +21,19 @@ pub struct SourceGraphPngBase {
     pub requires_filterable_float32: bool,
 }
 impl SourceGraphPngBase {
+    #[must_use]
     pub fn image(&self) -> &Image {
         &self.image
     }
     /// A base level for further qualified processing. It has no source mip chain,
     /// compression/resize/normal packing qualification or runtime GPU admission.
+    #[must_use]
     pub fn into_unqualified_base_image(self) -> Image {
         self.image
     }
 }
 /// Preserve original eight-bit channels and transfer them through a native sRGB
-/// format when declared. Sixteen-bit samples cannot use Rgba16Unorm as sRGB:
+/// format when declared. Sixteen-bit samples cannot use `Rgba16Unorm` as sRGB:
 /// normalize without eight-bit quantization and linearize RGB before filtering.
 /// Alpha stays linear. Float32 filtering must be admitted by the actual device.
 pub fn decode_source_graph_png_base(
@@ -57,7 +59,7 @@ pub fn decode_source_graph_png_base(
     }
     if !matches!(
         (metadata.bit_depth, metadata.color_type),
-        (8, 0) | (8, 6) | (16, 6)
+        (8, 0 | 6) | (16, 6)
     ) {
         return Err("Source PNG channel layout requires qualification".into());
     }
@@ -97,10 +99,12 @@ pub fn decode_source_graph_png_base(
                 .checked_mul(16)
                 .ok_or("Source float PNG byte count overflow")?,
         );
-        for pixel in original.chunks_exact(8) {
+        for pixel in original.as_chunks::<8>().0 {
             for channel in 0..4 {
-                let value = u16::from_le_bytes([pixel[2 * channel], pixel[2 * channel + 1]]) as f32
-                    / 65535.0;
+                let value = f32::from(u16::from_le_bytes([
+                    pixel[2 * channel],
+                    pixel[2 * channel + 1],
+                ])) / 65535.0;
                 let value = if metadata.is_srgb && channel < 3 {
                     Srgba::gamma_function(value)
                 } else {

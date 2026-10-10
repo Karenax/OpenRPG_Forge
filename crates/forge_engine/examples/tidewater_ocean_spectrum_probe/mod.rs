@@ -564,8 +564,10 @@ fn compute(
         if let Some(frame) = live_step {
             debug_assert_eq!(step, frame.step);
             time = frame.time;
-        } else if step > 0 && input.acquired.is_some() {
-            let acquired = &input.acquired.as_ref().expect("acquired frames")[step as usize - 1];
+        } else if step > 0
+            && let Some(acquired_frames) = &input.acquired
+        {
+            let acquired = &acquired_frames[step as usize - 1];
             params = acquired.params;
             frame_bytes = acquired.global;
             time = f64::from(f32::from_le_bytes(
@@ -795,6 +797,13 @@ fn readback(
                                     completed_steps =
                                         targets.completed_steps.load(Ordering::Acquire),
                                     readbacks = output.completed,
+                                    bootstrap_frames = targets.bootstrap_steps,
+                                    acquired_global_time_s = ?targets.acquired.as_ref().and_then(|steps| steps.last()).map(|step| step.global_time),
+                                    acquired_spray_callback = ?targets.acquired.as_ref().and_then(|steps| steps.last()).map(|step| match step.feedback_order {
+                                        acquired::CallbackOrder::LegacyMetadata => ("legacy_metadata", None),
+                                        acquired::CallbackOrder::Unavailable => ("unavailable", None),
+                                        acquired::CallbackOrder::Completed(frame) => ("completed", Some(frame)),
+                                    }),
                                     "Ocean initialization complete"
                                 );
                             }

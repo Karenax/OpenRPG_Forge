@@ -3,3 +3,6 @@
 *.toml text eol=lf
 *.ps1 text eol=crlf
 *.sh text eol=lf
+
+# Captured shader source keeps its authenticated line endings.
+*.wgsl whitespace=trailing-space,space-before-tab,cr-at-eol

@@ -2,6 +2,10 @@
 use crate::tidewater_fish_props::shadow::Frame;
 use bevy::{prelude::*, render::Extract};
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy extraction systems receive this SystemParam by value"
+)]
 pub(crate) fn extract(mut commands: Commands, frame: Extract<Option<Res<Frame>>>) {
     if let Some(frame) = frame.as_ref() {
         commands.insert_resource((**frame).clone());
@@ -27,6 +31,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact acquired clocks and retained payloads must not admit a tolerance"
+    )]
     fn extracted_frame_updates_retires_and_can_be_reintroduced() {
         let mut main = MainWorld::default();
         let initial = frame(2.0);

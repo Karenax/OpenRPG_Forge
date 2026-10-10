@@ -110,6 +110,10 @@ fn index(value: &Value) -> Result<usize, String> {
         .ok_or_else(|| "scene reference must be an unsigned integer".into())
 }
 
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "JSON numbers are projected to the Float32 pose ABI and every result is checked for finiteness immediately."
+)]
 fn numbers<const N: usize>(value: &Value) -> Result<[f32; N], String> {
     let values = value.as_array().ok_or("pose must be an array")?;
     if values.len() != N {
@@ -125,6 +129,10 @@ fn numbers<const N: usize>(value: &Value) -> Result<[f32; N], String> {
     Ok(result)
 }
 
+#[allow(
+    clippy::float_cmp,
+    reason = "Static source matrices must be exactly affine before transform decomposition."
+)]
 fn local_pose(node: &Value) -> Result<(Mat4, Transform), String> {
     if let Some(matrix) = node.get("matrix") {
         if ["translation", "rotation", "scale"]
@@ -189,6 +197,10 @@ fn local_pose(node: &Value) -> Result<(Mat4, Transform), String> {
     Ok((matrix, transform))
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Scene hierarchy validation is ordered before any host entities are mutated"
+)]
 fn read_scene_document(
     document: &Value,
     selected_scene: Option<usize>,
@@ -348,6 +360,10 @@ mod tests {
         }
     }
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn source_hierarchy_world_preserves_host_root_and_fails_before_mutation() {
         let d = serde_json::json!({"scene":0,"scenes":[{"nodes":[1]}],"nodes":[
             {"translation":[3,0,0]},{"name":"frame","translation":[1,2,3],"children":[0]}

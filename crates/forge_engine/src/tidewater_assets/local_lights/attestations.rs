@@ -161,7 +161,7 @@ mod tests {
                 0 => observation["source_commit"] = "other".into(),
                 1 => {
                     observation["source_sha256"] =
-                        forge_core::bytes_sha256(b"other").to_string().into()
+                        forge_core::bytes_sha256(b"other").to_string().into();
                 }
                 2 => observation["unchanged_geometry_terrain_lights_colliders"] = false.into(),
                 3 => observation["building_invocations"][1]["source_object_id"] = "empty".into(),

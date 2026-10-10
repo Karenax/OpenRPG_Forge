@@ -11,7 +11,7 @@ members = [
     "apps/forge_studio",
     "tools/forge_cli",
 ]
-exclude = ["tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0"]
+exclude = ["tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0", "third_party/rapier3d-0.35.0-glamx0.2"]
 resolver = "3"
 
 [workspace.package]
@@ -47,6 +47,8 @@ wasm-bindgen-futures = "=0.4.77"
 web-sys = "=0.3.104"
 
 [patch.crates-io]
+# Narrow KCC contact-normal fix retained from Source075; see third_party/rapier-normalization-NOTICE.md.
+rapier3d = { path = "third_party/rapier3d-0.35.0-glamx0.2" }
 # ADR-0009 owner-approved, raw-output-tested NAV019 fork. No wrapper/advisory edge.
 rerecast = { path = "third_party/rerecast-0.4.0" }
 

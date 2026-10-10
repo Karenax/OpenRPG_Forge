@@ -8,6 +8,7 @@ use bevy::{
 };
 use forge_engine::{tidewater_atmosphere as atmosphere, tidewater_sky::solar};
 use serde_json::{Value, json};
+use std::io::Write;
 use std::{
     error::Error,
     path::Path,
@@ -15,6 +16,10 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Atmosphere startup, current generation observation and cancellation remain one ordered acquisition probe"
+)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() != 3 {
@@ -115,7 +120,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         return Err("readback survived scene cancellation".into());
     }
     let receipt = json!({"source_commit":meta["source_commit"],"manifest_sha256":args[1],"gpu_executed":true,"same_resident_handles":true,"frames":records,"scope":"production atmosphere render graph and real asynchronous readback; no Studio/material/visual qualification","visual_parity":false});
-    use std::io::Write;
     std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)

@@ -37,8 +37,8 @@ impl SourceGraphPreintegratedBrdf {
         if bytes_sha256(bytes) != expected_sha256 {
             return Err("Source BRDF storage SHA mismatch");
         }
-        for channel in bytes.chunks_exact(4) {
-            let value = f32::from_le_bytes(channel.try_into().unwrap());
+        for channel in bytes.as_chunks::<4>().0 {
+            let value = f32::from_le_bytes(*channel);
             if !value.is_finite() || !(0.0..=1.0).contains(&value) {
                 return Err("Source BRDF channel is nonfinite or outside [0,1]");
             }

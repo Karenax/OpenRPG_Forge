@@ -2,6 +2,10 @@
 #![allow(clippy::needless_pass_by_value)]
 #[path = "../tidewater_plant_probe/vegetation_scene/canonical.rs"]
 pub(crate) mod canonical;
+#[allow(
+    dead_code,
+    reason = "The shared capture module retains the standalone isolated LOD runner which only its dedicated probe invokes"
+)]
 pub mod isolated_lod;
 #[allow(
     dead_code,
@@ -299,10 +303,10 @@ fn install_input(app: &mut App, mut input: Input) -> Target {
             },
         );
     }
-    if let Some(extra) = app.world_mut().remove_resource::<AdditionalOpaqueDraws>() {
-        if input.settings.enabled > 0.5 {
-            input.draws.extend(extra.0);
-        }
+    if let Some(extra) = app.world_mut().remove_resource::<AdditionalOpaqueDraws>()
+        && input.settings.enabled > 0.5
+    {
+        input.draws.extend(extra.0);
     }
     forge_engine::tidewater_object_shadow::graph::install(app, input)
         .expect("validated scene inputs and initialized rendering")

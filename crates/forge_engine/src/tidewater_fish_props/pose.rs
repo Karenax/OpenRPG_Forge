@@ -133,6 +133,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Requires byte-pinned private fish package or acquired reference; run the documented external-fixture replay"]
     fn complete_source_gpu_pose_reference() {
         let root = std::env::var("FORGE_TIDEWATER_FISH_POSE_REFERENCE")
             .expect("Real GPU reference required");

@@ -138,6 +138,10 @@ impl PreparedDebris {
     ///
     /// # Errors
     /// Rejects incomplete geometry, altered frames, unknown roles or missing source data.
+    #[allow(
+        clippy::float_cmp,
+        reason = "This adapter admits only exact identity source rotations and scales; approximate frames need a separate adapter."
+    )]
     pub fn from_package(package: &DebrisPackage) -> Result<Self, String> {
         let description: Description =
             serde_json::from_value(package.frames().clone()).map_err(|error| error.to_string())?;

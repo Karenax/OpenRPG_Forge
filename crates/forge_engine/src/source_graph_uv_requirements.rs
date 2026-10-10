@@ -6,6 +6,7 @@ use bevy::prelude::Reflect;
 pub struct SourceGraphUvRequirements(u8);
 
 impl SourceGraphUvRequirements {
+    #[must_use]
     pub fn channels(self) -> u8 {
         self.0
     }
@@ -83,6 +84,7 @@ mod tests {
 
     #[test]
     fn canonical_channels_are_required_by_the_actual_input_declaration() {
+        use std::fmt::Write;
         let uv1 = "struct SourceGraphVertex {\n @location(12) source_uv1:vec4<f32>,\n}";
         assert_eq!(
             SourceGraphUvRequirements::from_shader(uv1, LOCATIONS)
@@ -92,10 +94,12 @@ mod tests {
         );
         let mut all = String::from("struct SourceGraphVertex {\n");
         for channel in 1..=7 {
-            all += &format!(
-                " @location({}) source_uv{channel}:vec4<f32>,\n",
+            writeln!(
+                all,
+                " @location({}) source_uv{channel}:vec4<f32>,",
                 LOCATIONS[channel - 1]
-            );
+            )
+            .unwrap();
         }
         all += "}";
         assert_eq!(

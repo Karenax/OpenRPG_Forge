@@ -251,6 +251,7 @@ mod tests {
     #[test]
     #[ignore = "Requires explicit isolated GPU fixture input/output directory"]
     fn export_assembled_gpu_fixture() {
+        use std::io::Write;
         let root =
             std::path::PathBuf::from(std::env::var("FORGE_STALL_FULL_SHADER_GPU_FIXTURE").unwrap());
         let names = hooks().sources().map(|(name, _)| name.to_owned());
@@ -271,7 +272,6 @@ mod tests {
         let resources = std::fs::read_to_string(root.join("resources.wgsl")).unwrap();
         let adapter = std::fs::read_to_string(root.join("adapter.wgsl")).unwrap();
         let shader = shader_source(&resources, &scene, &adapter).unwrap();
-        use std::io::Write;
         let mut file = std::fs::OpenOptions::new()
             .write(true)
             .create_new(true)

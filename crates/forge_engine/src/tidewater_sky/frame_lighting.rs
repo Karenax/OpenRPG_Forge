@@ -72,7 +72,9 @@ mod tests {
     use super::*;
     fn input() -> (solar::Frame, solar_lighting::Lighting) {
         (
-            *solar::Clock::new(Default::default()).unwrap().frame(),
+            *solar::Clock::new(solar::Settings::default())
+                .unwrap()
+                .frame(),
             solar_lighting::Lighting {
                 sun_color: [1.0, 2.0, 3.0],
                 sky_irradiance: [0.1, 0.2, 0.3],
@@ -81,11 +83,15 @@ mod tests {
         )
     }
     #[test]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The test compares the retained f64 lighting with its required GPU f32 representation"
+    )]
     fn cloud_bytes_and_water_words_match_and_preserve_every_other_field() {
         let (frame, lighting) = input();
         let payload = FrameLighting::new(frame, &lighting).unwrap();
         let mut bytes = vec![0x5a; 720];
-        let mut words = [[0x5a5a5a5a; 4]; 45];
+        let mut words = [[0x5a5a_5a5a; 4]; 45];
         payload.write_bytes(&mut bytes).unwrap();
         payload.write_words(&mut words);
         let packed: Vec<_> = words

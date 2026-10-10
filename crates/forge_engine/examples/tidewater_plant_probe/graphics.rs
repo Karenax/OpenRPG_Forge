@@ -546,9 +546,10 @@ fn apply(
     }
     // Keep the render topology stable when the slider reaches zero: removing
     // a ping-pong pass also changes which target auto exposure sees next frame.
-    commands
-        .entity(camera)
-        .insert(TidewaterAirHaze::new(state.values.haze));
+    commands.entity(camera).insert((
+        TidewaterAirHaze::default(),
+        forge_engine::atmospheric_haze::AirHazeSettings::new(state.values.haze),
+    ));
     commands
         .entity(camera)
         .insert(TidewaterGtao::new(state.values.ambient_occlusion));

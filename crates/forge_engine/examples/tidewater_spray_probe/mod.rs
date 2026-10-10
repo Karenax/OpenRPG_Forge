@@ -1,5 +1,6 @@
 //! Original GPU spray emission isolated at frame one; reference particle outputs are never uploaded.
 #![allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+use super::ocean::acquired::CallbackOrder;
 use bevy::{
     app::{AppExit, ScheduleRunnerPlugin},
     asset::RenderAssetUsages,
@@ -913,14 +914,14 @@ fn compute(
                 .flat_map(u32::to_le_bytes)
                 .collect();
             ocean_bytes[212..216].copy_from_slice(&time.to_le_bytes());
-            if let Some(acquired) = &ocean.as_ref().expect("ocean").acquired {
-                if native_step <= input.bootstrap_steps {
-                    let source = &acquired[native_step as usize - 1];
-                    frame_bytes = source.global.to_vec();
-                    ocean_bytes = source.params.to_vec();
-                    // Frame.cameraPos follows eight mat4 uniforms; BreakersParams starts with it.
-                    params_bytes[..12].copy_from_slice(&source.global[512..524]);
-                }
+            if let Some(acquired) = &ocean.as_ref().expect("ocean").acquired
+                && native_step <= input.bootstrap_steps
+            {
+                let source = &acquired[native_step as usize - 1];
+                frame_bytes = source.global.to_vec();
+                ocean_bytes = source.params.to_vec();
+                // Frame.cameraPos follows eight mat4 uniforms; BreakersParams starts with it.
+                params_bytes[..12].copy_from_slice(&source.global[512..524]);
             }
             #[allow(clippy::cast_possible_truncation)]
             // The source packs a double budget as f32 for GPU emission.
@@ -1137,17 +1138,18 @@ fn compute(
             let emitter = feedback.controller.value();
             let acquired = ocean.as_ref().expect("ocean").acquired.as_ref();
             let acquired_step = acquired.and_then(|steps| steps.get(native_step as usize - 1));
-            let observed_order = acquired_step.and_then(|step| step.feedback_frame);
+            let observed_order =
+                acquired_step.map_or(CallbackOrder::LegacyMetadata, |step| step.feedback_order);
             let latest = match observed_order {
-                Some(Some(frame)) => Some((
+                CallbackOrder::Completed(frame) => Some((
                     frame,
                     *feedback
                         .completed
                         .get(&frame)
                         .expect("acquired callback requires a completed native GPU head"),
                 )),
-                Some(None) => None,
-                None => feedback.latest,
+                CallbackOrder::Unavailable => None,
+                CallbackOrder::LegacyMetadata => feedback.latest,
             };
             if acquired.is_some() {
                 feedback
@@ -1169,7 +1171,7 @@ fn compute(
                 .map_or(progress.1, |step| step.global_time);
             if native_step <= input.bootstrap_steps {
                 let native_latest_frame = feedback.latest.map(|value| value.0);
-                feedback.rows.push(serde_json::json!({"frame":native_step,"time":feedback_time,"ocean_time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time),"source_feedback_observed":observed_order.is_some(),"source_feedback_frame":observed_order.flatten(),"native_latest_frame":native_latest_frame}));
+                feedback.rows.push(serde_json::json!({"frame":native_step,"time":feedback_time,"ocean_time":progress.1,"emitter_budget":emitter,"budget":next_budget,"feedback_frame":latest.map(|v|v.0),"feedback_head":latest.map(|v|v.1.head),"feedback_time":latest.map(|v|v.1.time),"source_feedback_observed":observed_order != CallbackOrder::LegacyMetadata,"source_feedback_frame":match observed_order { CallbackOrder::Completed(frame) => Some(frame), _ => None },"native_latest_frame":native_latest_frame}));
             }
             feedback.encoded_step = native_step;
             feedback.encoded_time = feedback_time;

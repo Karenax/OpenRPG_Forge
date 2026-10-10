@@ -1,3 +1,32 @@
+# Gate 3 — état consolidé au 10 octobre 2026
+
+[Consolidation locale du 10 octobre](GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
+
+**Gate 3 ouverte ; Gate 2 clôturée par ADR-0018.** Le test humain Gate 3 a été
+[accepté le 8 octobre](GATE3_OWNER_HUMAN_VALIDATION_20261008.md) sur le correctif
+005. Les mentions P05/humain en attente dans le journal suivant décrivent leurs
+candidats et instants historiques ; elles ne révoquent pas cette acceptation.
+Aucune acceptation humaine de Source075 ou des correctifs ultérieurs n'en est déduite.
+
+Source075 (`7a0c770f1eac0afcc8fb67accaae539c4da10747`) conserve ses preuves
+locales : 1951 tests natifs PASS, 52 ignorés, contrôles CPU/GPU/Studio appariés
+et parcours publics frais. Les corrections retenues ont été intégrées et recontrôlées dans les sources
+courantes selon le bilan du 10 octobre ; les preuves historiques restent attachées à Source075.
+
+CI actuelle : [run 37985561420 du 9 octobre](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420)
+sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98` : WASM et supply-chain PASS,
+Windows/Linux FAIL à Clippy, tests et builds natifs suivants non exécutés.
+Les refus historiques de facturation ne couvrent pas ces erreurs de code.
+
+Le [candidat installable initial](../../planning/INSTALLABLE_DELIVERY_20261010.md), rejeté par le propriétaire, est remplacé par [R3](../../planning/INSTALLABLE_DELIVERY_20261010_R3.md). La correction dispose de preuves locales de conservation des données et de deux relancements natifs réels. Ses binaires moteur restent ceux du 9 octobre ; elle ne qualifie pas ce lot moteur consolidé, l'aventure RPG complète ou la release.
+L'intégration/CI Gate 3 est demandée le 10 octobre ; le chantier de généralisation
+moteur reste en pause selon `PROJECT_CONTEXT.md`.
+
+## Journal historique des acquisitions — jusqu'au 8 octobre 2026
+
+Les résultats et échecs suivants sont conservés sans modification. Leur statut
+est celui de l'acquisition décrite, pas un nouveau verdict sur le checkout actuel.
+
 8 octobre — Source075 : chaine publique005 terminale PASS, consolidation des21 criteres automatises sur22 exigences relue. Format/Clippy natifs stricts,1951 tests natifs PASS/52 ignores, CPU acquis21, GPU10, Studio/WASM apparie et parcours publics frais conserves. Feu/reaction IA : negatif du controle Save seul preserve ; complement temporel montre0,794802 m puis0,800025 m de progression, total1,594801 m, position finale sauvegardee/reprise et14 contre-exemples rejetes ; fuite complete non revendiquee. P05 : copie65 fichiers sans Save automate, lanceur prepare non execute. Fermeture en lecture ligne par ligne testee sur journal reel archive : neuf identites retrouvees, pic resident125800448 octets, aucun arret de processus ; aucun jugement humain deduit. Dossier P05 concret et dossier de publication prepares. Rust distant observe6b001dbe, aucun run CI sur7a0c770f ; push exact propose1244 fichiers modifies dont8 binaires de fixtures/fork Bevy, avance sans force possible, primaire/index preserves. Disponibilite humaine et autorisation de ce push demandees, aucune reponse presumee. Gate3 reste ouverte : P05, CI exacte et decision proprietaire, avec adoption locale distincte. Blocage de distribution GLib conserve sous la politique existante. Aucun seuil de RAM disponible ni publication.
 
 8 octobre — Source075 : rive poussable/extinction/sauvegarde/reprise PASS, six controles causaux, 65 fichiers preserves et fermeture independante PASS. Pic prive mesure5892194304 octets, compteur GPU dedie par processus2032226304 octets ; aucune allocation exclusive globale inferree. Chaine004 arretee apres rive sur ancien nombre3216 du lecteur shader ; negatif conserve. Lecteur002 corrige ce seul nombre en3282 verifie contre le candidat et conserve tous controles WGSL/GPU. Shader reel79269 caracteres observe26 fois, diagnostics Dawn observes PASS ; aucune qualification de pixels globaux ou de periode avant instrumentation deduite. Chaine005 execute maintenant le feu ; etape observee fire-run. Generateur de dossier P05 prepare et syntaxe verifiee, dossier final non encore produit. Feu/reaction IA, P05 humain, adoption, CI exacte, Linux/GLib et cloture proprietaire restent ouverts. Aucun nouveau replay de rive ni remplacement du primaire ou publication.

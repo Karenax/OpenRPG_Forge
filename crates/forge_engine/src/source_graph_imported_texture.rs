@@ -50,7 +50,7 @@ pub struct SourceGraphImportedTextureMetadata {
 
 pub struct SourceGraphImportedTexture {
     image: Image,
-    /// The host must enable TEXTURE_COMPRESSION_BC on its actual device.
+    /// The host must enable `TEXTURE_COMPRESSION_BC` on its actual device.
     pub requires_texture_compression_bc: bool,
 }
 
@@ -58,12 +58,14 @@ impl SourceGraphImportedTexture {
     pub(crate) fn set_scene_sampler(&mut self, sampler: bevy::image::ImageSamplerDescriptor) {
         self.image.sampler = ImageSampler::Descriptor(sampler);
     }
+    #[must_use]
     pub fn image(&self) -> &Image {
         &self.image
     }
 
     /// Exact CPU storage, not proof of device support, orientation, normal
     /// decoding, material parity or placement. The host must qualify those.
+    #[must_use]
     pub fn into_unqualified_image(self) -> Image {
         self.image
     }
@@ -93,7 +95,7 @@ pub fn prepare_source_graph_imported_texture(
     let block = if compressed { 4 } else { 1 };
     // WebGPU base compressed extents must be complete blocks. Smaller mip
     // levels still retain one block; no padding, decoding or re-encoding here.
-    if compressed && (metadata.width % 4 != 0 || metadata.height % 4 != 0) {
+    if compressed && (!metadata.width.is_multiple_of(4) || !metadata.height.is_multiple_of(4)) {
         return Err("Compressed base extent requires separate qualification".into());
     }
     let mut offset = 0usize;
@@ -149,7 +151,7 @@ pub fn prepare_source_graph_imported_texture(
                 return Err("Expanded RGB8 image allocation limit".into());
             }
             let mut rgba = Vec::with_capacity(converted_len);
-            for pixel in bytes.chunks_exact(3) {
+            for pixel in bytes.as_chunks::<3>().0 {
                 rgba.extend_from_slice(&[pixel[0], pixel[1], pixel[2], 255]);
             }
             rgba

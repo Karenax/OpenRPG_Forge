@@ -8,6 +8,10 @@ pub(super) enum SourceCoveragePolicy {
     RejectMissingPrepass,
 }
 
+#[allow(
+    clippy::fn_params_excessive_bools,
+    reason = "Coverage enablement, depth availability, normals and prepass phase are independent rendering inputs."
+)]
 pub(super) fn source_coverage_policy(
     enabled: bool,
     samples: u32,

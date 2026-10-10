@@ -125,6 +125,7 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "Requires the byte-pinned acquired package; run the documented external-fixture replay"]
     fn depth_entries_validate_and_retain_exact_source_mask() {
         let root =
             std::path::PathBuf::from(std::env::var("FORGE_TIDEWATER_FISH_PROP_PACKAGE").unwrap());

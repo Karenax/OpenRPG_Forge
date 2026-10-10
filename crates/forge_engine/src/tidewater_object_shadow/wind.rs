@@ -132,11 +132,15 @@ mod tests {
     use super::*;
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact acquired clocks and retained payloads must not admit a tolerance"
+    )]
     fn acquired_phase_survives_zero_delta_and_direction_changes() {
         let mut clock = Clock::from_acquired(
             2.0,
             124,
-            [4.6152781366039095, 12.395318424021925],
+            [4.615_278_136_603_909_5, 12.395_318_424_021_925],
             [1.0, 0.0],
             7.0,
         )
@@ -147,7 +151,7 @@ mod tests {
         assert_eq!(pose.offset, before.offset);
         let pose = clock.advance(1.0 / 60.0, [0.0, 1.0], 7.0).unwrap();
         assert_eq!(pose.offset[0], before.offset[0]);
-        assert!((f64::from(pose.offset[1]) - (12.395318424021925 + 6.4 / 60.0)).abs() < 1e-6);
+        assert!((f64::from(pose.offset[1]) - (12.395_318_424_021_925 + 6.4 / 60.0)).abs() < 1e-6);
         assert!(Clock::from_acquired(2.0, 124, [f64::NAN, 0.0], [1.0, 0.0], 7.0).is_err());
     }
 

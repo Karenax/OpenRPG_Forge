@@ -1,5 +1,40 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Instruction propriétaire du 10 octobre 2026 — suppression du seuil mémoire de lancement
+
+Le propriétaire demande explicitement de supprimer la limite de 16 Gio de marge mémoire avant lancement. Cette instruction remplace les anciennes consignes de garde à 16 Gio pour la poursuite de ce chantier. Les scripts actifs ne refusent plus le lancement selon ce seuil ; les mesures mémoire restent informatives. Les preuves historiques et leurs anciens refus restent conservés.
+
+
+## État actuel vérifié — 10 octobre 2026
+
+[Consolidation locale du 10 octobre](docs/evidence/gate3/GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
+
+Gate C et Gate 0 sont passées localement sous leurs exceptions ; Gate 1 est
+clôturée localement sous dérogations ; Gate 2 est clôturée par décision
+propriétaire du 1er octobre (ADR-0018). **Gate 3 reste ouverte** ; Gate 4 et
+suivantes ne sont pas formellement ouvertes.
+
+Le [test humain Gate 3 est accepté le 8 octobre](docs/evidence/gate3/GATE3_OWNER_HUMAN_VALIDATION_20261008.md)
+sur le correctif Tidewater 005. Ce verdict ne vaut ni acceptation des versions
+ultérieures ni clôture technique complète. Le candidat RPG isolé Source075
+(`7a0c770f1eac0afcc8fb67accaae539c4da10747`) possède des preuves locales
+(1951 tests natifs PASS, 52 ignorés et parcours intégrés) ; ces preuves historiques restent attachées à ce snapshot. Les corrections
+retenues ont désormais leur propre validation locale dans le bilan de consolidation.
+
+CI distante : [run du 9 octobre 37985561420](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420)
+sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98`. WASM et supply-chain PASS ;
+Windows et Linux FAIL à Clippy, tests et builds natifs suivants non exécutés.
+ADR-0006 ne couvre plus ces jobs qui ont réellement démarré. Une CI complète
+PASS sur la révision finale reste nécessaire ; les anciens `NOT RUN` sont historiques.
+
+Le [candidat installable initial du 10 octobre](docs/planning/INSTALLABLE_DELIVERY_20261010.md) a été rejeté par le propriétaire et remplacé par la [correction R3](docs/planning/INSTALLABLE_DELIVERY_20261010_R3.md). R3 conserve les données et couvre deux relancements natifs Tidewater réels. Windows vierge et acceptation visuelle humaine restent à vérifier ; ses binaires moteur du 9 octobre ne comprennent pas le lot moteur/CI consolidé ici.
+La généralisation du moteur reste en pause ; les corrections documentaires et
+l'intégration/CI Gate 3 demandées le 10 octobre ne relancent pas ce chantier.
+
+Les bilans datés ci-dessous conservent leurs preuves et réserves historiques.
+Leur vocabulaire « actif », « courant », « ouvert » ou « en attente » décrit
+la date indiquée ; il ne remplace pas cet état actuel.
+
 ## Exigence propriétaire du 8 octobre 2026 — moteur générique
 
 Objectif enrichi, avec toute la portée précédente conservée :
@@ -9,6 +44,8 @@ Objectif enrichi, avec toute la portée précédente conservée :
 Critères ajoutés : intégrer réellement les fonctions réutilisables aux systèmes et réglages communs ; retirer les indicatifs Tidewater des noms et contrats moteur ; supprimer toute dépendance au nom/slug/assets de la carte ; vérifier leur fonctionnement sur une autre carte ou scène indépendante, sur les parcours natif/WebGPU concernés. Un simple renommage ne suffit pas. Préserver le contenu spécifique, les licences et les preuves historiques lors des déplacements et renommages.
 
 Cette exigence reste à réaliser pour les modules actuels `tidewater_*`. L’objectif reste en pause à la demande du propriétaire ; cet amendement ne relance ni développement ni tests.
+
+Reprise du 10 octobre 2026 : l’état de gestion de l’objectif est de nouveau ACTIVE. La pause du 8 octobre ci-dessus est historique ; la poursuite conserve intégralement l’exigence de moteur générique. Aucun statut de qualification supplémentaire n’est acquis.
 
 
 ## Gate 3 active — décision propriétaire du 1er octobre 2026
@@ -43,7 +80,7 @@ gate n'est acquise par cette autorisation. Rust/Bevy reste la pile produit.
 Le travail existant et les preuves antérieures sont conservés ; aucune publication
 Git implicite. Les paragraphes datés ci-dessous conservent leur portée propre.
 
-## Reprise Gate 2 — 19 septembre 2026
+## Historique de reprise Gate 2 — 19 septembre 2026
 
 Objectif actif de la tâche de reprise : finir Gate 2, sur le worktree et la branche
 Rust existants, sans publication. R2-020 conserve son verdict local ci-dessous.
@@ -78,7 +115,7 @@ La Gate 2 et sa qualification transversale restent ouvertes.
 Tests et Computer Use confiés à Luna max ; implémentations bornées à Terra medium,
 deux sous-agents maximum. [État et preuves de reprise](docs/evidence/gate2/GATE2_RESUME_20260919.md).
 
-## Candidat courant — bilan du 16 septembre 2026
+## Candidat historique — bilan du 16 septembre 2026
 
 R2-020 « promotion et retouche » terminé localement sur candidat Studio 1303A840.
 Le 16 septembre, parcours réel sur copies isolées : promotion, abandon,
@@ -113,7 +150,8 @@ intégré ni changement de gate. [Rapport et limites](docs/evidence/gate2/HERMES
 - Gate 1 clôturée localement : [rapport du 12 septembre](docs/evidence/gate1/GATE1_CLOSURE_20260912.md).
 - Gate 2 clôturée par validation propriétaire le 1er octobre 2026 (ADR-0018).
 - Gate 3 active sur Tidewater ; Gate 4 et suivantes non ouvertes.
-- CI distante : `NOT RUN — infrastructure billing` ; aucun nouveau PASS distant.
+- CI distante actuelle : WASM/supply-chain PASS et Windows/Linux FAIL à Clippy
+  sur le run du 9 octobre identifié en tête ; les anciens `NOT RUN` restent historiques.
 - La vision et les contrats ci-dessous restent normatifs ; un objectif n'est pas
   une capacité déjà implémentée. La [roadmap](docs/planning/MIGRATION_ROADMAP.md)
   porte les critères, les dossiers de preuves leurs résultats et limites.
@@ -152,7 +190,7 @@ détail dans un éditeur visuel, sans programmation obligatoire. La boucle produ
 → jouer → corriger → sauvegarder → exporter et distribuer.**
 
 Cette orientation est adoptée pour le développement ; elle ne décrit pas des fonctionnalités déjà
-livrées. Gate 1 est clôturée localement sous dérogations ; Gate 2 est active. L'édition manuelle se construit en
+livrées. Gate 1 est clôturée localement sous dérogations ; Gate 2 est clôturée par décision propriétaire et Gate 3 est active. L'édition manuelle se construit en
 Gate 2, l'aventure jouable en Gate 3, le package en Gate 4 et l'assistant produit en Gate 6. Anticiper
 une implémentation d'une autre gate nécessite toujours la décision correspondante.
 
@@ -1861,7 +1899,8 @@ contrôleur/collisions. Combat, ennemis, quêtes, loot et audio restent différ�
 7. ne copier aucun runtime Three.js/JavaScript dans `apps/` ou `crates/`.
 
 Sortie atteinte : même scène Forge affichée en natif et dans le Studio, validations locales vertes et
-outils de comparaison prêts. La CI distante reste explicitement `NOT RUN` sous ADR-0006.
+outils de comparaison prêts. À la date du passage de Gate 0, la CI distante était
+`NOT RUN` sous ADR-0006 ; son état actuel figure en tête de ce document.
 
 ### Lot R1 — Reconstruire une vallée Forge en s’appuyant sur Cadle
 
@@ -1991,7 +2030,9 @@ Cadle v0.6.0 @ ea0da625 : copie locale épinglée, intacte et mesurée. Code MIT
 attribution ; assets exclus. Aucune dépendance Three.js/JavaScript dans le produit Forge.
 
 TRAVAIL ACTIF
-Gate C et Gate 0 sont passées. Gate 1 : Visual Valley reconstruite par tranches et comparée à Cadle,
-avec validations locales ; la CI distante reste NOT RUN sous ADR-0006 tant que les runners ne démarrent
-pas.
+Gate C et Gate 0 sont passées ; Gate 1 clôturée localement sous dérogations,
+Gate 2 clôturée par décision propriétaire. Gate 3 reste ouverte. Test humain
+accepté sur le correctif 005 du 8 octobre ; intégration du candidat RPG et CI
+finale restent distinctes. CI du 9 octobre : WASM/supply-chain PASS,
+Windows/Linux FAIL à Clippy. La généralisation du moteur reste en pause.
 ```

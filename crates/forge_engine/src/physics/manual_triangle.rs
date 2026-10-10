@@ -47,10 +47,7 @@ pub(super) fn triangle_collider(mesh: &Mesh) -> Result<Collider, &'static str> {
     {
         return Err("invalid_triangle_mesh_indices");
     }
-    let triangles = indices
-        .chunks_exact(3)
-        .map(|face| [face[0], face[1], face[2]])
-        .collect();
+    let triangles = indices.as_chunks::<3>().0.to_vec();
     Collider::trimesh(vertices, triangles).map_err(|_| "triangle_mesh_generation_failed")
 }
 

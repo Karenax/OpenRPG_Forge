@@ -166,6 +166,7 @@ impl Material for FullMaterial {
 }
 
 /// Surface animation inputs from the caller's shared scene frame.
+#[derive(Clone, Copy)]
 pub struct SurfaceFrame {
     pub time: f32,
     pub night: f32,
@@ -175,7 +176,7 @@ pub struct SurfaceFrame {
 }
 
 impl FullMaterial {
-    /// Refresh common scene resources while the RenderWorld owns camera history.
+    /// Refresh common scene resources while the `RenderWorld` owns camera history.
     /// Surface animation and contacts are supplied by the resident render buffer.
     pub fn update_render_receivers(&mut self, lighting: &VillageMaterial) -> Result<(), String> {
         if !self.render_owned_contact {
@@ -239,12 +240,12 @@ impl FullMaterial {
         self.object_settings = lighting.object_settings.clone();
         self.scene_lighting = lighting.scene_lighting.clone();
         self.clouds = lighting.clouds;
-        self.cloud_shadow = lighting.cloud_shadow.clone();
+        self.cloud_shadow.clone_from(&lighting.cloud_shadow);
         self.live_shadows = lighting.live_shadows.clone();
         self.underwater_params = lighting.underwater_params.clone();
         self.underwater_level = lighting.underwater_level.clone();
         self.underwater_map_frame = lighting.underwater_map_frame.clone();
-        self.ground_bounce = lighting.ground_bounce.clone();
+        self.ground_bounce.clone_from(&lighting.ground_bounce);
         self.bounce_settings = lighting.bounce_settings;
         self.local_lights = lighting.local_lights.clone();
         self.scene_buffer = lighting.scene_buffer.clone();

@@ -904,16 +904,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         app.insert_resource(pebbles::Requested);
     }
-    if with_object_depth {
-        if let Some(draw) = fish_stand::shadow_draw(app.world().resource::<Probe>())? {
-            if let Some(mut additional) = app
-                .world_mut()
-                .get_resource_mut::<object_shadow::AdditionalOpaqueDraws>()
-            {
-                additional.0.push(draw);
-            } else {
-                app.insert_resource(object_shadow::AdditionalOpaqueDraws(vec![draw]));
-            }
+    if with_object_depth
+        && let Some(draw) = fish_stand::shadow_draw(app.world().resource::<Probe>())?
+    {
+        if let Some(mut additional) = app
+            .world_mut()
+            .get_resource_mut::<object_shadow::AdditionalOpaqueDraws>()
+        {
+            additional.0.push(draw);
+        } else {
+            app.insert_resource(object_shadow::AdditionalOpaqueDraws(vec![draw]));
         }
     }
     if with_geometry {
@@ -1528,6 +1528,10 @@ fn mipped_image(meta: &LeafTexture, bytes: &[u8]) -> Image {
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)] // Independent render completion resources and readback observer.
+#[expect(
+    clippy::type_complexity,
+    reason = "Capture SystemParams keep the evidence resources visible at the system boundary"
+)]
 fn capture(
     mut commands: Commands,
     capture_state: (

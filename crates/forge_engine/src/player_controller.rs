@@ -130,6 +130,8 @@ pub struct PendingPlayerControlCommand {
     pending_sequence: Option<u64>,
     held_move_axis: Vec2,
     held_raw_move_axis: Vec2,
+    held_axis_after_tap: Option<Vec2>,
+    queued_tap_keys: u8,
     held_sprint: bool,
     queued_jump: bool,
     queued_look_delta: Vec2,
@@ -142,6 +144,8 @@ impl PendingPlayerControlCommand {
         self.pending_sequence = None;
         self.held_move_axis = Vec2::ZERO;
         self.held_raw_move_axis = Vec2::ZERO;
+        self.held_axis_after_tap = None;
+        self.queued_tap_keys = 0;
         self.held_sprint = false;
         self.queued_jump = false;
         self.queued_look_delta = Vec2::ZERO;
@@ -172,6 +176,8 @@ impl PendingPlayerControlCommand {
         self.pending_sequence = Some(sequence);
         self.held_move_axis = normalize_move_axis(command.move_axis);
         self.held_raw_move_axis = command.move_axis;
+        self.held_axis_after_tap = None;
+        self.queued_tap_keys = 0;
         self.held_sprint = command.sprint;
         self.queued_jump |= command.jump;
         self.queued_look_delta = accumulated_look;
@@ -190,6 +196,11 @@ impl PendingPlayerControlCommand {
         self.queued_jump = false;
         self.queued_look_delta = Vec2::ZERO;
         self.queued_toggle_camera = false;
+        self.queued_tap_keys = 0;
+        if let Some(held_axis) = self.held_axis_after_tap.take() {
+            self.held_raw_move_axis = held_axis;
+            self.held_move_axis = normalize_move_axis(held_axis);
+        }
         (self.pending_sequence.take(), command)
     }
 }
@@ -687,10 +698,22 @@ fn sample_player_input(
     let Some(keyboard) = keyboard else {
         return;
     };
-    let axis = Vec2::new(
-        axis_value(&keyboard, KeyCode::KeyD) - axis_value(&keyboard, KeyCode::KeyA),
-        axis_value(&keyboard, KeyCode::KeyW) - axis_value(&keyboard, KeyCode::KeyS),
-    );
+    // Keep released presses until physics consumes them, including render
+    // frames without a fixed tick. A key mask preserves opposite-key intent.
+    let mut held_keys = 0;
+    let mut tap_keys = pending.queued_tap_keys;
+    for (index, code) in [KeyCode::KeyD, KeyCode::KeyA, KeyCode::KeyW, KeyCode::KeyS]
+        .into_iter()
+        .enumerate()
+    {
+        let bit = 1 << index;
+        if keyboard.pressed(code) {
+            held_keys |= bit;
+        } else if keyboard.just_pressed(code) {
+            tap_keys |= bit;
+        }
+    }
+    let axis = movement_axis_for_keys(held_keys | tap_keys);
     let command = PlayerControlCommand {
         move_axis: axis,
         sprint: keyboard.pressed(KeyCode::ShiftLeft) || keyboard.pressed(KeyCode::ShiftRight),
@@ -698,16 +721,24 @@ fn sample_player_input(
         look_delta: mouse_motion.map_or(Vec2::ZERO, |motion| motion.delta),
         toggle_camera: keyboard.just_pressed(KeyCode::KeyV),
     };
+    let held_axis = movement_axis_for_keys(held_keys);
     pending
         .submit(command)
         .expect("keyboard and accumulated mouse input are finite");
+    pending.queued_tap_keys = tap_keys;
+    // Consume taps on the first fixed tick and retain only keys still held
+    // for subsequent catch-up ticks.
+    if axis != held_axis {
+        pending.held_axis_after_tap = Some(held_axis);
+    }
 }
 
-fn axis_value(keyboard: &ButtonInput<KeyCode>, code: KeyCode) -> f32 {
-    // A browser automation tap can deliver keydown and keyup before the next
-    // Bevy frame. Keep that one physical press observable for this sample;
-    // sustained movement still uses the held state on following frames.
-    f32::from(keyboard.pressed(code) || keyboard.just_pressed(code))
+/// Bits follow the sampler's D, A, W, S order; opposing keys cancel.
+fn movement_axis_for_keys(keys: u8) -> Vec2 {
+    Vec2::new(
+        f32::from(keys & 1 != 0) - f32::from(keys & 2 != 0),
+        f32::from(keys & 4 != 0) - f32::from(keys & 8 != 0),
+    )
 }
 
 #[allow(
@@ -1156,6 +1187,82 @@ mod tests {
             .drain_tick();
         assert_eq!(sampled.move_axis, Vec2::Y);
         assert!(!sampled.sprint && !sampled.jump && !sampled.toggle_camera);
+        // A frame may execute multiple fixed updates. A released tap must not
+        // become a held axis for every catch-up tick in that frame.
+        let pending = &mut *app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>();
+        assert_eq!(pending.held_raw_move_axis, Vec2::ZERO);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::ZERO);
+    }
+
+    #[test]
+    fn interactive_sampling_restores_held_axis_after_a_released_diagonal_tap() {
+        let mut app = test_app_with_interactive_input(test_profile(), Vec3::ZERO, true);
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        let mut keyboard = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keyboard.press(KeyCode::KeyD);
+        keyboard.press(KeyCode::KeyW);
+        keyboard.release(KeyCode::KeyW);
+        app.world_mut().run_schedule(PreUpdate);
+        let pending = &mut *app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>();
+        assert_eq!(pending.held_raw_move_axis, Vec2::ONE);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::ONE.normalize());
+        assert_eq!(pending.held_raw_move_axis, Vec2::X);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::X);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::X);
+    }
+
+    #[test]
+    fn interactive_sampling_retains_released_tap_until_a_physics_tick_across_render_frames() {
+        let mut app = test_app_with_interactive_input(test_profile(), Vec3::ZERO, true);
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        let mut keyboard = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keyboard.press(KeyCode::KeyW);
+        keyboard.release(KeyCode::KeyW);
+        app.world_mut().run_schedule(PreUpdate);
+        // A new render frame clears edge flags without advancing physics.
+        app.world_mut()
+            .resource_mut::<ButtonInput<KeyCode>>()
+            .clear();
+        app.world_mut().run_schedule(PreUpdate);
+        let pending = &mut *app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>();
+        let (sequence, first) = pending.drain_tick();
+        assert!(sequence.is_some());
+        assert_eq!(first.move_axis, Vec2::Y);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::ZERO);
+        app.world_mut().run_schedule(PreUpdate);
+        assert_eq!(
+            app.world_mut()
+                .resource_mut::<PendingPlayerControlCommand>()
+                .drain_tick()
+                .1
+                .move_axis,
+            Vec2::ZERO,
+        );
+    }
+
+    #[test]
+    fn interactive_sampling_retains_released_tap_opposed_to_a_new_held_key() {
+        let mut app = test_app_with_interactive_input(test_profile(), Vec3::ZERO, true);
+        app.insert_resource(ButtonInput::<KeyCode>::default());
+        let mut keyboard = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keyboard.press(KeyCode::KeyW);
+        keyboard.release(KeyCode::KeyW);
+        app.world_mut().run_schedule(PreUpdate);
+        let mut keyboard = app.world_mut().resource_mut::<ButtonInput<KeyCode>>();
+        keyboard.clear();
+        keyboard.press(KeyCode::KeyS);
+        app.world_mut().run_schedule(PreUpdate);
+        let pending = &mut *app
+            .world_mut()
+            .resource_mut::<PendingPlayerControlCommand>();
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::ZERO);
+        assert_eq!(pending.drain_tick().1.move_axis, Vec2::NEG_Y);
     }
 
     #[test]

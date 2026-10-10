@@ -68,6 +68,10 @@ mod tests {
     use bevy::{math::DVec3, transform::TransformPlugin};
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Ordered source validation and GPU preparation remain a single auditable operation"
+    )]
     fn local_lights_collection_binds_camera_identity_and_invalidates_failed_inventory() {
         let mut app = App::new();
         app.add_plugins((MinimalPlugins, TransformPlugin));

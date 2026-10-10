@@ -234,6 +234,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn camera_contacts_preserve_actual_raster_projection_without_temporal_phase() {
         let (_, copy, light) = fixture();
         let world_from_view = Mat4::from_translation(Vec3::new(4.0, 5.0, 6.0));
@@ -278,6 +282,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn contact_uniform_matches_gpu_layout_and_keeps_frame_counter() {
         let (packet, copy, light) = fixture();
         let uniform = prepare(&packet, Some(&copy), &light, 0.25, 0.8, 543).unwrap();
@@ -304,6 +312,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn suspended_frame_never_samples_unmatched_depth_history() {
         let (mut packet, copy, light) = fixture();
         packet.frame.needs_history_seed = true;

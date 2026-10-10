@@ -45,6 +45,10 @@ fn texture_count(source: &str) -> Result<usize, &'static str> {
 
 /// Validate stage, image ABI and render state before atomic SHA registration.
 /// No prepass, shadow shader, tangent, missing image or native PBR is synthesized.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Public admission consumes the source program bundle so it cannot be reused after shader registration"
+)]
 pub fn register_source_unlit_forward_material(
     shaders: &mut Assets<Shader>,
     registry: &mut SourceGraphShaderRegistry,
@@ -183,13 +187,13 @@ mod tests {
             );
             match phase {
                 SourceGraphSurfacePhase::Opaque => {
-                    assert_eq!(material.alpha_mode(), AlphaMode::Opaque)
+                    assert_eq!(material.alpha_mode(), AlphaMode::Opaque);
                 }
                 SourceGraphSurfacePhase::AlphaTest => {
-                    assert_eq!(material.alpha_mode(), AlphaMode::Mask(0.0))
+                    assert_eq!(material.alpha_mode(), AlphaMode::Mask(0.0));
                 }
                 SourceGraphSurfacePhase::Transparent => {
-                    assert_eq!(material.alpha_mode(), AlphaMode::Blend)
+                    assert_eq!(material.alpha_mode(), AlphaMode::Blend);
                 }
             }
         }
@@ -204,7 +208,8 @@ mod tests {
                 2 => candidate.forward_index = 1,
                 _ => {
                     candidate.shaders[0].source =
-                        "#define_import_path forge_source_graph::library\nfn helper() {}".to_owned()
+                        "#define_import_path forge_source_graph::library\nfn helper() {}"
+                            .to_owned();
                 }
             }
             let mut assets = Assets::<Shader>::default();

@@ -363,6 +363,10 @@ fn readback(
 }
 
 /// Exercise precisely the memory package path intended for Studio.
+#[expect(
+    clippy::too_many_lines,
+    reason = "The package admission and live weather acquisition form one ordered diagnostic run"
+)]
 fn run_package(
     root: &Path,
     pin: &str,

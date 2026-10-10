@@ -206,6 +206,14 @@ mod tests {
     use super::*;
     use std::sync::atomic::{AtomicBool, AtomicU32};
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The test compares the retained f64 solar state with its required GPU f32 representation"
+    )]
     fn solar_uniform_update_preserves_camera_water_wind_and_exposure() {
         let solar = *crate::tidewater_sky::solar::Clock::new(default())
             .unwrap()

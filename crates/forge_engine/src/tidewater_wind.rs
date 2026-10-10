@@ -75,7 +75,7 @@ impl WindFrame {
     pub fn time_seconds(self) -> f64 {
         self.time_seconds
     }
-    /// Exact packing used by village-probe-header.wgsl's SourceFrame.
+    /// Exact packing used by village-probe-header.wgsl's `SourceFrame`.
     #[must_use]
     pub fn material_uniform(self) -> Vec4 {
         DVec4::new(
@@ -93,6 +93,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact acquired clocks and retained payloads must not admit a tolerance"
+    )]
     fn global_clock_uses_source_engine_delta_including_slow_frames() {
         let mut frame = WindFrame::source_defaults(2.0).expect("acquired global time");
         let mut source_time = 2.0;

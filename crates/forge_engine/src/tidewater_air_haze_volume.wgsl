@@ -21,7 +21,7 @@ struct HazeVolume {
     terrain_domain: vec4f,
     // Cloud shadow center X/Z, square world size, strength.
     cloud_rectangle: vec4f,
-    // Sun UV, screen ray fade, radial pass index (0..2).
+    // Reserved XY, screen rays enabled, radial pass index (0..2).
     screen: vec4f,
 }
 
@@ -53,7 +53,7 @@ fn haze_screen(camera: HazeCamera, volume: HazeVolume, light: HazeLighting) -> v
         result.z = (1.0 - smoothstep(0.6, 1.15, max(abs(result.x - 0.5), abs(result.y - 0.5))))
             * smoothstep(0.02, 0.25, -vz) * (1.0 - smoothstep(0.3, 0.75, sun.y));
     }
-    if (light.sky_immersion.w > 0.5 || volume.control.z < 0.5 || volume.control.y <= 0.0) {
+    if (light.sky_immersion.w > 0.5 || volume.control.z < 0.5 || volume.control.y <= 0.0 || volume.screen.z < 0.5) {
         result.z = 0.0;
     }
     return result;

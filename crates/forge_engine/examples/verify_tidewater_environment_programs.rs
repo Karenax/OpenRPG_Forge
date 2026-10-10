@@ -15,6 +15,7 @@ use bevy::{
 };
 use forge_core::bytes_sha256;
 use serde_json::{Value, json};
+use std::io::Write;
 use std::{
     error::Error,
     future::Future,
@@ -107,6 +108,10 @@ fn entry(value: &Value) -> Result<wgpu::BindGroupLayoutEntry, Box<dyn Error>> {
         count: None,
     })
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "The probe retains source admissions, GPU execution and its final evidence receipt in execution order"
+)]
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().skip(1).collect();
     if args.len() != 3
@@ -252,7 +257,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let report = json!({"status":"passed","manifest_sha256":args[1],"source_commit":package["source_commit"],"programs":programs,"same_bevy_render_app_device":true,"adapter":{"name":info.name,"backend":format!("{:?}",info.backend)},"device_features":format!("{:?}",device.features()),"gpu_pipeline_creation":true,"scene_resources_supplied":false,"source_ibl_inputs_supplied":execution.is_some(),"dispatch_executed":execution.is_some(),"execution":execution,"visual_parity":false});
     let bytes = serde_json::to_vec_pretty(&report)?;
-    use std::io::Write;
     std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)

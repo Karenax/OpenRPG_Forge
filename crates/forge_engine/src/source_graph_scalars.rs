@@ -28,7 +28,9 @@ mod tests {
     #[test]
     fn bevy_uniform_encoder_matches_domain_packet_at_all_slot_boundaries() {
         let parameters = SourceMaterialScalarParameters::from_compiler_slots(
-            (0..64).map(|i| (format!("slot_{i}"), i as f32)).collect(),
+            (0_u8..64)
+                .map(|i| (format!("slot_{i}"), f32::from(i)))
+                .collect(),
         )
         .unwrap();
         let uniform = SourceGraphScalarUniforms::from_parameters(&parameters);

@@ -1,4 +1,4 @@
-//! Publish the matching contact/surface frame after RenderWorld camera preparation.
+//! Publish the matching contact/surface frame after `RenderWorld` camera preparation.
 use super::contact_frame::{self, Uniform};
 use crate::{
     tidewater_material::SceneLighting,
@@ -159,8 +159,12 @@ pub fn register_deferred(app: &mut App) -> Result<(), String> {
     Ok(())
 }
 
-/// The generic ExtractResourcePlugin retains a removed main resource. Explicitly
+/// The generic `ExtractResourcePlugin` retains a removed main resource. Explicitly
 /// remove it here so switching/removing an imported scene cannot reuse old inputs.
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy extraction systems require owned Extract and Commands parameter wrappers."
+)]
 fn extract_inputs(mut commands: Commands, inputs: Extract<Option<Res<Inputs>>>) {
     if let Some(inputs) = &*inputs {
         commands.insert_resource((**inputs).clone());
@@ -173,6 +177,10 @@ fn extract_inputs(mut commands: Commands, inputs: Extract<Option<Res<Inputs>>>) 
     clippy::too_many_arguments,
     clippy::needless_pass_by_value,
     reason = "Bevy resources provide current camera, depth receipt and prepared buffer"
+)]
+#[expect(
+    clippy::type_complexity,
+    reason = "Bevy render queries declare their component tuple and filters in the SystemParam signature"
 )]
 fn upload(
     inputs: Option<Res<Inputs>>,
@@ -297,6 +305,10 @@ fn upload(
 mod tests {
     use super::*;
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn extraction_retires_removed_scene_inputs_and_accepts_the_next_scene() {
         let mut main = bevy::render::MainWorld::default();
         let mut next = Inputs {

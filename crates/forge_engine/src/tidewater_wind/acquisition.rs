@@ -85,6 +85,10 @@ mod tests {
     use super::*;
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact acquired clocks and retained payloads must not admit a tolerance"
+    )]
     fn retains_independent_source_histories_and_gust_phase() {
         let frame = AcquiredFrame::reference().expect("actual acquired source frame");
         assert_eq!(frame.global_frame, 124);

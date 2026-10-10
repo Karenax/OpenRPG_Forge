@@ -1,6 +1,8 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-## État actif — 1er octobre 2026
+## État actif — 10 octobre 2026
+
+[Consolidation locale du 10 octobre](../evidence/gate3/GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
 
 **Gate 2 clôturée par validation propriétaire ; Gate 3 active sur Tidewater.**
 Le propriétaire considère validés les points restants de Gate 2 et autorise
@@ -8,6 +10,22 @@ l'exécution jusqu'à clôture de Gate 3 sur cette carte :
 [ADR-0018](../ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).
 Cette décision de poursuite ne modifie pas les verdicts machine historiques.
 Les récits datés ci-dessous gardent leur portée ; aucune publication implicite.
+
+Le [test humain Gate 3 est validé le 8 octobre](../evidence/gate3/GATE3_OWNER_HUMAN_VALIDATION_20261008.md)
+pour le correctif 005 testé. Les preuves automatisées Source075 et cette revue
+humaine restent attachées à leurs candidats respectifs ; elles ne cochent pas
+automatiquement les critères du checkout courant. Gate 3 reste ouverte :
+les corrections du candidat ont été intégrées et recontrôlées localement ;
+la CI complète sur la révision finale et le verdict de clôture restent à établir.
+
+Le [run CI du 9 octobre 37985561420](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420),
+sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98`, passe WASM et supply-chain.
+Windows/Linux échouent à Clippy ; tests et builds natifs suivants non exécutés.
+La condition de facturation ADR-0006 n'est plus applicable à ces jobs.
+Les mentions `NOT RUN` des acquisitions antérieures conservent leur date.
+
+Le [candidat installable initial](INSTALLABLE_DELIVERY_20261010.md), rejeté par le propriétaire, est remplacé par [R3](INSTALLABLE_DELIVERY_20261010_R3.md). Ses preuves locales incluent conservation des données et deux relancements natifs réels ; elles ne clôturent ni Gate 3 ni Gate 4. La généralisation du
+moteur reste en pause selon le contexte canonique.
 
 ## Chantier Tidewater — autorisation du 24 septembre 2026
 
@@ -19,7 +37,7 @@ gate et n'autorise aucune publication. Les états de gates ci-dessous restent
 distincts du suivi de ce chantier. Les anciennes formulations « différé »
 conservent leur valeur historique pour les autres extensions maritimes.
 
-## État de référence — 16 septembre 2026
+## État historique de référence — 16 septembre 2026
 
 Gate C qualifiée, Gate 0 passée et Gate 1 clôturée localement sous dérogations.
 **Gate 2 active et ouverte ; Gate 3 et suivantes non ouvertes.**
@@ -3972,6 +3990,11 @@ pas de verdict de gate. Voir R2_WORKSPACE_CHECK_20260914.md.
 Gate active depuis le 1er octobre 2026 ; carte de référence : Tidewater Rust.
 Objectif propriétaire : clôturer cette gate. La validation de Gate 2 n'est pas
 une validation anticipée des critères Gate 3. Plan : GATE3_PREPARATION_PLAN.md.
+
+Lecture au 10 octobre : test humain accepté sur le correctif 005, preuves
+automatisées locales sur Source075, adoption et CI finale encore distinctes.
+Les cases ci-dessous restent des critères de qualification intégrée ; ne pas
+les interpréter comme une absence de toute implémentation ou preuve locale.
 
 ## R3-A — Fondations
 

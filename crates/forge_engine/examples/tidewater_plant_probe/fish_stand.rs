@@ -42,7 +42,7 @@ fn placement_transform(
     )
 }
 
-/// Source FishStand.js marks its static opaque StallKit mesh as a caster.
+/// Source FishStand.js marks its static opaque `StallKit` mesh as a caster.
 /// Use the same terrain placement and source positions as the visible stall.
 pub fn shadow_draw(
     probe: &Probe,

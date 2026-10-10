@@ -4,23 +4,29 @@ use forge_assets::tidewater_ocean::OceanPackage;
 use forge_engine::tidewater_ocean::PreparedOcean;
 use std::{error::Error, path::PathBuf, sync::Arc};
 
+/// Authenticated source callback chronology, distinct from native GPU head data.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CallbackOrder {
+    LegacyMetadata,
+    Unavailable,
+    Completed(u32),
+}
+
 #[derive(Clone)]
 pub struct Step {
     pub params: [u8; 224],
     pub global: [u8; 720],
     pub global_time: f64,
-    /// Outer None: legacy metadata; inner None: no source callback available.
-    pub feedback_frame: Option<Option<u32>>,
+    /// The source observation controls which completed native head may be consumed.
+    pub feedback_order: CallbackOrder,
 }
 
-fn feedback_order(
-    history: &[serde_json::Value],
-) -> Result<Vec<Option<Option<u32>>>, Box<dyn Error>> {
+fn feedback_order(history: &[serde_json::Value]) -> Result<Vec<CallbackOrder>, Box<dyn Error>> {
     if history
         .iter()
         .all(|row| row.get("spray_budget_observation").is_none())
     {
-        return Ok(vec![None; history.len()]);
+        return Ok(vec![CallbackOrder::LegacyMetadata; history.len()]);
     }
     let mut previous = None;
     history
@@ -59,7 +65,7 @@ fn feedback_order(
                 {
                     return Err("Acquired missing callback is inconsistent".into());
                 }
-                return Ok(Some(None));
+                return Ok(CallbackOrder::Unavailable);
             }
             let head = u32::try_from(head.as_u64().ok_or("Acquired spray head invalid")?)?;
             let frame = state["readback_frame"]
@@ -86,7 +92,7 @@ fn feedback_order(
                 return Err("Acquired spray callback order is inconsistent".into());
             }
             previous = Some((frame, time.to_bits(), head));
-            Ok(Some(Some(frame)))
+            Ok(CallbackOrder::Completed(frame))
         })
         .collect()
 }
@@ -162,7 +168,7 @@ pub(super) fn load() -> Result<Option<Input>, Box<dyn Error>> {
                 params: file(&format!("ocean-step{step:03}-params.bin"))?.try_into()?,
                 global,
                 global_time,
-                feedback_frame: feedback_order[step as usize - 1],
+                feedback_order: feedback_order[step as usize - 1],
             })
         })
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
@@ -177,4 +183,76 @@ pub(super) fn load() -> Result<Option<Input>, Box<dyn Error>> {
         acquired: Some(Arc::new(steps)),
         acquired_manifest: Some(expected.to_string()),
     }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CallbackOrder, feedback_order};
+    use serde_json::{Value, json};
+
+    fn history() -> Vec<Value> {
+        (1..=4)
+            .map(|step| {
+                let frame = step - 1;
+                json!({"after":{"gpu_frame":step,"global_time_s":f64::from(step)},
+                    "spray_budget_observation":{"gpu_frame":step,"global_time_s":f64::from(step),
+                        "after":{"head":if frame==0 {Value::Null} else {json!(frame)},
+                            "sample_time_s":if frame==0 {Value::Null} else {json!(f64::from(frame))},
+                            "readback_frame":if frame==0 {-1} else {frame}}}})
+            })
+            .collect()
+    }
+
+    #[test]
+    fn acquired_callback_distinguishes_legacy_pending_and_completed_native_frames() {
+        let legacy = vec![json!({"after":{"gpu_frame":1,"global_time_s":1.0}})];
+        assert_eq!(
+            feedback_order(&legacy).unwrap(),
+            vec![CallbackOrder::LegacyMetadata]
+        );
+        let mut rows = history();
+        rows[3]["spray_budget_observation"]["after"] =
+            rows[2]["spray_budget_observation"]["after"].clone();
+        assert_eq!(
+            feedback_order(&rows).unwrap(),
+            vec![
+                CallbackOrder::Unavailable,
+                CallbackOrder::Completed(1),
+                CallbackOrder::Completed(2),
+                CallbackOrder::Completed(2)
+            ]
+        );
+    }
+
+    #[test]
+    fn acquired_callback_rejects_incomplete_future_wrong_clock_and_regressed_observations() {
+        for mode in 0..8 {
+            let mut rows = history();
+            match mode {
+                0 => {
+                    rows[1]
+                        .as_object_mut()
+                        .unwrap()
+                        .remove("spray_budget_observation");
+                }
+                1 => rows[1]["spray_budget_observation"]["after"]["readback_frame"] = json!(2),
+                2 => rows[1]["spray_budget_observation"]["after"]["sample_time_s"] = json!(1.25),
+                3 => rows[1]["spray_budget_observation"]["global_time_s"] = json!(2.5),
+                4 => {
+                    rows[3]["spray_budget_observation"]["after"] =
+                        rows[1]["spray_budget_observation"]["after"].clone()
+                }
+                5 => {
+                    rows[2]["spray_budget_observation"]["after"] =
+                        rows[0]["spray_budget_observation"]["after"].clone()
+                }
+                6 => rows[1]["spray_budget_observation"]["after"]["head"] = json!(-1),
+                _ => rows[1]["spray_budget_observation"]["gpu_frame"] = json!(3),
+            }
+            assert!(
+                feedback_order(&rows).is_err(),
+                "invalid callback chronology mode {mode}"
+            );
+        }
+    }
 }

@@ -182,7 +182,7 @@ pub struct Targets {
 
 impl Targets {
     /// Resident h0, waveData and foam buffers for acquisition readbacks.
-    /// Their COPY_SRC usage is part of ShaderBuffer's existing allocation.
+    /// Their `COPY_SRC` usage is part of `ShaderBuffer`'s existing allocation.
     #[must_use]
     pub fn readback_buffers(&self) -> [Handle<ShaderBuffer>; 3] {
         // create_targets always allocates these six private work buffers.

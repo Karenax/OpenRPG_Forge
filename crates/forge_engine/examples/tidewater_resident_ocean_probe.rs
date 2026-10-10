@@ -146,6 +146,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned resource and render-context parameter wrappers"
+)]
 fn copy_outputs(
     targets: Res<Targets>,
     copies: Res<Copies>,
@@ -202,6 +206,10 @@ fn capture_frame(world: &mut World) {
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned resource and command parameter wrappers"
+)]
 fn readback(
     mut commands: Commands,
     copies: Res<Copies>,

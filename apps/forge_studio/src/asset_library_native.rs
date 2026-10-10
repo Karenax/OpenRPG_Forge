@@ -183,6 +183,10 @@ impl Library {
         })
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Request routing retains validation and errors beside each read-only library operation"
+    )]
     pub fn execute(&mut self, request: LibraryRequest) -> Result<LibraryResponse, String> {
         // An unreadable registry must invalidate the metadata snapshot even on
         // an ordinary request. Restoring identical registry bytes after an
@@ -286,14 +290,14 @@ impl Library {
                     // Check the saved pin before reading any payload.
                     if forge_core::ContentHash::parse(required(&asset.details, "model_sha256")?)
                         .map_err(|e| e.to_string())?
-                        != sha256
+                        == sha256
                     {
                         LibraryResponse::Model {
-                            model: self.read_historical_model(snapshot, asset, sha256)?,
+                            model: self.read_model(asset)?,
                         }
                     } else {
                         LibraryResponse::Model {
-                            model: self.read_model(asset)?,
+                            model: self.read_historical_model(snapshot, asset, sha256)?,
                         }
                     }
                 }
@@ -355,7 +359,7 @@ impl Library {
 
     /// Explicit read-only audit of indexed model/source-support/preview payloads.
     /// This is deliberately distinct from Search, and never grants qualification.
-    /// Purchased archive payloads are read only when include_archives is explicit.
+    /// Purchased archive payloads are read only when `include_archives` is explicit.
     pub fn audit_indexed_integrity(&mut self, include_archives: bool) -> Result<Value, String> {
         // An explicit audit builds fresh metadata and never reuses a prior
         // snapshot. Any initial or final registry failure therefore leaves no
@@ -627,6 +631,10 @@ impl Library {
         Ok(raw)
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Asset metadata and provenance are validated before a complete immutable stored asset is returned"
+    )]
     fn make_asset(
         &self,
         pack: &str,
@@ -666,7 +674,12 @@ impl Library {
         } else {
             cache.safe_absolute(self, catalog_reference)?
         };
-        if !cache.catalogs.contains_key(&catalog_path) {
+        if cache.catalogs.contains_key(&catalog_path) {
+            #[cfg(test)]
+            {
+                cache.stats.catalog_cache_hits += 1;
+            }
+        } else {
             let catalog_raw = read_limited(&catalog_path, MAX_JSON)?;
             *total = total.saturating_add(catalog_raw.len() as u64);
             if *total > MAX_TOTAL_JSON {
@@ -702,11 +715,6 @@ impl Library {
             #[cfg(test)]
             {
                 cache.stats.catalog_cache_misses += 1;
-            }
-        } else {
-            #[cfg(test)]
-            {
-                cache.stats.catalog_cache_hits += 1;
             }
         }
         #[cfg(test)]
@@ -1124,10 +1132,10 @@ impl Library {
         let relative = Path::new(model_reference);
         validate_relative(model_reference)?;
 
-        if let Some(direct) = cache.catalog_model_path(self, catalog_root, model_reference)? {
-            if direct == declared_model {
-                return Ok(catalog_root.to_path_buf());
-            }
+        if let Some(direct) = cache.catalog_model_path(self, catalog_root, model_reference)?
+            && direct == declared_model
+        {
+            return Ok(catalog_root.to_path_buf());
         }
 
         if !declared_model.ends_with(relative) {
@@ -1554,6 +1562,7 @@ fn fold(c: char) -> char {
 
 #[cfg(test)]
 mod tests {
+    type FixtureMutation = (&'static str, fn(&std::path::Path));
     use super::*;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1637,8 +1646,8 @@ mod tests {
         let json = br#"{"asset":{"version":"2.0"}}  "#;
         let mut bytes = b"glTF".to_vec();
         bytes.extend_from_slice(&2_u32.to_le_bytes());
-        bytes.extend_from_slice(&((20 + json.len()) as u32).to_le_bytes());
-        bytes.extend_from_slice(&(json.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(&u32::try_from(20 + json.len()).unwrap().to_le_bytes());
+        bytes.extend_from_slice(&u32::try_from(json.len()).unwrap().to_le_bytes());
         bytes.extend_from_slice(b"JSON");
         bytes.extend_from_slice(json);
         let hash = sha256(&bytes);
@@ -1646,7 +1655,7 @@ mod tests {
         profiles["profiles"][0]["model_content_sha256"] = hash.clone().into();
         catalog["assets"][0]["sha256"] = hash.clone().into();
         fs::write(root.join("normalized/demo/models/a.glb"), &bytes).unwrap();
-        write_pack_fixture(&root, "demo", details, profiles, catalog, &catalog_path);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &catalog_path);
         let mut library = Library::new(&root).unwrap();
         let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
@@ -1800,14 +1809,13 @@ mod tests {
         fs::write(&registry_path, serde_json::to_vec(&registry).unwrap()).unwrap();
 
         let mut library = Library::new(&root).unwrap();
-        let page = match library
+        let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery::default(),
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(page.total_assets, 2);
         assert_eq!(
@@ -1904,7 +1912,7 @@ mod tests {
         let (root, _) = fixture();
         let id = add_source_support(&root);
         let mut library = Library::new(&root).unwrap();
-        let page = match library
+        let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery {
                     availability: "source_support".into(),
@@ -1912,9 +1920,8 @@ mod tests {
                 },
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(page.total_assets, 2);
         assert_eq!(page.matched_assets, 1);
@@ -1942,7 +1949,7 @@ mod tests {
         let (root, _) = fixture();
         let id = add_source_support(&root);
         let mut library = Library::new(&root).unwrap();
-        let page = match library
+        let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery {
                     availability: "source_support".into(),
@@ -1950,9 +1957,8 @@ mod tests {
                 },
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(page.matched_assets, 1);
         fs::write(
@@ -1976,7 +1982,7 @@ mod tests {
         let (root, _) = fixture();
         let id = add_source_support_with_pack(&root, "source-only");
         let mut library = Library::new(&root).unwrap();
-        let page = match library
+        let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery {
                     pack: "source-only".into(),
@@ -1985,9 +1991,8 @@ mod tests {
                 },
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(page.matched_assets, 1);
         assert_eq!(page.assets[0].id, id);
@@ -2009,25 +2014,23 @@ mod tests {
     fn source_support_pointer_change_refreshes_an_open_library() {
         let (root, _) = fixture();
         let mut library = Library::new(&root).unwrap();
-        let before = match library
+        let LibraryResponse::Page { page: before } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery::default(),
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(before.total_assets, 1);
         let id = add_source_support(&root);
-        let after = match library
+        let LibraryResponse::Page { page: after } = library
             .execute(LibraryRequest::Search {
                 query: LibraryQuery::default(),
             })
             .unwrap()
-        {
-            LibraryResponse::Page { page } => page,
-            _ => panic!("la recherche doit retourner une page"),
+        else {
+            panic!("la recherche doit retourner une page")
         };
         assert_eq!(after.total_assets, 2);
         assert_ne!(after.revision, before.revision);
@@ -2196,14 +2199,14 @@ mod tests {
         {
             LibraryResponse::Page { page } => {
                 assert_eq!(page.matched_assets, 2);
-                assert_eq!(page.assets[0].id, "demo.zeta")
+                assert_eq!(page.assets[0].id, "demo.zeta");
             }
             _ => panic!(),
-        };
+        }
         let _ = fs::remove_dir_all(root);
     }
     #[test]
-    #[ignore]
+    #[ignore = "Requires OPENRPG_ASSET_VAULT pointing to the real private asset library"]
     fn live_source_support_catalog() {
         let root = std::env::var("OPENRPG_ASSET_VAULT")
             .expect("OPENRPG_ASSET_VAULT doit désigner le Vault réel pour ce test ignoré");
@@ -2213,7 +2216,7 @@ mod tests {
         let mut total_assets = None;
         let mut ids = BTreeSet::new();
         loop {
-            let page = match library
+            let LibraryResponse::Page { page } = library
                 .execute(LibraryRequest::Search {
                     query: LibraryQuery {
                         availability: "source_support".into(),
@@ -2223,9 +2226,8 @@ mod tests {
                     },
                 })
                 .unwrap()
-            {
-                LibraryResponse::Page { page } => page,
-                _ => panic!("la recherche doit retourner une page"),
+            else {
+                panic!("la recherche doit retourner une page")
             };
             assert!(page.matched_assets > 0);
             assert!(page.total_assets >= page.matched_assets);
@@ -2276,7 +2278,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
+    #[ignore = "Requires OPENRPG_ASSET_VAULT pointing to the real private asset library"]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Search and detail responses must preserve identical stored dimensions"
+    )]
     fn live_vault_library() {
         let root = std::env::var("OPENRPG_ASSET_VAULT")
             .expect("OPENRPG_ASSET_VAULT doit désigner le Vault réel pour ce test ignoré");
@@ -2286,7 +2292,7 @@ mod tests {
         let mut ids = BTreeSet::new();
         let mut packs = BTreeSet::new();
         loop {
-            let page = match l
+            let LibraryResponse::Page { page } = l
                 .execute(LibraryRequest::Search {
                     query: LibraryQuery {
                         offset,
@@ -2295,9 +2301,8 @@ mod tests {
                     },
                 })
                 .unwrap()
-            {
-                LibraryResponse::Page { page } => page,
-                _ => panic!("la recherche doit retourner une page"),
+            else {
+                panic!("la recherche doit retourner une page")
             };
             assert_eq!(page.matched_assets, page.total_assets);
             if let Some(expected_total) = total {
@@ -2376,17 +2381,17 @@ mod tests {
     fn write_pack_fixture(
         root: &Path,
         pack: &str,
-        details: Value,
-        profiles: Value,
-        catalog: Value,
+        details: &Value,
+        profiles: &Value,
+        catalog: &Value,
         catalog_path: &Path,
     ) {
         let pack_dir = root.join(format!("metadata/rev/{pack}/one"));
         fs::create_dir_all(&pack_dir).unwrap();
         fs::create_dir_all(catalog_path.parent().unwrap()).unwrap();
-        fs::write(catalog_path, serde_json::to_vec(&catalog).unwrap()).unwrap();
-        let d = serde_json::to_vec(&details).unwrap();
-        let p = serde_json::to_vec(&profiles).unwrap();
+        fs::write(catalog_path, serde_json::to_vec(catalog).unwrap()).unwrap();
+        let d = serde_json::to_vec(details).unwrap();
+        let p = serde_json::to_vec(profiles).unwrap();
         fs::write(pack_dir.join("details.v1.json"), &d).unwrap();
         fs::write(pack_dir.join("profiles.v1.json"), &p).unwrap();
         let reg_path = root.join("metadata/asset-import-registry.v1.json");
@@ -2423,7 +2428,7 @@ mod tests {
         if materialize {
             fs::write(root.join("normalized/demo/models/b.glb"), b"glb").unwrap();
         }
-        write_pack_fixture(root, "demo", details, profiles, catalog, &cat_path);
+        write_pack_fixture(root, "demo", &details, &profiles, &catalog, &cat_path);
         id.into()
     }
     fn search_page(library: &mut Library, query: LibraryQuery) -> LibraryPage {
@@ -2582,7 +2587,7 @@ mod tests {
                 .unwrap();
         let cat_path = root.join("normalized/demo/catalog.v1.json");
         let cat: Value = serde_json::from_slice(&fs::read(&cat_path).unwrap()).unwrap();
-        write_pack_fixture(&root, "demo", details, p, cat, &cat_path);
+        write_pack_fixture(&root, "demo", &details, &p, &cat, &cat_path);
         let mut library = Library::new(&root).unwrap();
         assert!(
             library
@@ -2648,7 +2653,7 @@ mod tests {
             serde_json::from_slice(&fs::read(dir.join("profiles.v1.json")).unwrap()).unwrap();
         let cat_path = root.join("normalized/demo/catalog.v1.json");
         let catalog: Value = serde_json::from_slice(&fs::read(&cat_path).unwrap()).unwrap();
-        write_pack_fixture(&root, "demo", details, profiles, catalog, &cat_path);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
         let mut library = Library::new(&root).unwrap();
         let page = search_page(&mut library, LibraryQuery::default());
         match library
@@ -2718,7 +2723,7 @@ mod tests {
         details["assets"][0]["model_sha256"] = Value::String("not-sha".into());
         profiles["profiles"][0]["model_content_sha256"] = Value::String("not-sha".into());
         catalog["assets"][0]["sha256"] = Value::String("not-sha".into());
-        write_pack_fixture(&root, "demo", details, profiles, catalog, &cat_path);
+        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &cat_path);
         let mut library = Library::new(&root).unwrap();
         assert!(
             library
@@ -2875,7 +2880,7 @@ mod tests {
         fn changed_support(root: &Path) {
             fs::write(root.join(SOURCE_SUPPORT_REGISTRY), b"{}").unwrap();
         }
-        let cases: [(&str, fn(&Path)); 4] = [
+        let cases: [FixtureMutation; 4] = [
             ("metadata/asset-import-registry.v1.json", unreadable_import),
             ("metadata/asset-import-registry.v1.json", changed_import),
             (SOURCE_SUPPORT_REGISTRY, unreadable_support),
@@ -2979,7 +2984,7 @@ mod tests {
         let expected_details = details["assets"][0].clone();
         let expected_profile = profiles["profiles"][0].clone();
         let expected_catalog = catalog["assets"][0].clone();
-        write_pack_fixture(&root, "other", details, profiles, catalog, &cat_path);
+        write_pack_fixture(&root, "other", &details, &profiles, &catalog, &cat_path);
         let mut library = Library::new(&root).unwrap();
         let page = search_page(
             &mut library,
@@ -3029,7 +3034,7 @@ mod tests {
                 profiles["profiles"][0]["model_content_sha256"] =
                     Value::String(sha256(b"different"));
             }
-            write_pack_fixture(&root, "demo", details, profiles, cat, &cat_path);
+            write_pack_fixture(&root, "demo", &details, &profiles, &cat, &cat_path);
             let mut library = Library::new(&root).unwrap();
             assert!(
                 library

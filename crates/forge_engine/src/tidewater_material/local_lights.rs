@@ -78,13 +78,15 @@ mod tests {
 
     #[test]
     fn local_lights_material_uniform_matches_all_source_packet_bytes() {
-        let mut packet = Packet::default();
-        packet.count = 8;
-        packet.flash_on = 1.0;
-        packet.flash_cone = DVec2::new(0.9, 0.7);
-        packet.flash_position = DVec3::new(-1.25, 3.5, 200.0);
-        packet.flash_direction = DVec3::new(0.1, 0.2, -0.9);
-        packet.flash_color = DVec3::new(12.0, 14.5, 7.25);
+        let mut packet = Packet {
+            count: 8,
+            flash_on: 1.0,
+            flash_cone: DVec2::new(0.9, 0.7),
+            flash_position: DVec3::new(-1.25, 3.5, 200.0),
+            flash_direction: DVec3::new(0.1, 0.2, -0.9),
+            flash_color: DVec3::new(12.0, 14.5, 7.25),
+            ..Packet::default()
+        };
         for (index, value) in packet.positions.iter_mut().enumerate() {
             *value = DVec4::new(f64::from(u32::try_from(index).unwrap()), -2.5, 300.0, 121.0);
         }

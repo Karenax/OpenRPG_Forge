@@ -33,6 +33,7 @@ use bevy::{
     ui_render::render_pass::ui_pass,
 };
 
+use crate::atmospheric_haze::AirHazeSettings;
 use crate::tidewater_temporal::{
     frame::ViewPacket,
     hdr::{HdrObservations, HdrRole, SourceHdrSystems},
@@ -117,12 +118,13 @@ impl Plugin for TidewaterAirHazePlugin {
         );
         app.add_plugins((
             ExtractComponentPlugin::<TidewaterAirHaze>::default(),
+            ExtractComponentPlugin::<AirHazeSettings>::default(),
             ExtractComponentPlugin::<clock::Clock>::default(),
             UniformComponentPlugin::<TidewaterAirHaze>::default(),
-            ExtractResourcePlugin::<scene::Inputs>::default(),
+            ExtractResourcePlugin::<crate::atmospheric_haze::scene::Inputs>::default(),
             ExtractResourcePlugin::<moon::Inputs>::default(),
         ))
-        .init_resource::<scene::Inputs>()
+        .init_resource::<crate::atmospheric_haze::scene::Inputs>()
         .init_resource::<moon::Inputs>()
         .add_systems(PostUpdate, scene::refresh)
         .add_systems(PostUpdate, moon::refresh)
@@ -165,6 +167,7 @@ impl Plugin for TidewaterAirHazePlugin {
 }
 
 #[derive(Component, Clone, Copy, Debug, ExtractComponent, ShaderType)]
+#[require(AirHazeSettings)]
 pub struct TidewaterAirHaze {
     camera_world: Mat4,
     /// x/y: effective projection scale; z: camera height above sea; w: depth numerator.
@@ -174,26 +177,14 @@ pub struct TidewaterAirHaze {
     atmosphere: [Vec4; 4],
 }
 
-impl TidewaterAirHaze {
-    #[must_use]
-    pub fn new(density: f32) -> Self {
+impl Default for TidewaterAirHaze {
+    fn default() -> Self {
         Self {
             camera_world: Mat4::IDENTITY,
             projection: Vec4::new(1.0, 1.0, 0.0, 0.1),
-            control: Vec4::new(density, 1.0, 0.0, 0.0),
+            control: Vec4::new(1.6, 1.0, 0.0, 0.0),
             atmosphere: [Vec4::ZERO; 4],
         }
-    }
-
-    /// Change the aerial-perspective density without resetting camera data.
-    pub fn set_density(&mut self, density: f32) {
-        self.control.x = density.clamp(0.0, 4.0);
-    }
-
-    /// Current density supplied to the atmosphere post pass.
-    #[must_use]
-    pub fn density(&self) -> f32 {
-        self.control.x
     }
 }
 
@@ -204,6 +195,7 @@ fn update(
         &GlobalTransform,
         &Camera,
         &Projection,
+        &AirHazeSettings,
         &mut TidewaterAirHaze,
     )>,
 ) {
@@ -214,7 +206,7 @@ fn update(
             crate::tidewater_underwater::TidewaterImmersion::FullyImmersed
         )
     });
-    for (transform, camera, projection, mut haze) in &mut views {
+    for (transform, camera, projection, settings, mut haze) in &mut views {
         let Projection::Perspective(_) = projection else {
             continue;
         };
@@ -227,6 +219,11 @@ fn update(
             clip.w_axis.z,
         );
         haze.control.w = clip.z_axis.z;
+        haze.control.x = if settings.enabled {
+            settings.density()
+        } else {
+            0.0
+        };
         haze.control.y = if camera_in_air { 1.0 } else { 0.0 };
         haze.control.z = if std::env::var_os("FORGE_TIDEWATER_HAZE_DEBUG_DEPTH").is_some() {
             1.0

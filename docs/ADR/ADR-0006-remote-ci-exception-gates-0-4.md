@@ -9,6 +9,17 @@ Confirmation au commit Gate 0 : run `33339077298`, commit
 `a7c506f099b50100ad49f3ae6d01d541c9b63d49`
 Complète : `ADR-0001-rust-webgpu-greenfield.md`
 
+## Actualisation — 10 octobre 2026
+
+L'exception de facturation reste une décision historique pour les runs sans
+étape exécutée. Elle ne s'applique plus aux jobs réellement démarrés depuis
+le run `37125741497` du 3 octobre. Le [run du 9 octobre 37985561420](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420)
+sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98` passe WASM et supply-chain,
+mais Windows/Linux échouent à Clippy ; tests et builds natifs suivants non
+exécutés. Ces échecs doivent être corrigés ; une CI PASS sur le candidat final
+reste nécessaire. Les résultats et le protocole historiques ci-dessous sont
+conservés, sans transformer ces erreurs de code en refus d'infrastructure.
+
 ## Contexte
 
 La roadmap exige une CI distante Windows, Linux et WASM avant le passage de Gate 0, puis la

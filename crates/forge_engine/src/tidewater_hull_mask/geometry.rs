@@ -88,7 +88,7 @@ impl Geometry {
             vertex_ids.push(*welded.entry(key).or_insert(next));
         }
         let mut edges = HashMap::<(usize, usize), (u32, i32)>::new();
-        for triangle in indices.chunks_exact(3) {
+        for triangle in indices.as_chunks::<3>().0 {
             let [a, b, c] = std::array::from_fn(|i| triangle[i] as usize);
             if [a, b, c].into_iter().any(|i| i >= positions.len()) {
                 return Err("Hull triangle references a missing vertex".into());
@@ -105,7 +105,9 @@ impl Geometry {
                 edge.1 += direction;
             }
         }
-        let boundary_edges = edges.values().filter(|&&(count, _)| count == 1).count() as u32;
+        let boundary_edges =
+            u32::try_from(edges.values().filter(|&&(count, _)| count == 1).count())
+                .map_err(|_| "Hull boundary edge count exceeds the indexed geometry limit")?;
         let expected_boundary_edges = source.map_or(0, |(_, count)| count);
         if boundary_edges != expected_boundary_edges
             || edges

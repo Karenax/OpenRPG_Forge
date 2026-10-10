@@ -215,6 +215,10 @@ fn prepare(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "Cascade draw ordering and resource lifetimes are kept together for the shared render pass"
+)]
 fn draw(
     mut context: RenderContext,
     mut commands: Commands,

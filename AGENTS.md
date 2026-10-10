@@ -59,9 +59,13 @@ Avant toute modification importante, lire dans cet ordre :
 planning détaillent le travail mais ne redéfinissent pas la vision.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
-Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md). La CI distante des Gates 0 à 4 reste `NOT RUN` tant que le blocage de facturation
-empêche les runners de démarrer et ne doit jamais être décrite comme verte. Chaque gate conserve les
-preuves de la précédente.
+Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md).
+Gate 2 est clôturée par validation du propriétaire selon ADR-0018 ; Gate 3 reste ouverte.
+Le blocage historique de facturation ne décrit plus la CI actuelle : le run du 9 octobre 2026
+sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98` a exécuté les runners. WASM et supply-chain ont
+réussi ; les jobs natifs Windows et Linux ont échoué sur Clippy avant tests et builds.
+Les corrections locales nécessitent une nouvelle CI sur leur révision publiée avant tout verdict
+distant. Chaque gate conserve les preuves de la précédente.
 
 La branche `main` est une référence historique C#/Godot, pas une dépendance. Sa référence initiale est
 `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`.

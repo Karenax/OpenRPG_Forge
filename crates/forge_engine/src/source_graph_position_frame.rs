@@ -1,4 +1,4 @@
-//! Explicit inputs for Unity AbsoluteWorld -> Object position nodes.
+//! Explicit inputs for Unity `AbsoluteWorld` -> Object position nodes.
 //! These computations do not qualify source frames or shader execution.
 use bevy::math::Affine3A;
 use bevy::prelude::{Mat4, Vec3};
@@ -9,6 +9,10 @@ pub struct SourceGraphPositionFrame {
     pub source_camera_relative_offset: Vec3,
 }
 
+#[allow(
+    clippy::float_cmp,
+    reason = "The source mapping must have the exact affine row; tolerances would admit projective matrices."
+)]
 fn require_affine_inverse(matrix: Mat4) -> Result<Mat4, &'static str> {
     if !matrix.is_finite()
         || matrix.x_axis.w != 0.0
@@ -88,6 +92,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn rotated_scaled_instance_recovers_its_original_position() {
         let instance = Mat4::from_scale_rotation_translation(
             Vec3::new(2.0, 3.0, 4.0),

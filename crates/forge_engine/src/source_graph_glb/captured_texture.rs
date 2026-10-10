@@ -6,6 +6,10 @@ use crate::source_graph::{
     SourceGraphImportedTextureMetadata, prepare_source_graph_imported_texture,
 };
 use forge_assets::source_graph_bundle::{SourceGraphImportedStorageFormat, SourceGraphTexture};
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "The validated source sampler projects mip bias to its original GPU Float32 ABI."
+)]
 pub fn prepare_captured_source_graph_texture(
     texture: &SourceGraphTexture,
     views: &[&[u8]],

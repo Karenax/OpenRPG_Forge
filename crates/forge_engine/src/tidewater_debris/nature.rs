@@ -16,7 +16,7 @@ pub const SHADER: Handle<Shader> =
 pub struct NatureExtension {
     #[texture(100, filterable = false)]
     pub heights: Handle<Image>,
-    /// Use the acquired RGBA8Unorm mip chain and repeat/linear/aniso-4 image sampler.
+    /// Use the acquired `RGBA8Unorm` mip chain and repeat/linear/aniso-4 image sampler.
     #[texture(101)]
     #[sampler(102)]
     pub detail: Handle<Image>,
@@ -104,7 +104,7 @@ pub fn shader_source(source: &str) -> Result<String, String> {
 /// Install only a verified caller-supplied program in an existing renderer.
 ///
 /// # Errors
-/// Returns interface/resource errors without an AssetServer fixture fallback.
+/// Returns interface/resource errors without an `AssetServer` fixture fallback.
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
     let source = shader_source(source)?;
     crate::tidewater_material::install_scene_receivers(world)?;

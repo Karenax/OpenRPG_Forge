@@ -41,7 +41,7 @@ pub enum Family {
     Spray,
     /// Current bounded Forge `StallKit` adapter, not source beauty qualification.
     FishStand,
-    /// Complete opaque StallKit shading with the acquired array/mesh attributes.
+    /// Complete opaque `StallKit` shading with the acquired array/mesh attributes.
     FullStall,
 }
 
@@ -72,6 +72,10 @@ impl StdError for Error {}
 
 /// Derive from the actual installed shaders, including authored terrain/vegetation changes.
 /// A known seam is mandatory; this function does not classify unknown shaders by appearance.
+#[expect(
+    clippy::too_many_lines,
+    reason = "Shader source validation and ordered transformation are one auditable derivation"
+)]
 pub fn derive(family: Family, vertex: &str, fragment: &str) -> Result<Derived, Error> {
     let error = |seam| Error { family, seam };
     if [vertex, fragment].iter().any(|source| {

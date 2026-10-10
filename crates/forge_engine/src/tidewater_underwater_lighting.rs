@@ -455,7 +455,7 @@ mod tests {
         // Only the optical interface is stubbed; validate the actual bake entry,
         // two storage arrays, snapped origins and readback-buffer writes.
         let interface = r"
-struct Frame { seaLevel: f32, cameraPos: vec3f, frameIndex: u32, time: f32 };
+struct Frame { seaLevel: f32, cameraPos: vec3f, frameIndex: u32, time: f32, sunDir: vec3f, sunColor: vec3f, skyIrradiance: vec3f, cameraUnderwater: f32 };
 var<private> frame: Frame;
 struct Ocean { sizes: array<vec4f, 4> };
 @group(1) @binding(0) var<uniform> ocean: Ocean;

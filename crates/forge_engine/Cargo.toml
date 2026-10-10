@@ -10,7 +10,7 @@ description = "Bevy adapter for engine-neutral OpenRPG Forge scene documents."
 [features]
 default = ["native"]
 native = ["physics-rapier"]
-web = ["bevy/webgpu", "physics-rapier"]
+web = ["bevy/web", "bevy/webgpu", "physics-rapier"]
 qualification = ["physics-rapier"]
 # Purchased fixtures stay outside the repository and require an explicit local path.
 private-source-fixtures = []
@@ -43,8 +43,22 @@ getrandom = { version = "=0.3.4", default-features = false, features = ["wasm_js
 # Validate Forge optical WGSL with the same Naga version already locked by Bevy.
 naga = { version = "=29.0.4", features = ["wgsl-in"] }
 
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+console_error_panic_hook.workspace = true
+wasm-bindgen-futures.workspace = true
+
 [lints]
 workspace = true
+
+[[example]]
+name = "verify_browser_source_glb_v114"
+crate-type = ["cdylib"]
+required-features = ["web", "private-source-fixtures"]
+
+[[example]]
+name = "verify_browser_source_glb_v141"
+crate-type = ["cdylib"]
+required-features = ["web", "private-source-fixtures"]
 
 [[example]]
 name = "source_normal_precision_proof"

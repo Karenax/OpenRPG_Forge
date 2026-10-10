@@ -30,8 +30,10 @@ Le moteur et les commandes génériques ne dépendent d'aucun slug Tidewater.
 - Documenter séparément implementation, tests, exécution graphique et revue humaine.
 
 La demande autorise le travail et le passage à Gate 3 ; elle n'autorise aucune
-publication Git. La CI distante reste `NOT RUN` tant qu'elle n'a pas été
-réexécutée ; l'exception ADR-0006 et ses conditions restent explicites.
+publication Git. Au moment de cette décision, la CI distante était `NOT RUN`
+tant qu'elle n'avait pas été réexécutée. Depuis le 3 octobre, les jobs ont
+réellement démarré : les conditions de facturation ADR-0006 ne couvrent plus
+leurs erreurs de code. Voir l'actualisation d'ADR-0006 et le contexte canonique.
 
 ## Références
 

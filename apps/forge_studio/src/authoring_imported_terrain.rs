@@ -502,7 +502,10 @@ fn configure_playtest_graphics(
         Fxaa::default(),
         forge_engine::tidewater_gtao::TidewaterGtao::new(profile.ambient_occlusion),
         forge_engine::tidewater_lens_flare::TidewaterLensFlare::new(profile.lens_flare),
-        forge_engine::tidewater_air_haze::TidewaterAirHaze::new(profile.air_haze),
+        (
+            forge_engine::tidewater_air_haze::TidewaterAirHaze::default(),
+            forge_engine::atmospheric_haze::AirHazeSettings::new(profile.air_haze),
+        ),
         forge_engine::tidewater_film_grain::TidewaterFilmGrain::new(profile.film_grain),
         AutoExposure {
             filter: 0.0..=1.0,
@@ -546,7 +549,7 @@ struct PlaytestGraphicsParams<'w, 's> {
     vignette: Query<'w, 's, &'static mut bevy::post_process::effect_stack::Vignette>,
     ambient_occlusion: Query<'w, 's, &'static mut forge_engine::tidewater_gtao::TidewaterGtao>,
     lens_flare: Query<'w, 's, &'static mut forge_engine::tidewater_lens_flare::TidewaterLensFlare>,
-    air_haze: Query<'w, 's, &'static mut forge_engine::tidewater_air_haze::TidewaterAirHaze>,
+    air_haze: Query<'w, 's, &'static mut forge_engine::atmospheric_haze::AirHazeSettings>,
     village_materials: ResMut<'w, Assets<forge_engine::tidewater_material::VillageMaterial>>,
     applied: Local<'s, Option<(Entity, crate::authoring_input::PlaytestGraphics, bool)>>,
     temporal: Query<'w, 's, (), With<bevy::anti_alias::taa::TemporalAntiAliasing>>,

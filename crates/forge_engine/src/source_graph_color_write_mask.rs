@@ -10,7 +10,7 @@ use bevy::{
 pub struct SourceGraphForwardPassState {
     pub forward: SourceGraphForwardState,
     /// Renderer bits (RED=1, GREEN=2, BLUE=4, ALPHA=8), not Unity's numeric
-    /// ShaderLab mask. Producers must translate original named channels.
+    /// `ShaderLab` mask. Producers must translate original named channels.
     pub color_write_mask: u32,
 }
 
@@ -42,30 +42,31 @@ mod tests {
         ColorTargetState, CompareFunction, DepthStencilState, FragmentState, TextureFormat,
     };
     fn descriptor() -> RenderPipelineDescriptor {
-        let mut result = RenderPipelineDescriptor::default();
-        result.fragment = Some(FragmentState {
-            targets: vec![
-                Some(ColorTargetState {
-                    format: TextureFormat::Rgba16Float,
-                    blend: None,
-                    write_mask: ColorWrites::ALL,
-                }),
-                Some(ColorTargetState {
-                    format: TextureFormat::Rgba16Float,
-                    blend: None,
-                    write_mask: ColorWrites::ALPHA,
-                }),
-            ],
+        RenderPipelineDescriptor {
+            fragment: Some(FragmentState {
+                targets: vec![
+                    Some(ColorTargetState {
+                        format: TextureFormat::Rgba16Float,
+                        blend: None,
+                        write_mask: ColorWrites::ALL,
+                    }),
+                    Some(ColorTargetState {
+                        format: TextureFormat::Rgba16Float,
+                        blend: None,
+                        write_mask: ColorWrites::ALPHA,
+                    }),
+                ],
+                ..Default::default()
+            }),
+            depth_stencil: Some(DepthStencilState {
+                format: TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(CompareFunction::GreaterEqual),
+                stencil: bevy::render::render_resource::StencilState::default(),
+                bias: bevy::render::render_resource::DepthBiasState::default(),
+            }),
             ..Default::default()
-        });
-        result.depth_stencil = Some(DepthStencilState {
-            format: TextureFormat::Depth32Float,
-            depth_write_enabled: Some(true),
-            depth_compare: Some(CompareFunction::GreaterEqual),
-            stencil: Default::default(),
-            bias: Default::default(),
-        });
-        result
+        }
     }
     fn source() -> SourceGraphForwardPassState {
         SourceGraphForwardPassState {

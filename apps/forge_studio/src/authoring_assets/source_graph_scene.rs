@@ -1,4 +1,4 @@
-//! Common attachment to an existing preview or ManualPlacement root.
+//! Common attachment to an existing preview or `ManualPlacement` root.
 //! The caller registers source programs/images/uniforms from pinned intake and
 //! qualifies pass routing before making this hidden root visible. This adapter
 //! does not manufacture textures, tangents, camera mappings or GPU evidence.
@@ -95,11 +95,11 @@ fn geometry_matches(mesh: &Mesh, expected: &SourceGraphPrimitiveGeometry) -> boo
         && source::SOURCE_GRAPH_STANDARD_ADDITIONAL_UVS
             .iter()
             .zip(&expected.additional_uvs)
-            .all(|(attribute, values)| matches2(mesh, attribute.clone(), values.as_deref()))
+            .all(|(attribute, values)| matches2(mesh, *attribute, values.as_deref()))
         && source::SOURCE_GRAPH_ORIGINAL_ADDITIONAL_UVS
             .iter()
             .zip(&expected.source.original_additional_uvs)
-            .all(|(attribute, values)| matches4(mesh, attribute.clone(), values.as_deref()))
+            .all(|(attribute, values)| matches4(mesh, *attribute, values.as_deref()))
 }
 
 /// Fail before creating entities when a route or a resident binding is missing.

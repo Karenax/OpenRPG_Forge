@@ -30,10 +30,12 @@ impl SourceMaterialScalarParameters {
         Ok(Self { names, values })
     }
 
+    #[must_use]
     pub fn slot(&self, name: &str) -> Option<usize> {
         self.names.iter().position(|candidate| candidate == name)
     }
 
+    #[must_use]
     pub fn value(&self, name: &str) -> Option<f32> {
         self.slot(name).map(|index| self.values[index])
     }
@@ -48,12 +50,14 @@ impl SourceMaterialScalarParameters {
         Ok(())
     }
 
+    #[must_use]
     pub fn vec4_lanes(&self) -> [[f32; 4]; 16] {
         std::array::from_fn(|lane| {
             std::array::from_fn(|component| self.values[lane * 4 + component])
         })
     }
 
+    #[must_use]
     pub fn little_endian_uniform_bytes(&self) -> [u8; 256] {
         let mut bytes = [0_u8; 256];
         for (index, value) in self.values.iter().enumerate() {
@@ -69,18 +73,17 @@ mod tests {
 
     #[test]
     fn compiler_order_and_vec4_boundaries_survive_material_updates() {
-        let slots = (0..64).map(|i| (format!("source_{i}"), i as f32)).collect();
+        let slots = (0_u8..64)
+            .map(|i| (format!("source_{i}"), f32::from(i)))
+            .collect();
         let mut parameters = SourceMaterialScalarParameters::from_compiler_slots(slots).unwrap();
         parameters.set_value("source_4", 0.75).unwrap();
         assert_eq!(parameters.slot("source_4"), Some(4));
-        assert_eq!(parameters.vec4_lanes()[1][0], 0.75);
-        assert_eq!(parameters.vec4_lanes()[15][3], 63.0);
+        assert_eq!(parameters.vec4_lanes()[1][0].to_bits(), 0.75_f32.to_bits());
+        assert_eq!(parameters.vec4_lanes()[15][3].to_bits(), 63.0_f32.to_bits());
         let bytes = parameters.little_endian_uniform_bytes();
-        assert_eq!(f32::from_le_bytes(bytes[16..20].try_into().unwrap()), 0.75);
-        assert_eq!(
-            f32::from_le_bytes(bytes[252..256].try_into().unwrap()),
-            63.0
-        );
+        assert_eq!(&bytes[16..20], &0.75_f32.to_le_bytes());
+        assert_eq!(&bytes[252..256], &63.0_f32.to_le_bytes());
     }
 
     #[test]

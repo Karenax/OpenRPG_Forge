@@ -123,6 +123,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn cadence_waits_for_encoding_and_pending_readback_before_refreshing() {
         let (mut world, frame, values) = scene();
         advance(&mut world, 0.0, frame, values, false).unwrap();
@@ -161,6 +165,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn invalid_frame_or_delta_does_not_create_a_controller_or_change_uniforms() {
         let (mut world, frame, values) = scene();
         assert!(advance(&mut world, -1.0, frame, values, false).is_err());

@@ -1,25 +1,33 @@
 # Gate 3 — Plan détaillé de préparation
 
-Date initiale : 23 septembre 2026. État actualisé au 2 octobre 2026 :
+Date initiale : 23 septembre 2026. État actualisé au 10 octobre 2026 :
 **exécution active sur Tidewater, Gate 3 ouverte** depuis l'autorisation
 propriétaire [ADR-0018](../ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).
 Les résultats machine et runtime, ainsi que les limites encore ouvertes,
 figurent dans le [suivi daté](../evidence/gate3/GATE3_PROGRESS_20261002.md).
 
+Le [test humain a été accepté le 8 octobre](../evidence/gate3/GATE3_OWNER_HUMAN_VALIDATION_20261008.md)
+sur le correctif 005. Gate 3 reste ouverte : les preuves du candidat RPG isolé
+Source075 restent distinctes de son adoption dans les sources courantes et
+d'une CI PASS sur la révision finale. La preview installable du 10 octobre
+est désormais remplacée par [R3](INSTALLABLE_DELIVERY_20261010_R3.md), dont les binaires moteur du 9 octobre restent distincts de ce lot consolidé ; elle ne remplace pas ces conditions.
+
 Ce plan développe les critères existants de la [roadmap](MIGRATION_ROADMAP.md#gate-3--première-boucle-rpg-environnementale). Il ne modifie ni leur statut, ni l'ordre des gates. Les identifiants G3-01 à G3-10 désignent des lots proposés, pas de nouveaux critères officiels. Aucun lot n'est qualifié par sa description.
+
+La [consolidation du 10 octobre](../evidence/gate3/GATE3_CONSOLIDATION_20261010.md) documente l’intégration des corrections retenues et leurs contrôles locaux frais. La CI distante complète et la qualification runtime/humaine de la révision courante restent distinctes.
 
 ## 1. Objectif et conditions d'entrée
 
 Livrer une petite aventure complète créée depuis le Studio : recevoir une quête, dialoguer, traverser une zone, neutraliser un ennemi grâce au décor, récupérer un objet, terminer l'objectif, sauvegarder puis reprendre. Le parcours relie village, forêt et intérieur, propose deux approches et conserve une conséquence persistante.
 
-État documentaire vérifié à la préparation : Gate 2 ouverte, R2-050 et R2-052 ouverts et conditions transversales non cochées. L'implémentation Gate 3 commence après :
+État historique à la préparation du 23 septembre : Gate 2 ouverte, R2-050 et R2-052 ouverts et conditions transversales non cochées. Ces réserves ont ensuite été acceptées par ADR-0018 le 1er octobre. Les conditions d'entrée initiales étaient :
 
 1. clôture documentée de Gate 2 et décision de poursuite prévue par son scorecard ;
 2. identification de la révision de départ et préservation du travail existant ;
 3. vérification des contrats de workspace, de commandes et de playtest effectivement qualifiés ;
 4. accord sur le périmètre d'implémentation et application des décisions structurelles requises.
 
-Avant cela, seuls les travaux de préparation autorisés sont réalisés. Les blocages de navigation concernent son intégration de production : ils n'empêchent pas les travaux indépendants sur les interactions et le dialogue après ouverture de Gate 3.
+Avant cette décision, seuls les travaux de préparation autorisés étaient réalisés. Les blocages de navigation concernent son intégration de production : ils n'empêchent pas les travaux indépendants sur les interactions et le dialogue après ouverture de Gate 3.
 
 ## 2. Sources et fondations
 
@@ -37,7 +45,7 @@ Sources d'autorité :
 
 L'inspection préparatoire a trouvé le contrôleur joueur/caméra, les collisions Rapier, les documents de zone et de workspace, les commandes d'édition et le passage en playtest. Leur réutilisation dépend des preuves de Gate 2 ; aucune nouvelle validation runtime n'a été exécutée pour ce plan.
 
-Le workspace Cargo inspecté ne contient pas de crate `forge_gameplay`. Les sources inspectées ne montrent pas de boucle intégrée d'inventaire/dialogue/quête/combat. Le point de départ du playtest est une métadonnée d'auteur, pas une sauvegarde de partie.
+Au 23 septembre, le workspace Cargo inspecté ne contenait pas de crate `forge_gameplay` et les sources inspectées ne montraient pas de boucle intégrée d'inventaire/dialogue/quête/combat. Ce constat de préparation ne décrit pas les implémentations et preuves RPG acquises depuis. Le point de départ du playtest reste distinct d'une sauvegarde de partie.
 
 Le benchmark de navigation est un laboratoire exclu du workspace. ADR-0009 n'a sélectionné aucun fournisseur de production. Ses constats datés ne constituent pas une vérification actuelle des versions amont ; une actualisation sera nécessaire avant sélection.
 

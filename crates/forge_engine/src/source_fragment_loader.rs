@@ -47,6 +47,10 @@ impl AssetLoader for SourceFragmentGlbLoader {
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Ordered source validation and GPU preparation remain a single auditable operation"
+)]
 pub fn prepare_source_glb(raw: &[u8]) -> Result<Vec<u8>, String> {
     let header: [u8; 20] = raw
         .get(..20)
@@ -206,7 +210,7 @@ mod tests {
         };
         let valid = serde_json::json!({"buffer":0,"byteLength":4});
         assert_eq!(
-            source_png_view_bytes(&bin, &[valid.clone()], &image).unwrap(),
+            source_png_view_bytes(&bin, std::slice::from_ref(&valid), &image).unwrap(),
             bin
         );
         for invalid in [
@@ -214,15 +218,15 @@ mod tests {
             serde_json::json!({"buffer":0,"byteOffset":-1,"byteLength":4}),
             serde_json::json!({"buffer":0,"byteOffset":1,"byteLength":4}),
             serde_json::json!({"buffer":0,"byteLength":0}),
-            serde_json::json!({"buffer":0,"byteLength":67108865}),
-            serde_json::json!({"buffer":0,"byteOffset":18446744073709551615_u64,"byteLength":4}),
+            serde_json::json!({"buffer":0,"byteLength":67_108_865}),
+            serde_json::json!({"buffer":0,"byteOffset":18_446_744_073_709_551_615_u64,"byteLength":4}),
             serde_json::json!({"buffer":0}),
         ] {
             assert!(source_png_view_bytes(&bin, &[invalid], &image).is_err());
         }
         let mut wrong = image.clone();
         wrong.sha256 = "a".repeat(64);
-        assert!(source_png_view_bytes(&bin, &[valid.clone()], &wrong).is_err());
+        assert!(source_png_view_bytes(&bin, std::slice::from_ref(&valid), &wrong).is_err());
         wrong.buffer_view = 1;
         assert!(source_png_view_bytes(&bin, &[valid], &wrong).is_err());
     }

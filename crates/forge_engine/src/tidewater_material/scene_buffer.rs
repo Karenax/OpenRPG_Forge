@@ -55,6 +55,10 @@ pub fn publish(world: &mut World, lighting: &SceneLighting) -> Result<(), String
 mod tests {
     use super::*;
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn publishes_aligned_values_without_resetting_on_mesh_rebuild() {
         let mut world = World::new();
         world.init_resource::<Assets<ShaderBuffer>>();

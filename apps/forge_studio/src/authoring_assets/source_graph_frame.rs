@@ -42,12 +42,12 @@ pub(super) fn update(
         .map(|(entity, material, route)| (entity, material.0.id(), route.clone()))
         .collect();
     for (owner, main, route) in routes {
-        if !world
+        if world
             .get::<ChildOf>(route.proxy)
-            .is_some_and(|parent| parent.parent() == owner)
-            || !world
+            .is_none_or(|parent| parent.parent() != owner)
+            || world
                 .get::<MeshMaterial3d<SourceGraphMaterial>>(route.proxy)
-                .is_some_and(|material| material.0 == route.shadow_material)
+                .is_none_or(|material| material.0 != route.shadow_material)
         {
             return Err("Source shadow ownership changed before frame update".into());
         }
@@ -153,6 +153,10 @@ mod tests {
             RenderAssetUsages::MAIN_WORLD,
         ));
         let key = SourceGraphKey {
+            requires_native_srgb_encoder: false,
+            native_srgb_encoder_ready: false,
+            requires_deferred_srgb: false,
+            deferred_srgb_ready: false,
             requires_preintegrated_brdf: false,
             preintegrated_brdf_ready: false,
             requires_sky_cube: false,

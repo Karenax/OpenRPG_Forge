@@ -1,5 +1,5 @@
 //! Merge transient producers of the same masked shader and cascade target.
-use bevy::{ecs as bevy_ecs, prelude::*};
+use bevy::prelude::*;
 use forge_engine::tidewater_fish_props::shadow::{Frame, MaskedMesh};
 use std::{any::TypeId, collections::BTreeMap, sync::Arc};
 
@@ -18,10 +18,10 @@ pub(super) fn publish<Owner: 'static>(
     frame: Option<Frame>,
 ) -> Result<(), String> {
     let tick = world.resource::<bevy::diagnostic::FrameCount>().0;
-    if let Some(frame) = &frame {
-        if frame.meshes.len() != frame.poses.len() || !frame.time.is_finite() {
-            return Err("Invalid masked shadow contribution".into());
-        }
+    if let Some(frame) = &frame
+        && (frame.meshes.len() != frame.poses.len() || !frame.time.is_finite())
+    {
+        return Err("Invalid masked shadow contribution".into());
     }
     world.init_resource::<Contributions>();
     let mut state = world.resource_mut::<Contributions>();

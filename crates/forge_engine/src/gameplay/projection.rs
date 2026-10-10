@@ -182,16 +182,12 @@ pub(super) fn synchronize(
             ready += usize::from(backend.is_some());
         }
         if let Some(current) = runtime.session.state().objects.get(&id.0) {
-            if let Some(mut material) = materials.get_mut(material) {
-                if let Some(definition) = runtime.session.document().object(id.0) {
-                    material.base_color = object_color(&definition.kind, current.burning);
-                }
-                material.emissive = if current.burning {
-                    LinearRgba::rgb(4.0, 0.5, 0.05)
-                } else {
-                    LinearRgba::BLACK
-                };
-            }
+            let color = runtime
+                .session
+                .document()
+                .object(id.0)
+                .map(|definition| object_color(&definition.kind, current.burning));
+            refresh_object_surface(&mut materials, &material.0, color, current.burning);
             if let Some(definition) = runtime.session.document().object(id.0) {
                 let supported = runtime
                     .session
@@ -214,6 +210,34 @@ pub(super) fn synchronize(
         && runtime.entities.len()
             == runtime.session.document().objects.len() + runtime.session.document().actors.len();
 }
+
+fn refresh_object_surface(
+    materials: &mut Assets<StandardMaterial>,
+    handle: &Handle<StandardMaterial>,
+    color: Option<Color>,
+    burning: bool,
+) {
+    let emissive = if burning {
+        LinearRgba::rgb(4.0, 0.5, 0.05)
+    } else {
+        LinearRgba::BLACK
+    };
+    let changed = materials.get(handle).is_some_and(|material| {
+        color.is_some_and(|color| material.base_color != color) || material.emissive != emissive
+    });
+    if changed {
+        let mut material = materials
+            .get_mut(handle)
+            .expect("Compared gameplay material still exists");
+        if let Some(color) = color {
+            material.base_color = color;
+        }
+        material.emissive = emissive;
+    }
+}
+
+#[cfg(test)]
+mod material_tests;
 
 fn apply_effect(commands: &mut Commands, runtime: &GameplayRuntime, event: &GameplayEvent) {
     match event {

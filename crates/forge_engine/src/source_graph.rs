@@ -1,3 +1,12 @@
+#[path = "source_graph_srgb_async.rs"]
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+mod source_srgb_async;
+#[path = "source_graph_srgb_curve.rs"]
+mod source_srgb_curve;
+#[path = "source_graph_srgb_measure.rs"]
+mod source_srgb_measure;
+#[path = "source_graph_srgb_runtime.rs"]
+mod source_srgb_runtime;
 #[path = "source_unlit_forward.rs"]
 mod source_unlit_forward;
 pub use source_unlit_forward::{
@@ -60,7 +69,10 @@ mod source_sky_cube;
 pub use source_sky_cube::{SourceGraphSkyCube, SourceGraphSkyCubeBinding};
 #[path = "source_graph_phase.rs"]
 mod source_phase;
+#[path = "source_graph_phase_material.rs"]
+mod source_phase_material;
 pub use source_phase::{SourceGraphSurfacePhase, source_graph_material};
+pub use source_phase_material::SourceGraphPhaseMaterial;
 #[path = "source_graph_shader_registry.rs"]
 mod source_shader_registry;
 pub use source_shader_registry::{
@@ -161,14 +173,22 @@ pub struct SourceGraphUniforms {
     /// Source time parameters and previous time for displacement history.
     pub source_time_parameters: Vec4,
     pub source_previous_time_parameters: Vec4,
-    /// Original inverse object X/Z scale; mip bias; pinned source FLT_MIN.
+    /// Original inverse object X/Z scale; mip bias; pinned source `FLT_MIN`.
     pub source_scale_mip_min: Vec4,
     /// Explicit per-image original normal decoder; never inferred from a name.
     pub normal_decode_modes: [Vec4; 2],
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Reflect)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Independent authored coverage, color and scene resource flags are retained in the pipeline key"
+)]
 pub struct SourceGraphKey {
+    pub requires_native_srgb_encoder: bool,
+    pub native_srgb_encoder_ready: bool,
+    pub requires_deferred_srgb: bool,
+    pub deferred_srgb_ready: bool,
     pub requires_preintegrated_brdf: bool,
     pub preintegrated_brdf_ready: bool,
     pub requires_sky_cube: bool,
@@ -210,6 +230,15 @@ pub struct SourceGraphExtension {
     /// Only the validated shared-table constructor can supply this binding.
     #[texture(122, sample_type = "float", filterable = false)]
     preintegrated_brdf: Option<Handle<Image>>,
+    /// Canonical 256-code sRGB texture decoded by the current renderer.
+    #[texture(128, sample_type = "float", filterable = false)]
+    native_srgb_thresholds: Option<Handle<Image>>,
+    #[reflect(ignore)]
+    native_srgb_binding: Option<source_srgb_runtime::NativeSrgbBinding>,
+    #[reflect(ignore)]
+    native_srgb_validated: bool,
+    #[texture(127)]
+    deferred_srgb_lookup: Option<Handle<Image>>,
     #[texture(123, dimension = "cube_array")]
     #[sampler(124)]
     sky_cube: Option<Handle<Image>>,
@@ -251,6 +280,10 @@ impl From<&SourceGraphExtension> for SourceGraphKey {
     fn from(value: &SourceGraphExtension) -> Self {
         SourceGraphKey {
             original_alpha_to_mask: value.original_alpha_to_mask,
+            native_srgb_encoder_ready: value.native_srgb_validated
+                && value.native_srgb_thresholds.is_some()
+                && value.native_srgb_binding.is_some(),
+            deferred_srgb_ready: value.deferred_srgb_lookup.is_some(),
             preintegrated_brdf_ready: value.preintegrated_brdf.is_some(),
             sky_cube_ready: value.sky_cube.is_some() && value.sky_cube_binding.is_some(),
             ..value.program_key
@@ -269,12 +302,55 @@ impl SourceGraphExtension {
     pub fn set_preintegrated_brdf(&mut self, binding: &SourceGraphPreintegratedBrdfBinding) {
         self.preintegrated_brdf = Some(binding.handle().clone());
     }
+    /// Install a source-independent code texture; this does not qualify scene parity.
+    pub fn install_deferred_srgb_lookup(&mut self, images: &mut Assets<Image>) {
+        use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
+        let bytes: Vec<u8> = (u8::MIN..=u8::MAX)
+            .flat_map(|code| [code, code, code, 255])
+            .collect();
+        self.deferred_srgb_lookup = Some(images.add(Image::new(
+            Extent3d {
+                width: 256,
+                height: 1,
+                depth_or_array_layers: 1,
+            },
+            TextureDimension::D2,
+            bytes,
+            TextureFormat::Rgba8UnormSrgb,
+            bevy::asset::RenderAssetUsages::MAIN_WORLD
+                | bevy::asset::RenderAssetUsages::RENDER_WORLD,
+        )));
+    }
     pub fn clear_preintegrated_brdf(&mut self) {
         self.preintegrated_brdf = None;
     }
     /// Reject required scene resources before mutating any frame clocks.
     /// Content SHA is checked by the opaque table constructor, not inferred here.
     pub fn validate_scene_dependencies(&self, images: &Assets<Image>) -> Result<(), &'static str> {
+        source_srgb_runtime::validate_extension(self, images)?;
+        if self.program_key.requires_deferred_srgb && self.deferred_srgb_lookup.is_none() {
+            return Err("Required deferred sRGB lookup is absent");
+        }
+        if let Some(handle) = &self.deferred_srgb_lookup {
+            let image = images
+                .get(handle)
+                .ok_or("Deferred sRGB code texture is not resident")?;
+            let expected: Vec<u8> = (u8::MIN..=u8::MAX)
+                .flat_map(|code| [code, code, code, 255])
+                .collect();
+            if image.texture_descriptor.format
+                != bevy::render::render_resource::TextureFormat::Rgba8UnormSrgb
+                || image.texture_descriptor.dimension
+                    != bevy::render::render_resource::TextureDimension::D2
+                || image.texture_descriptor.size.width != 256
+                || image.texture_descriptor.size.height != 1
+                || image.texture_descriptor.size.depth_or_array_layers != 1
+                || image.texture_descriptor.mip_level_count != 1
+                || image.data.as_deref() != Some(expected.as_slice())
+            {
+                return Err("Deferred sRGB code texture storage changed");
+            }
+        }
         if self.program_key.requires_sky_cube {
             let binding = self
                 .sky_cube_binding
@@ -352,6 +428,10 @@ impl SourceGraphExtension {
             scalars: SourceGraphScalarUniforms::default(),
             diffuse_probe: SourceGraphDiffuseProbeUniforms::default(),
             preintegrated_brdf: None,
+            native_srgb_thresholds: None,
+            native_srgb_binding: None,
+            native_srgb_validated: false,
+            deferred_srgb_lookup: None,
             sky_cube: None,
             sky_cube_binding: None,
             source,
@@ -444,7 +524,7 @@ fn source_graph_bind_role(
 /// Copy exact admitted source bindings into a distinct pipeline-cache key.
 /// The host must use this only on an identical child mesh at identity transform,
 /// excluded from ALL cameras by a private render layer. The original mesh must
-/// have NotShadowCaster, and its affected lights must include the private layer.
+/// have `NotShadowCaster`, and its affected lights must include the private layer.
 /// This factory does not install those host routes or qualify GPU rendering.
 pub fn source_graph_shadow_only_material(
     original: &SourceGraphMaterial,
@@ -469,14 +549,22 @@ impl MaterialExtension for SourceGraphExtension {
         bevy::shader::ShaderRef::Handle(source_shader_handle(0))
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Vertex ABI and pass state are validated before shader definitions and pipeline state are installed"
+    )]
     fn specialize(
         _pipeline: &MaterialExtensionPipeline,
         descriptor: &mut RenderPipelineDescriptor,
         layout: &MeshVertexBufferLayoutRef,
         key: MaterialExtensionKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
-        if (key.bind_group_data.requires_preintegrated_brdf
-            && !key.bind_group_data.preintegrated_brdf_ready)
+        if (key.bind_group_data.requires_native_srgb_encoder
+            && !key.bind_group_data.native_srgb_encoder_ready)
+            || (key.bind_group_data.requires_deferred_srgb
+                && !key.bind_group_data.deferred_srgb_ready)
+            || (key.bind_group_data.requires_preintegrated_brdf
+                && !key.bind_group_data.preintegrated_brdf_ready)
             || (key.bind_group_data.requires_sky_cube && !key.bind_group_data.sky_cube_ready)
         {
             // Explicit source scene dependency missing: never draw with the
@@ -541,8 +629,8 @@ impl MaterialExtension for SourceGraphExtension {
         if key.bind_group_data.shadow_only && !prepass {
             return Ok(());
         }
-        if let Some(raster) = key.bind_group_data.orthographic_shadow_raster {
-            if raster
+        if let Some(raster) = key.bind_group_data.orthographic_shadow_raster
+            && raster
                 .apply(
                     descriptor,
                     key.bind_group_data.shadow_only,
@@ -550,10 +638,9 @@ impl MaterialExtension for SourceGraphExtension {
                     SourceGraphShadowRasterState::is_orthographic_view(key.mesh_key),
                 )
                 .is_err()
-            {
-                source_graph_bind_stages(descriptor, 0, 0, prepass);
-                return Ok(());
-            }
+        {
+            source_graph_bind_stages(descriptor, 0, 0, prepass);
+            return Ok(());
         }
 
         if !prepass
@@ -579,15 +666,16 @@ impl MaterialExtension for SourceGraphExtension {
         } else {
             key.bind_group_data.forward_state.cull
         };
-        match source_graph_cull_face(cull, key.mesh_key.contains(MeshPipelineKey::INVERT_CULLING)) {
-            Ok(face) => descriptor.primitive.cull_mode = face,
-            Err(_) => {
-                descriptor.vertex.shader = source_shader_handle(0);
-                if let Some(f) = &mut descriptor.fragment {
-                    f.shader = source_shader_handle(0);
-                }
-                return Ok(());
+        if let Ok(face) =
+            source_graph_cull_face(cull, key.mesh_key.contains(MeshPipelineKey::INVERT_CULLING))
+        {
+            descriptor.primitive.cull_mode = face;
+        } else {
+            descriptor.vertex.shader = source_shader_handle(0);
+            if let Some(f) = &mut descriptor.fragment {
+                f.shader = source_shader_handle(0);
             }
+            return Ok(());
         }
         let policy = source_coverage_policy(
             key.bind_group_data.original_alpha_to_mask,
@@ -624,13 +712,16 @@ impl MaterialExtension for SourceGraphExtension {
         Ok(())
     }
 }
-pub type SourceGraphMaterial = ExtendedMaterial<StandardMaterial, SourceGraphExtension>;
+pub type SourceGraphMaterial = ExtendedMaterial<SourceGraphPhaseMaterial, SourceGraphExtension>;
 
 /// Explicit installation by the host after source bindings are prepared. No
 /// static source-fragment material, unknown shader, or missing texture fallback.
 pub struct SourceGraphPlugin;
 impl Plugin for SourceGraphPlugin {
     fn build(&self, app: &mut App) {
+        bevy::shader::load_shader_library!(app, "source_graph_srgb_encode.wgsl");
+        app.init_resource::<source_srgb_runtime::NativeSrgbRuntime>();
+        app.add_systems(Last, source_srgb_runtime::ensure_native_srgb_bindings);
         app.init_resource::<SourceGraphShaderRegistry>();
         app.add_plugins(SourceGraphShadowRoutingPlugin);
         app.add_plugins(MaterialPlugin::<SourceGraphMaterial>::default());
@@ -639,6 +730,14 @@ impl Plugin for SourceGraphPlugin {
     }
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy systems require owned Res and Query parameter wrappers."
+)]
+#[expect(
+    clippy::type_complexity,
+    reason = "Bevy material queries declare their component tuple and filters in the SystemParam signature"
+)]
 fn ensure_source_graph_coverage_prepasses(
     mut commands: Commands,
     materials: Res<Assets<SourceGraphMaterial>>,
@@ -806,7 +905,7 @@ mod source_prepass_declaration_tests {
         match <StandardMaterial as Material>::prepass_fragment_shader() {
             ShaderRef::Path(path) => assert!(path.to_string().ends_with("pbr_prepass.wgsl")),
             _ => panic!("Pinned native StandardMaterial prepass declaration changed"),
-        };
+        }
     }
 }
 
@@ -839,17 +938,19 @@ mod source_prepass_fragment_tests {
     }
     #[test]
     fn source_graph_prepass_keeps_existing_outputs_and_forward_does_not_invent_fragment() {
-        let mut d = RenderPipelineDescriptor::default();
-        d.fragment = Some(FragmentState {
-            entry_point: Some("fragment".into()),
-            shader_defs: vec!["NORMAL_PREPASS".into()],
-            targets: vec![Some(ColorTargetState {
-                format: TextureFormat::Rgba16Float,
-                blend: None,
-                write_mask: ColorWrites::ALL,
-            })],
+        let mut d = RenderPipelineDescriptor {
+            fragment: Some(FragmentState {
+                entry_point: Some("fragment".into()),
+                shader_defs: vec!["NORMAL_PREPASS".into()],
+                targets: vec![Some(ColorTargetState {
+                    format: TextureFormat::Rgba16Float,
+                    blend: None,
+                    write_mask: ColorWrites::ALL,
+                })],
+                ..Default::default()
+            }),
             ..Default::default()
-        });
+        };
         let old = d.fragment.clone().unwrap();
         source_graph_bind_stages(&mut d, 123, 456, true);
         let f = d.fragment.as_ref().unwrap();
@@ -915,6 +1016,10 @@ mod ten_texture_binding_tests {
     use super::*;
     fn key() -> SourceGraphKey {
         SourceGraphKey {
+            requires_native_srgb_encoder: false,
+            native_srgb_encoder_ready: false,
+            requires_deferred_srgb: false,
+            deferred_srgb_ready: false,
             requires_preintegrated_brdf: false,
             preintegrated_brdf_ready: false,
             requires_sky_cube: false,
@@ -987,6 +1092,80 @@ mod ten_texture_binding_tests {
                 expected.iter().cloned().map(Some).collect::<Vec<_>>()
             );
         }
+    }
+    #[test]
+    fn native_srgb_required_resource_refuses_absence_corruption_and_handle_changes() {
+        let mut k = key();
+        k.requires_native_srgb_encoder = true;
+        let mut ext = SourceGraphExtension::from_source_bindings(k, source(), 0, vec![]).unwrap();
+        let mut assets = Assets::<Image>::default();
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+        assert!(!SourceGraphKey::from(&ext).native_srgb_encoder_ready);
+        let binding = source_srgb_runtime::NativeSrgbBinding::new(vec![0; 1024], &mut assets);
+        ext.native_srgb_thresholds = Some(binding.handle.clone());
+        ext.native_srgb_binding = Some(binding.clone());
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+        ext.native_srgb_validated = true;
+        assert!(ext.validate_scene_dependencies(&assets).is_ok());
+        assert!(SourceGraphKey::from(&ext).native_srgb_encoder_ready);
+        assets
+            .get_mut(&binding.handle)
+            .unwrap()
+            .data
+            .as_mut()
+            .unwrap()[8] ^= 1;
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+        assets
+            .get_mut(&binding.handle)
+            .unwrap()
+            .data
+            .as_mut()
+            .unwrap()[8] ^= 1;
+        assets
+            .get_mut(&binding.handle)
+            .unwrap()
+            .texture_descriptor
+            .format = bevy::render::render_resource::TextureFormat::Rgba8Unorm;
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+        assets
+            .get_mut(&binding.handle)
+            .unwrap()
+            .texture_descriptor
+            .format = bevy::render::render_resource::TextureFormat::R32Float;
+        ext.native_srgb_thresholds = Some(Handle::default());
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+        ext.native_srgb_thresholds = Some(binding.handle.clone());
+        assets.remove(&binding.handle);
+        assert!(ext.validate_scene_dependencies(&assets).is_err());
+    }
+    #[test]
+    fn deferred_srgb_required_resource_refuses_absence_removal_and_corruption() {
+        let mut k = key();
+        k.requires_deferred_srgb = true;
+        let mut extension =
+            SourceGraphExtension::from_source_bindings(k, source(), 7, images(7)).unwrap();
+        let mut assets = Assets::<Image>::default();
+        assert!(extension.validate_scene_dependencies(&assets).is_err());
+        extension.install_deferred_srgb_lookup(&mut assets);
+        assert!(extension.validate_scene_dependencies(&assets).is_ok());
+        assert!(SourceGraphKey::from(&extension).deferred_srgb_ready);
+        let handle = extension.deferred_srgb_lookup.clone().unwrap();
+        assets
+            .get_mut(&handle)
+            .unwrap()
+            .texture_descriptor
+            .dimension = bevy::render::render_resource::TextureDimension::D1;
+        assert!(extension.validate_scene_dependencies(&assets).is_err());
+        assets
+            .get_mut(&handle)
+            .unwrap()
+            .texture_descriptor
+            .dimension = bevy::render::render_resource::TextureDimension::D2;
+        assert!(extension.validate_scene_dependencies(&assets).is_ok());
+        assets.get_mut(&handle).unwrap().data.as_mut().unwrap()[12] ^= 1;
+        assert!(extension.validate_scene_dependencies(&assets).is_err());
+        assets.remove(handle.id());
+        assert!(extension.validate_scene_dependencies(&assets).is_err());
     }
     #[test]
     fn source_graph_legacy_padding_and_missing_or_excess_images_fail_closed() {

@@ -1,9 +1,18 @@
 //! Atomic source-program registration and material construction.
 //! Source textures, matrices and time must be qualified by the caller; tests
 //! below exercise structural assembly, not GPU or original-image qualification.
-use super::*;
+use super::{
+    SOURCE_GRAPH_ADDITIONAL_UV_LOCATIONS, SourceGraphExtension, SourceGraphForwardState,
+    SourceGraphKey, SourceGraphMaterial, SourceGraphShaderArtifact, SourceGraphShaderRegistry,
+    SourceGraphSurfacePhase, SourceGraphUniforms, SourceGraphUvRequirements,
+    register_source_graph_shaders, source_graph_material,
+};
 use bevy::{prelude::*, shader::ShaderImport};
 
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Transparency, alpha test, coverage and original vertex-color requirements are independent source flags."
+)]
 pub struct SourceGraphMaterialProgram {
     pub prepass_cull: u8,
     pub shaders: Vec<SourceGraphShaderArtifact>,
@@ -26,6 +35,10 @@ fn source_graph_declared_texture_count(source: &str) -> Result<usize, &'static s
 /// Construct every binding and validate shader ownership before registration.
 /// Any error leaves Assets<Shader> and registry unchanged. Forward and prepass
 /// sources each contain their vertex and fragment entry points.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Public admission consumes the source program bundle so it cannot be reused after shader registration"
+)]
 pub fn register_source_graph_material(
     assets: &mut Assets<Shader>,
     registry: &mut SourceGraphShaderRegistry,
@@ -76,6 +89,14 @@ pub fn register_source_graph_material(
             .any(|a| a.source.lines().any(|l| l.trim() == declaration))
     };
     let key = SourceGraphKey {
+        requires_native_srgb_encoder: declares(
+            forge_assets::source_graph_bundle::SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION,
+        ),
+        native_srgb_encoder_ready: false,
+        requires_deferred_srgb: declares(
+            forge_assets::source_graph_bundle::SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION,
+        ),
+        deferred_srgb_ready: false,
         requires_preintegrated_brdf: declares(
             forge_assets::source_graph_bundle::SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION,
         ),

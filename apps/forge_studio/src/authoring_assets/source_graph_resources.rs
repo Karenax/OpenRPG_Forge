@@ -3,7 +3,6 @@
 //! Resource admission is not evidence of rendered equivalence or Studio readiness.
 use super::source_graph_scene::{OrdinaryPrimitive, SceneBindings};
 use bevy::{
-    ecs as bevy_ecs,
     prelude::*,
     render::{renderer::RenderDevice, settings::WgpuFeatures},
 };

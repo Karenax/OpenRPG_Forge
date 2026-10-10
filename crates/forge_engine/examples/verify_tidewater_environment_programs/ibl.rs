@@ -57,6 +57,10 @@ fn copy_cube(
         .collect()
 }
 
+#[expect(
+    clippy::float_cmp,
+    reason = "Exact source alpha and numeric change counts are reported separately from approximate error metrics"
+)]
 fn compare_source_cube(
     root: &Path,
     pins: &Value,
@@ -89,8 +93,10 @@ fn compare_source_cube(
             let mut reference_energy = 0_f64;
             let mut error_energy = 0_f64;
             for (index, (a, b)) in compact
-                .chunks_exact(2)
-                .zip(original.chunks_exact(2))
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .zip(original.as_chunks::<2>().0.iter())
                 .enumerate()
             {
                 let a = half(u16::from_le_bytes([a[0], a[1]]));
@@ -208,7 +214,7 @@ fn mapped(buffer: &wgpu::Buffer, device: &RenderDevice) -> Result<Vec<u8>, Box<d
                 break;
             }
             Err(mpsc::TryRecvError::Empty) if Instant::now() < deadline => {
-                std::thread::sleep(Duration::from_millis(10))
+                std::thread::sleep(Duration::from_millis(10));
             }
             _ => return Err("GPU readback timeout/disconnection".into()),
         }
@@ -234,6 +240,7 @@ fn half(bits: u16) -> f64 {
     }
 }
 
+#[derive(Clone, Copy)]
 struct SkyInputs<'a> {
     root: &'a Path,
     pins: &'a Value,
@@ -245,6 +252,10 @@ struct SkyInputs<'a> {
     global_entries: &'a [wgpu::BindGroupEntry<'a>],
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "GPU pass resources and dispatch ordering remain together for the audited source-sky replay"
+)]
 fn encode_sky(
     context: SkyInputs<'_>,
     encoder: &mut wgpu::CommandEncoder,
@@ -452,6 +463,14 @@ fn encode_sky(
     }
     Ok(())
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "The complete GPU reference acquisition and comparison sequence is retained as one auditable probe"
+)]
+#[expect(
+    clippy::float_cmp,
+    reason = "Exact source alpha and zero padding must be validated before error metrics are accepted"
+)]
 pub(super) fn execute(
     root: &Path,
     expected: &str,
@@ -711,7 +730,7 @@ pub(super) fn execute(
                 .map(|v| {
                     v.as_u64()
                         .ok_or_else(|| "invalid group count".into())
-                        .and_then(|v| u32::try_from(v).map_err(|e| Box::<dyn Error>::from(e)))
+                        .and_then(|v| u32::try_from(v).map_err(Box::<dyn Error>::from))
                 })
                 .collect::<Result<_, Box<dyn Error>>>()?;
             let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
@@ -815,8 +834,10 @@ pub(super) fn execute(
             let mut error = 0_f64;
             let mut changed = 0_usize;
             for (index, (a, b)) in compact
-                .chunks_exact(2)
-                .zip(original.chunks_exact(2))
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .zip(original.as_chunks::<2>().0.iter())
                 .enumerate()
             {
                 let a = half(u16::from_le_bytes([a[0], a[1]]));
@@ -853,12 +874,14 @@ pub(super) fn execute(
         let bytes = mapped(buffer, device)?;
         let mut error = 0_f64;
         for (index, (a, b)) in bytes
-            .chunks_exact(4)
-            .zip(original_sh.chunks_exact(4))
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .zip(original_sh.as_chunks::<4>().0.iter())
             .enumerate()
         {
-            let a = f64::from(f32::from_le_bytes(a.try_into()?));
-            let b = f64::from(f32::from_le_bytes(b.try_into()?));
+            let a = f64::from(f32::from_le_bytes(*a));
+            let b = f64::from(f32::from_le_bytes(*b));
             if !a.is_finite() || !b.is_finite() {
                 return Err("non-finite SH output".into());
             }

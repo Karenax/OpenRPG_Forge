@@ -1747,3 +1747,210 @@ fn real_tidewater_boardwalk_entry_full_motion_advances_over_deck() {
     );
     assert!(after.position.is_finite());
 }
+
+#[test]
+fn real_tidewater_boardwalk_released_entry_recovers_support_without_gravity_accumulation() {
+    let mut app = prepare_real_tidewater_entry_app();
+    let (board_entities, observed_board) = spawn_real_tidewater_entry_boardwalks(&mut app);
+    // Last grounded public pose immediately before the failing released S pulse.
+    let anchor = Vec3::new(42.533_31, 3.699_310_3, -107.593_605);
+    let entity = bindings(&app).player_entity;
+    app.world_mut()
+        .get_mut::<Transform>(entity)
+        .expect("player")
+        .translation = anchor + Vec3::Y * (WALK_HEIGHT * 0.5);
+    {
+        let mut state = app.world_mut().resource_mut::<TidewaterPlayerState>();
+        state.motion.position = anchor;
+        state.motion.velocity = Vec3::ZERO;
+        state.motion.grounded = true;
+        state.motion.mode = Mode::Walk;
+        state.ground_height = anchor.y;
+        state.wall_candidates = vec![observed_board];
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    start(&mut app);
+    submit(
+        &mut app,
+        PlayerControlCommand {
+            move_axis: Vec2::new(0.0, -1.0),
+            ..default()
+        },
+    );
+    // A 200 ms forward pulse at the actual 60 Hz fixed-step rate, then release.
+    settle(&mut app, 12);
+    submit(&mut app, PlayerControlCommand::default());
+    let mut deck_seen = false;
+    let mut final_supported = true;
+    let mut final_max_fall_speed = 0.0_f32;
+    for sample in 0_u32..1800 {
+        settle(&mut app, 1);
+        let state = app.world().resource::<TidewaterPlayerState>();
+        deck_seen |= state.kcc_contacts().iter().any(|(e, n)| {
+            board_entities.contains(e) && n.is_some_and(|n| n.y > 50.0_f32.to_radians().cos())
+        });
+        if sample >= 1680 {
+            final_supported &= state.motion.grounded;
+            final_max_fall_speed = final_max_fall_speed.max((-state.motion.velocity.y).max(0.0));
+        }
+        if sample.is_multiple_of(300) || sample == 1799 {
+            observe_source_deck_sample(&mut app, entity, &board_entities, sample);
+        }
+    }
+    eprintln!(
+        "RELEASED_ENTRY deck_seen={deck_seen} supported={final_supported} max_fall_speed={final_max_fall_speed} final={:?}",
+        motion(&app)
+    );
+    assert!(
+        deck_seen,
+        "The regression must encounter walkable source board geometry"
+    );
+    assert!(
+        final_supported,
+        "All final 120 released poses must regain actual support"
+    );
+    assert!(
+        final_max_fall_speed <= 1.0e-6,
+        "Released walkable support must stop accumulated gravity"
+    );
+    assert!(motion(&app).position.is_finite());
+}
+
+fn assert_public_released_pose_support(fixed_steps_per_frame: u32, observed_velocity: bool) {
+    let mut app = prepare_real_tidewater_entry_app();
+    let (board_entities, _) = spawn_real_tidewater_entry_boardwalks(&mut app);
+    // First public released pose in the failed run, not an invented floor.
+    let anchor = Vec3::new(42.382_27, 3.952_249, -107.268_234);
+    let entity = bindings(&app).player_entity;
+    app.world_mut()
+        .get_mut::<Transform>(entity)
+        .expect("player")
+        .translation = anchor + Vec3::Y * (WALK_HEIGHT * 0.5);
+    {
+        let mut state = app.world_mut().resource_mut::<TidewaterPlayerState>();
+        state.motion.position = anchor;
+        state.motion.velocity = Vec3::ZERO;
+        state.motion.grounded = false;
+        state.motion.mode = Mode::Walk;
+        state.ground_height = 3.699_310_3;
+    }
+    for _ in 0..4 {
+        app.update();
+    }
+    // Disabled setup deliberately cancels motion. Restore the public velocity
+    // only after backend synchronization when testing the complete state.
+    if observed_velocity {
+        app.world_mut()
+            .resource_mut::<TidewaterPlayerState>()
+            .motion
+            .velocity = Vec3::new(0.0, -2.943_000_8, 1.377_323_5);
+    }
+    app.world_mut().resource_mut::<PlayerSimulationReady>().0 = true;
+    app.insert_resource(TimeUpdateStrategy::ManualDuration(Duration::from_secs_f64(
+        f64::from(fixed_steps_per_frame) / 60.0,
+    )));
+    let frames = 1800 / fixed_steps_per_frame;
+    let mut deck_seen = false;
+    let mut supported = true;
+    let mut max_fall_speed = 0.0_f32;
+    for frame in 0..frames {
+        app.update();
+        let state = app.world().resource::<TidewaterPlayerState>();
+        deck_seen |= state.kcc_contacts().iter().any(|(e, n)| {
+            board_entities.contains(e) && n.is_some_and(|n| n.y > 50.0_f32.to_radians().cos())
+        });
+        if frame >= frames - 120 / fixed_steps_per_frame {
+            supported &= state.motion.grounded;
+            max_fall_speed = max_fall_speed.max((-state.motion.velocity.y).max(0.0));
+        }
+        if frame == 0 || frame == frames - 1 {
+            observe_source_deck_sample(
+                &mut app,
+                entity,
+                &board_entities,
+                if frame == 0 { 0 } else { 119 },
+            );
+        }
+    }
+    eprintln!(
+        "PUBLIC_RELEASED_POSE steps_per_frame={fixed_steps_per_frame} observed_velocity={observed_velocity} deck_seen={deck_seen} supported={supported} max_fall_speed={max_fall_speed} final={:?}",
+        motion(&app)
+    );
+    assert!(
+        deck_seen,
+        "The replay must encounter the actual walkable source deck"
+    );
+    assert!(
+        supported,
+        "All final released poses must regain actual support"
+    );
+    assert!(
+        max_fall_speed <= 1.0e-6,
+        "Released support must stop accumulated gravity"
+    );
+}
+
+#[test]
+fn real_tidewater_public_released_pose_one_step_per_frame() {
+    assert_public_released_pose_support(1, false);
+}
+
+#[test]
+fn real_tidewater_public_released_pose_five_steps_per_frame() {
+    assert_public_released_pose_support(5, false);
+}
+
+#[test]
+fn real_tidewater_public_released_pose_observed_velocity_one_step_per_frame() {
+    assert_public_released_pose_support(1, true);
+}
+
+#[test]
+fn real_tidewater_public_released_pose_observed_velocity_five_steps_per_frame() {
+    assert_public_released_pose_support(5, true);
+}
+
+#[test]
+fn lower_capsule_support_rejects_distant_and_embedded_floors() {
+    let (mut app, _) = prepared_app(0.0);
+    let entity = bindings(&app).player_entity;
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    let slope_angle = 50.0_f32.to_radians();
+    assert!(!nearby_lower_capsule_support(
+        &context,
+        entity,
+        Vec3::Y,
+        slope_angle
+    ));
+    assert!(!nearby_lower_capsule_support(
+        &context,
+        entity,
+        Vec3::Y * -0.08,
+        slope_angle
+    ));
+    assert!(nearby_lower_capsule_support(
+        &context,
+        entity,
+        Vec3::ZERO,
+        slope_angle
+    ));
+}
+
+#[test]
+fn lower_capsule_support_rejects_unwalkable_slope() {
+    let (mut app, _) = prepared_app_on_slope(-10.0, [], 60.0_f32.to_radians());
+    let entity = bindings(&app).player_entity;
+    let mut context_state = SystemState::<ReadRapierContext>::new(app.world_mut());
+    let rapier = context_state.get(app.world()).expect("context access");
+    let context = rapier.single().expect("context");
+    assert!(!nearby_lower_capsule_support(
+        &context,
+        entity,
+        Vec3::Y * 0.3,
+        50.0_f32.to_radians()
+    ));
+}

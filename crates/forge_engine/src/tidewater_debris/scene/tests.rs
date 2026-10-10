@@ -1,6 +1,7 @@
 //! Real acquisition geometry, CPU-only resource adoption; texture handles are test doubles.
 use super::*;
 use crate::tidewater_assets::{MaterialParameters, materials::LightingBindings};
+use crate::tidewater_material::ObjectShadowSettings;
 use forge_core::{ContentHash, EntityId};
 
 fn fixture() -> PreparedDebris {
@@ -32,7 +33,7 @@ fn materials(world: &mut World) -> ResidentMaterials {
         environment: Handle::default(),
         hill_shadow: Handle::default(),
         object_shadow: Handle::default(),
-        object_settings: Default::default(),
+        object_settings: ObjectShadowSettings::default(),
         clouds: [Vec4::ZERO; 5],
         cloud_shadow: None,
         wind: Vec4::new(1.0, 0.0, 4.0, 0.0),
@@ -102,6 +103,10 @@ fn materials(world: &mut World) -> ResidentMaterials {
 #[allow(
     clippy::cast_possible_truncation,
     reason = "Source acquisition bounds translations; common domain stores f32 metres."
+)]
+#[allow(
+    clippy::too_many_lines,
+    reason = "One acquired-scene lifecycle regression preserves revision refusal, deletion tombstones and caster retirement in order."
 )]
 fn common_instances_reject_bad_revision_then_preserve_deletion_and_casters() {
     let geometry = fixture();

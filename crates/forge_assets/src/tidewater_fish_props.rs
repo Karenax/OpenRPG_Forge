@@ -257,6 +257,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Requires byte-pinned private fish package or acquired reference; run the documented external-fixture replay"]
     fn real_package_and_refusals() {
         let root =
             std::env::var("FORGE_TIDEWATER_FISH_PROP_PACKAGE").expect("Real package required");

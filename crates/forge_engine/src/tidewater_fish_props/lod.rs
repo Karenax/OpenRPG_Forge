@@ -120,6 +120,7 @@ mod tests {
         clippy::cast_possible_truncation,
         reason = "The source uploads fade as float32."
     )]
+    #[ignore = "Requires byte-pinned private fish package or acquired reference; run the documented external-fixture replay"]
     fn matches_all_intact_source_culling_cases() {
         let path = std::env::var("FORGE_TIDEWATER_FISH_LOD_REFERENCE").unwrap();
         let bytes = std::fs::read(path).unwrap();

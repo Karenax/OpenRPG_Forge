@@ -1,6 +1,11 @@
 //! Derived render entities for admitted static source meshes, never new assets.
 //! CPU routing checks do not qualify source materials, images or GPU shadows.
-use super::*;
+use super::{
+    App, Assets, Camera, ChildOf, Children, Component, DirectionalLight, Entity, Handle,
+    IntoScheduleConfigs, Mesh, Mesh3d, MeshMaterial3d, Plugin, PointLight, PostUpdate,
+    RelationshipTarget, Resource, Result, SourceGraphMaterial, SpotLight, String, ToOwned,
+    Transform, Vec, Visibility, With, World, source_graph_shadow_only_material,
+};
 use bevy::{
     camera::visibility::{
         NoCpuCulling, NoFrustumCulling, RenderLayers, VisibilityRange, VisibilitySystems,
@@ -100,9 +105,9 @@ fn private_layer_conflict(world: &mut World, layer: usize) -> bool {
         .any(|(e, l)| {
             l.intersects(&private)
                 && !light(world, e)
-                && !world
+                && world
                     .get::<SourceGraphShadowProxy>(e)
-                    .is_some_and(|p| p.private_layer == layer)
+                    .is_none_or(|p| p.private_layer != layer)
         })
 }
 fn reconcile_source_shadow_light_layers(world: &mut World) {
@@ -276,14 +281,12 @@ fn retain_source_shadow_cpu_metadata(world: &mut World, mesh: &Mesh3d) {
             !a.asset_usage
                 .contains(bevy::asset::RenderAssetUsages::MAIN_WORLD)
         });
-    if needs {
-        if let Some(mut asset) = world.resource_mut::<Assets<Mesh>>().get_mut(&mesh.0) {
-            asset.asset_usage |= bevy::asset::RenderAssetUsages::MAIN_WORLD;
-        }
+    if needs && let Some(mut asset) = world.resource_mut::<Assets<Mesh>>().get_mut(&mesh.0) {
+        asset.asset_usage |= bevy::asset::RenderAssetUsages::MAIN_WORLD;
     }
 }
 /// Detach only renderer-owned data, preserving originals and all borrowed assets.
-/// Keep NotShadowCaster until an admitted explicit role is mounted again.
+/// Keep `NotShadowCaster` until an admitted explicit role is mounted again.
 pub fn uninstall_source_graph_shadow_route(
     world: &mut World,
     original: Entity,
@@ -295,12 +298,12 @@ pub fn uninstall_source_graph_shadow_route(
         if !world
             .get::<SourceGraphShadowProxy>(route.proxy)
             .is_some_and(|p| p.owner == original && p.private_layer == route.private_layer)
-            || !world
+            || world
                 .get::<ChildOf>(route.proxy)
-                .is_some_and(|p| p.parent() == original)
-            || !world
+                .is_none_or(|p| p.parent() != original)
+            || world
                 .get::<MeshMaterial3d<SourceGraphMaterial>>(route.proxy)
-                .is_some_and(|m| m.0 == route.shadow_material)
+                .is_none_or(|m| m.0 != route.shadow_material)
         {
             return Err("Derived shadow ownership changed; preserve unrelated state");
         }
@@ -369,6 +372,10 @@ fn refuse(world: &mut World, original: Entity, proxy: Entity, reason: &str) {
         e.insert(SourceGraphShadowRouteStatus::Refused(reason.to_owned()));
     }
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Routes are validated before derived entities are reconciled and retired in the same sync operation"
+)]
 fn sync_source_graph_shadow_routes(world: &mut World) {
     let routes: Vec<_> = world
         .query::<(Entity, &SourceGraphShadowRoute)>()
@@ -413,9 +420,9 @@ fn sync_source_graph_shadow_routes(world: &mut World) {
                 continue;
             }
         };
-        if !world
+        if world
             .get::<ChildOf>(route.proxy)
-            .is_some_and(|c| c.parent() == original)
+            .is_none_or(|c| c.parent() != original)
             || !world
                 .get::<SourceGraphShadowProxy>(route.proxy)
                 .is_some_and(|p| p.owner == original && p.private_layer == route.private_layer)
@@ -449,13 +456,13 @@ fn sync_source_graph_shadow_routes(world: &mut World) {
         };
         let updated = {
             let mut assets = world.resource_mut::<Assets<SourceGraphMaterial>>();
-            let updated = if let Some(mut target) = assets.get_mut(&route.shadow_material) {
+
+            if let Some(mut target) = assets.get_mut(&route.shadow_material) {
                 *target = shadow;
                 true
             } else {
                 false
-            };
-            updated
+            }
         };
         if !updated {
             refuse(
@@ -484,6 +491,11 @@ fn sync_source_graph_shadow_routes(world: &mut World) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::source_graph::{
+        SourceGraphExtension, SourceGraphForwardState, SourceGraphKey, SourceGraphSurfacePhase,
+        SourceGraphUniforms, SourceGraphUvRequirements, source_graph_material,
+    };
+    use bevy::prelude::{GlobalTransform, Mat4, MinimalPlugins, Quat, Vec3, Vec4};
     use bevy::{asset::RenderAssetUsages, mesh::PrimitiveTopology};
     fn setup(world: &mut World) -> (Entity, Entity, Entity) {
         world.init_resource::<Assets<Mesh>>();
@@ -493,6 +505,10 @@ mod tests {
             RenderAssetUsages::default(),
         ));
         let key = SourceGraphKey {
+            requires_native_srgb_encoder: false,
+            native_srgb_encoder_ready: false,
+            requires_deferred_srgb: false,
+            deferred_srgb_ready: false,
             requires_preintegrated_brdf: false,
             preintegrated_brdf_ready: false,
             requires_sky_cube: false,

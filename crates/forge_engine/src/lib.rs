@@ -50,6 +50,7 @@ pub use global_quality::{
 pub use profile_warmup::{PreparedQualityVariant, ProfileWarmup, ProfileWarmupPhase};
 mod post_process_quality;
 pub use post_process_quality::{PostProcessQualityObservation, PostProcessQualityRequest};
+pub mod atmospheric_haze;
 pub mod breaker_geometry;
 pub mod cloud_controller;
 #[cfg(feature = "physics-rapier")]

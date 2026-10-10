@@ -427,6 +427,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Requires byte-pinned private fish package or acquired reference; run the documented external-fixture replay"]
     fn all_source_templates_retain_lod_and_material_inputs() {
         let root =
             std::env::var("FORGE_TIDEWATER_FISH_PROP_PACKAGE").expect("Real fish package required");

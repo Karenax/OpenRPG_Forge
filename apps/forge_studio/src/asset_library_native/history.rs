@@ -1,5 +1,8 @@
 //! Exact saved-content lookup through registry-pinned immutable pack revisions.
-use super::*;
+use super::{
+    BTreeSet, BuildCache, Library, LibraryModel, MAX_ASSETS, Snapshot, StoredAsset, Value,
+    parse_json, profile_index, required, valid_hash, validate_pack_metadata, validate_relative,
+};
 
 impl Library {
     pub(super) fn read_historical_model(
@@ -98,7 +101,13 @@ impl Library {
 
 #[cfg(test)]
 mod tests {
+    use super::super::{LibraryQuery, LibraryRequest, LibraryResponse, sha256, vault_asset_id};
     use super::*;
+    use sha2::{Digest, Sha256};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
 
     fn version(root: &Path, tag: &str) -> (Value, Vec<u8>) {
         let template = root.join("metadata/rev/demo/one");
@@ -111,8 +120,8 @@ mod tests {
         let json = format!("{{\"asset\":{{\"version\":\"2.0\",\"generator\":\"{tag}\"}}}}");
         let mut bytes = b"glTF".to_vec();
         bytes.extend(2_u32.to_le_bytes());
-        bytes.extend(((20 + json.len()) as u32).to_le_bytes());
-        bytes.extend((json.len() as u32).to_le_bytes());
+        bytes.extend(u32::try_from(20 + json.len()).unwrap().to_le_bytes());
+        bytes.extend(u32::try_from(json.len()).unwrap().to_le_bytes());
         bytes.extend(b"JSON");
         bytes.extend(json.as_bytes());
         let hash = sha256(&bytes);

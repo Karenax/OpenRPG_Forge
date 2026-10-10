@@ -105,7 +105,9 @@ pub fn source_graph_image_sampler(
         mag_filter,
         mipmap_filter,
         lod_min_clamp: 0.0,
-        lod_max_clamp: (mip_levels - 1) as f32,
+        lod_max_clamp: f32::from(
+            u16::try_from(mip_levels - 1).map_err(|_| "Source mip count exceeds sampler limits")?,
+        ),
         compare: None,
         anisotropy_clamp: 1,
         border_color: None,
@@ -126,6 +128,10 @@ mod tests {
         }
     }
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Copied GPU wire values must remain exact; tolerance would weaken this preservation test"
+    )]
     fn scene_sampling_keeps_authored_and_effective_descriptors_distinct() {
         let source = settings(true);
         let authored = source_graph_image_sampler_in_scene(
@@ -190,6 +196,14 @@ mod tests {
         );
     }
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The complete physical source fixture table is kept with its assertions for review of all admitted cases"
+    )]
     fn source_graph_sampler_all150_original_settings_produce_bilinear_repeat_without_trilinear_substitution()
      {
         let cases = [
@@ -353,7 +367,10 @@ mod tests {
             assert_eq!(sampler.address_mode_u, ImageAddressMode::Repeat);
             assert_eq!(sampler.address_mode_v, ImageAddressMode::Repeat);
             assert_eq!(sampler.address_mode_w, ImageAddressMode::Repeat);
-            assert_eq!(sampler.lod_max_clamp, (levels - 1) as f32);
+            assert_eq!(
+                sampler.lod_max_clamp,
+                f32::from(u16::try_from(levels - 1).unwrap())
+            );
         }
     }
     #[test]

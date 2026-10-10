@@ -9,8 +9,8 @@ mod imported_storage;
 pub use imported_storage::{
     ImportedStorageFormat as SourceGraphImportedStorageFormat,
     ImportedStorageMip as SourceGraphImportedStorageMip,
-    ImportedTextureStorage as SourceGraphImportedTextureStorage,
-    ResolvedStorageSampler as SourceGraphResolvedStorageSampler,
+    ImportedTextureStorage as SourceGraphImportedTextureStorage, NativeCaptureIdentity,
+    NativeCaptureProtocol, ResolvedStorageSampler as SourceGraphResolvedStorageSampler,
     StorageError as SourceGraphImportedStorageError,
 };
 
@@ -34,6 +34,7 @@ pub const SOURCE_GRAPH_MAX_TEXTURES: usize = SOURCE_GRAPH_TEXTURE_BINDINGS.len()
 
 /// Wire-version admission is independent of actual device resource limits.
 /// Schema 6 expands authored slots without changing the source uniform ABI.
+#[must_use]
 pub const fn source_graph_texture_capacity(schema_version: u32) -> Option<usize> {
     match schema_version {
         2..=5 => Some(7),
@@ -130,6 +131,7 @@ pub enum SourceGraphNormalDecodeMode {
 
 impl SourceGraphNormalDecodeMode {
     /// Source shader ABI. This conversion does not qualify a texture's packing.
+    #[must_use]
     pub const fn shader_value(self) -> f32 {
         match self {
             Self::Rgb => 0.0,
@@ -189,6 +191,14 @@ pub(crate) fn validate_texture_integrity(
         return Err(SourceGraphContractError::ImportSettings);
     }
     if let Some(storage) = &texture.imported_storage {
+        if let Some(expected_guid) = storage.source_guid() {
+            // A native row may not be attached to a different purchased texture,
+            // even when an attacker recomputes the outer metadata hashes.
+            let mut guids = meta.lines().filter_map(|line| line.strip_prefix("guid: "));
+            if guids.next() != Some(expected_guid) || guids.next().is_some() {
+                return Err(SourceGraphContractError::InvalidMetadata);
+            }
+        }
         storage
             .validate(views)
             .map_err(SourceGraphContractError::ImportedStorage)?;
@@ -208,12 +218,40 @@ pub(crate) fn validate_texture_integrity(
                 .any(|(original, resolved)| *original >= 0 && *original != i32::from(resolved))
             || (texture.anisotropy > 0 && texture.anisotropy != i32::from(sampler.anisotropy))
             || (texture.anisotropy == 0 && sampler.anisotropy != 1)
-            || (texture.mip_bias as f32) != (sampler.mip_bias as f32)
+            || !shader_mip_bias_matches(texture.mip_bias, sampler.mip_bias)
         {
             return Err(SourceGraphContractError::ImportSettings);
         }
     }
     Ok(())
+}
+
+/// The imported sampler uses f32 on the GPU. Compare that exact projection,
+/// retaining the original numerical equality of positive and negative zero.
+#[allow(
+    clippy::cast_possible_truncation,
+    reason = "The native shader sampler explicitly consumes f32 mip bias"
+)]
+fn shader_mip_bias_matches(original: f64, resolved: f64) -> bool {
+    let original = original as f32;
+    let resolved = resolved as f32;
+    original.to_bits() == resolved.to_bits()
+        || (original.abs().to_bits() == 0 && resolved.abs().to_bits() == 0)
+}
+
+#[cfg(test)]
+mod sampler_projection_tests {
+    use super::shader_mip_bias_matches;
+
+    #[test]
+    fn sampler_admission_preserves_native_precision_and_signed_zero() {
+        assert!(shader_mip_bias_matches(0.0, -0.0));
+        assert!(shader_mip_bias_matches(1.0, 1.0 + f64::EPSILON));
+        assert!(!shader_mip_bias_matches(
+            1.0,
+            f64::from(f32::from_bits(1.0_f32.to_bits() + 1))
+        ));
+    }
 }
 
 fn blob<'a>(
@@ -233,6 +271,8 @@ fn blob<'a>(
 /// Exact shared scene dependency, separate from the seven authored image slots.
 /// Declaring it does not provide the image or qualify source lighting.
 pub const SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION: &str = "@group(#{MATERIAL_BIND_GROUP}) @binding(122) var source_preintegrated_brdf_image:texture_2d<f32>;";
+pub const SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION: &str = "@group(#{MATERIAL_BIND_GROUP}) @binding(128) var source_native_srgb_thresholds: texture_2d<f32>;";
+pub const SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION: &str = "@group(#{MATERIAL_BIND_GROUP}) @binding(127) var source_deferred_srgb_lookup: texture_2d<f32>;";
 pub const SOURCE_GRAPH_SKY_CUBE_DECLARATION: &str = "@group(#{MATERIAL_BIND_GROUP}) @binding(123) var source_sky_cube_image:texture_cube_array<f32>;";
 pub const SOURCE_GRAPH_SKY_SAMPLER_DECLARATION: &str =
     "@group(#{MATERIAL_BIND_GROUP}) @binding(124) var source_sky_cube_sampler:sampler;";
@@ -242,12 +282,28 @@ pub const SOURCE_GRAPH_SKY_SAMPLER_DECLARATION: &str =
 pub fn stage_texture_count(source: &str) -> Result<usize, SourceGraphContractError> {
     let mut count = 0;
     let mut samplers = 0;
+    let mut native_srgb_seen = false;
+    let mut deferred_srgb_seen = false;
     let mut scene_brdf_seen = false;
     let mut scene_cube_seen = false;
     let mut scene_cube_sampler_seen = false;
     for line in source.lines() {
         let line = line.trim();
         if line.contains("@binding(") && line.contains("texture_") {
+            if line == SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION {
+                if native_srgb_seen {
+                    return Err(SourceGraphContractError::TextureLayout);
+                }
+                native_srgb_seen = true;
+                continue;
+            }
+            if line == SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION {
+                if deferred_srgb_seen {
+                    return Err(SourceGraphContractError::TextureLayout);
+                }
+                deferred_srgb_seen = true;
+                continue;
+            }
             if line == SOURCE_GRAPH_SKY_CUBE_DECLARATION {
                 if scene_cube_seen {
                     return Err(SourceGraphContractError::TextureLayout);
@@ -267,8 +323,7 @@ pub fn stage_texture_count(source: &str) -> Result<usize, SourceGraphContractErr
                 .ok_or(SourceGraphContractError::TextureLayout)?
                 .0;
             let expected = format!(
-                "@group(#{{MATERIAL_BIND_GROUP}}) @binding({}) var t{}:texture_2d<f32>;",
-                binding, count
+                "@group(#{{MATERIAL_BIND_GROUP}}) @binding({binding}) var t{count}:texture_2d<f32>;"
             );
             if line != expected {
                 return Err(SourceGraphContractError::TextureLayout);
@@ -288,8 +343,7 @@ pub fn stage_texture_count(source: &str) -> Result<usize, SourceGraphContractErr
                 .ok_or(SourceGraphContractError::TextureLayout)?
                 .1;
             let expected = format!(
-                "@group(#{{MATERIAL_BIND_GROUP}}) @binding({}) var s{}:sampler;",
-                binding, samplers
+                "@group(#{{MATERIAL_BIND_GROUP}}) @binding({binding}) var s{samplers}:sampler;"
             );
             if line != expected {
                 return Err(SourceGraphContractError::TextureLayout);
@@ -363,10 +417,7 @@ mod ten_texture_layout_tests {
 mod scene_sky_texture_layout_tests {
     use super::*;
     fn cube() -> String {
-        format!(
-            "{}\n{}",
-            SOURCE_GRAPH_SKY_CUBE_DECLARATION, SOURCE_GRAPH_SKY_SAMPLER_DECLARATION
-        )
+        format!("{SOURCE_GRAPH_SKY_CUBE_DECLARATION}\n{SOURCE_GRAPH_SKY_SAMPLER_DECLARATION}")
     }
     #[test]
     fn scene_cube_and_brdf_preserve_all_seven_authored_slots() {
@@ -377,7 +428,10 @@ mod scene_sky_texture_layout_tests {
         );
         assert_eq!(stage_texture_count(&source).unwrap(), 0);
         for i in 0..7 {
-            source.push_str(&format!("\n@group(#{{MATERIAL_BIND_GROUP}}) @binding({}) var t{}:texture_2d<f32>;\n@group(#{{MATERIAL_BIND_GROUP}}) @binding({}) var s{}:sampler;",101+2*i,i,102+2*i,i));
+            use std::fmt::Write as _;
+            let texture_binding = 101 + 2 * i;
+            let sampler_binding = 102 + 2 * i;
+            write!(source, "\n@group(#{{MATERIAL_BIND_GROUP}}) @binding({texture_binding}) var t{i}:texture_2d<f32>;\n@group(#{{MATERIAL_BIND_GROUP}}) @binding({sampler_binding}) var s{i}:sampler;").unwrap();
             assert_eq!(stage_texture_count(&source).unwrap(), i + 1);
         }
     }
@@ -423,8 +477,7 @@ mod scene_brdf_texture_layout_tests {
             0
         );
         let source = format!(
-            "@group(#{{MATERIAL_BIND_GROUP}}) @binding(101) var t0:texture_2d<f32>;\n@group(#{{MATERIAL_BIND_GROUP}}) @binding(102) var s0:sampler;\n{}",
-            SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION
+            "@group(#{{MATERIAL_BIND_GROUP}}) @binding(101) var t0:texture_2d<f32>;\n@group(#{{MATERIAL_BIND_GROUP}}) @binding(102) var s0:sampler;\n{SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION}"
         );
         assert_eq!(stage_texture_count(&source).unwrap(), 1);
         assert!(stage_texture_count(&source.replace("var t0:", "var t1:")).is_err());
@@ -446,8 +499,7 @@ mod scene_brdf_texture_layout_tests {
     #[test]
     fn shared_scene_image_does_not_admit_an_extra_sampler() {
         let source = format!(
-            "{}\n@group(#{{MATERIAL_BIND_GROUP}}) @binding(123) var scene_sampler:sampler;",
-            SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION
+            "{SOURCE_GRAPH_PREINTEGRATED_BRDF_DECLARATION}\n@group(#{{MATERIAL_BIND_GROUP}}) @binding(123) var scene_sampler:sampler;"
         );
         assert!(stage_texture_count(&source).is_err());
     }
@@ -480,13 +532,25 @@ impl SourceGraphMaterialContract {
                 let group: usize = group
                     .parse()
                     .map_err(|_| SourceGraphContractError::InvalidShader)?;
-                let channel = tail
+                // A vector read consumes every selected profile, not just its
+                // first component. Reject unknown members and dynamic selectors.
+                let member: String = tail
                     .chars()
-                    .next()
-                    .and_then(|c| "xyzw".find(c))
-                    .ok_or(SourceGraphContractError::InvalidShader)?;
-                if group > 1 || self.normal_decode_modes[group * 4 + channel].is_none() {
+                    .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+                    .collect();
+                if member.is_empty() || member.len() > 4 {
+                    return Err(SourceGraphContractError::InvalidShader);
+                }
+                if group > 1 {
                     return Err(SourceGraphContractError::UnqualifiedNormalDecode);
+                }
+                for component in member.chars() {
+                    let channel = "xyzw"
+                        .find(component)
+                        .ok_or(SourceGraphContractError::InvalidShader)?;
+                    if self.normal_decode_modes[group * 4 + channel].is_none() {
+                        return Err(SourceGraphContractError::UnqualifiedNormalDecode);
+                    }
                 }
             }
         }
@@ -640,9 +704,69 @@ mod normal_decode_tests {
     }
 
     #[test]
+    fn integrity_admission_requires_every_swizzled_normal_profile() {
+        let bytes = b"fn decode() -> vec3<f32> { return source_graph.normal_decode_modes[0].xyz; }";
+        let hash = bytes_sha256(bytes);
+        let mut contract = SourceGraphMaterialContract {
+            schema_version: 2,
+            source_program_sha256: hash,
+            source_material_sha256: hash,
+            forward: SourceGraphBlob {
+                buffer_view: 0,
+                sha256: hash,
+            },
+            prepass: SourceGraphBlob {
+                buffer_view: 0,
+                sha256: hash,
+            },
+            libraries: vec![],
+            textures: vec![],
+            state: SourceGraphPipelineState {
+                color_write_mask: None,
+                color_blend: [1, 0],
+                alpha_blend: [1, 0],
+                forward_cull: 2,
+                prepass_cull: 2,
+                depth_compare: 4,
+                write_depth: true,
+                transparent: false,
+                alpha_test: false,
+                alpha_to_coverage: false,
+                render_queue: 2000,
+                disabled_passes: vec![],
+            },
+            requires_original_vertex_color: false,
+            normal_decode_modes: [None; 8],
+            scalar_parameters: None,
+        };
+        assert_eq!(
+            contract.validate_integrity(&[bytes]),
+            Err(SourceGraphContractError::UnqualifiedNormalDecode)
+        );
+        contract.normal_decode_modes[0] = Some(SourceGraphNormalDecodeMode::RgOrAg);
+        assert_eq!(
+            contract.validate_integrity(&[bytes]),
+            Err(SourceGraphContractError::UnqualifiedNormalDecode)
+        );
+        contract.normal_decode_modes[1] = Some(SourceGraphNormalDecodeMode::RgOrAg);
+        assert_eq!(
+            contract.validate_integrity(&[bytes]),
+            Err(SourceGraphContractError::UnqualifiedNormalDecode)
+        );
+        contract.normal_decode_modes[2] = Some(SourceGraphNormalDecodeMode::RgOrAg);
+        assert_eq!(contract.validate_integrity(&[bytes]), Ok(()));
+        contract.normal_decode_modes[0] = None;
+        assert_eq!(
+            contract.validate_integrity(&[bytes]),
+            Err(SourceGraphContractError::UnqualifiedNormalDecode)
+        );
+        assert_eq!(contract.normal_decode_modes[3], None);
+    }
+
+    #[test]
     fn normal_decode_wire_modes_keep_the_source_shader_abi() {
         for (mode, name, value) in [
-            (SourceGraphNormalDecodeMode::Rgb, "rgb", 0.0),
+            (SourceGraphNormalDecodeMode::Rgb, "rgb", 0.0_f32),
             (
                 SourceGraphNormalDecodeMode::ReconstructZ,
                 "reconstruct_z",
@@ -650,7 +774,7 @@ mod normal_decode_tests {
             ),
             (SourceGraphNormalDecodeMode::RgOrAg, "rg_or_ag", 2.0),
         ] {
-            assert_eq!(mode.shader_value(), value);
+            assert_eq!(mode.shader_value().to_bits(), value.to_bits());
             assert_eq!(serde_json::to_value(mode).unwrap(), name);
             assert_eq!(
                 serde_json::from_value::<SourceGraphNormalDecodeMode>(serde_json::json!(name))
@@ -756,5 +880,50 @@ impl SourceGraphTexture {
     /// This is integrity admission, not GPU or source-render equivalence.
     pub fn validate_integrity(&self, views: &[&[u8]]) -> Result<(), SourceGraphContractError> {
         validate_texture_integrity(self, views)
+    }
+}
+
+#[cfg(test)]
+mod deferred_srgb_contract_tests {
+    use super::*;
+    #[test]
+    fn shared_decoder_is_not_authored_texture_and_rejects_malformed_or_duplicate_binding() {
+        assert_eq!(
+            stage_texture_count(SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION).unwrap(),
+            0
+        );
+        assert!(
+            stage_texture_count(&format!(
+                "{SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION}\n{SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION}"
+            ))
+            .is_err()
+        );
+        assert!(
+            stage_texture_count(&SOURCE_GRAPH_DEFERRED_SRGB_DECLARATION.replace("127", "128"))
+                .is_err()
+        );
+    }
+}
+
+#[cfg(test)]
+mod native_srgb_encoder_contract_tests {
+    use super::*;
+    #[test]
+    fn native_srgb_scene_texture_does_not_count_as_an_authored_slot() {
+        assert_eq!(
+            stage_texture_count(SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION).unwrap(),
+            0
+        );
+    }
+    #[test]
+    fn native_srgb_scene_texture_rejects_duplicates_renaming_and_wrong_binding() {
+        let d = SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION;
+        for value in [
+            format!("{d}\n{d}"),
+            d.replace("binding(128)", "binding(129)"),
+            d.replace("source_native_srgb_thresholds", "renamed"),
+        ] {
+            assert!(stage_texture_count(&value).is_err());
+        }
     }
 }

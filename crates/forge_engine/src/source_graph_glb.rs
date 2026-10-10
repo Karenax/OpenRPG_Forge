@@ -111,6 +111,10 @@ impl SourceGraphGlbProgram {
     /// Apply an explicit scene policy before any image allocation. Each call
     /// starts from retained importer settings, never from an earlier override.
     /// Images are owned by this program; the shader registry caches no images.
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Sampler bias is projected to the Float32 ABI; sampler admission rejects nonfinite and unsupported results"
+    )]
     pub fn with_scene_sampling(
         mut self,
         scene: crate::source_graph::SourceGraphSceneSampling,
@@ -159,7 +163,8 @@ impl SourceGraphGlbProgram {
                     },
                     storage.width,
                     storage.height,
-                    storage.mips.len() as u32,
+                    u32::try_from(storage.mips.len())
+                        .map_err(|_| "Source mip count exceeds GPU limits")?,
                     scene,
                     supported,
                 )
@@ -171,6 +176,7 @@ impl SourceGraphGlbProgram {
         }
         Ok(self)
     }
+    #[must_use]
     pub fn requires_captured_images(&self) -> bool {
         self.captured_images.is_some()
     }
@@ -216,7 +222,14 @@ impl SourceGraphGlbProgram {
                 image_assets.remove(id);
             }
         }
-        result.map(|material| apply_scalar_parameters(material, scalar_parameters.as_ref()))
+        result.map(|mut material| {
+            if material.extension.program_key.requires_deferred_srgb {
+                material
+                    .extension
+                    .install_deferred_srgb_lookup(image_assets);
+            }
+            apply_scalar_parameters(material, scalar_parameters.as_ref())
+        })
     }
 
     /// Register this integrity-checked GLB program with its declared normal ABI.

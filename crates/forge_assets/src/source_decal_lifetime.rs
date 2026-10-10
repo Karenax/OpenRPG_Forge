@@ -61,6 +61,7 @@ impl DecalDissolveLifetime {
         })
     }
 
+    #[must_use]
     pub fn initial_material_dissolve(&self) -> Option<f32> {
         (self.eligible_material_count != 0).then_some(0.0)
     }
@@ -130,7 +131,7 @@ mod tests {
         let mut state = DecalDissolveLifetime::new(timing(), 0.5, 0).unwrap();
         assert_eq!(state.initial_material_dissolve(), None);
         assert_eq!(state.advance(100.0).unwrap().material_dissolve, None);
-        assert_eq!(state.timer_seconds, 0.0);
+        assert_eq!(state.timer_seconds.to_bits(), 0.0_f32.to_bits());
         assert_eq!(state.phase, Phase::Waiting);
     }
 

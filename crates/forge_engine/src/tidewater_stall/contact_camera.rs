@@ -1,5 +1,5 @@
 //! Contact metadata for a real render camera without source temporal ownership.
-//! This never inserts a ViewPacket, advances Halton or claims a temporal resolve.
+//! This never inserts a `ViewPacket`, advances Halton or claims a temporal resolve.
 use super::contact_frame::CameraFrame;
 use crate::tidewater_ocean_depth::DepthCopy;
 use bevy::{
@@ -43,6 +43,10 @@ pub(crate) fn register(app: &mut App) {
 }
 
 #[allow(clippy::type_complexity, clippy::needless_pass_by_value)]
+#[allow(
+    clippy::float_cmp,
+    reason = "Depth reconstruction requires exact perspective projection row constants and rejects other conventions."
+)]
 fn prepare(
     mut commands: Commands,
     mut clock: ResMut<Clock>,
@@ -210,6 +214,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn render_metadata_seeds_on_copy_gap_and_rejects_ambiguous_or_capture_views() {
         let mut world = World::new();
         world.init_resource::<Clock>();

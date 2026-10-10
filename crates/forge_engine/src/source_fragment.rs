@@ -135,6 +135,10 @@ impl GltfExtensionHandler for SourceFragmentGltfHandler {
     fn dyn_clone(&self) -> Box<dyn ErasedGltfExtensionHandler> {
         Box::new(self.clone())
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Ordered source validation and GPU preparation remain a single auditable operation"
+    )]
     fn on_root(
         &mut self,
         context: &mut LoadContext<'_>,
@@ -304,6 +308,10 @@ impl GltfExtensionHandler for SourceFragmentGltfHandler {
             }
         }
     }
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn on_material(
         &mut self,
         context: &mut LoadContext<'_>,
@@ -429,6 +437,10 @@ pub fn build_material(
     build_material_inner(contract, source, false)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Ordered source validation and GPU preparation remain a single auditable operation"
+)]
 fn build_material_inner(
     contract: &SourceFragmentContract,
     source: &GltfMaterial,
@@ -650,6 +662,10 @@ mod tests {
     use bevy::{ecs::reflect::AppTypeRegistry, world_serialization::WorldAsset};
 
     #[test]
+    #[expect(
+        clippy::float_cmp,
+        reason = "Exact source flags and preserved payload values must not admit a tolerance"
+    )]
     fn source_image_transfer_preserves_linear_codes_and_srgb_order() {
         let mut previous = -1.0;
         for code in 0_u16..=u16::MAX {

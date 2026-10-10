@@ -102,6 +102,10 @@ pub fn poses(
         .collect()
 }
 
+#[allow(
+    clippy::needless_pass_by_value,
+    reason = "Bevy extraction systems require owned Extract and Commands parameter wrappers."
+)]
 pub(crate) fn extract(mut commands: Commands, frame: Extract<Option<Res<Frame>>>) {
     if let Some(frame) = frame.as_ref() {
         commands.insert_resource((**frame).clone());
@@ -142,6 +146,10 @@ mod tests {
 
     #[test]
     #[ignore = "Requires acquired scanned package"]
+    #[allow(
+        clippy::float_cmp,
+        reason = "Exact copied fixture values and GPU wire fields must remain identical; an epsilon would weaken this regression."
+    )]
     fn near_casters_share_four_prototypes_and_retain_draw_coverage() {
         let root = std::path::PathBuf::from(std::env::var("FORGE_DEBRIS_SCANNED_FIXTURE").unwrap());
         let package = forge_assets::tidewater_debris::scanned::ScannedPackage::load(
