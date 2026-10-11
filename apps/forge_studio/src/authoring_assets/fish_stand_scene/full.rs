@@ -1,6 +1,6 @@
 //! Complete material projection using the viewport's common resident resources.
 use super::{State, imported_buildings};
-use bevy::{ecs as bevy_ecs, prelude::*};
+use bevy::prelude::*;
 use forge_engine::{
     tidewater_material::VillageMaterial,
     tidewater_ocean_depth::{self, SceneDepth},
@@ -23,21 +23,26 @@ fn inputs(world: &World, lighting: &VillageMaterial) -> Result<contact_gpu::Inpu
         .ok_or("Horloge commune du stand absente")?
         .material_uniform()
         .w;
-    let night = world
-        .get_resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
-        .and_then(|materials| materials.iter().next())
-        .ok_or("Ciel commun du stand absent")?
-        .1
-        .settings
-        .stars_time_night
-        .z;
+    let fast = world.contains_resource::<crate::authoring_render::FastEditing>();
+    let night = if fast {
+        0.0
+    } else {
+        world
+            .get_resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+            .and_then(|materials| materials.iter().next())
+            .ok_or("Ciel commun du stand absent")?
+            .1
+            .settings
+            .stars_time_night
+            .z
+    };
     let inputs = contact_gpu::Inputs {
         lighting: lighting.scene_lighting.clone(),
         time,
         night,
         frame_index: world.resource::<bevy::diagnostic::FrameCount>().0,
         sea_level: lighting.underwater_params.tiles_m.z,
-        contact_strength: 1.0,
+        contact_strength: if fast { 0.0 } else { 1.0 },
     };
     inputs.validate()?;
     Ok(inputs)
@@ -47,6 +52,7 @@ fn resize_depth(world: &mut World) -> Result<(), String> {
     let camera = {
         let mut cameras = world.query_filtered::<(Entity, &Camera), (
             With<Camera3d>,
+            Without<forge_engine::tidewater_sky::preview::PreviewCamera>,
             Without<forge_engine::tidewater_refraction::CaptureCamera>,
         )>();
         let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);

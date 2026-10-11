@@ -4,9 +4,11 @@ use forge_core::{EntityId, Transform as ForgeTransform, Vec3 as ForgeVec3};
 use forge_world::{placement_axis, placement_transform::Axis};
 use leptos::prelude::{Callable, Callback};
 use serde_json::{Value, json};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use wasm_bindgen::JsCast;
+mod handles;
 mod rotation;
+pub(crate) use handles::HandlesHud;
 
 #[derive(Clone, Copy)]
 pub(crate) enum Mode {
@@ -36,6 +38,10 @@ struct Drag {
     start: f32,
     extent: f32,
 }
+struct PlaneDrag {
+    plane: handles::Plane,
+    start: ForgeVec3,
+}
 struct Tool {
     mode: Mode,
     id: EntityId,
@@ -43,6 +49,7 @@ struct Tool {
     source: ForgeTransform,
     current: ForgeTransform,
     drag: Option<Drag>,
+    plane_drag: Option<PlaneDrag>,
     alignment: Option<crate::authoring_raster::Alignment>,
     callback: Callback<Result<ForgeTransform, String>>,
     phase: Option<Phase>,
@@ -55,10 +62,24 @@ enum DiagnosticState {
     Cancelled,
 }
 thread_local! {
+    static AUTO_ARM: RefCell<Option<Callback<EntityId, Result<(), String>>>> = const { RefCell::new(None) };
+    static SUPPRESS_CLICK: Cell<bool> = const { Cell::new(false) };
     static TOOL: RefCell<Option<Tool>> = const { RefCell::new(None) };
     static EVENTS: RefCell<Vec<(Phase, Vec2)>> = const { RefCell::new(Vec::new()) };
     static RESTORE: RefCell<Option<(EntityId, ForgeTransform)>> = const { RefCell::new(None) };
     static DIAGNOSTIC_STATE: RefCell<DiagnosticState> = const { RefCell::new(DiagnosticState::Idle) };
+}
+
+pub(crate) fn bind_auto(callback: Callback<EntityId, Result<(), String>>) {
+    AUTO_ARM.with(|slot| slot.replace(Some(callback)));
+}
+pub(crate) fn unbind_auto() {
+    AUTO_ARM.with(|slot| slot.replace(None));
+    cancel();
+    handles::clear();
+}
+pub(crate) fn consume_click() -> bool {
+    SUPPRESS_CLICK.with(|slot| slot.replace(false))
 }
 
 pub(crate) fn arm(
@@ -79,6 +100,7 @@ pub(crate) fn arm(
             source,
             current: source,
             drag: None,
+            plane_drag: None,
             alignment,
             callback,
             phase: None,
@@ -89,7 +111,10 @@ pub(crate) fn arm(
 }
 
 pub(crate) fn can_arm() -> bool {
-    source_current() && super::proposal_ready() == Ok(true)
+    source_current()
+        && crate::authoring_brush_pointer::ready_for_tool()
+        && super::READY.with(Cell::get)
+        && super::REQUEST.with(|request| request.borrow().is_none())
 }
 
 fn source_current() -> bool {
@@ -115,9 +140,7 @@ pub(crate) fn cancel() {
     reason = "Browser pixel dimensions fit f32"
 )]
 pub(crate) fn pointer(event: &web_sys::MouseEvent, phase: Phase) {
-    if !TOOL.with(|slot| slot.borrow().is_some())
-        || (!matches!(phase, Phase::Move) && event.button() != 0)
-    {
+    if !matches!(phase, Phase::Move) && event.button() != 0 {
         return;
     }
     let Some(target) = event
@@ -134,6 +157,33 @@ pub(crate) fn pointer(event: &web_sys::MouseEvent, phase: Phase) {
         event.offset_x() as f32 / width as f32,
         event.offset_y() as f32 / height as f32,
     );
+    if matches!(phase, Phase::Down) {
+        SUPPRESS_CLICK.with(|slot| slot.set(false));
+        if !TOOL.with(|slot| slot.borrow().is_some()) {
+            let Some((id, target)) = handles::hit(point) else {
+                return;
+            };
+            let Some(callback) = AUTO_ARM.with(|slot| *slot.borrow()) else {
+                return;
+            };
+            if let Err(error) = callback.run(id) {
+                super::report(error);
+                return;
+            }
+            super::report(match target {
+                handles::Hit::Axis(axis) => {
+                    format!("Déplacement sur l’axe {}", axis_name(axis).to_uppercase())
+                }
+                handles::Hit::Plane(plane) => {
+                    format!("Déplacement dans le plan {}", plane.name().to_uppercase())
+                }
+            });
+        }
+        SUPPRESS_CLICK.with(|slot| slot.set(true));
+    }
+    if !TOOL.with(|slot| slot.borrow().is_some()) {
+        return;
+    }
     let overflow = EVENTS.with(|slot| {
         let mut events = slot.borrow_mut();
         if events.len() >= 64 {
@@ -185,7 +235,7 @@ pub(super) fn update(
         }
     }
     let Some(mut tool) = TOOL.with(|slot| slot.borrow_mut().take()) else {
-        write_diagnostic(&idle_diagnostic());
+        display_selection(&cameras, &roots);
         return;
     };
     // A live preview intentionally differs from the accepted pose. Physics readiness
@@ -194,6 +244,7 @@ pub(super) fn update(
         RESTORE.with(|slot| slot.replace(Some((tool.id, tool.source))));
         DIAGNOSTIC_STATE.with(|slot| slot.replace(DiagnosticState::Cancelled));
         write_diagnostic(&cancelled_diagnostic());
+        handles::clear();
         return;
     }
     let ready = tool.batched
@@ -203,7 +254,7 @@ pub(super) fn update(
     let events = EVENTS.with(|slot| std::mem::take(&mut *slot.borrow_mut()));
     let mut result = None;
     if ready
-        && let Ok((camera, camera_transform)) = cameras.single()
+        && let Some((camera, camera_transform)) = active_camera(&cameras)
         && let Some(size) = camera.logical_viewport_size()
     {
         let pivot = if matches!(tool.mode, Mode::Rotation { .. }) {
@@ -212,6 +263,24 @@ pub(super) fn update(
             bevy(tool.current.translation_m)
         };
         let length = (camera_transform.translation().distance(pivot) * 0.12).clamp(0.5, 20.0);
+        if matches!(tool.mode, Mode::Translation | Mode::LocalTranslation { .. }) {
+            handles::show(
+                tool.id,
+                true,
+                camera,
+                camera_transform,
+                size,
+                pivot,
+                [
+                    axis_vector(&tool, Axis::X),
+                    axis_vector(&tool, Axis::Y),
+                    axis_vector(&tool, Axis::Z),
+                ],
+                length,
+            );
+        } else {
+            handles::clear();
+        }
         if matches!(tool.mode, Mode::Rotation { .. }) {
             rotation::draw(&mut gizmos, &tool, length);
         } else {
@@ -278,6 +347,66 @@ pub(super) fn update(
         DIAGNOSTIC_STATE.with(|slot| slot.replace(DiagnosticState::Idle));
     } else {
         TOOL.with(|slot| slot.replace(Some(tool)));
+    }
+}
+
+fn active_camera<'a>(
+    cameras: &'a Query<
+        (&Camera, &GlobalTransform),
+        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+    >,
+) -> Option<(&'a Camera, &'a GlobalTransform)> {
+    let mut cameras = cameras.iter().filter(|(camera, _)| camera.is_active);
+    let first = cameras.next()?;
+    cameras.next().is_none().then_some(first)
+}
+fn display_selection(
+    cameras: &Query<
+        (&Camera, &GlobalTransform),
+        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+    >,
+    roots: &Query<(&PlacementRoot, &mut Transform, &Visibility)>,
+) {
+    let selected = super::selection::selected();
+    let display = (|| {
+        if !crate::authoring_viewport::can_preview_asset() {
+            return None;
+        }
+        let id = selected?;
+        let head = super::accepted_head()?;
+        let object = super::super::objects::lookup(&head, id).ok()?;
+        let (camera, transform) = active_camera(cameras)?;
+        let size = camera.logical_viewport_size()?;
+        let pivot = roots
+            .iter()
+            .find(|(root, _, visibility)| root.0 == id && **visibility != Visibility::Hidden)
+            .map_or_else(
+                || bevy(object.transform.translation_m),
+                |(_, t, _)| t.translation,
+            );
+        let length = (transform.translation().distance(pivot) * 0.12).clamp(0.5, 20.0);
+        let editable = !object.locked && can_arm() && AUTO_ARM.with(|slot| slot.borrow().is_some());
+        handles::show(
+            id,
+            editable,
+            camera,
+            transform,
+            size,
+            pivot,
+            [Vec3::X, Vec3::Y, Vec3::Z],
+            length,
+        );
+        let axis_handles=Value::Array([Axis::X,Axis::Y,Axis::Z].into_iter().map(|axis| {
+            let vector=match axis {Axis::X=>Vec3::X,Axis::Y=>Vec3::Y,Axis::Z=>Vec3::Z};
+            json!({"axis":axis_name(axis),"screen_normalized":camera.world_to_viewport(transform,pivot+vector*length).ok().and_then(|p|normalized(p,size))})
+        }).collect());
+        Some(json!({"schema":"forge-placement-gizmo-diagnostic","version":1,"state":"selected","placement_id":id.to_string(),"mode":"translation","editable":editable,"axis_handle_screen_normalized":axis_handles,"plane_handle_screen_normalized":handles::planes_json(),"source_transform":transform_json(object.transform),"phase":"idle"}).to_string())
+    })();
+    if let Some(json) = display {
+        write_diagnostic(&json);
+    } else {
+        handles::clear();
+        write_diagnostic(&idle_diagnostic());
     }
 }
 
@@ -377,8 +506,10 @@ fn active_diagnostic(
         "current_transform": transform_json(tool.current), "pivot_world": [pivot.x, pivot.y, pivot.z],
         "logical_viewport_size": {"width": size.x, "height": size.y}, "phase": phase_name(tool.phase),
         "active_axis": tool.drag.as_ref().map(|drag| axis_name(drag.axis)),
+        "active_plane": tool.plane_drag.as_ref().map(|drag|drag.plane.name()),
         "click_normalized": tool.click_normalized.map(|point| json!({"x": point.x, "y": point.y})),
         "axis_handle_screen_normalized": axis_handles(tool, camera, camera_transform, size, pivot, length),
+        "plane_handle_screen_normalized": handles::planes_json(),
         "rotation_ring_candidates_screen_normalized": rings,
     }).to_string()
 }
@@ -421,6 +552,16 @@ fn step(
     }
     let pivot = bevy(tool.source.translation_m);
     if matches!(phase, Phase::Down) {
+        if matches!(tool.mode, Mode::Translation | Mode::LocalTranslation { .. })
+            && let Some((_, handles::Hit::Plane(plane))) =
+                handles::hit(point / camera.logical_viewport_size().ok_or("Viewport absent")?)
+        {
+            tool.plane_drag = Some(PlaneDrag {
+                plane,
+                start: plane_parameter(tool, plane, point, camera, camera_transform)?,
+            });
+            return Ok(false);
+        }
         let selected = [Axis::X, Axis::Y, Axis::Z]
             .into_iter()
             .filter_map(|axis| {
@@ -448,6 +589,32 @@ fn step(
         }
         return Ok(false);
     }
+    if let Some(drag) = &tool.plane_drag {
+        let end = plane_parameter(tool, drag.plane, point, camera, camera_transform)?;
+        let delta = ForgeVec3::new(
+            end.x - drag.start.x,
+            end.y - drag.start.y,
+            end.z - drag.start.z,
+        );
+        let (a, b) = drag.plane.axes();
+        let component = |axis| match axis {
+            Axis::X => delta.x,
+            Axis::Y => delta.y,
+            Axis::Z => delta.z,
+        };
+        if let Mode::LocalTranslation { step_m } = tool.mode {
+            let first = placement_axis::translate_local(tool.source, a, component(a), step_m)?;
+            tool.current = placement_axis::translate_local(first, b, component(b), step_m)?;
+        } else {
+            let first = placement_axis::translate(tool.source, a, component(a))?;
+            tool.current = placement_axis::translate(first, b, component(b))?;
+            if let Some(alignment) = &tool.alignment {
+                tool.current = alignment.resolve_axis(tool.current, a)?;
+                tool.current = alignment.resolve_axis(tool.current, b)?;
+            }
+        }
+        return Ok(matches!(phase, Phase::Up));
+    }
     let Some(drag) = &tool.drag else {
         return Ok(false);
     };
@@ -468,6 +635,30 @@ fn step(
         }
     }
     Ok(matches!(phase, Phase::Up))
+}
+
+fn plane_parameter(
+    tool: &Tool,
+    plane: handles::Plane,
+    point: Vec2,
+    camera: &Camera,
+    transform: &GlobalTransform,
+) -> Result<ForgeVec3, String> {
+    let ray = camera
+        .viewport_to_world(transform, point)
+        .map_err(|e| e.to_string())?;
+    let pivot = bevy(tool.source.translation_m);
+    let frame = if matches!(tool.mode, Mode::LocalTranslation { .. }) {
+        project(tool.source).rotation.inverse()
+    } else {
+        Quat::IDENTITY
+    };
+    placement_axis::ray_plane(
+        ForgeVec3::ZERO,
+        plane.normal(),
+        forge(frame * (ray.origin - pivot)),
+        forge(frame * *ray.direction),
+    )
 }
 
 fn parameter(

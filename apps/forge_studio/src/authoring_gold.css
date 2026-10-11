@@ -57,6 +57,11 @@
 .authoring-panel details[open] > :not(summary) { margin-top:8px; }
 .authoring-tools #authoring-playtest-graphics input[type="range"] { width:100%; box-sizing:border-box; }
 .authoring-panel .scene-navigation { margin:0; }
+.module-map-browser { display:grid; gap:16px; }
+.module-map-browser label { display:grid; gap:7px; }
+.module-map-browser select { width:100%; }
+.module-map-browser p { margin:0; line-height:1.5; }
+.module-map-browser .module-map-close { margin-top:8px; }
 .authoring-tools .managed-zone-tabs { position:static; inset:auto; transform:none; width:auto; display:flex; flex-wrap:wrap; gap:6px; padding:8px 0; box-shadow:none; border:0; background:transparent; }
 .authoring-tools .managed-zone-tabs:empty { display:none; }
 .authoring-tools .managed-zone-tabs button { width:auto; flex:1 1 110px; overflow-wrap:anywhere; }
@@ -337,6 +342,16 @@ html[data-forge-zone-open="true"] .forge-workspace-welcome { display:none; }
 @media (max-width:1500px) { .authoring-shell .forge-workspaces button { padding:7px 10px; } }
 @media (max-width:1200px) { .authoring-shell .forge-workspaces button { font-size:12px; padding:7px; } .forge-technical-menu summary { font-size:11px; } .atelier-secondary-body {gap:8px;padding:8px;} .atelier-secondary-body > :is(aside,section) {padding:12px;} }
 @media (prefers-reduced-motion:reduce) { .authoring-shell *, .authoring-shell *::after { animation:none !important; transition:none !important; } }
+
+/* Keep the editing interface cheap to composite over the 3D canvas. */
+.authoring-shell *, .authoring-shell *::before, .authoring-shell *::after {
+    animation:none !important;
+    transition:none !important;
+    backdrop-filter:none !important;
+    filter:none !important;
+    box-shadow:none !important;
+    text-shadow:none !important;
+}
 /* Project setup must also fit intermediate logical heights at 125–175% zoom. */
 @media (max-height:1000px) {
   .authoring-tools [data-authoring-tab="project"] { gap:6px; padding-bottom:4px; }
@@ -464,3 +479,18 @@ html[data-forge-zone-open="true"] .forge-workspace-welcome { display:none; }
 .authoring-tools .gold-asset-cards button { min-width:0; overflow:hidden; }
 .authoring-tools .gold-asset-cards span { min-width:0; max-width:100%; overflow-wrap:anywhere; }
 .gold-asset-cards small { min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.gold-library-filters { grid-template-columns:auto auto minmax(120px,1fr) minmax(110px,180px) auto; }
+.authoring-tools .gold-library .map-object-cards button { height:118px; flex-basis:150px; }
+.map-object-cards img { width:100%; height:80px; object-fit:contain; border-radius:4px; }
+.map-object-cards .map-thumbnail-loading { height:80px; display:grid; place-items:center; }
+.selection-handles { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:5; overflow:hidden; }
+.selection-handles line { stroke-width:3; }
+.selection-handles text { font:700 13px sans-serif; text-anchor:middle; dominant-baseline:middle; paint-order:stroke; stroke:#182027; stroke-width:3; stroke-linejoin:round; }
+.selection-handles .handle-plane polygon { fill-opacity:.22; stroke-width:1.5; }
+.selection-handles #handle-axis-x {stroke:#f85b53;} .selection-handles #handle-arrow-x,.selection-handles #handle-label-x {fill:#f85b53;}
+.selection-handles #handle-axis-y {stroke:#66e18c;} .selection-handles #handle-arrow-y,.selection-handles #handle-label-y {fill:#66e18c;}
+.selection-handles #handle-axis-z {stroke:#5f9eff;} .selection-handles #handle-arrow-z,.selection-handles #handle-label-z {fill:#5f9eff;}
+.selection-handles #handle-plane-xy {fill:#edc45d;stroke:#edc45d;} .selection-handles #handle-plane-label-xy {fill:#edc45d;}
+.selection-handles #handle-plane-xz {fill:#d584ed;stroke:#d584ed;} .selection-handles #handle-plane-label-xz {fill:#d584ed;}
+.selection-handles #handle-plane-yz {fill:#65dbe6;stroke:#65dbe6;} .selection-handles #handle-plane-label-yz {fill:#65dbe6;}
+.selection-handles[data-editable="false"] {opacity:.55;}

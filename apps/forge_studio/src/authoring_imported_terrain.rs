@@ -37,6 +37,8 @@ struct ProjectionState {
     library: u64,
     environment: Option<AssetId<Image>>,
     sky: Option<Entity>,
+    flat_water: Option<Entity>,
+    clear_cloud_shadow: Option<Handle<Image>>,
     geometry: Option<ViewGeometry>,
     geometry_nodes: Option<Vec<forge_world::cdlod::CdlodNode>>,
     debug_ocean_geometry: bool,
@@ -67,6 +69,7 @@ pub(crate) fn launch(
     document: TerrainDocument,
     playtest: Option<PlaytestIdentity>,
 ) -> Result<(), String> {
+    let fast_editing = playtest.is_none();
     let query = web_sys::window()
         .and_then(|window| window.location().search().ok())
         .unwrap_or_default();
@@ -77,14 +80,16 @@ pub(crate) fn launch(
     let complete_water = imported_buildings::ocean_package().is_some()
         && imported_buildings::water_surface_package().is_some()
         && imported_buildings::shore_sim_package().is_some();
-    // Water belongs to the imported scene, including its editable view. Only
-    // locomotion and player input depend on whether this is a playtest.
+    // Editing keeps the source geometry and collisions while expensive water
+    // simulation and optical passes are reserved for the playtest renderer.
     let ocean_optics = (complete_water || has_parameter("forge_water_optics=1"))
-        && !has_parameter("forge_water_optics=0");
+        && !has_parameter("forge_water_optics=0")
+        && !fast_editing;
     let shore_sim = ocean_optics
         && (complete_water || has_parameter("forge_shore_sim=1"))
         && !has_parameter("forge_shore_sim=0");
-    let debug_ocean_geometry = ocean_optics || has_parameter("forge_water_geometry=1");
+    let debug_ocean_geometry =
+        !fast_editing && (ocean_optics || has_parameter("forge_water_geometry=1"));
     if debug_ocean_geometry && imported_buildings::water_surface_package().is_none() {
         return Err("Le diagnostic d’eau requiert le paquet de surface vérifié.".into());
     }
@@ -96,15 +101,21 @@ pub(crate) fn launch(
         SampledTerrainPlan::from_document(&document, &bytes).map_err(|error| error.to_string())?;
     let package = imported_buildings::terrain_package()
         .ok_or("Charger la bibliothèque importée avec son terrain et son environnement.")?;
-    if package.file("hill-shadow.wgsl").is_none() || !imported_buildings::has_environment() {
+    if (!fast_editing && package.file("hill-shadow.wgsl").is_none())
+        || !imported_buildings::has_environment()
+    {
         return Err(
             "Le terrain importé requiert le paquet terrain v2 et son environnement.".into(),
         );
     }
-    let prepared_ocean = imported_buildings::ocean_package()
-        .as_deref()
-        .map(tidewater_ocean::PreparedOcean::new)
-        .transpose()?;
+    let prepared_ocean = if fast_editing {
+        None
+    } else {
+        imported_buildings::ocean_package()
+            .as_deref()
+            .map(tidewater_ocean::PreparedOcean::new)
+            .transpose()?
+    };
     let player = playtest
         .map(|identity| {
             if document.content_hash().map_err(|error| error.to_string())? != identity.terrain_hash
@@ -172,6 +183,15 @@ pub(crate) fn launch(
             }),
             ..default()
         }));
+        if playtest.is_none() {
+            crate::authoring_render::install(&mut app);
+            use bevy::render::error_handler::RenderErrorHandler;
+            app.insert_resource(RenderErrorHandler(|error, main_world, render_world| {
+                crate::authoring_viewport::imported_failure(&error.description);
+                // Retain Bevy's AppExit::error and StopRendering policy.
+                (RenderErrorHandler::default().0)(error, main_world, render_world)
+            }));
+        }
         app.add_plugins(forge_engine::source_graph::SourceGraphPlugin);
         if playtest.is_some() {
             app.add_plugins((
@@ -187,8 +207,10 @@ pub(crate) fn launch(
         // building projection as procedural zones. Imported plants stay intact;
         // clearing their footprint remains an explicit authoring operation.
         crate::authoring_building_projection::install(&mut app);
-        app.add_plugins(hill::HillShadowPlugin);
-        let result = crate::authoring_imported_shadows::install(&mut app)
+        if !fast_editing {
+            app.add_plugins(hill::HillShadowPlugin);
+        }
+        let result = crate::authoring_imported_shadows::install(&mut app, !fast_editing)
             .and_then(|()| crate::authoring_imported_plants::install(&mut app))
             .and_then(|()| scene::register(&mut app))
             .and_then(|()| shadows::register(&mut app))
@@ -293,6 +315,8 @@ pub(crate) fn launch(
             library: 0,
             environment: None,
             sky: None,
+            flat_water: None,
+            clear_cloud_shadow: None,
             geometry: None,
             geometry_nodes: None,
             debug_ocean_geometry,
@@ -379,7 +403,6 @@ pub(crate) fn launch(
                     clear_unready_cursor,
                     forge_engine::update_terrain_brush_cursor.run_if(picking_ready),
                     crate::authoring_brush_pointer::picked,
-                    update_live_clouds,
                 )
                     .chain()
                     .after(bevy::transform::TransformSystems::Propagate)
@@ -754,7 +777,12 @@ pub(crate) fn project(world: &mut World) {
             }
             return;
         }
-        let result = project_ready(world, &mut state);
+        let result = if world.contains_resource::<crate::authoring_render::FastEditing>() {
+            stage_unshadowed_clouds(world, &mut state)
+                .and_then(|()| project_ready(world, &mut state))
+        } else {
+            project_ready(world, &mut state)
+        };
         if let Err(error) = result {
             state.failed = true;
             crate::authoring_viewport::imported_failure(&error);
@@ -1042,6 +1070,7 @@ fn rebuild(
     if !imported_buildings::has_environment() {
         return Err("La bibliothèque courante ne fournit pas d'environnement".into());
     }
+    let fast_editing = world.contains_resource::<crate::authoring_render::FastEditing>();
     let bytes = crate::authoring_raster::source_bytes(&state.document)?;
     let plan = Arc::new(
         SampledTerrainPlan::from_document(&state.document, &bytes).map_err(|e| e.to_string())?,
@@ -1092,26 +1121,33 @@ fn rebuild(
     let geometry = ViewGeometry::new(&plan)?;
     let environment = world.resource::<ResidentEnvironment>();
     let sun = environment.scene_lighting.sun_direction;
-    let hill = hill::PreparedInput::new(
-        std::str::from_utf8(
-            package
-                .file("hill-shadow.wgsl")
-                .ok_or("Shader relief absent")?,
-        )
-        .map_err(|e| e.to_string())?
-        .into(),
-        hill::mip_chain(&plan.cell_center_heights())?,
-        hill::Settings {
-            origin: -1024.0,
-            size: 2048.0,
-            sun_bake: sun.truncate(),
-        },
-    )?;
+    let hill = if fast_editing {
+        None
+    } else {
+        Some(hill::PreparedInput::new(
+            std::str::from_utf8(
+                package
+                    .file("hill-shadow.wgsl")
+                    .ok_or("Shader relief absent")?,
+            )
+            .map_err(|e| e.to_string())?
+            .into(),
+            hill::mip_chain(&plan.cell_center_heights())?,
+            hill::Settings {
+                origin: -1024.0,
+                size: 2048.0,
+                sun_bake: sun.truncate(),
+            },
+        )?)
+    };
     let environment_map = environment.environment.clone();
     let cloud_view = environment.cloud_view;
     let cloud_shadow = environment.clouds.images[2].clone();
     let environment_id = environment.environment.id();
-    let hill = hill.stage(world)?;
+    let hill = match hill {
+        Some(prepared) => prepared.stage(world)?,
+        None => stage_unshadowed_hill(world),
+    };
     let shadow = shadows::stage(
         world,
         shadows::Input {
@@ -1173,13 +1209,125 @@ fn rebuild(
     if let Some(previous) = state.sky.take() {
         world.despawn(previous);
     }
-    state.sky = Some(spawn_sky(world));
+    if fast_editing {
+        if state
+            .flat_water
+            .is_none_or(|entity| world.get_entity(entity).is_err())
+        {
+            state.flat_water = Some(spawn_flat_water(world));
+        }
+    } else {
+        if let Some(previous) = state.flat_water.take() {
+            world.despawn(previous);
+        }
+        state.sky = Some(spawn_sky(world));
+    }
     state.pending = false;
     state.geometry_nodes = Some(geometry.nodes(view)?);
     state.geometry = Some(geometry);
     state.library = imported_buildings::published_generation();
     state.environment = Some(environment_id);
     Ok(())
+}
+
+/// Derived editor texture keeps every terrain/building/plant binding available.
+/// Two texels per axis satisfy the shaders' four manual bilinear texture loads;
+/// binary16 (-65504, 0, 0, 1) puts the occluder below the valid terrain domain.
+fn stage_unshadowed_hill(world: &mut World) -> hill::Images {
+    use bevy::asset::RenderAssetUsages;
+    use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
+    if let Some(images) = world.get_resource::<hill::Images>() {
+        return images.clone();
+    }
+    let size = Extent3d {
+        width: 2,
+        height: 2,
+        depth_or_array_layers: 1,
+    };
+    let input = Image::new_fill(
+        size,
+        TextureDimension::D2,
+        &[0, 0],
+        TextureFormat::R16Float,
+        RenderAssetUsages::RENDER_WORLD,
+    );
+    let image = Image::new_fill(
+        size,
+        TextureDimension::D2,
+        &[0xff, 0xfb, 0, 0, 0, 0, 0, 0x3c],
+        TextureFormat::Rgba16Float,
+        RenderAssetUsages::RENDER_WORLD,
+    );
+    let mut assets = world.resource_mut::<Assets<Image>>();
+    let images = hill::Images {
+        input: assets.add(input),
+        output: assets.add(image),
+        ready: Arc::new(std::sync::atomic::AtomicBool::new(true)),
+    };
+    world.insert_resource(images.clone());
+    world.insert_resource(hill::Ready(true));
+    images
+}
+
+/// A clear, same-format cloud-shadow binding retains every material's readiness.
+/// The acquired producer is left intact and never advanced by the edit renderer.
+fn stage_unshadowed_clouds(world: &mut World, state: &mut ProjectionState) -> Result<(), String> {
+    use bevy::asset::RenderAssetUsages;
+    use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
+    let current = world
+        .resource::<ResidentEnvironment>()
+        .clouds
+        .images
+        .get(2)
+        .ok_or("L'environnement ne fournit pas de texture d'ombre des nuages.")?
+        .id();
+    if state
+        .clear_cloud_shadow
+        .as_ref()
+        .is_some_and(|image| image.id() == current)
+    {
+        return Ok(());
+    }
+    let image = state.clear_cloud_shadow.get_or_insert_with(|| {
+        let image = Image::new_fill(
+            Extent3d {
+                width: 256,
+                height: 256,
+                depth_or_array_layers: 1,
+            },
+            TextureDimension::D2,
+            &1.0_f32.to_le_bytes(),
+            TextureFormat::R32Float,
+            RenderAssetUsages::RENDER_WORLD,
+        );
+        world.resource_mut::<Assets<Image>>().add(image)
+    });
+    world.resource_mut::<ResidentEnvironment>().clouds.images[2] = image.clone();
+    Ok(())
+}
+
+/// Transient two-triangle editor water, at the source ocean's sea-level zero.
+/// It has no placement identity, collider, animation, or persisted document entry.
+fn spawn_flat_water(world: &mut World) -> Entity {
+    let mesh = world
+        .resource_mut::<Assets<Mesh>>()
+        .add(Plane3d::default().mesh().size(120_000.0, 120_000.0));
+    let material = world
+        .resource_mut::<Assets<StandardMaterial>>()
+        .add(StandardMaterial {
+            base_color: Color::srgb(0.12, 0.32, 0.48),
+            unlit: true,
+            alpha_mode: AlphaMode::Opaque,
+            ..default()
+        });
+    world
+        .spawn((
+            Mesh3d(mesh),
+            MeshMaterial3d(material),
+            Transform::from_xyz(0.0, 0.0, 0.0),
+            bevy::light::NotShadowCaster,
+        ))
+        .id()
 }
 
 fn spawn_sky(world: &mut World) -> Entity {

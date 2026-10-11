@@ -32,6 +32,53 @@ impl FileWorkspaceSession {
         ZoneEditSession::from_archive_bytes(&self.objects.read(project, &reference)?)
     }
 
+    /// Read effective labels without activating zones or saving any document.
+    /// A changed reference invalidates its label; retained memory is bounded by
+    /// the current head, independently of historical archives and managed tabs.
+    pub fn zone_names(&mut self) -> Result<std::collections::BTreeMap<AreaId, String>, String> {
+        let references: Vec<_> = self
+            .session
+            .head()
+            .projects
+            .iter()
+            .flat_map(|project| {
+                project
+                    .modules
+                    .iter()
+                    .flat_map(|module| &module.zones)
+                    .map(move |reference| (project.id, reference.clone()))
+            })
+            .collect();
+        let current: std::collections::BTreeSet<_> = references
+            .iter()
+            .map(|(_, reference)| reference.archive_hash)
+            .collect();
+        self.zone_name_cache
+            .retain(|hash, _| current.contains(hash));
+        let mut names = std::collections::BTreeMap::new();
+        let mut remaining = 256 * 1024 * 1024;
+        for (project, reference) in references {
+            let name = if let Some(name) = self.zone_name_cache.get(&reference.archive_hash) {
+                name.clone()
+            } else {
+                let bytes = self
+                    .objects
+                    .read_with_budget(project, &reference, remaining)?;
+                remaining -= bytes.len();
+                let name = ZoneEditSession::from_archive_bytes(&bytes)?
+                    .head()
+                    .effective()?
+                    .0
+                    .name;
+                self.zone_name_cache
+                    .insert(reference.archive_hash, name.clone());
+                name
+            };
+            names.insert(reference.area_id, name);
+        }
+        Ok(names)
+    }
+
     /// Produces both diffs without writing objects or changing either authority.
     pub fn preview_zone_edit(
         &self,

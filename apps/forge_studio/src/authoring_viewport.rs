@@ -81,7 +81,6 @@ pub fn AuthoringWorkspace() -> impl IntoView {
             <style>{include_str!("authoring_gold.css")}</style>
             <header class="topbar">
                 <h1>"OpenRPG Forge"</h1><span class="authoring-brand-caption">"Atelier de création"</span>
-                <super::authoring_controls::WorkspaceActivities active=active_tool/>
                 <super::asset_library_ui::LibraryLauncher/>
                 <super::atelier_ui::WindowControls link=atelier/>
                 <details class="forge-technical-menu"><summary>"Aide & diagnostics"</summary>
@@ -108,6 +107,7 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                     <super::authoring_brush_pointer::ToolMode/>
                     <super::authoring_compass::CompassHud/>
                     <super::authoring_compass::AxisHud/>
+                    <super::authoring_assets::placements::gizmo::HandlesHud/>
                 <canvas id="forge-authoring-canvas" tabindex="0"
                     on:mousemove=move |event| {
                         super::authoring_assets::placements::gizmo::pointer(&event, super::authoring_assets::placements::gizmo::Phase::Move);
@@ -215,10 +215,17 @@ pub(super) fn observe(
         return;
     }
     if document.sampled_source.is_some() {
-        crate::authoring_assets::imported_buildings::ensure_for_projection(
+        match crate::authoring_assets::imported_buildings::ensure_for_projection(
             document,
             playtest.is_some(),
-        );
+        ) {
+            Ok(true) => {}
+            Ok(false) => return,
+            Err(error) => {
+                report(error);
+                return;
+            }
+        }
         if let Err(error) = crate::authoring_imported_terrain::launch(document.clone(), playtest) {
             report(error);
             return;
@@ -324,6 +331,9 @@ fn launch_viewport(
         .add_systems(Last, super::authoring_input::publish)
         .add_systems(Update, super::authoring_preview::draw)
         .add_systems(Update, super::authoring_camera::navigate);
+        if playtest.is_none() {
+            super::authoring_render::install(&mut app);
+        }
         if let Err(error) = super::authoring_vegetation::install(&mut app, terrain) {
             INVALIDATED.with(|slot| slot.replace(true));
             report(format!("Initialisation végétation refusée : {error}"));

@@ -11,6 +11,9 @@ pub enum WorkspaceHostRequest {
     Create,
     Open,
     Inspect,
+    /// Open an existing workspace if needed, then return its module/map browser.
+    /// Never creates, saves, adopts or replaces an active zone.
+    Browse,
     ReadHistory {
         expected_hash: forge_core::ContentHash,
         offset: usize,
@@ -62,12 +65,32 @@ impl WorkspaceHostRequest {
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceHostState {
     pub head: Option<WorkspaceHead>,
+    #[serde(default)]
+    pub modules: Vec<WorkspaceModuleSummary>,
     pub dirty: bool,
     pub receipt: Option<WorkspaceReceipt>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recovery: Option<WorkspaceRecoveryReview>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub history: Option<crate::workspace::history::WorkspaceHistoryPage>,
+}
+
+/// Derived labels bound to accepted managed-zone references, never another authority.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkspaceModuleSummary {
+    pub id: forge_core::ModuleId,
+    pub name: String,
+    pub project_name: String,
+    pub maps: Vec<WorkspaceMapSummary>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WorkspaceMapSummary {
+    pub area_id: forge_core::AreaId,
+    pub name: String,
+    pub dirty: bool,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

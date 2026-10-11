@@ -37,6 +37,7 @@ pub(super) fn PlacementControls(
     on_command: SendCommand,
 ) -> impl IntoView {
     let source_revision = super::placements::bind_sources();
+    gizmo::bind_selection(state, on_command);
     // Availability can change without changing the inspected object or its draft.
     let inspected_placement = Memo::new(move |_| {
         let _ = source_revision.get();

@@ -233,6 +233,16 @@ pub(crate) fn proposal_ready() -> Result<bool, String> {
         && super::fish_props_scene::ready()?)
 }
 
+pub(super) fn accepted_head() -> Option<forge_project::zone_authoring::ZoneAuthoringHead> {
+    ACCEPTED_HEAD.with(|slot| slot.borrow().clone())
+}
+
+pub(super) fn preview_active() -> bool {
+    PREVIEW_ACTIVE.with(Cell::get)
+        || !DESIRED
+            .with(|desired| ACCEPTED.with(|accepted| *desired.borrow() == *accepted.borrow()))
+}
+
 pub(crate) fn accepted_projection(
     expected: &[ManualPlacement],
     head_hash: forge_core::ContentHash,
@@ -353,24 +363,16 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
                         super::preview::SceneLayout::CatalogLod0,
                     ),
                     Err(forge_assets::asset_browser::AssetResolutionError::Missing(_)) => {
-                        let model = super::vault::reference(key.0, key.1).await?;
-                        (
-                            model.id,
-                            model.bytes,
-                            super::preview::SceneLayout::AutonomousScene,
-                        )
+                        let (name, bytes) = super::vault::installed_reference(key.0, key.1).await?;
+                        (name, bytes, super::preview::SceneLayout::AutonomousScene)
                     }
                     Err(error) => return Err(error.to_string()),
                 },
                 Err(kit_error) => {
-                    let model = super::vault::reference(key.0, key.1)
+                    let (name, bytes) = super::vault::installed_reference(key.0, key.1)
                         .await
-                        .map_err(|e| format!("Catalogue : {kit_error}; Vault : {e}"))?;
-                    (
-                        model.id,
-                        model.bytes,
-                        super::preview::SceneLayout::AutonomousScene,
-                    )
+                        .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?;
+                    (name, bytes, super::preview::SceneLayout::AutonomousScene)
                 }
             };
             super::source_graph_route::require_ordinary_loader(&bytes)?;

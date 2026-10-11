@@ -30,6 +30,8 @@ pub mod asset_library_protocol;
 mod asset_library_ui;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod audit_labels;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod module_asset_native;
 pub mod promotion_preview_gate;
 pub mod reconciliation_protocol;
 
@@ -821,6 +823,8 @@ mod authoring_projection_diagnostics;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_regeneration_review;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_render;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_rivers;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_scene;
@@ -840,8 +844,6 @@ mod authoring_vegetation_recipe;
 mod authoring_viewport;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_zone;
-#[cfg(all(target_arch = "wasm32", feature = "web"))]
-mod authoring_zone_information;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod workspace_controls;
 
@@ -865,9 +867,6 @@ mod authoring_preview;
 mod authoring_camera;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_compass;
-
-#[cfg(all(target_arch = "wasm32", feature = "web"))]
-mod authoring_catalog;
 
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_history;

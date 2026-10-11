@@ -124,43 +124,58 @@ fn remember_choice(document: &forge_project::TerrainDocument, hash: ContentHash)
     }
 }
 
-/// Reacquire the previously verified choice in either projection mode.
-/// Every package is verified again; another zone cannot inherit this hint.
-pub(crate) fn ensure_for_projection(document: &forge_project::TerrainDocument, playtest: bool) {
+/// Resolve the deployed source resources when the author opens an imported map.
+/// Every package and its raster binding are verified before projection.
+pub(crate) fn ensure_for_projection(
+    document: &forge_project::TerrainDocument,
+    playtest: bool,
+) -> Result<bool, String> {
     if building_package().is_some()
         && terrain_package().is_some()
         && plant_package().is_some()
         && has_environment()
     {
-        return;
+        source_objects::verify_projection_source(
+            document,
+            terrain_package().as_deref(),
+            plant_package().as_deref(),
+        )?;
+        return Ok(true);
     }
-    let choice = match restore_choice(document) {
-        Ok(choice) => choice,
-        Err(error) => {
-            crate::authoring_viewport::report(error);
-            return;
-        }
-    };
-    if choice.is_none() && !playtest {
-        return;
+    let choice = restore_choice(document)?;
+    if choice.is_none() && !playtest && !crate::authoring_viewport::requested() {
+        return Err("Charger les ressources du terrain importé avant sa projection.".into());
     }
     if PROJECTION_LOADING.with(|loading| loading.replace(true)) {
-        return;
+        return Ok(false);
     }
     let ticket = next();
-    crate::authoring_viewport::report(
-        "Restauration de la bibliothèque vérifiée pour la zone…".into(),
-    );
+    let source = (document.area_id, document.sampled_source.clone());
+    crate::authoring_viewport::report("Chargement du terrain et du décor…".into());
     wasm_bindgen_futures::spawn_local(async move {
-        let result = load(ticket, choice).await;
+        let result = load(ticket, choice, LibraryPurpose::Projection).await;
         PROJECTION_LOADING.with(|loading| loading.set(false));
         if !current(ticket) {
             return;
         }
         if let Err(error) = result {
+            if crate::authoring_viewport::imported_document()
+                .is_some_and(|active| (active.area_id, active.sampled_source) != source)
+            {
+                // Retry the newly selected map, never an unchanged failing package.
+                crate::authoring_viewport::retry_imported();
+                return;
+            }
             crate::authoring_viewport::report(format!("Bibliothèque indisponible : {error}"));
         }
     });
+    Ok(false)
+}
+
+#[derive(Clone, Copy)]
+enum LibraryPurpose {
+    Projection,
+    Catalog,
 }
 
 #[derive(serde::Deserialize)]
@@ -227,6 +242,7 @@ fn current(ticket: u64) -> bool {
 async fn load(
     ticket: u64,
     expected: Option<crate::library_resume::LibraryResume>,
+    purpose: LibraryPurpose,
 ) -> Result<(usize, bool), String> {
     use crate::governed_kit::transport;
     let document = crate::authoring_viewport::imported_document();
@@ -585,6 +601,13 @@ async fn load(
         return Err("Chargement remplacé".into());
     }
     if let Some(document) = &document {
+        if matches!(purpose, LibraryPurpose::Projection) {
+            source_objects::verify_projection_source(
+                document,
+                terrain.as_deref(),
+                plants.as_deref(),
+            )?;
+        }
         let scope = crate::library_resume::LibraryResume::new(document, candidate_hash)
             .ok_or("Source terrain invalide pour la bibliothèque")?;
         if !crate::authoring_viewport::imported_document()
@@ -1143,7 +1166,7 @@ pub(super) fn LibraryControls() -> impl IntoView {
                 invalidate_fish_props();
                 status.set("Vérification de la bibliothèque locale…".into());
                 wasm_bindgen_futures::spawn_local(async move {
-                    let result = load(ticket, None).await;
+                    let result = load(ticket, None, LibraryPurpose::Catalog).await;
                     // Replacement must release this control even when another
                     // loader owns publication. The panel may also be disposed.
                     let _ = busy.try_set(false);

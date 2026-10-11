@@ -6,6 +6,20 @@ use forge_world::placement_snap::PlacementSnap;
 use forge_world::placement_transform::RotationSpace;
 use leptos::prelude::*;
 
+pub(super) fn bind_selection(state: RwSignal<Option<AuthoringState>>, on_command: SendCommand) {
+    super::super::placements::gizmo::bind_auto(Callback::new(move |id| {
+        crate::authoring_brush_pointer::cancel();
+        arm(
+            state,
+            id,
+            Mode::Translation,
+            PlacementSnap::default(),
+            on_command,
+        )
+    }));
+    on_cleanup(|| super::super::placements::gizmo::unbind_auto());
+}
+
 #[component]
 pub(super) fn GizmoControls(
     state: RwSignal<Option<AuthoringState>>,

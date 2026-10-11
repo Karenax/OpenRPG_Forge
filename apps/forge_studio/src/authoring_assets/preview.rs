@@ -72,6 +72,7 @@ pub(super) fn is_current(ticket: u64) -> bool {
 }
 
 pub(crate) fn register(app: &mut App) {
+    super::map_shelf::install(app);
     crate::authoring_species::register(app);
     let root = ROOT.with(Clone::clone);
     app.register_asset_source(
@@ -214,23 +215,6 @@ fn update(
     super::preview_status(
         "Aperçu chargé au-dessus de la zone, sans collision ni placement. Rotation et zoom disponibles ; rendu à inspecter.",
     );
-}
-
-pub(super) fn configure(
-    root: Entity,
-    id: &str,
-    entities: impl Iterator<Item = Entity>,
-    nodes: &PreviewNodes,
-    commands: &mut Commands,
-) -> Result<Option<(Vec3, f32)>, &'static str> {
-    configure_layout(
-        root,
-        id,
-        SceneLayout::CatalogLod0,
-        entities,
-        nodes,
-        commands,
-    )
 }
 
 pub(super) fn configure_layout(

@@ -39,6 +39,11 @@ pub(super) fn advance_clock(world: &mut World) {
         READY.with(|slot| *slot.borrow_mut() = Ok(false));
         return;
     }
+    if world.contains_resource::<crate::authoring_render::FastEditing>() {
+        // Keep the acquired frame and readiness; editing never advances wind.
+        READY.with(|slot| *slot.borrow_mut() = Ok(true));
+        return;
+    }
     let Some(time) = world.get_resource::<Time>() else {
         return;
     };
@@ -52,6 +57,34 @@ fn upload(world: &mut World) {
         return;
     }
     let uniform = world.resource::<WindFrame>().material_uniform();
+    if world.contains_resource::<crate::authoring_render::FastEditing>() {
+        upload_static::<VillageMaterial>(
+            world,
+            uniform,
+            |m| m.settings.wind,
+            |m, v| m.settings.wind = v,
+        );
+        upload_static::<PlantMaterial>(world, uniform, |m| m.params.wind, |m, v| m.params.wind = v);
+        upload_static::<TerrainMaterial>(
+            world,
+            uniform,
+            |m| m.settings.wind,
+            |m, v| m.settings.wind = v,
+        );
+        upload_static::<LodMaterial>(
+            world,
+            uniform,
+            |m| m.base.settings.wind,
+            |m, v| m.base.settings.wind = v,
+        );
+        upload_static::<NatureMaterial>(
+            world,
+            uniform,
+            |m| m.base.settings.wind,
+            |m, v| m.base.settings.wind = v,
+        );
+        return;
+    }
     // Refresh already-resident materials as well as those created this frame.
     // Their shared input changes without rebuilding meshes or source textures.
     if let Some(mut materials) = world.get_resource_mut::<Assets<VillageMaterial>>() {
@@ -77,6 +110,30 @@ fn upload(world: &mut World) {
     if let Some(mut materials) = world.get_resource_mut::<Assets<NatureMaterial>>() {
         for (_, material) in materials.iter_mut() {
             material.base.settings.wind = uniform;
+        }
+    }
+}
+
+/// `Assets::iter_mut` queues `Modified` for every visited material, even when its
+/// value stays the same. Inspect immutable entries before touching new/changed
+/// editor materials so a frozen wind does not re-upload them every frame.
+fn upload_static<M: Asset>(
+    world: &mut World,
+    uniform: Vec4,
+    read: impl Fn(&M) -> Vec4,
+    write: impl Fn(&mut M, Vec4),
+) {
+    let Some(mut materials) = world.get_resource_mut::<Assets<M>>() else {
+        return;
+    };
+    let changed: Vec<_> = materials
+        .iter()
+        .filter(|(_, material)| read(material) != uniform)
+        .map(|(id, _)| id)
+        .collect();
+    for id in changed {
+        if let Some(mut material) = materials.get_mut(id) {
+            write(&mut material, uniform);
         }
     }
 }

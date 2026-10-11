@@ -14,6 +14,7 @@ pub(crate) mod fish_stand_scene;
 pub(crate) mod imported_buildings;
 pub(crate) mod imported_environment;
 pub(crate) mod imported_scene;
+mod map_shelf;
 mod model_read_gate;
 pub(crate) mod objects;
 mod placement_controls;
@@ -109,6 +110,7 @@ pub(super) fn AssetBrowserControls(
     let browser = RwSignal::new(None::<AssetBrowser>);
     let query = RwSignal::new(String::new());
     let category = RwSignal::new(String::new());
+    let map_objects = RwSignal::new(true);
     let atelier = use_context::<crate::atelier_ui::Link>();
     let selected = atelier.map_or_else(
         || RwSignal::new(String::new()),
@@ -228,16 +230,20 @@ pub(super) fn AssetBrowserControls(
                     let open=element.has_attribute("open");
                     if library_open.get_untracked()!=open { library_open.set(open); }
                 }
-            }><summary>"Bibliothèque d’objets"<span class="atelier-library-count">{move ||matches.get().and_then(Result::ok).map(|items|format!("{} objets · glisser vers la scène",items.len())).unwrap_or_default()}</span></summary>
+            }><summary>{move ||if map_objects.get(){"Objets de la carte"}else{"Bibliothèque d’objets"}}<span class="atelier-library-count">{move ||if map_objects.get(){"Cliquer une vignette pour sélectionner et cadrer l’objet".to_owned()}else{matches.get().and_then(Result::ok).map(|items|format!("{} objets · glisser vers la scène",items.len())).unwrap_or_default()}}</span></summary>
             <div class="gold-library-filters">
+            <button aria-pressed=move ||map_objects.get().to_string() on:click=move |_|map_objects.set(true)>"Objets de la carte"</button>
+            <button aria-pressed=move ||(!map_objects.get()).to_string() on:click=move |_|map_objects.set(false)>"Bibliothèque"</button>
             <label>"Rechercher"<input placeholder="Nom ou catégorie…" maxlength="256" prop:value=move || query.get()
                 on:input=move |ev| query.set(event_target_value(&ev))/></label>
-            <label>"Catégorie"<select prop:value=move || category.get() on:change=move |ev| category.set(event_target_value(&ev))>
+            <label hidden=move ||map_objects.get()>"Catégorie"<select prop:value=move || category.get() on:change=move |ev| category.set(event_target_value(&ev))>
                 <option value="">"Toutes"</option><option value="tree">"Arbres / végétation"</option>
                 <option value="rock">"Rochers"</option><option value="architecture">"Architecture"</option>
             </select></label>
             <button title="Relire le catalogue local" disabled=move || busy.get() on:click=move |_| load(())>"Actualiser"</button>
             </div>
+            <div hidden=move ||!map_objects.get()><map_shelf::MapShelf inspected=inspected query=query/></div>
+            <div hidden=move ||map_objects.get()>
             {move || matches.get().map(|result| match result {
                 Ok(assets) => view! { <div class="atelier-library-results">
                     <div class="gold-asset-cards">{assets.into_iter().map(|asset| {
@@ -255,6 +261,7 @@ pub(super) fn AssetBrowserControls(
                 </div> }.into_any(),
                 Err(reason) => view! { <p>{reason}</p> }.into_any(),
             })}
+            </div>
             <Show when=move || browser.get().is_none()><output aria-live="polite">{move ||status.get()}</output></Show>
         </details>
             <nav class="atelier-object-workspaces" aria-label="Travail sur les objets">

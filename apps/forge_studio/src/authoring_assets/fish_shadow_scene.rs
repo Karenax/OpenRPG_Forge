@@ -1,4 +1,6 @@
 //! Merge transient producers of the same masked shader and cascade target.
+#[cfg(target_arch = "wasm32")]
+use bevy::ecs as bevy_ecs;
 use bevy::prelude::*;
 use forge_engine::tidewater_fish_props::shadow::{Frame, MaskedMesh};
 use std::{any::TypeId, collections::BTreeMap, sync::Arc};

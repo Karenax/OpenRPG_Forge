@@ -2,6 +2,8 @@
 //! Explicit frame/clock inputs remain the caller's qualification responsibility.
 //! Resource admission is not evidence of rendered equivalence or Studio readiness.
 use super::source_graph_scene::{OrdinaryPrimitive, SceneBindings};
+#[cfg(target_arch = "wasm32")]
+use bevy::ecs as bevy_ecs;
 use bevy::{
     prelude::*,
     render::{renderer::RenderDevice, settings::WgpuFeatures},

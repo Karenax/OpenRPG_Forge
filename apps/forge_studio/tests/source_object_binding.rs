@@ -3,9 +3,10 @@
 mod binding;
 
 use binding::SourcePose;
-use forge_core::{AssetId, CommandId, ContentHash, EntityId, Transform, Vec3};
+use forge_core::{AssetId, CommandId, ContentHash, EntityId, ModuleId, Transform, Vec3};
 use forge_project::{
     HeightSamplingAlgorithm, TERRAIN_DOCUMENT_SCHEMA_VERSION_V4,
+    authoring::creation::{NewTerrainSettings, prepare_module_terrain},
     authoring::new_terrain,
     sampled_terrain::{HeightEncoding, SAMPLED_TERRAIN_SCHEMA, SampledTerrainSource},
     zone_authoring::{
@@ -213,6 +214,66 @@ fn same_sample_hash_requires_full_verified_spatial_frame() {
             .is_none()
         );
     }
+}
+
+#[test]
+fn projection_resources_match_same_dataset_in_distinct_module_maps() {
+    let pin = ContentHash::from_bytes([21; 32]);
+    let session = raster_session("projection-resource-modules", pin);
+    let initial = &session.head().base.terrain;
+    let (geometry, extent) = verified_geometry(pin);
+    let mut areas = Vec::new();
+    for module_name in ["Mountain adventure", "Harbour adventure"] {
+        let module = ModuleId::deterministic(module_name);
+        let mut terrain = prepare_module_terrain(
+            initial.project_id,
+            module,
+            "map",
+            module_name,
+            NewTerrainSettings::default(),
+        )
+        .unwrap();
+        terrain.schema_version = initial.schema_version;
+        terrain.sampled_source = initial.sampled_source.clone();
+        terrain.height_sampling = initial.height_sampling;
+        terrain.extent_m = initial.extent_m;
+        // Authoring retouches do not change the immutable sampled-source binding.
+        terrain.height_sampling.base_elevation_m = 4.0;
+        assert!(
+            binding::associated_terrain(&terrain, Some(pin), Some((&geometry, extent))).unwrap()
+        );
+        areas.push(terrain.area_id);
+    }
+    assert_ne!(areas[0], areas[1]);
+    assert_ne!(areas[0], initial.area_id);
+}
+
+#[test]
+fn projection_resources_refuse_other_height_pin_or_spatial_frame() {
+    let pin = ContentHash::from_bytes([22; 32]);
+    let session = raster_session("projection-resource-mismatch", pin);
+    let terrain = &session.head().base.terrain;
+    let (geometry, extent) = verified_geometry(pin);
+    let wrong_pin = ContentHash::from_bytes([23; 32]);
+    assert!(
+        !binding::associated_terrain(terrain, Some(wrong_pin), Some((&geometry, extent))).unwrap()
+    );
+    let mut wrong_geometry = geometry.clone();
+    wrong_geometry.origin_xz_m[0] += 1.0;
+    assert!(
+        !binding::associated_terrain(terrain, Some(pin), Some((&wrong_geometry, extent))).unwrap()
+    );
+    assert!(
+        !binding::associated_terrain(terrain, Some(pin), Some((&geometry, [1024.0, 512.0])))
+            .unwrap()
+    );
+    assert!(!binding::associated_terrain(terrain, None, Some((&geometry, extent))).unwrap());
+    assert!(!binding::associated_terrain(terrain, Some(pin), None).unwrap());
+    let mut changed = terrain.clone();
+    changed.sampled_source.as_mut().unwrap().samples_sha256 = wrong_pin;
+    assert!(!binding::associated_terrain(&changed, Some(pin), Some((&geometry, extent))).unwrap());
+    changed.sampled_source.as_mut().unwrap().width = 0;
+    assert!(binding::associated_terrain(&changed, Some(pin), Some((&geometry, extent))).is_err());
 }
 
 #[test]

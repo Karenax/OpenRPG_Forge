@@ -26,6 +26,13 @@
     code.includes("fn waterSurfaceVertex(") &&
     code.includes("fn shadeWater(") &&
     code.includes("shoreSimStateTex");
+  // The shared full-surface material calls source contact derivatives from
+  // surface-dependent branches. Identify its composed shader, independent
+  // of the module or map that owns the objects using this material.
+  const isSourceContactSurface = (code) =>
+    code.includes("fn stallSurface(") &&
+    code.includes("fn hookContactShadow(") &&
+    code.includes("renderContactFrame");
   const isBevyMotionBlur = (code) =>
     code.includes("motion_vectors") &&
     code.includes("screen_texture") &&
@@ -56,7 +63,8 @@
     if (
       typeof code !== "string" ||
       existingDirective.test(code) ||
-      (!isTidewaterTerrain(code) && !isTidewaterPlants(code) && !isTidewaterWater(code))
+      (!isTidewaterTerrain(code) && !isTidewaterPlants(code) &&
+        !isTidewaterWater(code) && !isSourceContactSurface(code))
     ) {
       return original.call(this, descriptor);
     }

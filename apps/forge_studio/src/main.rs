@@ -56,22 +56,60 @@ async fn read_asset_model(request: String) -> Result<tauri::ipc::Response, Strin
         return Err("Requête de modèle trop volumineuse".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
-        use forge_studio_frontend::asset_library_protocol::{LibraryRequest, LibraryResponse};
-        let request: LibraryRequest = serde_json::from_str(&request).map_err(|e| e.to_string())?;
-        if !matches!(
-            request,
-            LibraryRequest::Model { .. } | LibraryRequest::ModelReference { .. }
-        ) {
-            return Err("Requête de modèle attendue".into());
-        }
-        let LibraryResponse::Model { model } = execute_library_request(request)? else {
-            return Err("Réponse de modèle inattendue".into());
+        use forge_studio_frontend::asset_library_protocol::{
+            LibraryRequest, LibraryResponse, ModelReadRequest,
         };
-        forge_studio_frontend::asset_library_model_wire::encode(model)
-            .map(tauri::ipc::Response::new)
+        let request: ModelReadRequest =
+            serde_json::from_str(&request).map_err(|e| e.to_string())?;
+        let wire = match request {
+            ModelReadRequest::Vault(request) => {
+                if !matches!(
+                    request,
+                    LibraryRequest::Model { .. } | LibraryRequest::ModelReference { .. }
+                ) {
+                    return Err("Requête de modèle attendue".into());
+                }
+                let LibraryResponse::Model { model } = execute_library_request(request)? else {
+                    return Err("Réponse de modèle inattendue".into());
+                };
+                forge_studio_frontend::asset_library_model_wire::encode(model)?
+            }
+            ModelReadRequest::Module(request) => execute_module_model_request(request)?,
+        };
+        Ok(tauri::ipc::Response::new(wire))
     })
     .await
     .map_err(|e| format!("Lecture interrompue : {e}"))?
+}
+
+fn execute_module_model_request(
+    request: forge_studio_frontend::asset_library_protocol::ModuleModelRequest,
+) -> Result<Vec<u8>, String> {
+    use forge_studio_frontend::asset_library_protocol::{ModuleModelReply, ModuleModelRequest};
+    use forge_studio_frontend::module_asset_native::{ModuleAssetResolver, ModuleModelError};
+    static RESOLVER: OnceLock<Result<Option<ModuleAssetResolver>, ModuleModelError>> =
+        OnceLock::new();
+    let ModuleModelRequest::ModuleModelReference {
+        schema_version,
+        asset_id,
+        sha256,
+    } = request;
+    if schema_version != 2 {
+        return Err("Version de requête de modèle du module invalide".into());
+    }
+    let resolver = RESOLVER
+        .get_or_init(ModuleAssetResolver::from_environment)
+        .as_ref()
+        .map_err(|e| e.to_string())?;
+    let reply = match resolver {
+        None => ModuleModelReply::Missing { asset_id, sha256 },
+        Some(resolver) => match resolver.resolve(asset_id, sha256) {
+            Ok(model) => ModuleModelReply::Model(model),
+            Err(ModuleModelError::Missing(_)) => ModuleModelReply::Missing { asset_id, sha256 },
+            Err(error) => return Err(error.to_string()),
+        },
+    };
+    forge_studio_frontend::asset_library_model_wire::encode_module(reply)
 }
 
 fn with_authoring_host<T>(

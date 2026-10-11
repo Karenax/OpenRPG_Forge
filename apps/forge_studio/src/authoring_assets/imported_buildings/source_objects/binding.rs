@@ -4,7 +4,9 @@ use forge_project::zone_authoring::{
     ZoneAuthoringHead,
     placements::{ManualPlacement, PlacementChanges},
 };
-use forge_project::{HeightSamplingAlgorithm, sampled_terrain::SampledTerrainSource};
+use forge_project::{
+    HeightSamplingAlgorithm, TerrainDocument, sampled_terrain::SampledTerrainSource,
+};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -25,7 +27,16 @@ pub(super) fn associated_dataset(
     height_pin: Option<ContentHash>,
     verified_geometry: Option<(&SampledTerrainSource, [f32; 2])>,
 ) -> Result<bool, String> {
-    let terrain = &head.base.terrain;
+    associated_terrain(&head.base.terrain, height_pin, verified_geometry)
+}
+
+/// Resource association depends on the complete sampled dataset, never its
+/// project, module, area identity or author-visible name.
+pub(super) fn associated_terrain(
+    terrain: &TerrainDocument,
+    height_pin: Option<ContentHash>,
+    verified_geometry: Option<(&SampledTerrainSource, [f32; 2])>,
+) -> Result<bool, String> {
     let (Some(source), Some(pin), Some((expected, extent))) =
         (&terrain.sampled_source, height_pin, verified_geometry)
     else {

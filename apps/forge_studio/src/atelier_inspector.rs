@@ -161,7 +161,7 @@ impl DraftClient {
 
 #[component]
 pub(super) fn Inspector(
-    reply: RwSignal<Reply>,
+    #[prop(into)] reply: Signal<Reply>,
     client: DraftClient,
     submit: Callback<Intent>,
 ) -> impl IntoView {

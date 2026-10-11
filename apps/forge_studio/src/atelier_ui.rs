@@ -259,11 +259,20 @@ pub(super) fn bind_main(bindings: MainBindings) {
 pub(super) fn MainInspector() -> impl IntoView {
     let link = use_context::<Link>();
     let bindings = use_context::<MainBindings>();
-    match (link,bindings) {
-        (Some(link),Some(bindings))=>view! {
-                <crate::atelier_inspector::Inspector reply=link.presentation client=link.drafts submit=Callback::new(move |intent|apply_intent(bindings,link,intent))/>
-        }.into_any(),
-        _=>().into_any(),
+    match (link, bindings) {
+        (Some(link), Some(bindings)) => {
+            // The local selection is authoritative immediately; polling the
+            // secondary-window mailbox must not delay or regress this form.
+            let presentation = Signal::derive(move || {
+                let mut reply = link.presentation.get();
+                reply.snapshot.inspector = inspector_snapshot(bindings, bindings.active.get());
+                reply
+            });
+            view! {
+                <crate::atelier_inspector::Inspector reply=presentation client=link.drafts submit=Callback::new(move |intent|apply_intent(bindings,link,intent))/>
+            }.into_any()
+        }
+        _ => ().into_any(),
     }
 }
 

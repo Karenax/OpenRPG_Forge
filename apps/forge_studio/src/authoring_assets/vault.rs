@@ -1,5 +1,7 @@
 //! Private Vault bytes enter the same GLB admission and projection as kit assets.
-use crate::asset_library_protocol::{LibraryModel, LibraryRequest, vault_asset_id};
+use crate::asset_library_protocol::{
+    LibraryModel, LibraryRequest, ModuleModelReply, ModuleModelRequest, vault_asset_id,
+};
 use forge_core::{AssetId, ContentHash};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
@@ -12,8 +14,18 @@ async fn read_model(request: LibraryRequest) -> Result<LibraryModel, String> {
     // Wait before invoking IPC, so pending requests hold only small metadata.
     // Keep admission through original SHA verification; cancellation releases it.
     let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let bytes = read_wire(&request).await?;
+    let model = crate::asset_library_model_wire::decode(bytes)?;
+    if model.asset_id != vault_asset_id(&model.id) {
+        return Err("Identité du modèle différente du Vault".into());
+    }
+    super::verify::check_bytes(&model.bytes, model.sha256)?;
+    Ok(model)
+}
+
+async fn read_wire(request: &impl serde::Serialize) -> Result<Vec<u8>, String> {
     let arguments = js_sys::Object::new();
-    let text = serde_json::to_string(&request).map_err(|e| e.to_string())?;
+    let text = serde_json::to_string(request).map_err(|e| e.to_string())?;
     js_sys::Reflect::set(
         &arguments,
         &JsValue::from_str("request"),
@@ -31,12 +43,7 @@ async fn read_model(request: LibraryRequest) -> Result<LibraryModel, String> {
     if bytes.length() as usize > crate::asset_library_model_wire::MAX_MODEL_BYTES + 4108 {
         return Err("Transfert de modèle trop volumineux".into());
     }
-    let model = crate::asset_library_model_wire::decode(bytes.to_vec())?;
-    if model.asset_id != vault_asset_id(&model.id) {
-        return Err("Identité du modèle différente du Vault".into());
-    }
-    super::verify::check_bytes(&model.bytes, model.sha256)?;
-    Ok(model)
+    Ok(bytes.to_vec())
 }
 
 pub(crate) async fn selected(id: String, revision: String) -> Result<LibraryModel, String> {
@@ -60,6 +67,35 @@ pub(crate) async fn reference(
         return Err("Référence sauvegardée différente de la réponse".into());
     }
     Ok(model)
+}
+
+/// Module catalogues publish explicit UUIDs, while the Vault has its own strict
+/// identity namespace. Only the typed V2 Missing reply permits a Vault fallback.
+pub(crate) async fn installed_reference(
+    asset_id: AssetId,
+    sha256: ContentHash,
+) -> Result<(String, Vec<u8>), String> {
+    let reply = {
+        let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+        let wire = read_wire(&ModuleModelRequest::ModuleModelReference {
+            schema_version: 2,
+            asset_id,
+            sha256,
+        })
+        .await?;
+        let reply = crate::asset_library_model_wire::decode_module(wire, asset_id, sha256)?;
+        if let ModuleModelReply::Model(model) = &reply {
+            super::verify::check_bytes(&model.bytes, model.sha256)?;
+        }
+        reply
+    };
+    match reply {
+        ModuleModelReply::Model(model) => Ok((format!("module:{asset_id}"), model.bytes)),
+        ModuleModelReply::Missing { .. } => {
+            let model = reference(asset_id, sha256).await?;
+            Ok((model.id, model.bytes))
+        }
+    }
 }
 
 #[component]

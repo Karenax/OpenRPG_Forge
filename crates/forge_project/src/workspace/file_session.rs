@@ -25,6 +25,8 @@ pub struct FileWorkspaceSession {
     root: std::path::PathBuf,
     objects: ZoneObjectStore,
     adoption_locks: Vec<DocumentStore>,
+    // Advisory names only, keyed by accepted immutable archive hashes.
+    zone_name_cache: std::collections::BTreeMap<ContentHash, String>,
 }
 
 impl FileWorkspaceSession {
@@ -38,6 +40,7 @@ impl FileWorkspaceSession {
             root: root.canonicalize().map_err(|e| e.to_string())?,
             objects: ZoneObjectStore::open(&directory)?,
             adoption_locks: Vec::new(),
+            zone_name_cache: std::collections::BTreeMap::new(),
             store,
             session: WorkspaceSession::new(WorkspaceHead::default()).map_err(|e| e.to_string())?,
             saved_hash: None,
@@ -69,6 +72,7 @@ impl FileWorkspaceSession {
             root: root.canonicalize().map_err(|e| e.to_string())?,
             objects,
             adoption_locks: Vec::new(),
+            zone_name_cache: std::collections::BTreeMap::new(),
             store,
             saved_head: Some(session.head().clone()),
             session,

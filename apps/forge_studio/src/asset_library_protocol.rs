@@ -45,6 +45,43 @@ pub enum LibraryRequest {
     },
 }
 
+/// Installed modules keep their published UUIDs; they are not Vault identities.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum ModuleModelRequest {
+    ModuleModelReference {
+        schema_version: u32,
+        asset_id: forge_core::AssetId,
+        sha256: forge_core::ContentHash,
+    },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ModelReadRequest {
+    Vault(LibraryRequest),
+    Module(ModuleModelRequest),
+}
+
+#[derive(Clone, Debug)]
+pub struct ModuleModel {
+    pub asset_id: forge_core::AssetId,
+    pub sha256: forge_core::ContentHash,
+    pub catalog_sha256: forge_core::ContentHash,
+    pub bytes: Vec<u8>,
+}
+
+/// A missing entry is a distinct successful wire result, allowing a Vault lookup.
+/// A corrupt catalogue, stale pin or unavailable file never produces this result.
+#[derive(Clone, Debug)]
+pub enum ModuleModelReply {
+    Model(ModuleModel),
+    Missing {
+        asset_id: forge_core::AssetId,
+        sha256: forge_core::ContentHash,
+    },
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LibraryCard {
     pub id: String,

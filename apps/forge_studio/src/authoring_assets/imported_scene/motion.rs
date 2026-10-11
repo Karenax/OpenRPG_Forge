@@ -54,7 +54,13 @@ fn animate(world: &mut World) {
     let Some(time) = world.get_resource::<Time>() else {
         return;
     };
-    let delta = time.delta_secs_f64();
+    // Bind/rebind and removal still follow canonical edits; a zero delta retains
+    // the acquired pendulum pose without advancing decorative animation.
+    let delta = if world.contains_resource::<crate::authoring_render::FastEditing>() {
+        0.0
+    } else {
+        time.delta_secs_f64()
+    };
     let wind = world.resource::<WindFrame>().wind();
     let geometry_ready = world
         .get_resource::<ResidentPier>()

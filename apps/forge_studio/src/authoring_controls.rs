@@ -2,12 +2,10 @@
 use super::{StudioCommand, StudioResponse};
 use forge_core::CommandId;
 use forge_project::{
-    authoring::{AuthoringRequest, AuthoringState, new_terrain},
+    authoring::{AuthoringRequest, AuthoringState},
     terrain_edit::{TerrainAction, TerrainEdit, TerrainEditRequest},
 };
 use leptos::prelude::*;
-
-mod creation;
 
 #[derive(Clone)]
 struct ActionEvent {
@@ -67,7 +65,7 @@ impl AuthoringTab {
 
     pub(super) const fn label(self) -> &'static str {
         match self {
-            Self::Project => "Projet",
+            Self::Project => "Modules",
             Self::Terrain => "Terrain",
             Self::Nature => "Nature",
             Self::Routes => "Chemins",
@@ -98,10 +96,6 @@ impl AuthoringTab {
     reason = "One session owner keeps mounted tool panels and native command state consistent"
 )]
 pub fn AuthoringControls() -> impl IntoView {
-    let project = RwSignal::new("mon-projet".to_owned());
-    let zone = RwSignal::new("zone-1".to_owned());
-    let name = RwSignal::new("Nouvelle zone".to_owned());
-    let elevation = RwSignal::new("0".to_owned());
     let state = RwSignal::new(None::<AuthoringState>);
     let busy = RwSignal::new(false);
     Effect::new(move |_| super::authoring_brush_pointer::set_command_busy(busy.get()));
@@ -236,7 +230,6 @@ pub fn AuthoringControls() -> impl IntoView {
                         format!("{label} · {}.", session_status(&result))
                     };
                     record_event(events, "success", &detail);
-                    sync_fields(&result, preview_request.is_some(), name, elevation);
                     status.set(session_status(&result).into());
                     state.set(Some(*result));
                 }
@@ -283,10 +276,10 @@ pub fn AuthoringControls() -> impl IntoView {
     view! {
         <super::authoring_close::CloseDialog state=state busy=busy preview=preview/>
         <details class="scene-navigation authoring-editor" open=authoring_route>
-            <summary>"Édition de zone · Gate 2"</summary>
+            <summary>"Édition de carte"</summary>
             <div aria-label="Édition terrain">
                 <div class="authoring-toolbar" aria-busy=move || busy.get().to_string()>
-                    <div class="authoring-context" aria-live="polite">{move || state.get().and_then(|session| session.document.map(|doc| doc.name)).unwrap_or_else(|| "Aucune zone ouverte".into())}</div>
+                    <div class="authoring-context" aria-live="polite">{move || state.get().and_then(|session| session.document.map(|doc| doc.name)).unwrap_or_else(|| "Aucune carte ouverte".into())}</div>
                     <CommandBar state=state busy=busy preview=preview difference=difference status=status send=Callback::new(send) cancel_preview=cancel_preview/>
                     <super::authoring_playtest_controls::PlaytestActions state=state busy=busy send=Callback::new(send)/>
                     <nav class="authoring-main-tabs" aria-label="Choisir un outil d’édition">
@@ -314,10 +307,10 @@ pub fn AuthoringControls() -> impl IntoView {
                         <svg viewBox="0 0 220 82" aria-hidden="true"><path d="M0 82V62L45 15l48 43 36-30 91 54Z"/><path d="m17 82 52-47 46 47M115 82l43-46 62 46"/><circle cx="180" cy="18" r="9"/></svg>
                         <span>"ESPACE DE CRÉATION"</span>
                         <h3>{move || state.get().and_then(|s| s.document.map(|d| d.name)).unwrap_or_else(|| "Votre prochain monde".into())}</h3>
-                        <button on:click=move |_| active_tab.set(AuthoringTab::Project)>"Gérer le projet"</button>
+                        <button on:click=move |_| active_tab.set(AuthoringTab::Project)>"Choisir une carte"</button>
                     </div>
                     <h2>"Scène"</h2>
-                    <Show when=move || state.get().is_none_or(|s| s.document.is_none())><p class="forge-scene-empty">"Ouvrez une zone : ses objets et ses couches apparaîtront ici."</p></Show>
+                    <Show when=move || state.get().is_none_or(|s| s.document.is_none())><p class="forge-scene-empty">"Choisissez une carte : ses objets et ses couches apparaîtront ici."</p></Show>
                     <super::authoring_zone::hierarchy::Hierarchy state=state busy=busy active_tab=active_tab path=path river=river building=building placement=placement_selection vegetation=vegetation_selection/>
                 </aside>
                 <div class="forge-topic-window" data-dock=move || panel_layout.current().dock.key()
@@ -325,19 +318,15 @@ pub fn AuthoringControls() -> impl IntoView {
                     <super::authoring_dock::PanelHeader layout=panel_layout/>
                 <div class="authoring-panel-scroll" hidden=move || panel_layout.current().collapsed>
                     <section class="authoring-panel" data-authoring-tab="project" hidden=move || active_tab.get() != AuthoringTab::Project>
-                        <h2>"Projet et zone"</h2>
-                        <p>"Ouvrir une zone ou en créer une, puis revenir au terrain pour dessiner."</p>
-                        <super::workspace_controls::WorkspaceControls host_busy=busy refresh=workspace_refresh on_saved=Callback::new(move |()| send(Ok(AuthoringRequest::Inspect))) on_open=Callback::new(move |area_id| send(Ok(AuthoringRequest::OpenManaged { area_id })))/>
-                        <super::workspace_controls::ManagedTabs state=state busy=busy on_open=Callback::new(move |area_id| send(Ok(AuthoringRequest::OpenManaged { area_id })))/>
-                        <super::authoring_catalog::ZoneChooser on_open=Callback::new(move |area_id| send(Ok(AuthoringRequest::Open { area_id })))/>
+                        <h2>"Modules et cartes"</h2>
+                        <super::workspace_controls::ModuleBrowser authoring=state host_busy=busy
+                            preview_pending=Signal::derive(move || preview.get().is_some()) refresh=workspace_refresh
+                            on_open=Callback::new(move |area_id| send(Ok(AuthoringRequest::OpenManaged { area_id })))
+                            on_close=Callback::new(move |()| send(Ok(AuthoringRequest::Close)))/>
                         <Show when=move || !authoring_route>
                             <p>"Cette scène de preuve n’est pas la zone éditée."</p>
                             <a href="?authoring=1">"Ouvrir l’espace terrain édité"</a>
                         </Show>
-                        <details><summary>"Créer ou modifier la zone"</summary>
-                            <ZoneSessionControls project=project zone=zone name=name elevation=elevation state=state busy=busy send=Callback::new(send)/>
-                        </details>
-                        <super::authoring_zone_information::ZoneInformation state=state/>
                     </section>
                     <section class="authoring-panel" data-authoring-tab="terrain" hidden=move || active_tab.get() != AuthoringTab::Terrain>
                         <h2>"Terrain"</h2>
@@ -378,18 +367,6 @@ pub fn AuthoringControls() -> impl IntoView {
 }
 
 #[component]
-pub(super) fn WorkspaceActivities(active: RwSignal<AuthoringTab>) -> impl IntoView {
-    view! {
-        <nav class="forge-workspaces" aria-label="Activité de création">
-            {[("Organiser", AuthoringTab::Project), ("Composer", AuthoringTab::Objects), ("Sculpter", AuthoringTab::Terrain), ("Habiller", AuthoringTab::Nature)].into_iter().map(move |(label,tab)| view! {
-                <button aria-pressed=move || (active.get()==tab).to_string()
-                    on:click=move |_| { super::authoring_brush_pointer::cancel(); active.set(tab); }>{label}</button>
-            }).collect_view()}
-        </nav>
-    }
-}
-
-#[component]
 pub(super) fn WorkspaceWelcome() -> impl IntoView {
     // Visibility is driven by the native-session observation, not a fake scene.
     view! {
@@ -397,33 +374,9 @@ pub(super) fn WorkspaceWelcome() -> impl IntoView {
             <div class="forge-welcome-emblem" aria-hidden="true">"F"</div>
             <span>"VOTRE ATELIER DE MONDES"</span>
             <h2>"Tout commence par un lieu."</h2>
-            <p>"Ouvrez une zone depuis le panneau Projet, ou créez votre premier terrain."</p>
-            <div class="forge-welcome-steps"><span>"01  Ouvrir une zone"</span><span>"02  Dessiner le relief"</span><span>"03  Donner vie au décor"</span></div>
+            <p>"Choisissez un module, puis une carte dans le panneau Modules."</p>
+            <div class="forge-welcome-steps"><span>"01  Choisir un module"</span><span>"02  Ouvrir une carte"</span><span>"03  Donner vie au décor"</span></div>
         </div>
-    }
-}
-
-#[component]
-fn ZoneSessionControls(
-    project: RwSignal<String>,
-    zone: RwSignal<String>,
-    name: RwSignal<String>,
-    elevation: RwSignal<String>,
-    state: RwSignal<Option<AuthoringState>>,
-    busy: RwSignal<bool>,
-    send: Callback<Result<AuthoringRequest, String>>,
-) -> impl IntoView {
-    view! {
-        <label>"Clé projet"<input prop:value=move || project.get() on:input=move |ev| project.set(event_target_value(&ev))/></label>
-        <label>"Clé zone"<input prop:value=move || zone.get() on:input=move |ev| zone.set(event_target_value(&ev))/></label>
-        <label>"Nom"<input prop:value=move || name.get() on:input=move |ev| { name.set(event_target_value(&ev)); super::authoring_shortcuts::cancel_preview(); }/></label>
-        <creation::CreationControls project=project zone=zone name=name state=state busy=busy send=send/>
-        <button disabled=move || busy.get() on:click=move |_| send.run(new_terrain(&project.get_untracked(), &zone.get_untracked(), "Ouverture").map(|document| AuthoringRequest::Open { area_id: document.area_id }))>"Ouvrir"</button>
-        <button disabled=move || busy.get() on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Edit(TerrainEdit::Rename { name: name.get_untracked() })))>"Prévisualiser le nom"</button>
-        <label>"Altitude de base (m)"<input type="number" step="0.1" prop:value=move || elevation.get() on:input=move |ev| { elevation.set(event_target_value(&ev)); super::authoring_shortcuts::cancel_preview(); }/></label>
-        <button disabled=move || busy.get() on:click=move |_| send.run(elevation.get_untracked().parse::<f32>().map_err(|_| "Altitude invalide".to_owned()).and_then(|metres| prepare_edit(state.get_untracked(), TerrainAction::Edit(TerrainEdit::SetBaseElevation { metres }))))>"Prévisualiser l’altitude"</button>
-        <button disabled=move || busy.get() on:click=move |_| send.run(Ok(AuthoringRequest::Close))>"Fermer la zone"</button>
-        <button disabled=move || busy.get() on:click=move |_| send.run(Ok(AuthoringRequest::Inspect))>"Relire la session native"</button>
     }
 }
 
@@ -755,18 +708,6 @@ fn replaces_projection(request: &AuthoringRequest) -> bool {
                 | AuthoringRequest::StartPlaytestAt { .. }
                 | AuthoringRequest::StopPlaytest { .. }
         )
-}
-
-fn sync_fields(
-    state: &AuthoringState,
-    is_preview: bool,
-    name: RwSignal<String>,
-    elevation: RwSignal<String>,
-) {
-    if !is_preview && let Some(document) = &state.document {
-        name.set(document.name.clone());
-        elevation.set(document.height_sampling.base_elevation_m.to_string());
-    }
 }
 
 fn session_status(state: &AuthoringState) -> &'static str {

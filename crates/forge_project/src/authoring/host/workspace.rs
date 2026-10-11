@@ -1,7 +1,10 @@
 use super::AuthoringHost;
 use crate::{
     audit::AuditStamp,
-    authoring::workspace::{WorkspaceHostRequest, WorkspaceHostState, WorkspaceRecoveryReview},
+    authoring::workspace::{
+        WorkspaceHostRequest, WorkspaceHostState, WorkspaceMapSummary, WorkspaceModuleSummary,
+        WorkspaceRecoveryReview,
+    },
     workspace::file_session::{FileWorkspaceSession, recovery as service},
 };
 
@@ -43,6 +46,7 @@ impl AuthoringHost {
                 });
             }
             WorkspaceHostRequest::Inspect => (),
+            WorkspaceHostRequest::Browse => self.browse_existing_workspace()?,
             WorkspaceHostRequest::ReadHistory {
                 expected_hash,
                 offset,
@@ -113,8 +117,10 @@ impl AuthoringHost {
             WorkspaceHostRequest::Save => self.save_workspace()?,
             WorkspaceHostRequest::Close => self.close_workspace()?,
         }
+        let modules = self.module_summaries()?;
         Ok(WorkspaceHostState {
             head: self.workspace.as_ref().map(|s| s.session().head().clone()),
+            modules,
             dirty: self
                 .workspace
                 .as_ref()
@@ -129,6 +135,50 @@ impl AuthoringHost {
         self.workspace
             .as_mut()
             .ok_or_else(|| "Open or create a workspace first".into())
+    }
+
+    fn module_summaries(&mut self) -> Result<Vec<WorkspaceModuleSummary>, String> {
+        let Some(workspace) = self.workspace.as_mut() else {
+            return Ok(Vec::new());
+        };
+        let names = workspace.zone_names()?;
+        workspace
+            .session()
+            .head()
+            .projects
+            .iter()
+            .flat_map(|project| {
+                project.modules.iter().map(|module| {
+                    let maps = module
+                        .zones
+                        .iter()
+                        .map(|zone| {
+                            Ok(WorkspaceMapSummary {
+                                area_id: zone.area_id,
+                                name: names
+                                    .get(&zone.area_id)
+                                    .ok_or("Managed map label is unavailable")?
+                                    .clone(),
+                                dirty: workspace.zone_is_dirty(zone.area_id),
+                            })
+                        })
+                        .collect::<Result<Vec<_>, String>>()?;
+                    Ok(WorkspaceModuleSummary {
+                        id: module.id,
+                        name: module.name.clone(),
+                        project_name: project.name.clone(),
+                        maps,
+                    })
+                })
+            })
+            .collect()
+    }
+
+    fn browse_existing_workspace(&mut self) -> Result<(), String> {
+        if self.workspace.is_none() {
+            self.workspace = Some(FileWorkspaceSession::open(&self.root)?);
+        }
+        Ok(())
     }
 
     fn workspace_audit(&self) -> AuditStamp {
@@ -176,7 +226,12 @@ impl AuthoringHost {
     }
 
     fn require_workspace_command(&self, request: &WorkspaceHostRequest) -> Result<(), String> {
+        // Browsing an open authority is as read-only as Inspect. Opening a
+        // closed authority retains the ordinary playtest and managed-tab guards.
+        let browsing_open =
+            matches!(request, WorkspaceHostRequest::Browse) && self.workspace.is_some();
         if self.playtest.is_some()
+            && !browsing_open
             && !matches!(
                 request,
                 WorkspaceHostRequest::Inspect | WorkspaceHostRequest::ReadHistory { .. }
@@ -185,6 +240,7 @@ impl AuthoringHost {
             return Err("Stop playtest before changing the workspace".into());
         }
         if !self.managed_tabs.is_empty()
+            && !browsing_open
             && !matches!(
                 request,
                 WorkspaceHostRequest::Inspect

@@ -89,7 +89,11 @@ pub(super) fn install(app: &mut App) {
 }
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameters")]
-fn apply(mut commands: Commands, cameras: CameraLighting<'_, '_>) {
+fn apply(
+    mut commands: Commands,
+    cameras: CameraLighting<'_, '_>,
+    fast_editing: Option<Res<super::authoring_render::FastEditing>>,
+) {
     let enabled = enabled();
     for (entity, view, ambient, original) in &cameras {
         // The hidden overview camera must not light the scene during playtest.
@@ -124,7 +128,11 @@ fn apply(mut commands: Commands, cameras: CameraLighting<'_, '_>) {
         if enabled {
             camera.insert(AmbientLight {
                 color: Color::srgb(0.8, 0.86, 1.0),
-                brightness: 250.0,
+                brightness: if fast_editing.is_some() {
+                    1_200.0
+                } else {
+                    250.0
+                },
                 ..default()
             });
         } else if let Some(light) = &original {

@@ -232,7 +232,9 @@ pub(super) fn observe(event: &web_sys::MouseEvent, click: bool) {
         if PICK.with(|slot| slot.borrow().is_none()) {
             crate::authoring_assets::placements::selection::click(position);
             crate::authoring_building_projection::selection::click(position);
-            crate::authoring_imported_plants::selection::click(position);
+            if crate::authoring_imported_plants::selection::is_armed() {
+                crate::authoring_imported_plants::selection::click(position);
+            }
             crate::authoring_species::selection::click(position);
         }
         CLICKED.with(|slot| slot.set(true));

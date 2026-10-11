@@ -53,7 +53,14 @@ pub(crate) fn cancel() {
     CLICK.with(|slot| slot.set(None));
 }
 
+pub(super) fn selected() -> Option<EntityId> {
+    SELECTED.with(Cell::get)
+}
+
 pub(crate) fn click(position: Vec2) {
+    if super::gizmo::consume_click() {
+        return;
+    }
     if !crate::authoring_viewport::can_preview_asset()
         || super::gizmo::active()
         || crate::authoring_path_guides::is_dragging()
@@ -94,7 +101,6 @@ pub(super) fn pick(
     if !crate::authoring_viewport::can_preview_asset()
         || !super::current(epoch)
         || !super::READY.with(Cell::get)
-        || super::proposal_ready() != Ok(true)
         || super::REQUEST.with(|request| request.borrow().is_some())
         || !position.is_finite()
         || position.min_element() < 0.0
@@ -104,9 +110,13 @@ pub(super) fn pick(
         super::report("Sélection indisponible pendant un aperçu ou une projection périmée.");
         return;
     }
-    let Ok((camera, transform)) = cameras.single() else {
+    let mut active = cameras.iter().filter(|(camera, _)| camera.is_active);
+    let Some((camera, transform)) = active.next() else {
         return;
     };
+    if active.next().is_some() {
+        return;
+    }
     let Some(size) = camera.logical_viewport_size() else {
         return;
     };
@@ -123,6 +133,9 @@ pub(super) fn pick(
             super::ACCEPTED.with(|placements| placements.borrow().iter().any(|p| p.id == *id))
         });
     select(hit);
+    if hit.is_none() {
+        crate::authoring_imported_plants::selection::click(position);
+    }
     super::report(hit.map_or_else(
         || "Aucun placement sélectionnable à ce point.".into(),
         |id| format!("Objet sélectionné : {id}. Inspecteur filtré ; aucune source modifiée."),

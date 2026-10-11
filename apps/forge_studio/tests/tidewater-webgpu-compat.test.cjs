@@ -9,6 +9,21 @@ const shim = fs.readFileSync(
   "utf8",
 );
 const directive = "diagnostic(off, derivative_uniformity);\n";
+// Markers and the divergent derivative call observed in the composed WGSL.
+const contactSurface = `
+var<storage> renderContactFrame: RenderContactFrame;
+fn stallSurface(in: StallInput, frame: StallFrame, mat: StallMaterialParameters) -> Surface {
+  return surface;
+}
+fn hookContactShadow(P: vec3<f32>, N: vec3<f32>) -> f32 {
+  let slope = max(abs(dpdx(P.z)), abs(dpdy(P.z)));
+  return slope;
+}
+fn shadeSurface(s: Surface, P: vec3<f32>, N: vec3<f32>) -> f32 {
+  if s.normal.y > 0.0 { return hookContactShadow(P, N); }
+  return 0.0;
+}
+`;
 
 function fixture() {
   const submitted = [];
@@ -64,6 +79,50 @@ test("unrelated shaders, existing directive, and repeat installation stay unchan
   const nonString = { code: 123, label: "invalid upstream descriptor" };
   device.createShaderModule(nonString);
   assert.strictEqual(submitted.at(-1).descriptor, nonString);
+});
+
+test("shared surface contact derivatives receive the source directive without changing WGSL", () => {
+  const { GPUDevice, submitted } = fixture();
+  const device = new GPUDevice();
+  const descriptor = {
+    code: contactSurface,
+    label: "common full surface",
+    compilationHints: [{ layout: "auto" }],
+  };
+  const module = device.createShaderModule(descriptor);
+  const received = submitted.at(-1);
+  assert.strictEqual(received.device, device);
+  assert.equal(received.descriptor.code, directive + contactSurface);
+  assert.equal(received.descriptor.label, descriptor.label);
+  assert.strictEqual(received.descriptor.compilationHints, descriptor.compilationHints);
+  assert.strictEqual(module.descriptor, received.descriptor);
+  assert.equal(descriptor.code, contactSurface);
+});
+
+test("shared contact recognition requires the complete assembled material", () => {
+  const { GPUDevice, submitted } = fixture();
+  const device = new GPUDevice();
+  for (const [marker, replacement] of [
+    ["fn stallSurface(", "fn otherSurface("],
+    ["fn hookContactShadow(", "fn otherShadow("],
+    ["renderContactFrame", "otherContactFrame"],
+  ]) {
+    const descriptor = { code: contactSurface.replace(marker, replacement) };
+    device.createShaderModule(descriptor);
+    assert.strictEqual(submitted.at(-1).descriptor, descriptor, marker);
+  }
+});
+
+test("shared contact directive and repeated shim installation are idempotent", () => {
+  const { GPUDevice, context, submitted } = fixture();
+  const device = new GPUDevice();
+  const wrapped = GPUDevice.prototype.createShaderModule;
+  vm.runInContext(shim, context);
+  assert.strictEqual(GPUDevice.prototype.createShaderModule, wrapped);
+  const descriptor = { code: "diagnostic( off, derivative_uniformity );\n" + contactSurface };
+  device.createShaderModule(descriptor);
+  assert.strictEqual(submitted.at(-1).descriptor, descriptor);
+  assert.equal(submitted.length, 1);
 });
 
 test("page script is safe when WebGPU is unavailable", () => {

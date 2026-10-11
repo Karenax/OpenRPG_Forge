@@ -48,7 +48,12 @@ struct State {
     generations: u64,
     diagnostics_time: f64,
 }
-pub(crate) fn install(app: &mut App) -> Result<(), String> {
+pub(crate) fn install(app: &mut App, live: bool) -> Result<(), String> {
+    // The editor retains the neutral Receiver published by terrain rebuild.
+    // No cascade transaction or vegetation motion callback is needed there.
+    if !live {
+        return Ok(());
+    }
     let acquired = forge_engine::tidewater_wind::AcquiredFrame::reference()?;
     let clock = wind::Clock::from_acquired(
         acquired.global_time_s,

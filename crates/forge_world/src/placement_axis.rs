@@ -2,6 +2,42 @@
 use crate::placement_transform::Axis;
 use forge_core::{Transform, Vec3};
 
+/// Intersect a forward ray with an axis-aligned plane through the pivot.
+/// Reject edge-on planes so dragging cannot produce large numeric jumps.
+pub fn ray_plane(pivot: Vec3, normal: Axis, origin: Vec3, direction: Vec3) -> Result<Vec3, String> {
+    if !pivot.is_finite() || !origin.is_finite() || !direction.is_finite() {
+        return Err("Non-finite gizmo ray".into());
+    }
+    let length = direction.x.hypot(direction.y).hypot(direction.z);
+    let component = |v: Vec3| match normal {
+        Axis::X => v.x,
+        Axis::Y => v.y,
+        Axis::Z => v.z,
+    };
+    let denominator = component(direction);
+    if !length.is_finite() || length < 1e-6 || denominator.abs() / length < 0.05 {
+        return Err("Plane too close to view direction; orbit the camera".into());
+    }
+    let distance = (component(pivot) - component(origin)) / denominator;
+    if !distance.is_finite() || distance < 0.0 {
+        return Err("Plane behind camera or outside numeric range".into());
+    }
+    let mut hit = Vec3::new(
+        origin.x + direction.x * distance,
+        origin.y + direction.y * distance,
+        origin.z + direction.z * distance,
+    );
+    match normal {
+        Axis::X => hit.x = pivot.x,
+        Axis::Y => hit.y = pivot.y,
+        Axis::Z => hit.z = pivot.z,
+    }
+    if !hit.is_finite() {
+        return Err("Plane intersection outside numeric range".into());
+    }
+    Ok(hit)
+}
+
 /// Closest parameter on a world axis through pivot to the forward half-ray.
 /// Near-parallel axes are rejected rather than producing enormous cursor jumps.
 pub fn ray_parameter(
@@ -115,6 +151,40 @@ pub fn translate_local(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn plane_rays_preserve_the_normal_coordinate_for_all_three_planes() {
+        let pivot = Vec3::new(3.0, 7.0, -4.0);
+        for normal in [Axis::X, Axis::Y, Axis::Z] {
+            let hit = ray_plane(
+                pivot,
+                normal,
+                Vec3::new(13.0, 17.0, 6.0),
+                Vec3::new(-2.0, -2.0, -2.0),
+            )
+            .unwrap();
+            assert_eq!(hit, pivot);
+        }
+        let hit = ray_plane(
+            pivot,
+            Axis::Y,
+            Vec3::new(13.0, 17.0, 6.0),
+            Vec3::new(-1.0, -2.0, 0.0),
+        )
+        .unwrap();
+        assert_eq!(hit, Vec3::new(8.0, 7.0, 6.0));
+    }
+    #[test]
+    fn plane_rays_reject_edge_on_backward_and_nonfinite_intersections() {
+        for direction in [
+            Vec3::new(1.0, 0.0, 0.0),
+            Vec3::new(1.0, -0.001, 0.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::ZERO,
+            Vec3::new(0.0, f32::NAN, 0.0),
+        ] {
+            assert!(ray_plane(Vec3::ZERO, Axis::Y, Vec3::new(0.0, 5.0, 0.0), direction).is_err());
+        }
+    }
     #[test]
     fn local_translation_uses_orientation_not_scale_and_snaps_relative_distance() {
         use crate::placement_transform::{RotationSpace, rotate};
