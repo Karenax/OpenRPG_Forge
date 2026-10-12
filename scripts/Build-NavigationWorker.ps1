@@ -4,7 +4,8 @@
 param(
     [string]$Output = $env:TRUNK_STAGING_DIR,
     [string]$CargoTargetDirectory = $env:CARGO_TARGET_DIR,
-    [ValidateSet('debug','release')][string]$Configuration = 'release'
+    [ValidateSet('debug','release')][string]$Configuration = 'release',
+    [switch]$StageLocalAssets
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -58,3 +59,6 @@ try {
             @{ path=$_; sha256=(Get-FileHash -LiteralPath (Join-Path $outputRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant() }
         }) } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputRoot 'forge-navigation-worker-manifest.json') -Encoding utf8
 } finally { $env:CARGO_TARGET_DIR = $previousTarget }
+if ($StageLocalAssets) {
+    & (Join-Path $PSScriptRoot 'Stage-StudioLocalAssets.ps1') -Output $outputRoot
+}

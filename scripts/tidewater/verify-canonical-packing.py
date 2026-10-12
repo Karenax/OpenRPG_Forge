@@ -5,6 +5,9 @@ from pathlib import Path
 import sys
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from render_verification import reconcile_source_ids
+
 source, native, report = map(Path, sys.argv[1:])
 assert not report.exists()
 manifest = json.loads((source / 'manifest.json').read_text())
@@ -52,7 +55,8 @@ for layer in description['layers']:
         different_records += bool(np.any(differences))
         different_words += differences
         maximum_error = np.maximum(maximum_error,np.abs(actual.astype(float)-oracle.astype(float)))
-assert seen == set(expected) and len(seen) == 65383
+coverage = reconcile_source_ids(expected, seen)
+assert len(seen) == 65383
 ordered_exact = False
 if description.get('groups'):
     assert {g['name'] for g in description['groups']} == set(expected_streams)
@@ -62,6 +66,7 @@ if description.get('groups'):
         assert raw == expected_streams[group['name']], group['name']
     ordered_exact = True
 result = {'instances':len(seen),'different_records':different_records,'different_words_by_component':different_words.tolist(),
+          'source_coverage':coverage,
           'max_abs_error_by_component':maximum_error.tolist(),'bit_exact':not bool(np.any(different_words)),
           'ordered_group_streams_exact':ordered_exact,
           'layout':'matrix16, iPos4, iDat4, qr2','scope':'packing values and optional ordered groups; draw calls and pixels not qualified'}

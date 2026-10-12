@@ -1,0 +1,760 @@
+{
+  "schema_version": "0.1",
+  "batch_id": "wild-realms-art-02.20260927",
+  "assets": [
+    {
+      "file": "taupe-belier-de-basalte-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "B007E40C6D1091EC6002FC9B4207AD73B2443094467C337843BF3024631F5408",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/23-taupe-belier-de-basalte.json",
+      "source_content_sha256": "91CC2B7A28F27C608D48DB1959EC96FA5720D07CB21CB3B9D7F2857AE09D6FDF",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Taupe-bélier trapue sort d’un terrier volcanique ; ses pattes-pelles et son casque frontal annelé sont couverts de poussière noire.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Taupe-bélier de basalte. Canonical description (French, do NOT print text): 1,8 à 2,2 m de long ; 0,8 m de haut à l'épaule. Corps trapu, quatre pattes en pelle et casque frontal annelé couvert de poussière noire.\nAnatomical details: casque frontal: Kératine chargée de grains minéraux ; ses anneaux répartissent les chocs reçus de face.; nuque et dos: Peau plissée sur une musculature épaisse, sans plaque osseuse continue.; ventre: Peau fine protégée surtout par la proximité du sol.; pattes-pelles: Griffes larges ; articulations et coussinets exposés entre les doigts.\nHabitat: talus de cendres consolidées autour d'anciens cônes volcaniques; éboulis de basalte mêlés de terre chaude. Behavior: Elle tasse les parois en reculant et abandonne un front de taille dès que le matériau devient roche massive ; elle ne traverse pas la pierre intacte.\nCRITICAL COMPOSITION / ANATOMY: Exactly four shovel feet connected to a low squat mole-like body; clearly ringed horn-like forehead shield, not ram horns. Three-quarter side view at volcanic earth burrow entrance, not boring through solid rock.",
+      "prompt_file": "provenance/prompts/23-taupe-belier-de-basalte-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Silhouette trapue, pattes-pelles, casque annelé et sol volcanique lisibles ; un appui arrière partiellement occulté par le corps.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "raie-des-dunes-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "1B5D51ED15BA311F6B1A969474B93510D55F312BAA505D37AC3C06AA20233D62",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/24-raie-des-dunes.json",
+      "source_content_sha256": "A343DF860CF20D1B184090A211E4EB44ED7BD73F94D67330750AA4FB5E72E1CC",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Raie des dunes aux nageoires ocre et à la queue bordée d’écailles glisse au contact du sable, près d’une zone humide.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Raie des dunes. Canonical description (French, do NOT print text): disque de 1,8 à 2,4 m de large ; queue de 1,3 m. Nageoires ocre très larges, deux yeux sur de petites crêtes et queue plate bordée d'écailles coupantes.\nAnatomical details: dos: Écailles mates limitant l'abrasion du sable.; bords du disque: Muscles minces où passent les canaux d'hydratation.; ventre: Peau lisse et deux fentes respiratoires abritées par des replis.; queue: Écailles cornées rigides sur une base mobile.\nHabitat: dunes de sable fin proches de nappes saisonnières; cuvettes d'erg bordées de roche nue. Behavior: Elle contourne les crêtes pierreuses et suit les bandes de sable fin. Une caravane la dérange surtout lorsqu'elle piétine une zone d'hydratation.\nCRITICAL COMPOSITION / ANATOMY: Ray animal glides THROUGH sand with belly touching sand, never flies or hovers. Entire ochre disk and flattened tail visible, sand ripples show contact.",
+      "prompt_file": "provenance/prompts/24-raie-des-dunes-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Disque au contact du sable, queue écailleuse entière et repère de milieu humide visibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "tisseuse-de-verre-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "2DEDB42464EECD9F4DD956CFB2291DFFABC9E78712EAFAE84C19D901ACCF3744",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/25-tisseuse-de-verre.json",
+      "source_content_sha256": "1461334C185C5DDF13AAA15EAF274CB928ABB4929D0DF76BFDFA7E4B391B310B",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Tisseuse de verre à l’abdomen translucide se tient dans une toile chargée de gouttes, entre des arches calcaires et une verrière abandonnée.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Tisseuse de verre. Canonical description (French, do NOT print text): corps de 0,55 à 0,8 m ; envergure des pattes jusqu'à 2 m. Abdomen translucide strié de poches laiteuses, pattes fines et filières entourées de petites plaques brillantes.\nAnatomical details: céphalothorax: Carapace mince ponctuée d'yeux, renforcée près des chélicères.; abdomen: Membrane souple contenant les réserves d'eau et de soie minéralisée.; articulations: Petites charnières sans enveloppe minérale continue.; chélicères: Crochets rigides recevant un venin visqueux par un canal étroit.\nHabitat: arches calcaires traversées par un courant d'air humide; serres et verreries abandonnées près d'une source. Behavior: Elle entretient les fils qui récoltent la rosée avant les fils de capture. Une proie trop lourde est libérée si elle risque d'emporter les points d'ancrage.\nCRITICAL COMPOSITION / ANATOMY: Exactly EIGHT long thin connected spider legs, translucent milky striped abdomen, dew collecting webs. No ice crystals and not a glass statue.",
+      "prompt_file": "provenance/prompts/25-tisseuse-de-verre-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Abdomen translucide, pattes fines et gouttes de toile visibles ; articulations superposées à confirmer en revue humaine.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "brochet-lanterne-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "F52CFD60319F946EE88A82836761C19558AD5EED14C05C9E61F186F9C8430648",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/26-brochet-lanterne.json",
+      "source_content_sha256": "F98790DFFF36EFD364D0EC19CD33324D24F317D3C228E5DDB78C343163537D3E",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Brochet-lanterne vert et cuivré nage entièrement sous l’eau ; de petites poches lumineuses soulignent sa gorge parmi les herbes aquatiques.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Brochet-lanterne. Canonical description (French, do NOT print text): 1,4 à 1,9 m de long ; tête large de 0,3 m. Corps vert sombre marbré de cuivre, mâchoire allongée et rangée de petites poches lumineuses le long de la gorge.\nAnatomical details: tête: Plaques osseuses entre les yeux ; lèvres et dessous de la mâchoire plus souples.; flancs: Écailles imbriquées couvrant une chair souple.; branchies: Fentes protégées par un opercule qui doit s'ouvrir pour respirer.; nageoires: Rayons fins couverts d'une membrane transparente.\nHabitat: fosses de rivière ombragées par les saules; canaux anciens envahis d'herbes aquatiques. Behavior: Il laisse son reflet lumineux simuler une ouverture dans les herbes puis attaque la silhouette qui s'en approche ; il retourne ensuite à l'ombre.\nCRITICAL COMPOSITION / ANATOMY: Entire fish UNDERWATER in a clear river pool, long pike anatomy, small luminous throat pockets only, no anglerfish forehead lure, no legs.",
+      "prompt_file": "provenance/prompts/26-brochet-lanterne-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Poisson entier sous l'eau ; photophores concentrés sous la gorge, sans leurre frontal.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "couronne-de-spores-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "22439F936819DC640A2374920F87D825CFCB76B8C16590535B8701D5C9199A0A",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/28-couronne-de-spores.json",
+      "source_content_sha256": "C6EFCA75DB8D0E7492181B521825B89650414A052A90FC7247D75069184389B4",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Plusieurs chapeaux beige orangé forment une Couronne de spores autour d’un creux sombre, sur des faisceaux mycéliens noués dans un bois humide.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Couronne de spores. Canonical description (French, do NOT print text): couronne de 1,2 à 1,8 m de haut ; base de 1,5 m de diamètre. Chapeaux beige orangé disposés en couronne autour d'un creux sombre, portés par des faisceaux de filaments noués.\nAnatomical details: base mycélienne: Matelas fibreux serré autour de terre et de bois en décomposition.; pieds porteurs: Faisceaux élastiques se contractant à tour de rôle.; chapeaux: Chair poreuse et lamelles fragiles, adaptées aux échanges avec l'air.; filaments externes: Cordons minces qui explorent et retiennent les débris.\nHabitat: forêts humides où s'accumule le bois mort; galeries de carrière recevant de l'eau et des déchets végétaux. Behavior: Elle avance vers un stock de matière organique puis se fixe ; l'agitation des filaments répond aux vibrations ou à l'arrachement de chapeaux.\nCRITICAL COMPOSITION / ANATOMY: Multiple beige-orange mushroom caps arranged in a ring around a central hollow, knotted mycelial bundles for movement. No face, no humanoid mushroom person, not a single giant cap.",
+      "prompt_file": "provenance/prompts/28-couronne-de-spores-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Plusieurs chapeaux en couronne, creux central et faisceaux mycéliens lisibles, sans forme humaine.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "saule-des-voix-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "8D118A13E6C47921632D7B687F4D8925BC699B8E51D439C729F1543E3BB2BD68",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/29-saule-des-voix.json",
+      "source_content_sha256": "81B18B5997F5171D9A7D480554FB5A270E12BB0303F0EBE2BF0B91F37FEC0B1B",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Saule des voix penche sur une rivière ; plusieurs lèvres d’écorce s’ouvrent dans ses cicatrices, sous un rideau de feuilles.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Saule des voix. Canonical description (French, do NOT print text): tronc haut de 6 à 9 m ; ramure de 8 m de diamètre. Saule penché portant des lèvres d'écorce irrégulières près des anciennes cicatrices, sans visage humain unique.\nAnatomical details: tronc: Écorce épaisse sur un bois fibreux vivant.; grandes branches: Longs leviers souples, renforcés près des embranchements.; radicelles et extrémités: Tissus jeunes sensibles à l'arrachement et au dessèchement.; feuillage: Rideau de feuilles minces ; masque la vue sans arrêter une arme.\nHabitat: berges stables de rivières lentes; places humides de villages construits autour d'une source. Behavior: Il prête attention aux conversations répétées et demande parfois qu'on lui explique un mot. Ses alliances et ses griefs sont individuels, jamais imposés par son espèce.\nCRITICAL COMPOSITION / ANATOMY: Entire rooted willow tree and hanging canopy visible with a riverbank path for scale, several subtle irregular bark-lip openings at scars, NO single human face, no humanoid limbs or walking pose.\nFINAL FRAMING PRIORITY: Wide environmental establishing view of the ENTIRE willow from roots to highest leaf. The whole crown and every hanging branch must fit inside the portrait, with visible open sky above and open landscape on BOTH sides. Tree occupies only 55 percent of image height. Camera very far back. No canopy touching or cropping at any edge. Several bark lips remain subtly visible on trunk.",
+      "prompt_file": "provenance/prompts/29-saule-des-voix-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Tronc enraciné et plusieurs lèvres d'écorce ; cadrage de la ramure contrôlé après reprise.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "faune-des-gues-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "44D628FAB9B159145A1D74615061F3D61C17A8CEFD018DDDA4C3FFC70788AE7F",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/30-faune-des-gues.json",
+      "source_content_sha256": "09B7B5E6DB214015FA2DB2F48CCE61E6F1EB3F6813B8E04FC5D733F14666AAFA",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Faune des gués en gilet de travail s’appuie sur une perche dans une rivière peu profonde, ses sabots fendus posés parmi les graviers.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Faune des gués. Canonical description (French, do NOT print text): 1,45 à 1,75 m debout ; cornes de 15 à 30 cm. Visage allongé, petites cornes rabattues, jambes couvertes d'un poil court et sabots larges fendus en deux lobes mobiles.\nAnatomical details: front et cornes: Os dense sur le front ; les tempes demeurent exposées.; torse: Gilet de laine serrée et bandes de cuir de travail.; bras et mains: Membres libres pour la perche, protégés seulement par des manchettes.; jambes et sabots: Poil gras sur les jambes, corne épaisse sous le pied ; articulations non cuirassées.\nHabitat: gués de rivière entre gravières mobiles; villages de pilotis au bord de vallées sujettes aux crues. Behavior: Un passeur inspecte une traversée avant de promettre son aide. Certains demandent un salaire, d'autres défendent un droit collectif ; leur attitude dépend du contrat et de leur vécu.\nCRITICAL COMPOSITION / ANATOMY: Sapient river ferryman with wool work vest, leather bands and wading pole, two arms two hoofed legs. Quiet helpful posture on a gravel ford. No pipes, revelry or sexual imagery.",
+      "prompt_file": "provenance/prompts/30-faune-des-gues-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Deux appuis fendus, perche et tenue de travail visibles ; posture calme de passeur.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "lutine-des-greniers-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "422CD57BC3634D28DFA8EE65E248ED3E5CBCB5E7E6F330D839642B09C2D59F5B",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/32-lutine-des-greniers.json",
+      "source_content_sha256": "0127CFCB2EE393A075C6FCE2AACC8F05F14556A5B76AAC06DC7DBF56E931AE75",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une petite Lutine des greniers en vêtements cousus se tient près des réserves de grain, avec son battoir et sa ceinture de coques sèches.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Lutine des greniers. Canonical description (French, do NOT print text): 0,42 à 0,58 m debout ; bras de 0,25 m. Petite personne aux longs doigts, vêtue de fibres cousues, portant un battoir à graines et une ceinture de coques sèches.\nAnatomical details: Tête et oreilles: Bonnet de toile épaisse ; les oreilles découvertes restent vulnérables aux projections.; Torse: Veste rembourrée de balle végétale, utile contre les frottements mais peu contre une pointe.; Bras et jambes: Membres fins aux articulations mobiles, protégés seulement par des bandes de tissu.\nHabitat: greniers ventilés sur pilotis; moulins desservis par de petites galeries sèches. Behavior: Elle trie les grains, détourne les insectes et signale une fuite par des coups sur le bois. Elle proteste si un occupant condamne une aération ou prélève la part convenue.\nCRITICAL COMPOSITION / ANATOMY: Tiny adult person only 0.5 m high; full-sized grain sacks and wooden boards make scale evident. Sewn plant-fibre clothes, cloth cap, seed beater and dry shell belt, natural hands. Not a child, no wings.",
+      "prompt_file": "provenance/prompts/32-lutine-des-greniers-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Petite personne entière, sacs de grain comme repère d'échelle, coques et outil de travail visibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "cheval-de-rosee-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "2958FF6401680AB2F3D08C12646C01713B4A4C6AFF2F16B0B576DA9AB44D80AF",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/33-cheval-de-rosee.json",
+      "source_content_sha256": "41D3108B9DC439C8742D066CB80C702AA0D0119EDA86FA5C0D068EB8820F6AE2",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Cheval de rosée au pelage gris bleuté se tient dans un pré humide ; des gouttes perlent sur sa crinière et ses sabots sont bordés de poils clairs.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Cheval de rosée. Canonical description (French, do NOT print text): 2,1 à 2,5 m de long ; 1,4 à 1,7 m au garrot. Équin trapu au pelage gris bleuté, crinière plate qui retient des perles d'eau et sabots larges bordés de poils argentés.\nAnatomical details: Tête et encolure: Crâne dense, cou puissant et gorge sans armure naturelle.; Thorax et flancs: Peau épaisse sous un pelage humide qui protège surtout du refroidissement nocturne.; Jambes et sabots: Sabots résistants à la compression ; tendons et articulations restent accessibles.\nHabitat: prés de fond de vallée riches en sources; lisières de marais aux berges portantes. Behavior: Il suit les zones fraîches et évite les silhouettes qui ferment les sorties. Il accepte une proximité calme après plusieurs rencontres, sans devenir immédiatement une monture.\nCRITICAL COMPOSITION / ANATOMY: Solid stocky four-legged blue-grey horse, flattened wet mane and dew droplets, broad hooves with silver fetlocks. NO horn, wings, translucency, phantom or magic aura. Dawn wet meadow.\nFINAL ANATOMY PRIORITY: This is a real horse-shaped equine with FOUR ordinary SOLID UNDIVIDED horse hooves, single continuous rounded hoof wall on EACH foot, NOT cloven hooves, NOT split toes, NOT goat/deer feet. Show each single hoof clearly in a natural three-quarter standing pose. No antlers or horn.",
+      "prompt_file": "provenance/prompts/33-cheval-de-rosee-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Équin entier à quatre appuis, crinière humide et rosée ; sabots contrôlés après reprise.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "porte-braise-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "7F5AF87C83CFCE9DA985DEFF595C05EC19407FE90BDDD3CE77F2D0048118028A",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/34-porte-braise.json",
+      "source_content_sha256": "9014A7CEDE7581970FAA1A8D7322A252418C307C3CE96944A37378CFD0EF8BD5",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Porte-braise de terre cuite cerclé de métal transporte des braises visibles dans sa trappe ventrale, au milieu d’un atelier de cuisson.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Porte-braise. Canonical description (French, do NOT print text): 1,5 à 1,8 m debout ; caisse ventrale de 0,6 m de large. Corps de terre cuite cerclé de métal, pieds plats et fourche courte ; une trappe ventrale laisse voir le rouge des braises transportées.\nAnatomical details: Caisse du foyer: Double paroi réfractaire et cercles de soutien ; les joints restent accessibles entre les plaques.; Tête et collerette: Visière de céramique sans visage organique, montée sur un pivot étroit.; Articulations et pieds: Axes métalliques, garnitures minérales et larges semelles de terre cuite.\nHabitat: ateliers de cuisson ventilés; cours de charbonniers sur sol minéral. Behavior: Il vérifie les appuis, dégage un passage et attend un signal convenu avant de livrer son chargement. Une consigne contradictoire le fait s'immobiliser et appeler par frappes.\nCRITICAL COMPOSITION / ANATOMY: Terracotta mechanical construct with metal hoops, flat feet and short handling fork, open belly hatch shows transported red embers. Two legs two arms, ceramic visor head. It is a kiln worker, not a flaming demon.",
+      "prompt_file": "provenance/prompts/34-porte-braise-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Terre cuite et cerclages métalliques, braises contenues dans la trappe et fourche de manutention visibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "noeud-d-averse-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "530122A28F0B591152F12CC33CA3DDDF3CD66C1C7858DDB58EAEAE57AA4692E2",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/35-noeud-d-averse.json",
+      "source_content_sha256": "F66066681294526A5F7E027E454EA6FEC42E0DB49D1AE0FEFA051346E9A7DE1B",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Deux nappes d’eau tournent autour du galet sombre d’un Nœud d’averse ; feuilles et bulles accompagnent le mouvement dans un bassin pluvial.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Nœud d’averse. Canonical description (French, do NOT print text): Colonne irrégulière de 0,8 à 1,6 m ; bassin mobilisé d'environ 1 m de diamètre. Deux nappes d'eau tournent autour d'une pierre sombre ; feuilles et bulles dessinent des nœuds transitoires dans la colonne.\nAnatomical details: Pierre d'ancrage: Galet de 15 à 25 kg qui porte la présence ; la masse totale indiquée inclut cette pierre et 30 à 75 kg d'eau réellement rassemblée.; Base d'eau: Eau libre autour du galet, sans tissu vivant ; la disperser réduit le volume disponible.; Couronne tourbillonnante: Feuilles, bulles et eau en suspension ; aucune tête ni organe humain n'y est caché.\nHabitat: bassins de ravines alimentés par la pluie; cours dallées dont le trop-plein rejoint un ruisseau. Behavior: Il maintient un écoulement entre son bassin et une sortie connue. Il pousse feuilles et objets flottants, puis réagit si une digue improvise une montée dangereuse du niveau.\nCRITICAL COMPOSITION / ANATOMY: Nonhumanoid water presence: TWO twisting sheets of water around a visibly real dark heavy rounded stone in a rainwater basin, leaves and bubbles. Stone must be visible within the open loop of water. No face, eyes, limbs or hidden human shape.",
+      "prompt_file": "provenance/prompts/35-noeud-d-averse-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Deux voiles d'eau sans visage, galet central réel et feuilles visibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "fileuse-de-givre-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "590C93E5D301B9C86E430808038517A9EB863CE6BDCEF2FF548E0CC8AECCDE27",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/36-fileuse-de-givre.json",
+      "source_content_sha256": "F1F7085041AB1F2263CD49E173142405105D72375AAA952D6605116921C3BB3F",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Fileuse de givre pâle et trapue se tient dans ses fils humides, à l’abri d’une cavité de montagne parcourue de suintements.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Fileuse de givre. Canonical description (French, do NOT print text): Corps de 0,7 à 0,9 m ; envergure des pattes de 1,4 à 1,8 m. Araignée pâle au thorax trapu et aux pattes courtes, dont les fils humides portent des gouttes brillantes.\nAnatomical details: Céphalothorax: Carapace bombée protégeant les muscles des pattes et les pièces buccales.; Abdomen: Enveloppe plus souple, gonflée par les réserves et les glandes séricigènes.; Pattes et articulations: Segments rigides à extrémités crochues ; les membranes entre segments restent exposées.\nHabitat: cavités de montagne traversées de suintements; dessous de ponts ombragés au voisinage de cascades froides. Behavior: Elle mesure les vibrations, retire les débris trop lourds et attaque une proie retenue. Une grande silhouette libre de ses mouvements provoque d'abord un repli derrière les fils.\nCRITICAL COMPOSITION / ANATOMY: Exactly EIGHT short stout spider legs, pale robust cephalothorax and soft abdomen, wet webs carrying small cold dew drops in a mountain seep cave. Not the translucent long-legged glass spider; no enormous magical ice spikes.",
+      "prompt_file": "provenance/prompts/36-fileuse-de-givre-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Araignée pâle plus trapue que la Tisseuse, fils humides et habitat froid visibles ; connexions de pattes partiellement superposées.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "berger-d-eboulis-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "A5D59E3A43B0AC75AFEE972369AA537961582BA5928408C7C6D389B8BADCDE6D",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/37-berger-d-eboulis.json",
+      "source_content_sha256": "8681941CCA10C3C253F588EF34543782FD592137D630FB5E903B44DB12C33F40",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Berger d’éboulis en vêtements rapiécés inspecte une route de montagne, muni d’un levier ferré et de coins de bois.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Berger d’éboulis. Canonical description (French, do NOT print text): 3,2 à 3,7 m debout ; épaules de 1,2 à 1,5 m de large. Grande personne trapue, couverte de vêtements rapiécés et de protections de cuir, portant un levier ferré et des coins de bois.\nAnatomical details: Tête et cou: Coiffe matelassée et large col, utiles contre les petits éclats sans former un casque fermé.; Torse et épaules: Cuir superposé sur des vêtements épais ; la protection couvre surtout la face exposée aux pierres.; Jambes et mains: Guêtres renforcées et gants de travail, avec articulations libres pour saisir les outils.\nHabitat: routes de montagne bordées de lits d'arrêt; terrasses pierreuses au-dessus des hameaux. Behavior: Il écoute les chocs, repère les pierres instables et pose des marques pour fermer temporairement un chemin. Il négocie la réouverture après avoir inspecté les appuis.\nCRITICAL COMPOSITION / ANATOMY: 3.5 m tall sapient mountain slope maintenance worker, patched thick clothing leather protection, iron-ended lever and wooden wedges. Full body anchored on rock beside a mountain road, not a giant made of rocks.",
+      "prompt_file": "provenance/prompts/37-berger-d-eboulis-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Personne entière en tenue de travail, levier ferré et coins de bois ; échelle suggérée par le chemin en contrebas.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "limon-d-ardoise-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "E8D8D29F550C513B1C981171C9CCD6F176911219796A325FE0E55B377AEE8393",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/38-limon-d-ardoise.json",
+      "source_content_sha256": "C97C3A6B56502678C5936B9524B992FF3ED8E3E2B85DD3BC106A0825F2AE829A",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Limon d’ardoise gris noir rampe au ras d’un sol humide de carrière, ses plis opaques portant de fines écailles minérales.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Limon d’ardoise. Canonical description (French, do NOT print text): Masse de 0,7 à 1,2 m de large et de 0,15 à 0,45 m de haut selon son étalement. Masse gris noir aux bords luisants, parcourue de plis qui font apparaître et disparaître de fines écailles d'ardoise.\nAnatomical details: Couche externe: Mucus épais portant des éclats minéraux non digérés ; il s'use et se renouvelle.; Masse centrale: Tissu gélatineux vivant et opaque, sans squelette ni organes humains ; une déchirure importante reste une blessure.; Bord de progression: Frange plus fine qui adhère au support et détecte les ressources accessibles.\nHabitat: fonds de carrières d'ardoise abandonnées; drains humides recevant des débris végétaux. Behavior: Il suit les dépôts nutritifs, contourne les zones sèches et se contracte autour d'un contact répété. Il ne reconnaît ni trésor ni métal précieux comme objectif.\nCRITICAL COMPOSITION / ANATOMY: Low opaque grey-black living slime mass 1m wide carrying real slate flakes, thin glossy edge adheres to wet quarry floor. No face, eyes, limbs, human organs or transparent copper inclusions.",
+      "prompt_file": "provenance/prompts/38-limon-d-ardoise-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Masse opaque basse, liseré humide et véritables fragments d'ardoise visibles, sans organes humains.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "gelee-de-cuivre-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "AD2D4AB565E3E60D2AD82D9AF229DAE9F232C8F7913AE724D3C86B1750456394",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/39-gelee-de-cuivre.json",
+      "source_content_sha256": "064B044E09755F1AC3355F9BD789E0E329B48C7E5BCBFFA5481B6B46C770E4BE",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Gelée de cuivre translucide forme un petit dôme brun vert dans une galerie humide ; ses inclusions cuivrées se dessinent à travers le gel.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Gelée de cuivre. Canonical description (French, do NOT print text): Dôme de 0,5 à 0,9 m de diamètre et de 0,2 à 0,5 m de haut. Gel translucide brun vert, traversé de paillettes cuivrées qui se regroupent en lignes lors d'une excitation.\nAnatomical details: Enveloppe gélifiée: Couche souple retenant l'eau ; une entaille importante la vide et endommage la colonie.; Cordons minéralisés: Alignements discontinus de particules riches en cuivre, sans squelette ni armure pleine.; Frange d'adhésion: Bord mince qui suit les microreliefs et les films d'eau.\nHabitat: galeries humides à minéraux cuprifères; anciens bassins de lavage de minerai laissés en repos. Behavior: Elle suit les films humides et les dépôts nutritifs. Une pression répétée rapproche les inclusions et peut déclencher une réponse défensive, sans préférence morale pour les êtres portant du métal.\nCRITICAL COMPOSITION / ANATOMY: Small low translucent brown-green gel dome carrying copper flakes and short discontinuous mineral lines in wet copper mine; light passes through jelly. No face, eyes, limbs, lightning, metal armor or perfect cube.",
+      "prompt_file": "provenance/prompts/39-gelee-de-cuivre-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Dôme translucide et inclusions cuivrées différenciés du limon opaque, sans visage.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "nappe-de-sel-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "E76AD4289B5D1CBFC0C5154FB33F530C4FF2BDC257B100D4A9DEF4D970097844",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/40-nappe-de-sel.json",
+      "source_content_sha256": "C4B49A4ABD5103A60CC124377AB9BB8D67B853262B820691527F2440CFB769E1",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Nappe de sel forme une croûte blanche cristalline aux bords translucides, avec des bourrelets de grains sur le fond d’une ancienne saline.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Nappe de sel. Canonical description (French, do NOT print text): Disque irrégulier de 0,8 à 1,5 m de diamètre ; bourrelets hauts de 0,1 à 0,3 m. Croûte blanche mobile aux marges translucides, parcourue de rides qui font sonner les grains contre la pierre.\nAnatomical details: Croûte centrale: Cristaux tassés autour d'un noyau compact ; ils sont rigides mais cassants et solubles.; Bourrelets mobiles: Grains libres soulevés en vagues courtes, sans muscle ni peau.; Frange humide: Minces ponts de saumure et petits cristaux qui relient les îlots de l'agrégat.\nHabitat: anciens bassins de salines partiellement abandonnés; terrasses salées recevant des infiltrations minérales. Behavior: Elle déplace ses grains vers les zones où la saumure se concentre et contourne les volumes d'eau douce. Elle repousse les pressions répétées sur son centre.\nCRITICAL COMPOSITION / ANATOMY: Flat irregular mobile WHITE crystalline SALT crust with translucent edges and short ridges of loose grains linked by brine. Brittle crystalline aggregate, NOT jelly or snow creature. Abandoned saline basin.",
+      "prompt_file": "provenance/prompts/40-nappe-de-sel-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Croûte blanche granuleuse et marge translucide visibles dans une saline ; matière non gélatineuse.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "veilleur-d-ossuaire-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "99BD90B7E5ACFC329F977F27EE2092817653CF140BA1082843196E8E0AFA098E",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/41-veilleur-d-ossuaire.json",
+      "source_content_sha256": "4F7A2C235C51E65BDA10AFD727F8A8731DE8EB237FEDB82DEC389323E11879C3",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Veilleur d’ossuaire en manteau réparé tient un bâton à clochette ; son masque de terre cuite surmonte une armature d’os et de bois.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Veilleur d’ossuaire. Canonical description (French, do NOT print text): 1,6 à 1,9 m debout ; corps étroit autour d'une armature de bois. Assemblage d'os confiés au lieu, de terre cuite et de bois, enveloppé d'un manteau de garde réparé ; une clochette pend au bâton.\nAnatomical details: Masque et col: Masque de terre cuite au-dessus d'une armature légère ; il abrite le point d'expression de la voix, pas un cerveau vivant.; Cage et bassin: Os maintenus par des liens autour d'une structure de bois et de poids de terre cuite ; ensemble matériel réellement pesant.; Membres et ligatures: Segments rigides articulés par des liens remplaçables ; les attaches restent les parties les plus exposées.\nHabitat: ossuaires entretenus par une communauté; galeries funéraires dotées d'un espace d'accueil. Behavior: Il accueille les visiteurs, rappelle les usages locaux et surveille les déplacements de restes confiés. Il demande des explications avant de barrer une sortie, sauf agression en cours.\nCRITICAL COMPOSITION / ANATOMY: Respectful bone wood and terracotta guardian with repaired guard cloak, terracotta mask, wooden staff with little bell, articulated weight-bearing skeleton. Welcoming maintained ossuary. No gore, evil glowing eyes or attack pose.",
+      "prompt_file": "provenance/prompts/41-veilleur-d-ossuaire-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Masque de terre cuite, armature d'os et de bois et manteau réparé ; contexte funéraire sans violence.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "porte-deuil-des-marais-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "A587D20FC532DB84847CAA812E0D0FC6694959722DF2989623029BFD1473B0D8",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/42-porte-deuil-des-marais.json",
+      "source_content_sha256": "DCF907F80609C33127F3FB6E27DC71B35E40A22B8E41AD56255131FE55EDBD5F",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Porte-deuil des marais marche sous une cape de joncs, son visage enveloppé de tissu et un panier funéraire fermé fixé dans son dos.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Porte-deuil des marais. Canonical description (French, do NOT print text): 2,10 à 2,50 m debout, panier dorsal large de 1,20 m. Une cape de joncs couvre un corps conservé par la tourbe ; un panier fermé repose entre ses épaules et sa nuque baissée.\nAnatomical details: tête: Visage enveloppé d'un tissu funéraire humide ; les ouvertures des yeux restent dégagées.; torse et panier: Côtes soutenues par une armature de saule ; le panier protège le dos sans devenir une réserve de butin.; bras: Tendons raidis et liens de lin autour des coudes, moins résistants lorsqu'ils se dessèchent.; jambes: Pieds larges entourés de racines mortes, solides de face mais vulnérables à la torsion.\nHabitat: marais traversés d'anciennes chaussées funéraires; cimetières de berge régulièrement inondés. Behavior: Il ramasse les os déplacés sans distinguer richesse ou origine, s'arrête devant les vivants et attend qu'ils libèrent le chemin.\nCRITICAL COMPOSITION / ANATOMY: Tall respectful peat-preserved funerary bearer fully clothed in reed cape and damp linen face wrapping, broad root-bound feet, CLOSED woven willow funerary basket on back. Three-quarter rear-side view makes entire basket visible. No exposed remains, gore, trophy skulls or evil glow.",
+      "prompt_file": "provenance/prompts/42-porte-deuil-des-marais-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Panier dorsal fermé, cape de joncs, tissu funéraire et larges appuis visibles ; absence de restes exposés.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "squelette-des-cloches-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "2E130D9ABB57ED20E3CD6D59BF840852E48CD16045ADBD07433730CF4D50404B",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/43-squelette-des-cloches.json",
+      "source_content_sha256": "EAAE985D7D49ADF438FDA28FC91C80167856A8C437805CE62862B48C47D9449E",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Squelette des cloches porte des rubans, de petites cloches et une besace fermée contre sa cage de bois sur une route de courrier.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Squelette des cloches. Canonical description (French, do NOT print text): 1,50 à 1,85 m de haut, armature large de 0,50 m. Des os enveloppés de rubans portent de petites cloches de timbres distincts ; une cage de bois soutient le sternum et une besace fermée repose contre le thorax.\nAnatomical details: crâne: Calotte fragile maintenue par une bande de cuir, sans lueur oculaire permanente.; cage thoracique: Arceaux de bois espacés et petites cloches suspendues qui ne couvrent pas les flancs.; bassin: Balancier de fonte attaché à une ceinture épaisse, exposé à un choc latéral.; mains et pieds: Phalanges reliées par des cordons remplaçables ; faibles prises sur une pierre humide.\nHabitat: routes de col reliant des hameaux dispersés; relais de courrier installés aux marchés et aux traversées de rivière. Behavior: Annonce son arrivée, compare le destinataire au signe convenu et demande un reçu. Il porte les messages sans en garantir la véracité et refuse qu'une querelle de village transforme sa tournée en chasse à une personne.\nCRITICAL COMPOSITION / ANATOMY: Sapient skeletal postal courier with ribbon-wrapped bones, little distinct bells on wooden sternum cage and CLOSED messenger satchel against chest. Full-body walking on mountain postal road, no glowing eyes, weapon or death cult imagery.",
+      "prompt_file": "provenance/prompts/43-squelette-des-cloches-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Courrier squelettique avec cloches, rubans et besace fermée ; pas de lueur oculaire permanente.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "cendrelame-lie-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "A6B0841D9D3E3F71698E3C5CC7A7BEFD87B4CE78984938FCFF01DBCFDB0104DF",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/44-cendrelame-lie.json",
+      "source_content_sha256": "D0B27CD14A66D2056EF5349D78A3C75B3EE8F9E24AC640D1A7B59CD1F234840B",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Cendrelame lié se tient dans une forge, masque noirci et jointures de cendre mate, sa lame sobre dirigée vers le sol.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Cendrelame lié. Canonical description (French, do NOT print text): 1,75 à 2,10 m, manteau de cendre large aux épaules. Silhouette humaine dans une armature de forge ajourée, avec une cendre mate aux jointures et une lame sobre portée pointe basse.\nAnatomical details: visage: Masque de travail noirci, ouvert sous le menton ; il ne cache pas une tête indestructible.; torse: Plastron de scories et anneaux portant le lien, lourd et fissurable.; bras: Jointures de cendre comprimée sous des bandes métalliques espacées.; jambes: Bottes de travail rigides, semelles vulnérables sur un dépôt humide.\nHabitat: forges fermées dont un foyer est encore entretenu; ateliers de réparation installés près d'anciennes coulées volcaniques. Behavior: Inspecte les outils, corrige une prise maladroite et prévient avant de barrer un foyer dangereux ; il peut confondre une intervention moderne avec un sabotage.\nCRITICAL COMPOSITION / ANATOMY: Human-sized forge-bound figure, open industrial forged frame with matte ash joints, soot-black work mask, modest sword pointed DOWN safely, slag chest plate, work boots. Quiet inspecting forge, no flames or colossal boss armor.",
+      "prompt_file": "provenance/prompts/44-cendrelame-lie-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Figure de forge à taille humaine, cendre mate et lame abaissée ; distincte des gardiens colossaux.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "arpenteur-de-bornes-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "08520D03E5E6DB06D4753E4CA3BAFF6D538BB481C7884A1462293FC51D110DDE",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/45-arpenteur-de-bornes.json",
+      "source_content_sha256": "1242D435C79DDB5513657048CB5CB85E7DFCF39B03CB60A8F7A248D30A7F4DCE",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Arpenteur de bornes aux larges pieds de pierre tient sa mire ; niveaux et fils à plomb apparaissent dans son torse évidé.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Arpenteur de bornes. Canonical description (French, do NOT print text): 2,60 à 3 m de haut, pieds larges de 0,65 m. Deux jambes de pierre taillée soutiennent un torse évidé contenant niveaux et fils à plomb ; une mire dépasse l'épaule.\nAnatomical details: tête optique: Couronne de petites lentilles sous une visière de schiste ; champs de vision séparés.; torse: Deux plaques de grès entourent un mécanisme ouvert aux poussières.; bras et mire: Articulations métalliques visibles entre des segments de pierre, faibles en torsion.; pieds: Semelles de pierre à rainures profondes ; les chevilles supportent mal un affaissement asymétrique.\nHabitat: cols jalonnés de bornes de route; plaines irriguées dont les fossés sont régulièrement déplacés. Behavior: Prend des mesures répétées, pose une mire et attend une réponse aux anomalies. Il peut garder une déviation provisoire des décennies si personne ne clôt le dossier.\nCRITICAL COMPOSITION / ANATOMY: Full body stone surveying construct, two broad feet and two legs, hollow sandstone torso visibly holds levels and plumb lines, slate visor with little lenses, survey staff above shoulder. Mountain boundary markers. No invented writing or numbered graduations.",
+      "prompt_file": "provenance/prompts/45-arpenteur-de-bornes-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Corps de pierre évidé, instruments de mesure et appuis larges lisibles.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "carillon-de-bronze-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "F2A3402970B52BDB85AAAEB9AC012E643B35D6196D09857ED2ABDA73FB6AC76A",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/46-carillon-de-bronze.json",
+      "source_content_sha256": "D2FF477F5EC2786AC52B96DBFA427917992EDAEAB41C5ACBF3B4B8215A7048BA",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Carillon de bronze sans visage repose sur trois jambes articulées, son battant suspendu sous la cloche dans une galerie de réservoir.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Carillon de bronze. Canonical description (French, do NOT print text): 2,20 m de haut, trépied occupant un cercle de 1,60 m. Une cloche sans visage portée par trois jambes articulées, avec des lamelles d'écoute tournées vers les murs.\nAnatomical details: couronne: Lamelles fines et fentes d'écoute, protégées par une grille ajourée.; jupe de bronze: Paroi épaisse mais susceptible de se fissurer autour d'une ancienne réparation.; battant: Masse suspendue par deux axes visibles ; elle peut se coincer contre un obstacle.; pieds: Petites rotules et patins de bois remplaçables, peu résistants à une torsion.\nHabitat: galeries de réservoirs municipaux; grandes halles de pierre où les alarmes doivent porter. Behavior: Compare les vibrations connues à celles d'un choc ou d'une fuite. Il appelle un gardien avant de traiter une présence comme une menace.\nCRITICAL COMPOSITION / ANATOMY: Faceless bronze BELL walking on EXACTLY THREE articulated legs forming a readable tripod, three separate wooden foot pads all visible. Hanging clapper with two visible supports, listening metal slats around crown. NO face, eyes, arms, fourth leg or humanoid head. Municipal reservoir stone gallery.",
+      "prompt_file": "provenance/prompts/46-carillon-de-bronze-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Cloche sans visage, trois jambes articulées et trois pieds distincts ; battant suspendu lisible sous la cloche.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "drapier-d-argile-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "D1E52C44DAF4F9779B32B850619E8F800C5FAA8151EA899C550ED2319E4E6370",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/47-drapier-d-argile.json",
+      "source_content_sha256": "AEB1DFC369B8DD29C1F570434144990C9FC3284238C03EB7A98BE82AEFD638FA",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Drapier d’argile gris clair examine une étoffe dans un atelier de tissage, vêtu d’un tablier de chutes et doté de larges doigts plats.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Drapier d’argile. Canonical description (French, do NOT print text): 1,70 à 2 m de haut, bras longs aux doigts plats. Corps de terre gris clair strié de coutures, tablier de chutes et larges doigts portant des empreintes de trame.\nAnatomical details: visage: Plaque d'argile fine aux traits mobiles, sans masque métallique.; torse: Coque épaisse renforcée de fibres textiles, plus fragile là où une réparation est fraîche.; mains: Doigts plats très précis, à petites articulations de bois.; bassin et jambes: Terre dense autour d'un cadre souple ; les genoux craignent les chocs latéraux.\nHabitat: ateliers textiles alimentés par un canal lent; maisons de tisserands dans des quartiers de terre crue. Behavior: Observe longuement le tombé d'un tissu, demande des conditions de travail précises et refuse de confondre contrat de service et possession de sa personne.\nCRITICAL COMPOSITION / ANATOMY: Sapient pale grey clay textile craftsperson with stitched seams and scrap cloth apron, two arms two legs, long broad FLAT fingers with wooden joints and weave impressions gently examining hanging cloth. Fine mobile clay face, no metal mask. Entire body in canal-side weaving workshop.",
+      "prompt_file": "provenance/prompts/47-drapier-d-argile-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Corps d'argile, tablier de chutes et travail du tissu ; anatomie des mains à confirmer en revue humaine.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "geant-des-moraines-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "D4650F778A1D2E6D3F5CCDEE97FF3D18EEB172BE328A90D71A4F31A9F91E2F1A",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/48-geant-des-moraines.json",
+      "source_content_sha256": "65F5A4CACDF77C46701EC89FC895294977BD001D7EEE92C776AB02E2ED2D297C",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Un Géant des moraines en laine épaisse porte des besaces de soins et une crosse arrondie dans un pâturage alpin bordé de névés.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Géant des moraines. Canonical description (French, do NOT print text): 4,20 à 5 m de haut, envergure des bras proche de 5 m. Grand corps compact vêtu de laine épaisse, besaces de soins et bât de voyage ; il porte une crosse à bout arrondi, sans maillet de chantier.\nAnatomical details: tête: Bonnet épais et visage exposé au vent, sans plaque osseuse extraordinaire.; torse: Vêtements superposés sur une musculature robuste ; ils isolent mieux qu'ils n'arrêtent une pointe.; avant-bras: Brassards de bois et de cuir utilisés pour protéger les bras lors des soins et de la manutention des bâts.; jambes: Guêtres épaisses et chaussures à semelles larges ; chevilles vulnérables si un bloc roule.\nHabitat: pelouses périglaciaires entre moraines et névés, assez riches pour nourrir les troupeaux; vallons abrités servant d'étapes entre pâturages d'été et quartiers d'hiver. Behavior: Compte les jeunes, examine les sabots et ajuste la migration à la pousse de l'herbe. Il demande souvent aux étrangers de laisser passer les bêtes avant d'ouvrir une discussion, pour éviter de couper le groupe.\nCRITICAL COMPOSITION / ANATOMY: 4.5 m tall sapient PASTORAL HERDER, layered thick wool, cap, wooden leather forearm guards, healthcare satchels, travel pack and ROUND-ended shepherd crook. Alpine pasture by moraine, small distant ordinary herd for scale allowed. NO construction mallet or masonry equipment.",
+      "prompt_file": "provenance/prompts/48-geant-des-moraines-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Tenue pastorale, crosse et besaces de soins, pâturage alpin et repères d'échelle ; pas d'outillage de chantier.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "ogresse-des-fours-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "EA7341138AD9234B76E503183F987978A44B2435AA2919077123B1DB36F85592",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/49-ogresse-des-fours.json",
+      "source_content_sha256": "A3057B1995BD36E1CB1F25C1B383CEF2C5BB88DDF8932E8ED700B52E87D95DC8",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Ogresse des fours en tablier et gants de cuisson travaille près de grands fours maçonnés, les cheveux attachés sous une coiffe.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Ogresse des fours. Canonical description (French, do NOT print text): 2,70 à 3,20 m de haut, épaules larges de 1,20 m. Corps large, tablier matelassé, cheveux attachés sous une coiffe de travail et mains protégées de gants épais.\nAnatomical details: tête: Visage expressif découvert, coiffe protégeant seulement cheveux et oreilles des étincelles.; torse: Tablier de cuir et textile épais, ouvert dans le dos pour limiter la chaleur.; mains et avant-bras: Gants de cuisson isolants mais gênants pour saisir de petits objets.; jambes: Pantalon épais et chaussures larges ; chevilles non cuirassées.\nHabitat: ateliers de fours collectifs dans des bourgs artisanaux; relais de caravanes dotés de grandes cuisines et de réserves. Behavior: Compte les charges, écoute le tirage et protège les horaires partagés. Elle interrompt volontiers une dispute pour éviter qu'une cuisson ne soit perdue.\nCRITICAL COMPOSITION / ANATOMY: 3 m tall broad adult female ogre artisan wearing practical thick trousers, broad work shoes, padded leather textile apron, tied hair under work cap and thick oven gloves. Entire body calmly using a baking paddle beside community masonry ovens. Expressive face, dignified practical craft, no sexualization, no predatory imagery.",
+      "prompt_file": "provenance/prompts/49-ogresse-des-fours-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Artisane adulte entièrement vêtue, tablier et gants de cuisson ; posture de travail près des fours.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    },
+    {
+      "file": "vouivre-des-salines-plate-v1.png",
+      "kind": "creature-plate",
+      "tool": "OpenAI image generation",
+      "mode": "built-in",
+      "generated_at": "2026-09-27",
+      "dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "sha256": "0EC0A77045B85193F0CAC97147BCBFEC0A6D8BF7DA4B7778976025D506EA7647",
+      "license": "LicenseRef-OpenAI-Generated-Output",
+      "distribution_review": "required-before-external-release",
+      "source_entry": "docs/design/bestiary/entries/50-vouivre-des-salines.json",
+      "source_content_sha256": "BC622E9E55318140A88EB753A5C911B9A1C53DFC0CAABE9E9F8923DEC83FBE11",
+      "source_content_hash_method": "SHA-256 of recursively key-sorted compact UTF-8 JSON, excluding plates and illustration_status",
+      "references": [],
+      "alt": "Une Vouivre des salines se tient sur une digue, avec deux hautes pattes, des ailes membraneuses claires, un bec en cuillère et une queue en palette.",
+      "prompt": "Use case: stylized-concept. Asset type: original full-page creature illustration for the OpenRPG Forge bestiary. Vertical portrait 2:3, ideally 1024x1536. Premium natural-history fantasy plate: fine ink details integrated into textured gouache and restrained painterly realism, physically convincing weight, clear silhouette and tactile materials. Full-bleed habitat with foreground, middle distance and atmosphere; earthy bronze, muted forest greens, slate blues and pale mineral highlights, readable shadows. Show ONE principal creature in its ENTIRETY with all extremities inside the frame and generous margins, typically occupying 60-70 percent of the image. Depict observation, natural behavior or work, not generic aggressive combat. No writing, labels, letters, numbers, border, watermark, signature or pseudocalligraphy anywhere. Original creature design, no copied commercial monster design or named artist imitation. No gratuitous glow, extra limbs, gore or victim.\nSubject: Vouivre des salines. Canonical description (French, do NOT print text): 3,50 à 4,50 m du bec à la queue, envergure de 6 à 7,50 m. Deux pattes hautes, ailes à membranes claires et bec en cuillère dentelée ; la queue se termine par une palette cornée sans dard venimeux.\nAnatomical details: tête: Bec corné et glandes nasales rejetant du sel ; yeux latéraux sensibles à la lumière rasante.; thorax: Écailles fines sur une cage légère, protégée surtout par la position des ailes repliées.; ailes: Membranes vascularisées entre de longs doigts ; une déchirure nuit au vol sans immobiliser automatiquement l'animal.; queue et pattes: Écailles épaisses sur la face supérieure, articulations plus exposées dessous.\nHabitat: salines côtières entre bassins peu profonds et digues; lagunes saumâtres bordées de falaises basses. Behavior: Observe un bassin avant de descendre, préfère les captures faciles et s'écarte des groupes calmes ; une course vers le nid déclenche une interception.\nCRITICAL COMPOSITION / ANATOMY: Exactly TWO tall hind legs and TWO large pale membrane wings instead of front arms. Broad SPOON-shaped serrated bill clearly visible, long tail ends in flattened horny PADDLE, NO venom sting. Entire wing outlines, feet and tail inside composition on salt pond levee. No horns, fire or four-legged dragon anatomy.",
+      "prompt_file": "provenance/prompts/50-vouivre-des-salines-v1.txt",
+      "review": {
+        "authority": "agent_review",
+        "status": "reviewed-with-notes",
+        "notes": "Deux pattes, ailes membraneuses, bec en cuillère et queue en palette ; ensemble distinct du dragon quadrupède.",
+        "human_review": "pending"
+      },
+      "usage": "bestiary-web-illustration-only",
+      "runtime_qualified": false
+    }
+  ]
+}

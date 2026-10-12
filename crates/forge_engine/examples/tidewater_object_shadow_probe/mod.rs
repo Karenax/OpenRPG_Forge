@@ -116,9 +116,10 @@ fn village_draws(
         )?);
         draws.push(Draw::new(vertices, indices, model)?);
     }
-    if caster_names.len() != 7
-        || draws.len() > 2048
-        || (village["version"] == 1 && draws.len() != 7)
+    // Canonical version 2 may remove categories through deletion or asset replacement.
+    // The immutable version 1 reference still requires all seven source batches.
+    if draws.len() > 2048
+        || (village["version"] == 1 && (caster_names.len() != 7 || draws.len() != 7))
     {
         return Err("missing opaque village caster batches".into());
     }

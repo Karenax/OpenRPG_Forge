@@ -87,10 +87,19 @@ fn run() -> Result<()> {
             print(&serde_json::json!({"manifest_sha256":revision,"descriptor":descriptor}))
         }
         Some("plan") if args.len() >= 3 => print(&install::prepare(Path::new(&args[1]), &args[2..].iter().map(PathBuf::from).collect::<Vec<_>>())?),
+        Some("plan-file") if args.len() >= 4 => {
+            let plan = install::prepare(
+                Path::new(&args[1]),
+                &args[3..].iter().map(PathBuf::from).collect::<Vec<_>>(),
+            )?;
+            install::write_plan_file(&plan, Path::new(&args[2]))?;
+            print(&plan)
+        }
         Some("apply") if args.len() == 2 => print(&install::apply(&forge_delivery::read_json(Path::new(&args[1]))?)?),
         Some("verify") if args.len() == 2 => print(&install::verify(Path::new(&args[1]))?),
         Some("status") if args.len() == 2 => print(&install::state(Path::new(&args[1]))?),
         Some("rollback-plan") if args.len() == 2 => print(&install::prepare_rollback(Path::new(&args[1]))?),
+        Some("uninstall") if args.len() == 2 => print(&install::uninstall(Path::new(&args[1]))?),
         Some("launch") if args.len() == 3 => print(&serde_json::json!({"process_id":launch::start(Path::new(&args[1]), &args[2])?.id()})),
         Some("launch-plan") if args.len() == 3 => {
             let command = launch::command(Path::new(&args[1]), &args[2])?;
@@ -122,7 +131,7 @@ fn run() -> Result<()> {
             }
             menu(&root)
         }
-        _ => Err("Usage: forge_delivery pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | apply PLAN | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
+        _ => Err("Usage: forge_delivery pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
     }
 }
 

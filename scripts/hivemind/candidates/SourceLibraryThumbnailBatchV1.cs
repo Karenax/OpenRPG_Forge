@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 public static class OpenRPGSourceLibraryThumbnailBatchV1 {
- [Serializable] public class Request { public string id,prefab_path,prefab_guid,output; }
+ [Serializable] public class Request { public string id,prefab_path,prefab_guid,output; public float fixed_ev=8,directional_light_intensity=1,camera_distance_multiplier=4,orthographic_padding=1.1f; public bool orthographic=false; }
  [Serializable] public class TextureBinding { public string material,property,identity; public int width,height; }
  [Serializable] public class CompiledPass { public string material,name; public int index; public bool compiled; }
  [Serializable] public class RendererInfo { public string type,mesh_guid,mesh_file_id; public string[] materials,shaders; public int vertices,submeshes; }
@@ -35,6 +35,11 @@ public static class OpenRPGSourceLibraryThumbnailBatchV1 {
   File.WriteAllText(batch.output,JsonUtility.ToJson(new BatchReport{cases=outcomes.ToArray()},true));
  }
  static void Capture(Request request) {
+  if(!float.IsFinite(request.fixed_ev)||request.fixed_ev < -8||request.fixed_ev > 20
+   ||!float.IsFinite(request.directional_light_intensity)||request.directional_light_intensity <= 0||request.directional_light_intensity > 150000
+   ||!float.IsFinite(request.camera_distance_multiplier)||request.camera_distance_multiplier < 4||request.camera_distance_multiplier > 12
+   ||!float.IsFinite(request.orthographic_padding)||request.orthographic_padding < 1.05f||request.orthographic_padding > 2)
+   throw new Exception("Invalid presentation parameters");
   if(File.Exists(request.output))throw new Exception("Preserve previous capture");
   if(PlayerSettings.colorSpace!=ColorSpace.Linear||SystemInfo.graphicsDeviceType==GraphicsDeviceType.Null)throw new Exception("Linear native GPU required");
   var pipeline=GraphicsSettings.currentRenderPipeline as HDRenderPipelineAsset;if(pipeline==null)throw new Exception("HDRP required");
@@ -74,13 +79,14 @@ public static class OpenRPGSourceLibraryThumbnailBatchV1 {
    extra.volumeLayerMask=1<<31;extra.volumeAnchorOverride=camera.transform;extra.hasPersistentHistory=true;
    volumeObject=new GameObject("Native thumbnail exposure");volumeObject.hideFlags=HideFlags.HideAndDontSave;volumeObject.layer=31;UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(volumeObject,preview);
    var volume=volumeObject.AddComponent<Volume>();volume.isGlobal=true;volume.priority=float.MaxValue;volume.weight=1;presentationProfile=ScriptableObject.CreateInstance<VolumeProfile>();presentationProfile.hideFlags=HideFlags.HideAndDontSave;volume.sharedProfile=presentationProfile;
-   var exposure=presentationProfile.Add<Exposure>(true);exposure.mode.Override(ExposureMode.Fixed);exposure.fixedExposure.Override(8);exposure.compensation.Override(0);
+   var exposure=presentationProfile.Add<Exposure>(true);exposure.mode.Override(ExposureMode.Fixed);exposure.fixedExposure.Override(request.fixed_ev);exposure.compensation.Override(0);
    var tone=presentationProfile.Add<Tonemapping>(true);tone.mode.Override(TonemappingMode.Neutral);
    lightObject=new GameObject("Thumbnail directional light");lightObject.hideFlags=HideFlags.HideAndDontSave;var light=lightObject.AddComponent<Light>();light.type=LightType.Directional;light.color=Color.white;light.intensity=1;lightObject.AddComponent<HDAdditionalLightData>();light.intensity=1;
    UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraObject,preview);UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightObject,preview);camera.scene=preview;camera.overrideSceneCullingMask=EditorSceneManager.GetSceneCullingMask(preview);
+   light.intensity=request.directional_light_intensity;camera.orthographic=request.orthographic;camera.orthographicSize=radius*request.orthographic_padding;camera.farClipPlane=Math.Max(10,radius*(request.camera_distance_multiplier+4));
    target=new RenderTexture(512,512,24,RenderTextureFormat.ARGBHalf,RenderTextureReadWrite.Linear);target.Create();var rows=new System.Collections.Generic.List<Row>();var directions=new[]{new Vector3(1,.65f,-1).normalized,new Vector3(-1,.5f,1).normalized};
    for(int view=0;view<directions.Length;view++) {
-    camera.transform.position=bounds.center+directions[view]*radius*4;camera.transform.LookAt(bounds.center);light.transform.rotation=camera.transform.rotation;
+    camera.transform.position=bounds.center+directions[view]*radius*request.camera_distance_multiplier;camera.transform.LookAt(bounds.center);light.transform.rotation=camera.transform.rotation;
     var render=new RenderPipeline.StandardRequest{destination=target};if(!RenderPipeline.SupportsRenderRequest(camera,render))throw new Exception("HDRP request unsupported");for(int warm=0;warm<3;warm++)RenderPipeline.SubmitRenderRequest(camera,render);
     var prior=RenderTexture.active;Texture2D raw=null,png=null;
     try {
@@ -92,7 +98,7 @@ public static class OpenRPGSourceLibraryThumbnailBatchV1 {
     }finally {RenderTexture.active=prior;if(raw!=null)UnityEngine.Object.DestroyImmediate(raw);if(png!=null)UnityEngine.Object.DestroyImmediate(png);}
    }
    if(sourceBefore!=EditorJsonUtility.ToJson(source,true))throw new Exception("Source prefab changed");
-   File.WriteAllText(request.output,JsonUtility.ToJson(new Report{id=request.id,prefab_guid=request.prefab_guid,unity_version=Application.unityVersion,gpu=SystemInfo.graphicsDeviceType.ToString(),pipeline=pipeline.GetType().FullName,source_object_unchanged=true,actual_directional_light_intensity=light.intensity,textures=textureInfos.ToArray(),compiled_passes=passInfos.ToArray(),renderers=infos,images=rows.ToArray()},true));
+   File.WriteAllText(request.output,JsonUtility.ToJson(new Report{id=request.id,prefab_guid=request.prefab_guid,unity_version=Application.unityVersion,gpu=SystemInfo.graphicsDeviceType.ToString(),pipeline=pipeline.GetType().FullName,source_object_unchanged=true,presentation_fixed_ev=request.fixed_ev,camera_orthographic=camera.orthographic,actual_directional_light_intensity=light.intensity,textures=textureInfos.ToArray(),compiled_passes=passInfos.ToArray(),renderers=infos,images=rows.ToArray()},true));
   }finally {ShaderUtil.allowAsyncCompilation=priorAsync;if(target!=null){target.Release();UnityEngine.Object.DestroyImmediate(target);}if(lightObject!=null)UnityEngine.Object.DestroyImmediate(lightObject);if(cameraObject!=null)UnityEngine.Object.DestroyImmediate(cameraObject);if(volumeObject!=null)UnityEngine.Object.DestroyImmediate(volumeObject);if(presentationProfile!=null)UnityEngine.Object.DestroyImmediate(presentationProfile);if(fixture!=null)UnityEngine.Object.DestroyImmediate(fixture);EditorSceneManager.ClosePreviewScene(preview);}
  }
 }

@@ -1,4 +1,8 @@
-# Gate 3 — état consolidé au 10 octobre 2026
+# Gate 3 — état consolidé au 11 octobre 2026
+
+Reprise sur [une seule version commune](GATE3_SHARED_VERSION_20261011.md), dans
+le checkout Rust principal, incluant les sources locales des autres conversations.
+Les contrôles du 11 octobre sont distincts des résultats historiques ci-dessous.
 
 [Consolidation locale du 10 octobre](GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
 
@@ -13,14 +17,14 @@ locales : 1951 tests natifs PASS, 52 ignorés, contrôles CPU/GPU/Studio appari�
 et parcours publics frais. Les corrections retenues ont été intégrées et recontrôlées dans les sources
 courantes selon le bilan du 10 octobre ; les preuves historiques restent attachées à Source075.
 
-CI actuelle : [run 37985561420 du 9 octobre](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420)
-sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98` : WASM et supply-chain PASS,
-Windows/Linux FAIL à Clippy, tests et builds natifs suivants non exécutés.
+CI actuelle : [run 38123749165 du 11 octobre](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38123749165)
+sur `48a894d550c5770a5ea50bc54707113e85ab5218` : WASM et supply-chain PASS,
+Windows/Linux FAIL à Clippy ; tests et builds natifs suivants non exécutés.
 Les refus historiques de facturation ne couvrent pas ces erreurs de code.
 
 Le [candidat installable initial](../../planning/INSTALLABLE_DELIVERY_20261010.md), rejeté par le propriétaire, est remplacé par [R3](../../planning/INSTALLABLE_DELIVERY_20261010_R3.md). La correction dispose de preuves locales de conservation des données et de deux relancements natifs réels. Ses binaires moteur restent ceux du 9 octobre ; elle ne qualifie pas ce lot moteur consolidé, l'aventure RPG complète ou la release.
-L'intégration/CI Gate 3 est demandée le 10 octobre ; le chantier de généralisation
-moteur reste en pause selon `PROJECT_CONTEXT.md`.
+L'intégration/CI Gate 3 est demandée le 10 octobre ; la reprise conserve le chantier
+de généralisation moteur décrit dans `PROJECT_CONTEXT.md`, sans le qualifier.
 
 ## Journal historique des acquisitions — jusqu'au 8 octobre 2026
 

@@ -150,6 +150,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let description: Descriptor = serde_json::from_slice(bytes)?;
         let frame = description.building.source_frame;
         let placement = ManualPlacement {
+            physics: None,
             id: EntityId::deterministic(format!("building-light-proof:{}", asset.id)),
             name: asset.logical_name.clone(),
             asset_id: asset.id,

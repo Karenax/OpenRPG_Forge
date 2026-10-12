@@ -1,4 +1,9 @@
 //! Disposable building projection shared by native and Studio adapters.
+use crate::{
+    tidewater_material::{PROCEDURAL_SOLID_KIND, VillageMaterial, neutral_scene_material},
+    tidewater_mesh::{DATA, TINT},
+    tidewater_object_shadow::scene::OpaqueCaster,
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{Collider, RigidBody};
 use forge_core::{ContentHash, EntityId};
@@ -54,6 +59,7 @@ pub struct BuildingProjection {
     entities: Vec<Entity>,
     mesh: Option<Handle<Mesh>>,
     material: Option<Handle<StandardMaterial>>,
+    scene_material: Option<Handle<VillageMaterial>>,
     source_hash: Option<ContentHash>,
     preview: bool,
     expected: Vec<(BuildingPartIdentity, Transform)>,
@@ -164,9 +170,15 @@ impl BuildingProjection {
     }
 
     fn resources_are_live(&self, world: &World) -> bool {
-        match (&self.mesh, &self.material) {
-            (None, None) => self.entities.is_empty(),
-            (Some(mesh), Some(material)) => {
+        match (&self.mesh, &self.material, &self.scene_material) {
+            (None, None, None) => self.entities.is_empty(),
+            (Some(mesh), _, Some(material)) => {
+                world.resource::<Assets<Mesh>>().get(mesh).is_some()
+                    && world
+                        .get_resource::<Assets<VillageMaterial>>()
+                        .is_some_and(|assets| assets.get(material).is_some())
+            }
+            (Some(mesh), Some(material), None) => {
                 world.resource::<Assets<Mesh>>().get(mesh).is_some()
                     && world
                         .resource::<Assets<StandardMaterial>>()
@@ -174,6 +186,176 @@ impl BuildingProjection {
                         .is_some()
             }
             _ => false,
+        }
+    }
+
+    /// Bind the qualified opaque scene material to the accepted render parts.
+    /// Derived geometry, part identities and physics remain on the same entities.
+    pub fn use_scene_material(
+        &mut self,
+        world: &mut World,
+        material: &VillageMaterial,
+    ) -> Result<(), String> {
+        if self.preview {
+            return Err("A building preview cannot replace the accepted scene material".into());
+        }
+        let surface = self
+            .material
+            .as_ref()
+            .and_then(|handle| world.resource::<Assets<StandardMaterial>>().get(handle))
+            .ok_or("Accepted building surface absent")?;
+        let material = neutral_scene_material(material, surface)?;
+        crate::tidewater_material::SceneLighting::new(
+            material.scene_lighting.sun_direction.truncate().to_array(),
+            material.scene_lighting.sun_color.truncate().to_array(),
+            material
+                .scene_lighting
+                .environment_sh
+                .map(|value| value.truncate().to_array()),
+        )?;
+        if self.entities.is_empty() {
+            return Ok(());
+        }
+        if !world.contains_resource::<Assets<VillageMaterial>>() {
+            return Err("Building scene material store absent".into());
+        }
+        let mesh_handle = self.mesh.clone().ok_or("Building render mesh absent")?;
+        if world.resource::<Assets<Mesh>>().get(&mesh_handle).is_none()
+            || self
+                .entities
+                .iter()
+                .any(|entity| world.get_entity(*entity).is_err())
+        {
+            return Err("Building derived render parts absent".into());
+        }
+        if self.scene_material.is_none() {
+            let mut meshes = world.resource_mut::<Assets<Mesh>>();
+            let mut mesh = meshes
+                .get_mut(&mesh_handle)
+                .ok_or("Building render mesh absent")?;
+            let count = mesh.count_vertices();
+            let tint = [1.0_f32; 3];
+            mesh.insert_attribute(TINT, vec![tint; count]);
+            // Neutral source kind never changes UV, geometry or surface parameters.
+            mesh.insert_attribute(DATA, vec![[0.0_f32; 4]; count]);
+        }
+        let handle = {
+            let mut assets = world.resource_mut::<Assets<VillageMaterial>>();
+            match self.scene_material.as_ref() {
+                Some(handle) if assets.get(handle).is_some() => {
+                    if assets.get(handle) != Some(&material) {
+                        *assets
+                            .get_mut(handle)
+                            .ok_or("Building scene material absent")? = material;
+                    }
+                    handle.clone()
+                }
+                _ => assets.add(material),
+            }
+        };
+        for &entity in &self.entities {
+            world
+                .entity_mut(entity)
+                .remove::<MeshMaterial3d<StandardMaterial>>()
+                .insert((MeshMaterial3d(handle.clone()), OpaqueCaster));
+        }
+        self.scene_material = Some(handle);
+        Ok(())
+    }
+
+    pub fn scene_material_is_current(&self, world: &World, lighting: &VillageMaterial) -> bool {
+        let Some(surface) = self
+            .material
+            .as_ref()
+            .and_then(|handle| world.resource::<Assets<StandardMaterial>>().get(handle))
+        else {
+            return false;
+        };
+        let Ok(expected) = neutral_scene_material(lighting, surface) else {
+            return false;
+        };
+        self.scene_material.as_ref().is_some_and(|handle| {
+            world
+                .get_resource::<Assets<VillageMaterial>>()
+                .is_some_and(|assets| assets.get(handle) == Some(&expected))
+        })
+    }
+
+    #[must_use]
+    pub const fn uses_standard_material(&self) -> bool {
+        self.scene_material.is_none()
+    }
+
+    /// Return to the ordinary adapter only when no imported environment is expected.
+    pub fn use_standard_material(&mut self, world: &mut World) -> Result<(), String> {
+        if self.scene_material.is_none() {
+            return Ok(());
+        }
+        let material = self
+            .material
+            .clone()
+            .ok_or("Building standard surface absent")?;
+        if world
+            .resource::<Assets<StandardMaterial>>()
+            .get(&material)
+            .is_none()
+        {
+            return Err("Building standard surface absent".into());
+        }
+        if self
+            .entities
+            .iter()
+            .any(|entity| world.get_entity(*entity).is_err())
+        {
+            return Err("Building derived render parts absent".into());
+        }
+        for &entity in &self.entities {
+            world
+                .entity_mut(entity)
+                .remove::<(MeshMaterial3d<VillageMaterial>, OpaqueCaster)>()
+                .insert(MeshMaterial3d(material.clone()));
+        }
+        if let Some(handle) = self.scene_material.take() {
+            world
+                .resource_mut::<Assets<VillageMaterial>>()
+                .remove(handle.id());
+        }
+        Ok(())
+    }
+
+    fn material_is_live(&self, world: &World, entity: Entity) -> bool {
+        if let Some(expected) = &self.scene_material {
+            world
+                .get::<MeshMaterial3d<VillageMaterial>>(entity)
+                .is_some_and(|material| {
+                    &material.0 == expected
+                        && world
+                            .get_resource::<Assets<VillageMaterial>>()
+                            .is_some_and(|assets| {
+                                assets.get(expected).is_some_and(|value| {
+                                    value.kind == PROCEDURAL_SOLID_KIND
+                                        && value.shared_scene_lighting
+                                        && value.settings.flags.z == 0.0
+                                })
+                            })
+                })
+                && world
+                    .get::<MeshMaterial3d<StandardMaterial>>(entity)
+                    .is_none()
+                && world.get::<OpaqueCaster>(entity).is_some()
+        } else {
+            world
+                .get::<MeshMaterial3d<StandardMaterial>>(entity)
+                .is_some_and(|material| {
+                    self.material.as_ref() == Some(&material.0)
+                        && world
+                            .resource::<Assets<StandardMaterial>>()
+                            .get(&material.0)
+                            .is_some()
+                })
+                && world
+                    .get::<MeshMaterial3d<VillageMaterial>>(entity)
+                    .is_none()
         }
     }
 
@@ -228,6 +410,11 @@ impl BuildingProjection {
         if !preview {
             // Standalone static collider, as for accepted asset primitives.
             entity.insert(Collider::cuboid(0.5, 0.5, 0.5));
+            if let Some(material) = &self.scene_material {
+                entity
+                    .remove::<MeshMaterial3d<StandardMaterial>>()
+                    .insert((MeshMaterial3d(material.clone()), OpaqueCaster));
+            }
         }
         Ok(entity.id())
     }
@@ -243,15 +430,14 @@ impl BuildingProjection {
         let render_components_are_live = world.get::<Mesh3d>(entity).is_some_and(|mesh| {
             self.mesh.as_ref() == Some(&mesh.0)
                 && world.resource::<Assets<Mesh>>().get(&mesh.0).is_some()
-        }) && world
-            .get::<MeshMaterial3d<StandardMaterial>>(entity)
-            .is_some_and(|material| {
-                self.material.as_ref() == Some(&material.0)
-                    && world
-                        .resource::<Assets<StandardMaterial>>()
-                        .get(&material.0)
-                        .is_some()
-            });
+                && (self.scene_material.is_none()
+                    || world
+                        .resource::<Assets<Mesh>>()
+                        .get(&mesh.0)
+                        .is_some_and(|value| {
+                            value.attribute(TINT).is_some() && value.attribute(DATA).is_some()
+                        }))
+        }) && self.material_is_live(world, entity);
         let collider_is_live = preview
             || world
                 .get::<Collider>(entity)
@@ -288,6 +474,11 @@ impl BuildingProjection {
         }
         if let Some(material) = self.material.take()
             && let Some(mut assets) = world.get_resource_mut::<Assets<StandardMaterial>>()
+        {
+            assets.remove(material.id());
+        }
+        if let Some(material) = self.scene_material.take()
+            && let Some(mut assets) = world.get_resource_mut::<Assets<VillageMaterial>>()
         {
             assets.remove(material.id());
         }
@@ -347,9 +538,15 @@ impl BuildingProjection {
                 mesh_handle: world
                     .get::<Mesh3d>(entity)
                     .map(|mesh| format!("{:?}", mesh.0.id())),
-                material_handle: world
-                    .get::<MeshMaterial3d<StandardMaterial>>(entity)
-                    .map(|material| format!("{:?}", material.0.id())),
+                material_handle: if self.scene_material.is_some() {
+                    world
+                        .get::<MeshMaterial3d<VillageMaterial>>(entity)
+                        .map(|material| format!("{:?}", material.0.id()))
+                } else {
+                    world
+                        .get::<MeshMaterial3d<StandardMaterial>>(entity)
+                        .map(|material| format!("{:?}", material.0.id()))
+                },
                 rapier_collider_handle: world
                     .get::<ProjectionRapierColliderHandle>(entity)
                     .map(|handle| format!("{:?}", handle.0)),
@@ -390,16 +587,15 @@ impl BuildingProjection {
                     && world.get::<Mesh3d>(entity).is_some_and(|m| {
                         self.mesh.as_ref() == Some(&m.0)
                             && world.resource::<Assets<Mesh>>().get(&m.0).is_some()
+                            && (self.scene_material.is_none()
+                                || world.resource::<Assets<Mesh>>().get(&m.0).is_some_and(
+                                    |value| {
+                                        value.attribute(TINT).is_some()
+                                            && value.attribute(DATA).is_some()
+                                    },
+                                ))
                     })
-                    && world
-                        .get::<MeshMaterial3d<StandardMaterial>>(entity)
-                        .is_some_and(|m| {
-                            self.material.as_ref() == Some(&m.0)
-                                && world
-                                    .resource::<Assets<StandardMaterial>>()
-                                    .get(&m.0)
-                                    .is_some()
-                        })
+                    && self.material_is_live(world, entity)
                     && world
                         .get::<Collider>(entity)
                         .and_then(|c| c.raw.as_cuboid())
@@ -506,6 +702,151 @@ mod tests {
             .unwrap();
         session.execute(&request).unwrap();
         session.head().clone()
+    }
+
+    #[test]
+    // Preserve one owned projection across geometry checks, rebind and cleanup.
+    #[allow(clippy::too_many_lines)]
+    fn source_material_preserves_geometry_colliders_and_standard_fixture_path() {
+        use bevy_rapier3d::prelude::{NoUserData, RapierColliderHandle, RapierPhysicsPlugin};
+        let mut app = App::new();
+        app.add_plugins((
+            MinimalPlugins,
+            TransformPlugin,
+            RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule(),
+        ));
+        app.init_resource::<Assets<Mesh>>();
+        app.init_resource::<Assets<StandardMaterial>>();
+        app.init_resource::<Assets<VillageMaterial>>();
+        let head = head();
+        let hash = head.content_hash().unwrap();
+        let mut projection = BuildingProjection::default();
+        projection.replace(app.world_mut(), &head, false).unwrap();
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        assert!(projection.uses_standard_material());
+        assert!(
+            projection.ready(app.world(), hash, 1),
+            "a fixture with no resident source must retain ordinary readiness"
+        );
+        let entities = projection.entities.clone();
+        let handles: Vec<_> = entities
+            .iter()
+            .map(|entity| app.world().get::<RapierColliderHandle>(*entity).unwrap().0)
+            .collect();
+        let transforms: Vec<_> = entities
+            .iter()
+            .map(|entity| *app.world().get::<Transform>(*entity).unwrap())
+            .collect();
+        let mesh = projection.mesh.clone().unwrap();
+        let before = app
+            .world()
+            .resource::<Assets<Mesh>>()
+            .get(&mesh)
+            .unwrap()
+            .clone();
+        let lighting = crate::tidewater_material::tests::lighting();
+        projection
+            .use_scene_material(app.world_mut(), &lighting)
+            .unwrap();
+        assert_eq!(projection.entities, entities);
+        assert_eq!(head.content_hash().unwrap(), hash);
+        assert!(projection.scene_material_is_current(app.world(), &lighting));
+        assert!(projection.ready(app.world(), hash, 1));
+        let after = app.world().resource::<Assets<Mesh>>().get(&mesh).unwrap();
+        for attribute in [
+            Mesh::ATTRIBUTE_POSITION,
+            Mesh::ATTRIBUTE_NORMAL,
+            Mesh::ATTRIBUTE_UV_0,
+        ] {
+            assert_eq!(before.attribute(attribute), after.attribute(attribute));
+        }
+        assert_eq!(
+            before
+                .indices()
+                .map(|values| values.iter().collect::<Vec<_>>()),
+            after
+                .indices()
+                .map(|values| values.iter().collect::<Vec<_>>())
+        );
+        let cast = crate::tidewater_object_shadow::scene::opaque_parts(app.world()).unwrap();
+        assert_eq!(cast.len(), 8);
+        for ((&entity, handle), transform) in entities.iter().zip(&handles).zip(&transforms) {
+            assert_eq!(app.world().get::<Transform>(entity), Some(transform));
+            assert_eq!(
+                app.world().get::<RapierColliderHandle>(entity).unwrap().0,
+                *handle
+            );
+            assert!(
+                cast.iter()
+                    .any(|(caster, model)| *caster == entity && *model == transform.to_matrix())
+            );
+        }
+        let owned = projection.scene_material.clone().unwrap();
+        let mut updated = lighting.clone();
+        updated.scene_lighting.sun_color.x += 0.25;
+        assert!(!projection.scene_material_is_current(app.world(), &updated));
+        projection
+            .use_scene_material(app.world_mut(), &updated)
+            .unwrap();
+        assert_eq!(projection.scene_material.as_ref(), Some(&owned));
+        assert!(projection.scene_material_is_current(app.world(), &updated));
+        app.world_mut()
+            .entity_mut(entities[0])
+            .remove::<OpaqueCaster>();
+        assert!(!projection.ready(app.world(), hash, 1));
+        projection
+            .use_scene_material(app.world_mut(), &updated)
+            .unwrap();
+        assert!(projection.ready(app.world(), hash, 1));
+        let mut ghost = BuildingProjection::default();
+        ghost.replace(app.world_mut(), &head, true).unwrap();
+        assert!(
+            ghost
+                .entities
+                .iter()
+                .all(|entity| app.world().get::<OpaqueCaster>(*entity).is_none())
+        );
+        assert!(
+            ghost
+                .use_scene_material(app.world_mut(), &lighting)
+                .is_err()
+        );
+        assert_eq!(
+            crate::tidewater_object_shadow::scene::opaque_parts(app.world())
+                .unwrap()
+                .len(),
+            8
+        );
+        ghost.clear(app.world_mut());
+        projection.use_standard_material(app.world_mut()).unwrap();
+        assert!(projection.uses_standard_material());
+        assert!(projection.ready(app.world(), hash, 1));
+        assert!(
+            crate::tidewater_object_shadow::scene::opaque_parts(app.world())
+                .unwrap()
+                .is_empty()
+        );
+        assert!(app.world().resource::<Assets<VillageMaterial>>().is_empty());
+        // A disappeared derived part must reject a material transition without
+        // panicking or reporting the remaining parts as a ready building.
+        projection
+            .use_scene_material(
+                app.world_mut(),
+                &crate::tidewater_material::tests::lighting(),
+            )
+            .unwrap();
+        app.world_mut().despawn(projection.entities[0]);
+        assert!(projection.use_standard_material(app.world_mut()).is_err());
+        assert!(!projection.ready(app.world(), hash, 1));
+        projection.clear(app.world_mut());
+        assert!(app.world().resource::<Assets<VillageMaterial>>().is_empty());
+        assert!(app.world().resource::<Assets<Mesh>>().is_empty());
+        assert!(
+            app.world()
+                .resource::<Assets<StandardMaterial>>()
+                .is_empty()
+        );
     }
 
     #[test]

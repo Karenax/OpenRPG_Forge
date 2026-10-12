@@ -67,6 +67,14 @@ oracle. `compare-coverage.py SOURCE_PNG NATIVE_PNG NEW_REPORT_JSON` (Pillow/NumP
 measures exact mask overlap and disagreement beyond one pixel. These are fixed
 pose/time measurements, with no automatic tolerance acceptance or scene parity.
 
+The existing coverage/depth comparators and village/plant packing verifiers now
+reuse `../render_verification.py`. Reports distinguish missing/additional pixels,
+empty evidence, shared-depth errors, source IDs and reasoned omissions. Village
+placement uses an independent Euclidean distance check, and texture admission
+checks complete internal mip references. See
+[contracts, integrations and validation](../../docs/validation/RENDER_SOURCE_CHECKS.md).
+The helpers do not repair inputs or qualify final visual quality.
+
 `reference.html` is an explicit overlay copied into a separate reference checkout
 for Vite, accessed with `?noAudio&view=coast` (or village/island/reef/canopy).
 It suppresses HUD, uses all default visual systems and advances a fixed number of

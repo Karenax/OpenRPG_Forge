@@ -4,5 +4,5 @@
   "description": "Studio exposes typed authoring commands and read-only private asset library queries. No privileged Tauri core command is granted; title mutation remains denied.",
   "windows": ["main", "atelier"],
   "local": true,
-  "permissions": ["allow-execute-studio-command", "allow-read-asset-library", "allow-read-asset-model", "core:window:deny-set-title"]
+  "permissions": ["allow-execute-studio-command", "allow-read-asset-library", "allow-read-asset-model", "allow-read-asset-physics", "core:window:deny-set-title"]
 }

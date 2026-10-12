@@ -28,6 +28,12 @@ de performance et d’édition définies dans `PROJECT_CONTEXT.md`.
 - Vérifier branche, worktree et diffs avec Git. Préserver les changements préexistants ; un arbre
   modifié n'interdit pas le développement autorisé si le périmètre peut être isolé sans les écraser.
   Demander une décision seulement pour un chevauchement impossible à résoudre sûrement.
+- Consigne du propriétaire du 11 octobre 2026 : toutes les conversations reprennent la même
+  version de travail dans `E:\OpenRPG_Forge\OpenRPG_Forge-Rust`, en intégrant les travaux présents.
+  Ne pas créer de copie de code, frontend ou application propre à une conversation. Compiler et
+  valider le checkout commun avec un manifeste des entrées suivies, modifiées et non suivies.
+  Les copies de données de test et les preuves historiques ne constituent pas une autre version
+  active du produit ; elles restent identifiées comme telles.
 - Les acquisitions et qualifications exigeant un arbre propre conservent cette exigence. Ne pas
   nettoyer, déplacer ou committer le travail d'autrui pour la satisfaire.
 - Une autorisation explicite encore active vaut pour l'action et le périmètre qu'elle couvre, même
@@ -61,9 +67,10 @@ planning détaillent le travail mais ne redéfinissent pas la vision.
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
 Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md).
 Gate 2 est clôturée par validation du propriétaire selon ADR-0018 ; Gate 3 reste ouverte.
-Le blocage historique de facturation ne décrit plus la CI actuelle : le run du 9 octobre 2026
-sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98` a exécuté les runners. WASM et supply-chain ont
-réussi ; les jobs natifs Windows et Linux ont échoué sur Clippy avant tests et builds.
+Le blocage historique de facturation ne décrit plus la CI actuelle : le run du 11 octobre 2026
+`38123749165` sur `48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners.
+WASM et supply-chain ont réussi ; Windows et Linux ont échoué sur Clippy.
+Les tests et builds natifs suivants n'ont pas été exécutés.
 Les corrections locales nécessitent une nouvelle CI sur leur révision publiée avant tout verdict
 distant. Chaque gate conserve les preuves de la précédente.
 
@@ -462,41 +469,3 @@ Une implémentation est terminée seulement si :
 - changement de shell Studio sans Gate 0 et ADR ;
 - données métier canoniques stockées dans l’ECS Bevy ;
 - désactivation silencieuse d’un test ou d’une validation.
-
-
-## Delegation Codex autorisee — organisation economique
-
-Cette politique constitue l'autorisation persistante de delegation pour les travaux
-relevant de ce depot, en complement de la section Autonomie. Une demande d'analyse
-reste une analyse ; une instruction utilisateur plus restrictive reste prioritaire.
-
-- Le parent conserve le modele choisi dans l'interface ; avec Astra, il garde la
-  conception, les decisions importantes, les implementations complexes, les bugs
-  difficiles et la revue finale des changements delegues.
-- Utiliser selon besoin les roles de `.codex/agents/` : `code_mapper` pour exploration
-  ciblee, `tester` pour validations, `visual_tester` pour parcours graphiques simples
-  (capacite a verifier), `rust_worker` pour implementation bornee.
-- `code_mapper`, `tester`, `visual_tester` : `gpt-5.6-luna`, effort **max toujours**.
-  Toute autre delegation a Luna utilise aussi **max**, y compris sans role explicite.
-  `rust_worker` : `gpt-5.6-terra`, effort `medium`. Aucun remplacement silencieux
-  par Astra ou diminution de l'effort Luna ; signaler toute indisponibilite.
-- Maximum six sous-agents simultanes, hors parent, dans la limite des capacites
-  exposees par la session ; aucun passage obligatoire
-  par les quatre roles. Le parent coordonne, sans delegation recursive par defaut.
-- Preferer un contexte cible. Si l'outil impose le modele parent lors d'une copie
-  integrale de conversation, utiliser un contexte reduit et le modele/effort explicites.
-- Regrouper les commandes dans une mission ; privilegier les scripts existants.
-  Une commande ponctuelle peut rester chez le parent si deleguer coute davantage.
-- Reutiliser les agents utiles ; fermer ceux devenus inutiles si l'outil le permet.
-  Aucun travail simultane sur les memes fichiers ; serialiser fenetre graphique,
-  builds et environnements de test incompatibles avec le parallelisme.
-- Apres deux corrections differentes infructueuses, remonter au parent ; immediatement
-  pour tout probleme structurel ou dangereux. Pas de succession de correctifs approximatifs.
-- Retour compact : resultat, commandes, erreurs utiles, fichiers/lignes, changements,
-  tentatives, preuves et limites. Logs complets sur disque, sans recopies systematiques.
-- Les controles graphiques difficiles restent au parent. Ne jamais annoncer un test
-  graphique delegue si seul le parent a pu l'executer. Respecter les permissions reelles.
-- Sous-agents en Standard (`service_tier = "default"`), sans activation de Fast.
-  Ne pas forcer le modele ni le niveau de raisonnement du parent.
-
-Chargement et essais : `docs/codex-configuration.md`.

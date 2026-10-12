@@ -50,6 +50,9 @@ mod source_graph_intake;
     reason = "Source light transport is being qualified before viewport activation"
 )]
 mod source_graph_lights;
+mod source_graph_lod;
+mod source_graph_physics;
+mod source_graph_placement;
 mod source_graph_preview;
 #[allow(
     dead_code,

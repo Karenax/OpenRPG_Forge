@@ -135,42 +135,96 @@ function Open-Gate3PlaytestZone {
         [Parameter(Mandatory)][int]$TimeoutSeconds
     )
 
-    [void](Invoke-UiClick -Socket $Socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $Socket -Summary 'Projets et modules')
-    [void](Invoke-UiClickInDetailsBySummary -Socket $Socket -Summary 'Projets et modules' -Text 'Ouvrir le workspace')
-    $zoneLiteral = ConvertTo-CompactJson -Value $ZoneId
-    [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'managed Tidewater zone button' -Expression @"
+    $zoneLiteral = ConvertTo-CompactJson -Value ([guid]::Parse($ZoneId).ToString())
+    [void](Invoke-UiClick -Socket $Socket -Text 'Modules' -Selector '[data-authoring-tab-button="project"]')
+    $browser = Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'managed module and map selectors' -Expression @'
 (() => {
-  const zone=$zoneLiteral;
-  const button=[...document.querySelectorAll('button[title]')].find(node=>node.title===zone);
-  const status=[...document.querySelectorAll('details.scene-navigation p[role=status]')].map(node=>node.textContent??'').join(' | ');
-  return {ready:!!button&&!button.disabled,terminal:false,reason:button?'managed zone button pending':status||'managed zone button pending'};
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const modules=[...document.querySelectorAll('.module-map-browser select[aria-label="Module"]')];
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(browsers.length>1||modules.length>1||maps.length>1) return {ready:false,terminal:true,reason:'ambiguous module or map selectors'};
+  const node=modules[0], allOptions=[...(node?.options??[])].filter(option=>option.value!==''), options=allOptions.filter(option=>!option.disabled);
+  const error=document.querySelector('.module-map-browser [role="alert"]')?.textContent?.trim()??'';
+  if(new Set(allOptions.map(option=>option.value)).size!==allOptions.length) return {ready:false,terminal:true,reason:'duplicate module UUID options'};
+  return {ready:!error&&browsers.length===1&&browsers[0].getAttribute('aria-busy')==='false'&&modules.length===1&&maps.length===1&&!node.disabled&&options.length>0,terminal:!!error,
+    reason:error||'module options='+options.length,modules:options.map(option=>({value:option.value,text:option.textContent??''}))};
 })()
-"@)
-    $button = Invoke-CdpExpression -Socket $Socket -Expression @"
+'@
+    $mapListExpression = @'
 (async () => {
-  const zone=$zoneLiteral;
-  const buttons=[...document.querySelectorAll('button[title]')].filter(node=>node.title===zone);
-  if(buttons.length!==1) return {ready:false,reason:'expected one exact zone button, got '+buttons.length};
-  const node=buttons[0]; node.scrollIntoView({block:'center',inline:'center'});
+  const zone=__GATE3_ZONE__, module=__GATE3_MODULE__, norm=v=>(v??'').replace(/\s+/g,' ').trim();
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const modules=[...document.querySelectorAll('.module-map-browser select[aria-label="Module"]')];
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(browsers.length!==1||modules.length!==1||maps.length!==1) return {ready:false,terminal:true,reason:'expected one module browser, module and map selector'};
+  const initialError=norm(browsers[0].querySelector('[role="alert"]')?.textContent);
+  if(initialError) return {ready:false,terminal:true,reason:initialError};
+  if(browsers[0].getAttribute('aria-busy')!=='false'||modules[0].value!==module||modules[0].disabled) return {ready:false,terminal:false,reason:'module list is loading or selection is pending'};
+  const snapshot=()=>JSON.stringify({module:modules[0].value,map:maps[0].value,disabled:maps[0].disabled,options:[...maps[0].options].map(option=>({value:option.value,disabled:option.disabled}))});
+  const before=snapshot();
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  if(!browsers[0].isConnected||!modules[0].isConnected||!maps[0].isConnected) return {ready:false,terminal:false,reason:'module selectors remounted'};
+  const options=[...maps[0].options].filter(option=>option.value!==''), matches=options.filter(option=>option.value===zone);
+  if(new Set(options.map(option=>option.value)).size!==options.length) return {ready:false,terminal:true,reason:'duplicate map UUID options'};
+  const error=norm(browsers[0].querySelector('[role="alert"]')?.textContent);
+  const empty=[...browsers[0].querySelectorAll('p')].some(node=>norm(node.textContent)==='Ce module ne contient aucune carte.');
+  const aligned=options.length>0?!maps[0].disabled:maps[0].disabled&&empty;
+  return {ready:!error&&browsers[0].getAttribute('aria-busy')==='false'&&modules[0].value===module&&!modules[0].disabled&&before===snapshot()&&aligned,terminal:!!error,
+    reason:error||'exact map matches='+matches.length,matches:matches.length,disabled:matches.length===1?matches[0].disabled:false};
+})()
+'@
+    $matchingModules = @()
+    foreach ($module in @($browser.modules)) {
+        [void](Select-UiOptionByLabel -Socket $Socket -Label 'Module' -Value ([string]$module.value) -TimeoutSeconds ([Math]::Min(180, $TimeoutSeconds)))
+        $moduleLiteral = ConvertTo-CompactJson -Value ([string]$module.value)
+        $listed = Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'exact managed map UUID under selected module' -Expression ($mapListExpression.Replace('__GATE3_ZONE__', $zoneLiteral).Replace('__GATE3_MODULE__', $moduleLiteral))
+        if ($listed.matches -eq 1) {
+            if ($listed.disabled) { throw 'The exact managed map UUID option is disabled.' }
+            $matchingModules += [string]$module.value
+        }
+    }
+    if ($matchingModules.Count -ne 1) { throw "Expected the exact managed map UUID in one module, found $($matchingModules.Count)." }
+    [void](Select-UiOptionByLabel -Socket $Socket -Label 'Module' -Value $matchingModules[0] -TimeoutSeconds ([Math]::Min(180, $TimeoutSeconds)))
+    $selectedModuleLiteral = ConvertTo-CompactJson -Value $matchingModules[0]
+    $listed = Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'selected module map list ready before opening' -Expression ($mapListExpression.Replace('__GATE3_ZONE__', $zoneLiteral).Replace('__GATE3_MODULE__', $selectedModuleLiteral))
+    if ($listed.matches -ne 1 -or $listed.disabled) { throw 'The exact managed map UUID is unavailable after module reselection.' }
+    # Carte resets its displayed value until native OpenManaged succeeds. Emit
+    # one ordinary UI change, then await the accepted zone instead of retrying it.
+    $selection = Invoke-CdpExpression -Socket $Socket -Expression @"
+(async () => {
+  const zone=$zoneLiteral, module=$selectedModuleLiteral;
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const modules=[...document.querySelectorAll('.module-map-browser select[aria-label="Module"]')];
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(browsers.length!==1||browsers[0].getAttribute('aria-busy')!=='false'||browsers[0].querySelector('[role="alert"]')||modules.length!==1||maps.length!==1||modules[0].value!==module||modules[0].disabled) return {ready:false,reason:'selected module or map selector changed or is busy'};
+  const node=maps[0], matches=[...node.options].filter(option=>option.value===zone);
+  if(matches.length!==1||matches[0].disabled||node.disabled) return {ready:false,reason:'exact map option unavailable or ambiguous'};
+  node.scrollIntoView({block:'center',inline:'center'});
   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const rect=node.getBoundingClientRect(), style=getComputedStyle(node);
   const hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
   const visible=rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&style.display!=='none';
   const unobscured=hit===node||!!hit&&node.contains(hit);
-  return {ready:visible&&!node.disabled&&unobscured,x:rect.left+rect.width/2,y:rect.top+rect.height/2,reason:visible?'zone button ready':'zone button hidden'};
+  if(!visible||!unobscured) return {ready:false,reason:'map selector hidden or covered'};
+  node.value=matches[0].value;
+  node.dispatchEvent(new Event('change',{bubbles:true}));
+  return {ready:true,reason:'one public map selection change dispatched',requested_zone:zone};
 })()
 "@
-    if ($null -eq $button -or $button.ready -ne $true) { throw "Managed Tidewater zone button was not physically clickable: $($button.reason)" }
-    Send-CdpMouseClick -Socket $Socket -X $button.x -Y $button.y
+    if ($null -eq $selection -or $selection.ready -ne $true) { throw "Managed map selector was not publicly usable: $($selection.reason)" }
     [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'managed Tidewater edit viewport' -Expression @"
 (() => {
   const norm=v=>(v??'').replace(/\s+/g,' ').trim(), zone=$zoneLiteral;
   const canvas=document.getElementById('forge-authoring-canvas');
-  const term=[...document.querySelectorAll('.authoring-zone-information dt')].find(node=>norm(node.textContent)==='Zone');
-  const shown=norm(term?.nextElementSibling?.textContent).toLowerCase();
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(browsers.length>1||maps.length>1) return {ready:false,terminal:true,reason:'ambiguous accepted zone identity'};
+  const shown=maps[0]?.value??'';
+  const zoneOpen=document.documentElement?.getAttribute('data-forge-zone-open')==='true';
   const mode=[...document.querySelectorAll('output')].map(node=>norm(node.textContent)).find(text=>text.startsWith('Mode '))??'';
-  return {ready:shown===zone&&mode.startsWith('Mode édition')&&canvas?.clientWidth>0&&canvas?.clientHeight>0,terminal:false,reason:'zone='+shown+'; mode='+mode};
+  const error=browsers[0]?.querySelector('[role="alert"]')?.textContent?.trim()??'';
+  return {ready:!error&&browsers.length===1&&maps.length===1&&browsers[0].getAttribute('aria-busy')==='false'&&shown===zone&&zoneOpen&&mode.startsWith('Mode édition')&&canvas?.clientWidth>0&&canvas?.clientHeight>0,terminal:!!error,reason:error||'zone='+shown+'; open='+zoneOpen+'; mode='+mode};
 })()
 "@)
 }
@@ -181,7 +235,7 @@ function Get-PlaytestPublicState {
 (() => {
   const norm=v=>(v??'').replace(/\s+/g,' ').trim();
   const root=document.querySelector('$gameplaySectionSelector');
-  if(!root) return {present:false,status:'',input:'',key:'',actions:[],items:[],outputs:[],paragraphs:[],allButtons:[],feedback:'',ready:false,locomotion:null,locomotion_error:null};
+  if(!root) return {present:false,status:'',input:'',key:'',actions:[],items:[],outputs:[],paragraphs:[],allButtons:[],feedback:'',feedback_count:0,feedback_error:'gameplay controls absent',ready:false,locomotion:null,locomotion_error:null};
   let locomotion=null, locomotion_error=null;
   const diagnostics=document.getElementById('forge-authoring-canvas')?.getAttribute('data-tidewater-live-shadows');
   if(diagnostics) {
@@ -196,7 +250,10 @@ function Get-PlaytestPublicState {
   const outputs=[...root.querySelectorAll('output')].map(node=>norm(node.textContent)).filter(Boolean);
   const paragraphs=[...root.querySelectorAll('p')].map(node=>norm(node.textContent)).filter(Boolean);
   const allButtons=[...root.querySelectorAll('button')].map(node=>({text:norm(node.textContent),disabled:!!node.disabled}));
-  return {present:true,status,input,key,actions,items,outputs,paragraphs,allButtons,feedback:paragraphs.length?paragraphs[paragraphs.length-1]:'',ready:/simulation prête true/i.test(status),locomotion,locomotion_error};
+  const feedbackNodes=[...root.querySelectorAll(':scope > p[aria-live="polite"]')];
+  const feedback=feedbackNodes.length===1?norm(feedbackNodes[0].textContent):'';
+  const feedback_error=feedbackNodes.length===1?null:'expected one direct public action feedback paragraph, got '+feedbackNodes.length;
+  return {present:true,status,input,key,actions,items,outputs,paragraphs,allButtons,feedback,feedback_count:feedbackNodes.length,feedback_error,ready:/simulation prête true/i.test(status),locomotion,locomotion_error};
 })()
 "@
 }
@@ -943,10 +1000,12 @@ function Invoke-PlaytestGameplayAction {
     $matches = @($before.actions | Where-Object { [string]$_.text -ceq $Text })
     if ($matches.Count -ne 1) { throw "Expected one public gameplay action '$Text', got $($matches.Count)." }
     if ([bool]$matches[0].disabled) { throw "Public gameplay action '$Text' is disabled." }
+    if ([int]$before.feedback_count -ne 1) { throw "Public gameplay action '$Text' has no unique feedback paragraph: $($before.feedback_error)" }
     $beforeFeedback = [string]$before.feedback
     Add-PlaytestJournal -Journal $Journal -Phase $Phase -Event 'public_action_before_escape' -Payload ([ordered]@{text=$Text;observation=(Get-PlaytestObservation -State $before);locomotion=$before.locomotion;feedback=$beforeFeedback})
     Release-PlaytestCapture -Socket $Socket -TimeoutSeconds $TimeoutSeconds
     $atClick = Get-PlaytestPublicState -Socket $Socket
+    if ([int]$atClick.feedback_count -ne 1) { throw "Public gameplay action '$Text' lost its unique feedback paragraph before click: $($atClick.feedback_error)" }
     Add-PlaytestJournal -Journal $Journal -Phase $Phase -Event 'public_action_after_escape_before_click' -Payload ([ordered]@{text=$Text;observation=(Get-PlaytestObservation -State $atClick);locomotion=$atClick.locomotion;feedback=[string]$atClick.feedback;limits='Public DOM snapshot immediately before the click; the action receipt remains authoritative for engine processing.'})
     [void](Invoke-UiClick -Socket $Socket -Text $Text -Selector '.gameplay-actions button')
     Add-PlaytestJournal -Journal $Journal -Phase $Phase -Event 'public_action_click' -Payload $Text
@@ -954,7 +1013,7 @@ function Invoke-PlaytestGameplayAction {
     $state = Wait-PlaytestCondition -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description "public gameplay action '$Text' settled" -Condition {
         param($current)
         $currentMatches = @($current.actions | Where-Object { [string]$_.text -ceq $Text })
-        ([string]$current.feedback -cne $beforeFeedback) -and (($currentMatches.Count -eq 0) -or (-not [bool]$currentMatches[0].disabled))
+        ([int]$current.feedback_count -eq 1) -and ([string]$current.feedback -cne $beforeFeedback) -and (($currentMatches.Count -eq 0) -or (-not [bool]$currentMatches[0].disabled))
     }
     if ([string]$state.feedback -match 'refus|rejected|hors de portée|ligne de vue|impossible') {
         throw "Public gameplay action '$Text' was refused: $($state.feedback)"
@@ -1710,14 +1769,26 @@ function Close-Gate3PlaytestZone {
 })()
 '@)
     }
-    [void](Invoke-UiClick -Socket $Socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $Socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $Socket -Text 'Fermer la zone')
+    [void](Invoke-UiClick -Socket $Socket -Text 'Modules' -Selector '[data-authoring-tab-button="project"]')
+    [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'public close map control ready' -Expression @'
+(() => {
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const buttons=[...document.querySelectorAll('.module-map-browser button.module-map-close')];
+  if(browsers.length>1||buttons.length>1) return {ready:false,terminal:true,reason:'ambiguous close map control'};
+  const error=browsers[0]?.querySelector('[role="alert"]')?.textContent?.trim()??'';
+  return {ready:!error&&browsers.length===1&&browsers[0].getAttribute('aria-busy')==='false'&&buttons.length===1&&!buttons[0].disabled,terminal:!!error,reason:error||'close map controls='+buttons.length};
+})()
+'@)
+    [void](Invoke-UiClick -Socket $Socket -Text 'Fermer la carte' -Selector 'button.module-map-close')
     [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'close Tidewater zone' -Expression @'
 (() => {
   const norm=v=>(v??'').replace(/\s+/g,' ').trim();
   const context=norm(document.querySelector('.authoring-context')?.textContent);
-  return {ready:context==='Aucune zone ouverte',terminal:false,reason:'context='+context};
+  const open=document.documentElement?.getAttribute('data-forge-zone-open');
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(maps.length>1) return {ready:false,terminal:true,reason:'ambiguous closed map selector'};
+  const error=document.querySelector('.module-map-browser [role="alert"]')?.textContent?.trim()??'';
+  return {ready:!error&&context==='Aucune carte ouverte'&&open==='false'&&maps.length===1&&maps[0].value==='',terminal:!!error,reason:error||'context='+context+'; open='+open};
 })()
 '@)
 }
@@ -1726,6 +1797,53 @@ function Get-ArchivePlacementCount {
     param([Parameter(Mandatory)][string]$Archive)
     $document = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($Archive))
     return @($document.head.corrections.placements).Count
+}
+
+function Get-Gate3PlacementsSnapshot {
+    param([Parameter(Mandatory)][AllowEmptyCollection()][object[]]$Placements)
+    # Reuse the exact compact representation used by the other authoring proofs.
+    # Keep array order and every identity, asset, lock and transform field.
+    $canonical = ConvertTo-Json -InputObject @($Placements) -Depth 100 -Compress
+    $bytes = [Text.UTF8Encoding]::new($false).GetBytes($canonical)
+    return [pscustomobject]@{
+        Count = $Placements.Count
+        CanonicalJson = $canonical
+        Sha256 = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+    }
+}
+
+function Assert-Gate3PlacementsPreserved {
+    param([Parameter(Mandatory)][object]$Before, [Parameter(Mandatory)][object]$After)
+    if ($Before.Count -ne $After.Count -or $Before.Sha256 -cne $After.Sha256 -or
+        $Before.CanonicalJson -cne $After.CanonicalJson) {
+        throw 'Placement identity or content differs from the pinned source baseline.'
+    }
+}
+
+function Get-Gate3ArchivePlacementsSnapshot {
+    param([Parameter(Mandatory)][string]$Archive)
+    $document = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($Archive))
+    return Get-Gate3PlacementsSnapshot -Placements @($document.head.corrections.placements)
+}
+
+function Assert-Gate3PlacementsLedger {
+    param([Parameter(Mandatory)][object]$Ledger, [Parameter(Mandatory)][string]$SourcePin,
+        [Parameter(Mandatory)][object]$Baseline)
+    # Older receipts have no placement attestation: callers still require and
+    # authenticate the original archive bytes before deriving this exact list.
+    if ($Ledger.PSObject.Properties.Name -notcontains 'source_placements') { return }
+    $receipt = $Ledger.source_placements
+    if ([string]$receipt.source_archive_sha256 -cne $SourcePin -or
+        $receipt.identity_and_content_preserved -ne $true) {
+        throw 'Parent placement attestation does not preserve the pinned source baseline.'
+    }
+    foreach ($record in @($receipt.before, $receipt.after)) {
+        if ($null -eq $record -or $record.count -ne $Baseline.Count -or
+            [string]$record.sha256 -cne $Baseline.Sha256 -or
+            [string]$record.canonical_json -cne $Baseline.CanonicalJson) {
+            throw 'Parent placement attestation differs from the authenticated original archive.'
+        }
+    }
 }
 
 function Get-WorkspaceZoneReference {
@@ -1865,6 +1983,26 @@ if ($requestedSelfTest) {
     $navActorProfileContract=[pscustomobject]@{radius_m=0.4}
     if (-not (Test-PlaytestNavigationActorOutsideDoorwayCorridor -Actor ([pscustomobject]@{feet=@(49,6,-150.5)}) -Profile $navActorProfileContract -Scenario $navRoomExitContract)) { throw 'Declared future stationary NPC target was rejected by the doorway corridor guard.' }
     if (Test-PlaytestNavigationActorOutsideDoorwayCorridor -Actor ([pscustomobject]@{feet=@(46,6,-149.5)}) -Profile $navActorProfileContract -Scenario $navRoomExitContract) { throw 'A stationary NPC capsule inside the upcoming player corridor was accepted.' }
+    foreach ($placementCount in @(21, 23)) {
+        $placementEntries = @(1..$placementCount | ForEach-Object { [ordered]@{id="placement-$_"; transform=[ordered]@{x=$_; y=0; z=0}} })
+        $placementBaseline = Get-Gate3PlacementsSnapshot -Placements $placementEntries
+        Assert-Gate3PlacementsPreserved -Before $placementBaseline -After (Get-Gate3PlacementsSnapshot -Placements @(ConvertFrom-ExactJson -Json $placementBaseline.CanonicalJson))
+        $placementRecord = [ordered]@{count=$placementBaseline.Count; sha256=$placementBaseline.Sha256; canonical_json=$placementBaseline.CanonicalJson}
+        $placementLedger = ConvertFrom-ExactJson -Json (ConvertTo-Json -Depth 100 -Compress -InputObject ([ordered]@{source_placements=[ordered]@{source_archive_sha256=('a'*64); before=$placementRecord; after=$placementRecord; identity_and_content_preserved=$true}}))
+        Assert-Gate3PlacementsLedger -Ledger $placementLedger -SourcePin ('a'*64) -Baseline $placementBaseline
+        Assert-Gate3PlacementsLedger -Ledger ([pscustomobject]@{schema='historical-ledger'}) -SourcePin ('a'*64) -Baseline $placementBaseline
+        $placementLedger.source_placements.after.sha256 = 'b'*64
+        $refused = $false
+        try { Assert-Gate3PlacementsLedger -Ledger $placementLedger -SourcePin ('a'*64) -Baseline $placementBaseline }
+        catch { $refused = $_.Exception.Message -ceq 'Parent placement attestation differs from the authenticated original archive.' }
+        if (-not $refused) { throw 'A changed placement attestation was not rejected.' }
+        $changedPlacements = @(ConvertFrom-ExactJson -Json $placementBaseline.CanonicalJson)
+        $changedPlacements[0].id = 'different-source-placement'
+        $refused = $false
+        try { Assert-Gate3PlacementsPreserved -Before $placementBaseline -After (Get-Gate3PlacementsSnapshot -Placements $changedPlacements) }
+        catch { $refused = $_.Exception.Message -ceq 'Placement identity or content differs from the pinned source baseline.' }
+        if (-not $refused) { throw 'A same-count placement identity change was not rejected.' }
+    }
     Write-Output 'TIDEWATER_GATE3_GAMEPLAY_PLAYTEST_SMOKE_SELF_TEST_PASS'
     return
 }
@@ -1904,7 +2042,9 @@ $sourceBefore = Get-ArchiveSnapshot -LiteralPath $sourceArchive
 $sourceWorkspaceBefore = Get-ArchiveSnapshot -LiteralPath $sourceWorkspaceArchive
 $sourceObjectBefore = Get-ArchiveSnapshot -LiteralPath $sourceObject
 if ($sourceBefore.Sha256 -cne $sourcePin -or $sourceObjectBefore.Sha256 -cne $sourcePin) { throw 'Authored fixture does not preserve the pinned source object bytes.' }
-if ((Get-ArchivePlacementCount -Archive $sourceArchive) -ne 23 -or (Get-ArchivePlacementCount -Archive $sourceObject) -ne 23) { throw 'Authored fixture must contain the reviewed 23-placement Tidewater archive.' }
+$sourcePlacementsBefore = Get-Gate3ArchivePlacementsSnapshot -Archive $sourceArchive
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourceObject)
+Assert-Gate3PlacementsLedger -Ledger $authoring -SourcePin $sourcePin -Baseline $sourcePlacementsBefore
 $reference = Get-WorkspaceZoneReference -Archive $sourceWorkspaceArchive -ZoneId $zoneId
 $authoredArchivePin = Get-NormalizedSha256 -Value ([string]$authoring.saved_reference.archive_hash)
 if ([string]$reference.archive_hash -cne $authoredArchivePin -or
@@ -1914,6 +2054,7 @@ if ([string]$reference.archive_hash -cne $authoredArchivePin -or
 $sourceAuthoredObject = Join-Path (Join-Path $source 'workspace-v1/objects') "$authoredArchivePin.json"
 $sourceAuthoredBefore = Get-ArchiveSnapshot -LiteralPath $sourceAuthoredObject
 if ($sourceAuthoredBefore.Sha256 -cne $authoredArchivePin) { throw 'The authored checkpoint differs from the passed authoring ledger.' }
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourceAuthoredObject)
 $interiorScenario = $null
 if ($VisitInteriorBeforeSave) {
     if ($authoring.PSObject.Properties.Name -notcontains 'room_applied' -or -not [bool]$authoring.room_applied) {
@@ -2209,6 +2350,14 @@ $sourceObjectAfter = Get-ArchiveSnapshot -LiteralPath $sourceObject
 $sourceAuthoredAfter = Get-ArchiveSnapshot -LiteralPath $sourceAuthoredObject
 $sourcePreserved = (Test-ArchiveSnapshotsEqual -Before $sourceBefore -After $sourceAfter) -and (Test-ArchiveSnapshotsEqual -Before $sourceWorkspaceBefore -After $sourceWorkspaceAfter) -and (Test-ArchiveSnapshotsEqual -Before $sourceObjectBefore -After $sourceObjectAfter) -and (Test-ArchiveSnapshotsEqual -Before $sourceAuthoredBefore -After $sourceAuthoredAfter)
 if (-not $sourcePreserved) { $failure = "source fixture changed during UI playtest; $failure" }
+$finalPlacementsSnapshot = $null
+$placementsPreserved = $false
+try {
+    if ((Get-FileSha256 -LiteralPath $cloneAuthored) -cne $authoredArchivePin) { throw 'Playtest changed the authored checkpoint object.' }
+    $finalPlacementsSnapshot = Get-Gate3ArchivePlacementsSnapshot -Archive $cloneAuthored
+    Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $finalPlacementsSnapshot
+    $placementsPreserved = $true
+} catch { $failure = "playtest placement preservation failed: $($_.Exception.Message); $failure" }
 if ($forcedProcessStop) { $failure = "owned Studio process required a forced stop; $failure" }
 if (-not $run1Stopped -or -not $run2Stopped) { $failure = "owned Studio process did not close cleanly; $failure" }
 if (@($uiDiagnostics | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_.error) }).Count -gt 0) {
@@ -2241,6 +2390,13 @@ $ledger = [ordered]@{
     authored_object_before = $sourceAuthoredBefore
     authored_object_after = $sourceAuthoredAfter
     source_preserved = $sourcePreserved
+    source_placements = [ordered]@{
+        source_archive_sha256=$sourcePin
+        representation='ConvertTo-Json -Depth 100 -Compress; complete ordered placement array; SHA-256 of UTF-8 without BOM'
+        before=[ordered]@{count=$sourcePlacementsBefore.Count; sha256=$sourcePlacementsBefore.Sha256; canonical_json=$sourcePlacementsBefore.CanonicalJson}
+        after=if ($null -ne $finalPlacementsSnapshot) { [ordered]@{count=$finalPlacementsSnapshot.Count; sha256=$finalPlacementsSnapshot.Sha256; canonical_json=$finalPlacementsSnapshot.CanonicalJson} } else { $null }
+        identity_and_content_preserved=$placementsPreserved
+    }
     isolated_fixture = $fixture
     isolated_archive_before = $cloneBefore
     isolated_workspace_before = $cloneWorkspaceBefore

@@ -1,5 +1,7 @@
 //! Versioned binary model IPC; no JSON expansion of the purchased GLB payload.
-use crate::asset_library_protocol::{LibraryModel, ModuleModel, ModuleModelReply, vault_asset_id};
+use crate::asset_library_protocol::{
+    LibraryModel, ModuleCollisionPolicy, ModuleModel, ModuleModelReply, vault_asset_id,
+};
 use forge_core::{AssetId, ContentHash};
 use serde::{Deserialize, Serialize};
 
@@ -8,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub const MAX_MODEL_BYTES: usize = 1024 * 1024 * 1024;
 const MAGIC: &[u8; 8] = b"ORPM\x01\0\0\0";
 const MODULE_MAGIC: &[u8; 8] = b"ORPM\x02\0\0\0";
+const MODULE_COLLISION_MAGIC: &[u8; 8] = b"ORPM\x03\0\0\0";
 const MAX_HEADER: usize = 4096;
 const PREFIX: usize = 12;
 /// Maximum envelope headroom to reserve before reading the model body.
@@ -35,6 +38,17 @@ enum ModuleHeader {
         asset_id: AssetId,
         sha256: ContentHash,
     },
+}
+
+/// V3 alone carries the host-admitted collision policy. V2 headers remain exact.
+#[derive(Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ModuleCollisionHeader {
+    asset_id: AssetId,
+    sha256: ContentHash,
+    catalog_sha256: ContentHash,
+    byte_length: u64,
+    collision: ModuleCollisionPolicy,
 }
 
 fn validate(header: &Header, bytes: &[u8]) -> Result<(), String> {
@@ -126,7 +140,7 @@ fn envelope_body_start(wire: &[u8], magic: [u8; 8]) -> Result<usize, String> {
     Ok(PREFIX + length)
 }
 
-/// V2 authorizes explicit module UUIDs without relaxing the strict Vault V1.
+/// V2 preserves ordinary module replies; explicit collision authority requires V3.
 pub fn encode_module(reply: ModuleModelReply) -> Result<Vec<u8>, String> {
     let (header, bytes) = match reply {
         ModuleModelReply::Model(model) => {
@@ -135,6 +149,19 @@ pub fn encode_module(reply: ModuleModelReply) -> Result<Vec<u8>, String> {
                 || forge_core::bytes_sha256(&model.bytes) != model.sha256
             {
                 return Err("Modèle du module invalide".into());
+            }
+            if let Some(collision) = model.collision {
+                return encode_envelope(
+                    *MODULE_COLLISION_MAGIC,
+                    &ModuleCollisionHeader {
+                        asset_id: model.asset_id,
+                        sha256: model.sha256,
+                        catalog_sha256: model.catalog_sha256,
+                        byte_length: model.bytes.len() as u64,
+                        collision,
+                    },
+                    model.bytes,
+                );
             }
             (
                 ModuleHeader::Model {
@@ -158,6 +185,9 @@ pub fn decode_module(
     expected_id: AssetId,
     expected_hash: ContentHash,
 ) -> Result<ModuleModelReply, String> {
+    if wire.starts_with(MODULE_COLLISION_MAGIC) {
+        return decode_module_collision(wire, expected_id, expected_hash);
+    }
     let body_start = envelope_body_start(&wire, *MODULE_MAGIC)?;
     let header: ModuleHeader =
         serde_json::from_slice(&wire[PREFIX..body_start]).map_err(|e| e.to_string())?;
@@ -182,6 +212,7 @@ pub fn decode_module(
                 asset_id,
                 sha256,
                 catalog_sha256,
+                collision: None,
                 bytes: wire,
             }))
         }
@@ -192,6 +223,33 @@ pub fn decode_module(
             Ok(ModuleModelReply::Missing { asset_id, sha256 })
         }
     }
+}
+
+fn decode_module_collision(
+    mut wire: Vec<u8>,
+    expected_id: AssetId,
+    expected_hash: ContentHash,
+) -> Result<ModuleModelReply, String> {
+    let body_start = envelope_body_start(&wire, *MODULE_COLLISION_MAGIC)?;
+    let header: ModuleCollisionHeader =
+        serde_json::from_slice(&wire[PREFIX..body_start]).map_err(|error| error.to_string())?;
+    if header.asset_id != expected_id
+        || header.sha256 != expected_hash
+        || header.asset_id.as_uuid().is_nil()
+        || wire.len() - body_start > MAX_MODEL_BYTES
+        || header.byte_length != (wire.len() - body_start) as u64
+        || forge_core::bytes_sha256(&wire[body_start..]) != header.sha256
+    {
+        return Err("Référence du module V3 différente de la réponse".into());
+    }
+    wire.drain(..body_start);
+    Ok(ModuleModelReply::Model(ModuleModel {
+        asset_id: header.asset_id,
+        sha256: header.sha256,
+        catalog_sha256: header.catalog_sha256,
+        collision: Some(header.collision),
+        bytes: wire,
+    }))
 }
 
 #[cfg(test)]
@@ -262,6 +320,7 @@ mod tests {
             asset_id: AssetId::deterministic("arbitrary-installed-module/house"),
             sha256: forge_core::bytes_sha256(&bytes),
             catalog_sha256: forge_core::bytes_sha256(b"trusted catalog"),
+            collision: None,
             bytes,
         }
     }
@@ -283,6 +342,7 @@ mod tests {
         assert_eq!(restored.bytes, expected.bytes);
         assert_eq!(restored.bytes.as_ptr(), pointer);
         assert_eq!(restored.catalog_sha256, expected.catalog_sha256);
+        assert_eq!(restored.collision, None);
         assert!(
             decode_module(encode(model()).unwrap(), expected.asset_id, expected.sha256).is_err()
         );
@@ -334,6 +394,96 @@ mod tests {
         }
         assert!(
             decode_module(wire.clone(), AssetId::deterministic("other"), model.sha256).is_err()
+        );
+        let mut bad = wire.clone();
+        bad[8..12].copy_from_slice(&u32::MAX.to_le_bytes());
+        assert!(decode_module(bad, model.asset_id, model.sha256).is_err());
+        let mut bad = wire;
+        *bad.last_mut().unwrap() ^= 1;
+        assert!(decode_module(bad, model.asset_id, model.sha256).is_err());
+    }
+
+    #[test]
+    fn explicit_collision_v3_preserves_body_identity_catalog_pin_and_allocation() {
+        let mut source = module_model();
+        source.collision = Some(ModuleCollisionPolicy::StaticTriangleMeshes);
+        let expected = source.clone();
+        source.bytes.reserve_exact(MODEL_HEADER_HEADROOM);
+        let pointer = source.bytes.as_ptr();
+        let wire = encode_module(ModuleModelReply::Model(source)).unwrap();
+        assert!(wire.starts_with(MODULE_COLLISION_MAGIC));
+        assert_eq!(wire.as_ptr(), pointer);
+        assert!(decode(wire.clone()).is_err());
+        assert!(envelope_body_start(&wire, *MODULE_MAGIC).is_err());
+        let ModuleModelReply::Model(restored) =
+            decode_module(wire, expected.asset_id, expected.sha256).unwrap()
+        else {
+            panic!("V3 is a model, never Missing");
+        };
+        assert_eq!(restored.asset_id, expected.asset_id);
+        assert_eq!(restored.sha256, expected.sha256);
+        assert_eq!(restored.catalog_sha256, expected.catalog_sha256);
+        assert_eq!(restored.collision, expected.collision);
+        assert_eq!(restored.bytes, expected.bytes);
+        assert_eq!(restored.bytes.as_ptr(), pointer);
+    }
+
+    fn collision_header(model: &ModuleModel) -> serde_json::Value {
+        serde_json::json!({
+            "asset_id": model.asset_id,
+            "sha256": model.sha256,
+            "catalog_sha256": model.catalog_sha256,
+            "byte_length": model.bytes.len(),
+            "collision": "static_triangle_meshes"
+        })
+    }
+
+    #[test]
+    fn v3_missing_unknown_null_or_v2_collision_headers_are_errors_never_fallbacks() {
+        let model = module_model();
+        for collision in [serde_json::Value::Null, serde_json::json!("convex")] {
+            let mut header = collision_header(&model);
+            header["collision"] = collision;
+            let wire =
+                encode_envelope(*MODULE_COLLISION_MAGIC, &header, model.bytes.clone()).unwrap();
+            assert!(decode_module(wire, model.asset_id, model.sha256).is_err());
+        }
+        let mut header = collision_header(&model);
+        header.as_object_mut().unwrap().remove("collision");
+        let wire = encode_envelope(*MODULE_COLLISION_MAGIC, &header, model.bytes.clone()).unwrap();
+        assert!(decode_module(wire, model.asset_id, model.sha256).is_err());
+        let mut header = collision_header(&model);
+        header["status"] = serde_json::json!("model");
+        for magic in [*MODULE_MAGIC, *MODULE_COLLISION_MAGIC] {
+            let wire = encode_envelope(magic, &header, model.bytes.clone()).unwrap();
+            assert!(decode_module(wire, model.asset_id, model.sha256).is_err());
+        }
+        let missing = ModuleHeader::Missing {
+            asset_id: model.asset_id,
+            sha256: model.sha256,
+        };
+        let wire = encode_envelope(*MODULE_COLLISION_MAGIC, &missing, Vec::new()).unwrap();
+        assert!(decode_module(wire, model.asset_id, model.sha256).is_err());
+    }
+
+    #[test]
+    fn v3_tampering_or_request_mismatch_does_not_become_missing() {
+        let mut model = module_model();
+        model.collision = Some(ModuleCollisionPolicy::StaticTriangleMeshes);
+        let wire = encode_module(ModuleModelReply::Model(model.clone())).unwrap();
+        for end in [0, 7, 11, 12, wire.len() - 1] {
+            assert!(decode_module(wire[..end].to_vec(), model.asset_id, model.sha256).is_err());
+        }
+        assert!(
+            decode_module(wire.clone(), AssetId::deterministic("other"), model.sha256).is_err()
+        );
+        assert!(
+            decode_module(
+                wire.clone(),
+                model.asset_id,
+                ContentHash::from_bytes([0; 32])
+            )
+            .is_err()
         );
         let mut bad = wire.clone();
         bad[8..12].copy_from_slice(&u32::MAX.to_le_bytes());

@@ -471,10 +471,12 @@ if ($physicsRequestedSelfTest) {
         'Copy-IsolatedFixture', 'Get-ArchiveSnapshot', 'Test-ArchiveSnapshotsEqual',
         'Get-FileSha256', 'Get-NormalizedSha256', 'Assert-DriveEPath',
         'Assert-NoExistingReparseAncestor', 'Assert-TreeHasNoReparsePoints',
-        'Test-PathWithinDirectory', 'Test-IsWindowsPlatform', 'Open-Gate3TidewaterZone',
+        'Test-PathWithinDirectory', 'Test-IsWindowsPlatform', 'Open-Gate3PlaytestZone', 'Close-Gate3PlaytestZone',
         'Wait-GameplayEditor', 'Wait-GameplayForm', 'Wait-GameplayPreview',
         'Wait-GameplayApply', 'Invoke-GameplayPreviewApply', 'Set-GameplayForm',
         'Set-GameplayPhysicsForm', 'Get-Gate3WorkspaceReference', 'Get-Gate3ArchivePlacements',
+        'Get-Gate3PlacementsSnapshot', 'Get-Gate3ArchivePlacementsSnapshot',
+        'Assert-Gate3PlacementsPreserved', 'Assert-Gate3PlacementsLedger',
         'Get-Gate3GameplayReport', 'Save-GameplayUiDiagnostic', 'Get-PhysicsProperty',
         'Wait-PhysicsGameplayIdle', 'Set-PhysicsFireControls', 'Set-PhysicsRecipeForm',
         'Assert-Gate3ProofPath',
@@ -521,6 +523,31 @@ if ($physicsRequestedSelfTest) {
     }
     if ($raw -notmatch 'Set-GameplayPhysicsForm[\s\S]{0,700}Set-PhysicsFireControls') {
         throw 'Fire controls are not applied after the shared defaults helper.'
+    }
+    foreach ($placementCount in @(21, 23)) {
+        $placementEntries = @(1..$placementCount | ForEach-Object { [ordered]@{id="placement-$_"; transform=[ordered]@{x=$_; y=0; z=0}} })
+        $placementBaseline = Get-Gate3PlacementsSnapshot -Placements $placementEntries
+        Assert-Gate3PlacementsPreserved -Before $placementBaseline -After (Get-Gate3PlacementsSnapshot -Placements @(ConvertFrom-ExactJson -Json $placementBaseline.CanonicalJson))
+        $placementRecord = [ordered]@{count=$placementBaseline.Count; sha256=$placementBaseline.Sha256; canonical_json=$placementBaseline.CanonicalJson}
+        $placementLedger = ConvertFrom-ExactJson -Json (ConvertTo-Json -Depth 100 -Compress -InputObject ([ordered]@{source_placements=[ordered]@{source_archive_sha256=('a'*64); before=$placementRecord; after=$placementRecord; identity_and_content_preserved=$true}}))
+        Assert-Gate3PlacementsLedger -Ledger $placementLedger -SourcePin ('a'*64) -Baseline $placementBaseline
+        foreach ($mutation in @('id', 'transform', 'count')) {
+            $changedPlacements = @(ConvertFrom-ExactJson -Json $placementBaseline.CanonicalJson)
+            switch ($mutation) {
+                'id' { $changedPlacements[0].id = 'different-source-placement' }
+                'transform' { $changedPlacements[0].transform.x = -999 }
+                'count' { $changedPlacements = @($changedPlacements | Select-Object -Skip 1) }
+            }
+            $refused = $false
+            try { Assert-Gate3PlacementsPreserved -Before $placementBaseline -After (Get-Gate3PlacementsSnapshot -Placements $changedPlacements) }
+            catch { $refused = $_.Exception.Message -ceq 'Placement identity or content differs from the pinned source baseline.' }
+            if (-not $refused) { throw "Physics SelfTest did not reject changed placement $mutation at count $placementCount." }
+        }
+        $placementLedger.source_placements.after.canonical_json = '[]'
+        $refused = $false
+        try { Assert-Gate3PlacementsLedger -Ledger $placementLedger -SourcePin ('a'*64) -Baseline $placementBaseline }
+        catch { $refused = $_.Exception.Message -ceq 'Parent placement attestation differs from the authenticated original archive.' }
+        if (-not $refused) { throw 'Physics SelfTest did not reject changed parent placement attestation.' }
     }
     Write-Output 'TIDEWATER_GATE3_PHYSICS_AUTHORING_SMOKE_SELF_TEST_PASS'
     return
@@ -633,9 +660,11 @@ if ($sourceZoneBefore.Sha256 -cne $sourcePin -or $sourceOriginalBefore.Sha256 -c
 if ($sourceCurrentBefore.Sha256 -cne $currentCheckpointArchiveHash) {
     throw 'Current authored gameplay object hash does not match workspace archive_hash.'
 }
-if (@(Get-Gate3ArchivePlacements -Archive $sourceCurrentObject).Count -ne 23) {
-    throw 'Current authored object does not preserve the 23 Tidewater placements.'
-}
+$sourcePlacementsBefore = Get-Gate3ArchivePlacementsSnapshot -Archive $sourceArchive
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourceOriginalObject)
+$parentPlacementsSnapshot = Get-Gate3ArchivePlacementsSnapshot -Archive $sourceCurrentObject
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $parentPlacementsSnapshot
+Assert-Gate3PlacementsLedger -Ledger $previous -SourcePin $sourcePin -Baseline $sourcePlacementsBefore
 $sourceCurrentDocument = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($sourceCurrentObject))
 $sourceCurrentReport = Get-Gate3GameplayReport -Archive $sourceCurrentObject
 if (-not $sourceCurrentReport.present) { throw 'Current authored object has no GameplayDocument.' }
@@ -674,6 +703,7 @@ if ($cloneZoneBefore.Sha256 -cne $sourceZoneBefore.Sha256 -or
     [string]$cloneReferenceBefore.head_hash -cne [string]$sourceReference.head_hash) {
     throw 'Isolated physics fixture does not preserve the parent checkpoint and original source.'
 }
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $cloneCurrentObject)
 
 $profile = Join-Path $output 'webview2-user-data'
 [void](New-Item -ItemType Directory -Path $profile)
@@ -695,6 +725,8 @@ $savedObjectPath = $null
 $savedObject = $null
 $savedDocument = $null
 $savedGameplayReport = $null
+$savedPlacementsSnapshot = $null
+$placementsPreserved = $false
 $steps = [System.Collections.Generic.List[object]]::new()
 $sourcePreserved = $false
 $cloneLegacyPreserved = $false
@@ -720,7 +752,7 @@ try {
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'Studio authoring shell' -Expression @'
 (() => ({ready:document.readyState==='complete'&&!!document.querySelector('.authoring-shell'),reason:'authoring shell pending'}))()
 '@)
-    Open-Gate3TidewaterZone -Socket $socket -ZoneId $zoneId -TimeoutSeconds $InteractionTimeoutSeconds
+    Open-Gate3PlaytestZone -Socket $socket -ZoneId $zoneId -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Invoke-UiClick -Socket $socket -Text 'Objets' -Selector '[data-authoring-tab-button]')
     [void](Wait-GameplayEditor -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds)
     [void](Open-DetailsBySummary -Socket $socket -Summary $editorSummary)
@@ -792,7 +824,7 @@ try {
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const busy=document.querySelector('.authoring-toolbar')?.getAttribute('aria-busy');
   const terminal=/refusée|erreur|invalide|impossible/i.test(status);
-  return {ready:status==='Session synchronisée'&&saveState===''&&context!==''&&context!=='Aucune zone ouverte'&&busy==='false'&&!terminal,terminal,reason:'status='+status+'; save='+saveState+'; context='+context+'; busy='+busy};
+  return {ready:status==='Session synchronisée'&&saveState===''&&context!==''&&context!=='Aucune carte ouverte'&&busy==='false'&&!terminal,terminal,reason:'status='+status+'; save='+saveState+'; context='+context+'; busy='+busy};
 })()
 '@)
     $savedWorkspace = Get-ArchiveSnapshot -LiteralPath $cloneWorkspaceArchive
@@ -810,7 +842,9 @@ try {
     if (-not (Test-Path -LiteralPath $savedObjectPath -PathType Leaf)) { throw "Saved physics object is absent: $savedObjectPath" }
     $savedObject = Get-ArchiveSnapshot -LiteralPath $savedObjectPath
     if ($savedObject.Sha256 -cne $savedArchiveHash) { throw 'Saved physics object hash does not match workspace archive_hash.' }
-    if (@(Get-Gate3ArchivePlacements -Archive $savedObjectPath).Count -ne 23) { throw 'Saved physics object did not preserve the 23 source placements.' }
+    $savedPlacementsSnapshot = Get-Gate3ArchivePlacementsSnapshot -Archive $savedObjectPath
+    Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $savedPlacementsSnapshot
+    $placementsPreserved = $true
     $savedDocument = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($savedObjectPath))
     $headReceipts = [ordered]@{
         gameplay_receipt_count=@(Get-PhysicsGameplayReceipts -Document $savedDocument).Count
@@ -937,15 +971,13 @@ try {
         (Test-ArchiveSnapshotsEqual -Before $cloneCurrentBefore -After (Get-ArchiveSnapshot -LiteralPath $cloneCurrentObject))
     if (-not $cloneLegacyPreserved) { throw 'Physics Save altered the legacy zone or original/current source objects.' }
 
-    [void](Invoke-UiClick -Socket $socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'Close physics authored Tidewater zone' -Expression @'
 (() => {
   const norm=value=>(value??'').replace(/\s+/g,' ').trim();
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const open=document.documentElement?.getAttribute('data-forge-zone-open');
-  return {ready:context==='Aucune zone ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
+  return {ready:context==='Aucune carte ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
 })()
 '@)
     $uiClosed = $true
@@ -1009,6 +1041,17 @@ if ($forcedProcessStop) { $failure = "Studio required a forced stop after public
 $ledgerStatus = 'failed_closed'
 if ([string]::IsNullOrWhiteSpace($failure)) { $ledgerStatus = 'passed' }
 
+$sourcePlacementsAttestation = [ordered]@{
+    source_archive_sha256=$sourcePin
+    representation='ConvertTo-Json -Depth 100 -Compress; complete ordered placement array; SHA-256 of UTF-8 without BOM'
+    before=[ordered]@{ count=$sourcePlacementsBefore.Count; sha256=$sourcePlacementsBefore.Sha256; canonical_json=$sourcePlacementsBefore.CanonicalJson }
+    parent_checkpoint=[ordered]@{ count=$parentPlacementsSnapshot.Count; sha256=$parentPlacementsSnapshot.Sha256; canonical_json=$parentPlacementsSnapshot.CanonicalJson }
+    after=if ($null -ne $savedPlacementsSnapshot) {
+        [ordered]@{ count=$savedPlacementsSnapshot.Count; sha256=$savedPlacementsSnapshot.Sha256; canonical_json=$savedPlacementsSnapshot.CanonicalJson }
+    } else { $null }
+    identity_and_content_preserved=($placementsPreserved -and $sourcePreserved -and $cloneLegacyPreserved)
+}
+
 $ledger = [ordered]@{
     schema='forge.tidewater.gate3-physics-authoring-smoke'
     version=1
@@ -1034,6 +1077,7 @@ $ledger = [ordered]@{
     previous_saved_reference=$previousReference
     source_fixture=$source
     source_original_hash_pinned=$sourcePin
+    source_placements=$sourcePlacementsAttestation
     parent_checkpoint=[ordered]@{ archive_hash=$currentCheckpointArchiveHash; head_hash=$currentCheckpointHeadHash }
     source_zone_before=$sourceZoneBefore
     source_zone_after=Get-ArchiveSnapshot -LiteralPath $sourceArchive
@@ -1112,6 +1156,7 @@ if ($CompletePhysicsFixture) {
         evidence_kind='public_studio_gameplay_authoring_extension';gate_qualified=$false;human_visual_review=$false
         source_preserved=$sourcePreserved;zone_uuid=$zoneId;candidate=$candidate;candidate_sha256=$candidateSha256
         isolated_fixture=$fixture;source_fixture=$source;source_original_hash_pinned=$sourcePin
+        source_placements=$sourcePlacementsAttestation
         saved_reference=$savedReference;saved_object_path=$savedObjectPath;saved_object=$savedObject
         gameplay_report=$savedGameplayReport;parent_gameplay_authoring_ledger=$ledgerInput
         parent_gameplay_authoring_ledger_sha256=Get-FileSha256 -LiteralPath $ledgerInput

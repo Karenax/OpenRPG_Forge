@@ -17,6 +17,7 @@ pub mod imported_plants;
 pub mod inspection;
 pub mod migration;
 pub mod paths;
+pub mod physics;
 pub mod placements;
 pub mod promotion;
 pub mod regeneration;
@@ -58,6 +59,9 @@ pub struct DensityOverride {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ZoneCorrections {
+    /// Explicit shared scene contact policy (head v15); omission preserves old hashes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub physics: Option<Box<physics::PhysicsSceneSettings>>,
     /// Sparse edits, copies and persistent deletions of verified source objects (head v14).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_object_edits: Option<Vec<source_objects::SourceObjectEdit>>,
@@ -117,6 +121,9 @@ impl ZoneAuthoringHead {
             return Err("Unsupported zone authoring schema/version".into());
         }
         let stamp = &self.base.generator;
+        if let Some(settings) = &self.corrections.physics {
+            settings.validate()?;
+        }
         if let Some(edits) = &self.corrections.source_object_edits {
             source_objects::validate(self, edits)?;
         }
@@ -269,6 +276,16 @@ impl ZoneCorrections {
     /// Minimum head version required by the present authoring domains.
     #[must_use]
     pub fn schema_version(&self) -> u32 {
+        if self.placements.as_ref().is_some_and(|placements| {
+            placements
+                .iter()
+                .any(|placement| placement.physics.is_some())
+        }) {
+            return 16;
+        }
+        if self.physics.is_some() {
+            return 15;
+        }
         if self.source_object_edits.is_some() {
             return 14;
         }

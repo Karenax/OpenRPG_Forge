@@ -5,7 +5,13 @@
 Le propriétaire demande explicitement de supprimer la limite de 16 Gio de marge mémoire avant lancement. Cette instruction remplace les anciennes consignes de garde à 16 Gio pour la poursuite de ce chantier. Les scripts actifs ne refusent plus le lancement selon ce seuil ; les mesures mémoire restent informatives. Les preuves historiques et leurs anciens refus restent conservés.
 
 
-## État actuel vérifié — 10 octobre 2026
+## État actuel vérifié — 11 octobre 2026
+
+Consigne propriétaire du 11 octobre : une seule version de travail, dans
+`E:\OpenRPG_Forge\OpenRPG_Forge-Rust`, avec reprise des changements des autres
+conversations. Les builds et validations utilisent cette base commune.
+Le [suivi de consolidation](docs/evidence/gate3/GATE3_SHARED_VERSION_20261011.md)
+identifie les corrections et preuves fraîches. Gate 3 reste ouverte pendant cette finalisation.
 
 [Consolidation locale du 10 octobre](docs/evidence/gate3/GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
 
@@ -21,15 +27,16 @@ ultérieures ni clôture technique complète. Le candidat RPG isolé Source075
 (1951 tests natifs PASS, 52 ignorés et parcours intégrés) ; ces preuves historiques restent attachées à ce snapshot. Les corrections
 retenues ont désormais leur propre validation locale dans le bilan de consolidation.
 
-CI distante : [run du 9 octobre 37985561420](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420)
-sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98`. WASM et supply-chain PASS ;
-Windows et Linux FAIL à Clippy, tests et builds natifs suivants non exécutés.
+CI distante : [run du 11 octobre 38123749165](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38123749165)
+sur `48a894d550c5770a5ea50bc54707113e85ab5218`. WASM et supply-chain PASS ;
+Windows/Linux FAIL à Clippy ; tests et builds natifs suivants non exécutés.
 ADR-0006 ne couvre plus ces jobs qui ont réellement démarré. Une CI complète
 PASS sur la révision finale reste nécessaire ; les anciens `NOT RUN` sont historiques.
 
 Le [candidat installable initial du 10 octobre](docs/planning/INSTALLABLE_DELIVERY_20261010.md) a été rejeté par le propriétaire et remplacé par la [correction R3](docs/planning/INSTALLABLE_DELIVERY_20261010_R3.md). R3 conserve les données et couvre deux relancements natifs Tidewater réels. Windows vierge et acceptation visuelle humaine restent à vérifier ; ses binaires moteur du 9 octobre ne comprennent pas le lot moteur/CI consolidé ici.
-La généralisation du moteur reste en pause ; les corrections documentaires et
-l'intégration/CI Gate 3 demandées le 10 octobre ne relancent pas ce chantier.
+La reprise du 10 octobre conserve l'exigence de moteur générique décrite ci-dessous.
+Ses modules actuels et leur qualification indépendante restent à vérifier ; la
+consolidation Gate 3 ne constitue pas une preuve de cette généralisation.
 
 Les bilans datés ci-dessous conservent leurs preuves et réserves historiques.
 Leur vocabulaire « actif », « courant », « ouvert » ou « en attente » décrit

@@ -118,6 +118,7 @@ pub(super) fn install(app: &mut App, identity: Option<PlaytestIdentity>) -> Resu
     });
     if let (Some(document), Some(identity)) = (gameplay, identity) {
         let run = super::authoring_gameplay::begin_run();
+        let timing = forge_engine::playtest_timing::PlaytestTiming::new(identity, run.id());
         let resume = super::authoring_gameplay::take_resume(identity.source_hash)?;
         let runtime = forge_engine::gameplay::GameplayRuntime::new(
             document,
@@ -134,13 +135,20 @@ pub(super) fn install(app: &mut App, identity: Option<PlaytestIdentity>) -> Resu
             )?;
         }
         app.insert_resource(runtime)
+            .insert_resource(timing)
+            .init_resource::<super::authoring_gameplay::TimingPublication>()
             .insert_resource(run)
             .add_plugins(forge_engine::gameplay::GameplayPlugin)
+            .add_plugins(forge_engine::playtest_timing::PlaytestTimingPlugin)
             .add_systems(
                 FixedUpdate,
                 super::authoring_gameplay::bridge
                     .after(forge_engine::navigation::NavigationSet::Refresh),
             );
+        app.add_systems(
+            FixedUpdate,
+            super::authoring_gameplay::observe_timing.after(super::authoring_gameplay::bridge),
+        );
     }
     app.insert_resource(PlaytestRun(identity, start()))
         .insert_resource(forge_engine::PlayerSimulationReady(false))

@@ -1,0 +1,26 @@
+#pragma kernel CSMain
+#pragma kernel CopyHeight
+// Direct pinned SDK implementation, explicit float reference precision.
+#define real float
+#define real2 float2
+#define real3 float3
+Texture2D<float4> _Height;
+SamplerState sampler_Height;
+struct PerPixelHeightDisplacementParam {float2 uv;};
+float ComputePerPixelHeightDisplacement(float2 offset,float lod,PerPixelHeightDisplacementParam p){return _Height.SampleLevel(sampler_Height,p.uv+offset,lod).r;}
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl"
+StructuredBuffer<float4> _Input;
+RWStructuredBuffer<float4> _Output;
+RWStructuredBuffer<float> _Plane;
+uint _Count,_Width,_HeightSize;
+[numthreads(64,1,1)] void CSMain(uint3 id:SV_DispatchThreadID){
+ if(id.x>=_Count)return;uint p=id.x*5;
+ float4 u=_Input[p],v=_Input[p+1],t=_Input[p+2],st=_Input[p+3],c=_Input[p+4];
+ float3 view=v.xyz*float3(u.z,u.w,1);float ndotv=view.z;
+ float maxHeight=c.x*0.01;maxHeight*=2/(abs(t.x)+abs(t.y));
+ float2 uvScale=maxHeight*t.xy;float3 direction=normalize(float3(view.xy*uvScale,view.z));
+ PerPixelHeightDisplacementParam data;data.uv=(u.xy*t.xy+t.zw)*st.xy+st.zw;
+ float height;float2 offset=ParallaxOcclusionMapping(c.z,c.w,(int)max(min(c.y,256),1),direction,data,height);
+ _Output[id.x]=float4(data.uv+offset,(maxHeight-height*maxHeight)/max(ndotv,0.0001),height);
+}
+[numthreads(8,8,1)] void CopyHeight(uint3 id:SV_DispatchThreadID){if(id.x>=_Width||id.y>=_HeightSize)return;_Plane[id.y*_Width+id.x]=_Height.Load(int3(id.xy,0)).r;}

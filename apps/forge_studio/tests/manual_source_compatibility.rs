@@ -22,6 +22,7 @@ fn session() -> ZoneEditSession {
 
 fn object(label: &str, asset: &str, hash: u8) -> ManualPlacement {
     ManualPlacement {
+        physics: None,
         id: EntityId::deterministic(format!("manual-source:{label}")),
         name: format!("{label} object"),
         asset_id: AssetId::deterministic(format!("manual-source-asset:{asset}")),

@@ -5,6 +5,8 @@ param(
     [Parameter(Mandatory)][string]$CandidatePath,
     [Parameter(Mandatory)][string]$FixtureSource,
     [Parameter(Mandatory)][string]$EvidencePath,
+    [Alias('SourceOriginalHash')][ValidatePattern('^[0-9A-Fa-f]{64}$')]
+    [string]$SourceOriginalHashPinned = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720',
     [string]$BrowserFolder = 'C:\Program Files (x86)\Microsoft\EdgeWebView\Application\154.0.4258.37',
     [ValidateRange(0, 60)][int]$ObservationDelaySeconds = 20,
     [switch]$AwaitObjectCollisionBlock,
@@ -19,9 +21,14 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# The imported helper declares these same parameters on its SelfTest path.
+$captureRequestedSourcePin = $SourceOriginalHashPinned
+$captureRequestedAuthoringLedger = $AuthoringLedger
 . (Join-Path $PSScriptRoot 'Invoke-Gate3GameplayPlaytestSmoke.ps1') -SelfTest | Out-Null
+$SourceOriginalHashPinned = $captureRequestedSourcePin
+$AuthoringLedger = $captureRequestedAuthoringLedger
 $captureZone = 'e620dd19-ead9-5913-a6d6-0f93109148c0'
-$capturePin = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720'
+$capturePin = Get-NormalizedSha256 -Value $SourceOriginalHashPinned
 $captureCandidate = [IO.Path]::GetFullPath($CandidatePath)
 $captureSource = [IO.Path]::GetFullPath($FixtureSource)
 $captureOutput = [IO.Path]::GetFullPath($EvidencePath)

@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "launcher-main-window",
+  "description": "The local launcher exposes its typed application command, a session-guarded CLI diagnostic, and the title-bar drag action.",
+  "windows": ["main"],
+  "local": true,
+  "permissions": [
+    "allow-execute-launcher-command",
+    "allow-complete-launcher-probe",
+    "core:window:allow-start-dragging"
+  ]
+}

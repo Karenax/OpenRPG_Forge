@@ -21,12 +21,241 @@ pub(super) struct SourceSceneHost {
     pub registered: RegisteredScene,
     pub original_state: Option<source_graph_state::StatePlan>,
     pub object_basis: Option<source_graph_context::ObjectBasis>,
+    pub source_document: serde_json::Value,
+    pub collider_projection: Option<forge_engine::source_collider_projection::ColliderProjection>,
+    pub collider_scene_projection:
+        Option<forge_engine::source_collider_scene::ColliderSceneProjection>,
 }
 
 #[derive(Component)]
 struct ShadowLayer(usize);
 
 impl SourceSceneHost {
+    /// Resolve measured contacts only with explicit target-scene settings.
+    /// The source offset and original observations remain distinct from target
+    /// skin; success does not qualify native simulation or reveal the scene.
+    pub fn install_physics_package_with_settings(
+        &mut self,
+        world: &mut World,
+        carrier: &[u8],
+        wire: &[u8],
+        expected_manifest: forge_core::ContentHash,
+        settings: &forge_engine::source_physics_contacts::ContactSceneSettings,
+    ) -> Result<usize, String> {
+        let package = forge_assets::source_physics_package::SourcePhysicsPackage::decode(
+            wire,
+            forge_core::bytes_sha256(carrier),
+            expected_manifest,
+        )?;
+        let glb = super::source_graph_route::read(carrier)?
+            .ok_or("Source physics carrier declaration absent")?;
+        let components = forge_assets::source_physics_transport::read_source_physics_transport(
+            &package.manifest,
+            expected_manifest,
+            forge_core::bytes_sha256(carrier),
+            &glb,
+            |path| {
+                package
+                    .candidates
+                    .get(path)
+                    .cloned()
+                    .ok_or("Physics package candidate absent".into())
+            },
+        )?;
+        let contacts =
+            forge_engine::source_physics_contacts::contacts_from_transport(&components, settings)?;
+        let cooking = forge_engine::source_physics_transport::cooking_from_transport(
+            &glb,
+            components,
+            &settings.evidence,
+        )?;
+        self.install_source_colliders(world, &glb, &cooking, &contacts)
+    }
+
+    /// Consume a binary package only with the manifest pin from the governed
+    /// library revision. The carrier pin is recomputed from the model bytes.
+    pub fn install_physics_package(
+        &mut self,
+        world: &mut World,
+        carrier: &[u8],
+        wire: &[u8],
+        expected_manifest: forge_core::ContentHash,
+        contacts: &BTreeMap<
+            (String, String),
+            forge_engine::source_collider_projection::ContactPolicy,
+        >,
+    ) -> Result<usize, String> {
+        let package = forge_assets::source_physics_package::SourcePhysicsPackage::decode(
+            wire,
+            forge_core::bytes_sha256(carrier),
+            expected_manifest,
+        )?;
+        self.install_physics_transport(
+            world,
+            carrier,
+            &package.manifest,
+            expected_manifest,
+            |path| {
+                package
+                    .candidates
+                    .get(path)
+                    .cloned()
+                    .ok_or("Physics package candidate absent".into())
+            },
+            contacts,
+        )
+    }
+
+    /// Read a pinned transport for the full carrier and install its shapes with
+    /// caller-supplied contact policy. The resolver never receives provenance
+    /// paths, only validated relative candidate paths.
+    pub fn install_physics_transport(
+        &mut self,
+        world: &mut World,
+        carrier: &[u8],
+        manifest: &[u8],
+        expected_manifest: forge_core::ContentHash,
+        resolve: impl FnMut(&str) -> Result<Vec<u8>, String>,
+        contacts: &BTreeMap<
+            (String, String),
+            forge_engine::source_collider_projection::ContactPolicy,
+        >,
+    ) -> Result<usize, String> {
+        let glb = super::source_graph_route::read(carrier)?
+            .ok_or("Source physics carrier declaration absent")?;
+        let components = forge_assets::source_physics_transport::read_source_physics_transport(
+            manifest,
+            expected_manifest,
+            forge_core::bytes_sha256(carrier),
+            &glb,
+            resolve,
+        )?;
+        let evidence = format!(
+            "source-physics-transport SHA-256 {expected_manifest}; native equivalence unqualified"
+        );
+        let cooking = forge_engine::source_physics_transport::cooking_from_transport(
+            &glb, components, &evidence,
+        )?;
+        self.install_source_colliders(world, &glb, &cooking, contacts)
+    }
+
+    /// Install the declared collision batch under the same source node entities.
+    /// The caller supplies resolved physical policy with provenance. Render
+    /// visibility and LOD decisions do not enable or disable these colliders.
+    pub fn install_colliders(
+        &mut self,
+        world: &mut World,
+        policies: &BTreeMap<
+            (String, String),
+            forge_engine::source_collider_projection::ContactPolicy,
+        >,
+    ) -> Result<usize, String> {
+        if self.collider_projection.is_some()
+            || self.collider_scene_projection.is_some()
+            || world.get::<SourceSceneAttached>(self.root).is_none()
+        {
+            return Err("Source collision host missing or already owns a projection".into());
+        }
+        let basis = self
+            .object_basis
+            .ok_or("Source collider object basis absent")?;
+        let projection = forge_engine::source_collider_projection::attach(
+            world,
+            self.root,
+            &self.source_document,
+            basis.target_from_source,
+            &self.attached.nodes,
+            policies,
+        )?;
+        let count = projection.entities.len();
+        self.collider_projection = Some(projection);
+        Ok(count)
+    }
+
+    /// Mount the complete box/mesh batch for this exact admitted source carrier.
+    /// Caller-supplied cooking/contact evidence never implies render admission.
+    pub fn install_source_colliders(
+        &mut self,
+        world: &mut World,
+        glb: &forge_assets::source_graph_glb::SourceGraphGlb<'_>,
+        cooking: &BTreeMap<
+            (String, String),
+            forge_engine::source_mesh_colliders::MeshCookingPolicy,
+        >,
+        contacts: &BTreeMap<
+            (String, String),
+            forge_engine::source_collider_projection::ContactPolicy,
+        >,
+    ) -> Result<usize, String> {
+        if self.collider_projection.is_some()
+            || self.collider_scene_projection.is_some()
+            || world.get::<SourceSceneAttached>(self.root).is_none()
+            || glb.document() != &self.source_document
+        {
+            return Err("Source collision host missing, occupied or carrier differs".into());
+        }
+        let basis = self
+            .object_basis
+            .ok_or("Source collider object basis absent")?;
+        let projection = forge_engine::source_collider_scene::attach(
+            world,
+            self.root,
+            glb,
+            basis.target_from_source,
+            &self.attached.nodes,
+            cooking,
+            contacts,
+        )?;
+        let count = projection.observation_count();
+        self.collider_scene_projection = Some(projection);
+        Ok(count)
+    }
+
+    /// Remove owned collision children without changing source nodes or draws.
+    pub fn remove_colliders(&mut self, world: &mut World) -> usize {
+        let mut count = 0;
+        if let Some(projection) = self.collider_projection.take() {
+            count += projection.entities.len();
+            projection.clear(world);
+        }
+        if let Some(projection) = self.collider_scene_projection.take() {
+            count += projection.observation_count();
+            projection.clear(world);
+        }
+        count
+    }
+
+    /// Select source LODs from the caller's current perspective camera.
+    /// Success does not reveal this host or qualify its GPU passes.
+    pub fn update_lod(
+        &self,
+        world: &mut World,
+        camera: &super::source_graph_lod::LodCamera,
+    ) -> Result<Vec<super::source_graph_lod::LodDecision>, String> {
+        let result = (|| {
+            let state = self
+                .original_state
+                .as_ref()
+                .ok_or("Source renderer state absent")?;
+            let basis = self.object_basis.ok_or("Source object basis absent")?;
+            super::source_graph_lod::update(
+                world,
+                self.root,
+                &self.attached.nodes,
+                &self.attached.primitives,
+                state,
+                basis.target_from_source,
+                camera,
+            )
+        })();
+        if result.is_err() {
+            if let Ok(mut root) = world.get_entity_mut(self.root) {
+                root.insert(Visibility::Hidden);
+            }
+        }
+        result
+    }
+
     /// The caller reserves a private layer; no asset or pack selects it.
     /// Source disabled shadows are preserved. A failed batch stays hidden and
     /// rolls back only newly created routes, never a previously borrowed route.
@@ -279,6 +508,9 @@ pub(super) fn mount(
             registered,
             original_state,
             object_basis,
+            source_document: glb.document().clone(),
+            collider_projection: None,
+            collider_scene_projection: None,
         })),
         Err(error) => {
             // Remove only allocations owned by this registration. Borrowed

@@ -21,7 +21,9 @@ forge_delivery pack-selected SOURCE DESCRIPTOR OUTPUT FOLDER...
 forge_delivery pack-list SOURCE DESCRIPTOR OUTPUT SELECTION_JSON
 forge_delivery inspect PACKAGE
 forge_delivery plan INSTALL_ROOT PACKAGE...
+forge_delivery plan-file INSTALL_ROOT ABSOLUTE_PLAN_FILE PACKAGE...
 forge_delivery apply PLAN_JSON
+forge_delivery uninstall INSTALL_ROOT
 forge_delivery status INSTALL_ROOT
 forge_delivery verify INSTALL_ROOT
 forge_delivery rollback-plan INSTALL_ROOT
@@ -33,6 +35,15 @@ forge_delivery launcher INSTALL_ROOT
 Sorties JSON et erreurs JSON sur stderr ; succès exit 0, erreur exit 1. `plan` et
 `rollback-plan` n'appliquent rien. `setup ROOT PACKAGE...` présente le plan et demande
 `oui` avant d'appliquer ; le hub offre le même aperçu sous forme graphique.
+
+`plan-file` écrit le plan canonique dans un chemin absolu avec `create_new` et ne remplace
+jamais un fichier existant. `uninstall` prend le même verrou natif que l'installation,
+valide les manifests dont le hash correspond au dossier de révision, puis retire seulement
+les fichiers dont la taille et le SHA-256 correspondent. Les fichiers modifiés, étrangers
+et toutes les données sous `user_root` sont conservés. Il supprime la tête
+`installation.json`; `installation.lock` reste en place pour conserver le même inode entre
+deux opérations concurrentes. Une installation déjà inactive renvoie un rapport JSON nul
+sans créer de verrou ni supprimer de fichier.
 
 Racine par défaut : `%LOCALAPPDATA%/OpenRPG Forge/Installation`.
 Données utilisateur : `%LOCALAPPDATA%/OpenRPG Forge/UserData`.
@@ -54,7 +65,15 @@ Formats initiaux expérimentaux, figés pour la première livraison de ce chanti
 
 Les substitutions d'arguments sont `{app}`, `{install}`, `{user}`, `{workspace}` et `{pack:ID}`.
 Une dépendance requise épingle ID/type/hash ; un pack optionnel peut seulement alimenter
-une variable d'environnement. Si absent, cette variable est retirée du processus enfant.
+une variable d'environnement. Si absent, cette variable est retirée du processus enfant,
+sauf le Vault externe explicitement sélectionné dans les données utilisateur.
+Une collection privée locale peut être raccordée sans copier ses assets ni modifier les
+packages : `user_root/asset-vault.v1.json` contient
+`{"schema":"forge.delivery.asset-vault.v1","path":"F:/OpenRPG_AssetVault"}`.
+Le chemin doit être absolu, exister et contenir le dossier `metadata`. Ce réglage est prioritaire
+pour les applications déclarant `OPENRPG_ASSET_VAULT` ; les autres applications ne le lisent pas.
+Une configuration invalide produit une erreur au lancement au lieu d'utiliser une autre
+collection silencieusement. Les lecteurs Forge conservent leurs vérifications de catalogue.
 Les arguments ne sont pas interprétés par PowerShell/cmd. Le module et ses IDs sont des
 données du produit, jamais des branches de comportement dans l'installateur.
 Les processus lancés écrivent leurs journaux sous le dossier utilisateur `logs` ;

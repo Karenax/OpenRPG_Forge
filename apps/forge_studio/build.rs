@@ -5,6 +5,7 @@ fn main() {
             "execute_studio_command",
             "read_asset_library",
             "read_asset_model",
+            "read_asset_physics",
         ]);
         let attributes = tauri_build::Attributes::new().app_manifest(app_manifest);
         tauri_build::try_build(attributes)

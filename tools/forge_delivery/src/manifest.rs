@@ -349,7 +349,7 @@ fn validate_template(value: &str, packs: &BTreeSet<&str>) -> Result<()> {
             return Err("Invalid launch template".into());
         }
         let (token, next) = tail.split_once('}').ok_or("Unclosed launch token")?;
-        if !matches!(token, "app" | "install" | "user" | "workspace")
+        if !matches!(token, "app" | "install" | "user" | "workspace" | "session")
             && !token
                 .strip_prefix("pack:")
                 .is_some_and(|id| packs.contains(id))

@@ -101,7 +101,49 @@ pub(super) fn ready(world: &World, expected_hash: ContentHash, count: usize) -> 
     if PREVIEW.with(|slot| slot.borrow().is_some()) || projection.attempted_preview.is_some() {
         return false;
     }
-    projection.batch.ready(world, expected_hash, count)
+    material_ready(world, projection, count) && projection.batch.ready(world, expected_hash, count)
+}
+
+fn material_ready(world: &World, projection: &Projection, count: usize) -> bool {
+    if count == 0 {
+        return true;
+    }
+    if !crate::authoring_assets::imported_buildings::has_environment() {
+        return projection.batch.uses_standard_material();
+    }
+    crate::authoring_assets::imported_scene::resident_lighting_material(world)
+        .is_some_and(|lighting| projection.batch.scene_material_is_current(world, &lighting))
+}
+
+/// Called by imported_scene after its real material publication, before its shadow pass.
+pub(crate) fn sync_material(world: &mut World) {
+    let Some(projection) = world.get_resource::<Projection>() else {
+        return;
+    };
+    if projection.batch.part_count() == 0 {
+        return;
+    }
+    let expected = crate::authoring_assets::imported_buildings::has_environment();
+    let lighting = if expected {
+        crate::authoring_assets::imported_scene::resident_lighting_material(world)
+    } else {
+        None
+    };
+    world.resource_scope(|world, mut projection: Mut<Projection>| {
+        let result = if expected {
+            let Some(lighting) = lighting else {
+                return;
+            };
+            projection.batch.use_scene_material(world, &lighting)
+        } else {
+            projection.batch.use_standard_material(world)
+        };
+        if let Err(error) = result {
+            report(format!(
+                "Matériau source des bâtiments non projeté : {error}"
+            ));
+        }
+    });
 }
 
 fn update_preview(world: &mut World) {
@@ -142,6 +184,10 @@ fn update_preview(world: &mut World) {
 }
 
 fn update(world: &mut World) {
+    // Restore the ordinary material even when source/viewport checks return early.
+    if !crate::authoring_assets::imported_buildings::has_environment() {
+        sync_material(world);
+    }
     let hash = PENDING.with(|slot| slot.borrow().as_ref().map(|(hash, _)| *hash));
     // Closing/invalidating a source must dispose our batch even when no terrain
     // projection remains available. Only creation waits for the viewport.
@@ -167,6 +213,7 @@ fn update(world: &mut World) {
             }
         }
     });
+    sync_material(world);
 }
 
 fn part_key(identity: forge_engine::authoring_buildings::BuildingPartIdentity) -> String {
@@ -196,11 +243,8 @@ fn publish_diagnostic(world: &mut World) {
         let projection = world.resource::<Projection>();
         let observed_hash = projection.batch.source_hash();
         let ready = pending.as_ref().is_some_and(|(hash, head)| {
-            projection.batch.ready(
-                world,
-                *hash,
-                head.corrections.buildings.as_ref().map_or(0, Vec::len),
-            )
+            let count = head.corrections.buildings.as_ref().map_or(0, Vec::len);
+            material_ready(world, projection, count) && projection.batch.ready(world, *hash, count)
         });
         let state = match pending.as_ref().map(|(hash, _)| *hash) {
             None => ProjectionState::NotRequested,

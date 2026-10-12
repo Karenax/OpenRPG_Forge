@@ -420,6 +420,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         building_package::load(&package, hash, &mut files)?;
     }
     building_placements::apply(&mut files)?;
+    let static_assets = static_asset_placements::load(&files)?;
     let acquired_environment = acquired_environment::load(
         &mut files,
         fixture.camera_pose.as_ref(),
@@ -940,6 +941,17 @@ fn main() -> Result<(), Box<dyn Error>> {
         )?;
         app.add_plugins(forge_engine::tidewater_hill_shadow::HillShadowPlugin);
     }
+    if let Some(plan) = &static_assets {
+        let draws = plan.shadow_draws()?;
+        if let Some(mut extra) = app
+            .world_mut()
+            .get_resource_mut::<object_shadow::AdditionalOpaqueDraws>()
+        {
+            extra.0.extend(draws);
+        } else {
+            app.insert_resource(object_shadow::AdditionalOpaqueDraws(draws));
+        }
+    }
     if with_object_depth {
         if matches!(
             plant_projection,
@@ -1101,8 +1113,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             ocean_geometry::install_shaders(&mut app, &files, &document)?;
         }
     }
+    if let Some(plan) = static_assets {
+        static_asset_placements::install(&mut app, plan);
+    }
     if let Some(shader) = files.get("village.wgsl") {
-        forge_engine::tidewater_material::install_shader(&mut app, std::str::from_utf8(shader)?)?;
+        let source = static_asset_placements::shader_source(std::str::from_utf8(shader)?);
+        forge_engine::tidewater_material::install_shader(&mut app, &source)?;
         if app.world().resource::<Probe>().fish_stand.is_some() {
             forge_engine::tidewater_stall::full_material::stage_shader(
                 app.world_mut(),
@@ -1401,6 +1417,9 @@ fn camera_projection(probe: &Probe) -> Projection {
         });
     Projection::Perspective(PerspectiveProjection {
         fov: fov.to_radians(),
+        // Match the initial capture target before CameraUpdateSystems publishes
+        // the actual live window aspect ratio.
+        aspect_ratio: 1920.0 / 1080.0,
         near,
         far,
         ..default()
@@ -1539,6 +1558,7 @@ fn capture(
         Option<Res<walk::graphics::GraphicsState>>,
         Option<Res<StaticVegetationPose>>,
         Option<Res<acquired_environment::Receipt>>,
+        Option<Res<static_asset_placements::Status>>,
     ),
     mut probe: ResMut<Probe>,
     mut exit: MessageWriter<AppExit>,
@@ -1558,7 +1578,11 @@ fn capture(
         Option<Res<temporal_owned::Proof>>,
     ),
 ) {
-    let (frame, graphics_state, vegetation_pose, acquired_environment) = capture_state;
+    let (frame, graphics_state, vegetation_pose, acquired_environment, static_assets) =
+        capture_state;
+    if static_assets.is_some_and(|assets| !assets.0) {
+        return;
+    }
     if probe.failed {
         exit.write(AppExit::error());
         return;
@@ -1801,3 +1825,6 @@ fn toggle_play_window(
         WindowMode::Windowed
     };
 }
+
+#[path = "tidewater_plant_probe/static_asset_placements.rs"]
+mod static_asset_placements;

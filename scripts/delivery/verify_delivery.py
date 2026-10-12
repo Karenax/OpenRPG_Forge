@@ -47,6 +47,7 @@ def main():
     if not (workspace / "workspace-v1").is_dir():
         raise ValueError("Editable workspace seed missing")
     report = dict(schema="forge.delivery.validation.v1", status="PASS_LOCAL_INSTALLER", root=str(root), user_root=str(user),
+                  validation_script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                   packages=len(packages), prepare_read_only=True, apply_replay_idempotent=True, full_file_verification=True,
                   workspace_seed_files=sum(1 for p in workspace.rglob("*") if p.is_file()), revision=state["revision"],
                   visual_acceptance=False, game_rpg_qualified=False, gate3_closed=False, release_qualified=False)

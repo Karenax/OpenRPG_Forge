@@ -1,5 +1,6 @@
 """Probe installed native entry points; never automate or approve UI content."""
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -60,8 +61,16 @@ def main():
                     process.wait(timeout=20)
             results.append(result)
             print(json.dumps(result), flush=True)
-    report = dict(schema="forge.delivery.entrypoint-smoke.v1", results=results, visual_acceptance=False, gate3_closed=False)
+    successful = {"PROCESS_ALIVE_NO_VISUAL_ACCEPTANCE", "NATIVE_SMOKE_EXIT_0", "LAUNCH_PLAN_VERIFIED_NO_GPU_PROBE"}
+    passed = all(result["status"] in successful for result in results)
+    report = dict(schema="forge.delivery.entrypoint-smoke.v1", results=results,
+                  status="PASS_LOCAL_ENTRYPOINT_PROBE" if passed else "FAIL_LOCAL_ENTRYPOINT_PROBE",
+                  game_gpu_probe_executed=args.game_smoke,
+                  probe_script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                  visual_acceptance=False, gate3_closed=False)
     (args.output / "entrypoints.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if not passed:
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()

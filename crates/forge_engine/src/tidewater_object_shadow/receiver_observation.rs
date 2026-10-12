@@ -112,7 +112,7 @@ mod tests {
             forward: Vec4::Z,
             ..default()
         };
-        let bytes = super::super::bytes(settings.clone());
+        let bytes = super::super::bytes(settings.clone(), true);
         let sample = decode(&bytes).unwrap();
         assert_eq!(sample.control, 1.0);
         assert_eq!(sample.enabled, settings.enabled);

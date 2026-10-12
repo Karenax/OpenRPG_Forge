@@ -18,6 +18,12 @@ fn context(world: &mut World) -> Result<Entity, String> {
 /// Runs before the KCC request: ECS edits pending backend synchronization or
 /// changed source receipts withdraw old islands before any horizontal movement.
 pub(crate) fn guard(world: &mut World) {
+    let timing = crate::playtest_timing::ElapsedTimer::start(
+        world
+            .resource::<NavigationRuntime>()
+            .timing_capture
+            .is_some(),
+    );
     let context = context(world);
     let sources = context
         .as_ref()
@@ -67,6 +73,10 @@ pub(crate) fn guard(world: &mut World) {
             }
         }
     });
+    world.resource_mut::<NavigationRuntime>().record_timing(
+        crate::playtest_timing::TimingPhase::NavigationGuard,
+        timing.finish(),
+    );
 }
 
 fn update_characters(world: &World, context: Entity, navigation: &mut NavigationRuntime) {
@@ -147,6 +157,12 @@ fn update_characters(world: &World, context: Entity, navigation: &mut Navigation
 /// After physics writeback and gameplay projection: snapshot canonical prepared
 /// geometry, poll workers, recheck receipts, then publish validated live islands.
 pub(crate) fn refresh(world: &mut World) {
+    let timing = crate::playtest_timing::ElapsedTimer::start(
+        world
+            .resource::<NavigationRuntime>()
+            .timing_capture
+            .is_some(),
+    );
     let context = context(world);
     let sources = context
         .as_ref()
@@ -236,6 +252,10 @@ pub(crate) fn refresh(world: &mut World) {
         poll(&mut navigation);
         dispatch(&mut navigation);
     });
+    world.resource_mut::<NavigationRuntime>().record_timing(
+        crate::playtest_timing::TimingPhase::NavigationRefresh,
+        timing.finish(),
+    );
 }
 
 /// Called at the beginning of `navigation::refresh`, after physics writeback and
@@ -300,11 +320,23 @@ fn poll(navigation: &mut NavigationRuntime) {
     }
     for (index, result) in finished.into_iter().rev() {
         let job = navigation.jobs.swap_remove(index);
-        navigation.publish(
-            &job.input,
-            result,
-            job.started.elapsed().as_secs_f64() * 1000.0,
-        );
+        let build_ms = job.started.elapsed().as_secs_f64() * 1000.0;
+        let (result, generation) = result;
+        navigation.publish(&job.input, result, build_ms);
+        if let Some(capture) = job.timing_capture {
+            navigation.record_job(crate::playtest_timing::TimingJobObservation {
+                capture,
+                inside_capture: false,
+                key: job.input.key,
+                token: job.input.token,
+                revision: job.input.revision,
+                source_hash: job.input.source_hash,
+                generation,
+                wrapper: forge_navigation::ElapsedObservation::not_requested(),
+                build_ms,
+                outcome: String::new(),
+            });
+        }
     }
 }
 #[cfg(not(target_arch = "wasm32"))]
@@ -325,15 +357,19 @@ fn dispatch(navigation: &mut NavigationRuntime) {
         let cancelled = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
         let flag = cancelled.clone();
         let started = std::time::Instant::now();
+        let observe_timing = true;
         navigation.jobs.push(NativeJob {
             input,
             started,
             cancelled,
+            timing_capture: Some(navigation.timing_capture.unwrap_or(0)),
             task: AsyncComputeTaskPool::get().spawn(async move {
-                forge_navigation::generate_tile_cancellable(work, || {
+                let timer = crate::playtest_timing::ElapsedTimer::start(observe_timing);
+                let result = forge_navigation::generate_tile_cancellable(work, || {
                     flag.load(std::sync::atomic::Ordering::Relaxed)
                         || started.elapsed() >= std::time::Duration::from_secs(30)
-                })
+                });
+                (result, timer.finish())
             }),
         });
     }
@@ -349,20 +385,60 @@ fn poll(navigation: &mut NavigationRuntime) {
         .collect();
     for token in expired {
         super::worker::cancel(token);
+        let capture = navigation.timing_job_captures.remove(&token);
         if let Some((input, started)) = navigation.jobs.remove(&token) {
+            let build_ms = now - started;
             navigation.publish(
                 &input,
                 Err("navigation worker generation timed out after 30 seconds".into()),
-                now - started,
+                build_ms,
             );
+            if let Some(capture) = capture {
+                navigation.record_job(crate::playtest_timing::TimingJobObservation {
+                    capture,
+                    inside_capture: false,
+                    key: input.key,
+                    token,
+                    revision: input.revision,
+                    source_hash: input.source_hash,
+                    generation: forge_navigation::ElapsedObservation::measured(f64::NAN, true),
+                    wrapper: forge_navigation::ElapsedObservation::measured(f64::NAN, true),
+                    build_ms,
+                    outcome: String::new(),
+                });
+            }
         }
     }
     for (token, result) in super::worker::poll() {
+        let capture = navigation.timing_job_captures.remove(&token);
         let Some((input, started)) = navigation.jobs.remove(&token) else {
             navigation.rejected_stale += 1;
             continue;
         };
-        navigation.publish(&input, result, super::worker::now_ms() - started);
+        let build_ms = super::worker::now_ms() - started;
+        let (result, generation, wrapper) = match result {
+            Ok(observed) => (Ok(observed.tile), observed.generation, observed.wrapper),
+            Err(error) => (
+                Err(error),
+                forge_navigation::ElapsedObservation::measured(f64::NAN, true),
+                forge_navigation::ElapsedObservation::measured(f64::NAN, true),
+            ),
+        };
+        navigation.publish(&input, result, build_ms);
+        if let Some(capture) = capture {
+            navigation.record_job(crate::playtest_timing::TimingJobObservation {
+                capture,
+                inside_capture: false,
+                key: input.key,
+                token,
+                revision: input.revision,
+                source_hash: input.source_hash,
+                generation,
+                wrapper,
+                build_ms,
+                outcome: String::new(),
+            });
+        }
     }
 }
 #[cfg(target_arch = "wasm32")]
@@ -374,7 +450,7 @@ fn dispatch(navigation: &mut NavigationRuntime) {
     let Some(mut input) = navigation.pending.pop_front() else {
         return;
     };
-    match super::worker::dispatch(&input) {
+    match super::worker::dispatch(&input, true) {
         Ok(()) => {
             if let Some(tile) = navigation.tiles.get_mut(&input.key) {
                 tile.observation.status = NavigationStatus::Generating;
@@ -383,6 +459,9 @@ fn dispatch(navigation: &mut NavigationRuntime) {
             input.vertices = Vec::new();
             input.triangles = Vec::new();
             input.areas = Vec::new();
+            navigation
+                .timing_job_captures
+                .insert(token, navigation.timing_capture.unwrap_or(0));
             navigation
                 .jobs
                 .insert(token, (input, super::worker::now_ms()));

@@ -9,6 +9,7 @@ use crate::asset_library_protocol::{
 };
 use serde_json::Value;
 mod history;
+mod physics_transport;
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -2159,7 +2160,11 @@ mod tests {
         let outside = std::env::temp_dir().join("forge-library-outside.png");
         fs::write(&outside, b"\x89PNG\r\n\x1a\noutside").unwrap();
         fs::remove_file(&preview).unwrap();
-        if std::os::windows::fs::symlink_file(&outside, &preview).is_ok() {
+        #[cfg(windows)]
+        let symlink_result = std::os::windows::fs::symlink_file(&outside, &preview);
+        #[cfg(unix)]
+        let symlink_result = std::os::unix::fs::symlink(&outside, &preview);
+        if symlink_result.is_ok() {
             assert!(
                 l.execute(LibraryRequest::Thumbnail {
                     id: "demo.arbre-eclaire".into(),

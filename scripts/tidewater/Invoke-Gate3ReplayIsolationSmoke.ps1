@@ -87,15 +87,19 @@ function Get-P04PublicIdentity {
     param([Parameter(Mandatory)]$Socket)
     return Invoke-CdpExpression -Socket $Socket -Expression @'
 (() => {
-  const norm=v=>(v??'').replace(/\s+/g,' ').trim();
-  const root=document.querySelector('details.authoring-zone-information');
-  if(!root) return {present:false,zone:'',revision:null};
-  const rows=[...root.querySelectorAll('dt')].map(node=>({key:norm(node.textContent),value:norm(node.nextElementSibling?.textContent)}));
-  return {
-    present:true,
-    zone:rows.find(row=>row.key==='Zone')?.value??'',
-    revision:rows.find(row=>row.key==='Révision')?.value??null
-  };
+  const source='accepted state.document DOM attributes data-forge-zone-id/data-forge-zone-revision';
+  const refused=reason=>({present:false,zone:'',revision:null,source,error:reason});
+  const roots=[...document.querySelectorAll('html')];
+  const browsers=[...document.querySelectorAll('.module-map-browser')];
+  const maps=[...document.querySelectorAll('.module-map-browser select[aria-label="Carte"]')];
+  if(roots.length!==1||roots[0]!==document.documentElement||browsers.length!==1||maps.length!==1) return refused('accepted document identity selectors absent or ambiguous');
+  const root=roots[0], zone=root.getAttribute('data-forge-zone-id'), revision=root.getAttribute('data-forge-zone-revision');
+  if(root.getAttribute('data-forge-zone-open')!=='true') return refused('accepted document is closed');
+  if(typeof zone!=='string'||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(zone)||maps[0].value!==zone) return refused('accepted document zone and map selection disagree');
+  if(typeof revision!=='string'||revision.length>20||!/^(0|[1-9][0-9]*)$/.test(revision)||BigInt(revision)>18446744073709551615n) return refused('accepted document revision is not an exact u64 decimal string');
+  const error=browsers[0].querySelector('[role="alert"]')?.textContent?.trim()??'';
+  if(error||browsers[0].getAttribute('aria-busy')!=='false') return refused(error||'module browser is busy');
+  return {present:true,zone,revision,source};
 })()
 '@
 }
@@ -160,8 +164,6 @@ function Get-P04UiState {
     $public = Get-PlaytestPublicState -Socket $Socket
     $identity = $null
     try {
-        Open-DetailsBySummary -Socket $Socket -Summary 'Informations de la zone' | Out-Null
-        Open-DetailsBySummary -Socket $Socket -Summary 'Identités techniques' | Out-Null
         $identity = Get-P04PublicIdentity -Socket $Socket
     }
     catch {
@@ -195,8 +197,6 @@ function Invoke-P04ChosenStart {
 '@)
     $publicIdentity = $null
     try {
-        Open-DetailsBySummary -Socket $socket -Summary 'Informations de la zone' | Out-Null
-        Open-DetailsBySummary -Socket $socket -Summary 'Identités techniques' | Out-Null
         $publicIdentity = Get-P04PublicIdentity -Socket $socket
     }
     catch {
@@ -621,7 +621,7 @@ $sourceAuthoredBefore = Get-ArchiveSnapshot -LiteralPath $sourceAuthoredObject
 if ($sourceAuthoredBefore.Sha256 -cne $authoredArchivePin) { throw 'Authored checkpoint differs from the authoring ledger.' }
 $authoredDocument = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($sourceAuthoredObject))
 $authoredRevision = $null
-if ($authoredDocument.head.PSObject.Properties.Name -contains 'revision') { $authoredRevision = [int64]$authoredDocument.head.revision }
+if ($authoredDocument.head.PSObject.Properties.Name -contains 'revision') { $authoredRevision = ([uint64]$authoredDocument.head.revision).ToString([Globalization.CultureInfo]::InvariantCulture) }
 
 [void](New-Item -ItemType Directory -Path $output)
 $outputCreated = $true
@@ -761,7 +761,7 @@ $ledger = [ordered]@{
         run2_public_zone = if ($null -ne $run2Start) { [string]$run2Start.public_identity.zone } else { $null }
         run2_public_revision = if ($null -ne $run2Start) { [string]$run2Start.public_identity.revision } else { $null }
         direct_domain_hash_read = $false
-        public_ui_read = 'Informations de la zone → Identités techniques → Révision'
+        public_ui_read = 'HTML data-forge-zone-open/id/revision from accepted state.document; unique Carte selection agrees with zone UUID'
     }
     public_ui_diagnostics = @($uiDiagnostics)
     journal = @($journal)

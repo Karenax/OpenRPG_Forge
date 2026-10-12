@@ -39,6 +39,8 @@ fn assign<T>(change: Change<T>, target: &mut T) {
 #[serde(deny_unknown_fields)]
 struct CorrectionsDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    physics: Option<Change<Option<Box<crate::zone_authoring::physics::PhysicsSceneSettings>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     source_object_edits:
         Option<Change<Option<Vec<crate::zone_authoring::source_objects::SourceObjectEdit>>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -73,6 +75,11 @@ struct CorrectionsDelta {
 impl CorrectionsDelta {
     fn between(a: &ZoneCorrections, b: &ZoneCorrections) -> Result<Self, String> {
         Ok(Self {
+            physics: if a.physics.is_some() || b.physics.is_some() {
+                Some(difference(&a.physics, &b.physics)?)
+            } else {
+                None
+            },
             source_object_edits: if a.source_object_edits.is_some()
                 || b.source_object_edits.is_some()
             {
@@ -154,6 +161,9 @@ impl CorrectionsDelta {
         })
     }
     fn apply(self, target: &mut ZoneCorrections) {
+        if let Some(change) = self.physics {
+            assign(change, &mut target.physics);
+        }
         if let Some(change) = self.source_object_edits {
             assign(change, &mut target.source_object_edits);
         }
@@ -337,7 +347,19 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
     if archive.schema != "forge.zone-edit-session"
         || !matches!(
             archive.version,
-            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33 | 36 | super::SOURCE_OBJECT_DELTA_VERSION
+            6 | 7
+                | 12
+                | 15
+                | 18
+                | 21
+                | 24
+                | 27
+                | 30
+                | 33
+                | 36
+                | super::SOURCE_OBJECT_DELTA_VERSION
+                | super::PHYSICS_DELTA_VERSION
+                | super::PLACEMENT_PHYSICS_DELTA_VERSION
         )
         || archive.commands.len() > 1024
     {
@@ -384,6 +406,12 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
 }
 
 fn version(receipts: &[ZoneReceipt]) -> u32 {
+    if super::has_placement_physics(receipts) {
+        return super::PLACEMENT_PHYSICS_DELTA_VERSION;
+    }
+    if super::has_physics(receipts) {
+        return super::PHYSICS_DELTA_VERSION;
+    }
     if super::has_source_objects(receipts) {
         return super::SOURCE_OBJECT_DELTA_VERSION;
     }

@@ -40,6 +40,7 @@ pub(super) fn install_static_graphics(app: &mut App) -> Result<(), Box<dyn std::
 struct Walk {
     geometry: ViewGeometry,
     previous: Option<Transform>,
+    previous_lens: Option<[u32; 4]>,
     plant_camera: Option<Vec3>,
     terrain_nodes: Vec<forge_world::cdlod::CdlodNode>,
     ocean_nodes: Vec<forge_world::cdlod::CdlodNode>,
@@ -153,6 +154,7 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     .insert_resource(Walk {
         geometry,
         previous: None,
+        previous_lens: None,
         plant_camera: None,
         terrain_nodes: Vec::new(),
         ocean_nodes: Vec::new(),
@@ -172,6 +174,7 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
             // barriers together. Late CDLOD replacements otherwise extract a
             // Mesh3d whose Added event (and GPU data) arrives one frame later.
             update
+                .after(bevy::camera::CameraUpdateSystems)
                 .before(bevy::asset::AssetEventSystems)
                 .before(bevy::camera::visibility::VisibilitySystems::VisibilityPropagate),
             live_camera,
@@ -359,7 +362,7 @@ fn buildings(world: &mut World) {
     }
 }
 
-fn update(world: &mut World) {
+fn simulation_ready(world: &mut World) -> bool {
     let physics = world.resource::<SampledTerrainPhysicsState>();
     let ready = physics.is_synchronized(world, physics.plan.document_hash())
         && world
@@ -379,7 +382,11 @@ fn update(world: &mut World) {
             .resource::<super::clouds::Targets>()
             .ready
             .load(std::sync::atomic::Ordering::Acquire);
-    let ready = ready && super::debris::ready(world);
+    ready && super::debris::ready(world) && super::static_asset_placements::ready(world)
+}
+
+fn update(world: &mut World) {
+    let ready = simulation_ready(world);
     world.resource_mut::<PlayerSimulationReady>().0 = ready;
     if !ready {
         return;
@@ -391,10 +398,19 @@ fn update(world: &mut World) {
     let transform = *transform;
     let projection = projection.clone();
     let state = world.resource::<Walk>();
-    if state.previous.is_some_and(|p| {
-        p.translation.distance_squared(transform.translation) < 1.0
-            && p.rotation.dot(transform.rotation).abs() > 0.9999
-    }) {
+    let lens = [
+        projection.fov,
+        projection.aspect_ratio,
+        projection.near,
+        projection.far,
+    ]
+    .map(f32::to_bits);
+    if state.previous_lens == Some(lens)
+        && state.previous.is_some_and(|p| {
+            p.translation.distance_squared(transform.translation) < 1.0
+                && p.rotation.dot(transform.rotation).abs() > 0.9999
+        })
+    {
         return;
     }
     let started = perf::start(world);
@@ -452,6 +468,7 @@ fn update(world: &mut World) {
     }
     update_ocean(world, &transform, &projection);
     world.resource_mut::<Walk>().previous = Some(transform);
+    world.resource_mut::<Walk>().previous_lens = Some(lens);
 }
 
 fn update_ocean(world: &mut World, transform: &Transform, projection: &PerspectiveProjection) {

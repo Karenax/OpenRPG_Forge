@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "collection_id": "openrpg-forge.player-handbook.illustrations.v1",
+  "created_at": "2026-08-30",
+  "updated_at": "2026-08-30",
+  "generator": "OpenAI ImageGen",
+  "license": "LicenseRef-OpenAI-Generated-Output",
+  "license_note": "Generated output for the OpenRPG Forge project. Confirm the applicable OpenAI terms and the project distribution notice before an external release.",
+  "style_charter": {
+    "characters": "Grounded adult fantasy, realistic facial anatomy and body proportions, natural expressions, plausible worn equipment.",
+    "medium": "Detailed ink linework with textured gouache and restrained oil-like modelling.",
+    "palette": "Parchment, forest green, slate and muted bronze, balanced by bright azure, fresh greens and warm limestone for outdoor chapters.",
+    "lighting": "Varied by chapter. Bright exterior scenes are mandatory; dark scenes are reserved for danger and magic.",
+    "forbidden": [
+      "text or watermark inside the image",
+      "copyrighted characters or logos",
+      "imitation of a named living artist",
+      "anime-like or animation-stylized faces",
+      "uniforms that imply fixed character classes"
+    ]
+  },
+  "assets": [
+    {
+      "path": "cover-realistic-party.png",
+      "sha256": "D40635F2A60B874687C9D3F199317A59B3BF70D6F84BB0663C4871B75F77B13B",
+      "width": 1024,
+      "height": 1536,
+      "use": "Cover",
+      "prompt_summary": "Four original adventurers in mountain ruins using different skills; realistic classic fantasy handbook atmosphere; portrait with title space.",
+      "alt_text": "Quatre voyageurs se tiennent dans des ruines de montagne, chacun portant des outils et un équipement différents."
+    },
+    {
+      "path": "bright-forest-exploration.png",
+      "sha256": "AF9F1175FF9DADF129B885ECA5492DCEEED716D5CFB0EE0423E304A6446814BB",
+      "width": 1536,
+      "height": 1024,
+      "use": "Exploration and survival chapter",
+      "prompt_summary": "Sunlit ancient forest with tracking, rope crossing, herb identification and bird observation; regenerated against the realistic character reference.",
+      "alt_text": "Dans une forêt ensoleillée, quatre voyageurs pistent un animal, franchissent un ruisseau, examinent des plantes et observent des oiseaux."
+    },
+    {
+      "path": "bright-fortress-life.png",
+      "sha256": "6451743C1BDA8A35D475EBC120597017887B669F594B6612ACCB845A52CE5AED",
+      "width": 1536,
+      "height": 1024,
+      "use": "Character creation, communities and downtime",
+      "prompt_summary": "Bright hill fortress and village with negotiation, mechanism study, supply handling and staff practice; regenerated against the realistic character reference.",
+      "alt_text": "Devant une forteresse claire en plein jour, des voyageurs négocient, étudient une herse, déchargent un chariot et s’entraînent."
+    },
+    {
+      "path": "progression-by-practice.png",
+      "sha256": "5CDC4D170533944B8C57E915E914CFD2F61C08985EA080C52B55D798DB4D89D8",
+      "width": 1536,
+      "height": 1024,
+      "use": "Progression chapter and primary style reference",
+      "prompt_summary": "A coherent courtyard scene combining weapon mentoring, map study, medicine and mechanism work to show learning by doing.",
+      "alt_text": "Dans une cour en ruine, des voyageurs s’exercent avec un mentor, étudient une carte, soignent une blessure et examinent un mécanisme."
+    },
+    {
+      "path": "systemic-encounter.png",
+      "sha256": "EBB3B840D9EA8B19846B343D4F6D4947E70D3A621358BE20D17DB19D729F687A",
+      "width": 1536,
+      "height": 1024,
+      "use": "Combat and environmental reactions",
+      "prompt_summary": "Flooded ruin encounter with shield contact, falling counterweight, elevation and frozen water; visible physical cause and effect.",
+      "alt_text": "Dans une ruine inondée, un bouclier arrête une créature pendant qu’un contrepoids tombe et qu’une bande de glace modifie le terrain."
+    },
+    {
+      "path": "magic-observatory.png",
+      "sha256": "1BC15D67024CA442DFF740CCE105250E02687DBCA4D9AF148B73D20EBB8ED9BC",
+      "width": 1536,
+      "height": 1024,
+      "use": "Magic chapter",
+      "prompt_summary": "Moonlit observatory with a ward, alchemical ingredients, astronomy and a contained unstable rift; visible cost and responsibility.",
+      "alt_text": "Dans un observatoire nocturne, quatre voyageurs préparent un cercle, des ingrédients et des instruments autour d’une faille contenue."
+    },
+    {
+      "path": "social-negotiation.png",
+      "sha256": "E4E25088A255519AD892E07BCB99A653CECA21F90C64D3F568856FCF1AE53D37",
+      "width": 1536,
+      "height": 1024,
+      "use": "Social play and factions chapter",
+      "prompt_summary": "Border guild negotiation showing empathy, evidence, leverage and observation while every participant retains agency.",
+      "alt_text": "Autour d’une table de guilde, plusieurs personnes négocient tandis que des compagnons observent les réactions et présentent des preuves."
+    },
+    {
+      "path": "rescue-after-storm.png",
+      "sha256": "82D8C50CEAB52F3CB682D848D5924CA30300860F3821CAAD485409EC27F73A7C",
+      "width": 1536,
+      "height": 1024,
+      "use": "Injuries, conditions and first aid chapter",
+      "prompt_summary": "Morning rescue in an open rural relay after rain, with compression, splinting, clean water and conscious monitoring; realistic faces and practical care.",
+      "alt_text": "Dans un relais ouvert sur une campagne lumineuse après la pluie, quatre voyageurs posent une attelle, compriment une plaie et préparent de l’eau propre."
+    },
+    {
+      "path": "dawn-harbor-infiltration.png",
+      "sha256": "0E18C9D0A91082244FA364635E99701BEF21B9AE0E8C3501CEB373647A10785D",
+      "width": 1536,
+      "height": 1024,
+      "use": "Stealth and perception chapter",
+      "prompt_summary": "Wet harbour quays at dawn with travellers using cover and reflections while a guard examines a trace; sight lines and evidence remain physically readable.",
+      "alt_text": "À l’aube sur des quais mouillés, des voyageurs utilisent caisses, barque et reflets tandis qu’un garde examine une trace près d’un entrepôt."
+    },
+    {
+      "path": "windy-coast-council.png",
+      "sha256": "2FA705DD088785EB5A9961C470E37AA89DEF981F0FD5A0D10AE736F2CA6E6113",
+      "width": 1536,
+      "height": 1024,
+      "use": "Group and companions chapter",
+      "prompt_summary": "Bright windy coastal planning scene with map reading, route selection, pack-animal logistics and visible disagreement among autonomous companions.",
+      "alt_text": "Sur une côte lumineuse et venteuse, un groupe étudie une carte, charge un animal de bât, désigne une route et exprime un désaccord."
+    },
+    {
+      "path": "glass-roof-workshop.png",
+      "sha256": "F2C3EEB217ED0F0A57814001C825FC0895988D71D8E7E8E0D3E6D46250BD460D",
+      "width": 1536,
+      "height": 1024,
+      "use": "Inventory, preparation and crafting chapter",
+      "prompt_summary": "Daylit urban workshop under a glass roof with crossbow disassembly, armour repair, alchemical measuring and material comparison.",
+      "alt_text": "Sous la verrière d’un atelier lumineux, des voyageurs démontent une arbalète, réparent une armure, mesurent un mélange et comparent des matériaux."
+    }
+  ]
+}

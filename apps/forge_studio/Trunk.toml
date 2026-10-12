@@ -13,4 +13,4 @@ open = false
 [[hooks]]
 stage = "post_build"
 command = "pwsh"
-command_arguments = ["-NoProfile", "-File", "../../scripts/Build-NavigationWorker.ps1"]
+command_arguments = ["-NoProfile", "-File", "../../scripts/Build-NavigationWorker.ps1", "-StageLocalAssets"]

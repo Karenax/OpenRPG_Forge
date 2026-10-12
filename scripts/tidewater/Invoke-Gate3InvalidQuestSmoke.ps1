@@ -18,9 +18,10 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$AuthoringLedger,
 
-    [Parameter(ParameterSetName = 'Run', Mandatory)]
+    [Parameter(ParameterSetName = 'Run')]
+    [Alias('SourceOriginalHash')]
     [ValidatePattern('^[0-9A-Fa-f]{64}$')]
-    [string]$SourceOriginalHashPinned,
+    [string]$SourceOriginalHashPinned = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720',
 
     [Parameter(ParameterSetName = 'Run', Mandatory)]
     [ValidateNotNullOrEmpty()]
@@ -746,7 +747,6 @@ $p03ZoneId = if ($null -ne $ZoneUuid) { $ZoneUuid.ToString('D').ToLowerInvariant
 $p03EditorSummary = 'Personnages, objets et objectifs'
 $p03QuestName = 'Rapporter le Sceau'
 $p03ItemName = 'Sceau'
-$p03LegacySourcePin = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720'
 $p03Base009ArchiveHash = '72598abab38bf2460ab6bebead8a02f364d19894fa1804a50dd6e4c92247445e'
 $p03Base009HeadHash = '2be5aab2dd674d5af8f67cd52aea6d61ba4a5de32a99c35855cc4d8cc908b4d4'
 $script:CdpP03MessageId = 0
@@ -924,15 +924,13 @@ function Close-P03TidewaterZone {
         [Parameter(Mandatory)]$Socket,
         [Parameter(Mandatory)][int]$TimeoutSeconds
     )
-    [void](Invoke-UiClick -Socket $Socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $Socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $Socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $Socket -TimeoutSeconds $TimeoutSeconds
     [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'R3-P03 close Tidewater zone' -Expression @'
 (() => {
   const norm=value=>(value??'').replace(/\s+/g,' ').trim();
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const open=document.documentElement?.getAttribute('data-forge-zone-open');
-  return {ready:context==='Aucune zone ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
+  return {ready:context==='Aucune carte ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
 })()
 '@)
 }
@@ -971,7 +969,7 @@ if ($p03RequestedSelfTest) {
         'Browser.getVersion', 'Target.getTargets', 'Target.activateTarget', 'renderer_settle_delay_ms', 'target_commands',
         'browser_commands', 'Connect-P03CdpSocket', 'Start-P03InvalidQuestProcess',
         'graceful_close_failure', 'cleanup_identity_verified',
-        'Save-GameplayUiDiagnostic', 'Page.captureScreenshot', 'Fermer la zone', 'gold-close-dialog',
+        'Save-GameplayUiDiagnostic', 'Page.captureScreenshot', 'Close-Gate3PlaytestZone', 'gold-close-dialog',
         'gate_qualified', 'Input.dispatchMouseEvent', 'Input.dispatchKeyEvent', 'Stop-ForgeStudioPlaytestProcess'
     )) {
         if ($raw.IndexOf($needle, [StringComparison]::Ordinal) -lt 0) {
@@ -990,7 +988,6 @@ $ledgerInput = [IO.Path]::GetFullPath($AuthoringLedger)
 $output = [IO.Path]::GetFullPath($EvidenceRoot)
 $sourcePin = Get-NormalizedSha256 -Value $SourceOriginalHashPinned
 $currentFixturePins = Get-P03CurrentFixturePins -Enabled:$CurrentCandidateFixture -CandidatePin $ExpectedCandidateSha256 -ArchivePin $ExpectedAuthoredArchiveHash -HeadPin $ExpectedAuthoredHeadHash -LedgerPin $ExpectedAuthoringLedgerSha256
-if ($sourcePin -cne $p03LegacySourcePin) { throw "R3-P03 requires the preserved legacy source pin $p03LegacySourcePin." }
 foreach ($entry in @(
         @($candidate, 'Studio candidate'),
         @($source, 'Fresh isolated authored fixture'),
@@ -1065,7 +1062,7 @@ $sourceWorkspaceBefore = Get-ArchiveSnapshot -LiteralPath $sourceWorkspaceArchiv
 $sourceObjectBefore = Get-ArchiveSnapshot -LiteralPath $sourceObject
 $managedBefore = Get-ArchiveSnapshot -LiteralPath $managedObject
 if ($sourceBefore.Sha256 -cne $sourcePin -or $sourceObjectBefore.Sha256 -cne $sourcePin) {
-    throw 'Legacy source archive/object does not match the pinned 50bfd source bytes.'
+    throw 'Source archive/object does not match SourceOriginalHashPinned.'
 }
 $workspaceReferenceBefore = Get-Gate3WorkspaceReference -Archive $sourceWorkspaceArchive -ZoneId $p03ZoneId
 if ((Get-NormalizedSha256 -Value ([string]$workspaceReferenceBefore.archive_hash)) -cne $managedHash -or
@@ -1073,6 +1070,10 @@ if ((Get-NormalizedSha256 -Value ([string]$workspaceReferenceBefore.archive_hash
     throw 'Workspace does not reference the authored current object/head checkpoint from the passed ledger.'
 }
 if ($managedBefore.Sha256 -cne $managedHash) { throw 'Authored managed object hash does not match its workspace reference.' }
+$sourcePlacementsBefore = Get-Gate3ArchivePlacementsSnapshot -Archive $sourceArchive
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourceObject)
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $managedObject)
+Assert-Gate3PlacementsLedger -Ledger $authoring -SourcePin $sourcePin -Baseline $sourcePlacementsBefore
 $facts = Get-P03GameplayFacts -Archive $managedObject
 $initialState = Get-P03ArchiveState -ZoneArchive $sourceArchive -WorkspaceArchive $sourceWorkspaceArchive -ManagedObjectArchive $managedObject -ZoneId $p03ZoneId
 $initialReceiptCount = @($initialState.managed_receipt_ids).Count
@@ -1112,6 +1113,8 @@ $diagnosticState = $null
 $diagnosticIntegrity = $null
 $finalState = $null
 $finalIntegrity = $null
+$finalPlacementsSnapshot = $null
+$placementsPreserved = $false
 $stopResult = $null
 
 try {
@@ -1204,6 +1207,9 @@ try {
     $finalState = Get-P03ArchiveState -ZoneArchive $cloneSourceArchive -WorkspaceArchive $cloneWorkspaceArchive -ManagedObjectArchive $cloneManagedObject -ZoneId $p03ZoneId
     $finalIntegrity = Compare-P03ArchiveState -Before $cloneBeforeState -After $finalState
     if (-not [bool]$finalIntegrity.all_unchanged) { $failure = "P03 final archive immutability failed; $failure" }
+    $finalPlacementsSnapshot = Get-Gate3ArchivePlacementsSnapshot -Archive $cloneManagedObject
+    Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $finalPlacementsSnapshot
+    $placementsPreserved = $true
 }
 catch {
     $failure = "P03 final archive snapshot failed: $($_.Exception.Message); $failure"
@@ -1231,6 +1237,13 @@ $ledger = [ordered]@{
     explicit_current_fixture_pins = $currentFixturePins
     source_fixture = $source
     source_original_hash_pinned = $sourcePin
+    source_placements = [ordered]@{
+        source_archive_sha256=$sourcePin
+        representation='ConvertTo-Json -Depth 100 -Compress; complete ordered placement array; SHA-256 of UTF-8 without BOM'
+        before=[ordered]@{count=$sourcePlacementsBefore.Count; sha256=$sourcePlacementsBefore.Sha256; canonical_json=$sourcePlacementsBefore.CanonicalJson}
+        after=if ($null -ne $finalPlacementsSnapshot) { [ordered]@{count=$finalPlacementsSnapshot.Count; sha256=$finalPlacementsSnapshot.Sha256; canonical_json=$finalPlacementsSnapshot.CanonicalJson} } else { $null }
+        identity_and_content_preserved=$placementsPreserved
+    }
     passed_authoring_ledger = $ledgerInput
     passed_authoring_ledger_sha256 = $authoringLedgerHash
     authored_managed_object_hash = $managedHash

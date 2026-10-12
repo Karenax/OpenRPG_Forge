@@ -7,9 +7,15 @@ param(
     [Parameter(Mandatory)][string]$FreshIsolatedFixture,
     [Parameter(Mandatory)][string]$PreviousLedger,
     [Parameter(Mandatory)][string]$EvidenceRoot,
-    [int]$InteractionTimeoutSeconds=120
+    [Alias('SourceOriginalHash')][ValidatePattern('^[0-9A-Fa-f]{64}$')]
+    [string]$SourceOriginalHashPinned='50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720',
+    [int]$InteractionTimeoutSeconds=120,
+    [Alias('BrowserExecutableFolder')][ValidateNotNullOrEmpty()]
+    [string]$BrowserFolder='C:\Program Files (x86)\Microsoft\EdgeWebView\Application\154.0.4258.37',
+    [Alias('ExpectedBrowserRuntimeVersion','ExpectedWebViewVersion')]
+    [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')][string]$WebViewVersion='154.0.4258.37'
 )
-$revalidationConfig=@{candidate=$Candidate;source=$FreshIsolatedFixture;parent=$PreviousLedger;output=$EvidenceRoot;timeout=$InteractionTimeoutSeconds}
+$revalidationConfig=@{candidate=$Candidate;source=$FreshIsolatedFixture;parent=$PreviousLedger;output=$EvidenceRoot;SourcePin=$SourceOriginalHashPinned;timeout=$InteractionTimeoutSeconds;Browser=$BrowserFolder;ExpectedBrowser=$WebViewVersion}
 $revalidationScriptInputBytes=@(foreach($scriptPath in @($PSCommandPath,(Join-Path $PSScriptRoot 'Invoke-Gate3GameplayAuthoringSmoke.ps1'),(Join-Path $PSScriptRoot 'Invoke-Gate3PhysicsPlaytestSmoke.ps1'),(Join-Path $PSScriptRoot 'Invoke-Gate3GameplayPlaytestSmoke.ps1'),(Join-Path $PSScriptRoot 'Gate3ProofStorage.ps1'),(Join-Path $PSScriptRoot '../Invoke-Gate2WorldEditingProof.ps1'))){$bytes=[IO.File]::ReadAllBytes($scriptPath);[pscustomobject]@{path=[IO.Path]::GetFullPath($scriptPath);bytes=$bytes;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant();captured_utc=[DateTimeOffset]::UtcNow.ToString('o')}})
 . (Join-Path $PSScriptRoot 'Invoke-Gate3GameplayAuthoringSmoke.ps1') -SelfTest | Out-Null
 . (Join-Path $PSScriptRoot 'Invoke-Gate3PhysicsPlaytestSmoke.ps1') -SelfTest | Out-Null
@@ -21,8 +27,13 @@ $source=[IO.Path]::GetFullPath($revalidationConfig.source)
 $output=[IO.Path]::GetFullPath($revalidationConfig.output)
 $parentPath=[IO.Path]::GetFullPath($revalidationConfig.parent)
 $timeout=[int]$revalidationConfig.timeout
+$browserExecutable=Join-Path ([IO.Path]::GetFullPath($revalidationConfig.Browser)) 'msedgewebview2.exe'
+if(-not(Test-Path -LiteralPath $browserExecutable -PathType Leaf)){throw "WebView2 executable absent: $browserExecutable"}
+$browserVersion=[string](Get-Item -LiteralPath $browserExecutable).VersionInfo.FileVersion
+if($browserVersion -cne $revalidationConfig.ExpectedBrowser){throw "WebView2 runtime mismatch: observed=$browserVersion expected=$($revalidationConfig.ExpectedBrowser)"}
+$browserReceipt=[ordered]@{folder=[IO.Path]::GetFullPath($revalidationConfig.Browser);version=$browserVersion;executable_sha256=Get-FileSha256 -LiteralPath $browserExecutable}
 $zoneId='e620dd19-ead9-5913-a6d6-0f93109148c0'
-$sourcePin='50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720'
+$sourcePin=Get-NormalizedSha256 -Value $revalidationConfig.SourcePin
 foreach($path in @($candidate,$source,$output,$parentPath)){Assert-Gate3ProofPath -LiteralPath $path -Description 'public checkpoint revalidation'}
 if(Test-Path -LiteralPath $output){throw 'Revalidation evidence root must be fresh.'}
 Assert-TreeHasNoReparsePoints -LiteralPath $source -Description 'checkpoint revalidation source'
@@ -55,7 +66,7 @@ $cloneObject=Join-Path $fixture "workspace-v1/objects/$archiveHash.json"
 $cloneBefore=@((Get-ArchiveSnapshot -LiteralPath $cloneArchive),(Get-ArchiveSnapshot -LiteralPath $cloneOriginal),(Get-ArchiveSnapshot -LiteralPath $cloneObject))
 $envBefore=@{}
 foreach($name in @('FORGE_AUTHORING_ROOT','FORGE_AUTHOR_SUBJECT','WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS','WEBVIEW2_USER_DATA_FOLDER','WEBVIEW2_BROWSER_EXECUTABLE_FOLDER')){$envBefore[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
-[Environment]::SetEnvironmentVariable('WEBVIEW2_BROWSER_EXECUTABLE_FOLDER','C:\Program Files (x86)\Microsoft\EdgeWebView\Application\154.0.4258.37','Process')
+[Environment]::SetEnvironmentVariable('WEBVIEW2_BROWSER_EXECUTABLE_FOLDER',[IO.Path]::GetFullPath($revalidationConfig.Browser),'Process')
 $journal=[System.Collections.Generic.List[object]]::new()
 $entityReads=[System.Collections.Generic.List[object]]::new()
 $failure=$null;$run=$null;$closed=$true;$forced=$false;$ack=$false;$savedReference=$null;$saveObservation=$null
@@ -159,6 +170,7 @@ $ledger['loaded_script_inputs_sha256']=Get-FileSha256 -LiteralPath $ledger.loade
 [void](Stop-Transcript)
 $ledger['public_input_transcript_path']=$publicInputTranscript
 $ledger['public_input_transcript_sha256']=Get-FileSha256 -LiteralPath $publicInputTranscript
+$ledger['browser_runtime']=$browserReceipt
 [IO.File]::WriteAllText($ledgerPath,($ledger|ConvertTo-Json -Depth 100),[Text.UTF8Encoding]::new($false))
 if($ledger.status -cne 'passed'){throw "Public checkpoint revalidation failed: $failure; ledger=$ledgerPath"}
 Write-Output "GATE3_PUBLIC_CHECKPOINT_REVALIDATED ledger=$ledgerPath"

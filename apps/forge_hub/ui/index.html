@@ -1,7 +1,96 @@
 <!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OpenRPG Forge</title><link rel="stylesheet" href="style.css"><script src="hub.js" defer></script></head>
-<body><header><span class="mark">F</span><div><p class="eyebrow">OPENRPG FORGE</p><h1>Créer des mondes. Vivre leurs histoires.</h1></div><span id="version" class="badge">Installation locale</span></header>
-<main><section class="hero"><p class="eyebrow">VOTRE ATELIER</p><h2 id="title">Bienvenue dans Forge</h2><p id="subtitle">Installez les applications et les packs de contenu pour commencer.</p><div class="actions"><button id="play" disabled>Jouer <span>→</span></button><button id="edit" class="secondary" disabled>Ouvrir l’éditeur</button></div><p class="muted">Vos projets et sauvegardes restent dans votre espace utilisateur lors des mises à jour.</p></section>
-<section class="panel"><div class="section-head"><h2>Installation et contenu</h2><button id="select" class="quiet">Ajouter des packages</button></div><p id="status" aria-live="polite">Lecture de l’installation…</p><ul id="packs"></ul><div class="tools"><button id="bundled" class="secondary">Préparer cette livraison</button><button id="verify" class="quiet" disabled>Vérifier les fichiers</button><button id="rollback" class="quiet" disabled>Version précédente</button></div></section>
-<section id="preview" class="panel" hidden><h2>Vérifier les changements</h2><p id="summary"></p><ul id="changes"></ul><div class="tools"><button id="apply">Installer ces packages</button><button id="cancel" class="quiet">Annuler</button></div><details><summary>Détails du plan</summary><pre id="plan"></pre></details></section>
-<p id="error" role="alert" hidden></p><footer><span id="location"></span><span>Applications · Modules · Assets</span></footer></main></body></html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>OpenRPG Forge — Gestionnaire de contenu</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="hub.js" defer></script>
+</head>
+<body>
+  <div class="landscape" aria-hidden="true"></div>
+  <div class="light-haze" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand">
+      <span class="emblem" aria-hidden="true">F</span>
+      <div>
+        <p class="brand-name">OPENRPG FORGE</p>
+        <p class="brand-subtitle">GESTIONNAIRE DE CONTENU</p>
+      </div>
+    </div>
+    <p id="version" class="badge">Installation locale</p>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">VOTRE ATELIER</p>
+      <h1 id="title">Installer et gérer<br><em>vos contenus.</em></h1>
+      <p id="subtitle" class="intro">Ajoutez des packages et vérifiez votre installation Forge.</p>
+      <div class="home-actions">
+        <button id="play" class="button primary" type="button" disabled>Jouer <span aria-hidden="true">→</span></button>
+        <button id="edit" class="button secondary" type="button" disabled>Ouvrir l’éditeur</button>
+      </div>
+      <p class="home-note">Vos projets et vos sauvegardes restent dans votre espace personnel lors des mises à jour.</p>
+    </section>
+
+    <section class="panel destination" aria-labelledby="destination-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ÉTAPE 1</p>
+          <h2 id="destination-title">Choisir le dossier</h2>
+        </div>
+        <span class="badge">Destination</span>
+      </div>
+      <p class="panel-intro">Choisissez où Forge gardera ses applications et son contenu. Vous pourrez revenir ici pour changer de destination avant une nouvelle installation.</p>
+      <label for="root-path">Dossier d’installation</label>
+      <div class="path-row">
+        <input id="root-path" type="text" autocomplete="off" spellcheck="false" aria-describedby="destination-status">
+        <button id="choose-root" class="button secondary" type="button">Parcourir…</button>
+      </div>
+      <div class="destination-actions">
+        <button id="set-root" class="button primary" type="button">Utiliser ce dossier</button>
+      </div>
+      <p id="destination-status" class="field-status" aria-live="polite">La destination actuelle sera affichée ici.</p>
+    </section>
+
+    <section class="panel content" aria-labelledby="content-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ÉTAPE 2</p>
+          <h2 id="content-title">Préparer le contenu</h2>
+        </div>
+        <button id="select" class="button quiet" type="button">Ajouter des contenus</button>
+      </div>
+      <p id="status" class="panel-intro" aria-live="polite">Lecture de l’installation…</p>
+      <ul id="packs" class="pack-list"></ul>
+      <div class="tools">
+        <button id="bundled" class="button secondary" type="button">Préparer cette livraison</button>
+        <button id="verify" class="button quiet" type="button" disabled>Vérifier les fichiers</button>
+        <button id="rollback" class="button quiet" type="button" disabled>Version précédente</button>
+      </div>
+    </section>
+
+    <section id="preview" class="panel review" aria-labelledby="review-title" hidden>
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ÉTAPE 3</p>
+          <h2 id="review-title">Vérifier avant installation</h2>
+        </div>
+        <span class="badge">Relecture</span>
+      </div>
+      <p id="summary" class="panel-intro"></p>
+      <ul id="changes" class="pack-list"></ul>
+      <div class="tools">
+        <button id="apply" class="button primary" type="button">Installer ces contenus</button>
+        <button id="cancel" class="button quiet" type="button">Annuler</button>
+      </div>
+    </section>
+
+    <p id="error" role="alert" hidden></p>
+    <footer class="site-footer">
+      <span id="location"></span>
+      <span>Applications · Éditeur · Contenu</span>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,5 +1,18 @@
 # forge_assets
 
+`source_collision_geometry` décode les buffers de collision conservés séparément
+des meshes visibles. Il vérifie leurs SHA-256, identités et nœuds propriétaires,
+budgets, valeurs finies, cardinalités et indices de triangles. Les coordonnées
+déjà converties dans le repère local du GLB et l'ordre des triangles sont conservés.
+Il ne recuit pas les convexes, n'alloue aucun collider Rapier et ne qualifie ni
+les contacts, ni la simulation, ni leur disponibilité dans Studio.
+
+Le vérificateur exige un reçu de conversion privé épinglé :
+
+```text
+cargo run -p forge_assets --example verify_source_collision_geometry -- RECEIPT_JSON RECEIPT_SHA256
+```
+
 Le lecteur `source_graph_attributes` conserve les canaux UV supplémentaires
 présents (1 à 7), en Vec2 glTF et en Vec4 source distincts. Un canal absent
 reste absent ; les valeurs originales ne sont ni retournées ni normalisées.
@@ -125,3 +138,23 @@ références producteur ; un même repère ne peut revendiquer deux propriétair
 La sélection d'un objet utilise son token source exact et conserve l'ordre des
 lumières. Un token absent n'est pas déduit d'un nom, d'un kind ou d'une position.
 Cet index reste distinct de la résolution catalogue et des instances live Studio.
+
+`source_physics_transport` lit un manifeste de mesures physiques épinglé par SHA-256.
+Le caller doit fournir le hash vérifié du carrier complet et un résolveur confiné
+des buffers relatifs ; les chemins de provenance sont conservés sans être ouverts.
+Le lecteur compare les identités, les nœuds et les propriétés sérialisées à toutes
+les observations du carrier. Les buffers de candidats restent bornés, hashés,
+en coordonnées locales cible, avec leurs limites d'équivalence conservées.
+Le résultat ne contient aucune politique Rapier implicite : la résolution des
+contacts, couches et règles de simulation appartient à l'adaptateur moteur et
+doit conserver ses preuves. Une lecture réussie ne qualifie ni la physique native,
+ni le chargement ou le rendu dans Studio.
+
+`source_physics_package` transporte séparément le manifeste et les buffers de
+collision dans une enveloppe binaire ORPP v1. Le décodage exige les pins du
+carrier et du manifeste détenus par le caller ; les hashes de l'enveloppe ne
+suffisent pas à autoriser son contenu. Les sections sont bornées, les buffers
+ne sont pas développés en tableaux JSON, les chemins sont relatifs et les
+octets supplémentaires ou tronqués sont refusés. Le host Studio peut consommer
+le paquet avec `install_physics_package` et des contacts explicites. Le routage
+IPC depuis les fiches du Vault et son parcours UI restent à raccorder.

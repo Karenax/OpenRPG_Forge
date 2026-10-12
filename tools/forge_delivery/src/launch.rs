@@ -104,6 +104,34 @@ fn expand(value: &str, substitutions: &BTreeMap<String, String>) -> Result<Strin
     Ok(result)
 }
 
+/// A private collection is user data, independent of immutable delivery packs.
+/// Reading this preference never copies or modifies the external Vault.
+fn external_asset_vault(user: &Path) -> Result<Option<PathBuf>> {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Preference {
+        schema: String,
+        path: PathBuf,
+    }
+    let preference = manifest::confined(user, "asset-vault.v1.json")?;
+    if !preference.try_exists().map_err(|e| e.to_string())? {
+        return Ok(None);
+    }
+    let preference: Preference = crate::read_json(&preference)?;
+    if preference.schema != "forge.delivery.asset-vault.v1" {
+        return Err("Unsupported external asset Vault preference".into());
+    }
+    if !preference.path.is_absolute()
+        || !preference.path.is_dir()
+        || !preference.path.join("metadata").is_dir()
+    {
+        return Err(
+            "External asset Vault must be an existing absolute directory with metadata".into(),
+        );
+    }
+    Ok(Some(preference.path))
+}
+
 /// No shell evaluation: each argument is passed directly to the native process.
 pub fn command(root: &Path, app_name: &str) -> Result<Command> {
     let state = install::state(root)?;
@@ -127,6 +155,7 @@ pub fn command(root: &Path, app_name: &str) -> Result<Command> {
     let user = PathBuf::from(&state.user_root);
     let workspace = manifest::confined(&user, &format!("workspaces/{}", definition.id))?;
     let mut substitutions = BTreeMap::from([
+        ("session".into(), crate::attempt()?),
         ("app".into(), app_root.to_string_lossy().into_owned()),
         ("install".into(), root.to_string_lossy().into_owned()),
         ("user".into(), user.to_string_lossy().into_owned()),
@@ -155,7 +184,18 @@ pub fn command(root: &Path, app_name: &str) -> Result<Command> {
     for argument in &app.args {
         command.arg(expand(argument, &substitutions)?);
     }
+    let external_vault = if app.env.contains_key("OPENRPG_ASSET_VAULT") {
+        external_asset_vault(&user)?
+    } else {
+        None
+    };
     for (name, value) in &app.env {
+        if name == "OPENRPG_ASSET_VAULT"
+            && let Some(vault) = &external_vault
+        {
+            command.env(name, vault);
+            continue;
+        }
         let absent_optional = definition.optional_packs.iter().any(|id| {
             !state.active.packs.contains_key(id) && value.contains(&format!("{{pack:{id}}}"))
         });

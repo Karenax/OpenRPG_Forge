@@ -39,6 +39,7 @@ pub(super) fn SourceControls(
     view! {
         <section class="authoring-panel" data-authoring-tab="project" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::Project>
             <MigrationControls state=state busy=busy on_command=on_command/>
+            <super::authoring_physics::PhysicsControls state=state busy=busy on_command=on_command/>
         </section>
         <section class="authoring-panel" data-authoring-tab="nature" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::Nature>
             <h2>"Nature"</h2>
@@ -140,6 +141,13 @@ pub(super) fn preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> St
 }
 
 fn preview_primary_change(state: &AuthoringState, receipt: &ZoneReceipt) -> Option<String> {
+    if receipt.applied.physics != receipt.inverse.physics {
+        super::authoring_preview::clear();
+        return Some(receipt.applied.physics.as_ref().map_or_else(
+            || "Retrait des réglages de collision examiné · non appliqué. Appliquer puis Sauvegarder ; les aperçus avec collisions demanderont une configuration explicite.".into(),
+            |settings| format!("Réglages de collision examinés · épaisseur {} m · {} · non appliqués. Appliquer puis Sauvegarder ; annulation/rétablissement disponibles.", settings.contact_skin_m, settings.evidence),
+        ));
+    }
     if receipt.applied.imported_plant_placements != receipt.inverse.imported_plant_placements {
         super::authoring_preview::clear();
         return Some("Pose ou retouche de plante copiée examinée · non appliquée. La vue garde les placements acceptés jusqu'à Appliquer ; Sauvegarder conserve la modification, Undo/Redo restent disponibles.".into());

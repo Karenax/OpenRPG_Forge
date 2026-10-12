@@ -1,0 +1,1 @@
+{"launcher-main-window":{"identifier":"launcher-main-window","description":"The local launcher exposes its typed application command, a session-guarded CLI diagnostic, and the title-bar drag action.","local":true,"windows":["main"],"permissions":["allow-execute-launcher-command","allow-complete-launcher-probe","core:window:allow-start-dragging"]}}

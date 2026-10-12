@@ -78,11 +78,9 @@ try {
     if($charge.Count -ne 1 -or [Math]::Abs($charge[0].position.y-59.28591056823731) -gt 0.001){throw 'Public launch height differs.'}
     if($danger.Count -ne 1 -or [Math]::Abs($danger[0].position.x-18.5) -gt 0.001 -or -not $danger[0].flees_danger){throw 'Public danger actor differs.'}
     Write-Output 'GATE3_COMPLETE_PHYSICS_AUTHORING_SAVED'
-    [void](Invoke-UiClick -Socket $run.Socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $run.Socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $run.Socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $run.Socket -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Wait-CdpReady -Socket $run.Socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'close authored physics zone' -Expression @'
-(() => {const c=(document.querySelector('.authoring-context')?.textContent??'').replace(/\s+/g,' ').trim();return {ready:c==='Aucune zone ouverte'&&document.documentElement?.getAttribute('data-forge-zone-open')==='false',terminal:false,reason:c};})()
+(() => {const c=(document.querySelector('.authoring-context')?.textContent??'').replace(/\s+/g,' ').trim();return {ready:c==='Aucune carte ouverte'&&document.documentElement?.getAttribute('data-forge-zone-open')==='false',terminal:false,reason:c};})()
 '@)
 } catch {
     $failure=$_.Exception.Message

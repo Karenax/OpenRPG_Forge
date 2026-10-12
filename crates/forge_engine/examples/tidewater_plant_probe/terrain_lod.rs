@@ -120,7 +120,7 @@ pub(super) fn source_view(transform: &Transform, projection: &PerspectiveProject
     let far = f64::from(projection.far);
     let y = 1.0 / (f64::from(projection.fov) * 0.5).tan();
     let clip = DMat4::from_cols(
-        DVec4::new(y / (1920.0 / 1080.0), 0.0, 0.0, 0.0),
+        DVec4::new(y / f64::from(projection.aspect_ratio), 0.0, 0.0, 0.0),
         DVec4::new(0.0, y, 0.0, 0.0),
         DVec4::new(0.0, 0.0, near / (far - near), -1.0),
         DVec4::new(0.0, 0.0, near * far / (far - near), 0.0),
@@ -145,5 +145,51 @@ pub(super) fn source_view(transform: &Transform, projection: &PerspectiveProject
             rows[2],
         ]
         .map(|p| (p / p.truncate().length()).to_array()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn contains(view: CdlodView, point: DVec3) -> bool {
+        view.planes
+            .into_iter()
+            .all(|plane| DVec4::from_array(plane).dot(point.extend(1.0)) >= -1e-8)
+    }
+
+    #[test]
+    fn wide_lens_keeps_visible_side_geometry() {
+        let transform = Transform::from_xyz(0.0, 120.0, 0.0);
+        let mut lens = PerspectiveProjection {
+            fov: 60_f32.to_radians(),
+            near: 0.05,
+            far: 60_000.0,
+            aspect_ratio: 3440.0 / 1440.0,
+            ..default()
+        };
+        let edge = DVec3::new(125.0, 120.0, -100.0);
+        assert!(contains(source_view(&transform, &lens), edge));
+        lens.aspect_ratio = 1920.0 / 1080.0;
+        assert!(!contains(source_view(&transform, &lens), edge));
+    }
+
+    #[test]
+    fn portrait_rotated_lens_respects_sides_and_finite_depth() {
+        let transform =
+            Transform::from_xyz(300.0, 140.0, -90.0).with_rotation(Quat::from_rotation_y(0.8));
+        let lens = PerspectiveProjection {
+            fov: 60_f32.to_radians(),
+            near: 0.1,
+            far: 1000.0,
+            aspect_ratio: 0.75,
+            ..default()
+        };
+        let view = source_view(&transform, &lens);
+        let world = |point: Vec3| DVec3::from(transform.transform_point(point));
+        assert!(contains(view, world(Vec3::new(0.0, 0.0, -10.0))));
+        assert!(!contains(view, world(Vec3::new(8.0, 0.0, -10.0))));
+        assert!(!contains(view, world(Vec3::new(0.0, 0.0, -0.02))));
+        assert!(!contains(view, world(Vec3::new(0.0, 0.0, -1100.0))));
     }
 }

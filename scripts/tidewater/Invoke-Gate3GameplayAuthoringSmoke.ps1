@@ -47,31 +47,31 @@ $ErrorActionPreference = 'Stop'
 
 # Keep the caller's parameters because the dot-sourced helper has parameters
 # with some of the same names. It only defines CDP/fixture helpers in -SelfTest.
-$requestedSelfTest = [bool]$SelfTest
-$requestedCandidate = $Candidate
-$requestedFixture = $FreshIsolatedFixture
-$requestedSourcePin = $SourceOriginalHashPinned
-$requestedEvidenceRoot = $EvidenceRoot
-$requestedZoneUuid = $ZoneUuid
-$requestedTimeout = $InteractionTimeoutSeconds
-$requestedMeasuredFloorY = $MeasuredFloorY
-$requestedRoomOriginX = $RoomOriginX
-$requestedIncludeImpactApproach = [bool]$IncludeImpactApproach
-. (Join-Path $PSScriptRoot '..\Invoke-Gate2WorldEditingProof.ps1') -SelfTest | Out-Null
+$authoringRequestedSelfTest = [bool]$SelfTest
+$authoringRequestedCandidate = $Candidate
+$authoringRequestedFixture = $FreshIsolatedFixture
+$authoringRequestedSourcePin = $SourceOriginalHashPinned
+$authoringRequestedEvidenceRoot = $EvidenceRoot
+$authoringRequestedZoneUuid = $ZoneUuid
+$authoringRequestedTimeout = $InteractionTimeoutSeconds
+$authoringRequestedMeasuredFloorY = $MeasuredFloorY
+$authoringRequestedRoomOriginX = $RoomOriginX
+$authoringRequestedIncludeImpactApproach = [bool]$IncludeImpactApproach
+. (Join-Path $PSScriptRoot 'Invoke-Gate3GameplayPlaytestSmoke.ps1') -SelfTest | Out-Null
 # In the SelfTest parameter set the Run-only variables are unbound.  Assigning
 # null back to a validated parameter after dot-sourcing the helper re-runs its
 # validation and aborts before the local self-test.  The Run set is the only
 # path that needs restoration because the helper owns a same-named timeout.
-if (-not $requestedSelfTest) {
-    $Candidate = $requestedCandidate
-    $FreshIsolatedFixture = $requestedFixture
-    $SourceOriginalHashPinned = $requestedSourcePin
-    $EvidenceRoot = $requestedEvidenceRoot
-    $ZoneUuid = $requestedZoneUuid
-    $InteractionTimeoutSeconds = $requestedTimeout
-    $MeasuredFloorY = $requestedMeasuredFloorY
-    $RoomOriginX = $requestedRoomOriginX
-    $IncludeImpactApproach = $requestedIncludeImpactApproach
+if (-not $authoringRequestedSelfTest) {
+    $Candidate = $authoringRequestedCandidate
+    $FreshIsolatedFixture = $authoringRequestedFixture
+    $SourceOriginalHashPinned = $authoringRequestedSourcePin
+    $EvidenceRoot = $authoringRequestedEvidenceRoot
+    $ZoneUuid = $authoringRequestedZoneUuid
+    $InteractionTimeoutSeconds = $authoringRequestedTimeout
+    $MeasuredFloorY = $authoringRequestedMeasuredFloorY
+    $RoomOriginX = $authoringRequestedRoomOriginX
+    $IncludeImpactApproach = $authoringRequestedIncludeImpactApproach
 }
 
 $zoneId = $ZoneUuid.ToString('D').ToLowerInvariant()
@@ -97,48 +97,7 @@ function Open-Gate3TidewaterZone {
         [Parameter(Mandatory)][int]$TimeoutSeconds
     )
 
-    [void](Invoke-UiClick -Socket $Socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $Socket -Summary 'Projets et modules')
-    [void](Invoke-UiClickInDetailsBySummary -Socket $Socket -Summary 'Projets et modules' -Text 'Ouvrir le workspace')
-    $zoneLiteral = ConvertTo-CompactJson -Value $ZoneId
-    [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'Gate 3 managed Tidewater zone button' -Expression @"
-(() => {
-  const zone=$zoneLiteral;
-  const button=[...document.querySelectorAll('button[title]')].find(node=>node.title===zone);
-  const status=[...document.querySelectorAll('details.scene-navigation p[role=status]')].map(node=>node.textContent??'').join(' | ');
-  return {ready:!!button&&!button.disabled,reason:button?'managed zone button disabled':status||'managed zone button pending'};
-})()
-"@)
-
-    $buttonState = Invoke-CdpExpression -Socket $Socket -Expression @"
-(async () => {
-  const zone=$zoneLiteral, norm=v=>(v??'').replace(/\s+/g,' ').trim();
-  const buttons=[...document.querySelectorAll('button[title]')].filter(node=>node.title===zone);
-  if(buttons.length!==1) return {ready:false,terminal:true,reason:'expected one managed zone button, got '+buttons.length};
-  const node=buttons[0]; node.scrollIntoView({block:'center',inline:'center'});
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-  const rect=node.getBoundingClientRect(), style=getComputedStyle(node), hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);
-  const visible=rect.width>0&&rect.height>0&&style.visibility!=='hidden'&&style.display!=='none';
-  const unobscured=hit===node||!!hit&&node.contains(hit);
-  return {ready:visible&&!node.disabled&&unobscured,terminal:!visible,reason:!visible?'zone button hidden':unobscured?'zone button ready':'zone button obscured',x:rect.left+rect.width/2,y:rect.top+rect.height/2};
-})()
-"@
-    if ($null -eq $buttonState -or $buttonState.ready -ne $true) {
-        $buttonReason = if ($null -eq $buttonState) { 'state absent' } else { [string]$buttonState.reason }
-        throw "Managed Tidewater zone button was not physically clickable: $buttonReason"
-    }
-    Send-CdpMouseClick -Socket $Socket -X $buttonState.x -Y $buttonState.y
-
-    [void](Wait-CdpReady -Socket $Socket -TimeoutSeconds $TimeoutSeconds -Description 'Gate 3 managed Tidewater edit viewport' -Expression @"
-(() => {
-  const norm=v=>(v??'').replace(/\s+/g,' ').trim(), zone=$zoneLiteral;
-  const canvas=document.getElementById('forge-authoring-canvas');
-  const term=[...document.querySelectorAll('.authoring-zone-information dt')].find(node=>norm(node.textContent)==='Zone');
-  const shown=norm(term?.nextElementSibling?.textContent).toLowerCase();
-  const mode=[...document.querySelectorAll('output')].map(node=>norm(node.textContent)).find(text=>text.startsWith('Mode '))??'';
-  return {ready:shown===zone&&mode.startsWith('Mode édition')&&canvas?.clientWidth>0&&canvas?.clientHeight>0,reason:'zone='+shown+'; mode='+mode};
-})()
-"@)
+    Open-Gate3PlaytestZone -Socket $Socket -ZoneId $ZoneId -TimeoutSeconds $TimeoutSeconds
 }
 
 function Wait-GameplayEditor {
@@ -609,8 +568,29 @@ function Get-Gate3GameplayReport {
 
 function Assert-Gate3CandidateInputs {
     param([Parameter(Mandatory)][string]$CandidateExecutable)
-    $candidateRoot = Split-Path -Parent $CandidateExecutable
-    $web = Join-Path $candidateRoot 'web'
+    $canonicalValidation = $null
+    if (Test-Path Env:FORGE_GATE3_VALIDATED_EVIDENCE) {
+        if ([string]::IsNullOrWhiteSpace($env:FORGE_GATE3_VALIDATED_EVIDENCE)) {
+            throw 'FORGE_GATE3_VALIDATED_EVIDENCE was requested but is empty.'
+        }
+        $helper = Join-Path (Split-Path -Parent $PSScriptRoot) 'Verify-Gate3CanonicalCandidate.py'
+        $verifiedJson = & python $helper --candidate $CandidateExecutable --evidence $env:FORGE_GATE3_VALIDATED_EVIDENCE
+        if ($LASTEXITCODE -ne 0) { throw 'Common Gate 3 release/source/WASM/frontend validation failed.' }
+        $canonicalValidation = ConvertFrom-ExactJson -Json ($verifiedJson -join [Environment]::NewLine)
+        if ([string]$canonicalValidation.schema -cne 'forge.gate3.canonical-candidate.v1' -or
+            [string]$canonicalValidation.status -cne 'VALIDATED_INPUTS') {
+            throw 'Common Gate 3 candidate validation did not return a complete input proof.'
+        }
+        $web = [string]$canonicalValidation.frontend
+        $validationMode = 'COMMON_VALIDATED_RELEASE'
+    } else {
+        if ($env:FORGE_GATE3_HISTORICAL_CANDIDATE -cne '1') {
+            throw 'Set FORGE_GATE3_VALIDATED_EVIDENCE for the common release, or explicitly request FORGE_GATE3_HISTORICAL_CANDIDATE=1 for a historical candidate proof.'
+        }
+        $candidateRoot = Split-Path -Parent $CandidateExecutable
+        $web = Join-Path $candidateRoot 'web'
+        $validationMode = 'HISTORICAL_CANDIDATE_INPUTS_ONLY'
+    }
     Assert-TreeHasNoReparsePoints -LiteralPath $web -Description 'Gate 3 candidate frontend'
     $kitBuildPath = Join-Path $web 'forge-kit\build.json'
     $importsManifestPath = Join-Path $web 'forge-imports\buildings.json'
@@ -662,12 +642,25 @@ function Assert-Gate3CandidateInputs {
             throw "Candidate $($package.Name) package source commit differs from Tidewater source."
         }
     }
+    if ($null -ne $canonicalValidation) {
+        foreach ($entry in $canonicalValidation.governed_input_pins.PSObject.Properties) {
+            $path = Join-Path $web $entry.Name
+            if ((Get-FileSha256 -LiteralPath $path) -cne [string]$entry.Value.sha256 -or
+                (Get-Item -LiteralPath $path).Length -ne [long]$entry.Value.bytes) {
+                throw "Canonical governed input changed during validation: $($entry.Name)"
+            }
+        }
+    }
     return [ordered]@{
+        validation_mode=$validationMode
+        frontend_path=$web
+        canonical_release_validation=$canonicalValidation
         kit_asset_kit_id=[string]$kit.asset_kit_id
         kit_asset_kit_revision=$kit.asset_kit_revision
         kit_technical_export_validated=[bool]$kit.qualification.technical_export_validated
         kit_human_art_review=$humanArtReview
         kit_publication_approved=$publicationApproved
+        kit_manifest_sha256=(Get-FileSha256 -LiteralPath $kitBuildPath)
         imports_schema=[string]$library.schema
         imports_source_commit=$sourceCommitPin
         imports_manifest_sha256=(Get-FileSha256 -LiteralPath $importsManifestPath)
@@ -678,7 +671,7 @@ function Assert-Gate3CandidateInputs {
     }
 }
 
-if ($requestedSelfTest) {
+if ($authoringRequestedSelfTest) {
     foreach ($name in @(
         'ConvertTo-CompactJson', 'ConvertFrom-ExactJson', 'Invoke-CdpCommand',
         'Invoke-CdpExpression', 'Wait-CdpReady', 'Wait-CdpTarget',
@@ -689,6 +682,8 @@ if ($requestedSelfTest) {
         'Get-FileSha256', 'Get-NormalizedSha256', 'Assert-DriveEPath',
         'Assert-NoExistingReparseAncestor', 'Assert-TreeHasNoReparsePoints',
         'Test-PathWithinDirectory', 'Test-IsWindowsPlatform', 'Get-Gate3ArchivePlacements',
+        'Get-Gate3PlacementsSnapshot', 'Assert-Gate3PlacementsPreserved',
+        'Open-Gate3PlaytestZone', 'Close-Gate3PlaytestZone',
         'Set-Gate3UiTextByLabel', 'Set-GameplayPhysicsForm', 'Invoke-Gate3BuildingRoomPreview'
     )) {
         [void](Get-Command $name -ErrorAction Stop)
@@ -703,7 +698,7 @@ if ($requestedSelfTest) {
         $allowsEmpty = @($metadata.Attributes | Where-Object { $_.GetType().Name -eq 'AllowEmptyStringAttribute' }).Count -gt 0
         if (-not $allowsEmpty) { throw "Public helper binding $($binding.command).$($binding.parameter) does not allow an empty string." }
     }
-    if ($zoneId -cnotmatch '^[0-9a-f-]{36}$' -or $requestedSourcePin -and $requestedSourcePin -notmatch '^[0-9A-Fa-f]{64}$') {
+    if ($zoneId -cnotmatch '^[0-9a-f-]{36}$' -or $authoringRequestedSourcePin -and $authoringRequestedSourcePin -notmatch '^[0-9A-Fa-f]{64}$') {
         throw 'Gate 3 source/zone selector constants are malformed.'
     }
     $raw = [IO.File]::ReadAllText($PSCommandPath)
@@ -724,6 +719,24 @@ if ($requestedSelfTest) {
         'fireDefaultsOk'
     )) {
         if ($raw.IndexOf($needle, [StringComparison]::Ordinal) -lt 0) { throw "Public selector missing: $needle" }
+    }
+    foreach ($placementCount in @(21, 23)) {
+        $placements = @(1..$placementCount | ForEach-Object {
+            [ordered]@{ id="placement-$_"; asset_id='asset'; asset_hash=('a' * 64); locked=$false;
+                name="Source $_"; transform=[ordered]@{ translation_m=[ordered]@{x=$_; y=0; z=0} } }
+        })
+        $baseline = Get-Gate3PlacementsSnapshot -Placements $placements
+        $roundtrip = @(ConvertFrom-ExactJson -Json $baseline.CanonicalJson)
+        Assert-Gate3PlacementsPreserved -Before $baseline -After (Get-Gate3PlacementsSnapshot -Placements $roundtrip)
+        $roundtrip[0].transform.translation_m.x = -100
+        $refused = $false
+        try { Assert-Gate3PlacementsPreserved -Before $baseline -After (Get-Gate3PlacementsSnapshot -Placements $roundtrip) }
+        catch { $refused = $_.Exception.Message -ceq 'Placement identity or content differs from the pinned source baseline.' }
+        if (-not $refused) { throw 'Same-count placement transform mutation was not rejected.' }
+        $refused = $false
+        try { Assert-Gate3PlacementsPreserved -Before $baseline -After (Get-Gate3PlacementsSnapshot -Placements $placements[1..($placementCount - 1)]) }
+        catch { $refused = $_.Exception.Message -ceq 'Placement identity or content differs from the pinned source baseline.' }
+        if (-not $refused) { throw 'Missing source placement was not rejected.' }
     }
     Write-Output 'TIDEWATER_GATE3_GAMEPLAY_AUTHORING_SMOKE_SELF_TEST_PASS'
     return
@@ -767,12 +780,14 @@ $sourceBefore = Get-ArchiveSnapshot -LiteralPath $sourceArchive
 $sourceWorkspaceBefore = Get-ArchiveSnapshot -LiteralPath $sourceWorkspaceArchive
 $sourceObjectBefore = Get-ArchiveSnapshot -LiteralPath $sourceObject
 if ($sourceBefore.Sha256 -cne $sourcePin) { throw 'Fresh fixture zone archive does not match SourceOriginalHashPinned.' }
-if (@(Get-Gate3ArchivePlacements -Archive $sourceArchive).Count -ne 23) { throw 'Fresh fixture must contain exactly 23 source placements.' }
 $sourceReference = Get-Gate3WorkspaceReference -Archive $sourceWorkspaceArchive -ZoneId $zoneId
 if ([string]$sourceReference.archive_hash -cne $sourcePin) { throw 'Workspace does not reference SourceOriginalHashPinned.' }
-if ($sourceObjectBefore.Sha256 -cne $sourcePin -or @(Get-Gate3ArchivePlacements -Archive $sourceObject).Count -ne 23) {
-    throw 'Source managed object is not the pinned 23-placement archive.'
+if ($sourceObjectBefore.Sha256 -cne $sourcePin) {
+    throw 'Source managed object is not the pinned source archive.'
 }
+$sourcePlacementsBefore = Get-Gate3PlacementsSnapshot -Placements @(Get-Gate3ArchivePlacements -Archive $sourceArchive)
+$sourceObjectPlacementsBefore = Get-Gate3PlacementsSnapshot -Placements @(Get-Gate3ArchivePlacements -Archive $sourceObject)
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $sourceObjectPlacementsBefore
 $impactTerrainSource = Join-Path $source (Join-Path "$zoneId\source-blobs" $impactTerrainBlobName)
 $impactTerrainSourceHash = $null
 if ($IncludeImpactApproach) {
@@ -817,6 +832,8 @@ $savedReference = $null
 $savedObjectPath = $null
 $savedObject = $null
 $gameplayReport = $null
+$savedPlacementsSnapshot = $null
+$placementsPreserved = $false
 $roomResult = $null
 $roomApplied = $false
 $supportYObserved = $null
@@ -1058,7 +1075,7 @@ try {
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const busy=document.querySelector('.authoring-toolbar')?.getAttribute('aria-busy');
   const terminal=/refusée|erreur|invalide/i.test(status);
-  return {ready:status==='Session synchronisée'&&saveState===''&&context!==''&&context!=='Aucune zone ouverte'&&busy==='false'&&!terminal,
+  return {ready:status==='Session synchronisée'&&saveState===''&&context!==''&&context!=='Aucune carte ouverte'&&busy==='false'&&!terminal,
     terminal,reason:'status='+status+'; save='+saveState+'; context='+context+'; busy='+busy};
 })()
 '@)
@@ -1070,7 +1087,9 @@ try {
     $savedObjectPath = Join-Path $objectRoot "$($savedReference.archive_hash).json"
     $savedObject = Get-ArchiveSnapshot -LiteralPath $savedObjectPath
     if ($savedObject.Sha256 -cne [string]$savedReference.archive_hash) { throw 'Saved gameplay object hash does not match workspace ledger.' }
-    if (@(Get-Gate3ArchivePlacements -Archive $savedObjectPath).Count -ne 23) { throw 'Saved gameplay object did not preserve the 23 source placements.' }
+    $savedPlacementsSnapshot = Get-Gate3PlacementsSnapshot -Placements @(Get-Gate3ArchivePlacements -Archive $savedObjectPath)
+    Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $savedPlacementsSnapshot
+    $placementsPreserved = $true
     if (-not (Test-ArchiveSnapshotsEqual -Before $cloneBefore -After (Get-ArchiveSnapshot -LiteralPath $archive)) -or
         -not (Test-ArchiveSnapshotsEqual -Before $originalObjectBefore -After (Get-ArchiveSnapshot -LiteralPath $originalObject))) {
         throw 'Gameplay Save altered the legacy source archive or original managed object.'
@@ -1251,16 +1270,14 @@ try {
     $dialogueText = @($gameplayReport.dialogues[0].nodes | ForEach-Object { [string]$_.text }) -join ' | '
     if ($dialogueText -notlike '*Revenez me voir avec le sceau*') { throw 'Quest-giver dialogue retouch was not persisted.' }
 
-    [void](Invoke-UiClick -Socket $socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'Close authored Tidewater zone' -Expression @'
 (() => {
   const norm=value=>(value??'').replace(/\s+/g,' ').trim();
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const command=norm(document.querySelector('.authoring-command-status')?.textContent);
   const open=document.documentElement?.getAttribute('data-forge-zone-open');
-  return {ready:context==='Aucune zone ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open+'; command='+command};
+  return {ready:context==='Aucune carte ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open+'; command='+command};
 })()
 '@)
     $uiClosed = $true
@@ -1348,6 +1365,15 @@ $ledger = [ordered]@{
     source_object_before=$sourceObjectBefore
     source_object_after=$sourceObjectAfter
     source_preserved=$sourcePreserved
+    source_placements=[ordered]@{
+        source_archive_sha256=$sourcePin
+        representation='ConvertTo-Json -Depth 100 -Compress; complete ordered placement array; SHA-256 of UTF-8 without BOM'
+        before=[ordered]@{ count=$sourcePlacementsBefore.Count; sha256=$sourcePlacementsBefore.Sha256; canonical_json=$sourcePlacementsBefore.CanonicalJson }
+        after=if ($null -ne $savedPlacementsSnapshot) {
+            [ordered]@{ count=$savedPlacementsSnapshot.Count; sha256=$savedPlacementsSnapshot.Sha256; canonical_json=$savedPlacementsSnapshot.CanonicalJson }
+        } else { $null }
+        identity_and_content_preserved=$placementsPreserved
+    }
     include_impact_approach=[bool]$IncludeImpactApproach
     fire_controls_ui=if ($null -ne $script:fireControlsObservation) {
         $script:fireControlsObservation

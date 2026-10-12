@@ -107,7 +107,12 @@ pub(super) fn drive(
     mut navigation: ResMut<NavigationRuntime>,
     rapier: ReadRapierContext,
     mut actors: DangerActors,
+    mut timing: Option<ResMut<crate::playtest_timing::PlaytestTiming>>,
 ) {
+    let _timing_scope = crate::playtest_timing::TimingScope::new(
+        timing.as_deref_mut(),
+        crate::playtest_timing::TimingPhase::NpcDrive,
+    );
     let valid_simulation = runtime.is_ready() && ready.is_none_or(|ready| ready.0);
     let context = valid_simulation.then(|| rapier.single().ok()).flatten();
     let delta_seconds = time.timestep().as_secs_f32();
@@ -191,7 +196,23 @@ pub(super) fn drive(
         context.as_ref(),
         blocked_escape_candidates,
     );
-    for (_, domain, _, mut controller, mut motion) in &mut actors {
+    apply_navigation_motion(
+        &runtime,
+        &navigation,
+        &mut actors,
+        valid_simulation,
+        delta_seconds,
+    );
+}
+
+fn apply_navigation_motion(
+    runtime: &GameplayRuntime,
+    navigation: &NavigationRuntime,
+    actors: &mut DangerActors,
+    valid_simulation: bool,
+    delta_seconds: f32,
+) {
+    for (_, domain, _, mut controller, mut motion) in actors {
         let available = valid_simulation
             && runtime
                 .session

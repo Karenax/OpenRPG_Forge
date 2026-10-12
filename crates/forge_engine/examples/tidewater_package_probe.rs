@@ -100,6 +100,7 @@ fn verify_entities(package: &BuildingPackage, geometry: &ResidentMeshes) -> Resu
     use forge_project::zone_authoring::placements::ManualPlacement;
     let record = &package.catalog().assets[0];
     let mut placement = ManualPlacement {
+        physics: None,
         id: forge_core::EntityId::deterministic("package placement proof"),
         name: "Building".into(),
         asset_id: record.id,

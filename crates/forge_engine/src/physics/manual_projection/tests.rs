@@ -16,6 +16,7 @@ fn manual_projection_rejects_preview_stale_backend_and_wrong_source() {
         RapierPhysicsPlugin::<NoUserData>::default().in_fixed_schedule(),
     ));
     let placement = ManualPlacement {
+        physics: None,
         id: EntityId::deterministic("placed"),
         name: "Fixture".into(),
         asset_id: AssetId::deterministic("fixture"),

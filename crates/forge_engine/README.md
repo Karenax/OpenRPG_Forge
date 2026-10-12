@@ -1,5 +1,21 @@
 # forge_engine
 
+`source_mesh_colliders` relie les observations MeshCollider natives aux buffers
+de collision conservés dans les GLB. Il refuse les owners, identités, options
+de cuisson et politiques incohérents. Les non-convexes utilisent leurs triangles
+originaux ; les convexes exigent un candidat de plans natifs épinglé fourni
+explicitement par l'appelant. Aucune cuisson convexe implicite ni équivalence
+Unity/Rapier n'est déduite. Les références de mesh vides restent vides.
+
+`source_mesh_collider_projection` vérifie la hiérarchie et toutes les politiques
+de contact avant de créer ses enfants ECS jetables. Il conserve identités,
+observations, options de cuisson, preuves de géométrie, activation et triggers.
+Les références vides ont une fiche de composant, sans Collider. Sa suppression
+préserve les nœuds de placement et les autres projections. La visibilité et les
+LODs ne pilotent pas ces colliders. Le banc privé de bindings v710 exerce ce
+chemin dans un World Bevy isolé ; il ne qualifie ni les contacts et la simulation,
+ni les filtres Unity, ni le chargement du jeu ou de Studio.
+
 L'adapter `source_graph_mesh_from_glb` conserve les canaux UV supplémentaires
 dans le mesh Bevy : UV1 utilise l'attribut standard secondaire, UV2 à UV7 et
 les Vec4 source gardent des attributs distincts. Il ne crée aucun canal absent.
@@ -845,3 +861,12 @@ Bevy device and queue and rejects stale publication tags. Its Rust/CPU/GPU valid
 is in progress. Actual import metadata, authoritative night/time publication,
 RenderWorld scene integration and mesh drawing remain open. See
 `docs/evidence/tidewater/2026-10-02-source-local-lights.md` for scope and evidence.
+
+`source_physics_transport::cooking_from_transport` resolves verified collider
+evidence into explicit mesh cooking inputs, then checks those inputs against the
+native observations and preserved geometry of the actual carrier. Contact
+policies remain explicit caller inputs to `source_collider_scene`. No simulation
+equivalence or render admission follows from successful preparation. Studio's
+source host can consume a pinned manifest and confined candidate resolver through
+`install_physics_transport`; the library loading path still needs to supply these
+inputs and receive its own runtime and visual verification.

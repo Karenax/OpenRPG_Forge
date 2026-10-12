@@ -6,10 +6,16 @@ param(
     [Parameter(Mandatory)][string]$FreshIsolatedFixture,
     [Parameter(Mandatory)][string]$AuthoringLedger,
     [Parameter(Mandatory)][string]$EvidenceRoot,
+    [Alias('SourceOriginalHash')][ValidatePattern('^[0-9A-Fa-f]{64}$')]
+    [string]$SourceOriginalHashPinned='50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720',
     [ValidateSet('EnvironmentQuest','EnvironmentFireQuest','ForestDanger','ForestThrow','ShorePush','ShoreWater')][string]$Scenario='EnvironmentQuest',
-    [int]$InteractionTimeoutSeconds=90
+    [int]$InteractionTimeoutSeconds=90,
+    [Alias('BrowserExecutableFolder')][ValidateNotNullOrEmpty()]
+    [string]$BrowserFolder='C:\Program Files (x86)\Microsoft\EdgeWebView\Application\154.0.4258.37',
+    [Alias('ExpectedBrowserRuntimeVersion','ExpectedWebViewVersion')]
+    [ValidatePattern('^\d+\.\d+\.\d+\.\d+$')][string]$WebViewVersion='154.0.4258.37'
 )
-$cfg=@{Candidate=$Candidate;Source=$FreshIsolatedFixture;Ledger=$AuthoringLedger;Output=$EvidenceRoot;Scenario=$Scenario;Timeout=$InteractionTimeoutSeconds}
+$cfg=@{Candidate=$Candidate;Source=$FreshIsolatedFixture;Ledger=$AuthoringLedger;Output=$EvidenceRoot;SourcePin=$SourceOriginalHashPinned;Scenario=$Scenario;Timeout=$InteractionTimeoutSeconds;Browser=$BrowserFolder;ExpectedBrowser=$WebViewVersion}
 $physicsScriptInputBytes=@(foreach($scriptPath in @($PSCommandPath,(Join-Path $PSScriptRoot 'Invoke-Gate3GameplayAuthoringSmoke.ps1'),(Join-Path $PSScriptRoot 'Invoke-Gate3PhysicsPlaytestSmoke.ps1'),(Join-Path $PSScriptRoot 'Invoke-Gate3GameplayPlaytestSmoke.ps1'),(Join-Path $PSScriptRoot 'Gate3ProofStorage.ps1'),(Join-Path $PSScriptRoot '../Invoke-Gate2WorldEditingProof.ps1'))){$bytes=[IO.File]::ReadAllBytes($scriptPath);[pscustomobject]@{path=[IO.Path]::GetFullPath($scriptPath);bytes=$bytes;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant();captured_utc=[DateTimeOffset]::UtcNow.ToString('o')}})
 . (Join-Path $PSScriptRoot 'Invoke-Gate3GameplayAuthoringSmoke.ps1') -SelfTest | Out-Null
 . (Join-Path $PSScriptRoot 'Invoke-Gate3PhysicsPlaytestSmoke.ps1') -SelfTest | Out-Null
@@ -17,8 +23,13 @@ foreach($scriptInput in $physicsScriptInputBytes){if((Get-FileSha256 -LiteralPat
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 $InteractionTimeoutSeconds=[int]$cfg.Timeout
+$browserExecutable=Join-Path ([IO.Path]::GetFullPath($cfg.Browser)) 'msedgewebview2.exe'
+if(-not(Test-Path -LiteralPath $browserExecutable -PathType Leaf)){throw "WebView2 executable absent: $browserExecutable"}
+$browserVersion=[string](Get-Item -LiteralPath $browserExecutable).VersionInfo.FileVersion
+if($browserVersion -cne $cfg.ExpectedBrowser){throw "WebView2 runtime mismatch: observed=$browserVersion expected=$($cfg.ExpectedBrowser)"}
+$browserReceipt=[ordered]@{folder=[IO.Path]::GetFullPath($cfg.Browser);version=$browserVersion;executable_sha256=Get-FileSha256 -LiteralPath $browserExecutable}
 $zoneId='e620dd19-ead9-5913-a6d6-0f93109148c0'
-$sourcePin='50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720'
+$sourcePin=Get-NormalizedSha256 -Value $cfg.SourcePin
 $candidate=[IO.Path]::GetFullPath($cfg.Candidate);$source=[IO.Path]::GetFullPath($cfg.Source);$output=[IO.Path]::GetFullPath($cfg.Output)
 $candidateHash=Get-FileSha256 -LiteralPath $candidate
 $authoringLedgerHash=Get-FileSha256 -LiteralPath $cfg.Ledger
@@ -60,7 +71,7 @@ $clonePaths=@($cloneArchive,(Join-Path $fixture 'workspace-v1/authoring.json'),(
 $cloneBefore=@($clonePaths|ForEach-Object{Get-ArchiveSnapshot -LiteralPath $_})
 $envBefore=@{}
 foreach($n in @('FORGE_AUTHORING_ROOT','FORGE_AUTHOR_SUBJECT','WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS','WEBVIEW2_USER_DATA_FOLDER','WEBVIEW2_BROWSER_EXECUTABLE_FOLDER')){$envBefore[$n]=[Environment]::GetEnvironmentVariable($n,'Process')}
-[Environment]::SetEnvironmentVariable('WEBVIEW2_BROWSER_EXECUTABLE_FOLDER','C:\Program Files (x86)\Microsoft\EdgeWebView\Application\154.0.4258.37','Process')
+[Environment]::SetEnvironmentVariable('WEBVIEW2_BROWSER_EXECUTABLE_FOLDER',[IO.Path]::GetFullPath($cfg.Browser),'Process')
 $journal=[System.Collections.Generic.List[object]]::new();$saves=[ordered]@{};$actions=[ordered]@{};$failure=$null;$run1=$null;$run2=$null;$closed1=$true;$closed2=$true;$forced=$false;$waterSamples=@();$completed1=$false;$completed2=$false;$fireExposurePlan=$null;$environmentBeforeCombat=$null
 function Mark-PhysicsPhase([string]$Phase){Write-Host "GATE3_PUBLIC_PHYSICS_PHASE $Phase";[IO.File]::WriteAllText((Join-Path $output 'phase.txt'),$Phase,[Text.UTF8Encoding]::new($false));[IO.File]::WriteAllText((Join-Path $output 'journal-in-progress.json'),(@($journal)|ConvertTo-Json -Depth 100),[Text.UTF8Encoding]::new($false))}
 function Save-PhysicsCheckpoint([object]$Socket,[string]$Name,[int]$MaxWaitSeconds=60,[int]$AttemptTimeoutSeconds=5){
@@ -240,7 +251,10 @@ try {
         [void](Move-PlaytestRoute -Socket $run1.Socket -Waypoints $forestRoute -Tolerance 0.75 -MaxSeconds 420 -Journal $journal -Phase 'forest-approach' -RouteId 'east-forest-corridor')
         if($cfg.Scenario -in @('ForestDanger','EnvironmentFireQuest')){
             $northwestRoute=@([pscustomobject]@{x=25;z=-270},[pscustomobject]@{x=25;z=-265},[pscustomobject]@{x=17.05;z=-265},[pscustomobject]@{x=17.05;z=-267.6})
-            [void](Move-PlaytestRoute -Socket $run1.Socket -Waypoints $northwestRoute -Tolerance 0.10 -MaxSeconds 120 -Journal $journal -Phase 'forest-fire-northwest-flank' -RouteId 'public-northwest-fire-flank-around-seal')
+            # Coarse held-WASD approach can overshoot a 10 cm waypoint between
+            # public observations. Final short pulses and the saved fire-range
+            # preflight below still establish the precise interaction position.
+            [void](Move-PlaytestRoute -Socket $run1.Socket -Waypoints $northwestRoute -Tolerance 0.75 -MaxSeconds 120 -Journal $journal -Phase 'forest-fire-northwest-flank' -RouteId 'public-northwest-fire-flank-around-seal')
             [void](Move-PhysicsPublicPulses -Socket $run1.Socket -X 17.05 -Z -267.95 -Tolerance 0.04 -Phase 'forest-fire-seal-flank-precise')
             [void](Wait-PlaytestLocomotionSettled -Socket $run1.Socket -TimeoutSeconds $InteractionTimeoutSeconds -Journal $journal -Phase 'ignite-unlit-settle' -SampleMilliseconds 120)
             $launchBefore=Save-PhysicsCheckpoint $run1.Socket 'launch-before'
@@ -336,6 +350,7 @@ $ledger['loaded_script_inputs_sha256']=Get-FileSha256 -LiteralPath $ledger.loade
 [void](Stop-Transcript)
 $ledger['public_input_transcript_path']=$publicInputTranscript
 $ledger['public_input_transcript_sha256']=Get-FileSha256 -LiteralPath $publicInputTranscript
+$ledger['browser_runtime']=$browserReceipt
 [IO.File]::WriteAllText($ledgerPath,($ledger|ConvertTo-Json -Depth 100),[Text.UTF8Encoding]::new($false))
 if(-not [string]::IsNullOrWhiteSpace($failure)){throw "Public physics probe failed: $failure; ledger=$ledgerPath"}
 Write-Output "GATE3_PUBLIC_PHYSICS_FLOW_OBSERVED ledger=$ledgerPath"

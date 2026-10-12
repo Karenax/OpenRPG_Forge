@@ -2,19 +2,183 @@
 const invoke = window.__TAURI__.core.invoke;
 const $ = id => document.getElementById(id);
 let pending = null;
+let currentRoot = '';
+let destinationDirty = false;
+let busy = false;
+let installed = false;
+let hasRollback = false;
+let subtitleOverride = null;
 const kind = {applications:'Applications',assets:'Assets',module:'Module'};
 const sizes = n => `${(n / 1024 / 1024).toFixed(1)} Mio`;
-function item(list, label, detail){const li=document.createElement('li');const name=document.createElement('strong');name.textContent=label;const meta=document.createElement('span');meta.textContent=detail;li.append(name,meta);list.append(li);}
-async function call(request){return invoke('delivery',{request});}
-async function task(action,message){$('error').hidden=true;$('status').textContent=message;document.querySelectorAll('button').forEach(b=>b.disabled=true);try{await action();}catch(error){$('error').textContent=String(error);$('error').hidden=false;}finally{await refresh();}}
-async function refresh(){try{const s=await call({action:'status'});$('location').textContent=s.root;$('packs').replaceChildren();$('play').disabled=$('edit').disabled=$('verify').disabled=!s.installed;$('rollback').disabled=!s.installed||!s.state.previous;['select','bundled','cancel'].forEach(id=>$(id).disabled=false);$('apply').disabled=!pending;if(s.installed){$('title').textContent=s.product.title;$('subtitle').textContent='Jouez à votre aventure ou poursuivez sa création dans le Studio.';$('version').textContent=`Installation ${s.state.revision}`;$('status').textContent='Installation prête · packs de contenu séparés';item($('packs'),'Applications',s.state.active.core.id);Object.values(s.state.active.packs).forEach(p=>item($('packs'),p.id,kind[p.kind]||p.kind));}else{$('status').textContent='Préparez la livraison fournie ou sélectionnez vos packages Forge.';}}catch(error){$('error').textContent=String(error);$('error').hidden=false;['select','bundled'].forEach(id=>$(id).disabled=false);}}
-function preview(response){pending=response.plan;$('preview').hidden=false;$('changes').replaceChildren();$('summary').textContent=pending.operation==='rollback'?'Retour à la version précédente. Vos projets et sauvegardes seront conservés.':`${response.packages.length} package(s) seront vérifiés et installés. Les versions précédentes seront conservées.`;response.packages.forEach(p=>item($('changes'),p.label,`${kind[p.kind]} · ${sizes(p.bytes)} · ${p.files} fichiers`));$('plan').textContent=JSON.stringify(pending,null,2);$('apply').disabled=false;}
-$('play').onclick=()=>task(()=>call({action:'launch',app:'game'}),'Démarrage du jeu…');
-$('edit').onclick=()=>task(()=>call({action:'launch',app:'editor'}),'Ouverture de l’éditeur…');
-$('verify').onclick=()=>task(async()=>{await call({action:'verify'});$('subtitle').textContent='Vérification terminée : tous les fichiers correspondent à leur manifeste.';},'Vérification des fichiers…');
-$('select').onclick=()=>task(async()=>{const files=await call({action:'select'});if(files.length)preview(await call({action:'prepare',files}));},'Sélection des packages…');
-$('bundled').onclick=()=>task(async()=>{const {files}=await call({action:'bundled'});if(!files.length)throw 'Aucune livraison jointe. Choisissez « Ajouter des packages ».';preview(await call({action:'prepare',files}));},'Vérification de la livraison…');
-$('rollback').onclick=()=>task(async()=>preview(await call({action:'rollback'})),'Préparation du retour…');
-$('apply').onclick=()=>task(async()=>{await call({action:'apply',command_id:pending.command_id});pending=null;$('preview').hidden=true;},'Installation en cours…');
-$('cancel').onclick=()=>{pending=null;$('preview').hidden=true;};
+const kindLabel = value => kind[value] || 'Contenu Forge';
+
+function item(list, label, detail) {
+  const li = document.createElement('li');
+  const name = document.createElement('strong');
+  name.textContent = label;
+  const meta = document.createElement('span');
+  meta.textContent = detail;
+  li.append(name, meta);
+  list.append(li);
+}
+
+async function call(request) {
+  return invoke('delivery', {request});
+}
+
+function clearPreview() {
+  pending = null;
+  $('preview').hidden = true;
+  $('changes').replaceChildren();
+  $('summary').textContent = '';
+  updateActionStates();
+}
+
+function updateActionStates() {
+  const blocked = busy || destinationDirty;
+  $('play').disabled = blocked || !installed;
+  $('edit').disabled = blocked || !installed;
+  $('select').disabled = blocked;
+  $('bundled').disabled = blocked;
+  $('verify').disabled = blocked || !installed;
+  $('rollback').disabled = blocked || !hasRollback;
+  $('apply').disabled = blocked || !pending;
+  $('cancel').disabled = busy || !pending;
+  $('choose-root').disabled = busy;
+  $('set-root').disabled = busy || !destinationDirty;
+  $('root-path').disabled = busy;
+}
+
+function acceptRootResult(result) {
+  if (typeof result.root !== 'string') return;
+  currentRoot = result.root;
+  destinationDirty = false;
+  $('root-path').value = currentRoot;
+  if (result.plan_invalidated) {
+    clearPreview();
+    subtitleOverride = null;
+  }
+}
+
+async function task(action, message) {
+  subtitleOverride = null;
+  $('error').hidden = true;
+  $('status').textContent = message;
+  busy = true;
+  updateActionStates();
+  try {
+    await action();
+  } catch (error) {
+    $('error').textContent = String(error);
+    $('error').hidden = false;
+  } finally {
+    try {
+      await refresh();
+    } finally {
+      busy = false;
+      updateActionStates();
+    }
+  }
+}
+
+async function refresh() {
+  try {
+    const state = await call({action:'status'});
+    installed = Boolean(state.installed);
+    $('bundled').hidden = installed;
+    $('content-title').textContent = installed ? 'Gérer le contenu' : 'Préparer le contenu';
+    hasRollback = installed && Boolean(state.state && state.state.previous);
+    if (!destinationDirty) {
+      currentRoot = state.root;
+      $('root-path').value = currentRoot;
+    }
+    $('location').textContent = `Dossier actuel · ${state.root}`;
+    $('destination-status').textContent = destinationDirty
+      ? 'Modifiez le dossier puis validez pour continuer.'
+      : `Les fichiers seront conservés dans ${state.root}.`;
+    $('packs').replaceChildren();
+    if (installed) {
+      $('title').textContent = 'Gérer votre installation';
+      $('subtitle').textContent = subtitleOverride || 'Ajoutez des contenus, vérifiez les fichiers ou revenez à une version précédente.';
+      $('version').textContent = `Installation ${state.state.revision}`;
+      $('status').textContent = 'Installation prête · contenus séparés';
+      (Array.isArray(state.packs) ? state.packs : []).forEach(pack => {
+        const version = pack.version ? `Version ${pack.version}` : '';
+        item($('packs'), pack.label || 'Contenu Forge', [kindLabel(pack.kind), version].filter(Boolean).join(' · '));
+      });
+    } else {
+      $('title').innerHTML = 'Installer et gérer<br><em>vos contenus.</em>';
+      $('subtitle').textContent = 'Ajoutez des packages et vérifiez votre installation Forge.';
+      subtitleOverride = null;
+      $('version').textContent = 'Installation locale';
+      $('status').textContent = 'Préparez la livraison fournie ou ajoutez vos contenus Forge.';
+    }
+    updateActionStates();
+  } catch (error) {
+    installed = false;
+    hasRollback = false;
+    $('error').textContent = String(error);
+    $('error').hidden = false;
+    updateActionStates();
+  }
+}
+
+function preview(response) {
+  pending = response.plan;
+  $('preview').hidden = false;
+  $('changes').replaceChildren();
+  $('summary').textContent = pending.operation === 'rollback'
+    ? `La version précédente sera restaurée dans ${pending.root}. Vos projets et vos sauvegardes seront conservés.`
+    : `${response.packages.length} contenu(s) seront vérifiés et installés dans ${pending.root}.`;
+  response.packages.forEach(pack => {
+    const version = pack.version ? `Version ${pack.version}` : '';
+    item($('changes'), pack.label || 'Contenu Forge', [kindLabel(pack.kind), version, sizes(pack.bytes), `${pack.files} fichiers`].filter(Boolean).join(' · '));
+  });
+  updateActionStates();
+}
+
+$('play').onclick = () => task(() => call({action:'launch',app:'game'}), 'Démarrage du jeu…');
+$('edit').onclick = () => task(() => call({action:'launch',app:'editor'}), 'Ouverture de l’éditeur…');
+$('verify').onclick = () => task(async () => {
+  await call({action:'verify'});
+  $('subtitle').textContent = 'Vérification terminée : tous les fichiers correspondent à leur contenu.';
+  subtitleOverride = 'Vérification terminée : tous les fichiers correspondent à leur contenu.';
+}, 'Vérification des fichiers…');
+$('select').onclick = () => task(async () => {
+  const files = await call({action:'select'});
+  if (files.length) preview(await call({action:'prepare',files}));
+}, 'Sélection des contenus…');
+$('bundled').onclick = () => task(async () => {
+  const {files} = await call({action:'bundled'});
+  if (!files.length) throw 'Aucune livraison jointe. Ajoutez des contenus Forge.';
+  preview(await call({action:'prepare',files}));
+}, 'Vérification de la livraison…');
+$('choose-root').onclick = () => task(async () => {
+  const result = await call({action:'select_root'});
+  if (result.cancelled) {
+    $('destination-status').textContent = 'La destination reste inchangée.';
+    return;
+  }
+  acceptRootResult(result);
+}, 'Choisissez un dossier…');
+$('set-root').onclick = () => task(async () => {
+  const result = await call({action:'set_root',path:$('root-path').value});
+  acceptRootResult(result);
+}, 'Mise à jour du dossier…');
+$('rollback').onclick = () => task(async () => preview(await call({action:'rollback'})), 'Préparation du retour…');
+$('apply').onclick = () => task(async () => {
+  if (!pending) throw 'Préparez un contenu avant installation.';
+  await call({action:'apply',command_id:pending.command_id});
+  clearPreview();
+}, 'Installation en cours…');
+$('cancel').onclick = clearPreview;
+$('root-path').addEventListener('input', () => {
+  const dirty = $('root-path').value !== currentRoot;
+  if (dirty && !destinationDirty) {
+    clearPreview();
+    subtitleOverride = null;
+  }
+  destinationDirty = dirty;
+  updateActionStates();
+});
 refresh();

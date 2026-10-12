@@ -21,7 +21,9 @@ pub(super) fn prepare(
         | PlacementEdit::Remove { id }
         | PlacementEdit::SetLocked { id, .. } => vec![*id],
         PlacementEdit::Duplicate { source_id, .. } => vec![*source_id],
-        PlacementEdit::ReplaceAsset { ids, .. } => ids.clone(),
+        PlacementEdit::ReplaceAsset { ids, .. } | PlacementEdit::ReplacePinnedAsset { ids, .. } => {
+            ids.clone()
+        }
         PlacementEdit::Insert { .. } | PlacementEdit::InsertMany { .. } => Vec::new(),
     };
     let mut resolved = BTreeMap::new();

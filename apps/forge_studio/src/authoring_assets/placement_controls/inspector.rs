@@ -38,6 +38,9 @@ pub(super) fn PlacedObjectControls(
     on_command: SendCommand,
 ) -> impl IntoView {
     let (id, locked, name) = (placement.id, placement.locked, placement.name);
+    let physical_reference = placement.physics.map(|pin| view! {
+        <super::super::vault::SavedPhysicsDetails asset_id=placement.asset_id model_sha256=placement.asset_hash pin=*pin/>
+    });
     let on_command = crate::authoring_draft_scope::protect(state, on_command);
     let translation = placement.transform.translation_m;
     let coordinates =
@@ -95,6 +98,7 @@ pub(super) fn PlacedObjectControls(
             <p>{format!("{} · ({:.2}, {:.2}, {:.2}) m · {}", name,
                 translation.x, translation.y, translation.z, if locked { "verrouillé" } else { "modifiable" })}</p>
             <button on:click=move |_| super::super::placements::focus(id)>"Cadrer cet objet dans la carte"</button>
+            {physical_reference}
             <div hidden=move || advanced.get()>
                 <super::gizmo::GizmoControls state=state id=id locked=locked pivot=pivot alignment=Callback::new(move |()| snap()) on_command=on_command/>
                 <button disabled=locked on:click=move |_| {

@@ -75,6 +75,42 @@ fn launch() -> Launch {
 }
 
 #[test]
+fn repeated_game_launches_have_distinct_outputs_and_preserve_previous_captures() {
+    let f = Fixture::new();
+    let source = f.child("launch-source");
+    fs::create_dir(&source).unwrap();
+    fs::write(source.join("LICENSE"), b"local test fixture").unwrap();
+    fs::write(source.join("payload.bin"), b"game fixture").unwrap();
+    let mut descriptor = descriptor("applications", "sessions", Kind::Applications);
+    descriptor
+        .product
+        .as_mut()
+        .unwrap()
+        .apps
+        .get_mut("game")
+        .unwrap()
+        .args = vec!["{user}/captures/game-{session}.png".into()];
+    let archive = f.child("sessions.forgepack");
+    archive::pack(&source, descriptor, &archive).unwrap();
+    let root = f.child("installation");
+    let mut plan = install::prepare(&root, &[archive]).unwrap();
+    plan.user_root = f.child("personal-data").to_string_lossy().into_owned();
+    plan.command_id.clear();
+    plan.command_id = hash(&forge_delivery::json(&plan).unwrap());
+    install::apply(&plan).unwrap();
+    let first = forge_delivery::launch::command(&root, "game").unwrap();
+    let first = PathBuf::from(first.get_args().next().unwrap());
+    fs::create_dir_all(first.parent().unwrap()).unwrap();
+    fs::write(&first, b"previous capture must survive").unwrap();
+    let second = forge_delivery::launch::command(&root, "game").unwrap();
+    let second = PathBuf::from(second.get_args().next().unwrap());
+    assert_ne!(first, second, "Every launch must get a fresh output path");
+    assert_eq!(first.parent(), second.parent());
+    assert!(!second.exists());
+    assert_eq!(fs::read(first).unwrap(), b"previous capture must survive");
+}
+
+#[test]
 fn rejects_portable_path_aliases_and_traversal() {
     for path in [
         "../escape",
@@ -260,4 +296,71 @@ fn launch_arguments_are_native_without_shell_interpolation() {
     // Native Command carries the complete string as one argument.
     let command = forge_delivery::launch::command(&root, "game").unwrap();
     assert_eq!(command.get_args().next().unwrap(), "hello; $(arbitrary)");
+}
+
+#[test]
+fn external_vault_preference_survives_absent_optional_pack_without_changing_installation() {
+    let f = Fixture::new();
+    let source = f.child("vault-launch-source");
+    fs::create_dir(&source).unwrap();
+    fs::write(source.join("LICENSE"), "test").unwrap();
+    fs::write(source.join("payload.bin"), "test").unwrap();
+    let mut core = descriptor("applications", "vault", Kind::Applications);
+    let product = core.product.as_mut().unwrap();
+    product.optional_packs.push("asset-library".into());
+    product
+        .apps
+        .get_mut("editor")
+        .unwrap()
+        .env
+        .insert("OPENRPG_ASSET_VAULT".into(), "{pack:asset-library}".into());
+    let archive = f.child("vault-launch.forgepack");
+    archive::pack(&source, core, &archive).unwrap();
+    let root = f.child("installed");
+    let user = f.child("user");
+    let mut plan = install::prepare(&root, &[archive]).unwrap();
+    plan.user_root = user.to_string_lossy().into_owned();
+    plan.command_id.clear();
+    plan.command_id = hash(&forge_delivery::json(&plan).unwrap());
+    install::apply(&plan).unwrap();
+    let before = fs::read(root.join("installation.json")).unwrap();
+    let command = forge_delivery::launch::command(&root, "editor").unwrap();
+    assert!(
+        command
+            .get_envs()
+            .any(|(key, value)| key == "OPENRPG_ASSET_VAULT" && value.is_none())
+    );
+
+    let vault = f.child("private collection with spaces");
+    fs::create_dir_all(vault.join("metadata")).unwrap();
+    fs::create_dir_all(&user).unwrap();
+    let preference = user.join("asset-vault.v1.json");
+    let write_preference = |schema: &str, path: &std::path::Path| {
+        fs::write(
+            &preference,
+            serde_json::to_vec(&serde_json::json!({"schema":schema,"path":path})).unwrap(),
+        )
+        .unwrap();
+    };
+    write_preference("forge.delivery.asset-vault.v1", &vault);
+    for _ in 0..2 {
+        let command = forge_delivery::launch::command(&root, "editor").unwrap();
+        assert!(
+            command.get_envs().any(
+                |(key, value)| key == "OPENRPG_ASSET_VAULT" && value == Some(vault.as_os_str())
+            )
+        );
+    }
+    write_preference(
+        "forge.delivery.asset-vault.v1",
+        std::path::Path::new("relative"),
+    );
+    assert!(forge_delivery::launch::command(&root, "editor").is_err());
+    // Applications that do not declare the Vault are unaffected by this setting.
+    assert!(forge_delivery::launch::command(&root, "game").is_ok());
+    write_preference("unsupported", &vault);
+    assert!(forge_delivery::launch::command(&root, "editor").is_err());
+    write_preference("forge.delivery.asset-vault.v1", &f.child("missing"));
+    assert!(forge_delivery::launch::command(&root, "editor").is_err());
+    assert_eq!(fs::read(root.join("installation.json")).unwrap(), before);
 }

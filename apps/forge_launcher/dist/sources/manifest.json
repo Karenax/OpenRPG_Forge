@@ -1,0 +1,696 @@
+{
+  "schema": 1,
+  "notice": "Local preview only. Canonical documents remain design proposals, not runtime qualification.",
+  "sources": [
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/01_foundations.md",
+      "sha256": "e2fb3178d89fede60928170764c3ee343e64886b1939b1d4a7fb6bd467c020a5",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/02_progression_skills.md",
+      "sha256": "bf2afeb07c6132930002c7add0d0b9265fd19264f8bc8e3ca41e860540e24127",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/03_talents.md",
+      "sha256": "0fa08091e12fe19ed313643fda238459686561dbd758f99effdafca8739c1c25",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/04_play_rules.md",
+      "sha256": "dcb13950d26f31a3af011aaf85646a3c621b906b2a29c038dfe8c22db947ca30",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/05_implementation_contract.md",
+      "sha256": "04026b70006cb44fda31cc977e8f8c19e8e8d9bcaf5eddf107cb66c1796cfd08",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/player-handbook/parts/06_player_aids.md",
+      "sha256": "30583c8203fafa970c8b8979a1ca0c8d094c881a9ad502154cf66ccd4517584b",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/bestiary.json",
+      "sha256": "66a6722cdb42ea81c402f635c2d5b0f97bded2a39a1aed620e2c8a134793b2bd",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/RESEARCH_HORIZONS_SAUVAGES_20260927.md",
+      "sha256": "8d0d0bd285f48b168b6e558edfc04fa5c4f09bc1faf0c67c6849c20167799e4b",
+      "destination": "sources/bestiary-research.md"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/01-loup-de-bruyere.json",
+      "sha256": "711df71a2c8696dc3f9c02f9dde314883e61135e9249e1f98660eba408e0074d",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/loup-de-bruyere-plate.png",
+      "sha256": "bd32dedcf96aa04adc7737eef68ec5cf72b22c4e88c1339e91e745bae793564f",
+      "destination": "assets/bestiary/loup-de-bruyere-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/02-sanglier-de-tourbe.json",
+      "sha256": "6a06bb2b6ac70e8ba186f812c0dbf81497bd5d5dfd0e4a3e58a3226b44a96f67",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/sanglier-de-tourbe-plate.png",
+      "sha256": "6a4e9b944c6fbb97281e889540e375eff882d496fefeaa5c19e1466a67754636",
+      "destination": "assets/bestiary/sanglier-de-tourbe-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/03-cerf-miroir.json",
+      "sha256": "60aba0c45585637673b5e9cdbc807a121e435081b275529d1affc25cfea57d02",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cerf-miroir-plate.png",
+      "sha256": "7feffd102fbcfd7c2ede052be5d027bfdb12a347800dd3d64fff6b79b04d63a8",
+      "destination": "assets/bestiary/cerf-miroir-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/04-mante-fougere.json",
+      "sha256": "8c32a822f710b4c9c33eb0e0787aa381466cc4a0d0ae1d69928233cfdd9e4354",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/mante-fougere-plate.png",
+      "sha256": "0c89c77606bc6d22e654f60c1f11b0128377af4e3ec2c843e92597308c9f2419",
+      "destination": "assets/bestiary/mante-fougere-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/05-myceleur-gris.json",
+      "sha256": "9a40f09594d9a413997a9febd818e344f2dfe147549bfec3f98e0cdb1cc28bb3",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/myceleur-gris-plate.png",
+      "sha256": "1946333002264bb38194c267a6b172a2c53ff04463c3369ba4b2e1ed6a0d7012",
+      "destination": "assets/bestiary/myceleur-gris-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/06-sangsue-d-orage.json",
+      "sha256": "5e9b11a65900f7c08c4e7505dfcacd7c5d22949cd1002f6a9dab706149113bbf",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/sangsue-d-orage-plate.png",
+      "sha256": "8b9935ae87b6ee1298b5cce1f8f671051dcc36fc83846ccc795dd35c2fe6f2f8",
+      "destination": "assets/bestiary/sangsue-d-orage-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/07-charognard-de-braise.json",
+      "sha256": "d4944d0eecba4d495190cc6adb73d26192366a536a78f483cbffeda40946ef5f",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/charognard-de-braise-plate.png",
+      "sha256": "24ef7d11d722ba430b29230c177e3ff4789458bc4faf32fe5de41ddb7e5fe6b9",
+      "destination": "assets/bestiary/charognard-de-braise-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/08-brumaille.json",
+      "sha256": "60aff989266f875f4ad5c3334ad42bfd61bbd467e18f949e217a2fc329bbb7da",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/brumaille-plate.png",
+      "sha256": "192c6ea289575410a8576f8b0640f6fdda55e44612a5e5c3275d16d051d3990c",
+      "destination": "assets/bestiary/brumaille-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/09-rodeur-corrompu.json",
+      "sha256": "d4f3014202d7069104fad2500dab08cd108da1d1e79724a22270cc1cee30d1f8",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/rodeur-corrompu-plate.png",
+      "sha256": "e76223c6321f3771e7a6b26c3438c33eaebfb27e2b5e93260b7ee230efdd2b3d",
+      "destination": "assets/bestiary/rodeur-corrompu-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/10-sentinelle-de-cendre.json",
+      "sha256": "c4c9374710d09c7f669a584024fcb15d76e9d1d17b9445f5698ced7c6ec70408",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/sentinelle-de-cendre-plate.png",
+      "sha256": "9f9c37828ab15bac66e3f65847c295f94dcb360434f9365eb1afad42d914b4e0",
+      "destination": "assets/bestiary/sentinelle-de-cendre-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/11-gardien-des-cendres.json",
+      "sha256": "2129b3e80bd7291db45968bb7c976dc00e4b88baa514bc9c3a689f218c70bfe4",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/gardien-des-cendres-plate.png",
+      "sha256": "b8278d16abae2f9fad0c4bd5cf8877114824e5c9e8fedd9f188dbb11b1b4a701",
+      "destination": "assets/bestiary/gardien-des-cendres-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/gardien-des-cendres-dossier.png",
+      "sha256": "406d836d4624cf3db77e98767a0880684283f241260e04d04c296b82c0b9ffa7",
+      "destination": "assets/bestiary/gardien-des-cendres-dossier.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/12-gardien-des-racines.json",
+      "sha256": "c52ad088dfd0116b912dd5f2a3931a4d2ea37388081b718dca65a2569de2f676",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/gardien-des-racines-plate.png",
+      "sha256": "9c2da3e0a81754e530be61eef86fcc55b1e05d683f6f143ec788cfcdfd08af1f",
+      "destination": "assets/bestiary/gardien-des-racines-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/gardien-des-racines-dossier.png",
+      "sha256": "45a2e5a4d33aa79c7ad5d9111362f9d1a48e272d32b2b7b6928f72bbb74c2b8c",
+      "destination": "assets/bestiary/gardien-des-racines-dossier.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/13-rivefil-gobelin.json",
+      "sha256": "8a44ff4b5df4ccd5323da67156e746d8f6deecd7cd5cd2d8d26ac7fdb15f2a8e",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/rivefil-gobelin-plate.png",
+      "sha256": "e103b4c439db79727f9113eb242100bb7cac5532890a91e9fa1322dc5fbca40e",
+      "destination": "assets/bestiary/rivefil-gobelin-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/14-veille-lueur-gobeline.json",
+      "sha256": "77d3308fd8a842f0a598cb46612294d20eccc065d5b64b61f77e31c15f87df31",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/veille-lueur-gobeline-plate.png",
+      "sha256": "734fee2343e546ed068bd4f24e60c42b7ae167ab4742582e0a8f94079a18d045",
+      "destination": "assets/bestiary/veille-lueur-gobeline-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/15-prevote-gobeline-des-sept-vannes.json",
+      "sha256": "82f88947a4e72935883dcd8e1d321ae94b1cd68e6c1fb478b46e784be3834c6c",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/prevote-gobeline-des-sept-vannes-plate.png",
+      "sha256": "112298f2ca245c296be4896d14042bd714d714987ef1254f964ad625769f122d",
+      "destination": "assets/bestiary/prevote-gobeline-des-sept-vannes-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/prevote-gobeline-des-sept-vannes-dossier.png",
+      "sha256": "d4a740c956ef8a57b1272b065be8e80a561bb3486c2420dcfa2d33f67e9a3278",
+      "destination": "assets/bestiary/prevote-gobeline-des-sept-vannes-dossier.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/16-cours-de-bise-gnoll.json",
+      "sha256": "afc6a16ec06c2732294368a8ae6d5e07f4e838086a045680ca6c759fe84c3a54",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cours-de-bise-gnoll-plate.png",
+      "sha256": "db48ec4e4c5d9a571e9134405ad61f88aab48fc27cd06f0c6def0c50307451d0",
+      "destination": "assets/bestiary/cours-de-bise-gnoll-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/17-mirevent-gnolle.json",
+      "sha256": "5b759c206bb997ccb3c630febad181dcd974eaef5b511b0ae36c3965aceaeaa0",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/mirevent-gnolle-plate.png",
+      "sha256": "3f6bed9946869706ac3a346adcdbe81153b606fa2d10c30f492dbabefa403dd1",
+      "destination": "assets/bestiary/mirevent-gnolle-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/18-cartographe-gnoll-du-tonnerre.json",
+      "sha256": "eedd9ad695911c965027ec98bdded8124f3603d71a3a500d1b88e94a3e45ecf1",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cartographe-gnoll-du-tonnerre-plate.png",
+      "sha256": "eb67491108ae7a083c715f90332ddb64fc5c2a1dcdb4bc444925a3b9048f85c6",
+      "destination": "assets/bestiary/cartographe-gnoll-du-tonnerre-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cartographe-gnoll-du-tonnerre-dossier.png",
+      "sha256": "4512659a7f34b731f154263ad2443ee726f595b897777bda42e36988375da2a7",
+      "destination": "assets/bestiary/cartographe-gnoll-du-tonnerre-dossier.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/19-porte-schiste-orc.json",
+      "sha256": "98b671beb7048ed3df2f6f7187f8ddf96147e94b537fefd7cd8b000d19d3222a",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/porte-schiste-orc-plate.png",
+      "sha256": "cc7b044c2320ad08ef366c839a34360fa98cca5b22623c9956e007304343f5c0",
+      "destination": "assets/bestiary/porte-schiste-orc-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/20-greffepente-orque.json",
+      "sha256": "53886865fe0fbab68cebb220bcb14e4d04845315bd49021050b8fa875301e35e",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/greffepente-orque-plate.png",
+      "sha256": "aadf13cbb8c3d99c14339daaa67606b83c906c75e80aecac7547e38d296c1f36",
+      "destination": "assets/bestiary/greffepente-orque-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/21-maitre-etai-orc-de-la-faille-claire.json",
+      "sha256": "928d8f45908272b8f1d4d72e6b37a927ef0e264048511e1861d40dc5c95c74ae",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/maitre-etai-orc-de-la-faille-claire-plate.png",
+      "sha256": "300f2695a81aa02bce7ecc20d7fda347c2b75de42c20a0268527f3cfe464ce39",
+      "destination": "assets/bestiary/maitre-etai-orc-de-la-faille-claire-plate.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/maitre-etai-orc-de-la-faille-claire-dossier.png",
+      "sha256": "b89ca4e02bbc631bdf8642be5bfa83154ea523845361f0768bec04bbd8329cd5",
+      "destination": "assets/bestiary/maitre-etai-orc-de-la-faille-claire-dossier.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/22-chouette-cerf-des-brisants.json",
+      "sha256": "0fd7aefbd6d2d3c41a607cad4353d34497c77f27d5e24ab2886230e5bb2c6822",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/chouette-cerf-des-brisants-plate-v1.png",
+      "sha256": "de4668b3b7e40eebea224b00e58a12430cadc7619a288767f52f1fc060550b13",
+      "destination": "assets/bestiary/chouette-cerf-des-brisants-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/23-taupe-belier-de-basalte.json",
+      "sha256": "79f74036fd668730c894de029ef75036078b6c90cd99dba261417634112a381c",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/taupe-belier-de-basalte-plate-v1.png",
+      "sha256": "b007e40c6d1091ec6002fc9b4207ad73b2443094467c337843bf3024631f5408",
+      "destination": "assets/bestiary/taupe-belier-de-basalte-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/24-raie-des-dunes.json",
+      "sha256": "be3ed2931d7029e2cdcf50407fbb286a333b3633bad3a74886ac9ce67d686f89",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/raie-des-dunes-plate-v1.png",
+      "sha256": "1b5d51ed15ba311f6b1a969474b93510d55f312baa505d37ac3c06aa20233d62",
+      "destination": "assets/bestiary/raie-des-dunes-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/25-tisseuse-de-verre.json",
+      "sha256": "8209012005448f4034a3c6d077eceef3a93c03e148f9531daa541f4900153013",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/tisseuse-de-verre-plate-v1.png",
+      "sha256": "2dedb42464eecd9f4dd956cfb2291dffabc9e78712eafae84c19d901accf3744",
+      "destination": "assets/bestiary/tisseuse-de-verre-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/26-brochet-lanterne.json",
+      "sha256": "fab4ef0461349bff00a70e2dbb71a234b409f087c64d460e84168c075a592e45",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/brochet-lanterne-plate-v1.png",
+      "sha256": "f52cfd60319f946ee88a82836761c19558ad5eed14c05c9e61f186f9c8430648",
+      "destination": "assets/bestiary/brochet-lanterne-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/27-ronce-marcheuse.json",
+      "sha256": "c00c0c10378b85bb435f0d62c1ad9fe1a4dddf074e768f0062979669c7d7f740",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/ronce-marcheuse-plate-v1.png",
+      "sha256": "b6b54dd537a1172d96e08fe68ce01eaaed61afcaca63c85d6870f1b95de80e79",
+      "destination": "assets/bestiary/ronce-marcheuse-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/28-couronne-de-spores.json",
+      "sha256": "83c1904d2bd3b8e6f7c5a9125492c3ae97b838b84c7acfdc023daa0c7fa581cf",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/couronne-de-spores-plate-v1.png",
+      "sha256": "22439f936819dc640a2374920f87d825cfcb76b8c16590535b8701d5c9199a0a",
+      "destination": "assets/bestiary/couronne-de-spores-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/29-saule-des-voix.json",
+      "sha256": "abab19b566ef3bb9ada196ee7b141e9691f64bcc1edfa8ae6cd71438f6b9c80a",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/saule-des-voix-plate-v1.png",
+      "sha256": "8d118a13e6c47921632d7b687f4d8925bc699b8e51d439c729f1543e3bb2bd68",
+      "destination": "assets/bestiary/saule-des-voix-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/30-faune-des-gues.json",
+      "sha256": "d3f602b6e9f764d830705c24bdb5260ebe19f5810a8240773deee51010655b2f",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/faune-des-gues-plate-v1.png",
+      "sha256": "44d628fab9b159145a1d74615061f3d61c17a8cefd018ddda4c3ffc70788ae7f",
+      "destination": "assets/bestiary/faune-des-gues-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/31-dame-des-lucioles.json",
+      "sha256": "e1113bb2a9d929e65970fc0192bca5a1b98df644485017bdcda26015cd14cf36",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/dame-des-lucioles-plate-v1.png",
+      "sha256": "7eb9ae9695e38e21d0a85f95806e97250998c62a9a27883c82d4496101966e61",
+      "destination": "assets/bestiary/dame-des-lucioles-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/32-lutine-des-greniers.json",
+      "sha256": "1c156da71489c06ce02d59643b7d8d5bd867bf42c768c8c802dcc281948c79ca",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/lutine-des-greniers-plate-v1.png",
+      "sha256": "422cd57bc3634d28dfa8ee65e248ed3e5cbcb5e7e6f330d839642b09c2d59f5b",
+      "destination": "assets/bestiary/lutine-des-greniers-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/33-cheval-de-rosee.json",
+      "sha256": "fb83b019677f3075711601a4dd0a63a1237edabab8b19aeaf0dddbdd10dd763a",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cheval-de-rosee-plate-v1.png",
+      "sha256": "2958ff6401680ab2f3d08c12646c01713b4a4c6aff2f16b0b576da9ab44d80af",
+      "destination": "assets/bestiary/cheval-de-rosee-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/34-porte-braise.json",
+      "sha256": "f189735a1edeadcddcc5cd35cc0a0186637621748b37728d992dca212eb96692",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/porte-braise-plate-v1.png",
+      "sha256": "7f5af87c83cfce9da985deff595c05ec19407fe90bddd3ce77f2d0048118028a",
+      "destination": "assets/bestiary/porte-braise-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/35-noeud-d-averse.json",
+      "sha256": "1c76b8fe1ca7f96b289c35ceca218c820258f2cd748feced34d62ef845c52e4f",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/noeud-d-averse-plate-v1.png",
+      "sha256": "530122a28f0b591152f12cc33ca3dddf3cd66c1c7858ddb58eaeae57aa4692e2",
+      "destination": "assets/bestiary/noeud-d-averse-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/36-fileuse-de-givre.json",
+      "sha256": "491311d08818df07bf09e2a624d5c0a8baafe85e7b3adfacc3e8e0298444765c",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/fileuse-de-givre-plate-v1.png",
+      "sha256": "590c93e5d301b9c86e430808038517a9eb863ce6bdcef2ff548e0cc8aeccde27",
+      "destination": "assets/bestiary/fileuse-de-givre-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/37-berger-d-eboulis.json",
+      "sha256": "0af07395f128f5ac363fe5748cb245d7ed27a5f4cc1cd20db13ce91048375b9f",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/berger-d-eboulis-plate-v1.png",
+      "sha256": "a5d59e3a43b0ac75afee972369aa537961582ba5928408c7c6d389b8badcde6d",
+      "destination": "assets/bestiary/berger-d-eboulis-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/38-limon-d-ardoise.json",
+      "sha256": "e157df485713eae6f0e4330d5755db041bae0abd94cd41d21fc08080b9382163",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/limon-d-ardoise-plate-v1.png",
+      "sha256": "e8d8d29f550c513b1c981171c9ccd6f176911219796a325fe0e55b377aee8393",
+      "destination": "assets/bestiary/limon-d-ardoise-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/39-gelee-de-cuivre.json",
+      "sha256": "586a5b8091e26b94e684f15551fb2b360e50cbee79179bb360b06cdce57a99b5",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/gelee-de-cuivre-plate-v1.png",
+      "sha256": "ad2d4ab565e3e60d2ad82d9af229dae9f232c8f7913ae724d3c86b1750456394",
+      "destination": "assets/bestiary/gelee-de-cuivre-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/40-nappe-de-sel.json",
+      "sha256": "94d4471c3a40febb45e624b0ed472722d18cabe755aa7154ea202ba834871cd9",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/nappe-de-sel-plate-v1.png",
+      "sha256": "e76ad4289b5d1cbfc0c5154fb33f530c4ff2bdc257b100d4a9def4d970097844",
+      "destination": "assets/bestiary/nappe-de-sel-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/41-veilleur-d-ossuaire.json",
+      "sha256": "d6e2ced625055621f9aacfcbb476278453dc9070e80ac8d923e6434454a17629",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/veilleur-d-ossuaire-plate-v1.png",
+      "sha256": "99bd90b7e5acfc329f977f27ee2092817653cf140ba1082843196e8e0afa098e",
+      "destination": "assets/bestiary/veilleur-d-ossuaire-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/42-porte-deuil-des-marais.json",
+      "sha256": "fb96aa926a06b7d7a55e13223f97c48de7819e5bce650e62e6f5fe5136f2c1be",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/porte-deuil-des-marais-plate-v1.png",
+      "sha256": "a587d20fc532db84847caa812e0d0fc6694959722df2989623029bfd1473b0d8",
+      "destination": "assets/bestiary/porte-deuil-des-marais-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/43-squelette-des-cloches.json",
+      "sha256": "36e30810cd94b7030ee1d1849757310ed06eb97499149c9ed01fcacc663e8ff9",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/squelette-des-cloches-plate-v1.png",
+      "sha256": "2e130d9abb57ed20e3cd6d59bf840852e48cd16045adbd07433730cf4d50404b",
+      "destination": "assets/bestiary/squelette-des-cloches-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/44-cendrelame-lie.json",
+      "sha256": "d76e86a528fea230b6b9c0cf2cc34a85e18b28feeb17334b944af840d7f166ab",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/cendrelame-lie-plate-v1.png",
+      "sha256": "a6b0841d9d3e3f71698e3c5cc7a7befd87b4ce78984938fcff01dbcfdb0104df",
+      "destination": "assets/bestiary/cendrelame-lie-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/45-arpenteur-de-bornes.json",
+      "sha256": "4339f8e775955fc22ed1f0bf81af5b83ad01b78b9c12b5ac830996b115967718",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/arpenteur-de-bornes-plate-v1.png",
+      "sha256": "08520d03e5e6db06d4753e4ca3baff6d538bb481c7884a1462293fc51d110dde",
+      "destination": "assets/bestiary/arpenteur-de-bornes-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/46-carillon-de-bronze.json",
+      "sha256": "89f2054e96c18752f12dcc70b4f13813b74966215e8080d9ebe7925760632ced",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/carillon-de-bronze-plate-v1.png",
+      "sha256": "f2a3402970b52bdb85aaaeb9ac012e643b35d6196d09857ed2abda73fb6ac76a",
+      "destination": "assets/bestiary/carillon-de-bronze-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/47-drapier-d-argile.json",
+      "sha256": "fa0d636a22656efbeafb4d60ab552cd9464c3b7f7a8d654a600fa25252c34e63",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/drapier-d-argile-plate-v1.png",
+      "sha256": "d1e52c44daf4f9779b32b850619e8f800c5faa8151ea899c550ed2319e4e6370",
+      "destination": "assets/bestiary/drapier-d-argile-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/48-geant-des-moraines.json",
+      "sha256": "22dafa2e4aa188ef4ed9a932f612053b267f510272176d8ffc4a0fe64f0f0cc1",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/geant-des-moraines-plate-v1.png",
+      "sha256": "d4650f778a1d2e6d3f5ccdee97ff3d18eeb172be328a90d71a4f31a9f91e2f1a",
+      "destination": "assets/bestiary/geant-des-moraines-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/49-ogresse-des-fours.json",
+      "sha256": "a88cbe53e7b3f1a1a67e6bc4ba86094e4f12755b7492ffdaccbdd38a9fbb9692",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/ogresse-des-fours-plate-v1.png",
+      "sha256": "ea7341138ad9234b76e503183f987978a44b2435aa2919077123b1db36f85592",
+      "destination": "assets/bestiary/ogresse-des-fours-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/50-vouivre-des-salines.json",
+      "sha256": "7e97dbbc3474609976e87b7b752e570b972b1247fb3235b61731265682c0da9c",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/vouivre-des-salines-plate-v1.png",
+      "sha256": "0ec0a77045b85193f0cac97147bcbfec0a6d8bf7da4b7778976025d506ea7647",
+      "destination": "assets/bestiary/vouivre-des-salines-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/bestiary/entries/51-dragon-des-sources-closes.json",
+      "sha256": "30fe7c70907fd98f1255ac96ba160758706de0e6cd94e0c7454e4829049f3335",
+      "destination": null
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/dragon-des-sources-closes-plate-v1.png",
+      "sha256": "30b27174dfc056ce72df54736f8a3c9ecbb36dc38103417d4d5cba6f78a3edcb",
+      "destination": "assets/bestiary/dragon-des-sources-closes-plate-v1.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/bright-forest-exploration.png",
+      "sha256": "af9f1175ff9dadf129b885eca5492dceeed716d5cfb0ee0423e304a6446814bb",
+      "destination": "assets/guide/bright-forest-exploration.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/bright-fortress-life.png",
+      "sha256": "6451743c1bda8a35d475ebc120597017887b669f594b6612accb845a52ce5aed",
+      "destination": "assets/guide/bright-fortress-life.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/cover-realistic-party.png",
+      "sha256": "d40635f2a60b874687c9d3f199317a59b3bf70d6f84bb0663c4871b75f77b13b",
+      "destination": "assets/guide/cover-realistic-party.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/dawn-harbor-infiltration.png",
+      "sha256": "0e18c9d0a91082244fa364635e99701bef21b9ae0e8c3501ceb373647a10785d",
+      "destination": "assets/guide/dawn-harbor-infiltration.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/glass-roof-workshop.png",
+      "sha256": "f2c3eeb217ed0f0a57814001c825fc0895988d71d8e7e8e0d3e6d46250bd460d",
+      "destination": "assets/guide/glass-roof-workshop.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/magic-observatory.png",
+      "sha256": "1bc15d67024ca442dff740cce105250e02687dbca4d9af148b73d20ebb8ed9bc",
+      "destination": "assets/guide/magic-observatory.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/progression-by-practice.png",
+      "sha256": "5cdc4d170533944b8c57e915e914cfd2f61c08985ea080c52b55d798db4d89d8",
+      "destination": "assets/guide/progression-by-practice.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/rescue-after-storm.png",
+      "sha256": "82d8c50ceab52f3cb682d848d5924ca30300860f3821caad485409ec27f73a7c",
+      "destination": "assets/guide/rescue-after-storm.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/social-negotiation.png",
+      "sha256": "e4e25088a255519ad892e07bcb99a653ceca21f90c64d3f568856fcf1ae53d37",
+      "destination": "assets/guide/social-negotiation.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/systemic-encounter.png",
+      "sha256": "ebb3b840d9ea8b19846b343d4f6d4947e70d3a621358be20d17db19d729f687a",
+      "destination": "assets/guide/systemic-encounter.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/windy-coast-council.png",
+      "sha256": "2fa705dd088785eb5a9961c470e37aa89def981f0fd5a0d10ae736f2ca6e6113",
+      "destination": "assets/guide/windy-coast-council.png"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/asset-provenance.json",
+      "sha256": "09fca94a4f7d030853a6fd2f5549274c8424aab874e41cc3a38d45e662456341",
+      "destination": "sources/bestiary-asset-provenance.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-cover.json",
+      "sha256": "7f228df1187b2fadd9143cd475c8d16e4c4e384e69e412f4e2800192d7a936fb",
+      "destination": "sources/provenance/provenance-cover.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-01-04.json",
+      "sha256": "cce44bbd68bd4a17aad68ddbd9e31fcf1f3375aefef751617c0abb90296dfa04",
+      "destination": "sources/provenance/provenance-01-04.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-05-08.json",
+      "sha256": "1b3d6a7f41b258dcc808d8c87d4d16f3eba4f3d1ade07c111e549184dffbb592",
+      "destination": "sources/provenance/provenance-05-08.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-09-12.json",
+      "sha256": "d1ff7ffbeb6bc75b9b0082f98d39f87b0b4a5d92ad32e065cbdf258932d9cf49",
+      "destination": "sources/provenance/provenance-09-12.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-13-15-gobelins.json",
+      "sha256": "dde3e7a2ae8a98b66c9fe210f30d72267f73aff31a5d496007419ad9ff54a6e6",
+      "destination": "sources/provenance/provenance-13-15-gobelins.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-16-18-gnolls.json",
+      "sha256": "069db81c018f30d710d1c0f71951ec01b10982f9ffe4dbbbe8ca6ab32b128766",
+      "destination": "sources/provenance/provenance-16-18-gnolls.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-19-21-orcs.json",
+      "sha256": "5625d0a973d6e9998172e36de0fbcbcf67670e387bdc535b9826540bffa5dfe2",
+      "destination": "sources/provenance/provenance-19-21-orcs.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-horizons-art-01.json",
+      "sha256": "9297297543f9684adf24b24303e180cccbf27167601556030a7086f39a3b979f",
+      "destination": "sources/provenance/provenance-horizons-art-01.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/bestiary/provenance/provenance-horizons-art-02.json",
+      "sha256": "1df2bc54c81d48b0cbd4ab75d70141ac14fcb100003eafa3e625e46453157b11",
+      "destination": "sources/provenance/provenance-horizons-art-02.json"
+    },
+    {
+      "path": "OpenRPG_Forge/OpenRPG_Forge-Rust/docs/design/assets/player-handbook/asset-provenance.json",
+      "sha256": "f485c13ac98d924f83b96479725a701be8a91b37c9af5195934390a4dbeba187",
+      "destination": "sources/player-handbook-asset-provenance.json"
+    },
+    {
+      "path": "local-source/exec-6814c3fa-7766-48e9-8635-dd7becf644e9.png",
+      "sha256": "716e9bb0fe9ac4299ace59369ab739a7b9267a6cdd62bf70941c9b2b1c00c7a6",
+      "destination": "assets/aube.png"
+    }
+  ]
+}

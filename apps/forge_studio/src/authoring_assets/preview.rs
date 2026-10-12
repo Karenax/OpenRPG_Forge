@@ -25,7 +25,12 @@ thread_local! {
 }
 
 enum PreviewRequest {
-    Show(String, Vec<u8>, SceneLayout),
+    Show(
+        String,
+        Vec<u8>,
+        SceneLayout,
+        Option<super::source_graph_physics::SourcePhysicsPayload>,
+    ),
     Clear,
 }
 
@@ -39,6 +44,24 @@ pub(super) enum PreviewSystems {
 pub(super) enum SceneLayout {
     CatalogLod0,
     AutonomousScene,
+    /// Authenticated catalog authority for all static Scene0 mesh primitives.
+    ModuleStaticTriangles {
+        catalog_sha256: forge_core::ContentHash,
+    },
+}
+
+impl SceneLayout {
+    pub(super) fn module(
+        policy: Option<crate::asset_library_protocol::ModuleCollisionPolicy>,
+        catalog_sha256: forge_core::ContentHash,
+    ) -> Self {
+        match policy {
+            Some(crate::asset_library_protocol::ModuleCollisionPolicy::StaticTriangleMeshes) => {
+                Self::ModuleStaticTriangles { catalog_sha256 }
+            }
+            None => Self::AutonomousScene,
+        }
+    }
 }
 
 pub(super) fn cancel() {
@@ -55,15 +78,31 @@ pub(super) fn submit(ticket: u64, id: String, bytes: Vec<u8>) -> bool {
     submit_layout(ticket, id, bytes, SceneLayout::CatalogLod0)
 }
 
-pub(super) fn submit_scene(ticket: u64, id: String, bytes: Vec<u8>) -> bool {
-    submit_layout(ticket, id, bytes, SceneLayout::AutonomousScene)
+pub(super) fn submit_scene_with_physics(
+    ticket: u64,
+    id: String,
+    bytes: Vec<u8>,
+    physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+) -> bool {
+    if !is_current(ticket) {
+        return false;
+    }
+    REQUEST.with(|request| {
+        request.replace(Some(PreviewRequest::Show(
+            id,
+            bytes,
+            SceneLayout::AutonomousScene,
+            physics,
+        )))
+    });
+    true
 }
 
 fn submit_layout(ticket: u64, id: String, bytes: Vec<u8>, layout: SceneLayout) -> bool {
     if !is_current(ticket) {
         return false;
     }
-    REQUEST.with(|request| request.replace(Some(PreviewRequest::Show(id, bytes, layout))));
+    REQUEST.with(|request| request.replace(Some(PreviewRequest::Show(id, bytes, layout, None))));
     true
 }
 
@@ -88,6 +127,7 @@ pub(crate) fn register(app: &mut App) {
             .after(VisibilitySystems::CalculateBounds),
     );
     super::source_graph_runtime::register(app);
+    super::source_graph_physics::register(app);
     super::source_graph_preview::register(app);
     super::placements::register(app);
 }
@@ -143,13 +183,20 @@ fn update(
     if let Some(request) = REQUEST.with(|request| request.borrow_mut().take()) {
         super::source_graph_preview::cancel();
         state.clear(&mut commands);
-        if let PreviewRequest::Show(id, bytes, layout) = request {
+        if let PreviewRequest::Show(id, bytes, layout, physics) = request {
             match super::source_graph_route::read(&bytes) {
                 Ok(Some(_)) => {
-                    super::source_graph_preview::submit(id, bytes);
+                    super::source_graph_preview::submit(id, bytes, physics);
                     return;
                 }
-                Ok(None) => {}
+                Ok(None) => {
+                    if physics.is_some() {
+                        super::preview_status(
+                            "Aperçu refusé : données physiques sans déclaration source.",
+                        );
+                        return;
+                    }
+                }
                 Err(reason) => {
                     super::preview_status(&format!("Aperçu refusé : {reason}"));
                     return;
@@ -215,6 +262,23 @@ fn update(
     super::preview_status(
         "Aperçu chargé au-dessus de la zone, sans collision ni placement. Rotation et zoom disponibles ; rendu à inspecter.",
     );
+}
+
+pub(super) fn configure(
+    root: Entity,
+    id: &str,
+    entities: impl Iterator<Item = Entity>,
+    nodes: &PreviewNodes,
+    commands: &mut Commands,
+) -> Result<Option<(Vec3, f32)>, &'static str> {
+    configure_layout(
+        root,
+        id,
+        SceneLayout::CatalogLod0,
+        entities,
+        nodes,
+        commands,
+    )
 }
 
 pub(super) fn configure_layout(
@@ -333,13 +397,30 @@ pub(super) fn is_renderable(
     false
 }
 
-/// UCX role belonging to this verified asset only; render LODs are never colliders.
+/// A host-admitted static module uses owned Scene0 primitives; otherwise only UCX/UTM roles apply.
 pub(super) fn is_collision(
     mut entity: Entity,
     root: Entity,
     id: &str,
+    layout: SceneLayout,
     nodes: &PreviewNodes,
 ) -> bool {
+    if matches!(layout, SceneLayout::ModuleStaticTriangles { .. }) {
+        return crate::asset_library_protocol::ModuleCollisionPolicy::StaticTriangleMeshes
+            .selects_primitive(
+                entity,
+                root,
+                nodes
+                    .get(entity)
+                    .is_ok_and(|(_, _, mesh, _, _)| mesh.is_some()),
+                |entity| {
+                    nodes
+                        .get(entity)
+                        .ok()
+                        .and_then(|(_, parent, _, _, _)| parent.map(ChildOf::parent))
+                },
+            );
+    }
     let prefixes = [format!("UCX_{id}"), format!("UTM_{id}")];
     for _ in 0..128 {
         if entity == root {
@@ -372,9 +453,14 @@ pub(super) fn collision_geometry(
     mut entity: Entity,
     root: Entity,
     id: &str,
+    layout: SceneLayout,
     nodes: &PreviewNodes,
     extras: &Query<&bevy::gltf::GltfExtras>,
 ) -> Result<Option<forge_engine::ManualPlacementCollisionGeometry>, &'static str> {
+    if matches!(layout, SceneLayout::ModuleStaticTriangles { .. }) {
+        return Ok(is_collision(entity, root, id, layout, nodes)
+            .then_some(forge_engine::ManualPlacementCollisionGeometry::TriangleMesh));
+    }
     let convex_prefix = format!("UCX_{id}");
     let triangle_prefix = format!("UTM_{id}_");
     for _ in 0..128 {

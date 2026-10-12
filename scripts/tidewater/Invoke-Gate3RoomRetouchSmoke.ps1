@@ -234,7 +234,7 @@ function Wait-P01AuthoringSave {
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const busy=document.querySelector('.authoring-toolbar')?.getAttribute('aria-busy');
   const terminal=/refusée|refusé|erreur|invalide|impossible/i.test(status);
-  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune zone ouverte'&&busy==='false'&&!terminal,
+  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune carte ouverte'&&busy==='false'&&!terminal,
     terminal,reason:'status='+status+'; save='+save+'; context='+context+'; busy='+busy};
 })()
 '@
@@ -274,7 +274,7 @@ if ($p01RequestedSelfTest) {
         'Set-UiControlByLabelWithKeyboard', 'Select-UiOptionByLabel', 'Open-DetailsBySummary',
         'Copy-IsolatedFixture', 'Get-ArchiveSnapshot', 'Test-ArchiveSnapshotsEqual',
         'Get-FileSha256', 'Get-NormalizedSha256', 'Assert-Gate3ProofPath', 'Assert-NoExistingReparseAncestor',
-        'Assert-TreeHasNoReparsePoints', 'Test-PathWithinDirectory', 'Open-Gate3TidewaterZone',
+        'Assert-TreeHasNoReparsePoints', 'Test-PathWithinDirectory', 'Open-Gate3PlaytestZone', 'Close-Gate3PlaytestZone',
         'Wait-GameplayEditor', 'Wait-GameplayForm', 'Wait-GameplayPreview', 'Wait-GameplayApply',
         'Send-CdpKeyStroke',
         'Invoke-GameplayPreviewApply', 'Get-Gate3GameplayReport', 'Start-ForgeStudioPlaytestProcess',
@@ -436,7 +436,7 @@ try {
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'P01 Studio shell' -Expression @'
 (() => ({ready:document.readyState==='complete'&&!!document.querySelector('.authoring-shell'),terminal:false,reason:'authoring shell pending'}))()
 '@)
-    Open-Gate3TidewaterZone -Socket $socket -ZoneId $p01ZoneId -TimeoutSeconds $InteractionTimeoutSeconds
+    Open-Gate3PlaytestZone -Socket $socket -ZoneId $p01ZoneId -TimeoutSeconds $InteractionTimeoutSeconds
 
     [void](Invoke-UiClick -Socket $socket -Text 'Construire' -Selector '[data-authoring-tab-button]')
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'P01 building controls' -Expression @'
@@ -505,15 +505,13 @@ try {
     if ((ConvertTo-CompactJson -Value $sourceIdentityBefore.actors) -cne (ConvertTo-CompactJson -Value $savedIdentity.actors) -or
         (ConvertTo-CompactJson -Value $sourceIdentityBefore.quests) -cne (ConvertTo-CompactJson -Value $savedIdentity.quests)) { throw 'P01 changed actor/quest identities or links.' }
 
-    [void](Invoke-UiClick -Socket $socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'P01 close authored zone' -Expression @'
 (() => {
   const norm=value=>(value??'').replace(/\s+/g,' ').trim();
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const open=document.documentElement?.getAttribute('data-forge-zone-open');
-  return {ready:context==='Aucune zone ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
+  return {ready:context==='Aucune carte ouverte'&&open==='false',terminal:false,reason:'context='+context+'; open='+open};
 })()
 '@)
     $uiClosed = $true

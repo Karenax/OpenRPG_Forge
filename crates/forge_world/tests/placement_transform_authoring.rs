@@ -85,6 +85,7 @@ fn exercise_transform_history(local_snap: bool) {
             CommandId::deterministic("insert"),
             PlacementEdit::Insert {
                 placement: ManualPlacement {
+                    physics: None,
                     id,
                     name: "Fixture".into(),
                     asset_id: AssetId::deterministic("fixture"),

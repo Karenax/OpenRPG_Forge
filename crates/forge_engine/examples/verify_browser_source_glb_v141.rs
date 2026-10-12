@@ -272,11 +272,28 @@ mod browser {
                 .unwrap()
                 .world()
                 .resource::<RenderAssets<GpuImage>>();
-            if handles.iter().all(|h| gpu.get(h).is_some()) {
+            let authored_images_resident = handles.iter().all(|h| gpu.get(h).is_some());
+            // WASM calibration progresses through asynchronous GPU readbacks.
+            // Texture residency alone does not establish the device's sRGB curve.
+            let calibration_ready = app
+                .world()
+                .resource::<Assets<SourceGraphMaterial>>()
+                .get(&calibration_material)
+                .is_some_and(|candidate| {
+                    candidate
+                        .extension
+                        .validate_scene_dependencies(app.world().resource::<Assets<Image>>())
+                        .is_ok()
+                        && forge_engine::source_graph::SourceGraphKey::from(&candidate.extension)
+                            .native_srgb_encoder_ready
+                });
+            if authored_images_resident && calibration_ready {
                 break;
             }
             if Instant::now() > deadline {
-                return Err("Authored GPU image residency timed out".into());
+                return Err(
+                    "Authored GPU image residency or native sRGB calibration timed out".into(),
+                );
             }
             next_frame().await?;
         }

@@ -31,6 +31,7 @@ pub fn from_geometry(geometry: &geometry::Geometry) -> Result<SourcePlacements, 
         let owner = template.instance;
         let asset_id = template.asset_id;
         placements.push(ManualPlacement {
+            physics: None,
             id: EntityId::deterministic(format!("acquired-scanned-placement:{}", owner.source_id)),
             name: template.name,
             asset_id,

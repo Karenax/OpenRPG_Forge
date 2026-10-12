@@ -36,6 +36,14 @@ async fn read_asset_library(request: String) -> Result<String, String> {
 fn execute_library_request(
     request: forge_studio_frontend::asset_library_protocol::LibraryRequest,
 ) -> Result<forge_studio_frontend::asset_library_protocol::LibraryResponse, String> {
+    with_asset_library(|library| library.execute(request))
+}
+
+fn with_asset_library<T>(
+    operation: impl FnOnce(
+        &mut forge_studio_frontend::asset_library_native::Library,
+    ) -> Result<T, String>,
+) -> Result<T, String> {
     use forge_studio_frontend::asset_library_native::Library;
     static LIBRARY: OnceLock<Mutex<Result<Library, String>>> = OnceLock::new();
     let library = LIBRARY.get_or_init(|| Mutex::new(
@@ -46,7 +54,26 @@ fn execute_library_request(
     let mut guard = library
         .lock()
         .map_err(|_| "Bibliothèque temporairement indisponible".to_owned())?;
-    guard.as_mut().map_err(|e| e.clone())?.execute(request)
+    operation(guard.as_mut().map_err(|e| e.clone())?)
+}
+
+#[tauri::command]
+async fn read_asset_physics(request: String) -> Result<tauri::ipc::Response, String> {
+    if request.len() > 8192 {
+        return Err("Requête physique trop volumineuse".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        use forge_studio_frontend::asset_library_protocol::PhysicsReadRequest;
+        let request: PhysicsReadRequest =
+            serde_json::from_str(&request).map_err(|e| e.to_string())?;
+        with_asset_library(|library| match request {
+            PhysicsReadRequest::Current(request) => library.read_physics_package(request),
+            PhysicsReadRequest::Saved(request) => library.read_saved_physics_package(&request),
+        })
+        .map(tauri::ipc::Response::new)
+    })
+    .await
+    .map_err(|e| format!("Lecture physique interrompue : {e}"))?
 }
 
 /// Raw IPC avoids expanding a GLB into a JSON array of decimal bytes.
@@ -74,7 +101,7 @@ async fn read_asset_model(request: String) -> Result<tauri::ipc::Response, Strin
                 };
                 forge_studio_frontend::asset_library_model_wire::encode(model)?
             }
-            ModelReadRequest::Module(request) => execute_module_model_request(request)?,
+            ModelReadRequest::Module(request) => execute_module_model_request(&request)?,
         };
         Ok(tauri::ipc::Response::new(wire))
     })
@@ -83,7 +110,7 @@ async fn read_asset_model(request: String) -> Result<tauri::ipc::Response, Strin
 }
 
 fn execute_module_model_request(
-    request: forge_studio_frontend::asset_library_protocol::ModuleModelRequest,
+    request: &forge_studio_frontend::asset_library_protocol::ModuleModelRequest,
 ) -> Result<Vec<u8>, String> {
     use forge_studio_frontend::asset_library_protocol::{ModuleModelReply, ModuleModelRequest};
     use forge_studio_frontend::module_asset_native::{ModuleAssetResolver, ModuleModelError};
@@ -94,13 +121,14 @@ fn execute_module_model_request(
         asset_id,
         sha256,
     } = request;
-    if schema_version != 2 {
+    if *schema_version != 2 {
         return Err("Version de requête de modèle du module invalide".into());
     }
     let resolver = RESOLVER
         .get_or_init(ModuleAssetResolver::from_environment)
         .as_ref()
-        .map_err(|e| e.to_string())?;
+        .map_err(ToString::to_string)?;
+    let (asset_id, sha256) = (*asset_id, *sha256);
     let reply = match resolver {
         None => ModuleModelReply::Missing { asset_id, sha256 },
         Some(resolver) => match resolver.resolve(asset_id, sha256) {
@@ -359,7 +387,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             execute_studio_command,
             read_asset_library,
-            read_asset_model
+            read_asset_model,
+            read_asset_physics
         ])
         .run(tauri::generate_context!())
         .expect("failed to run OpenRPG Forge Studio");
@@ -566,11 +595,12 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 4);
+        assert_eq!(permissions.len(), 5);
         assert_eq!(permissions[0], "allow-execute-studio-command");
         assert_eq!(permissions[1], "allow-read-asset-library");
         assert_eq!(permissions[2], "allow-read-asset-model");
-        assert_eq!(permissions[3], "core:window:deny-set-title");
+        assert_eq!(permissions[3], "allow-read-asset-physics");
+        assert_eq!(permissions[4], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
@@ -581,7 +611,8 @@ mod tests {
             [
                 "allow-execute-studio-command",
                 "allow-read-asset-library",
-                "allow-read-asset-model"
+                "allow-read-asset-model",
+                "allow-read-asset-physics"
             ]
         );
     }

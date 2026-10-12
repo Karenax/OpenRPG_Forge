@@ -1,9 +1,11 @@
 //! Reviewed pin replacement, never an implicit reload of authored placements.
-use super::{PlacementEdit, SendCommand, edit, head};
+use super::{SendCommand, edit, head};
 use forge_assets::asset_browser::AssetBrowser;
 use forge_core::EntityId;
 use forge_project::authoring::AuthoringState;
 use leptos::prelude::*;
+
+mod request;
 
 #[component]
 pub(super) fn ReplacementControls(
@@ -16,12 +18,28 @@ pub(super) fn ReplacementControls(
     on_command: SendCommand,
 ) -> impl IntoView {
     let matching = RwSignal::new(false);
+    let remove_physics = RwSignal::new(false);
+    let physical_source = Memo::new(move |_| {
+        state.with(|state| {
+            state
+                .as_ref()
+                .and_then(|state| state.zone_head.as_ref())
+                .and_then(|head| super::super::objects::lookup(head, id).ok())
+                .is_some_and(|placement| placement.physics.is_some())
+        })
+    });
     view! {
         <details><summary>"Remplacer la référence d’asset"</summary>
             <p>"Choisir le nouvel asset dans le catalogue. Position, rotation, échelle, nom et identifiant restent inchangés. Aucun ajustement automatique du pivot ou des dimensions."</p>
             <label><input type="checkbox" prop:checked=move || matching.get()
                 on:change=move |ev| matching.set(event_target_checked(&ev))/>
                 "Inclure les objets de cette zone portant exactement la même référence (256 maximum)"</label>
+            <Show when=move ||physical_source.get()>
+                <label><input type="checkbox" prop:checked=move ||remove_physics.get()
+                    on:change=move |ev| remove_physics.set(event_target_checked(&ev))/>
+                    "Retirer explicitement le paquet physique lors du remplacement par cet asset du catalogue"</label>
+                <p>"La référence physique précédente sera conservée dans l’historique pour Annuler."</p>
+            </Show>
             <output aria-live="polite">{move || {
                 let include_matching = matching.get();
                 let target = selected.get();
@@ -36,16 +54,12 @@ pub(super) fn ReplacementControls(
                     let original = head(state.get_untracked())?;
                     let placements = super::super::objects::matching(&original,id)?;
                     let source = placements.iter().find(|p| p.id == id).ok_or("Objet absent")?;
-                    let ids = placements.iter().filter(|p| p.id == id || (matching.get_untracked()
-                        && p.asset_id == source.asset_id && p.asset_hash == source.asset_hash))
-                        .map(|p| p.id).collect();
                     let name = selected.get_untracked();
                     let browser = super::super::catalog::resolve(catalog.get_untracked().as_ref(), &name)?;
                     let reference = browser.reference();
-                    let request = edit(state.get_untracked(), PlacementEdit::ReplaceAsset {
-                        ids, expected_asset_id: source.asset_id, expected_asset_hash: source.asset_hash,
-                        asset_id: reference.0, asset_hash: reference.1,
-                    })?;
+                    let action = request::prepare(&placements, source, reference,
+                        matching.get_untracked(), remove_physics.get_untracked())?;
+                    let request = edit(state.get_untracked(), action)?;
                     Ok::<_, String>((original.content_hash()?, browser, name, request))
                 })();
                 let (hash, browser, name, request) = match setup {
@@ -96,12 +110,7 @@ fn replacement_scope(
         .map_or_else(|| source.asset_id.to_string(), |entry| entry.label);
     let (count, locked) = placements
         .iter()
-        .filter(|p| {
-            p.id == id
-                || (include_matching
-                    && p.asset_id == source.asset_id
-                    && p.asset_hash == source.asset_hash)
-        })
+        .filter(|p| p.id == id || (include_matching && request::same_reference(p, source)))
         .fold((0, 0), |(count, locked), p| {
             (count + 1, locked + usize::from(p.locked))
         });

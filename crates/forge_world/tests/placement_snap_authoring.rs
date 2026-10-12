@@ -42,6 +42,7 @@ fn snapped_placement_is_revision_bound_undoable_and_persisted_as_absolute_transf
     )
     .unwrap();
     let placement = ManualPlacement {
+        physics: None,
         id: EntityId::deterministic("snapped"),
         name: "Fixture".into(),
         asset_id: AssetId::deterministic("fixture"),

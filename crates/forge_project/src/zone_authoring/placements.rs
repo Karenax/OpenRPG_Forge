@@ -32,8 +32,10 @@ impl PlacementChanges {
                 continue;
             };
             let new = &after[index];
-            result.references +=
-                usize::from((old.asset_id, old.asset_hash) != (new.asset_id, new.asset_hash));
+            result.references += usize::from(
+                (old.asset_id, old.asset_hash, &old.physics)
+                    != (new.asset_id, new.asset_hash, &new.physics),
+            );
             result.transforms += usize::from(old.transform != new.transform);
             result.names += usize::from(old.name != new.name);
             result.locks += usize::from(old.locked != new.locked);
@@ -49,12 +51,24 @@ impl PlacementChanges {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct PhysicsPackageReference {
+    pub schema_version: u32,
+    pub carrier_sha256: ContentHash,
+    pub manifest_sha256: ContentHash,
+    pub package_sha256: ContentHash,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ManualPlacement {
     pub id: EntityId,
     pub name: String,
     pub asset_id: AssetId,
     /// Pin the approved artifact; this is not a filesystem path or a licence grant.
     pub asset_hash: ContentHash,
+    /// Exact saved collision package for this carrier; absent on ordinary models.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub physics: Option<Box<PhysicsPackageReference>>,
     pub transform: Transform,
     pub locked: bool,
 }
@@ -87,6 +101,17 @@ pub enum PlacementEdit {
         asset_id: AssetId,
         asset_hash: ContentHash,
     },
+    /// Replace the complete reviewed reference, including an explicit absence
+    /// of a collision package. Never silently keep or drop the previous package.
+    ReplacePinnedAsset {
+        ids: Vec<EntityId>,
+        expected_asset_id: AssetId,
+        expected_asset_hash: ContentHash,
+        expected_physics: Option<Box<PhysicsPackageReference>>,
+        asset_id: AssetId,
+        asset_hash: ContentHash,
+        physics: Option<Box<PhysicsPackageReference>>,
+    },
     SetLocked {
         id: EntityId,
         locked: bool,
@@ -110,6 +135,11 @@ pub(super) fn validate(placements: &[ManualPlacement]) -> Result<(), String> {
             return Err("Placement name must be nonempty and bounded".into());
         }
         placement.transform.validate().map_err(|e| e.to_string())?;
+        if placement.physics.as_ref().is_some_and(|physics| {
+            physics.schema_version != 1 || physics.carrier_sha256 != placement.asset_hash
+        }) {
+            return Err("Physics reference must pin the placement carrier".into());
+        }
     }
     Ok(())
 }
@@ -180,32 +210,34 @@ impl ZoneAuthoringHead {
                 find(placements, id)?.transform = transform;
             }
             PlacementEdit::ReplaceAsset {
-                mut ids,
+                ids,
                 expected_asset_id,
                 expected_asset_hash,
                 asset_id,
                 asset_hash,
             } => {
-                if ids.is_empty() || ids.len() > MAX_PLACEMENT_BATCH {
-                    return Err("Asset replacement requires 1 to 256 objects".into());
-                }
-                ids.sort_unstable();
-                if ids.windows(2).any(|pair| pair[0] == pair[1]) {
-                    return Err("Asset replacement requires unique object IDs".into());
-                }
-                if (expected_asset_id, expected_asset_hash) == (asset_id, asset_hash) {
-                    return Err("Choose a different asset reference".into());
-                }
-                for id in ids {
-                    let placement = find(placements, id)?;
-                    if (placement.asset_id, placement.asset_hash)
-                        != (expected_asset_id, expected_asset_hash)
-                    {
-                        return Err("Placement asset changed; review replacement again".into());
-                    }
-                    placement.asset_id = asset_id;
-                    placement.asset_hash = asset_hash;
-                }
+                replace_asset(
+                    placements,
+                    ids,
+                    (expected_asset_id, expected_asset_hash),
+                    (asset_id, asset_hash),
+                )?;
+            }
+            PlacementEdit::ReplacePinnedAsset {
+                ids,
+                expected_asset_id,
+                expected_asset_hash,
+                expected_physics,
+                asset_id,
+                asset_hash,
+                physics,
+            } => {
+                replace_pinned_asset(
+                    placements,
+                    ids,
+                    &(expected_asset_id, expected_asset_hash, expected_physics),
+                    &(asset_id, asset_hash, physics),
+                )?;
             }
             PlacementEdit::SetLocked { id, locked } => {
                 find(placements, id)?.locked = locked;
@@ -234,4 +266,68 @@ fn find(placements: &mut [ManualPlacement], id: EntityId) -> Result<&mut ManualP
         .iter_mut()
         .find(|p| p.id == id)
         .ok_or_else(|| "Unknown placement ID".into())
+}
+
+type ReplacementPin = (AssetId, ContentHash, Option<Box<PhysicsPackageReference>>);
+
+fn replace_pinned_asset(
+    placements: &mut [ManualPlacement],
+    mut ids: Vec<EntityId>,
+    expected: &ReplacementPin,
+    target: &ReplacementPin,
+) -> Result<(), String> {
+    if ids.is_empty() || ids.len() > MAX_PLACEMENT_BATCH {
+        return Err("Asset replacement requires 1 to 256 objects".into());
+    }
+    ids.sort_unstable();
+    if ids.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err("Asset replacement requires unique object IDs".into());
+    }
+    if expected == target {
+        return Err("Choose a different asset or physics reference".into());
+    }
+    for id in ids {
+        let placement = find(placements, id)?;
+        if (placement.asset_id, placement.asset_hash, &placement.physics)
+            != (expected.0, expected.1, &expected.2)
+        {
+            return Err("Placement reference changed; review replacement again".into());
+        }
+        placement.asset_id = target.0;
+        placement.asset_hash = target.1;
+        placement.physics.clone_from(&target.2);
+    }
+    Ok(())
+}
+
+fn replace_asset(
+    placements: &mut [ManualPlacement],
+    mut ids: Vec<EntityId>,
+    expected: (AssetId, ContentHash),
+    target: (AssetId, ContentHash),
+) -> Result<(), String> {
+    if ids.is_empty() || ids.len() > MAX_PLACEMENT_BATCH {
+        return Err("Asset replacement requires 1 to 256 objects".into());
+    }
+    ids.sort_unstable();
+    if ids.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err("Asset replacement requires unique object IDs".into());
+    }
+    if expected == target {
+        return Err("Choose a different asset reference".into());
+    }
+    for id in ids {
+        let placement = find(placements, id)?;
+        if placement.physics.is_some() {
+            return Err(
+                "Replacing this asset requires an explicitly reviewed physics package".into(),
+            );
+        }
+        if (placement.asset_id, placement.asset_hash) != expected {
+            return Err("Placement asset changed; review replacement again".into());
+        }
+        placement.asset_id = target.0;
+        placement.asset_hash = target.1;
+    }
+    Ok(())
 }

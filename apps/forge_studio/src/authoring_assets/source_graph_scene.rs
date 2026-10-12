@@ -106,6 +106,10 @@ fn geometry_matches(mesh: &Mesh, expected: &SourceGraphPrimitiveGeometry) -> boo
 /// A hidden host root keeps async registration/pass setup out of the visible
 /// scene. Root transforms, selection markers and persisted placement data stay
 /// owned by the existing common editor path.
+#[allow(
+    clippy::too_many_lines,
+    reason = "Keep the ordered scene attachment and its ownership bookkeeping together."
+)]
 pub(super) fn attach(
     world: &mut World,
     root: Entity,

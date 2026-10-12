@@ -1,6 +1,11 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-## État actif — 10 octobre 2026
+## État actif — 11 octobre 2026
+
+La [version commune du 11 octobre](../evidence/gate3/GATE3_SHARED_VERSION_20261011.md)
+reprend les travaux des autres conversations dans le checkout Rust principal.
+Les preuves fraîches doivent couvrir ses sources locales complètes, sans nouvelle
+copie de code ou application par conversation. Gate 3 reste ouverte.
 
 [Consolidation locale du 10 octobre](../evidence/gate3/GATE3_CONSOLIDATION_20261010.md) : corrections du candidat intégrées aux sources courantes ; format, Clippy, 2003 tests natifs, 13 replays privés et check WebGPU PASS sur le périmètre identifié. La CI distante sur cette correction et la clôture Gate 3 restent à obtenir.
 
@@ -18,14 +23,15 @@ automatiquement les critères du checkout courant. Gate 3 reste ouverte :
 les corrections du candidat ont été intégrées et recontrôlées localement ;
 la CI complète sur la révision finale et le verdict de clôture restent à établir.
 
-Le [run CI du 9 octobre 37985561420](https://github.com/Karenax/OpenRPG_Forge/actions/runs/37985561420),
-sur `ae999c2f3395e9472301baebcfcb3d1b2ec0ec98`, passe WASM et supply-chain.
+Le [run CI du 11 octobre 38123749165](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38123749165),
+sur `48a894d550c5770a5ea50bc54707113e85ab5218`, passe WASM et supply-chain.
 Windows/Linux échouent à Clippy ; tests et builds natifs suivants non exécutés.
 La condition de facturation ADR-0006 n'est plus applicable à ces jobs.
 Les mentions `NOT RUN` des acquisitions antérieures conservent leur date.
 
 Le [candidat installable initial](INSTALLABLE_DELIVERY_20261010.md), rejeté par le propriétaire, est remplacé par [R3](INSTALLABLE_DELIVERY_20261010_R3.md). Ses preuves locales incluent conservation des données et deux relancements natifs réels ; elles ne clôturent ni Gate 3 ni Gate 4. La généralisation du
-moteur reste en pause selon le contexte canonique.
+moteur reste à qualifier ; la reprise du 10 octobre conserve cette exigence,
+selon le contexte canonique.
 
 ## Chantier Tidewater — autorisation du 24 septembre 2026
 

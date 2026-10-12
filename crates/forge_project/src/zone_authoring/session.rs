@@ -13,6 +13,12 @@ mod source_blobs;
 const SOURCE_OBJECT_ARCHIVE_VERSION: u32 = 37;
 const SOURCE_OBJECT_COMPACT_VERSION: u32 = 38;
 const SOURCE_OBJECT_DELTA_VERSION: u32 = 39;
+const PHYSICS_ARCHIVE_VERSION: u32 = 40;
+const PHYSICS_COMPACT_VERSION: u32 = 41;
+const PHYSICS_DELTA_VERSION: u32 = 42;
+const PLACEMENT_PHYSICS_ARCHIVE_VERSION: u32 = 43;
+const PLACEMENT_PHYSICS_COMPACT_VERSION: u32 = 44;
+const PLACEMENT_PHYSICS_DELTA_VERSION: u32 = 45;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -472,13 +478,38 @@ impl ZoneEditSession {
         let header: Header = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
         if matches!(
             header.version,
-            6 | 7 | 12 | 15 | 18 | 21 | 24 | 27 | 30 | 33 | 36 | SOURCE_OBJECT_DELTA_VERSION
+            6 | 7
+                | 12
+                | 15
+                | 18
+                | 21
+                | 24
+                | 27
+                | 30
+                | 33
+                | 36
+                | SOURCE_OBJECT_DELTA_VERSION
+                | PHYSICS_DELTA_VERSION
+                | PLACEMENT_PHYSICS_DELTA_VERSION
         ) {
             return delta::decode(bytes);
         }
         if matches!(
             header.version,
-            3 | 5 | 9 | 11 | 14 | 17 | 20 | 23 | 26 | 29 | 32 | 35 | SOURCE_OBJECT_COMPACT_VERSION
+            3 | 5
+                | 9
+                | 11
+                | 14
+                | 17
+                | 20
+                | 23
+                | 26
+                | 29
+                | 32
+                | 35
+                | SOURCE_OBJECT_COMPACT_VERSION
+                | PHYSICS_COMPACT_VERSION
+                | PLACEMENT_PHYSICS_COMPACT_VERSION
         ) {
             return compact::decode(bytes);
         }
@@ -508,6 +539,12 @@ impl ZoneEditSession {
 }
 
 fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
+    if has_placement_physics(receipts) {
+        return PLACEMENT_PHYSICS_ARCHIVE_VERSION;
+    }
+    if has_physics(receipts) {
+        return PHYSICS_ARCHIVE_VERSION;
+    }
     if has_source_objects(receipts) {
         return SOURCE_OBJECT_ARCHIVE_VERSION;
     }
@@ -555,6 +592,26 @@ fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
     } else {
         1
     }
+}
+
+fn has_physics(receipts: &[ZoneReceipt]) -> bool {
+    receipts
+        .iter()
+        .any(|receipt| receipt.applied.physics.is_some() || receipt.inverse.physics.is_some())
+}
+
+fn has_placement_physics(receipts: &[ZoneReceipt]) -> bool {
+    receipts.iter().any(|receipt| {
+        [&receipt.applied, &receipt.inverse]
+            .iter()
+            .any(|corrections| {
+                corrections.placements.as_ref().is_some_and(|placements| {
+                    placements
+                        .iter()
+                        .any(|placement| placement.physics.is_some())
+                })
+            })
+    })
 }
 
 fn has_paths(receipts: &[ZoneReceipt]) -> bool {

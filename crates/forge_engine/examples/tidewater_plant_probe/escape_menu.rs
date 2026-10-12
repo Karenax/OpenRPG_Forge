@@ -132,3 +132,13 @@ pub(super) fn update(world: &mut World) {
         for mut visibility in panels.iter_mut(world) { visibility.set_if_neq(if graphics_open {Visibility::Visible} else {Visibility::Hidden}); }
     });
 }
+
+// Capture barrier for the requested, fully published solar frame.
+pub(crate) fn solar_ready(world: &World) -> bool {
+    world.get_resource::<daylight::Daylight>().is_some_and(|d| {
+        let requested = f64::from(world.resource::<State>().preferences.minutes) / 60.0;
+        // Publication preserves the requested hours exactly; nearby frames are not ready.
+        d.completed_hours.map(f64::to_bits) == Some(requested.to_bits())
+            && d.frame.hours.to_bits() == requested.to_bits()
+    })
+}

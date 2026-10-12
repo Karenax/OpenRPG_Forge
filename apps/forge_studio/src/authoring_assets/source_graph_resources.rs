@@ -39,6 +39,10 @@ pub(super) struct RegisteredScene {
     pub original_passes: BTreeMap<usize, OriginalPasses>,
 }
 
+#[allow(
+    clippy::float_cmp,
+    reason = "The affine last row must be exactly [0, 0, 0, 1]; accepting a projective frame would change the GPU contract."
+)]
 pub(super) fn validate_uniforms(source: &SourceGraphUniforms) -> Result<(), String> {
     let matrices = [
         source.source_object_from_target_object,
@@ -109,6 +113,10 @@ pub(super) fn register(
     )
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "Keep resource admission, allocation and failure cleanup in one ordered registration transaction."
+)]
 pub(super) fn register_with_sampling(
     world: &mut World,
     glb: &SourceGraphGlb<'_>,

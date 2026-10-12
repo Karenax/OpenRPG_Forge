@@ -1,16 +1,22 @@
 //! Browser transport only. The Rust provider executes in the dedicated worker.
-use forge_navigation::{BuiltTile, TileInput};
+use forge_navigation::{BuiltTile, ElapsedObservation, ObservedNavigationTile, TileInput};
 use js_sys::{Array, Reflect, Uint8Array};
 use std::{cell::RefCell, collections::VecDeque};
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 use web_sys::{ErrorEvent, MessageEvent, Worker, WorkerOptions, WorkerType};
 
-type Reply = (u64, Result<BuiltTile, String>);
+pub(super) struct WorkerOutput {
+    pub tile: BuiltTile,
+    pub generation: ElapsedObservation,
+    pub wrapper: ElapsedObservation,
+}
+type Reply = (u64, Result<WorkerOutput, String>);
 struct Transport {
     worker: Worker,
     _message: Closure<dyn FnMut(MessageEvent)>,
     _error: Closure<dyn FnMut(ErrorEvent)>,
     active: Option<u64>,
+    observing: bool,
     dead: bool,
     replies: VecDeque<Reply>,
 }
@@ -51,8 +57,9 @@ fn start() -> Result<Transport, String> {
                 if bytes.length() > 8 * 1024 * 1024 {
                     return Err("navigation worker output byte budget exceeded".into());
                 }
-                serde_json::from_slice::<BuiltTile>(&bytes.to_vec())
-                    .map_err(|error| error.to_string())
+                let observing = TRANSPORT
+                    .with(|state| state.borrow().as_ref().is_some_and(|state| state.observing));
+                parse_output(&data, &bytes.to_vec(), observing)
             };
             Ok::<_, String>((token, result))
         })();
@@ -98,11 +105,12 @@ fn start() -> Result<Transport, String> {
         _message: message,
         _error: error,
         active: None,
+        observing: false,
         dead: false,
         replies: VecDeque::new(),
     })
 }
-pub(super) fn dispatch(input: &TileInput) -> Result<(), String> {
+pub(super) fn dispatch(input: &TileInput, observe_timing: bool) -> Result<(), String> {
     let bytes = serde_json::to_vec(input).map_err(|error| error.to_string())?;
     if bytes.len() > 32 * 1024 * 1024 {
         return Err("navigation worker input byte budget exceeded".into());
@@ -132,6 +140,12 @@ pub(super) fn dispatch(input: &TileInput) -> Result<(), String> {
         .map_err(|error| js_error(&error))?;
         Reflect::set(&envelope, &JsValue::from_str("buffer"), &array.buffer())
             .map_err(|error| js_error(&error))?;
+        Reflect::set(
+            &envelope,
+            &JsValue::from_str("observe_timing"),
+            &JsValue::from_bool(observe_timing),
+        )
+        .map_err(|error| js_error(&error))?;
         let transfer = Array::new();
         transfer.push(&array.buffer());
         state
@@ -139,6 +153,7 @@ pub(super) fn dispatch(input: &TileInput) -> Result<(), String> {
             .post_message_with_transfer(&envelope, &transfer)
             .map_err(|error| js_error(&error))?;
         state.active = Some(input.token);
+        state.observing = observe_timing;
         Ok(())
     })
 }
@@ -184,4 +199,38 @@ pub(super) fn now_ms() -> f64 {
 }
 fn js_error(value: &JsValue) -> String {
     value.as_string().unwrap_or_else(|| format!("{value:?}"))
+}
+
+fn parse_output(data: &JsValue, bytes: &[u8], observing: bool) -> Result<WorkerOutput, String> {
+    let observed = Reflect::get(data, &JsValue::from_str("observed"))
+        .map_err(|error| js_error(&error))?
+        .as_bool()
+        .unwrap_or(false);
+    if observed != observing {
+        return Err("navigation worker timing mode mismatch".into());
+    }
+    if !observing {
+        return serde_json::from_slice::<BuiltTile>(bytes)
+            .map(|tile| WorkerOutput {
+                tile,
+                generation: ElapsedObservation::not_requested(),
+                wrapper: ElapsedObservation::not_requested(),
+            })
+            .map_err(|error| error.to_string());
+    }
+    let envelope: ObservedNavigationTile =
+        serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
+    if envelope.schema != "forge.navigation-worker-observation" || envelope.version != 1 {
+        return Err("unsupported navigation worker timing observation".into());
+    }
+    envelope.generation.validate()?;
+    let milliseconds = Reflect::get(data, &JsValue::from_str("wrapper_ms"))
+        .map_err(|error| js_error(&error))?
+        .as_f64()
+        .unwrap_or(f64::NAN);
+    Ok(WorkerOutput {
+        tile: envelope.tile,
+        generation: envelope.generation,
+        wrapper: ElapsedObservation::measured(milliseconds, true),
+    })
 }

@@ -73,6 +73,8 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
                 | 32
                 | 35
                 | super::SOURCE_OBJECT_COMPACT_VERSION
+                | super::PHYSICS_COMPACT_VERSION
+                | super::PLACEMENT_PHYSICS_COMPACT_VERSION
         )
         || archive.commands.len() > 1024
     {
@@ -100,6 +102,12 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
 }
 
 pub(super) fn version(receipts: &[ZoneReceipt]) -> u32 {
+    if super::has_placement_physics(receipts) {
+        return super::PLACEMENT_PHYSICS_COMPACT_VERSION;
+    }
+    if super::has_physics(receipts) {
+        return super::PHYSICS_COMPACT_VERSION;
+    }
     if super::has_source_objects(receipts) {
         return super::SOURCE_OBJECT_COMPACT_VERSION;
     }

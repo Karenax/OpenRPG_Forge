@@ -2,6 +2,11 @@
 import json
 import math
 import struct
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from render_verification import verify_texture_mips
 
 
 def validate_village(root, paths):
@@ -42,13 +47,9 @@ def validate_village(root, paths):
     for texture in textures.values():
         assert texture['format'] == 'rgba8unorm'
         mips = texture['mips']
-        width, height = mips[0]['width'], mips[0]['height']
-        assert len(mips) == max(width,height).bit_length()
+        mip_check = verify_texture_mips(root, mips, paths)
+        width, height = mip_check['width'], mip_check['height']
         assert 1 <= width <= 2048 and 1 <= height <= 2048
-        for level, mip in enumerate(mips):
-            assert mip['path'] in paths and mip['level'] == level
-            assert mip['width'] == max(1,width >> level) and mip['height'] == max(1,height >> level)
-            assert (root / mip['path']).stat().st_size == mip['width'] * mip['height'] * 4
         data = (root / mips[0]['path']).read_bytes()
         assert min(data) != max(data), 'blank village texture'
     assert scene['omitted'] and all(n['name'] == 'village_fish' for n in scene['omitted'])

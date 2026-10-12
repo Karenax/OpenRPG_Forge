@@ -125,6 +125,7 @@ pub(crate) fn surface_height_shader_source(optical_shader: &str) -> Result<Strin
 pub fn surface_query_shader_source(optical_shader: &str) -> Result<String, String> {
     let height_shader = surface_height_shader_source(optical_shader)?;
     let mut post = include_str!("tidewater_underwater.wgsl")
+        .replace("\r\n", "\n")
         .replace("@group(0)", "@group(2)")
         .replace("const PI: f32", "const UNDERWATER_PI: f32")
         .replace("4.0 * PI", "4.0 * UNDERWATER_PI")

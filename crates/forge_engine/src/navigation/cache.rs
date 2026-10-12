@@ -107,7 +107,11 @@ pub(super) struct Route {
 pub(super) struct NativeJob {
     pub input: TileInput,
     pub started: std::time::Instant,
-    pub task: Task<Result<BuiltTile, String>>,
+    pub task: Task<(
+        Result<BuiltTile, String>,
+        forge_navigation::ElapsedObservation,
+    )>,
+    pub timing_capture: Option<u64>,
     pub cancelled: Arc<std::sync::atomic::AtomicBool>,
 }
 
@@ -115,6 +119,11 @@ pub(super) struct NativeJob {
 /// publication and before every actuator tick. Stale islands are removed at once.
 #[derive(Resource)]
 pub struct NavigationRuntime {
+    pub(super) timing_capture: Option<u64>,
+    pub(super) timing_samples: [Option<forge_navigation::ElapsedObservation>; 8],
+    pub(super) timing_jobs: Vec<crate::playtest_timing::TimingJobObservation>,
+    #[cfg(target_arch = "wasm32")]
+    pub(super) timing_job_captures: BTreeMap<u64, u64>,
     pub(super) profile: AgentProfile,
     pub(super) archipelago: Archipelago<ForgeCoordinates>,
     pub(super) characters: BTreeMap<Entity, landmass::CharacterId>,
@@ -144,6 +153,11 @@ impl Default for NavigationRuntime {
             animation_link_max_vertical_distance: profile.step_m,
         };
         Self {
+            timing_capture: None,
+            timing_samples: [None; 8],
+            timing_jobs: Vec::new(),
+            #[cfg(target_arch = "wasm32")]
+            timing_job_captures: BTreeMap::new(),
             profile,
             archipelago: Archipelago::new(options),
             characters: BTreeMap::new(),
@@ -174,6 +188,71 @@ impl Drop for NavigationRuntime {
     }
 }
 impl NavigationRuntime {
+    pub fn set_timing_capture(&mut self, capture: Option<u64>) {
+        if self.timing_capture != capture {
+            self.timing_samples = [None; 8];
+        }
+        self.timing_capture = capture;
+    }
+    pub fn take_timing_samples(
+        &mut self,
+    ) -> Vec<(
+        crate::playtest_timing::TimingPhase,
+        forge_navigation::ElapsedObservation,
+    )> {
+        use crate::playtest_timing::TimingPhase;
+        [
+            TimingPhase::NavigationGuard,
+            TimingPhase::NavigationTick,
+            TimingPhase::ArchipelagoUpdate,
+            TimingPhase::NavigationRefresh,
+        ]
+        .into_iter()
+        .filter_map(|phase| {
+            self.timing_samples[phase as usize]
+                .take()
+                .map(|elapsed| (phase, elapsed))
+        })
+        .collect()
+    }
+    pub fn take_timing_jobs(&mut self) -> Vec<crate::playtest_timing::TimingJobObservation> {
+        std::mem::take(&mut self.timing_jobs)
+    }
+    pub(super) fn record_timing(
+        &mut self,
+        phase: crate::playtest_timing::TimingPhase,
+        elapsed: forge_navigation::ElapsedObservation,
+    ) {
+        if self.timing_capture.is_some() {
+            self.timing_samples[phase as usize] = Some(elapsed);
+        }
+    }
+    pub(super) fn record_job(
+        &mut self,
+        mut observation: crate::playtest_timing::TimingJobObservation,
+    ) {
+        observation.inside_capture =
+            observation.capture != 0 && self.timing_capture == Some(observation.capture);
+        observation.outcome = self
+            .tiles
+            .get(&observation.key)
+            .map_or("rejected_stale", |tile| {
+                if tile.observation.token != observation.token
+                    || tile.observation.revision != observation.revision
+                    || tile.observation.source_hash != observation.source_hash
+                {
+                    "rejected_stale"
+                } else if tile.observation.status == NavigationStatus::Ready {
+                    "accepted"
+                } else {
+                    "rejected"
+                }
+            })
+            .into();
+        if self.timing_jobs.len() < crate::playtest_timing::MAX_TIMING_JOBS {
+            self.timing_jobs.push(observation);
+        }
+    }
     #[must_use]
     pub const fn profile(&self) -> AgentProfile {
         self.profile
@@ -298,45 +377,14 @@ impl NavigationRuntime {
         self.intent(actor, center, Vec3::ZERO, None, (false, 0), false);
     }
     pub(crate) fn tick(&mut self, dt: f32) {
+        use crate::playtest_timing::{ElapsedTimer, TimingPhase};
+        let timing = ElapsedTimer::start(self.timing_capture.is_some());
         let budget_valid = self.required().len() <= MAX_TILES;
-        for route in self.routes.values_mut() {
-            let phase =
-                route
-                    .observation
-                    .required_tiles
-                    .iter()
-                    .find_map(|key| match self.tiles.get(key) {
-                        Some(tile)
-                            if matches!(
-                                tile.observation.status,
-                                NavigationStatus::Ready | NavigationStatus::EmptySource
-                            ) =>
-                        {
-                            None
-                        }
-                        Some(tile) => Some(tile.observation.status),
-                        None => Some(NavigationStatus::WaitingForSource),
-                    });
-            let enabled = self.actuation_ready
-                && budget_valid
-                && route.observation.grounded
-                && !matches!(
-                    route.observation.status,
-                    NavigationStatus::Disabled | NavigationStatus::BudgetExceeded
-                )
-                && phase.is_none();
-            if let Some(agent) = self.archipelago.get_agent_mut(route.agent) {
-                agent.paused = !enabled;
-            }
-            if let Some(phase) = phase {
-                route.observation.status = phase;
-            }
-            if !budget_valid {
-                route.observation.status = NavigationStatus::BudgetExceeded;
-            }
-        }
+        self.update_agent_availability(budget_valid);
         if dt.is_finite() && dt > 0.0 {
+            let provider_timer = ElapsedTimer::start(self.timing_capture.is_some());
             self.archipelago.update(dt);
+            self.record_timing(TimingPhase::ArchipelagoUpdate, provider_timer.finish());
         }
         for route in self.routes.values_mut() {
             route.observation.desired_velocity = [0.0; 3];
@@ -399,6 +447,45 @@ impl NavigationRuntime {
                 route.observation.route_diagnostic = None;
             }
         }
+        self.record_timing(TimingPhase::NavigationTick, timing.finish());
+    }
+    fn update_agent_availability(&mut self, budget_valid: bool) {
+        for route in self.routes.values_mut() {
+            let phase =
+                route
+                    .observation
+                    .required_tiles
+                    .iter()
+                    .find_map(|key| match self.tiles.get(key) {
+                        Some(tile)
+                            if matches!(
+                                tile.observation.status,
+                                NavigationStatus::Ready | NavigationStatus::EmptySource
+                            ) =>
+                        {
+                            None
+                        }
+                        Some(tile) => Some(tile.observation.status),
+                        None => Some(NavigationStatus::WaitingForSource),
+                    });
+            let enabled = self.actuation_ready
+                && budget_valid
+                && route.observation.grounded
+                && !matches!(
+                    route.observation.status,
+                    NavigationStatus::Disabled | NavigationStatus::BudgetExceeded
+                )
+                && phase.is_none();
+            if let Some(agent) = self.archipelago.get_agent_mut(route.agent) {
+                agent.paused = !enabled;
+            }
+            if let Some(phase) = phase {
+                route.observation.status = phase;
+            }
+            if !budget_valid {
+                route.observation.status = NavigationStatus::BudgetExceeded;
+            }
+        }
     }
     pub(crate) fn desired(&self, actor: EntityId) -> Vec3 {
         self.routes.get(&actor).map_or(Vec3::ZERO, |route| {
@@ -430,6 +517,7 @@ impl NavigationRuntime {
             for token in cancelled {
                 super::worker::cancel(token);
                 self.jobs.remove(&token);
+                self.timing_job_captures.remove(&token);
                 self.rejected_stale += 1;
             }
         }

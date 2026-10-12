@@ -120,6 +120,7 @@ impl GameplayRuntime {
 pub enum GameplaySet {
     Project,
     Drive,
+    NpcDrive,
     Observe,
 }
 
@@ -153,6 +154,7 @@ impl Plugin for GameplayPlugin {
             .add_systems(
                 FixedUpdate,
                 danger_motion::drive
+                    .in_set(GameplaySet::NpcDrive)
                     .after(crate::PlayerControllerSet::Drive)
                     .before(PhysicsSet::SyncBackend),
             )

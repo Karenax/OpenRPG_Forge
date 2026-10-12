@@ -5,6 +5,9 @@ import json
 import sys
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from render_verification import reconcile_source_ids, verify_position_roundtrip
+
 first, second, raw_root, materials_root, result_path = map(Path, sys.argv[1:])
 assert not result_path.exists()
 sha=lambda b:hashlib.sha256(b).hexdigest()
@@ -41,7 +44,15 @@ raw=json.loads(raw_bytes)
 assert description['source_descriptor_sha256']==sha(raw_bytes)
 assert description['source_commit']==manifest['source_commit']==raw['source_commit']
 assert len(description['props'])==27
+assert len(raw['props'])==30 and [p['kind'] for p in raw['props'][-3:]]==['pathLight']*3
+# Match the existing builder's audited ownership boundary, rather than counting
+# the three separately packaged path lights as lost yard geometry.
+exclusions = {p['source_id']: 'owned by the separate canonical path-light package'
+              for p in raw['props'][-3:]}
+coverage = reconcile_source_ids((p['source_id'] for p in raw['props']),
+                                (p['source_id'] for p in description['props']), exclusions)
 triangles=0;max_error=0
+max_distance_m=0.0
 for ordinal,obj in enumerate(description['props']):
     original=raw['props'][ordinal]
     assert obj['source_id']==original['source_id'] and obj['kind']==original['kind']
@@ -60,6 +71,9 @@ for ordinal,obj in enumerate(description['props']):
         error=float(np.max(np.abs(p.astype(np.float64)+anchor-reference_p)))
         assert error<.0001
         max_error=max(error,max_error)
+        matrix=np.eye(4);matrix[:3,3]=anchor
+        distances=verify_position_roundtrip(p,reference_p,matrix,.0001,obj['source_id'])
+        max_distance_m=max(max_distance_m,distances['max_distance_m'])
         for name,width in [('pos',3),('nrm',3),('uv',2),('tint',3),('data',4)]:
             attr=read(part['attributes'][name],'<f4')
             assert len(attr)==part['vertices']*width and np.isfinite(attr).all()
@@ -88,6 +102,7 @@ result=dict(schema='forge.tidewater.village-package-proof',version=1,status='pas
             package_sha256=sha(manifest_raw),identical_files=len(files),props=27,
             triangles=triangles,reference_closure=True,collider_roundtrip=True,
             position_roundtrip_max_m=max_error,source_materials_preserved=True,
+            source_coverage=coverage,position_roundtrip_max_distance_m=max_distance_m,
             studio_available=False,runtime_qualified=False,visual_parity=False)
 result_path.write_text(json.dumps(result,indent=2),encoding='utf-8')
 print(json.dumps(result))

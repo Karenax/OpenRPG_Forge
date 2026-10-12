@@ -116,13 +116,24 @@ pub fn AuthoringControls() -> impl IntoView {
     let active_tab = use_context::<RwSignal<AuthoringTab>>()
         .unwrap_or_else(|| RwSignal::new(AuthoringTab::Project));
     Effect::new(move |_| {
-        let open = state.get().is_some_and(|s| s.document.is_some());
+        let document = state.get().and_then(|s| s.document);
+        let open = document.is_some();
         if authoring_route
             && let Some(root) = web_sys::window()
                 .and_then(|w| w.document())
                 .and_then(|d| d.document_element())
         {
             let _ = root.set_attribute("data-forge-zone-open", if open { "true" } else { "false" });
+            if let Some(document) = document {
+                let _ = root.set_attribute("data-forge-zone-id", &document.area_id.to_string());
+                let _ = root.set_attribute(
+                    "data-forge-zone-revision",
+                    &document.revision.get().to_string(),
+                );
+            } else {
+                let _ = root.remove_attribute("data-forge-zone-id");
+                let _ = root.remove_attribute("data-forge-zone-revision");
+            }
         }
     });
     let panel_layout = super::authoring_dock::PanelLayout::new(active_tab);

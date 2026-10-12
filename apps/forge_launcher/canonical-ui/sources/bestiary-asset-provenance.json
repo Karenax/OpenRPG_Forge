@@ -1,0 +1,25 @@
+{
+  "schema_version": "0.1",
+  "bestiary_id": "openrpg-forge.bestiary.fr.v0.3",
+  "asset_root": "docs/design/assets/bestiary",
+  "generation_mode": "OpenAI image generation built-in",
+  "license": "LicenseRef-OpenAI-Generated-Output",
+  "distribution_review": "required-before-external-release",
+  "record_files": [
+    "provenance/provenance-cover.json",
+    "provenance/provenance-01-04.json",
+    "provenance/provenance-05-08.json",
+    "provenance/provenance-09-12.json",
+    "provenance/provenance-13-15-gobelins.json",
+    "provenance/provenance-16-18-gnolls.json",
+    "provenance/provenance-19-21-orcs.json",
+    "provenance/provenance-horizons-art-01.json",
+    "provenance/provenance-horizons-art-02.json"
+  ],
+  "notes": [
+    "Each final asset was generated through one distinct built-in image-generation call.",
+    "No reference image was supplied and no Python retouching was applied.",
+    "Rejected generations remain outside the workspace asset root and are not publication assets.",
+    "External release requires a fresh review of the applicable generated-output terms."
+  ]
+}

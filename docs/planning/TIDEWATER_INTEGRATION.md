@@ -1,5 +1,10 @@
 # Tidewater â€” suivi d'intÃ©gration complÃ¨te
 
+## Instruction propriétaire du 10 octobre 2026 — suppression du seuil mémoire de lancement
+
+Le propriétaire demande explicitement de supprimer la limite de 16 Gio de marge mémoire avant lancement. Cette instruction remplace les anciennes consignes de garde à 16 Gio pour la poursuite de ce chantier. Les scripts actifs ne refusent plus le lancement selon ce seuil ; les mesures mémoire restent informatives. Les preuves historiques et leurs anciens refus restent conservés.
+
+
 Objectif propriÃ©taire du 24 septembre 2026 : mÃªme carte et mÃªmes effets visuels,
 avec assets rÃ©utilisables, Ã©dition Studio et fonctions du plan approuvÃ©.
 DÃ©cision : [ADR-0017](../ADR/ADR-0017-tidewater-fidelity-integration.md).
@@ -14,6 +19,8 @@ Objectif enrichi, avec toute la portée précédente conservée :
 Critères ajoutés : intégrer réellement les fonctions réutilisables aux systèmes et réglages communs ; retirer les indicatifs Tidewater des noms et contrats moteur ; supprimer toute dépendance au nom/slug/assets de la carte ; vérifier leur fonctionnement sur une autre carte ou scène indépendante, sur les parcours natif/WebGPU concernés. Un simple renommage ne suffit pas. Préserver le contenu spécifique, les licences et les preuves historiques lors des déplacements et renommages.
 
 Cette exigence reste à réaliser pour les modules actuels `tidewater_*`. L’objectif reste en pause à la demande du propriétaire ; cet amendement ne relance ni développement ni tests.
+
+Reprise du 10 octobre 2026 : l’état de gestion de l’objectif est de nouveau ACTIVE. La pause du 8 octobre ci-dessus est historique ; la poursuite conserve intégralement l’exigence de moteur générique. Aucun statut de qualification supplémentaire n’est acquis.
 
 
 Ã‰tat complÃ©mentaire du 5 octobre â€” dÃ©bris : les 805 objets procÃ©duraux et

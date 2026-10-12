@@ -19,6 +19,7 @@ pub(in crate::authoring_assets) fn prepare(
         .map_err(|error| error.to_string())?;
     let edit = PlacementEdit::Insert {
         placement: ManualPlacement {
+            physics: None,
             id: EntityId::deterministic(format!("manual-placement:{key}")),
             name: name.to_owned(),
             asset_id: reference.0,

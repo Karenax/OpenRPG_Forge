@@ -232,6 +232,13 @@ fn draw(
     buffers: Res<RenderAssets<GpuShaderBuffer>>,
     fish_frame: Option<Res<fish_shadow::Frame>>,
     scanned_frame: Option<Res<scanned_shadow::Frame>>,
+    cameras: Query<
+        Option<&bevy::anti_alias::taa::TemporalAntiAliasing>,
+        (
+            With<bevy::render::camera::ExtractedCamera>,
+            Without<crate::tidewater_refraction::CaptureCamera>,
+        ),
+    >,
 ) {
     let motion = animation
         .motion
@@ -327,7 +334,10 @@ fn draw(
         queue.write_buffer(
             &receiver.buffer,
             0,
-            &super::receiver::bytes(frame.settings.clone()),
+            &super::receiver::bytes(
+                frame.settings.clone(),
+                cameras.single().is_ok_and(|taa| taa.is_some()),
+            ),
         );
     }
     if let Some(frame) = fish_frame {

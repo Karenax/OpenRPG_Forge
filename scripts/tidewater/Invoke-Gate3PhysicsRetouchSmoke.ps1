@@ -203,6 +203,7 @@ function Close-RetouchStudio {
 }
 
 if ($retouchRequestedSelfTest) {
+    foreach ($name in @('Open-Gate3PlaytestZone', 'Close-Gate3PlaytestZone')) { [void](Get-Command $name -ErrorAction Stop) }
     $raw = [IO.File]::ReadAllText($PSCommandPath)
     foreach ($needle in @(
         'WEBVIEW2_BROWSER_EXECUTABLE_FOLDER', 'Target.activateTarget', 'Preview/Apply',
@@ -322,7 +323,7 @@ try {
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $StartupTimeoutSeconds -Description 'Studio shell' -Expression @'
 (() => ({ready:document.readyState==='complete'&&!!document.querySelector('.authoring-shell'),terminal:false,reason:'shell pending'}))()
 '@)
-    Open-Gate3TidewaterZone -Socket $socket -ZoneId $zoneId -TimeoutSeconds $InteractionTimeoutSeconds
+    Open-Gate3PlaytestZone -Socket $socket -ZoneId $zoneId -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Invoke-UiClick -Socket $socket -Text 'Objets' -Selector '[data-authoring-tab-button]')
     [void](Wait-GameplayEditor -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds)
     [void](Open-DetailsBySummary -Socket $socket -Summary $editorSummary)
@@ -347,7 +348,7 @@ try {
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const busy=document.querySelector('.authoring-toolbar')?.getAttribute('aria-busy');
   const terminal=/refusée|erreur|invalide|impossible/i.test(status);
-  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune zone ouverte'&&busy==='false'&&!terminal,terminal,reason:'status='+status+'; save='+save+'; context='+context+'; busy='+busy};
+  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune carte ouverte'&&busy==='false'&&!terminal,terminal,reason:'status='+status+'; save='+save+'; context='+context+'; busy='+busy};
 })()
 '@)
     $savedWorkspace = Get-ArchiveSnapshot -LiteralPath (Join-Path $fixture 'workspace-v1\authoring.json')
@@ -384,11 +385,9 @@ try {
         (Test-ArchiveSnapshotsEqual -Before $cloneOriginalBefore -After (Get-ArchiveSnapshot -LiteralPath $cloneOriginal)) -and
         (Test-ArchiveSnapshotsEqual -Before $cloneCurrentBefore -After (Get-ArchiveSnapshot -LiteralPath $cloneCurrent))
     if (-not $sourcePreserved) { throw 'Public retouch altered the source/original/current legacy archives.' }
-    [void](Invoke-UiClick -Socket $socket -Text 'Projet' -Selector '[data-authoring-tab-button]')
-    [void](Open-DetailsBySummary -Socket $socket -Summary 'Créer ou modifier la zone')
-    [void](Invoke-UiClick -Socket $socket -Text 'Fermer la zone')
+    Close-Gate3PlaytestZone -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds
     [void](Wait-CdpReady -Socket $socket -TimeoutSeconds $InteractionTimeoutSeconds -Description 'close retouched Tidewater zone' -Expression @'
-(() => { const norm=v=>(v??'').replace(/\s+/g,' ').trim(); const c=norm(document.querySelector('.authoring-context')?.textContent); return {ready:c==='Aucune zone ouverte'&&document.documentElement?.getAttribute('data-forge-zone-open')==='false',terminal:false,reason:'context='+c}; })()
+(() => { const norm=v=>(v??'').replace(/\s+/g,' ').trim(); const c=norm(document.querySelector('.authoring-context')?.textContent); return {ready:c==='Aucune carte ouverte'&&document.documentElement?.getAttribute('data-forge-zone-open')==='false',terminal:false,reason:'context='+c}; })()
 '@)
     $uiClosed = $true
 }

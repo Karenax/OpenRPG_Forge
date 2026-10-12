@@ -17,6 +17,10 @@ use std::{
 };
 
 type AssetKey = (forge_core::AssetId, forge_core::ContentHash);
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(super) enum PlacementSystems {
+    Projection,
+}
 type DiagnosticNodes<'world, 'state> = Query<
     'world,
     'state,
@@ -31,7 +35,8 @@ mod physics_status;
 pub(crate) mod selection;
 struct Prepared {
     placements: Vec<ManualPlacement>,
-    assets: BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout)>,
+    assets: BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, bool)>,
+    physics: BTreeMap<forge_core::EntityId, super::source_graph_physics::SourcePhysicsPayload>,
 }
 enum Request {
     Clear,
@@ -45,7 +50,7 @@ thread_local! {
     static ACCEPTED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static DESIRED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static EPOCH: Cell<u64> = const { Cell::new(0) };
-    static RESIDENT: RefCell<BTreeMap<AssetKey, usize>> = const { RefCell::new(BTreeMap::new()) };
+    static RESIDENT: RefCell<BTreeMap<AssetKey, (usize, bool)>> = const { RefCell::new(BTreeMap::new()) };
     static READY: Cell<bool> = const { Cell::new(true) };
     static FAILED: Cell<bool> = const { Cell::new(false) };
     static REQUEST: RefCell<Option<Request>> = const { RefCell::new(None) };
@@ -103,6 +108,12 @@ fn current(epoch: u64) -> bool {
 }
 
 pub(crate) fn observe(state: &AuthoringState) {
+    super::source_graph_physics::observe(
+        state
+            .zone_head
+            .as_ref()
+            .and_then(|head| head.corrections.physics.clone()),
+    );
     gizmo::cancel();
     PREVIEW_ACTIVE.with(|slot| slot.set(false));
     SOURCE_KEY.with(|slot| slot.set(None));
@@ -340,6 +351,7 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
     let mut assets = BTreeMap::new();
     let mut total = 0;
     let mut seen = std::collections::BTreeSet::new();
+    let mut source_keys = BTreeSet::new();
     for placement in &placements {
         if !current(epoch) {
             return Err("Chargement remplacé".into());
@@ -348,8 +360,11 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
         if !seen.insert(key) {
             continue;
         }
-        if let Some(size) = resident.get(&key) {
+        if let Some((size, source)) = resident.get(&key) {
             total += size;
+            if *source {
+                source_keys.insert(key);
+            }
         } else {
             if catalog.is_none() {
                 catalog = Some(super::load_browser().await);
@@ -363,34 +378,60 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
                         super::preview::SceneLayout::CatalogLod0,
                     ),
                     Err(forge_assets::asset_browser::AssetResolutionError::Missing(_)) => {
-                        let (name, bytes) = super::vault::installed_reference(key.0, key.1).await?;
-                        (name, bytes, super::preview::SceneLayout::AutonomousScene)
+                        super::vault::installed_reference(key.0, key.1).await?
                     }
                     Err(error) => return Err(error.to_string()),
                 },
-                Err(kit_error) => {
-                    let (name, bytes) = super::vault::installed_reference(key.0, key.1)
-                        .await
-                        .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?;
-                    (name, bytes, super::preview::SceneLayout::AutonomousScene)
-                }
+                Err(kit_error) => super::vault::installed_reference(key.0, key.1)
+                    .await
+                    .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?,
             };
-            super::source_graph_route::require_ordinary_loader(&bytes)?;
+            let source = super::source_graph_route::read(&bytes)?.is_some();
+            if source
+                && matches!(
+                    layout,
+                    super::preview::SceneLayout::ModuleStaticTriangles { .. }
+                )
+            {
+                return Err("Le rôle statique du module ne remplace pas les rôles physiques d'un host source.".into());
+            }
+            if source {
+                source_keys.insert(key);
+            }
             total += bytes.len();
-            assets.insert(key, (name, bytes, layout));
+            assets.insert(key, (name, bytes, layout, source));
         }
         if total > 256 * 1024 * 1024 {
             return Err("Budget de fichiers placements dépassé (256 Mio)".into());
         }
     }
-    Ok(Prepared { placements, assets })
+    let mut physics = BTreeMap::new();
+    for placement in &placements {
+        if let Some(pin) = &placement.physics {
+            if !source_keys.contains(&(placement.asset_id, placement.asset_hash)) {
+                return Err("Le paquet physique sauvegardé exige son host source ; aucun remplacement par collision GLB ordinaire.".into());
+            }
+            let payload = super::vault::saved_physics_for_model(
+                placement.asset_id,
+                placement.asset_hash,
+                pin,
+            )
+            .await?;
+            physics.insert(placement.id, payload);
+        }
+    }
+    Ok(Prepared {
+        placements,
+        assets,
+        physics,
+    })
 }
 
 struct Object {
     source: ManualPlacement,
     id: forge_core::EntityId,
     root: Entity,
-    handle: Handle<WorldAsset>,
+    handle: Option<Handle<WorldAsset>>,
     name: String,
     layout: super::preview::SceneLayout,
     frame: Option<(Vec3, f32)>,
@@ -402,7 +443,8 @@ struct PlacementVisualReady;
 struct ResidentAsset {
     name: String,
     layout: super::preview::SceneLayout,
-    handle: Handle<WorldAsset>,
+    handle: Option<Handle<WorldAsset>>,
+    source: Option<std::sync::Arc<[u8]>>,
     path: String,
     bytes: usize,
 }
@@ -428,7 +470,7 @@ impl Projection {
     fn clear(&mut self, commands: &mut Commands) {
         let removed = self.objects.iter().map(|object| object.id).collect();
         for object in self.objects.drain(..) {
-            commands.entity(object.root).despawn();
+            super::source_graph_placement::remove(commands, object.root);
         }
         for asset in std::mem::take(&mut self.assets).into_values() {
             super::preview::remove(&asset.path);
@@ -458,12 +500,12 @@ impl Projection {
                     true
                 }
                 crate::authoring_placement_reuse::ReconciliationDecision::Rebuild => {
-                    commands.entity(object.root).despawn();
+                    super::source_graph_placement::remove(commands, object.root);
                     mutation.rebuilt.push(object.id);
                     false
                 }
                 crate::authoring_placement_reuse::ReconciliationDecision::Remove => {
-                    commands.entity(object.root).despawn();
+                    super::source_graph_placement::remove(commands, object.root);
                     mutation.removed.push(object.id);
                     false
                 }
@@ -485,7 +527,7 @@ impl Projection {
     }
     fn spawn(
         &mut self,
-        prepared: Prepared,
+        mut prepared: Prepared,
         commands: &mut Commands,
         server: &AssetServer,
     ) -> Result<(), &'static str> {
@@ -497,7 +539,7 @@ impl Projection {
         }
         self.epoch = EPOCH.with(Cell::get);
         let previous = self.retain_reusable(&prepared.placements, commands);
-        for (key, (name, bytes, layout)) in prepared.assets {
+        for (key, (name, bytes, layout, source)) in prepared.assets {
             if self.assets.contains_key(&key) {
                 continue;
             }
@@ -508,15 +550,22 @@ impl Projection {
                 key.0,
                 key.1
             );
-            super::preview::insert(&path, bytes);
-            let handle: Handle<WorldAsset> = server
-                .load(GltfAssetLabel::Scene(0).from_asset(format!("authoring-preview://{path}")));
+            let (handle, source) = if source {
+                (None, Some(std::sync::Arc::<[u8]>::from(bytes)))
+            } else {
+                super::preview::insert(&path, bytes);
+                let handle: Handle<WorldAsset> = server.load(
+                    GltfAssetLabel::Scene(0).from_asset(format!("authoring-preview://{path}")),
+                );
+                (Some(handle), None)
+            };
             self.assets.insert(
                 key,
                 ResidentAsset {
                     name,
                     layout,
                     handle,
+                    source,
                     path,
                     bytes: size,
                 },
@@ -526,7 +575,7 @@ impl Projection {
             slot.replace(
                 self.assets
                     .iter()
-                    .map(|(key, asset)| (*key, asset.bytes))
+                    .map(|(key, asset)| (*key, (asset.bytes, asset.source.is_some())))
                     .collect(),
             )
         });
@@ -562,7 +611,6 @@ impl Projection {
             let t = placement.transform;
             let root = commands
                 .spawn((
-                    WorldAssetRoot(asset.handle.clone()),
                     gizmo::PlacementRoot(placement.id, t),
                     forge_engine::ManualPlacementProjection(placement.clone()),
                     Visibility::Hidden,
@@ -570,6 +618,17 @@ impl Projection {
                     Name::new(format!("Placement {} · {}", placement.id, placement.name)),
                 ))
                 .id();
+            if let Some(handle) = &asset.handle {
+                commands.entity(root).insert(WorldAssetRoot(handle.clone()));
+            }
+            if let Some(carrier) = &asset.source {
+                super::source_graph_placement::submit(
+                    commands,
+                    root,
+                    carrier.clone(),
+                    prepared.physics.remove(&placement.id),
+                );
+            }
             self.objects.push(Object {
                 id: placement.id,
                 root,
@@ -648,6 +707,7 @@ pub(super) fn bind_sources() -> leptos::prelude::RwSignal<u64> {
 }
 
 pub(super) fn register(app: &mut App) {
+    super::source_graph_placement::register(app);
     app.add_plugins(forge_engine::ManualPlacementCollisionPlugin);
     app.add_systems(PostUpdate, physics_status::report_status);
     app.add_systems(
@@ -660,6 +720,7 @@ pub(super) fn register(app: &mut App) {
             gizmo::update,
         )
             .chain()
+            .in_set(PlacementSystems::Projection)
             .after(bevy::transform::TransformSystems::Propagate)
             .after(bevy::camera::visibility::VisibilitySystems::CalculateBounds),
     );
@@ -679,6 +740,10 @@ fn update(
     nodes: super::preview::PreviewNodes,
     collision_extras: Query<&bevy::gltf::GltfExtras>,
     diagnostic_nodes: DiagnosticNodes,
+    source_status: Query<(
+        &super::source_graph_placement::Status,
+        Option<&super::source_graph_runtime::SourceFrameStatus>,
+    )>,
     mut state: Local<Projection>,
 ) {
     if let Some(request) = REQUEST.with(|slot| slot.borrow_mut().take()) {
@@ -725,6 +790,7 @@ fn update(
         &spawner,
         &nodes,
         &collision_extras,
+        &source_status,
     );
     match result {
         Ok(true) => {
@@ -738,7 +804,12 @@ fn update(
                 state.objects.len()
             ));
         }
-        Ok(false) if time.elapsed_secs_f64() - state.started <= 30.0 => {}
+        Ok(false)
+            if time.elapsed_secs_f64() - state.started <= 30.0
+                || state
+                    .objects
+                    .iter()
+                    .all(|object| object.handle.is_none() || object.frame.is_some()) => {}
         result => {
             state.clear(&mut commands);
             FAILED.with(|slot| slot.set(true));
@@ -774,12 +845,39 @@ fn qualify(
     spawner: &WorldInstanceSpawner,
     nodes: &super::preview::PreviewNodes,
     collision_extras: &Query<&bevy::gltf::GltfExtras>,
+    source_status: &Query<(
+        &super::source_graph_placement::Status,
+        Option<&super::source_graph_runtime::SourceFrameStatus>,
+    )>,
 ) -> Result<bool, &'static str> {
     for object in &mut state.objects {
+        if object.handle.is_none() {
+            if let Ok((status, frame)) = source_status.get(object.root) {
+                if let super::source_graph_placement::Status::Refused(reason) = status {
+                    report(format!("Placement source refusé : {reason}"));
+                    return Err("Montage du placement source refusé");
+                }
+                if let Some(super::source_graph_runtime::SourceFrameStatus::Refused(reason)) = frame
+                {
+                    report(format!("Frame du placement source refusée : {reason}"));
+                    return Err("Frame source refusée");
+                }
+            }
+            continue; // GPU pass/LOD admission is still required before reveal.
+        }
         if object.frame.is_some() {
             continue;
         }
-        if server.load_state(object.handle.id()).is_failed() {
+        if server
+            .load_state(
+                object
+                    .handle
+                    .as_ref()
+                    .expect("ordinary handle checked")
+                    .id(),
+            )
+            .is_failed()
+        {
             return Err("Chargement GLB échoué");
         }
         let Ok(instance) = instances.get(object.root) else {
@@ -805,12 +903,19 @@ fn qualify(
                 if nodes
                     .get(entity)
                     .is_ok_and(|(_, _, mesh, _, _)| mesh.is_some())
-                    && super::preview::is_collision(entity, object.root, &object.name, nodes)
+                    && super::preview::is_collision(
+                        entity,
+                        object.root,
+                        &object.name,
+                        object.layout,
+                        nodes,
+                    )
                 {
                     let geometry = super::preview::collision_geometry(
                         entity,
                         object.root,
                         &object.name,
+                        object.layout,
                         nodes,
                         collision_extras,
                     )?
@@ -887,7 +992,10 @@ fn publish_diagnostic(state: &Projection, nodes: &DiagnosticNodes) {
         .map(|object| ObjectObservation {
             object_id: object_id(object.id),
             root_ecs_entity_id: Some(ecs_entity_id(object.root)),
-            world_asset_handle: Some(format!("{:?}", object.handle.id())),
+            world_asset_handle: object
+                .handle
+                .as_ref()
+                .map(|handle| format!("{:?}", handle.id())),
             parts: object
                 .parts
                 .iter()

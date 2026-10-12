@@ -84,7 +84,12 @@ pub(super) fn observe(
     player: Player,
     mut collisions: MessageReader<CollisionEvent>,
     water: Option<Res<TidewaterPlayerState>>,
+    mut timing: Option<ResMut<crate::playtest_timing::PlaytestTiming>>,
 ) {
+    let mut timing_scope = crate::playtest_timing::TimingScope::new(
+        timing.as_deref_mut(),
+        crate::playtest_timing::TimingPhase::GameplayObserve,
+    );
     runtime.player_settled = false;
     let Some(binding) = bindings.snapshot() else {
         collisions.clear();
@@ -143,7 +148,10 @@ pub(super) fn observe(
         backend.is_some(),
     );
     perceive(&runtime, &context, binding.player_entity, &mut frame);
-    let receipt = match runtime.session.advance_frame(&frame) {
+    let receipt = match timing_scope
+        .measure(crate::playtest_timing::TimingPhase::GameplayAdvance, || {
+            runtime.session.advance_frame(&frame)
+        }) {
         Ok(receipt) => receipt,
         Err(error) => {
             runtime.error = Some(error.to_string());

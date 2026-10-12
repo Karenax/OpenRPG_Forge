@@ -16,6 +16,20 @@ pub use bridge_crossing_probe::{
 mod capture_readiness;
 pub mod finite_perspective;
 mod manual_placement_identity;
+#[cfg(feature = "physics-rapier")]
+pub mod source_collider_projection;
+#[cfg(feature = "physics-rapier")]
+pub mod source_collider_scene;
+#[cfg(feature = "physics-rapier")]
+pub mod source_colliders;
+#[cfg(feature = "physics-rapier")]
+pub mod source_mesh_collider_projection;
+#[cfg(feature = "physics-rapier")]
+pub mod source_mesh_colliders;
+#[cfg(feature = "physics-rapier")]
+pub mod source_physics_contacts;
+#[cfg(feature = "physics-rapier")]
+pub mod source_physics_transport;
 pub use manual_placement_identity::ManualPlacementPart;
 #[cfg(feature = "physics-rapier")]
 mod terrain_brush_cursor;
@@ -66,6 +80,8 @@ mod physics;
 mod player_camera;
 #[cfg(feature = "physics-rapier")]
 mod player_controller;
+#[cfg(feature = "physics-rapier")]
+pub mod playtest_timing;
 #[cfg(feature = "physics-rapier")]
 pub mod sampled_terrain_physics;
 mod shadow_quality;

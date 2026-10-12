@@ -225,6 +225,7 @@ pub(crate) fn update(world: &mut World) {
         placements::report(format!("Décors importés non projetés : {error}"));
     }
     focus_current(world);
+    crate::authoring_building_projection::sync_material(world);
 }
 
 fn focus_current(world: &World) {
@@ -408,7 +409,7 @@ pub(super) fn lighting(world: &World) -> Option<materials::LightingBindings> {
 }
 
 /// Clone the actual resident common receiver bindings, including live buffers.
-pub(super) fn resident_lighting_material(world: &World) -> Option<VillageMaterial> {
+pub(crate) fn resident_lighting_material(world: &World) -> Option<VillageMaterial> {
     let state = world.get_resource::<State>()?;
     if state.key?.0 != imported_buildings::published_generation() {
         return None;

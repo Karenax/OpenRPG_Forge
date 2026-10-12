@@ -18,9 +18,10 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$PreviousLedger,
 
-    [Parameter(ParameterSetName = 'Run', Mandatory)]
+    [Parameter(ParameterSetName = 'Run')]
+    [Alias('SourceOriginalHash')]
     [ValidatePattern('^[0-9A-Fa-f]{64}$')]
-    [string]$SourceOriginalHashPinned,
+    [string]$SourceOriginalHashPinned = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720',
 
     [Parameter(ParameterSetName = 'Run', Mandatory)]
     [ValidateNotNullOrEmpty()]
@@ -80,7 +81,6 @@ $retouchIntendantName = 'Intendant du village'
 $retouchInteriorPlaceName = 'Intérieur'
 $retouchVillageX = 40.0
 $retouchVillageZ = -118.0
-$retouchLegacySourcePin = '50bfd655a7fb4f5a61e4593240ea86dc8d13136d82d558d34737a41b4c6c8720'
 $script:CdpRetouchMessageId = 0
 
 function Get-Gate3RetouchOptional {
@@ -194,7 +194,7 @@ function Wait-Gate3RetouchAuthoringSave {
   const save=norm(document.querySelector('.authoring-command-bar .gold-save-state')?.textContent);
   const context=norm(document.querySelector('.authoring-context')?.textContent);
   const terminal=/refusée|refusé|erreur|invalide|impossible/i.test(status);
-  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune zone ouverte'&&!terminal,
+  return {ready:status==='Session synchronisée'&&save===''&&context!==''&&context!=='Aucune carte ouverte'&&!terminal,
     terminal,reason:'status='+status+'; save='+save+'; context='+context};
 })()
 '@
@@ -534,9 +534,6 @@ $source = [IO.Path]::GetFullPath($FreshIsolatedFixture)
 $ledgerInput = [IO.Path]::GetFullPath($PreviousLedger)
 $output = [IO.Path]::GetFullPath($EvidenceRoot)
 $sourcePin = Get-NormalizedSha256 -Value $SourceOriginalHashPinned
-if ($sourcePin -cne $retouchLegacySourcePin) {
-    throw "R3-P02 requires the preserved legacy source pin $retouchLegacySourcePin."
-}
 foreach ($entry in @(
         @($candidate, 'Candidate'),
         @($source, 'Fresh isolated playtest fixture'),
@@ -693,15 +690,17 @@ $sourceArchiveBefore = Get-ArchiveSnapshot -LiteralPath $sourceArchive
 $sourceWorkspaceBefore = Get-ArchiveSnapshot -LiteralPath $sourceWorkspaceArchive
 $sourcePinnedObjectBefore = Get-ArchiveSnapshot -LiteralPath $sourcePinnedObject
 $sourceCurrentObjectBefore = Get-ArchiveSnapshot -LiteralPath $sourceCurrentObject
-if ($sourcePinnedObjectBefore.Sha256 -cne $sourcePin) {
+if ($sourceArchiveBefore.Sha256 -cne $sourcePin -or $sourcePinnedObjectBefore.Sha256 -cne $sourcePin) {
     throw 'Input fixture does not preserve SourceOriginalHashPinned.'
 }
 if ($sourceCurrentObjectBefore.Sha256 -cne $currentArchiveHash) {
     throw 'Workspace reference hash does not match the current authored object bytes.'
 }
-if (@(Get-Gate3ArchivePlacements -Archive $sourceCurrentObject).Count -ne 23) {
-    throw 'Input playtest object does not contain the reviewed 23-placement Tidewater archive.'
-}
+$sourcePlacementsBefore = Get-Gate3ArchivePlacementsSnapshot -Archive $sourceArchive
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourcePinnedObject)
+Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After (Get-Gate3ArchivePlacementsSnapshot -Archive $sourceCurrentObject)
+Assert-Gate3PlacementsLedger -Ledger $authoring -SourcePin $sourcePin -Baseline $sourcePlacementsBefore
+Assert-Gate3PlacementsLedger -Ledger $previous -SourcePin $sourcePin -Baseline $sourcePlacementsBefore
 $sourceCurrentDocument = ConvertFrom-ExactJson -Json ([IO.File]::ReadAllText($sourceCurrentObject))
 $sourceCorrections = Get-Gate3RetouchOptional -Object (Get-Gate3RetouchOptional -Object $sourceCurrentDocument.head -Name 'corrections') -Name 'buildings'
 $sourceBuildingEntries = @($sourceCorrections)
@@ -833,6 +832,8 @@ $run1DoorSave = $null
 $run1DoorSaveAfter = $null
 $savedReference = $null
 $savedObjectAfter = $null
+$savedPlacementsSnapshot = $null
+$placementsPreserved = $false
 $retouchReportAfter = $null
 $retouchGameplayIdentity = $null
 $doorAfterEntry = $null
@@ -970,6 +971,9 @@ try {
         if ($savedObjectAfter.Sha256 -cne $savedArchiveHash) {
             throw 'Retouched gameplay object hash does not match its managed filename.'
         }
+        $savedPlacementsSnapshot = Get-Gate3ArchivePlacementsSnapshot -Archive $savedObjectPath
+        Assert-Gate3PlacementsPreserved -Before $sourcePlacementsBefore -After $savedPlacementsSnapshot
+        $placementsPreserved = $true
         $retouchReportAfter = Get-Gate3GameplayReport -Archive $savedObjectPath
         $retouchGameplayIdentity = Get-Gate3RetouchGameplayIdentity -Report $retouchReportAfter
         $retouchGameplayIdentityJson = ConvertTo-CompactJson -Value $retouchGameplayIdentity
@@ -1334,6 +1338,13 @@ $ledger = [ordered]@{
     input_fixture = $source
     input_fixture_from_previous_playtest = $previousIsolatedFixturePath.Equals($source, [StringComparison]::OrdinalIgnoreCase)
     source_original_hash_pinned = $sourcePin
+    source_placements = [ordered]@{
+        source_archive_sha256=$sourcePin
+        representation='ConvertTo-Json -Depth 100 -Compress; complete ordered placement array; SHA-256 of UTF-8 without BOM'
+        before=[ordered]@{count=$sourcePlacementsBefore.Count; sha256=$sourcePlacementsBefore.Sha256; canonical_json=$sourcePlacementsBefore.CanonicalJson}
+        after=if ($null -ne $savedPlacementsSnapshot) { [ordered]@{count=$savedPlacementsSnapshot.Count; sha256=$savedPlacementsSnapshot.Sha256; canonical_json=$savedPlacementsSnapshot.CanonicalJson} } else { $null }
+        identity_and_content_preserved=$placementsPreserved
+    }
     source_current_archive_hash_before = $currentArchiveHash
     source_current_head_hash_before = $currentHeadHash
     source_current_checkpoint_matches_authoring = $sourceCurrentCheckpointMatchesAuthoring

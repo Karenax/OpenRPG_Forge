@@ -273,7 +273,8 @@ fn LibraryPageView(close: Callback<()>) -> impl IntoView {
                     {move ||detail.get().map(|value| {
                         let revision = page.get_untracked().map(|p|p.revision).unwrap_or_default();
                         view!{
-                            <crate::authoring_assets::vault::VaultActions card=value.card.clone() revision=revision.clone() selected=selected close=close/>
+                            <crate::authoring_assets::vault::VaultActions card=value.card.clone() revision=revision.clone() profile=value.profile.clone() selected=selected close=close/>
+                            <crate::authoring_assets::vault::SourcePhysicsDetails id=value.card.id.clone() revision=revision.clone() profile=value.profile.clone()/>
                             <AssetDetails value=value revision=revision/>
                         }
                     })}

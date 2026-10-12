@@ -398,6 +398,7 @@ fn verify_placement_persistence(
     let initial = std::fs::read(path).unwrap();
     let state = host.execute(Request::Open { area_id }).unwrap();
     let placement = ManualPlacement {
+        physics: None,
         id: forge_core::EntityId::deterministic("host-door"),
         asset_id: forge_core::AssetId::deterministic("fixture-door"),
         asset_hash: forge_core::ContentHash::from_bytes([4; 32]),

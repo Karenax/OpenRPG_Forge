@@ -5,6 +5,9 @@ import sys
 from pathlib import Path
 import numpy as np
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from render_verification import standard_depth_diagnostics
+
 oracle_path, native_path, output = map(Path, sys.argv[1:])
 if output.exists():
     raise SystemExit('Refusing to overwrite comparison')
@@ -26,9 +29,11 @@ for i in range(3):
     a, b = source < 1, native[i] < 1
     union, intersection = a | b, a & b
     error = abs(source.astype(np.float64) - native[i])
+    diagnostics = standard_depth_diagnostics(source, native[i])
     layers.append({'layer': i, 'source_occupied': int(a.sum()), 'native_occupied': int(b.sum()),
                    'coverage_disagreement': int((a ^ b).sum()),
-                   'intersection_over_union': float(intersection.sum() / union.sum()) if union.any() else 1.,
+                   'intersection_over_union': diagnostics['intersection_over_union'],
+                   'quality_diagnostics': diagnostics,
                    'unequal_depth_texels': int((error > 0).sum()),
                    'mean_absolute_error_on_union': float(error[union].mean()) if union.any() else 0.,
                    'max_absolute_error': float(error.max()),

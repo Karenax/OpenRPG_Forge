@@ -16,8 +16,10 @@ use std::{
 
 mod editor;
 mod hud;
+mod timing;
 pub(super) use editor::GameplayEditor;
 pub(super) use hud::GameplayControls;
+pub(super) use timing::{TimingPublication, observe as observe_timing};
 
 #[derive(Clone, Default, PartialEq)]
 struct GameView {
@@ -36,6 +38,8 @@ struct GameView {
     feedback: String,
     navigation_summary: Vec<String>,
     navigation_diagnostic: String,
+    timing_state: Option<forge_engine::playtest_timing::TimingState>,
+    timing_json: std::sync::Arc<str>,
 }
 
 struct Resume {
@@ -52,6 +56,11 @@ enum Pending {
 type SaveCapture = Result<(u64, ContentHash, String), String>;
 #[derive(Resource)]
 pub(super) struct BridgeRun(u64);
+impl BridgeRun {
+    pub(super) const fn id(&self) -> u64 {
+        self.0
+    }
+}
 thread_local! {
     static GENERATION: Cell<u64> = const {Cell::new(0)};
     static RESUME: RefCell<Option<Resume>> = const {RefCell::new(None)};
@@ -79,6 +88,7 @@ pub(super) fn invalidate_run() {
             .any(|p| matches!(p, Pending::Save(..)))
     });
     PENDING.with(|queue| queue.borrow_mut().clear());
+    timing::clear_request();
     VIEW.with(|slot| {
         if let Some(signal) = *slot.borrow() {
             let _ = signal.try_set(GameView::default());
@@ -186,10 +196,14 @@ pub(super) fn bridge(
         "completed_builds":navigation.completed_builds(),"rejected_stale_results":navigation.rejected_stale_results()
     })).unwrap_or_else(|error|error.to_string());
     VIEW.with(|slot| {
-        if let Some(signal) = *slot.borrow()
-            && signal.try_get_untracked().as_ref() != Some(&view)
-        {
-            let _ = signal.try_set(view);
+        if let Some(signal) = *slot.borrow() {
+            if let Some(previous) = signal.try_get_untracked() {
+                view.timing_state = previous.timing_state;
+                view.timing_json = previous.timing_json;
+            }
+            if signal.try_get_untracked().as_ref() != Some(&view) {
+                let _ = signal.try_set(view);
+            }
         }
     });
 }

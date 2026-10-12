@@ -24,6 +24,7 @@ fn session() -> ZoneEditSession {
 
 fn source() -> ManualPlacement {
     ManualPlacement {
+        physics: None,
         id: EntityId::deterministic("source-door"),
         name: "Imported door".into(),
         asset_id: AssetId::deterministic("verified-door"),
@@ -732,6 +733,7 @@ fn static_source_edits_do_not_block_imported_source_change_but_plant_edits_do() 
         .unwrap();
     plant_session.execute(&request).unwrap();
     let plant_source = ManualPlacement {
+        physics: None,
         id: EntityId::deterministic("imported-plant-source"),
         name: "Imported plant".into(),
         asset_id: imported_plant_asset(&plant_session),

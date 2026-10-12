@@ -49,7 +49,13 @@ fn disabled() -> ShaderBuffer {
     buffer
 }
 
-pub(super) fn bytes(settings: ObjectShadowSettings) -> Vec<u8> {
+pub(super) fn bytes(mut settings: ObjectShadowSettings, temporal_aa: bool) -> Vec<u8> {
+    // PCSS rotates its sample disk using this receiver-only index. Without
+    // temporal accumulation, changing it creates visible noise on static roofs.
+    // Keep the caster animation and cascade refresh cadence independent.
+    if !temporal_aa {
+        settings.frame_index = 0;
+    }
     ShaderBuffer::from(LiveSettings {
         settings,
         control: Vec4::X,
@@ -82,13 +88,30 @@ mod tests {
         let initial = disabled().data.unwrap();
         assert_eq!(initial.len(), 464);
         assert_eq!(&initial[448..], &[0; 16]);
-        let live = bytes(ObjectShadowSettings {
-            frame_index: 37,
-            ..default()
-        });
+        let live = bytes(
+            ObjectShadowSettings {
+                frame_index: 37,
+                ..default()
+            },
+            true,
+        );
         assert_eq!(live.len(), 464);
         assert_eq!(&live[412..416], &37_u32.to_le_bytes());
         assert_eq!(&live[448..452], &1_f32.to_le_bytes());
+    }
+    #[test]
+    fn unaccumulated_shadow_filter_is_stable_across_frames() {
+        let settings = |frame_index| ObjectShadowSettings {
+            frame_index,
+            ..default()
+        };
+        assert_eq!(bytes(settings(1), false), bytes(settings(37), false));
+        assert_eq!(&bytes(settings(37), false)[412..416], &0_u32.to_le_bytes());
+        assert_ne!(bytes(settings(1), true), bytes(settings(37), true));
+        let stable = bytes(settings(37), false);
+        let temporal = bytes(settings(37), true);
+        assert_eq!(&stable[..412], &temporal[..412]);
+        assert_eq!(&stable[416..], &temporal[416..]);
     }
     #[test]
     fn derives_receiver_reads_and_refuses_drift_or_double_adaptation() {

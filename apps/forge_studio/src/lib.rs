@@ -801,6 +801,8 @@ mod authoring_exclusions;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_gameplay;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_imported_quality_observation;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_index_page;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_lighting;
@@ -810,6 +812,10 @@ mod authoring_path_guides;
 mod authoring_path_projection;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_paths;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_physics;
+#[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
+mod authoring_physics_request;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_placement_reuse;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]

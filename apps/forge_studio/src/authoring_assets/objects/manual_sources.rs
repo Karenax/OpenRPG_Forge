@@ -99,6 +99,14 @@ fn concerned_assets(
             expected_asset_hash,
             asset_id,
             asset_hash,
+        }
+        | PlacementEdit::ReplacePinnedAsset {
+            ids,
+            expected_asset_id,
+            expected_asset_hash,
+            asset_id,
+            asset_hash,
+            ..
         } => {
             result.insert((*expected_asset_id, *expected_asset_hash));
             result.insert((*asset_id, *asset_hash));

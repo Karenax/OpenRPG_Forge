@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-complete-launcher-probe"
+description = "Enables the complete_launcher_probe command without any pre-configured scope."
+commands.allow = ["complete_launcher_probe"]
+
+[[permission]]
+identifier = "deny-complete-launcher-probe"
+description = "Denies the complete_launcher_probe command without any pre-configured scope."
+commands.deny = ["complete_launcher_probe"]

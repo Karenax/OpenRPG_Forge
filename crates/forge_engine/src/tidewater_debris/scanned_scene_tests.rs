@@ -108,6 +108,7 @@ fn setup() -> (
 }
 fn placement(i: usize) -> ManualPlacement {
     ManualPlacement {
+        physics: None,
         id: EntityId::deterministic(format!("scanned-buffer-regression:{i}")),
         name: "cpu-test".into(),
         asset_id: AssetId::deterministic("scanned-buffer-test-asset"),

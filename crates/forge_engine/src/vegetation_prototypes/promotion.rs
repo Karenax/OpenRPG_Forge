@@ -62,6 +62,7 @@ pub fn prepare_tree_promotion(
             placement_id,
         },
         ManualPlacement {
+            physics: None,
             id: placement_id,
             name,
             asset_id: asset.asset_id,

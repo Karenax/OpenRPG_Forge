@@ -125,6 +125,7 @@ pub(super) fn install(app: &mut App, args: &[String]) -> Result<serde_json::Valu
                 .ok_or("Building descriptor absent")?,
         )?;
         let placement = ManualPlacement {
+            physics: None,
             id: EntityId::deterministic(format!("building-upload-proof:{}", asset.id)),
             name: asset.logical_name.clone(),
             asset_id: asset.id,

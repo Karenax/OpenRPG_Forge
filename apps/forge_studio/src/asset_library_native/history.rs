@@ -11,6 +11,17 @@ impl Library {
         current: &StoredAsset,
         expected: forge_core::ContentHash,
     ) -> Result<LibraryModel, String> {
+        let asset = self.read_historical_asset(snapshot, current, expected, None)?;
+        self.read_model(&asset)
+    }
+
+    pub(super) fn read_historical_asset(
+        &self,
+        snapshot: &Snapshot,
+        current: &StoredAsset,
+        expected: forge_core::ContentHash,
+        physics: Option<(forge_core::ContentHash, forge_core::ContentHash)>,
+    ) -> Result<StoredAsset, String> {
         let registry: Value = parse_json(&snapshot.registry_raw, "registre")?;
         let entry = &registry["packs"][&current.card.pack];
         let Some(history) = entry.get("history") else {
@@ -91,8 +102,12 @@ impl Library {
                     &mut total,
                     &mut cache,
                 )?;
-                // The normal reader checks containment, licence and exact payload SHA.
-                return self.read_model(&asset);
+                if physics.is_some_and(|(manifest, wire)| {
+                    !super::physics_transport::matches_physics(&asset, expected, manifest, wire)
+                }) {
+                    continue;
+                }
+                return Ok(asset);
             }
         }
         Err("version sauvegardée absente de l'historique du Vault".to_owned())

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "OpenRPG Forge — L’Aube des royaumes",
+  "version": "0.4.0",
+  "identifier": "org.openrpg.forge.launcher.prototype",
+  "build": {
+    "beforeDevCommand": {
+      "script": "npm run dev",
+      "cwd": "."
+    },
+    "devUrl": "http://127.0.0.1:1430",
+    "beforeBuildCommand": {
+      "script": "npm run build",
+      "cwd": "."
+    },
+    "frontendDist": "dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "OpenRPG Forge — L’Aube des royaumes",
+        "width": 1600,
+        "height": 960,
+        "minWidth": 1280,
+        "minHeight": 720,
+        "resizable": true,
+        "maximized": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "shadow": true,
+        "backgroundColor": "#071b1b"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' blob: ipc: http://ipc.localhost; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self' blob:; object-src 'none'; frame-src 'none'; media-src 'self'; base-uri 'none'; form-action 'none'"
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}

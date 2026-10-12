@@ -812,6 +812,7 @@ mod tests {
         });
         let mut placements = (0..5)
             .map(|index| ManualPlacement {
+                physics: None,
                 id: EntityId::deterministic(format!("pier-common-{index}")),
                 name: "Fixture pier".into(),
                 asset_id: pier::asset_id(),
@@ -948,6 +949,7 @@ mod tests {
         let mut moved = template.transform;
         moved.translation_m.x += 2.0;
         let placement = ManualPlacement {
+            physics: None,
             id: EntityId::deterministic("pier-authored-test"),
             name: "Quai déplacé".into(),
             asset_id: template.asset_id,

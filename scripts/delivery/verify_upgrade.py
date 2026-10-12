@@ -52,6 +52,8 @@ def main():
     new = apply(call('plan', root, *packs(args.delivery)), 'upgrade')
     if old['revision'] == new['revision']:
         raise ValueError('Upgrade did not create a new installation revision')
+    if old['active']['core'] == new['active']['core']:
+        raise ValueError('Upgrade did not install the new application package')
     call('verify', root)
     user_after = {p.relative_to(user).as_posix(): sha(p) for p in user.rglob('*') if p.is_file()}
     if user_after != user_before:
@@ -65,6 +67,7 @@ def main():
     if rollback['active'] != old['active']:
         raise ValueError('Rollback did not restore the previous package set')
     report = {'schema': 'forge.delivery.upgrade-validation.v1', 'status': 'PASS_LOCAL_UPGRADE_ROLLBACK',
+              'validation_script_sha256': sha(Path(__file__)),
               'previous_revision': old['revision'], 'upgrade_revision': new['revision'],
               'rollback_revision': rollback['revision'], 'user_files_preserved': len(user_before),
               'edited_authoring_preserved': True, 'full_file_verification': True,

@@ -1,5 +1,37 @@
 # forge_studio
 
+## Module and map navigation
+
+Opening an imported map also acquires its deployed terrain and scene resources.
+Package hashes and the raster geometry must match the selected map before
+projection; a cached library from another raster cannot supply its scene.
+
+The Modules panel has one module selector and one map selector. Selecting a map
+opens its managed authoring session directly; the existing workspace is opened
+automatically on first browse. The former saved-zone chooser and technical
+workspace forms are no longer part of this panel. Names come from the accepted
+module references and effective map documents, including unsaved renames.
+
+Browsing never creates a workspace, adopts a legacy map, or saves documents.
+The ordinary locks and interrupted-save checks still apply. Switching maps
+retains accepted edits; an unapplied preview or an active playtest disables the
+selectors. Save remains explicit. Missing modules and loading failures have an
+empty state or retry action, rather than falling back to legacy editing.
+
+## Lightweight editing view
+
+Editing uses a temporary fast render policy: no sky, shadow maps, animated wind,
+ocean simulation, optical water or live cloud/environment updates. Imported
+water is a flat, unlit blue plane. Required texture bindings and readiness
+checks remain available; selection, transforms, terrain tools and collisions
+still use the accepted source content. Plain GLB materials receive simple
+daylight without shadow maps, with a brighter temporary inspection ambient.
+Interface blur, shadows and transitions are disabled as well.
+
+The policy changes no map, model or saved graphics preference. Playtest retains
+its separate graphics pipeline. Background updates use a lower wake-up rate;
+resolution and pointer coordinates are unchanged.
+
 ## Terrain editor review controls
 
 The relief brush is positioned by clicking or dragging in the map; its former
@@ -476,3 +508,34 @@ pas un profil d'environnement persistant ni une mutation du projet. Le diagnosti
 JSON inclut `observations.cloud_preview` et son statut affiché, ou null si absent.
 La visibilité CPU et le décalage UV ne prouvent pas une exécution GPU : le champ
 `gpu_execution_verified` reste false. Aucune acceptation artistique ou de gate déduite.
+
+### Transport physique de la bibliothèque privée
+
+`read_asset_physics` lit seulement un paquet déclaré par la révision de la fiche,
+avec les pins SHA du modèle et du manifeste. Il n'accepte aucun chemin du navigateur.
+Le lecteur vérifie le paquet, les buffers et les observations du carrier ; le bouton
+« Données de collision » affiche les composants conservés sans qualifier la simulation.
+
+Le host partagé propose `install_physics_package_with_settings`. Les paramètres de
+scène cible exigent une matrice symétrique de 32 couches, une épaisseur de contact
+explicite et une référence de preuve. Les valeurs de matériau mesurées sont reprises
+uniquement lorsque frictions statique/dynamique sont identiques et les combinaisons
+Average. Matériaux explicites non transportés et surcharges de couches restent refusés.
+Le contact offset source reste conservé ; il ne devient pas implicitement contact skin.
+Le parcours d'aperçu transmet le paquet déclaré au même host, sous les mêmes nodes,
+avec les paramètres explicites partagés par la scène. Sans ces paramètres, le refus
+précède la création du root. Les réglages sont conservés dans `ZoneCorrections.physics`
+par la commande `prepare_physics` du même `ZoneAuthoringHead` (version 15 lorsqu'ils
+sont présents). Les archives normales, compactes et delta utilisent respectivement
+les versions 40, 41 et 42 ; l'absence du champ conserve les formats antérieurs.
+Validation, réouverture et annulation/rétablissement passent par la session existante.
+Studio projette les réglages acceptés vers la ressource de scène et invalide l'aperçu
+lorsqu'ils changent. L'onglet Projet contient « Collisions de la scène » : choix
+explicite de la matrice, interactions symétriques par couche, épaisseur et origine
+du réglage. « Examiner » produit une proposition ; Appliquer puis Sauvegarder
+conservent le réglage, et le retrait suit le même parcours. Aucun brouillon n'écrit
+directement dans la tête acceptée. L'utilisation réelle du formulaire, le placement, le rendu et
+équivalence de simulation Unity restent à qualifier ; le placement d'un modèle avec
+paquet déclaré reste refusé tant que sa réouverture physique n'est pas raccordée.
+Aucun réglage du projet privé d'acquisition n'est
+présenté comme un réglage du projet original du pack.

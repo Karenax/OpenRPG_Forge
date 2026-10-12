@@ -11,12 +11,14 @@
 //! validated in its original winding before it can become a live island.
 
 mod provider;
+mod timing;
 use glam::Vec3;
 pub use landmass;
 use landmass::{CoordinateSystem, PointSampleDistance3d};
 pub use provider::{BuiltTile, generate_tile, generate_tile_cancellable};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+pub use timing::{ElapsedObservation, ElapsedStatus, ObservedNavigationTile};
 
 pub const PROVIDER_SOURCE_SHA256: &str = env!("FORGE_NAV_PROVIDER_SOURCE_SHA256");
 /// Horizontal contour simplification bound, in generation cells.
@@ -307,4 +309,44 @@ pub fn generate_navigation_tile(bytes: &[u8]) -> Result<Vec<u8>, wasm_bindgen::J
         .map_err(|error| wasm_bindgen::JsValue::from_str(&error.to_string()))?;
     let result = generate_tile(input).map_err(|error| wasm_bindgen::JsValue::from_str(&error))?;
     serde_json::to_vec(&result).map_err(|error| wasm_bindgen::JsValue::from_str(&error.to_string()))
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen::prelude::wasm_bindgen(js_namespace = performance, js_name = now, catch)]
+    fn navigation_clock() -> Result<f64, wasm_bindgen::JsValue>;
+}
+
+/// Optional observation export. The old export and canonical BuiltTile remain unchanged.
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn generate_navigation_tile_with_timing(
+    bytes: &[u8],
+) -> Result<Vec<u8>, wasm_bindgen::JsValue> {
+    if bytes.len() > 32 * 1024 * 1024 {
+        return Err(wasm_bindgen::JsValue::from_str(
+            "navigation worker input byte budget exceeded",
+        ));
+    }
+    let input: TileInput = serde_json::from_slice(bytes)
+        .map_err(|error| wasm_bindgen::JsValue::from_str(&error.to_string()))?;
+    let started = navigation_clock().unwrap_or(f64::NAN);
+    let tile = generate_tile(input).map_err(|error| wasm_bindgen::JsValue::from_str(&error))?;
+    let finished = navigation_clock().unwrap_or(f64::NAN);
+    let generation = ElapsedObservation::measured(
+        if started.is_finite() && finished.is_finite() {
+            finished - started
+        } else {
+            f64::NAN
+        },
+        true,
+    );
+    serde_json::to_vec(&ObservedNavigationTile {
+        schema: "forge.navigation-worker-observation".into(),
+        version: 1,
+        tile,
+        generation,
+    })
+    .map_err(|error| wasm_bindgen::JsValue::from_str(&error.to_string()))
 }

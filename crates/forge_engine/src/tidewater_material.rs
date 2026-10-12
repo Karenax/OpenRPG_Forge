@@ -49,7 +49,7 @@ pub fn install_shader(app: &mut App, source: &str) -> Result<(), Box<dyn std::er
 }
 
 pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
-    let source = scene_shader_source(source)?;
+    let source = scene_shader_source(&neutral_surface_shader_source(source)?)?;
     install_scene_receivers(world)?;
     world
         .get_resource_mut::<Assets<Shader>>()
@@ -60,6 +60,115 @@ pub fn stage_shader(world: &mut World, source: &str) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
     Ok(())
+}
+
+/// An untextured opaque surface; the source lighting path remains unchanged.
+pub const PROCEDURAL_SOLID_KIND: u8 = 7;
+
+const NEUTRAL_SURFACE: &str = r"
+#ifdef VILLAGE_KIND_7
+const PI: f32 = 3.141592653589793;
+const TWO_PI: f32 = 6.283185307179586;
+const INV_PI: f32 = 0.3183098861837907;
+const EPS: f32 = 1e-5;
+fn sat(x:f32)->f32 { return clamp(x,0.0,1.0); }
+fn sourceVertex(v:ptr<function,SourceVertex>,o:ptr<function,Output>) {
+    o.vTint=v.tint;
+    o.vData=v.vdata;
+}
+fn sourceSurface(input:FragInput,s:ptr<function,Surface>) {}
+#endif
+";
+
+fn neutral_surface_shader_source(source: &str) -> Result<String, String> {
+    if source.contains("#ifdef VILLAGE_KIND_7") || !source.contains("#ifdef VILLAGE_KIND_0") {
+        return Err("Village source neutral-surface seam is absent or already installed".into());
+    }
+    Ok(format!("{source}\n{NEUTRAL_SURFACE}"))
+}
+
+/// Retain every live scene receiver while copying the actual plain surface parameters.
+// Exact neutral-contract parameters, not measured values: preserve defaults,
+// including infinity and signed-zero equality, without introducing a tolerance.
+#[allow(clippy::float_cmp)]
+pub fn neutral_scene_material(
+    lighting: &VillageMaterial,
+    surface: &StandardMaterial,
+) -> Result<VillageMaterial, String> {
+    let defaults = StandardMaterial::default();
+    let color = Vec4::from_array(surface.base_color.to_linear().to_f32_array());
+    let emissive = surface.emissive.to_vec3();
+    if !lighting.shared_scene_lighting
+        || lighting.settings.flags.z != 0.0
+        || surface.unlit
+        || surface.alpha_mode != AlphaMode::Opaque
+    {
+        return Err(
+            "Procedural solid requires current lit scene receivers and an opaque surface".into(),
+        );
+    }
+    if surface.base_color_texture.is_some()
+        || surface.normal_map_texture.is_some()
+        || surface.metallic_roughness_texture.is_some()
+        || surface.emissive_texture.is_some()
+        || surface.occlusion_texture.is_some()
+        || surface.depth_map.is_some()
+    {
+        return Err("Procedural solid cannot discard StandardMaterial textures".into());
+    }
+    if !color.is_finite()
+        || !emissive.is_finite()
+        || !surface.emissive.alpha.is_finite()
+        || !surface.perceptual_roughness.is_finite()
+        || !surface.metallic.is_finite()
+        || !(0.0..=1.0).contains(&surface.perceptual_roughness)
+        || !(0.0..=1.0).contains(&surface.metallic)
+    {
+        return Err("Procedural solid surface parameters must be finite and valid".into());
+    }
+    // The neutral branch implements only color, emissive, roughness and metallic.
+    // Refuse other surface effects rather than silently changing their meaning.
+    if surface.emissive_exposure_weight != defaults.emissive_exposure_weight
+        || surface.reflectance != defaults.reflectance
+        || surface.specular_tint != defaults.specular_tint
+        || surface.diffuse_transmission != defaults.diffuse_transmission
+        || surface.specular_transmission != defaults.specular_transmission
+        || surface.thickness != defaults.thickness
+        || surface.ior != defaults.ior
+        || surface.attenuation_color != defaults.attenuation_color
+        || surface.attenuation_distance != defaults.attenuation_distance
+        || surface.clearcoat != defaults.clearcoat
+        || surface.clearcoat_perceptual_roughness != defaults.clearcoat_perceptual_roughness
+        || surface.anisotropy_strength != defaults.anisotropy_strength
+        || surface.anisotropy_rotation != defaults.anisotropy_rotation
+        || surface.flip_normal_map_y != defaults.flip_normal_map_y
+        || surface.double_sided
+        || surface.cull_mode != Some(Face::Back)
+        || surface.fog_enabled != defaults.fog_enabled
+        || surface.depth_bias != defaults.depth_bias
+        || surface.lightmap_exposure != defaults.lightmap_exposure
+        || surface.uv_transform != defaults.uv_transform
+    {
+        return Err("Procedural solid cannot discard non-neutral StandardMaterial effects".into());
+    }
+    SceneLighting::new(
+        lighting.scene_lighting.sun_direction.truncate().to_array(),
+        lighting.scene_lighting.sun_color.truncate().to_array(),
+        lighting
+            .scene_lighting
+            .environment_sh
+            .map(|value| value.truncate().to_array()),
+    )?;
+    let mut material = lighting.clone();
+    material.kind = PROCEDURAL_SOLID_KIND;
+    material.settings.color = color;
+    material.settings.emissive = emissive.extend(1.0);
+    material.settings.surface = Vec4::new(surface.perceptual_roughness, surface.metallic, 0.0, 1.0);
+    Ok(material)
+}
+
+fn source_double_sided(kind: u8) -> bool {
+    matches!(kind, 5 | 6)
 }
 
 /// Shared scene receivers for procedural materials with the qualified lighting seams.
@@ -282,15 +391,160 @@ impl Material for VillageMaterial {
         descriptor.vertex.shader_defs.push(define.clone().into());
         if let Some(fragment) = &mut descriptor.fragment {
             fragment.shader_defs.push(define.into());
-            if key.bind_group_data.kind >= 5 {
+            if source_double_sided(key.bind_group_data.kind) {
                 fragment.shader_defs.push("VILLAGE_DOUBLE_SIDED".into());
             }
         }
-        descriptor.primitive.cull_mode = if key.bind_group_data.kind >= 5 {
+        descriptor.primitive.cull_mode = if source_double_sided(key.bind_group_data.kind) {
             None
         } else {
             Some(Face::Back)
         };
         Ok(())
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use super::*;
+
+    pub(crate) fn lighting() -> VillageMaterial {
+        VillageMaterial {
+            scene_buffer: default(),
+            shared_scene_lighting: true,
+            local_lights: default(),
+            scene_lighting: SceneLighting::new([0.0, 1.0, 0.0], [4.0, 3.0, 2.0], [[0.2; 3]; 9])
+                .unwrap(),
+            settings: Settings {
+                wind: Vec4::ZERO,
+                color: Vec4::ONE,
+                emissive: Vec4::ZERO,
+                surface: Vec4::new(0.85, 0.0, 0.0, 1.0),
+                flags: Vec4::ZERO,
+            },
+            first: default(),
+            second: default(),
+            third: default(),
+            fourth: default(),
+            environment: default(),
+            hill_shadow: default(),
+            object_shadow: default(),
+            clouds: [Vec4::ZERO; 5],
+            cloud_shadow: None,
+            object_settings: default(),
+            live_shadows: default(),
+            underwater_params: crate::tidewater_caustics::CausticSampleParams::new(
+                96.0,
+                256.0,
+                Vec3::Y,
+                0.0,
+            )
+            .unwrap(),
+            underwater_level: default(),
+            underwater_map_frame: default(),
+            ground_bounce: None,
+            bounce_settings: Vec4::ZERO,
+            kind: 0,
+        }
+    }
+
+    #[test]
+    fn neutral_surface_keeps_authoring_parameters_and_all_source_receivers() {
+        let source = lighting();
+        let surface = StandardMaterial {
+            base_color: Color::srgb(0.55, 0.48, 0.37),
+            perceptual_roughness: 0.9,
+            ..default()
+        };
+        let neutral = neutral_scene_material(&source, &surface).unwrap();
+        assert_eq!(neutral.kind, PROCEDURAL_SOLID_KIND);
+        assert_eq!(
+            neutral.settings.color,
+            Vec4::from_array(surface.base_color.to_linear().to_f32_array())
+        );
+        assert_eq!(neutral.settings.surface, Vec4::new(0.9, 0.0, 0.0, 1.0));
+        assert_eq!(neutral.settings.emissive, Vec4::W);
+        let mut restored = neutral.clone();
+        restored.kind = source.kind;
+        restored.settings = source.settings.clone();
+        assert_eq!(
+            restored, source,
+            "every receiver binding must be cloned from the real resident scene"
+        );
+        assert!(!source_double_sided(PROCEDURAL_SOLID_KIND));
+        assert!(source_double_sided(5) && source_double_sided(6));
+        let mut unlit = source;
+        unlit.settings.flags.z = 1.0;
+        assert!(neutral_scene_material(&unlit, &surface).is_err());
+    }
+
+    #[test]
+    fn neutral_surface_rejects_textures_non_neutral_and_non_finite_parameters() {
+        let source = lighting();
+        let mutations: [fn(&mut StandardMaterial); 19] = [
+            |surface| surface.base_color_texture = Some(default()),
+            |surface| surface.normal_map_texture = Some(default()),
+            |surface| surface.metallic_roughness_texture = Some(default()),
+            |surface| surface.emissive_texture = Some(default()),
+            |surface| surface.occlusion_texture = Some(default()),
+            |surface| surface.depth_map = Some(default()),
+            |surface| surface.base_color = Color::linear_rgba(f32::NAN, 0.0, 0.0, 1.0),
+            |surface| surface.emissive.red = f32::INFINITY,
+            |surface| surface.perceptual_roughness = f32::NAN,
+            |surface| surface.metallic = 1.5,
+            |surface| surface.alpha_mode = AlphaMode::Blend,
+            |surface| surface.unlit = true,
+            |surface| surface.reflectance = 0.25,
+            |surface| surface.diffuse_transmission = 0.2,
+            |surface| surface.clearcoat = 0.5,
+            |surface| surface.anisotropy_strength = 0.4,
+            |surface| surface.double_sided = true,
+            |surface| surface.depth_bias = 0.01,
+            |surface| surface.emissive_exposure_weight = 1.0,
+        ];
+        for (index, mutate) in mutations.into_iter().enumerate() {
+            let mut surface = StandardMaterial::default();
+            mutate(&mut surface);
+            assert!(
+                neutral_scene_material(&source, &surface).is_err(),
+                "mutation {index} was silently accepted"
+            );
+        }
+    }
+
+    #[test]
+    fn neutral_shader_branch_is_valid_and_does_not_change_the_surface() {
+        let structs = r"
+struct SourceVertex { position:vec3f,normal:vec3f,uv:vec2f,tint:vec3f,vdata:vec4f };
+struct Output { vTint:vec3f,vData:vec4f };
+struct FragInput { P:vec3f,N:vec3f };
+struct Surface { albedo:vec3f,alpha:f32,normal:vec3f,roughness:f32,metalness:f32,
+    emissive:vec3f,ao:f32,envIntensity:f32 };
+";
+        let branch = NEUTRAL_SURFACE
+            .replace("#ifdef VILLAGE_KIND_7", "")
+            .replace("#endif", "");
+        let module = naga::front::wgsl::parse_str(&format!("{structs}\n{branch}")).unwrap();
+        naga::valid::Validator::new(
+            naga::valid::ValidationFlags::all(),
+            naga::valid::Capabilities::all(),
+        )
+        .validate(&module)
+        .unwrap();
+        let surface = module
+            .functions
+            .iter()
+            .find(|(_, value)| value.name.as_deref() == Some("sourceSurface"))
+            .unwrap()
+            .1;
+        assert!(
+            surface.body.len() == 1
+                && matches!(surface.body[0], naga::Statement::Return { value: None }),
+            "neutral surface must only contain Naga's implicit void return: {:?}",
+            surface.body
+        );
+        let derived = neutral_surface_shader_source("#ifdef VILLAGE_KIND_0\n#endif").unwrap();
+        assert!(derived.starts_with("#ifdef VILLAGE_KIND_0\n#endif"));
+        assert!(neutral_surface_shader_source(&derived).is_err());
     }
 }

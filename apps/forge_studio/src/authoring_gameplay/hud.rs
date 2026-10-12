@@ -1,7 +1,9 @@
+use super::timing::{self, TimingCommand};
 use super::{
     GameView, PENDING, Pending, RESUME, Resume, SAVE, SaveCapture, VIEW, enqueue, generation,
 };
 use forge_core::ContentHash;
+use forge_engine::playtest_timing::TimingState;
 use forge_project::authoring::{AuthoringRequest, AuthoringState, game_save::GameSaveRequest};
 use leptos::prelude::*;
 
@@ -21,6 +23,7 @@ pub(crate) fn GameplayControls(
     let saving = RwSignal::new(false);
     let message = RwSignal::new(String::new());
     let run = Memo::new(move |_| view.get().run);
+    let timing_json = Memo::new(move |_| view.get().timing_json);
     Effect::new(move |_| {
         let _ = run.get();
         saving.set(false);
@@ -32,6 +35,7 @@ pub(crate) fn GameplayControls(
             if *slot.borrow() == Some(view) {
                 slot.replace(None);
                 PENDING.with(|queue| queue.borrow_mut().clear());
+                timing::clear_request();
                 RESUME.with(|resume| resume.replace(None));
             }
         });
@@ -49,6 +53,7 @@ pub(crate) fn GameplayControls(
         captured.set(None);
         saving.set(false);
         PENDING.with(|queue| queue.borrow_mut().clear());
+        timing::clear_request();
         RESUME.with(|resume| resume.replace(None));
     });
     Effect::new(move |_| {
@@ -163,6 +168,16 @@ pub(crate) fn GameplayControls(
                 <details class="authoring-navigation-diagnostic"><summary>"Déplacements des personnages"</summary>
                     <ul>{move ||view.get().navigation_summary.into_iter().map(|line|view!{<li>{line}</li>}).collect_view()}</ul>
                     <details><summary>"Diagnostic du trajet"</summary><pre data-forge-navigation-observation="v1">{move ||view.get().navigation_diagnostic}</pre></details>
+                </details>
+                <details class="authoring-playtest-timing"><summary>"Mesures du playtest"</summary>
+                    <p>"Cadence de la boucle et durées réelles des opérations. Les durées inclusives ne s'additionnent pas ; aucune mesure GPU ni qualification High."</p>
+                    <button id="authoring-playtest-timing-start" type="button" disabled=move ||busy.get() ||saving.get() ||!view.get().ready ||matches!(view.get().timing_state,Some(TimingState::Warmup | TimingState::Recording))
+                        on:click=move |_|timing::enqueue(&view.get_untracked(),TimingCommand::Start)>"Démarrer la mesure"</button>
+                    <button id="authoring-playtest-timing-stop" type="button" disabled=move ||!matches!(view.get().timing_state,Some(TimingState::Warmup | TimingState::Recording))
+                        on:click=move |_|timing::enqueue(&view.get_untracked(),TimingCommand::Stop)>"Arrêter la mesure"</button>
+                    <button id="authoring-playtest-timing-export" type="button" disabled=move ||!matches!(view.get().timing_state,Some(TimingState::Stopped | TimingState::LimitReached | TimingState::Invalidated))
+                        on:click=move |_|message.set(match timing::export(&view.get_untracked()) {Ok(())=>"Export JSON demandé · aucune validation de gate.".into(),Err(error)=>error})>"Exporter les mesures JSON"</button>
+                    <pre id="authoring-playtest-timing-ledger" data-forge-playtest-timing-observation="v1">{move ||timing_json.get().to_string()}</pre>
                 </details>
                 <details open><summary>"Inventaire et objectifs"</summary>
                 <ul>{move ||view.get().inventory.into_iter().chain(view.get().quests).map(|line|view!{<li>{line}</li>}).collect_view()}</ul></details>

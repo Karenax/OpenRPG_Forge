@@ -16,7 +16,10 @@ pub(super) fn retained<'a>(
 ) -> Option<&'a ManualPlacement> {
     let index = desired.binary_search_by_key(&source.id, |p| p.id).ok()?;
     let target = &desired[index];
-    (source.asset_id == target.asset_id && source.asset_hash == target.asset_hash).then_some(target)
+    (source.asset_id == target.asset_id
+        && source.asset_hash == target.asset_hash
+        && source.physics == target.physics)
+        .then_some(target)
 }
 
 /// A transform/name/lock edit keeps its root. A changed asset pin rebuilds that
@@ -42,6 +45,56 @@ pub(super) fn reconciliation_decision(
 mod tests {
     use super::*;
     use forge_core::{AssetId, ContentHash, EntityId, Transform};
+
+    #[test]
+    fn same_carrier_rebuilds_for_changed_physics_but_retains_authoring_edits() {
+        use forge_project::zone_authoring::placements::PhysicsPackageReference;
+        let source = ManualPlacement {
+            id: EntityId::deterministic("physical-reuse-object"),
+            name: "Collision conservée".into(),
+            asset_id: AssetId::deterministic("physical-reuse-asset"),
+            asset_hash: ContentHash::from_bytes([3; 32]),
+            physics: Some(Box::new(PhysicsPackageReference {
+                schema_version: 1,
+                carrier_sha256: ContentHash::from_bytes([3; 32]),
+                manifest_sha256: ContentHash::from_bytes([4; 32]),
+                package_sha256: ContentHash::from_bytes([5; 32]),
+            })),
+            transform: Transform::IDENTITY,
+            locked: false,
+        };
+        let mut edited = source.clone();
+        edited.name = "Retouche".into();
+        edited.transform.translation_m.x = 7.0;
+        edited.locked = true;
+        assert_eq!(
+            reconciliation_decision(&source, std::slice::from_ref(&edited)),
+            ReconciliationDecision::Retain
+        );
+        for manifest_changed in [false, true] {
+            let mut changed = edited.clone();
+            let physics = changed.physics.as_mut().unwrap();
+            if manifest_changed {
+                physics.manifest_sha256 = ContentHash::from_bytes([6; 32]);
+            } else {
+                physics.package_sha256 = ContentHash::from_bytes([6; 32]);
+            }
+            assert_eq!(changed.asset_hash, source.asset_hash);
+            assert_eq!(
+                reconciliation_decision(&source, std::slice::from_ref(&changed)),
+                ReconciliationDecision::Rebuild
+            );
+        }
+        edited.physics = None;
+        assert_eq!(
+            reconciliation_decision(&source, std::slice::from_ref(&edited)),
+            ReconciliationDecision::Rebuild
+        );
+        assert_eq!(
+            reconciliation_decision(&source, &[]),
+            ReconciliationDecision::Remove
+        );
+    }
 
     #[test]
     #[ignore = "Local CPU lookup comparison; not a renderer benchmark"]
@@ -82,6 +135,7 @@ mod tests {
     #[test]
     fn reuse_preserves_identity_but_never_substitutes_asset_pins() {
         let source = ManualPlacement {
+            physics: None,
             id: EntityId::deterministic("reuse-object"),
             name: "Objet".into(),
             asset_id: AssetId::deterministic("reuse-asset"),

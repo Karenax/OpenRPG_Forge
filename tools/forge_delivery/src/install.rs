@@ -4,7 +4,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     fs::{self, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
@@ -66,6 +66,14 @@ pub struct Plan {
     pub operation: String,
     pub inputs: Vec<Input>,
     pub target: Snapshot,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct UninstallReport {
+    pub root: String,
+    pub removed_files: usize,
+    pub preserved_files: usize,
+    pub preserved_packages: usize,
 }
 
 pub fn package_root(root: &Path, pack: &InstalledPack) -> Result<PathBuf> {
@@ -227,6 +235,425 @@ pub fn prepare_rollback(root: &Path) -> Result<Plan> {
     };
     plan.command_id = plan_id(&plan)?;
     Ok(plan)
+}
+
+/// Write an approved plan without replacing an existing file.
+pub fn write_plan_file(plan: &Plan, path: &Path) -> Result<()> {
+    if !path.is_absolute() {
+        return Err("Plan output must be an absolute path".into());
+    }
+    manifest::safe_chain(path)?;
+    let bytes = json(plan)?;
+    let mut file = OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .open(path)
+        .map_err(|e| e.to_string())?;
+    let result = (|| {
+        file.write_all(&bytes).map_err(|e| e.to_string())?;
+        file.sync_all().map_err(|e| e.to_string())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(path);
+    }
+    result
+}
+
+struct RecognizedPackage {
+    id: String,
+    revision: String,
+    directory: PathBuf,
+    manifest: PathBuf,
+    descriptor: manifest::Descriptor,
+    foreign_files: usize,
+}
+
+struct ExpectedLayout {
+    files: BTreeSet<String>,
+}
+
+fn path_key(value: &str) -> String {
+    value.replace('\\', "/").to_ascii_lowercase()
+}
+
+fn path_is_within(path: &Path, ancestor: &Path) -> bool {
+    let path = path_key(&path.to_string_lossy());
+    let ancestor = path_key(&ancestor.to_string_lossy())
+        .trim_end_matches('/')
+        .to_owned();
+    path == ancestor || path.starts_with(&(ancestor + "/"))
+}
+
+fn existing(path: &Path) -> Result<Option<std::fs::Metadata>> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => Ok(Some(metadata)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+fn relative_name(root: &Path, path: &Path) -> Result<String> {
+    Ok(path
+        .strip_prefix(root)
+        .map_err(|e| e.to_string())?
+        .to_str()
+        .ok_or("Non-Unicode package path")?
+        .replace('\\', "/"))
+}
+
+fn expected_layout(descriptor: &manifest::Descriptor) -> ExpectedLayout {
+    let mut files = BTreeSet::from([path_key("package-manifest.json")]);
+    for entry in &descriptor.files {
+        files.insert(path_key(&entry.path));
+    }
+    ExpectedLayout { files }
+}
+
+fn is_expected_file(layout: &ExpectedLayout, relative: &str) -> bool {
+    layout.files.contains(&path_key(relative))
+}
+
+fn scan_no_links(path: &Path, protected: &Path) -> Result<()> {
+    if path_is_within(path, protected) {
+        return Ok(());
+    }
+    manifest::no_links(path)?;
+    let metadata = fs::symlink_metadata(path).map_err(|e| e.to_string())?;
+    if metadata.is_dir() {
+        for child in fs::read_dir(path).map_err(|e| e.to_string())? {
+            scan_no_links(&child.map_err(|e| e.to_string())?.path(), protected)?;
+        }
+    } else if !metadata.is_file() {
+        return Err(format!("Non-regular installed entry: {}", path.display()));
+    }
+    Ok(())
+}
+
+fn scan_foreign(
+    package: &Path,
+    folder: &Path,
+    protected: &Path,
+    layout: &ExpectedLayout,
+    foreign_files: &mut usize,
+) -> Result<()> {
+    if path_is_within(folder, protected) {
+        return Ok(());
+    }
+    for child in fs::read_dir(folder).map_err(|e| e.to_string())? {
+        let child = child.map_err(|e| e.to_string())?;
+        let path = child.path();
+        if path_is_within(&path, protected) {
+            continue;
+        }
+        manifest::no_links(&path)?;
+        let metadata = fs::symlink_metadata(&path).map_err(|e| e.to_string())?;
+        let relative = relative_name(package, &path)?;
+        if metadata.is_dir() {
+            scan_foreign(package, &path, protected, layout, foreign_files)?;
+        } else if metadata.is_file() {
+            if !is_expected_file(layout, &relative) {
+                *foreign_files = foreign_files.saturating_add(1);
+            }
+        } else {
+            return Err(format!("Non-regular installed entry: {}", path.display()));
+        }
+    }
+    Ok(())
+}
+
+fn inspect_packages(root: &Path, protected: &Path) -> Result<Vec<RecognizedPackage>> {
+    let packages = manifest::confined(root, "packages")?;
+    let Some(metadata) = existing(&packages)? else {
+        return Ok(Vec::new());
+    };
+    if !metadata.is_dir() {
+        return Err("Installed packages path is not a directory".into());
+    }
+    scan_no_links(&packages, protected)?;
+    let mut result = Vec::new();
+    for id_entry in fs::read_dir(&packages).map_err(|e| e.to_string())? {
+        let id_entry = id_entry.map_err(|e| e.to_string())?;
+        let id_path = id_entry.path();
+        manifest::no_links(&id_path)?;
+        let id_metadata = fs::symlink_metadata(&id_path).map_err(|e| e.to_string())?;
+        if !id_metadata.is_dir() {
+            continue;
+        }
+        let id = id_entry
+            .file_name()
+            .to_str()
+            .ok_or("Non-Unicode package identifier directory")?
+            .to_owned();
+        for revision_entry in fs::read_dir(&id_path).map_err(|e| e.to_string())? {
+            let revision_entry = revision_entry.map_err(|e| e.to_string())?;
+            let revision_path = revision_entry.path();
+            manifest::no_links(&revision_path)?;
+            let revision_metadata =
+                fs::symlink_metadata(&revision_path).map_err(|e| e.to_string())?;
+            if !revision_metadata.is_dir() {
+                continue;
+            }
+            let manifest_path = revision_path.join("package-manifest.json");
+            let Some(manifest_metadata) = existing(&manifest_path)? else {
+                continue;
+            };
+            manifest::no_links(&manifest_path)?;
+            if !manifest_metadata.is_file() {
+                return Err(format!(
+                    "Package manifest is not a file: {}",
+                    manifest_path.display()
+                ));
+            }
+            manifest::identifier(&id)?;
+            let revision = revision_entry
+                .file_name()
+                .to_str()
+                .ok_or("Non-Unicode package revision directory")?
+                .to_owned();
+            manifest::valid_hash(&revision)?;
+            let descriptor: manifest::Descriptor = crate::read_json(&manifest_path)?;
+            descriptor.validate()?;
+            if descriptor.id != id || hash(&json(&descriptor)?) != revision {
+                return Err(format!(
+                    "Unrecognized package revision: {}",
+                    revision_path.display()
+                ));
+            }
+            for entry in &descriptor.files {
+                let path = manifest::confined(&revision_path, &entry.path)?;
+                if let Some(metadata) = existing(&path)? {
+                    manifest::no_links(&path)?;
+                    if !metadata.is_file() {
+                        return Err(format!(
+                            "Owned package path is not a file: {}",
+                            path.display()
+                        ));
+                    }
+                }
+            }
+            let layout = expected_layout(&descriptor);
+            let mut foreign_files = 0;
+            scan_foreign(
+                &revision_path,
+                &revision_path,
+                protected,
+                &layout,
+                &mut foreign_files,
+            )?;
+            result.push(RecognizedPackage {
+                id: id.clone(),
+                revision,
+                directory: revision_path,
+                manifest: manifest_path,
+                descriptor,
+                foreign_files,
+            });
+        }
+    }
+    Ok(result)
+}
+
+fn validate_snapshot_refs(
+    snapshot: &Snapshot,
+    packages: &BTreeMap<(String, String), Kind>,
+) -> Result<()> {
+    if snapshot.core.kind != Kind::Applications || snapshot.packs.len() > 1024 {
+        return Err("Invalid installed snapshot".into());
+    }
+    manifest::identifier(&snapshot.core.id)?;
+    manifest::valid_hash(&snapshot.core.revision)?;
+    let core_kind = packages
+        .get(&(snapshot.core.id.clone(), snapshot.core.revision.clone()))
+        .ok_or("Installation head references an unrecognized application package")?;
+    if core_kind != &snapshot.core.kind {
+        return Err("Application package kind mismatch".into());
+    }
+    for (id, pack) in &snapshot.packs {
+        if id != &pack.id || pack.kind == Kind::Applications {
+            return Err("Invalid installed pack index".into());
+        }
+        manifest::identifier(&pack.id)?;
+        manifest::valid_hash(&pack.revision)?;
+        let kind = packages
+            .get(&(pack.id.clone(), pack.revision.clone()))
+            .ok_or("Installation head references an unrecognized pack")?;
+        if kind != &pack.kind {
+            return Err("Installed pack kind mismatch".into());
+        }
+    }
+    Ok(())
+}
+
+fn remove_if_matching(
+    path: &Path,
+    protected: &Path,
+    expected_bytes: u64,
+    expected_hash: &str,
+) -> Result<(bool, bool)> {
+    if path_is_within(path, protected) {
+        return Ok((false, existing(path)?.is_some()));
+    }
+    let Some(metadata) = existing(path)? else {
+        return Ok((false, false));
+    };
+    manifest::no_links(path)?;
+    if !metadata.is_file() {
+        return Err(format!(
+            "Owned package path is not a file: {}",
+            path.display()
+        ));
+    }
+    if metadata.len() != expected_bytes || file_hash(path)? != expected_hash {
+        return Ok((false, true));
+    }
+    fs::remove_file(path).map_err(|e| e.to_string())?;
+    Ok((true, false))
+}
+
+fn remove_empty_ancestors(directory: &Path, packages: &Path, protected: &Path) -> Result<()> {
+    let mut current = directory.to_path_buf();
+    loop {
+        if current == packages
+            || !path_is_within(&current, packages)
+            || path_is_within(&current, protected)
+        {
+            return Ok(());
+        }
+        let Some(metadata) = existing(&current)? else {
+            return Ok(());
+        };
+        manifest::no_links(&current)?;
+        if !metadata.is_dir()
+            || fs::read_dir(&current)
+                .map_err(|e| e.to_string())?
+                .next()
+                .is_some()
+        {
+            return Ok(());
+        }
+        fs::remove_dir(&current).map_err(|e| e.to_string())?;
+        current = current
+            .parent()
+            .ok_or("Package parent missing")?
+            .to_path_buf();
+    }
+}
+
+fn uninstall_locked(root: &Path, state_path: &Path, lock_path: &Path) -> Result<UninstallReport> {
+    let state = state(root)?;
+    if state.revision == 0 {
+        return Err("Invalid installation revision".into());
+    }
+    let user_root = PathBuf::from(&state.user_root);
+    if !user_root.is_absolute() {
+        return Err("User data root must be absolute".into());
+    }
+    manifest::safe_chain(&user_root)?;
+    if path_is_within(root, &user_root) {
+        return Err("User data root contains the installation root".into());
+    }
+    if path_is_within(state_path, &user_root) || path_is_within(lock_path, &user_root) {
+        return Err("Installation metadata is inside the protected user data root".into());
+    }
+    let packages = manifest::confined(root, "packages")?;
+    let recognized = inspect_packages(root, &user_root)?;
+    let package_kinds = recognized
+        .iter()
+        .map(|package| {
+            (
+                (package.id.clone(), package.revision.clone()),
+                package.descriptor.kind.clone(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+    validate_snapshot_refs(&state.active, &package_kinds)?;
+    if let Some(previous) = &state.previous {
+        validate_snapshot_refs(previous, &package_kinds)?;
+    }
+
+    let mut report = UninstallReport {
+        root: root
+            .to_str()
+            .ok_or("Non-Unicode installation root")?
+            .to_owned(),
+        removed_files: 0,
+        preserved_files: 0,
+        preserved_packages: 0,
+    };
+    for package in recognized {
+        let mut package_preserved = package.foreign_files > 0;
+        report.preserved_files = report.preserved_files.saturating_add(package.foreign_files);
+        for entry in &package.descriptor.files {
+            let path = manifest::confined(&package.directory, &entry.path)?;
+            let (removed, preserved) =
+                remove_if_matching(&path, &user_root, entry.bytes, &entry.sha256)?;
+            report.removed_files = report.removed_files.saturating_add(usize::from(removed));
+            if removed && let Some(parent) = path.parent() {
+                remove_empty_ancestors(parent, &packages, &user_root)?;
+            }
+            if preserved {
+                package_preserved = true;
+                report.preserved_files = report.preserved_files.saturating_add(1);
+            }
+        }
+        let manifest_bytes = json(&package.descriptor)?;
+        let manifest_protected = path_is_within(&package.manifest, &user_root);
+        let manifest_exists = existing(&package.manifest)?.is_some();
+        if manifest_exists {
+            manifest::no_links(&package.manifest)?;
+            let metadata = fs::symlink_metadata(&package.manifest).map_err(|e| e.to_string())?;
+            if !metadata.is_file() {
+                return Err(format!(
+                    "Package manifest is not a file: {}",
+                    package.manifest.display()
+                ));
+            }
+            let exact = fs::read(&package.manifest).map_err(|e| e.to_string())? == manifest_bytes;
+            if manifest_protected || package_preserved || !exact {
+                package_preserved = true;
+                report.preserved_files = report.preserved_files.saturating_add(1);
+            } else {
+                fs::remove_file(&package.manifest).map_err(|e| e.to_string())?;
+                report.removed_files = report.removed_files.saturating_add(1);
+            }
+        }
+        remove_empty_ancestors(&package.directory, &packages, &user_root)?;
+        if existing(&package.directory)?.is_some() && package_preserved {
+            report.preserved_packages = report.preserved_packages.saturating_add(1);
+        }
+    }
+    fs::remove_file(state_path).map_err(|e| e.to_string())?;
+    Ok(report)
+}
+
+/// Remove only verified package files while preserving user data, edits and foreign entries.
+pub fn uninstall(root: &Path) -> Result<UninstallReport> {
+    if !root.is_absolute() {
+        return Err("Installation root must be absolute".into());
+    }
+    manifest::safe_chain(root)?;
+    let state_path = manifest::confined(root, "installation.json")?;
+    if existing(&state_path)?.is_none() {
+        return Ok(UninstallReport {
+            root: root
+                .to_str()
+                .ok_or("Non-Unicode installation root")?
+                .to_owned(),
+            removed_files: 0,
+            preserved_files: 0,
+            preserved_packages: 0,
+        });
+    }
+    let lock_path = manifest::confined(root, "installation.lock")?;
+    // Read before acquiring so a refused uninstall does not create a lock directory/file.
+    state(root)?;
+    let lock = acquire(root)?;
+    let result = uninstall_locked(root, &state_path, &lock_path);
+    drop(lock);
+    // Keep the lock inode in place. Removing it after releasing the OS lock
+    // would let another installer open a replacement inode before this
+    // process removes the old path.
+    result
 }
 
 struct Lock {

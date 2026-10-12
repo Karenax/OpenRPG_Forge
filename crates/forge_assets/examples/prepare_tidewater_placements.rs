@@ -72,6 +72,7 @@ fn build_placements(
         };
         transform.validate()?;
         placements.push(ManualPlacement {
+            physics: None,
             id: EntityId::deterministic(format!(
                 "{}:{}:{}",
                 base.terrain.project_id, base.terrain.area_id, b.source_id

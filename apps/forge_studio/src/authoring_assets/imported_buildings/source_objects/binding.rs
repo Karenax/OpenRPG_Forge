@@ -68,6 +68,7 @@ pub(super) fn placement(
     transform: Transform,
 ) -> ManualPlacement {
     ManualPlacement {
+        physics: None,
         id: EntityId::deterministic(format!("imported-object:{area}:{asset_id}:{key}")),
         name,
         asset_id,
