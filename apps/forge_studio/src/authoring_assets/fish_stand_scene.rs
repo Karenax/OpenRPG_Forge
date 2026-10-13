@@ -374,16 +374,30 @@ fn prepare_fish_assets(
             });
         }
     }
-    let time = world.resource::<Time>().elapsed_secs();
-    let frame = world.resource::<bevy::diagnostic::FrameCount>().0;
+    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
+    let time = if editing {
+        0.0
+    } else {
+        world.resource::<Time>().elapsed_secs()
+    };
+    let frame = if editing {
+        0
+    } else {
+        world.resource::<bevy::diagnostic::FrameCount>().0
+    };
     let mut materials = world.resource_mut::<Assets<FishMaterial>>();
     for asset in &state.fish {
         let handle = &asset.material;
-        let mut material = materials
-            .get_mut(handle)
+        let material = materials
+            .get(handle)
             .ok_or("Matériau d’étal indisponible")?;
-        material.settings.info.w = time;
-        material.settings.frame_index = frame;
+        if material.settings.info.w != time || material.settings.frame_index != frame {
+            let mut material = materials
+                .get_mut(handle)
+                .ok_or("Matériau d’étal indisponible")?;
+            material.settings.info.w = time;
+            material.settings.frame_index = frame;
+        }
     }
     Ok(())
 }

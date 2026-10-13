@@ -77,8 +77,8 @@ pub(super) fn SourceControls(
             <super::authoring_buildings::BuildingControls state=state busy=busy selected=building on_command=on_command/>
         </section>
         <section class="authoring-panel" data-authoring-tab="follow-up" hidden=move || active_tab.get() != super::authoring_controls::AuthoringTab::FollowUp>
-            <h2>"Tester et suivre la zone"</h2>
-            <p>"Jouer avec les commandes du haut, choisir un départ ou consulter l’historique."</p>
+            <h2>"Départ et suivi de la zone"</h2>
+            <p>"Choisir le départ enregistré ou consulter l’historique des retouches."</p>
             <CompactionControls state=state busy=busy on_command=on_command/>
         </section>
     }

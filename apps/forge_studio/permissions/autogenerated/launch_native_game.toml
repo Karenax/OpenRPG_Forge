@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-launch-native-game"
+description = "Enables the launch_native_game command without any pre-configured scope."
+commands.allow = ["launch_native_game"]
+
+[[permission]]
+identifier = "deny-launch-native-game"
+description = "Denies the launch_native_game command without any pre-configured scope."
+commands.deny = ["launch_native_game"]

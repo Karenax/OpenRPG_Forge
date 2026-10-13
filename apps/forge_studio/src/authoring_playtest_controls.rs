@@ -78,12 +78,14 @@ pub(super) fn PlaytestControls(
                 </details>
             </Show>
             <details style="grid-column:1/-1">
-                <summary>"Choisir le départ du playtest"</summary>
+                <summary>"Départ de la zone"</summary>
                 <output>{move || state.get().and_then(|s| s.zone_head).and_then(|h| h.corrections.start)
-                    .map_or_else(|| "Aucun départ enregistré : Jouer utilise le départ par défaut.".into(), |p| format!("Départ de zone accepté : {}", super::authoring_start_label::describe(Some(&p))))}</output>
+                    .map_or_else(|| "Aucun départ enregistré pour cette zone.".into(), |p| format!("Départ de zone accepté : {}", super::authoring_start_label::describe(Some(&p))))}</output>
                 <label>"Départ X (m)"<input type="number" step="0.1" disabled=disabled prop:value=move || x.get() on:input=move |e| { x.set(event_target_value(&e)); super::authoring_shortcuts::cancel_preview(); }/></label>
                 <label>"Départ Z (m)"<input type="number" step="0.1" disabled=disabled prop:value=move || z.get() on:input=move |e| { z.set(event_target_value(&e)); super::authoring_shortcuts::cancel_preview(); }/></label>
-                <button disabled=disabled on:click=move |_| send.run(prepare(state.get_untracked(), &x.get_untracked(), &z.get_untracked()))>"Jouer à cet endroit"</button>
+                <Show when=super::embedded_playtest_available>
+                    <button disabled=disabled on:click=move |_| send.run(prepare(state.get_untracked(), &x.get_untracked(), &z.get_untracked()))>"Jouer à cet endroit"</button>
+                </Show>
                 <label>"Cap du départ enregistré (°)"<input type="number" step="1" disabled=disabled prop:value=move || facing.get() on:input=move |e| { facing.set(event_target_value(&e)); super::authoring_shortcuts::cancel_preview(); }/></label>
                 <button disabled=disabled on:click=move |_| {
                     if let Err(error) = super::authoring_start_pick::arm(state, busy, x, z, facing, pick_message) {
@@ -101,8 +103,8 @@ pub(super) fn PlaytestControls(
                 <output aria-live="polite">{move || pick_message.get()}</output>
                 <button disabled=disabled on:click=move |_| send.run(prepare_saved(state.get_untracked(), Some((&x.get_untracked(), &z.get_untracked(), &facing.get_untracked()))))>"Examiner ce départ pour la zone"</button>
                 <button disabled=disabled on:click=move |_| send.run(prepare_saved(state.get_untracked(), None))>"Examiner le retrait du départ enregistré"</button>
-                <p>"Départ temporaire sur le terrain. Aucun objet déplacé ni point sauvegardé. Choisir un espace libre, hors des objets."</p>
-                <p>"Examiner puis Appliquer modifie le départ de zone ; Sauvegarder le conserve après fermeture. Jouer à cet endroit reste temporaire. Le point est projeté sur le terrain, pas sur un étage de bâtiment."</p>
+                <p>"Choisir un espace libre, hors des objets. Le point est projeté sur le terrain, pas sur un étage de bâtiment."</p>
+                <p>"Examiner puis Appliquer modifie le départ de zone ; Sauvegarder le conserve après fermeture."</p>
             </details>
         </div>
     }

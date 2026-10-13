@@ -251,8 +251,10 @@ fn RoomInspector(
             <p>{super::authoring_building_view::door_origin(dimensions.door_offset_x_m, building.door_offset_override_m, locked)}</p>
             </details>
             <button on:click=move |_| frame_view(door_view)>"Cadrer la porte"</button>
-            <button on:click=move |_| on_command.run(play_from_door(state.get_untracked(), id))>"Jouer devant cette porte"</button>
-            <details><summary>"Départ temporaire du test"</summary><p>"Départ temporaire sur le terrain, 2 m devant la porte acceptée, vue orientée vers l’entrée. Aucun point sauvegardé ; les autres obstacles ne sont pas écartés."</p></details>
+            <Show when=super::embedded_playtest_available>
+                <button on:click=move |_| on_command.run(play_from_door(state.get_untracked(), id))>"Jouer devant cette porte"</button>
+                <details><summary>"Départ temporaire du test"</summary><p>"Départ temporaire sur le terrain, 2 m devant la porte acceptée, vue orientée vers l’entrée. Aucun point sauvegardé ; les autres obstacles ne sont pas écartés."</p></details>
+            </Show>
             </section>
             <section hidden=move || subject.get() != Subject::Manage>
             <details><summary>"Identité et valeurs acceptées"</summary>

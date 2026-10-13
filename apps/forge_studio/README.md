@@ -1,5 +1,43 @@
 # forge_studio
 
+## Current authoring launch and native game
+
+The owner's canonical entry is `E:/OpenRPG_Forge/Lancer-Editeur.cmd`. It opens
+the shared `E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002/release/forge-studio.exe`.
+Keep this entry and its adjacent `forge-studio.local.json` connected to the same
+authoring workspace and deployed assets; do not create a different launch path
+per chat. The owner confirmed this entry on 13 October and asked to preserve it.
+
+The native shell reads the sidecar profile independently of the working
+directory. Relative paths resolve against the executable directory. Explicit
+installer environment overrides keep priority; incomplete module overrides
+are refused rather than combined with another profile. The local sidecar and
+private map/asset payloads are deployment data, not files included in this commit.
+
+In **Modules**, select the module and then its **Carte**. An animated indicator
+remains visible while terrain, models and collisions are prepared. Before
+selecting another object, **Appliquer** or **Abandonner l'aperçu** for the current
+preview; there is no implicit apply or save.
+
+**Lancer le jeu** exports an immutable snapshot of the current map, including
+applied unsaved edits and the authored start, and opens the configured native
+runtime in a separate window. The editor keeps its map, camera, canvas and GPU
+resources resident while pausing rendering. Closing the game resumes the same
+viewport without reloading the page or map. A second native game cannot be
+opened from the same Studio while the first is running. The embedded playtest
+is retired. The current native runtime supports walking exploration; RPG quest,
+dialogue, combat and save integration remain required for Gate 3.
+
+The owner's game/return test passed on 13 October. See
+[`STUDIO_RESIDENT_GAME_RETURN_20261013.md`](../../docs/evidence/gate3/STUDIO_RESIDENT_GAME_RETURN_20261013.md)
+for binary identity, scope and limits. This is not P05 full-RPG acceptance.
+
+Run the eight browser pacing/pause regression tests from the repository root:
+
+```sh
+node --test apps/forge_studio/tests/editor-gpu-pacing.test.cjs
+```
+
 ## Module and map navigation
 
 Opening an imported map also acquires its deployed terrain and scene resources.
@@ -15,7 +53,8 @@ module references and effective map documents, including unsaved renames.
 Browsing never creates a workspace, adopts a legacy map, or saves documents.
 The ordinary locks and interrupted-save checks still apply. Switching maps
 retains accepted edits; an unapplied preview or an active playtest disables the
-selectors. Save remains explicit. Missing modules and loading failures have an
+selectors. The native game also suspends authoring controls while its snapshot
+is being played. Save remains explicit. Missing modules and loading failures have an
 empty state or retry action, rather than falling back to legacy editing.
 
 ## Lightweight editing view
@@ -28,9 +67,13 @@ still use the accepted source content. Plain GLB materials receive simple
 daylight without shadow maps, with a brighter temporary inspection ambient.
 Interface blur, shadows and transitions are disabled as well.
 
-The policy changes no map, model or saved graphics preference. Playtest retains
-its separate graphics pipeline. Background updates use a lower wake-up rate;
-resolution and pointer coordinates are unchanged.
+The policy changes no map, model or saved graphics preference. The separate
+native game retains its graphics pipeline. Editing freezes fish animation time
+while preserving camera-driven LOD transitions, and only changed material values
+are uploaded. Browser redraw callbacks are capped at 60 Hz during loading and
+interaction, reduced to two updates per second at rest, and held during native
+play without dropping their resources. This cap is not a measurement of
+presented FPS. Resolution and pointer coordinates are unchanged.
 
 ## Terrain editor review controls
 

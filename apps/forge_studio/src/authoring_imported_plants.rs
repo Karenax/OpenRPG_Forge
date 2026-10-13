@@ -51,11 +51,7 @@ pub(crate) fn ready(world: &World, expected_head: forge_core::ContentHash) -> bo
         return false;
     };
     let key = (expected_head, imported_buildings::published_generation());
-    let Some(head) = population::current_head() else {
-        return false;
-    };
-    head.content_hash() == Ok(expected_head)
-        && population::population(&head).is_ok()
+    population::ready_head_hash() == Some(expected_head)
         && state.source == Some(key)
         && state.failed != Some(key)
         && state.resident.is_some()
@@ -102,7 +98,7 @@ fn update_projection(
         base,
     } = view;
     if state.source != Some(key) {
-        let source = population::population(head)?;
+        let source = population::current_population(key.0)?;
         let package = imported_buildings::plant_package().ok_or("Bibliothèque végétale absente")?;
         let heights = crate::authoring_raster::source_bytes(document)?;
         let prepared =
@@ -240,13 +236,10 @@ pub(crate) fn shadow_selection_observation(world: &World) -> Option<serde_json::
 
 pub(crate) fn update(world: &mut World) {
     world.resource_scope(|world, mut state: Mut<State>| {
-        let Some(head) = population::current_head() else {
+        let Some((hash, head, effective)) = population::frame_source() else {
             retire(world, &mut state);
             state.source = None;
             state.failed = None;
-            return;
-        };
-        let Ok(hash) = head.content_hash() else {
             return;
         };
         let key = (hash, imported_buildings::published_generation());
@@ -262,13 +255,10 @@ pub(crate) fn update(world: &mut World) {
         else {
             return;
         };
-        let Ok((effective, _)) = head.effective() else {
-            return;
-        };
-        if &effective != document {
+        if effective.as_ref() != document {
             return;
         }
-        let document = document.clone();
+        let document = effective;
         let Some(pose) = world.get::<Transform>(camera_entity) else {
             return;
         };
@@ -295,7 +285,7 @@ pub(crate) fn update(world: &mut World) {
                 crate::authoring_vegetation::report(format!(
                     "Vue végétale momentanément indisponible : {error}"
                 ));
-            } else if population::population(&head).is_ok()
+            } else if population::current_population(hash).is_ok()
                 && imported_buildings::plant_package().is_some()
             {
                 state.failed = Some(key);

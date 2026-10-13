@@ -1,4 +1,5 @@
 //! Temporary render policy for editing. It never changes authored content.
+pub(crate) mod frame_pressure;
 use bevy::{
     ecs as bevy_ecs,
     pbr::ContactShadows,
@@ -17,12 +18,24 @@ pub(crate) fn install(app: &mut App) {
             unfocused_mode: UpdateMode::reactive_low_power(Duration::from_millis(250)),
         })
         .add_systems(Update, ensure_daylight)
+        .add_systems(Last, crate::authoring_render_metrics::observe)
+        .add_systems(Last, crate::authoring_render_metrics::observe_materials)
         .add_systems(
             PostUpdate,
             (lighten_cameras, lighten_lights)
                 .before(bevy::light::SimulationLightSystems::UpdateDirectionalLightCascades)
                 .before(bevy::light::SimulationLightSystems::UpdateLightFrusta),
         );
+    frame_pressure::install(app);
+    // The editor samples the verified environment seed and fixed lighting.
+    // Cloud/atmosphere bootstrap belongs to the separate game renderer.
+    app.sub_app_mut(bevy::render::RenderApp).configure_sets(
+        bevy::render::renderer::RenderGraph,
+        (
+            forge_engine::tidewater_atmosphere::AtmosphereCompute.run_if(|| false),
+            forge_engine::tidewater_clouds::CloudCompute.run_if(|| false),
+        ),
+    );
     if let Some(canvas) = web_sys::window()
         .and_then(|window| window.document())
         .and_then(|document| document.get_element_by_id("forge-authoring-canvas"))

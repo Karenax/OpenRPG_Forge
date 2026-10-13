@@ -14,6 +14,7 @@ thread_local! {
     static DOCUMENT: RefCell<Option<Rc<ZoneAuthoringHead>>> = const { RefCell::new(None) };
     static LOADING: Cell<bool> = const { Cell::new(false) };
     static POPULATION: RefCell<Option<Rc<ImportedPopulation>>> = const { RefCell::new(None) };
+    static EFFECTIVE: RefCell<Option<Rc<forge_project::TerrainDocument>>> = const { RefCell::new(None) };
 }
 fn current(epoch: u64) -> bool {
     EPOCH.with(Cell::get) == epoch
@@ -35,7 +36,15 @@ pub(crate) fn observe(state: &AuthoringState) -> bool {
             return head.is_some();
         }
     };
-    DOCUMENT.with(|d| d.replace(head.cloned().map(Rc::new)));
+    if HEAD.with(Cell::get) != key {
+        EFFECTIVE.with(|d| {
+            d.replace(
+                head.and_then(|head| head.effective().ok())
+                    .map(|(terrain, _)| Rc::new(terrain)),
+            )
+        });
+        DOCUMENT.with(|d| d.replace(head.cloned().map(Rc::new)));
+    }
     if HEAD.with(Cell::get) == key && (key.is_none() || LOADING.with(Cell::get)) {
         return head.is_some();
     }
@@ -79,6 +88,7 @@ pub(crate) fn observe(state: &AuthoringState) -> bool {
 }
 
 fn clear() {
+    EFFECTIVE.with(|d| d.replace(None));
     DOCUMENT.with(|d| d.replace(None));
     EPOCH.with(|e| e.set(e.get().wrapping_add(1)));
     HEAD.with(|h| h.set(None));
@@ -88,6 +98,29 @@ fn clear() {
 
 pub(crate) fn current_head() -> Option<Rc<ZoneAuthoringHead>> {
     DOCUMENT.with(|d| d.borrow().clone())
+}
+
+/// The exact head was validated and hashed on native-session observation.
+/// Camera frames reuse that immutable identity and effective terrain.
+pub(crate) fn frame_source() -> Option<(
+    ContentHash,
+    Rc<ZoneAuthoringHead>,
+    Rc<forge_project::TerrainDocument>,
+)> {
+    Some((
+        HEAD.with(Cell::get)?,
+        current_head()?,
+        EFFECTIVE.with(|d| d.borrow().clone())?,
+    ))
+}
+
+pub(crate) fn current_population(expected: ContentHash) -> Result<Rc<ImportedPopulation>, String> {
+    if HEAD.with(Cell::get) != Some(expected) {
+        return Err("Population demandée pour une autre révision".into());
+    }
+    POPULATION
+        .with(|p| p.borrow().clone())
+        .ok_or_else(|| "Population importée non chargée".into())
 }
 
 /// The verified resident population's owner, without hashing the head on every frame.

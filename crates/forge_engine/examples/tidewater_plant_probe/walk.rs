@@ -107,14 +107,28 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     profile.camera.pitch_min_degrees = -1.5_f32.to_degrees();
     profile.camera.pitch_max_degrees = 1.5_f32.to_degrees();
     let center = profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m;
-    let spawn_xz = walk_spawn(smoke, ladder_test, swim_test);
+    let authored_start = probe.authored_start;
+    let spawn_xz = authored_start
+        .filter(|_| !smoke && !ladder_test && !swim_test)
+        .map_or_else(
+            || walk_spawn(smoke, ladder_test, swim_test),
+            |start| Vec2::new(start.x_m, start.z_m),
+        );
     #[allow(clippy::cast_possible_truncation)]
     let ground = plan.height_at(f64::from(spawn_xz.x), f64::from(spawn_xz.y))? as f32;
-    let initial_target = if ladder_test {
-        Vec3::new(PIER_LADDER.center_xz.x, ground, PIER_LADDER.center_xz.y)
-    } else {
-        Vec3::new(spawn_xz.x, ground, 0.0)
-    };
+    let initial_target =
+        if let Some(start) = authored_start.filter(|_| !smoke && !ladder_test && !swim_test) {
+            let heading = start.facing_degrees.unwrap_or(0.0).to_radians();
+            Vec3::new(
+                spawn_xz.x - heading.sin(),
+                ground + center + 0.15,
+                spawn_xz.y - heading.cos(),
+            )
+        } else if ladder_test {
+            Vec3::new(PIER_LADDER.center_xz.x, ground, PIER_LADDER.center_xz.y)
+        } else {
+            Vec3::new(spawn_xz.x, ground, 0.0)
+        };
     sampled_terrain_physics::register(app);
     super::spray::enable_live(app)?;
     app.world()

@@ -3,6 +3,7 @@
 mod solar;
 use crate::authoring_assets::imported_buildings;
 use bevy::ecs::system::SystemParam;
+use bevy::render::error_handler::RenderErrorHandler;
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_engine::{
     sampled_terrain_physics::{self, PreparedSampledTerrainPhysics, SampledTerrainPhysicsState},
@@ -69,6 +70,9 @@ pub(crate) fn launch(
     document: TerrainDocument,
     playtest: Option<PlaytestIdentity>,
 ) -> Result<(), String> {
+    if playtest.is_some() {
+        return Err(crate::EMBEDDED_PLAYTEST_RETIRED.into());
+    }
     let fast_editing = playtest.is_none();
     let query = web_sys::window()
         .and_then(|window| window.location().search().ok())
@@ -185,7 +189,6 @@ pub(crate) fn launch(
         }));
         if playtest.is_none() {
             crate::authoring_render::install(&mut app);
-            use bevy::render::error_handler::RenderErrorHandler;
             app.insert_resource(RenderErrorHandler(|error, main_world, render_world| {
                 crate::authoring_viewport::imported_failure(&error.description);
                 // Retain Bevy's AppExit::error and StopRendering policy.
@@ -767,7 +770,9 @@ pub(crate) fn project(world: &mut World) {
             state.pending = true;
             state.acknowledged = false;
         }
-        if !environment.clouds.ready.load(Ordering::Acquire) {
+        if !world.contains_resource::<crate::authoring_render::FastEditing>()
+            && !environment.clouds.ready.load(Ordering::Acquire)
+        {
             return;
         }
         if let Err(error) = crate::authoring_raster::source_bytes(&state.document) {
@@ -1051,6 +1056,15 @@ fn project_ready(world: &mut World, state: &mut ProjectionState) -> Result<(), S
                 "Terrain importé {hash} : collisions synchronisées. Rendu GPU et édition complète encore à qualifier."
             ));
         }
+    }
+    if state.acknowledged
+        && crate::authoring_loading::pending()
+        && crate::authoring_assets::placements::proposal_ready() == Ok(true)
+        && (crate::authoring_imported_population::current_head().is_none()
+            || crate::authoring_imported_population::ready_head_hash()
+                .is_some_and(|hash| crate::authoring_imported_plants::ready(world, hash)))
+    {
+        crate::authoring_loading::finish();
     }
     if state.ocean_optics {
         tidewater_ocean_optics::update(world, state.camera)?;

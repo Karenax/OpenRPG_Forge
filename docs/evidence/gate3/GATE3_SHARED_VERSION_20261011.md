@@ -1,8 +1,55 @@
-# Gate 3 — version commune, 11 octobre 2026 (actualisée le 12 octobre)
+# Gate 3 — version commune, 11 octobre 2026 (actualisée le 13 octobre)
 
-## Point courant : validation locale `019` close, parcours publics `007` en cours, Gate 3 ouverte
+## Studio courant : conservation de la carte pendant le jeu, 13 octobre
 
-Il existe un seul checkout produit et un seul Studio courant : sources
+Le seul EXE commun est maintenant
+`4dd80264dbcfd11a590f831b14fe040fce6b67b2d310cc988b0ef38555aa242e` ;
+l'empreinte des 2549 entrées de compilation est
+`a5ba7b3c2680c88ddb075fdfa0d5bc02702138dbd35affaf29702c651252ccd5`.
+Le lanceur `E:/OpenRPG_Forge/Lancer-Editeur.cmd` est inchangé et a ouvert
+cet EXE. Voir [le retour du jeu sans rechargement](STUDIO_RESIDENT_GAME_RETURN_20261013.md)
+pour le périmètre, les preuves et le statut de vérification. Les autres identités
+ci-dessous décrivent les essais antérieurs du même produit. Gate 3 reste ouverte.
+
+## Essais antérieurs : chargement, mémoire et jeu séparé, 13 octobre
+
+Le seul EXE commun, accessible par `E:/OpenRPG_Forge/Lancer-Editeur.cmd`, a pour
+SHA-256 `253d82dcd371535d6e40fbce924683fa9566be47790660e31c0ac0d29054a4c7`.
+L'empreinte de ses 2549 entrées de compilation est
+`82931937aaddff9d6a235289f1d591b0c0315d7a977b5580bac5997b57040b04`.
+Voir [les changements, mesures et limites actuels](STUDIO_LOADING_NATIVE_GAME_20261012.md).
+Les identités des essais précédents ci-dessous sont historiques ; elles ne
+désignent pas d'autres versions actives. Gate 3 reste ouverte.
+
+## Essais historiques : lancement direct corrigé le 12 octobre
+
+Le même EXE commun lit désormais `forge-studio.local.json` près de lui.
+Le point d'entrée à double-clic est `E:/OpenRPG_Forge/Lancer-Editeur.cmd`.
+L'EXE direct, le raccourci et le wrapper sous Windows PowerShell ouvrent Tidewater
+et ses assets avec le PATH Windows ordinaire, sans variables de Codex.
+Identité du Studio lors de ces essais :
+`8db598d1a2e3ebb16d9d8fad7b7772d3fd0a0b872f3ae8e1850e1d256699e276` ;
+empreinte des 2540 entrées de compilation :
+`8cbc516fdb014f78d54ee274f33309ad4e342b9f2559b13d9fa9ef183cd2a087`.
+Les identités antérieures ci-dessous sont historiques. Les validations complètes
+de l'ancien candidat ne sont pas transférées au Studio courant.
+Voir [le correctif et ses essais](STUDIO_DIRECT_LAUNCH_20261012.md).
+Gate 3 reste ouverte et le test intégré demeure retiré.
+
+## Retrait du test intégré — décision propriétaire du 12 octobre
+
+Le propriétaire signale le test Studio injouable, autour de 1 FPS, et autorise
+sa correction ou son retrait. Son accès et ses commandes de lancement sont
+retirés du Studio commun. L'édition, le départ enregistré et les données RPG
+restent disponibles. La partie P05 doit être proposée dans le jeu séparé après
+raccordement du gameplay ; aucune partie complète ne peut actuellement y être
+revendiquée. Voir [le retrait et sa validation](STUDIO_PLAYTEST_RETIRED_20261012.md).
+Les identités `019` ci-dessous décrivent le Studio antérieur, pas le Studio
+modifié par ce retrait. Gate 3 reste ouverte ; aucun gain FPS n'est revendiqué.
+
+## État historique du candidat `019` : validation locale close, parcours publics `007` incomplets
+
+Ce candidat historique a été vérifié dans le checkout commun : sources
 `9c46a4d87e9264ee2d082902e743de961d17731d30c5b7d9bc705fa6a85269e5`,
 Studio `27f16ff2da18564f88fe7354e3b72abc8f6b75dc7b299771c6e1fd2e089df551`.
 La validation locale complète est close : 2102 tests natifs passent, 55 sont

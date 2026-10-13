@@ -31,9 +31,35 @@ mod asset_library_ui;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod audit_labels;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod launch_configuration;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod module_asset_native;
 pub mod promotion_preview_gate;
 pub mod reconciliation_protocol;
+
+/// The owner withdrew the unusable embedded game mode on 12 October 2026.
+/// This is not a user preference or an opt-in diagnostic switch.
+#[must_use]
+pub const fn embedded_playtest_available() -> bool {
+    false
+}
+
+pub const EMBEDDED_PLAYTEST_RETIRED: &str =
+    "Le mode test intégré a été retiré. La partie RPG dans le jeu séparé reste à finaliser.";
+
+/// Reject old clients before they freeze an authoring session or start a renderer.
+pub fn validate_authoring_mode(
+    request: &forge_project::authoring::AuthoringRequest,
+) -> Result<(), String> {
+    if matches!(
+        request,
+        forge_project::authoring::AuthoringRequest::StartPlaytest { .. }
+            | forge_project::authoring::AuthoringRequest::StartPlaytestAt { .. }
+    ) {
+        return Err(EMBEDDED_PLAYTEST_RETIRED.into());
+    }
+    Ok(())
+}
 
 const STUDIO_SCENE_QUERY_KEY: &str = "forge_scene";
 const STUDIO_WEATHER_QUERY_KEY: &str = "forge_weather";
@@ -807,6 +833,10 @@ mod authoring_index_page;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_lighting;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_loading;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_native_game;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_path_guides;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_path_projection;
@@ -830,6 +860,8 @@ mod authoring_projection_diagnostics;
 mod authoring_regeneration_review;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_render;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_render_metrics;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_rivers;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]

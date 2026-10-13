@@ -1,5 +1,15 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
+## Décision du 12 octobre 2026 — test Studio retiré
+
+Le mode test intégré, jugé injouable par le propriétaire, est retiré de Studio.
+L'édition, le départ enregistré et les définitions RPG restent disponibles.
+P05 reste à réaliser dans le jeu séparé, après raccordement des mêmes documents
+au moteur de gameplay et à ses commandes/persistance. Le jeu natif livré est
+actuellement une promenade, sans parcours RPG complet. Aucune clôture de Gate 3
+ni dérogation de fluidité n'est accordée par ce retrait. Les preuves Studio
+antérieures restent datées ; voir [le retrait](../evidence/gate3/STUDIO_PLAYTEST_RETIRED_20261012.md).
+
 ## État actif — 11 octobre 2026
 
 La [version commune du 11 octobre](../evidence/gate3/GATE3_SHARED_VERSION_20261011.md)
@@ -4035,7 +4045,7 @@ La gate passe uniquement si le parcours est authoré depuis le Studio.
 - [ ] `R3-P02` retoucher une réplique et une porte depuis Studio, puis reprendre une sauvegarde sans perdre texte, liens ou état de quête.
 - [ ] `R3-P03` provoquer un objectif inaccessible ou une référence absente ; le diagnostic mène à l'objet ou à la condition à corriger.
 - [ ] `R3-P04` rejouer depuis un état de test choisi ; isoler la simulation des documents authorés et conserver la révision de reproduction.
-- [ ] `R3-P05` observer une partie complète pour la lisibilité et le rythme, en distinguant cette revue du passage des tests automatisés.
+- [ ] `R3-P05` observer une partie complète dans le jeu séparé pour la lisibilité et le rythme, en distinguant cette revue du passage des tests automatisés. Le test intégré Studio est retiré par décision du 12 octobre ; le raccordement RPG natif reste requis.
 
 ---
 

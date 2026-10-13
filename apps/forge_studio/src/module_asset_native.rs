@@ -98,9 +98,7 @@ impl ModuleAssetResolver {
     /// Completely absent configuration allows ordinary Vault-only installations.
     /// Partial configuration is a refusal, not a reason to search another store.
     pub fn from_environment() -> Result<Option<Self>, ModuleModelError> {
-        let root = std::env::var_os("FORGE_MODULE_ASSET_ROOT");
-        let catalog = std::env::var_os("FORGE_MODULE_ASSET_CATALOG");
-        let pin = std::env::var_os("FORGE_MODULE_ASSET_CATALOG_SHA256");
+        let (root, catalog, pin) = crate::launch_configuration::module_inputs().map_err(reject)?;
         match (root, catalog, pin) {
             (None, None, None) => Ok(None),
             (Some(root), Some(catalog), Some(pin)) => {

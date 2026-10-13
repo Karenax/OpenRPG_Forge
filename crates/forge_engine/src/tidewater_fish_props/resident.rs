@@ -243,14 +243,23 @@ impl ResidentFishProps {
                             } else {
                                 Visibility::Hidden
                             };
-                        let mut material = materials
-                            .get_mut(&instance.materials[lod])
+                        let material = materials
+                            .get(&instance.materials[lod])
                             .ok_or("Fish material disappeared after preflight")?;
-                        material.settings.info.w = time;
-                        material.settings.frame_index = frame_index;
+                        let mut settings = material.settings.clone();
+                        settings.info.w = time;
+                        settings.frame_index = frame_index;
                         if let Some(draw) = draw {
-                            material.settings.lod =
+                            settings.lod =
                                 Vec4::new(draw.fade, f32::from(u8::from(draw.outgoing)), 0.0, 0.0);
+                        }
+                        // Mutable access emits an asset event and rebuilds the bind group.
+                        // Frozen views still evaluate camera LOD, but upload only changes.
+                        if settings != material.settings {
+                            materials
+                                .get_mut(&instance.materials[lod])
+                                .ok_or("Fish material disappeared after preflight")?
+                                .settings = settings;
                         }
                     }
                 }
@@ -354,6 +363,153 @@ mod tests {
     use super::*;
     use crate::tidewater_assets::materials::LightingBindings;
     use crate::tidewater_material::{ObjectShadowSettings, SceneLighting};
+    use bevy::asset::{AssetApp, AssetPlugin};
+
+    #[test]
+    #[allow(
+        clippy::too_many_lines,
+        reason = "Exercise asset events, frozen LOD and live time together"
+    )]
+    fn frozen_view_emits_no_material_uploads_but_camera_lod_and_time_still_update() {
+        let mut app = App::new();
+        app.add_plugins((MinimalPlugins, AssetPlugin::default()))
+            .init_asset::<FishMaterial>();
+        let mut images = Assets::<Image>::default();
+        let lighting = LightingBindings {
+            scene_lighting: SceneLighting::new([0.0, 1.0, 0.0], [3.0; 3], [[0.4; 3]; 9]).unwrap(),
+            environment: Handle::default(),
+            hill_shadow: Handle::default(),
+            object_shadow: Handle::default(),
+            object_settings: ObjectShadowSettings::default(),
+            clouds: [Vec4::ZERO; 5],
+            cloud_shadow: None,
+            wind: Vec4::ZERO,
+            flags: Vec4::ZERO,
+            caustics: crate::tidewater_caustics::CausticMaterialInputs::disabled(&mut images),
+            ground_bounce: None,
+            bounce_settings: Vec4::ZERO,
+        };
+        let material = super::super::material::prepare(
+            super::super::SurfaceParameters {
+                pattern_and_seed: 0.25,
+                source_length_m: 1.0,
+                flags: [0.0; 4],
+            },
+            Handle::default(),
+            &lighting,
+            0.0,
+        )
+        .unwrap();
+        let handles = std::array::from_fn(|_| {
+            app.world_mut()
+                .resource_mut::<Assets<FishMaterial>>()
+                .add(material.clone())
+        });
+        let root = app.world_mut().spawn(GlobalTransform::IDENTITY).id();
+        let parts = std::array::from_fn(|_| app.world_mut().spawn(Visibility::Hidden).id());
+        let mut resident = ResidentFishProps {
+            instances: vec![Instance {
+                root,
+                parts,
+                materials: handles.clone(),
+                shadow_mesh: Handle::default(),
+                casts_shadow: false,
+            }],
+            authored: vec![],
+            meshes: vec![],
+            materials: handles.to_vec(),
+            time: 0.0,
+            frame_index: 0,
+        };
+        resident
+            .update_view(
+                app.world_mut(),
+                Vec3::new(10.0, 0.0, 0.0),
+                |_, _| true,
+                0.0,
+                0,
+            )
+            .unwrap();
+        app.update();
+        app.world_mut()
+            .resource_mut::<Messages<AssetEvent<FishMaterial>>>()
+            .clear();
+        resident
+            .update_view(
+                app.world_mut(),
+                Vec3::new(10.0, 0.0, 0.0),
+                |_, _| true,
+                0.0,
+                0,
+            )
+            .unwrap();
+        app.update();
+        assert!(
+            app.world()
+                .resource::<Messages<AssetEvent<FishMaterial>>>()
+                .is_empty()
+        );
+        assert_eq!(
+            app.world().get::<Visibility>(parts[0]),
+            Some(&Visibility::Inherited)
+        );
+        resident
+            .update_view(
+                app.world_mut(),
+                Vec3::new(26.0, 0.0, 0.0),
+                |_, _| true,
+                0.0,
+                0,
+            )
+            .unwrap();
+        app.update();
+        assert!(
+            !app.world()
+                .resource::<Messages<AssetEvent<FishMaterial>>>()
+                .is_empty()
+        );
+        assert_eq!(
+            app.world().get::<Visibility>(parts[0]),
+            Some(&Visibility::Inherited)
+        );
+        assert_eq!(
+            app.world().get::<Visibility>(parts[1]),
+            Some(&Visibility::Inherited)
+        );
+        resident
+            .update_view(
+                app.world_mut(),
+                Vec3::new(30.0, 0.0, 0.0),
+                |_, _| true,
+                0.0,
+                0,
+            )
+            .unwrap();
+        assert_eq!(
+            app.world().get::<Visibility>(parts[0]),
+            Some(&Visibility::Hidden)
+        );
+        assert_eq!(
+            app.world().get::<Visibility>(parts[1]),
+            Some(&Visibility::Inherited)
+        );
+        resident
+            .update_view(
+                app.world_mut(),
+                Vec3::new(30.0, 0.0, 0.0),
+                |_, _| true,
+                2.0,
+                7,
+            )
+            .unwrap();
+        let value = app
+            .world()
+            .resource::<Assets<FishMaterial>>()
+            .get(&handles[1])
+            .unwrap();
+        assert_eq!(value.settings.info.w.to_bits(), 2.0_f32.to_bits());
+        assert_eq!(value.settings.frame_index, 7);
+    }
 
     fn fixture() -> (
         PreparedFishProps,

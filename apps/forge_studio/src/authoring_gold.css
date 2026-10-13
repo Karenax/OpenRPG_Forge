@@ -494,3 +494,10 @@ html[data-forge-zone-open="true"] .forge-workspace-welcome { display:none; }
 .selection-handles #handle-plane-xz {fill:#d584ed;stroke:#d584ed;} .selection-handles #handle-plane-label-xz {fill:#d584ed;}
 .selection-handles #handle-plane-yz {fill:#65dbe6;stroke:#65dbe6;} .selection-handles #handle-plane-label-yz {fill:#65dbe6;}
 .selection-handles[data-editable="false"] {opacity:.55;}
+/* A real pending load, with no invented percentage or duration. */
+.forge-map-loading{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(247,243,231,.9);color:#413824;pointer-events:auto}
+.forge-map-loading strong{font-size:1.25rem}.forge-map-loading>span:last-child{max-width:36em;text-align:center;padding:0 24px}
+.forge-loading-spinner{width:40px;height:40px;border:4px solid #ddd2b4;border-top-color:#80672e;border-radius:50%;animation:forge-map-spin 1s linear infinite}
+@keyframes forge-map-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.forge-loading-spinner{animation:none;border-top-color:#80672e}}
+.forge-viewport-metrics{display:block;padding:3px 12px;font-size:11px;color:#70674e}

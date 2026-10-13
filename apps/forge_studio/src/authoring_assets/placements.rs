@@ -47,6 +47,7 @@ thread_local! {
     static SOURCE_KEY: Cell<Option<(forge_core::ContentHash, u64, Option<forge_core::ContentHash>)>> = const { Cell::new(None) };
     static SOURCE_OUTPUT: Cell<Option<leptos::prelude::RwSignal<u64>>> = const { Cell::new(None) };
     static ACCEPTED_HEAD: RefCell<Option<forge_project::zone_authoring::ZoneAuthoringHead>> = const { RefCell::new(None) };
+    static ACCEPTED_HASH: Cell<Option<forge_core::ContentHash>> = const { Cell::new(None) };
     static ACCEPTED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static DESIRED: RefCell<Vec<ManualPlacement>> = const { RefCell::new(Vec::new()) };
     static EPOCH: Cell<u64> = const { Cell::new(0) };
@@ -118,6 +119,14 @@ pub(crate) fn observe(state: &AuthoringState) {
     PREVIEW_ACTIVE.with(|slot| slot.set(false));
     SOURCE_KEY.with(|slot| slot.set(None));
     ACCEPTED_HEAD.with(|slot| slot.replace(state.zone_head.clone()));
+    ACCEPTED_HASH.with(|slot| {
+        slot.set(
+            state
+                .zone_head
+                .as_ref()
+                .and_then(|head| head.content_hash().ok()),
+        )
+    });
     let placements = state
         .zone_head
         .as_ref()
@@ -246,6 +255,10 @@ pub(crate) fn proposal_ready() -> Result<bool, String> {
 
 pub(super) fn accepted_head() -> Option<forge_project::zone_authoring::ZoneAuthoringHead> {
     ACCEPTED_HEAD.with(|slot| slot.borrow().clone())
+}
+
+pub(super) fn accepted_hash() -> Option<forge_core::ContentHash> {
+    ACCEPTED_HASH.with(Cell::get)
 }
 
 pub(super) fn preview_active() -> bool {

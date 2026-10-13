@@ -72,7 +72,7 @@ impl AuthoringTab {
             Self::Water => "Eau",
             Self::Objects => "Objets",
             Self::Buildings => "Construire",
-            Self::FollowUp => "Tester & suivi",
+            Self::FollowUp => "Départ & suivi",
         }
     }
 
@@ -208,6 +208,14 @@ pub fn AuthoringControls() -> impl IntoView {
         // Only a successful native session change may dispose the old viewport.
         // The native session survives navigation, including its unsaved edits.
         let replace_viewport = replaces_projection(&request);
+        if matches!(
+            request,
+            AuthoringRequest::Open { .. } | AuthoringRequest::OpenManaged { .. }
+        ) {
+            super::authoring_loading::begin(
+                "Lecture de la carte et vérification de ses ressources…",
+            );
+        }
         let refresh_workspace = refreshes_workspace(&request);
         busy.set(true);
         wasm_bindgen_futures::spawn_local(async move {
@@ -245,12 +253,14 @@ pub fn AuthoringControls() -> impl IntoView {
                     state.set(Some(*result));
                 }
                 Ok(StudioResponse::Rejected { reason }) | Err(reason) => {
+                    super::authoring_loading::finish();
                     let message = super::authoring_feedback::rejection(reason);
                     record_event(events, "error", &message);
                     status.set(message);
                     super::authoring_brush_pointer::set_preview_ready(false);
                 }
                 Ok(_) => {
+                    super::authoring_loading::finish();
                     let message = "Réponse inattendue du backend".to_owned();
                     record_event(events, "error", &message);
                     status.set(message);
@@ -292,7 +302,10 @@ pub fn AuthoringControls() -> impl IntoView {
                 <div class="authoring-toolbar" aria-busy=move || busy.get().to_string()>
                     <div class="authoring-context" aria-live="polite">{move || state.get().and_then(|session| session.document.map(|doc| doc.name)).unwrap_or_else(|| "Aucune carte ouverte".into())}</div>
                     <CommandBar state=state busy=busy preview=preview difference=difference status=status send=Callback::new(send) cancel_preview=cancel_preview/>
-                    <super::authoring_playtest_controls::PlaytestActions state=state busy=busy send=Callback::new(send)/>
+                    <super::authoring_native_game::LaunchGame state=state busy=busy preview=preview/>
+                    <Show when=super::embedded_playtest_available>
+                        <super::authoring_playtest_controls::PlaytestActions state=state busy=busy send=Callback::new(send)/>
+                    </Show>
                     <nav class="authoring-main-tabs" aria-label="Choisir un outil d’édition">
                         {AuthoringTab::ALL.into_iter().map(move |tab| view! {
                             <button type="button" data-authoring-tab-button=tab.key() title=tab.label()
@@ -351,9 +364,12 @@ pub fn AuthoringControls() -> impl IntoView {
                     </section>
                     <section class="authoring-panel" data-authoring-tab="follow-up" hidden=move || active_tab.get() != AuthoringTab::FollowUp>
                         <super::authoring_playtest_controls::PlaytestControls state=state busy=busy send=Callback::new(send)/>
-                        <super::authoring_gameplay::GameplayControls state=state busy=busy send=Callback::new(send)/>
+                        <Show when=super::embedded_playtest_available>
+                            <super::authoring_gameplay::GameplayControls state=state busy=busy send=Callback::new(send)/>
+                            <super::authoring_input::PlaytestStatus/>
+                        </Show>
+                        <p>{super::EMBEDDED_PLAYTEST_RETIRED}</p>
                         <super::authoring_history::HistoryControls state=state/>
-                        <super::authoring_input::PlaytestStatus/>
                         <details><summary>"Aide et raccourcis"</summary>
                             <p>"Ctrl+Entrée applique l’aperçu · Ctrl+S sauvegarde · Ctrl+Z annule · Ctrl+Y ou Ctrl+Maj+Z rétablit. Appliquer avant de sauvegarder."</p>
                             <output>{move || command_timing.get()}</output>
@@ -592,7 +608,7 @@ fn CommandBar(
             <button disabled=move || busy.get() || state.get().is_none_or(|s| !s.can_undo || s.playtest_hash.is_some()) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Undo))>"Annuler"</button>
             <button disabled=move || busy.get() || state.get().is_none_or(|s| !s.can_redo || s.playtest_hash.is_some()) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Redo))>"Rétablir"</button>
             <button title="Enregistrer les retouches appliquées · Ctrl+S" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| s.document.is_none() || s.playtest_hash.is_some()) on:click=move |_| send.run(Ok(AuthoringRequest::Save))>"Sauvegarder"</button>
-            <span class="gold-save-state" aria-live="polite">{move || if preview.get().is_some() { "Aperçu non appliqué" } else if state.get().is_some_and(|s| s.dirty) { "Non enregistré" } else { "" }}</span>
+            <span class="gold-save-state" aria-live="polite">{move || if preview.get().is_some() { "Retouche en attente : Appliquer ou Abandonner avant de sélectionner un autre objet." } else if state.get().is_some_and(|s| s.dirty) { "Non enregistré" } else { "" }}</span>
             <button hidden=move || preview.get().is_none() on:click=move |_| cancel_preview.run(())>"Abandonner l’aperçu"</button>
             <output class="authoring-command-diff" aria-live="polite" hidden=move || difference.get().is_empty()>{move || difference.get()}</output>
             <output class="authoring-command-status" aria-live="polite">{move || status.get()}</output>
@@ -734,6 +750,9 @@ fn session_status(state: &AuthoringState) -> &'static str {
 }
 
 pub(super) fn prepare_playtest(state: Option<AuthoringState>) -> Result<AuthoringRequest, String> {
+    if !super::embedded_playtest_available() {
+        return Err(super::EMBEDDED_PLAYTEST_RETIRED.into());
+    }
     let state = state.ok_or("Ouvrir une zone avant de jouer")?;
     let document = state
         .document

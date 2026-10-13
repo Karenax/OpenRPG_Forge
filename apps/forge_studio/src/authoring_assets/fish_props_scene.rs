@@ -99,6 +99,14 @@ fn clear(world: &mut World, state: &mut State) {
 fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
     let generation = imported_buildings::published_generation();
     let sources = desired();
+    // The catalogue remains available, but absent authored fish must not create
+    // every template/material or repeatedly upload its source receivers.
+    if sources.is_empty() {
+        if state.resident.is_some() || !state.materials.is_empty() {
+            clear(world, state);
+        }
+        return Ok(true);
+    }
     let Some(package) = imported_buildings::fish_props_package() else {
         clear(world, state);
         if !sources.is_empty() {
@@ -122,7 +130,12 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
         lighting.clouds = environment.cloud_view;
         lighting.cloud_shadow = Some(environment.clouds.images[2].clone());
     }
-    let time = world.resource::<Time>().elapsed_secs();
+    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
+    let time = if editing {
+        0.0
+    } else {
+        world.resource::<Time>().elapsed_secs()
+    };
     if state.generation != Some(generation) {
         clear(world, state);
         let building = imported_buildings::building_package().ok_or("Éclairage source absent")?;
@@ -214,9 +227,19 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
             .environment_sh
             .map(|value| value.truncate().to_array()),
     )?;
+    let mut replacements = Vec::new();
+    for (id, value) in world.resource::<Assets<FishMaterial>>().iter() {
+        let mut next = value.clone();
+        next.update_scene_receivers(&resident_lighting)?;
+        if next != *value {
+            replacements.push((id, next));
+        }
+    }
     let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-    for (_, value) in materials.iter_mut() {
-        value.update_scene_receivers(&resident_lighting)?;
+    for (id, next) in replacements {
+        if let Some(mut value) = materials.get_mut(id) {
+            *value = next;
+        }
     }
     let cameras:Vec<_>=world.query_filtered::<(&Camera,&GlobalTransform,&Frustum),forge_engine::tidewater_sky::preview::SceneCameraFilter>()
         .iter(world).filter(|(camera,_,_)|camera.is_active).map(|(_,global,frustum)|(global.translation(),*frustum)).collect();
@@ -224,7 +247,11 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
         return Ok(false);
     }
     let (camera, frustum) = cameras[0];
-    let frame = world.resource::<bevy::diagnostic::FrameCount>().0;
+    let frame = if editing {
+        0
+    } else {
+        world.resource::<bevy::diagnostic::FrameCount>().0
+    };
     let resident = state
         .resident
         .as_mut()

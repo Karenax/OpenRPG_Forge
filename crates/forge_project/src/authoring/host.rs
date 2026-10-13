@@ -38,6 +38,20 @@ pub struct AuthoringHost {
 }
 
 impl AuthoringHost {
+    /// Immutable, validated current zone for a separate runtime. No save or freeze.
+    pub fn game_archive(&self, expected: forge_core::ContentHash) -> Result<Vec<u8>, String> {
+        let active = self
+            .active
+            .as_ref()
+            .ok_or("Ouvrir une carte avant de lancer le jeu")?;
+        active.playtest_snapshot(expected)?;
+        match active {
+            ActiveSession::Zone(session) => session.session().archive_bytes(),
+            ActiveSession::Managed { session, .. } => session.archive_bytes(),
+            ActiveSession::Terrain(_) => Err("Le jeu séparé attend une carte de module".into()),
+        }
+    }
+
     pub fn new(authorized_root: &Path) -> Result<Self, String> {
         let root = authorized_root
             .canonicalize()
@@ -491,6 +505,35 @@ impl AuthoringHost {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn separate_game_exports_current_unsaved_zone_without_saving_or_freezing_it() {
+        use super::{ActiveSession, AuthoringHost, AuthoringRequest};
+        let root = std::env::temp_dir().join(format!("forge-game-export-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let document =
+            crate::authoring::new_terrain("game", "zone", "Current unsaved map").unwrap();
+        let session =
+            crate::zone_authoring::session::ZoneEditSession::from_initial_terrain(document)
+                .unwrap();
+        let hash = session.head().content_hash().unwrap();
+        let expected_archive = session.archive_bytes().unwrap();
+        let mut host = AuthoringHost::new(&root).unwrap();
+        host.active = Some(ActiveSession::Managed {
+            session: Box::new(session),
+            dirty: true,
+        });
+        assert_eq!(host.game_archive(hash).unwrap(), expected_archive);
+        assert!(
+            host.game_archive(forge_core::ContentHash::from_bytes([0; 32]))
+                .is_err()
+        );
+        let state = host.execute(AuthoringRequest::Inspect).unwrap();
+        assert!(state.dirty);
+        assert_eq!(state.playtest_hash, None);
+        assert_eq!(state.zone_head.unwrap().content_hash().unwrap(), hash);
+        assert_eq!(std::fs::read_dir(&root).unwrap().count(), 0);
+        std::fs::remove_dir(&root).unwrap();
+    }
     use super::*;
     use crate::{
         TerrainDocument,

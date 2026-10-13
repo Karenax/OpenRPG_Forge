@@ -167,6 +167,7 @@ pub(crate) fn ensure_for_projection(
                 return;
             }
             crate::authoring_viewport::report(format!("Bibliothèque indisponible : {error}"));
+            crate::authoring_loading::finish();
         }
     });
     Ok(false)

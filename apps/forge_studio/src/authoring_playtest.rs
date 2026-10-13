@@ -109,6 +109,9 @@ pub(super) fn observe(state: &AuthoringState) -> Result<Option<PlaytestIdentity>
 }
 
 pub(super) fn install(app: &mut App, identity: Option<PlaytestIdentity>) -> Result<(), String> {
+    if identity.is_some() {
+        return Err(super::EMBEDDED_PLAYTEST_RETIRED.into());
+    }
     let gameplay = TARGET.with(|slot| {
         slot.borrow()
             .as_ref()

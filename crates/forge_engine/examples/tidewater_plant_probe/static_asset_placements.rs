@@ -394,7 +394,9 @@ fn scene_mesh(source: &Mesh) -> Mesh {
 
 fn scene_material(material: &StandardMaterial, template: &VillageMaterial) -> VillageMaterial {
     let mut scene = template.clone();
-    scene.kind = 7;
+    // Kind 7 belongs to the engine's common untextured neutral surface.
+    // This content adapter retains the GLB's textured surface in its own branch.
+    scene.kind = 8;
     scene.shared_scene_lighting = true;
     scene.settings.color = Vec4::from_array(material.base_color.to_linear().to_f32_array());
     scene.settings.emissive = Vec4::new(

@@ -65,6 +65,7 @@ fn stage_plants(world: &mut World, update: imported_buildings::PlantUpdate) {
 }
 
 fn update(world: &mut World) {
+    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
     if let Some(update) = imported_buildings::take_plants() {
         stage_plants(world, update);
     }
@@ -87,9 +88,13 @@ fn update(world: &mut World) {
             Ok(resident) => {
                 hide_preview();
                 world.insert_resource(resident);
-                programs::request(world);
-                world.insert_resource(Preparing);
-                imported_buildings::render_status("Calcul de l'environnement en cours.".into());
+                if editing {
+                    imported_buildings::render_status("Vue d’édition : éclairage fixe issu des assets vérifiés. Ciel et nuages animés disponibles dans le jeu séparé.".into());
+                } else {
+                    programs::request(world);
+                    world.insert_resource(Preparing);
+                    imported_buildings::render_status("Calcul de l'environnement en cours.".into());
+                }
             }
             Err(error) => {
                 world.remove_resource::<Preparing>();
@@ -110,8 +115,14 @@ fn update(world: &mut World) {
                 .into(),
         );
     }
-    programs::update(world);
-    update_preview(world);
+    if editing {
+        if PREVIEW_REQUEST.with(|r| r.replace(false)) {
+            imported_buildings::render_status("Le ciel animé est disponible dans la fenêtre du jeu ; la vue d’édition utilise un éclairage fixe.".into());
+        }
+    } else {
+        programs::update(world);
+        update_preview(world);
+    }
 }
 
 fn update_preview(world: &mut World) {

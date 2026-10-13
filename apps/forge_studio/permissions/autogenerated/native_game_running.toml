@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-native-game-running"
+description = "Enables the native_game_running command without any pre-configured scope."
+commands.allow = ["native_game_running"]
+
+[[permission]]
+identifier = "deny-native-game-running"
+description = "Denies the native_game_running command without any pre-configured scope."
+commands.deny = ["native_game_running"]

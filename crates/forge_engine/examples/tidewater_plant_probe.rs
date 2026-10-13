@@ -148,6 +148,7 @@ struct Fixture {
 }
 #[derive(Resource)]
 struct Probe {
+    authored_start: Option<forge_project::zone_authoring::start::ZoneStart>,
     grass: Option<grass::Grass>,
     hill_heights: Option<hill_shadow::Input>,
     shadow_readback: ShadowReadback,
@@ -356,6 +357,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         None
     };
+    let mut studio_snapshot = None;
     let workspace_zone = match args.next() {
         None => None,
         Some(flag) if flag == "--workspace-vegetation" => Some((
@@ -366,6 +368,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .ok_or("invalid area id")?
                 .parse::<forge_core::AreaId>()?,
         )),
+        Some(flag) if flag == "--studio-snapshot" => {
+            studio_snapshot = Some((
+                PathBuf::from(args.next().ok_or("snapshot directory required")?),
+                args.next()
+                    .ok_or("snapshot hash required")?
+                    .to_str()
+                    .ok_or("invalid snapshot hash")?
+                    .parse::<forge_core::ContentHash>()?,
+            ));
+            None
+        }
         Some(_) => return Err("unexpected additional option".into()),
     };
     let package_input = match args.next() {
@@ -415,6 +428,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if let Some((workspace, area)) = workspace_zone {
         workspace_vegetation::load(&workspace, area, &mut files)?;
+    }
+    if let Some((directory, hash)) = studio_snapshot {
+        workspace_vegetation::load_snapshot(&directory, hash, &mut files)?;
     }
     if let Some((package, hash)) = package_input {
         building_package::load(&package, hash, &mut files)?;
@@ -737,6 +753,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         app.insert_resource(forge_engine::tidewater_wind::AcquiredFrame::reference()?);
     }
     app.insert_resource(Probe {
+        authored_start: files
+            .get("canonical-zone.json")
+            .map(|bytes| {
+                forge_project::zone_authoring::session::ZoneEditSession::from_archive_bytes(bytes)
+            })
+            .transpose()?
+            .and_then(|session| session.head().corrections.start.as_deref().copied()),
         grass,
         hill_heights,
         object_readback: if with_object_depth {

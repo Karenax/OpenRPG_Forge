@@ -5,6 +5,7 @@ use forge_world::embedded_gate0_proof_document;
 use std::sync::{Mutex, OnceLock};
 use tauri::Manager;
 mod native_atelier;
+mod native_game;
 mod native_reconciliation;
 
 static AUTHORING_HOST: OnceLock<
@@ -47,8 +48,8 @@ fn with_asset_library<T>(
     use forge_studio_frontend::asset_library_native::Library;
     static LIBRARY: OnceLock<Mutex<Result<Library, String>>> = OnceLock::new();
     let library = LIBRARY.get_or_init(|| Mutex::new(
-            std::env::var_os("OPENRPG_ASSET_VAULT")
-                .ok_or_else(|| "Définissez OPENRPG_ASSET_VAULT puis relancez le Studio pour ouvrir votre bibliothèque locale.".to_owned())
+            forge_studio_frontend::launch_configuration::asset_vault()
+                .and_then(|root| root.ok_or_else(|| "Configurez asset_vault dans forge-studio.local.json pour ouvrir votre bibliothèque locale.".to_owned()))
                 .and_then(|root| Library::new(std::path::Path::new(&root)))
         ));
     let mut guard = library
@@ -144,8 +145,8 @@ fn with_authoring_host<T>(
     operation: impl FnOnce(&mut forge_project::authoring::host::AuthoringHost) -> Result<T, String>,
 ) -> Result<T, String> {
     let host = AUTHORING_HOST.get_or_init(|| Mutex::new(
-        std::env::var_os("FORGE_AUTHORING_ROOT")
-            .ok_or_else(|| "Set FORGE_AUTHORING_ROOT to an existing authorized directory before launching Studio".to_owned())
+        forge_studio_frontend::launch_configuration::authoring_root()
+            .and_then(|root| root.ok_or_else(|| "Configurez authoring_root dans forge-studio.local.json pour ouvrir vos modules.".to_owned()))
             .and_then(|root| forge_project::authoring::host::AuthoringHost::new(std::path::Path::new(&root)))
             .map(|host| host.with_zone_validator(forge_world::promotion_preflight::validate_origins))
     ));
@@ -160,6 +161,9 @@ fn with_authoring_host<T>(
 }
 
 fn execute_authoring(request: forge_project::authoring::AuthoringRequest) -> StudioResponse {
+    if let Err(reason) = forge_studio_frontend::validate_authoring_mode(&request) {
+        return StudioResponse::Rejected { reason };
+    }
     native_reconciliation::clear();
     let result = if request.uses_audit_context() {
         studio_human_audit()
@@ -388,7 +392,9 @@ fn main() {
             execute_studio_command,
             read_asset_library,
             read_asset_model,
-            read_asset_physics
+            read_asset_physics,
+            native_game::launch_native_game,
+            native_game::native_game_running
         ])
         .run(tauri::generate_context!())
         .expect("failed to run OpenRPG Forge Studio");
@@ -473,6 +479,43 @@ mod tests {
     use super::*;
     use forge_core::EntityId;
     use serde_json::Value;
+
+    #[test]
+    fn retired_playtest_rejects_both_launch_commands_before_opening_a_session() {
+        use forge_project::authoring::{AuthoringRequest, playtest::PlaytestStart};
+        let hash = forge_core::bytes_sha256(b"old-client-zone");
+        for request in [
+            AuthoringRequest::StartPlaytest {
+                expected_hash: hash,
+            },
+            AuthoringRequest::StartPlaytestAt {
+                expected_hash: hash,
+                start: PlaytestStart {
+                    x_m: 40.0,
+                    z_m: -115.0,
+                    facing_degrees: None,
+                },
+            },
+        ] {
+            assert_eq!(
+                execute_studio_command_sync(StudioCommand::Authoring {
+                    request: Box::new(request)
+                }),
+                StudioResponse::Rejected {
+                    reason: forge_studio_frontend::EMBEDDED_PLAYTEST_RETIRED.into()
+                },
+            );
+        }
+        assert!(!forge_studio_frontend::embedded_playtest_available());
+        assert!(forge_studio_frontend::validate_authoring_mode(&AuthoringRequest::Inspect).is_ok());
+        assert!(forge_studio_frontend::validate_authoring_mode(&AuthoringRequest::Save).is_ok());
+        assert!(
+            forge_studio_frontend::validate_authoring_mode(&AuthoringRequest::StopPlaytest {
+                diagnostics: None
+            })
+            .is_ok()
+        );
+    }
 
     #[test]
     fn native_close_never_discards_dirty_work_without_explicit_choice() {
@@ -595,12 +638,14 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 5);
+        assert_eq!(permissions.len(), 7);
         assert_eq!(permissions[0], "allow-execute-studio-command");
         assert_eq!(permissions[1], "allow-read-asset-library");
         assert_eq!(permissions[2], "allow-read-asset-model");
         assert_eq!(permissions[3], "allow-read-asset-physics");
-        assert_eq!(permissions[4], "core:window:deny-set-title");
+        assert_eq!(permissions[4], "allow-launch-native-game");
+        assert_eq!(permissions[5], "allow-native-game-running");
+        assert_eq!(permissions[6], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
@@ -612,7 +657,9 @@ mod tests {
                 "allow-execute-studio-command",
                 "allow-read-asset-library",
                 "allow-read-asset-model",
-                "allow-read-asset-physics"
+                "allow-read-asset-physics",
+                "allow-launch-native-game",
+                "allow-native-game-running"
             ]
         );
     }

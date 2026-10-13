@@ -83,8 +83,17 @@ pub(super) fn update(world: &mut World) -> Result<(), String> {
         return Ok(());
     }
     let (camera, frustum) = cameras[0];
-    let time = world.resource::<Time>().elapsed_secs();
-    let frame = world.resource::<bevy::diagnostic::FrameCount>().0;
+    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
+    let time = if editing {
+        0.0
+    } else {
+        world.resource::<Time>().elapsed_secs()
+    };
+    let frame = if editing {
+        0
+    } else {
+        world.resource::<bevy::diagnostic::FrameCount>().0
+    };
     let plans = world
         .query::<(Entity, &GlobalTransform, &Part)>()
         .iter(world)
@@ -140,14 +149,20 @@ pub(super) fn update(world: &mut World) -> Result<(), String> {
             Visibility::Hidden
         });
         let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-        let mut value = materials
-            .get_mut(&handle)
+        let previous = materials
+            .get(&handle)
             .ok_or("Matériau LOD d'étal disparu")?;
+        let mut value = previous.clone();
         value.update_scene_receivers(&lighting)?;
         value.settings.info.w = time;
         value.settings.frame_index = frame;
         if let Some(draw) = draw {
             value.settings.lod = Vec4::new(draw.fade, f32::from(u8::from(draw.outgoing)), 0.0, 0.0);
+        }
+        if value != *previous {
+            *materials
+                .get_mut(&handle)
+                .ok_or("Matériau LOD d'étal disparu")? = value;
         }
     }
     Ok(())

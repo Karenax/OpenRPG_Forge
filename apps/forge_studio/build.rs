@@ -6,6 +6,8 @@ fn main() {
             "read_asset_library",
             "read_asset_model",
             "read_asset_physics",
+            "launch_native_game",
+            "native_game_running",
         ]);
         let attributes = tauri_build::Attributes::new().app_manifest(app_manifest);
         tauri_build::try_build(attributes)

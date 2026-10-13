@@ -61,6 +61,7 @@ pub(crate) fn report(message: String) {
 
 #[component]
 pub fn AuthoringWorkspace() -> impl IntoView {
+    super::authoring_native_game::initialize();
     let active_tool = RwSignal::new(super::authoring_controls::AuthoringTab::Project);
     provide_context(active_tool);
     let atelier = super::atelier_ui::Link::new();
@@ -71,7 +72,8 @@ pub fn AuthoringWorkspace() -> impl IntoView {
     provide_context(status);
     STATUS.with(|slot| slot.replace(Some(set_status)));
     view! {
-        <main class="authoring-shell" data-dual-screen=move || atelier.open.get().to_string()
+        <main class="authoring-shell" data-game-paused=move || super::authoring_native_game::paused().to_string()
+            data-dual-screen=move || atelier.open.get().to_string()
             data-map-only=move || atelier.map_only.get().to_string()
             on:mousemove=move |event| super::authoring_assets::catalog_drop::motion(&event)
             on:mouseup=move |event| super::authoring_assets::catalog_drop::receive(&event)
@@ -90,11 +92,13 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                 </details>
             </header>
             <div class="authoring-body">
-                <aside class="authoring-tools" aria-label="Outils de zone">
+                <aside class="authoring-tools" aria-label="Outils de zone"
+                    inert=move || super::authoring_native_game::paused()>
                     <super::authoring_controls::AuthoringControls/>
                 </aside>
                 <section class="authoring-view" aria-label="Terrain édité">
                     <super::authoring_camera::CameraControls/>
+                    <super::authoring_render_metrics::ViewportMetrics/>
                     <details class="gold-view-settings"><summary>"Affichage et diagnostics"</summary>
                     <super::authoring_lighting::LightingControls/>
                     <details class="authoring-viewport-info"><summary>"État technique de l’eau"</summary>
@@ -104,6 +108,8 @@ pub fn AuthoringWorkspace() -> impl IntoView {
                     </details>
                     <div class="authoring-canvas-wrap">
                     <super::authoring_controls::WorkspaceWelcome/>
+                    <super::authoring_loading::MapLoading/>
+                    <super::authoring_native_game::PausedView/>
                     <super::authoring_brush_pointer::ToolMode/>
                     <super::authoring_compass::CompassHud/>
                     <super::authoring_compass::AxisHud/>
@@ -154,6 +160,10 @@ pub fn AuthoringWorkspace() -> impl IntoView {
     }
 }
 
+#[allow(
+    clippy::too_many_lines,
+    reason = "Map observation keeps invalidation, source readiness and loading errors ordered"
+)]
 pub(super) fn observe(
     document: Option<&TerrainDocument>,
     playtest: Option<forge_project::authoring::playtest::PlaytestIdentity>,
@@ -170,6 +180,7 @@ pub(super) fn observe(
         super::authoring_brush_pointer::cancel();
     }
     let Some(document) = document else {
+        super::authoring_loading::finish();
         super::authoring_assets::cancel_preview();
         if SOURCE.with(|slot| slot.borrow().is_some()) {
             INVALIDATED.with(|slot| slot.replace(true));
@@ -215,6 +226,7 @@ pub(super) fn observe(
         return;
     }
     if document.sampled_source.is_some() {
+        super::authoring_loading::begin("Préparation du terrain, des modèles et des textures…");
         match crate::authoring_assets::imported_buildings::ensure_for_projection(
             document,
             playtest.is_some(),
@@ -222,11 +234,13 @@ pub(super) fn observe(
             Ok(true) => {}
             Ok(false) => return,
             Err(error) => {
+                super::authoring_loading::finish();
                 report(error);
                 return;
             }
         }
         if let Err(error) = crate::authoring_imported_terrain::launch(document.clone(), playtest) {
+            super::authoring_loading::finish();
             report(error);
             return;
         }
@@ -277,6 +291,7 @@ pub(crate) fn latest_imported_update() -> Option<TerrainDocument> {
 }
 
 pub(crate) fn imported_failure(error: &str) {
+    super::authoring_loading::finish();
     super::authoring_gameplay::invalidate_run();
     INVALIDATED.with(|slot| slot.replace(true));
     UPDATES.with(|slot| slot.borrow_mut().clear());
@@ -428,6 +443,7 @@ fn project_edits(
         return;
     }
     if !*initial_reported {
+        super::authoring_loading::finish();
         *initial_reported = true;
         // Runtime state exists; this does not claim a presented GPU frame.
         report(format!(

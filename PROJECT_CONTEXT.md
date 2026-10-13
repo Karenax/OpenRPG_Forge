@@ -1,5 +1,76 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Décisions propriétaire du 13 octobre — accès stable et retour du jeu
+
+Le propriétaire confirme que `E:\OpenRPG_Forge\Lancer-Editeur.cmd` fonctionne
+et donne accès à Tidewater : **ne pas modifier ce lanceur**. Ce chemin demeure
+le point d'entrée canonique, vers le seul EXE commun
+`E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\release\forge-studio.exe` et son
+profil voisin `forge-studio.local.json`. Préserver leur raccord au workspace et
+aux assets Tidewater lors des mises à jour. Ne pas fournir un autre lien par
+conversation. Une validation du lancement doit couvrir le `.cmd` réellement
+fourni au propriétaire, et pas seulement un helper de test.
+
+Après « Lancer le jeu », la carte doit rester chargée dans le Studio pendant
+le test natif séparé. Le retour conserve la caméra, les ressources de rendu et
+les retouches appliquées ; il ne doit plus recharger la page ou reconstruire
+la carte. Mettre le rendu de l'éditeur en pause pendant la partie, puis reprendre
+le même viewport après fermeture du jeu. Les ressources de carte restent donc
+en mémoire pendant le test. Le build commun et les huit tests de pause/reprise
+passent ; le propriétaire confirme le 13 octobre que le retour fonctionne.
+Les 88 fichiers auteur, le lanceur et son profil sont inchangés après le test. Voir
+[le suivi du retour sans rechargement](docs/evidence/gate3/STUDIO_RESIDENT_GAME_RETURN_20261013.md).
+
+## Demande propriétaire du 12 octobre — chargement, mémoire et jeu séparé
+
+Ajouter un indicateur animé pendant le chargement de carte ; améliorer la
+fluidité et la consommation mémoire de la vue 3D. Le propriétaire précise ensuite
+que la sélection au clic fonctionne et qu'il faut appliquer la retouche avant
+de sélectionner un autre modèle : conserver ce parcours, en clarifiant son état.
+La saturation signalée est reproduite dans le Studio commun : environ 14,3 Go
+GPU dédiés, puis croissance au repos. Le correctif du 13 octobre évite les
+réuploads de matériaux inchangés et borne les demandes d'images du navigateur
+à 60 Hz pendant les interactions et le chargement, deux recalculs/s au repos.
+Sur Tidewater, les premiers relevés du Studio corrigé montrent environ
+3,1 Go de RAM et 1,6 à 1,9 Go GPU dédiés. La reprise après interaction est
+observée ; ces mesures locales ne qualifient ni une session de plusieurs heures
+ni les FPS présentés. Voir
+[les résultats et leurs limites](docs/evidence/gate3/STUDIO_LOADING_NATIVE_GAME_20261012.md).
+
+Le propriétaire demande de rétablir « Lancer le jeu » exclusivement vers une
+fenêtre native séparée. Le test intégré demeure retiré. Le lancement transmet
+une archive immuable de la carte courante, y compris ses retouches appliquées
+non sauvegardées et son départ auteur, sans sauvegarde implicite ni gel du Studio.
+Le runtime natif existant reste une promenade ; les fonctions RPG encore absentes
+de ce runtime ne sont pas déclarées livrées par ce raccord. Gate 3 reste ouverte.
+
+## Lancement du Studio — correctif du 12 octobre 2026
+
+Le Studio commun lit sa configuration de workspace et d'assets dans
+`forge-studio.local.json`, près de son EXE, et se lance directement sans variables
+de shell. Le point d'entrée à double-clic est `E:\OpenRPG_Forge\Lancer-Editeur.cmd`.
+Les configurations explicites des installateurs restent prioritaires ; les gardes
+des racines et hashes ne sont pas retirées. Voir
+[le correctif de lancement](docs/evidence/gate3/STUDIO_DIRECT_LAUNCH_20261012.md).
+Le test intégré demeure retiré et Gate 3 reste ouverte.
+
+## Décision propriétaire du 12 octobre 2026 — retrait du test intégré
+
+Le propriétaire constate le mode test du Studio injouable, autour de 1 FPS, et
+demande sa correction ou son retrait. Le test intégré est retiré des parcours
+Studio : aucun lancement, départ temporaire, panneau de partie ou reprise RPG.
+Le backend refuse aussi les anciennes commandes de lancement avant d'ouvrir ou
+de figer une session. L'édition de carte, le départ enregistré et les définitions
+de gameplay sont conservés. Ce retrait ne constitue pas une optimisation mesurée.
+
+La partie RPG doit être raccordée au jeu séparé, sur les mêmes documents et
+commandes génériques. Le jeu livré ne fournit actuellement qu'une promenade
+native ; dialogue, quête, combat et sauvegarde RPG n'y sont pas raccordés.
+La revue P05 sur le Studio retiré n'est plus proposée. Gate 3 reste ouverte et
+la partie complète reste à qualifier dans le jeu séparé. Les résultats datés
+sur le précédent Studio sont historiques, sans qualification du Studio modifié.
+Voir [le retrait et sa validation](docs/evidence/gate3/STUDIO_PLAYTEST_RETIRED_20261012.md).
+
 ## Instruction propriétaire du 10 octobre 2026 — suppression du seuil mémoire de lancement
 
 Le propriétaire demande explicitement de supprimer la limite de 16 Gio de marge mémoire avant lancement. Cette instruction remplace les anciennes consignes de garde à 16 Gio pour la poursuite de ce chantier. Les scripts actifs ne refusent plus le lancement selon ce seuil ; les mesures mémoire restent informatives. Les preuves historiques et leurs anciens refus restent conservés.

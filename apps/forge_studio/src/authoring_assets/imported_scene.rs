@@ -160,7 +160,7 @@ pub(crate) fn update(world: &mut World) {
         let Some(shadows)=world.get_resource::<crate::authoring_imported_shadows::Receiver>() else { return; };
         let key=(generation,environment.environment.id(),hill.output.id(),shadows.0.image.id());
         if state.key!=Some(key) { state.failed=false; }
-        if state.failed || !environment.clouds.ready.load(Ordering::Acquire) { return; }
+        if state.failed || (!world.contains_resource::<crate::authoring_render::FastEditing>() && !environment.clouds.ready.load(Ordering::Acquire)) { return; }
         if state.key!=Some(key) || state.sources.as_ref()!=Some(&desired)
             || state.boardwalk_sources.as_ref()!=Some(&boardwalks)
             || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) || state.village_props_sources.as_ref()!=Some(&village_props) || state.beach_props_sources.as_ref()!=Some(&beach_props) {

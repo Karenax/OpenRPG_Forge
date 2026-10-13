@@ -1,5 +1,5 @@
 
-#ifdef VILLAGE_KIND_7
+#ifdef VILLAGE_KIND_8
 @group(#{MATERIAL_BIND_GROUP}) @binding(1) var assetColor: texture_2d<f32>;
 @group(#{MATERIAL_BIND_GROUP}) @binding(2) var assetNormal: texture_2d<f32>;
 @group(#{MATERIAL_BIND_GROUP}) @binding(3) var assetOrm: texture_2d<f32>;

@@ -8,6 +8,78 @@ use forge_project::{
 };
 use std::{collections::BTreeMap, error::Error, path::Path};
 
+/// Read the exact validated launch archive and immutable blobs; no workspace lock.
+pub fn load_snapshot(
+    root: &Path,
+    expected: forge_core::ContentHash,
+    files: &mut BTreeMap<String, Vec<u8>>,
+) -> Result<(), Box<dyn Error>> {
+    let root = root.canonicalize()?;
+    let read = |name: &str, limit: usize| -> Result<Vec<u8>, Box<dyn Error>> {
+        let path = root.join(name).canonicalize()?;
+        if !path.starts_with(&root) || path.metadata()?.len() > u64::try_from(limit)? {
+            return Err("snapshot file bound".into());
+        }
+        Ok(std::fs::read(path)?)
+    };
+    let archive = read(
+        "zone.json",
+        forge_project::zone_authoring::MAX_ZONE_HEAD_BYTES,
+    )?;
+    if forge_core::bytes_sha256(&archive) != expected {
+        return Err("snapshot archive hash mismatch".into());
+    }
+    let zone = ZoneEditSession::from_archive_bytes(&archive)?;
+    let (terrain, _) = zone.head().effective()?;
+    let source = terrain
+        .sampled_source
+        .as_ref()
+        .ok_or("snapshot raster absent")?;
+    let fixture = forge_project::TerrainDocument::from_json(std::str::from_utf8(
+        files.get("terrain.json").ok_or("scene terrain missing")?,
+    )?)?;
+    if fixture.sampled_source != terrain.sampled_source || fixture.extent_m != terrain.extent_m {
+        return Err("snapshot terrain differs from runtime content".into());
+    }
+    let heights = read("heights.bin", source.byte_length()?)?;
+    if forge_core::bytes_sha256(&heights) != source.samples_sha256 {
+        return Err("snapshot raster hash mismatch".into());
+    }
+    let vegetation = zone
+        .head()
+        .base
+        .vegetation
+        .as_ref()
+        .ok_or("snapshot vegetation absent")?;
+    let population = vegetation
+        .imported_source
+        .as_ref()
+        .ok_or("snapshot population absent")?;
+    files.retain(|name, _| !name.starts_with("canonical-"));
+    for block in &population.blocks {
+        let bytes = read(
+            &format!("{}.bin", block.instances_sha256),
+            block.byte_len()?,
+        )?;
+        if forge_core::bytes_sha256(&bytes) != block.instances_sha256 {
+            return Err("snapshot population hash mismatch".into());
+        }
+        files.insert(format!("canonical-{}.bin", block.instances_sha256), bytes);
+    }
+    files.insert("terrain.json".into(), serde_json::to_vec(&terrain)?);
+    files.insert("heights.bin".into(), heights);
+    files.insert(
+        "canonical-vegetation.json".into(),
+        serde_json::to_vec(vegetation)?,
+    );
+    eprintln!(
+        "studio snapshot: archive={expected}, head={}",
+        zone.head().content_hash()?
+    );
+    files.insert("canonical-zone.json".into(), archive);
+    Ok(())
+}
+
 pub fn load(
     root: &Path,
     area: AreaId,

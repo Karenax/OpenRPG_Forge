@@ -177,8 +177,7 @@ fn retire(world: &mut World) {
 
 fn update(world: &mut World) {
     let frame = world.resource::<FrameCount>().0;
-    let head = super::placements::accepted_head();
-    let hash = head.as_ref().and_then(|head| head.content_hash().ok());
+    let hash = super::placements::accepted_hash();
     let retire_capture = world
         .get_resource::<Capture>()
         .is_some_and(|c| c.done || hash != Some(c.head) || frame.saturating_sub(c.started) > 300);
@@ -197,7 +196,7 @@ fn update(world: &mut World) {
         retire(world);
         return;
     }
-    let (Some(head), Some(hash)) = (head, hash) else {
+    let Some(hash) = hash else {
         retire(world);
         return;
     };
@@ -205,6 +204,9 @@ fn update(world: &mut World) {
     if world.contains_resource::<Capture>() || !frame.is_multiple_of(15) {
         return;
     }
+    let Some(head) = super::placements::accepted_head() else {
+        return;
+    };
     let Ok(objects) = super::objects::list(&head) else {
         return;
     };
