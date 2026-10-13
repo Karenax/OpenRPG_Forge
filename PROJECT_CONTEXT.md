@@ -1,5 +1,20 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Publication Studio et CI — 13 octobre 2026
+
+Le lot Studio de 52 fichiers est publié sur `origin/Rust` par le commit
+`fadd790dd7dfb82dd84198744ac25e58de9226b8` : chargement, mémoire, lancement natif
+et retour sur carte résidente, tests et documentation. Les travaux indépendants
+de bibliothèque d'assets, scripts `hivemind` et configuration Codex restent locaux.
+La synchronisation Git est vérifiée, sans divergence.
+
+La CI [Rust gate 38394515234](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38394515234)
+échoue avant le démarrage des jobs Windows, Linux, WASM et supply-chain, avec
+zéro étape exécutée. L'annotation GitHub indique des paiements échoués ou un
+plafond de dépenses à augmenter. Ce constat courant est distinct du run du
+11 octobre qui avait exécuté les runners. Aucun PASS distant n'est revendiqué ;
+Gate 3 reste ouverte. Voir [le périmètre publié](docs/evidence/gate3/STUDIO_PUBLICATION_20261013.md).
+
 ## Décisions propriétaire du 13 octobre — accès stable et retour du jeu
 
 Le propriétaire confirme que `E:\OpenRPG_Forge\Lancer-Editeur.cmd` fonctionne

@@ -46,3 +46,14 @@ Les contrôles de publication sont enregistrés dans
 `E:/OpenRPG_Forge/.gate3-evidence/20261013/studio-publication-001`.
 La qualification CI distante du commit sera distincte de sa synchronisation Git.
 Gate 3 reste ouverte ; la partie RPG native complète et P05 restent à qualifier.
+
+## Résultat de publication
+
+Le commit applicatif `fadd790dd7dfb82dd84198744ac25e58de9226b8` est poussé sur
+`origin/Rust`. Le SHA distant est identique, la divergence est `0/0` et les
+changements exclus restent dans le workspace. Le [run CI 38394515234](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38394515234)
+échoue avant toute étape sur les quatre jobs. L'annotation GitHub signale des
+paiements de compte échoués ou un plafond de dépenses à augmenter. Aucun log de
+tests n'est produit ; aucun test distant PASS ou FAIL n'est donc déduit de ce
+refus d'exécution. Une mise à jour documentaire suivante consigne ce constat
+sans modifier le lot applicatif ou l'EXE commun.
