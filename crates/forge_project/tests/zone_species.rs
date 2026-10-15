@@ -59,6 +59,7 @@ fn promotion_persists_origin_atomically_across_codecs_undo_and_regeneration() {
         placement_id: id,
     };
     let placement = ManualPlacement {
+        particles: None,
         physics: None,
         id,
         name: "Promoted tree".into(),
@@ -321,6 +322,7 @@ fn promotion_quota_refusals_leave_the_authoritative_head_unchanged() {
     };
     let (session, layer_id) = fixture();
     let placement = |i| ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic(format!("quota-placement-{i}")),
         name: "Tree".into(),

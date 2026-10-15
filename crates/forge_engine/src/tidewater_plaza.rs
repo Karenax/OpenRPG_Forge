@@ -657,6 +657,7 @@ mod tests {
         });
         let mut placements = (0..65)
             .map(|index| ManualPlacement {
+                particles: None,
                 physics: None,
                 id: EntityId::deterministic(format!("plaza-common-{index}")),
                 name: "Fixture plaza light".into(),

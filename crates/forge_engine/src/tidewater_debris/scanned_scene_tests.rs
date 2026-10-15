@@ -108,6 +108,7 @@ fn setup() -> (
 }
 fn placement(i: usize) -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic(format!("scanned-buffer-regression:{i}")),
         name: "cpu-test".into(),

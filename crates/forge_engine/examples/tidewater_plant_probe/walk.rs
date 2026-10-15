@@ -29,6 +29,7 @@ mod swim_smoke;
 const PIER_LADDER: forge_engine::TidewaterLadder =
     forge_engine::TidewaterLadder::new(Vec2::new(62.32, 35.1), 1.95, Vec3::new(61.12, 2.3, 35.1));
 pub(super) const WATER_TIME_SCALE: f64 = 1.5;
+const CAMERA_LOOK_RADIANS_PER_UNIT: f32 = 0.0022;
 
 /// Use the playable camera's full grading and exposure chain for static parity captures.
 pub(super) fn install_static_graphics(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
@@ -103,7 +104,7 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     profile.controller.jump_speed_mps = 4.6;
     profile.controller.max_step_height_m = 0.4;
     profile.camera.eye_height_m = 1.62;
-    profile.camera.look_sensitivity_degrees_per_unit = 0.0022_f32.to_degrees();
+    profile.camera.look_sensitivity_degrees_per_unit = CAMERA_LOOK_RADIANS_PER_UNIT.to_degrees();
     profile.camera.pitch_min_degrees = -1.5_f32.to_degrees();
     profile.camera.pitch_max_degrees = 1.5_f32.to_degrees();
     let center = profile.controller.capsule_radius_m + profile.controller.capsule_half_segment_m;
@@ -154,6 +155,10 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     // Bounded walks must exercise the same graphics chain and saved values as play.
     graphics::install(app)?;
     escape_menu::install(app)?;
+    let cursor_system = cursor.after(escape_menu::update);
+    #[cfg(not(target_arch = "wasm32"))]
+    let cursor_system =
+        cursor_system.after(forge_engine::native_gameplay::NativeGameplayUiSet::Input);
     app.add_plugins(
         PlayerControllerPlugin::new(
             profile,
@@ -177,10 +182,7 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         ocean_updates: 0,
     })
     .add_systems(PostStartup, (configure, buildings))
-    .add_systems(
-        Update,
-        (cursor.after(escape_menu::update), update_ladder_prompt),
-    )
+    .add_systems(Update, (cursor_system, update_ladder_prompt))
     .add_systems(
         PostUpdate,
         (
@@ -205,6 +207,39 @@ pub(super) fn install(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         swim_smoke::install(app);
     } else if smoke {
         smoke::install(app);
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if let Some(archive) = app.world().resource::<Probe>().authored_archive.as_deref() {
+        let save_root = std::env::var_os("FORGE_GAME_SAVE_ROOT")
+            .map(std::path::PathBuf::from)
+            .or_else(|| {
+                std::env::var_os("LOCALAPPDATA").map(|root| {
+                    std::path::PathBuf::from(root).join("OpenRPG Forge/UserData/game-saves")
+                })
+            })
+            .or_else(|| {
+                std::env::var_os("XDG_DATA_HOME")
+                    .map(|root| std::path::PathBuf::from(root).join("openrpg-forge/game-saves"))
+            })
+            .or_else(|| {
+                std::env::var_os("HOME").map(|root| {
+                    std::path::PathBuf::from(root).join(".local/share/openrpg-forge/game-saves")
+                })
+            })
+            .ok_or("Native gameplay requires a configured user save directory")?;
+        let observations =
+            std::env::var_os("FORGE_GAME_OBSERVATIONS").map(std::path::PathBuf::from);
+        if let Some(gameplay) = forge_engine::native_gameplay::PreparedNativeGameplay::from_archive(
+            archive,
+            &save_root,
+            observations.as_deref(),
+        )? {
+            gameplay.install(app)?;
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    if perf::requested() {
+        perf::install_gameplay_timing(app)?;
     }
     Ok(())
 }
@@ -334,13 +369,31 @@ fn cursor(
     mut windows: Query<(&Window, &mut CursorOptions)>,
     graphics: Option<Res<graphics::GraphicsState>>,
     menu: Res<escape_menu::State>,
+    #[cfg(not(target_arch = "wasm32"))] mut gameplay: Option<
+        ResMut<forge_engine::native_gameplay::NativeGameplayUi>,
+    >,
 ) {
+    #[cfg(not(target_arch = "wasm32"))]
+    if (menu.open || graphics.as_ref().is_some_and(|graphics| graphics.open))
+        && let Some(ui) = gameplay.as_mut()
+    {
+        ui.close();
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    let gameplay_open = gameplay.as_ref().is_some_and(|ui| ui.is_open());
+    #[cfg(target_arch = "wasm32")]
+    let gameplay_open = false;
     for (window, mut cursor) in &mut windows {
-        if menu.open || graphics.as_ref().is_some_and(|graphics| graphics.open) || !window.focused {
+        if menu.open
+            || graphics.as_ref().is_some_and(|graphics| graphics.open)
+            || gameplay_open
+            || !window.focused
+        {
             focus.0 = false;
             cursor.grab_mode = CursorGrabMode::None;
             cursor.visible = true;
         } else if keys.just_pressed(KeyCode::Escape)
+            || keys.just_pressed(KeyCode::KeyG)
             || mouse.just_pressed(MouseButton::Left)
             || menu.is_changed()
         {
@@ -399,10 +452,61 @@ fn simulation_ready(world: &mut World) -> bool {
     ready && super::debris::ready(world) && super::static_asset_placements::ready(world)
 }
 
+// Diagnostic only: bounded transition logs for the opt-in camera probe.
+#[derive(Resource, Default)]
+struct ReadinessLossDiagnostic(u8);
+
+fn diagnose_readiness_loss(world: &mut World) {
+    const MAX_LOSS_LOGS: u8 = 8;
+    world.init_resource::<ReadinessLossDiagnostic>();
+    let occurrence = {
+        let mut count = world.resource_mut::<ReadinessLossDiagnostic>();
+        if count.0 >= MAX_LOSS_LOGS {
+            return;
+        }
+        count.0 += 1;
+        count.0
+    };
+    let physics = world.resource::<SampledTerrainPhysicsState>();
+    let terrain_synchronized = physics.is_synchronized(world, physics.plan.document_hash());
+    let water_bootstrap = world
+        .resource::<super::spray::water_queries::Targets>()
+        .bootstrap_ready
+        .load(std::sync::atomic::Ordering::Acquire);
+    let probe_ready_frames = world.resource::<Probe>().ready_frames;
+    let spray_readback_complete = world
+        .resource::<super::spray::Targets>()
+        .readback_complete
+        .load(std::sync::atomic::Ordering::Acquire);
+    let ocean_readback_complete = world
+        .resource::<super::ocean::Targets>()
+        .readback_complete
+        .load(std::sync::atomic::Ordering::Acquire);
+    let clouds_ready = world
+        .resource::<super::clouds::Targets>()
+        .ready
+        .load(std::sync::atomic::Ordering::Acquire);
+    let debris_ready = super::debris::ready(world);
+    let placements_colliders_ready = super::static_asset_placements::ready(world);
+    warn!(target: "forge::gameplay",
+        frame = world.resource::<bevy::diagnostic::FrameCount>().0,
+        occurrence, max_occurrences = MAX_LOSS_LOGS,
+        previous_ready = true, decision_ready = false, sampled_after_decision = true,
+        terrain_synchronized, water_bootstrap, probe_ready_frames,
+        pipelines_ready = probe_ready_frames >= 8,
+        spray_readback_complete, ocean_readback_complete, clouds_ready,
+        debris_ready, placements_colliders_ready,
+        "native walk simulation readiness lost; diagnostic conditions resampled");
+}
+
 fn update(world: &mut World) {
     let ready = simulation_ready(world);
+    let was_ready = world.resource::<PlayerSimulationReady>().0;
     world.resource_mut::<PlayerSimulationReady>().0 = ready;
     if !ready {
+        if was_ready && perf::requested() {
+            diagnose_readiness_loss(world);
+        }
         return;
     }
     let mut query = world.query_filtered::<(&Transform, &Projection), With<ForgePlayerCamera>>();

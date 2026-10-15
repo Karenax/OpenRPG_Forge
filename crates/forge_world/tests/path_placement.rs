@@ -16,6 +16,7 @@ fn fixture() -> ZoneAuthoringHead {
     let mut terrain = new_terrain("array", "zone", "Array").unwrap();
     terrain.height_sampling.base_elevation_m = 3.0;
     let placement = ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("source"),
         name: "Synthetic panel".into(),

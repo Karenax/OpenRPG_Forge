@@ -71,6 +71,17 @@ pub fn register_source_graph_material(
     if forward_uv != prepass_uv {
         return Err("Source forward and prepass stages require different original UV channels");
     }
+    let forward_state_buffer = forge_assets::source_graph_bundle::stage_requires_state_buffer(
+        &forward.source,
+    )
+    .map_err(|_| "Source state buffer declaration differs from the admitted read-only ABI")?;
+    let prepass_state_buffer =
+        forge_assets::source_graph_bundle::stage_requires_state_buffer(&prepass.source).map_err(
+            |_| "Source prepass state buffer declaration differs from the admitted read-only ABI",
+        )?;
+    if forward_state_buffer != prepass_state_buffer {
+        return Err("Source forward and prepass stages require different resident state");
+    }
     let forward_count = source_graph_declared_texture_count(&forward.source)?;
     let prepass_count = source_graph_declared_texture_count(&prepass.source)?;
     if forward_count != prepass_count || forward_count != program.required_texture_count {
@@ -89,6 +100,8 @@ pub fn register_source_graph_material(
             .any(|a| a.source.lines().any(|l| l.trim() == declaration))
     };
     let key = SourceGraphKey {
+        requires_source_state: forward_state_buffer,
+        source_state_ready: false,
         requires_native_srgb_encoder: declares(
             forge_assets::source_graph_bundle::SOURCE_GRAPH_NATIVE_SRGB_THRESHOLDS_DECLARATION,
         ),

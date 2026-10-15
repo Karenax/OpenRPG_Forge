@@ -3,8 +3,6 @@ use crate::{
     source_collider_projection::{ContactPolicy, SourceColliderIdentity, validate_node},
     source_mesh_colliders::{self, MeshCookingPolicy},
 };
-#[cfg(target_arch = "wasm32")]
-use bevy::ecs as bevy_ecs;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{ColliderDisabled, Sensor};
 use forge_assets::source_graph_glb::SourceGraphGlb;

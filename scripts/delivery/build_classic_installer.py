@@ -54,7 +54,7 @@ def shared_native_receipts(repo, evidence, cache):
         raise ValueError('Fresh native receipts must cover the current common checkout')
     result = {}
     for stage, relative in [('studio', 'release/forge-studio.exe'),
-                            ('game', 'debug/examples/tidewater_plant_probe.exe')]:
+                            ('game', 'release/examples/tidewater_plant_probe.exe')]:
         proof_path = evidence / f'{stage}-build-proof.json'
         proof = json.loads(proof_path.read_bytes())
         executable = cache / relative
@@ -69,8 +69,10 @@ def shared_native_receipts(repo, evidence, cache):
             raise ValueError(f'Historical or mismatched {stage} refused for the shared installer')
         adoption = proof.get('validated_gate3')
         if adoption is not None:
-            if stage != 'studio' or proof.get('adopted_verified_output') is not True:
-                raise ValueError('Only the shared Studio release can use an adopted Gate 3 native receipt')
+            if (stage not in ('studio', 'game') or
+                    proof.get('adopted_verified_output') is not True or
+                    proof.get('profile') != 'release'):
+                raise ValueError('Only shared Studio or game Release outputs can use an adopted Gate 3 native receipt')
             adopted_executable, pins, links, _ = validated_gate3_inputs(
                 gate3_validator(repo), Path(adoption['evidence']).resolve(), stage,
                 source_file_hashes(manifest), cache, shared_build_environment(cache))

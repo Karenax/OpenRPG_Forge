@@ -82,6 +82,7 @@ mod tests {
     fn objects(count: usize) -> Vec<ManualPlacement> {
         let mut objects = (0..count)
             .map(|index| ManualPlacement {
+                particles: None,
                 physics: None,
                 id: EntityId::deterministic(format!("late-object-{index}")),
                 name: format!("Objet {index}"),

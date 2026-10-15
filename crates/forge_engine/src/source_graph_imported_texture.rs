@@ -13,6 +13,7 @@ pub enum SourceGraphImportedTextureFormat {
     Bc4RUnorm,
     Rgb8Unorm,
     Rgba8Unorm,
+    Rgb10a2Unorm,
 }
 
 impl SourceGraphImportedTextureFormat {
@@ -25,6 +26,7 @@ impl SourceGraphImportedTextureFormat {
             Self::Bc4RUnorm => (TextureFormat::Bc4RUnorm, 8, true),
             Self::Rgb8Unorm => (TextureFormat::Rgba8Unorm, 3, false),
             Self::Rgba8Unorm => (TextureFormat::Rgba8Unorm, 4, false),
+            Self::Rgb10a2Unorm => (TextureFormat::Rgb10a2Unorm, 4, false),
         }
     }
 }
@@ -209,6 +211,37 @@ mod tests {
             TextureFormat::Bc1RgbaUnormSrgb
         );
         assert_eq!(prepared.image().texture_descriptor.mip_level_count, 3);
+    }
+    #[test]
+    fn rgb10a2_keeps_packed_odd_extent_mips_and_refuses_truncation() {
+        let (_, mut metadata) = fixture();
+        let data: Vec<u8> = (0u32..18).flat_map(u32::to_le_bytes).collect();
+        metadata.width = 3;
+        metadata.height = 5;
+        metadata.format = SourceGraphImportedTextureFormat::Rgb10a2Unorm;
+        metadata.storage_sha256 = bytes_sha256(&data);
+        metadata.mips = [(3, 5, 0, 60), (1, 2, 60, 8), (1, 1, 68, 4)]
+            .map(|(width, height, offset, bytes)| SourceGraphImportedMip {
+                width,
+                height,
+                offset,
+                bytes,
+                sha256: bytes_sha256(&data[offset..offset + bytes]),
+            })
+            .to_vec();
+        let prepared = prepare_source_graph_imported_texture(&data, &metadata).unwrap();
+        assert!(!prepared.requires_texture_compression_bc);
+        assert_eq!(prepared.image().data.as_ref(), Some(&data));
+        assert_eq!(
+            prepared.image().texture_descriptor.format,
+            TextureFormat::Rgb10a2Unorm
+        );
+        assert_eq!(prepared.image().texture_descriptor.mip_level_count, 3);
+
+        let mut truncated = data;
+        truncated.pop();
+        metadata.storage_sha256 = bytes_sha256(&truncated);
+        assert!(prepare_source_graph_imported_texture(&truncated, &metadata).is_err());
     }
     #[test]
     fn altered_blocks_missing_mips_offsets_and_trailing_bytes_refuse() {

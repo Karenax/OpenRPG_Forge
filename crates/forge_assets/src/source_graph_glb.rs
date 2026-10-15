@@ -79,7 +79,7 @@ impl SourceGraphGlbReadBudget {
     }
 }
 
-fn read_glb_document(
+pub(crate) fn read_glb_document(
     raw: &[u8],
     budget: SourceGraphGlbReadBudget,
 ) -> Result<(Value, usize), String> {

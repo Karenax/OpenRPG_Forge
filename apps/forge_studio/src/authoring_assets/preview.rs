@@ -30,6 +30,7 @@ enum PreviewRequest {
         Vec<u8>,
         SceneLayout,
         Option<super::source_graph_physics::SourcePhysicsPayload>,
+        Option<super::source_graph_particles::SourceParticlePayload>,
     ),
     Clear,
 }
@@ -83,6 +84,7 @@ pub(super) fn submit_scene_with_physics(
     id: String,
     bytes: Vec<u8>,
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<super::source_graph_particles::SourceParticlePayload>,
 ) -> bool {
     if !is_current(ticket) {
         return false;
@@ -93,6 +95,7 @@ pub(super) fn submit_scene_with_physics(
             bytes,
             SceneLayout::AutonomousScene,
             physics,
+            particles,
         )))
     });
     true
@@ -102,7 +105,8 @@ fn submit_layout(ticket: u64, id: String, bytes: Vec<u8>, layout: SceneLayout) -
     if !is_current(ticket) {
         return false;
     }
-    REQUEST.with(|request| request.replace(Some(PreviewRequest::Show(id, bytes, layout, None))));
+    REQUEST
+        .with(|request| request.replace(Some(PreviewRequest::Show(id, bytes, layout, None, None))));
     true
 }
 
@@ -127,6 +131,11 @@ pub(crate) fn register(app: &mut App) {
             .after(VisibilitySystems::CalculateBounds),
     );
     super::source_graph_runtime::register(app);
+    if !app
+        .is_plugin_added::<forge_engine::source_particle_compute::SourceParticleProjectionPlugin>()
+    {
+        app.add_plugins(forge_engine::source_particle_compute::SourceParticleProjectionPlugin);
+    }
     super::source_graph_physics::register(app);
     super::source_graph_preview::register(app);
     super::placements::register(app);
@@ -183,14 +192,14 @@ fn update(
     if let Some(request) = REQUEST.with(|request| request.borrow_mut().take()) {
         super::source_graph_preview::cancel();
         state.clear(&mut commands);
-        if let PreviewRequest::Show(id, bytes, layout, physics) = request {
+        if let PreviewRequest::Show(id, bytes, layout, physics, particles) = request {
             match super::source_graph_route::read(&bytes) {
                 Ok(Some(_)) => {
-                    super::source_graph_preview::submit(id, bytes, physics);
+                    super::source_graph_preview::submit(id, bytes, physics, particles);
                     return;
                 }
                 Ok(None) => {
-                    if physics.is_some() {
+                    if physics.is_some() || particles.is_some() {
                         super::preview_status(
                             "Aperçu refusé : données physiques sans déclaration source.",
                         );

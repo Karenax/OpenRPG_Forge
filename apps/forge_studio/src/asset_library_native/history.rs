@@ -22,6 +22,21 @@ impl Library {
         expected: forge_core::ContentHash,
         physics: Option<(forge_core::ContentHash, forge_core::ContentHash)>,
     ) -> Result<StoredAsset, String> {
+        self.read_historical_asset_matching(snapshot, current, expected, |asset| {
+            physics.is_none_or(|(manifest, wire)| {
+                super::physics_transport::matches_physics(asset, expected, manifest, wire)
+            })
+        })
+    }
+
+    /// A package caller matches all saved pins, including revisions sharing a model.
+    pub(super) fn read_historical_asset_matching(
+        &self,
+        snapshot: &Snapshot,
+        current: &StoredAsset,
+        expected: forge_core::ContentHash,
+        matches_package: impl Fn(&StoredAsset) -> bool,
+    ) -> Result<StoredAsset, String> {
         let registry: Value = parse_json(&snapshot.registry_raw, "registre")?;
         let entry = &registry["packs"][&current.card.pack];
         let Some(history) = entry.get("history") else {
@@ -102,9 +117,7 @@ impl Library {
                     &mut total,
                     &mut cache,
                 )?;
-                if physics.is_some_and(|(manifest, wire)| {
-                    !super::physics_transport::matches_physics(&asset, expected, manifest, wire)
-                }) {
+                if !matches_package(&asset) {
                     continue;
                 }
                 return Ok(asset);

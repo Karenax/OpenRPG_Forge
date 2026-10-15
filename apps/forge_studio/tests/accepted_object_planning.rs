@@ -62,6 +62,7 @@ fn session() -> ZoneEditSession {
 
 fn object(label: &str, asset_id: AssetId, marker: u8) -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic(format!("accepted-planning:{label}")),
         name: label.into(),

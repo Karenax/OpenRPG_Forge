@@ -122,6 +122,7 @@ fn common_instances_reject_bad_revision_then_preserve_deletion_and_casters() {
         .map(|object| {
             let [x, y, z] = object.source_translation_m.map(|value| value as f32);
             ManualPlacement {
+                particles: None,
                 physics: None,
                 id: EntityId::deterministic(format!("debris-common-test:{}", object.source_id)),
                 name: object.kind.clone(),

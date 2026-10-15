@@ -198,7 +198,8 @@ def release_artifact_paths(target_dir):
     suffix = '.exe' if os.name == 'nt' else ''
     release = target_dir.resolve() / 'release'
     return {stage: release / f'{name}{suffix}' for stage, name in (
-        ('runtime-release', 'forge_runtime'), ('studio-release', 'forge-studio'))}
+        ('runtime-release', 'forge_runtime'), ('studio-release', 'forge-studio'),
+        ('native-game-release', 'examples/tidewater_plant_probe'))}
 
 
 def release_artifact_pin(path, target_dir):
@@ -400,6 +401,8 @@ STAGES = {
         # Compile the same native Tauri target without rewriting Cargo.toml.
         # The canonical dist was built and authenticated by the wasm stage.
         ("studio-release", ["cargo", "build", "--release", "--locked", "--offline", "-p", "forge_studio", "--bin", "forge-studio", "--features", "tauri/custom-protocol"], SOURCE),
+        # This is the actual separate game configured beside the shared Studio.
+        ("native-game-release", ["cargo", "build", "--release", "--locked", "--offline", "-p", "forge_engine", "--example", "tidewater_plant_probe"], SOURCE),
     ],
     "supply": [
         ("deny", ["cargo", "deny", "check", "licenses", "bans", "sources", "advisories"], SOURCE),
@@ -409,6 +412,10 @@ STAGES = {
 
 
 def main():
+    # Cargo diagnostics include Unicode graph lines on Windows redirected pipes.
+    # Keep a failed stage readable without raising a second encoding exception.
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='backslashreplace')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=STAGES)
     parser.add_argument("--evidence", type=Path, required=True)
@@ -426,12 +433,12 @@ def main():
         if path.exists():
             parser.error(f"Previous evidence preserved: {path}")
     env = os.environ.copy()
-    env.update(CARGO_TARGET_DIR=str(args.target_dir.resolve()), CARGO_BUILD_JOBS="1", CARGO_TERM_COLOR="never", NO_COLOR="true", CARGO_NET_OFFLINE="true")
+    env.update(CARGO_TARGET_DIR=str(args.target_dir.resolve()), CARGO_BUILD_JOBS=env.get("CARGO_BUILD_JOBS", "1"), CARGO_TERM_COLOR="never", NO_COLOR="true", CARGO_NET_OFFLINE="true")
     # A candidate override must never redirect the canonical Tauri embedding.
     env.pop('TAURI_CONFIG', None)
     build_environment = {name: env.get(name) for name in (
         'CARGO_TARGET_DIR', 'CARGO_BUILD_JOBS', 'CARGO_NET_OFFLINE',
-        'CARGO_INCREMENTAL', 'RUSTFLAGS', 'CARGO_TERM_COLOR', 'NO_COLOR')}
+        'CARGO_INCREMENTAL', 'RUSTFLAGS', 'RUST_TEST_THREADS', 'CARGO_TERM_COLOR', 'NO_COLOR')}
     before, tree_before = source_inventories()
     write(tree_before_path, working_tree_inventory(tree_before))
     frontend = None

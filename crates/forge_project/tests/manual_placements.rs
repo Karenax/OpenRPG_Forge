@@ -32,6 +32,7 @@ fn session() -> ZoneEditSession {
 
 fn door() -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("manual-door"),
         name: "Porte".into(),

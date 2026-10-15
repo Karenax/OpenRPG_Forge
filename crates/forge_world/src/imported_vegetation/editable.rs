@@ -47,6 +47,7 @@ pub fn placement(
     };
     transform.validate().map_err(|e| e.to_string())?;
     Ok(ManualPlacement {
+        particles: None,
         physics: None,
         id: entity.id,
         name: vegetation

@@ -313,10 +313,13 @@ def assemble(args):
                          "content-manager":dict(executable="bin/forge-hub.exe", args=["--root", "{install}"], env={}, clear_env_prefixes=[]),
                          "game":launch, "editor":dict(executable="bin/forge-studio.exe", args=[],
                          env={"FORGE_AUTHORING_ROOT":"{workspace}", "OPENRPG_ASSET_VAULT":"{pack:asset-library}",
+                              "FORGE_NATIVE_GAME_EXECUTABLE":"{app}/bin/forge-game.exe",
+                              "FORGE_NATIVE_GAME_CONTENT_ROOT":"{pack:reference-assets}",
+                              "FORGE_NATIVE_GAME_SESSION_ROOT":"{user}/game-sessions",
                               "FORGE_MODULE_ASSET_ROOT":f"{data}/scene",
                               "FORGE_MODULE_ASSET_CATALOG":"static-assets.json",
                               "FORGE_MODULE_ASSET_CATALOG_SHA256":digest(assets / "data/scene/static-assets.json")},
-                         clear_env_prefixes=["FORGE_AUTHORING_","FORGE_TIDEWATER_","FORGE_MODULE_ASSET_","WEBVIEW2_"])},
+                         clear_env_prefixes=["FORGE_AUTHORING_","FORGE_TIDEWATER_","FORGE_NATIVE_GAME_","FORGE_MODULE_ASSET_","WEBVIEW2_"])},
                    required_packs=[dict(id=p["id"],manifest_sha256=p["manifest_sha256"],kind=p["kind"])
                                    for p in (asset_entry,module_entry)], optional_packs=["asset-library"],
                    authoring_seed=dict(pack_id="reference-module",path="workspace"))

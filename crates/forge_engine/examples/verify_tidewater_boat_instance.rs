@@ -243,6 +243,7 @@ fn tick(app: &mut App) {
 fn placement(package: &BoatPackage) -> Result<ManualPlacement, String> {
     let prepared = PreparedBoat::from_package(package, boat::asset_id())?;
     Ok(ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("boat-actual-instance-proof"),
         name: "Bateau éditable".into(),

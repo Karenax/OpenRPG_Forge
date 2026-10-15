@@ -11,7 +11,9 @@ use bevy::render::render_resource::{
     TexelCopyBufferInfo, TexelCopyBufferLayout, TexelCopyTextureInfo, TextureAspect,
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
 };
-use bevy::render::renderer::{RenderAdapterInfo, RenderDevice, RenderQueue};
+use bevy::render::renderer::RenderAdapterInfo;
+#[cfg(not(target_arch = "wasm32"))]
+use bevy::render::renderer::{RenderDevice, RenderQueue};
 #[cfg(not(target_arch = "wasm32"))]
 use std::{
     borrow::Cow,

@@ -71,6 +71,8 @@ pub mod cloud_controller;
 pub mod gameplay;
 #[cfg(feature = "physics-rapier")]
 mod governed_asset_kit;
+#[cfg(all(feature = "physics-rapier", not(target_arch = "wasm32")))]
+pub mod native_gameplay;
 #[cfg(feature = "physics-rapier")]
 pub mod navigation;
 pub mod ocean_spectrum;
@@ -88,6 +90,11 @@ mod shadow_quality;
 pub mod source_local_lights;
 #[cfg(feature = "physics-rapier")]
 pub mod source_mesh_pipeline;
+pub mod source_particle_compute;
+pub mod source_particle_frame;
+pub mod source_particle_host;
+pub mod source_particle_host_input;
+pub mod source_particle_transport;
 pub mod spray_budget;
 pub mod sun_cascades;
 mod temporal_lod;
@@ -196,6 +203,7 @@ pub mod source_graph_glb;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene;
 pub mod source_graph_scene_geometry;
+pub mod source_graph_scene_textures;
 mod weather;
 
 #[cfg(feature = "physics-rapier")]

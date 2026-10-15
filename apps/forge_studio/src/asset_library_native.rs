@@ -9,6 +9,7 @@ use crate::asset_library_protocol::{
 };
 use serde_json::Value;
 mod history;
+mod particle_transport;
 mod physics_transport;
 use sha2::{Digest, Sha256};
 use std::{
@@ -27,7 +28,7 @@ const MAX_ID: usize = 512;
 const MAX_QUERY: usize = 256;
 const MAX_THUMBNAIL: u64 = 512 * 1024;
 const MAX_MODEL: u64 = crate::asset_library_model_wire::MAX_MODEL_BYTES as u64;
-const MAX_SOURCE_SUPPORT: u64 = 128 * 1024 * 1024;
+const MAX_SOURCE_SUPPORT: u64 = 256 * 1024 * 1024;
 const DEFAULT_LIMIT: usize = 24;
 const MAX_LIMIT: usize = 48;
 const SOURCE_SUPPORT_REGISTRY: &str = "metadata/asset-source-support-registry.v1.json";
@@ -2210,6 +2211,99 @@ mod tests {
         }
         let _ = fs::remove_dir_all(root);
     }
+    #[test]
+    #[ignore = "Requires an explicit private Vault and selected source IDs JSON"]
+    fn live_selected_source_support() {
+        let root = std::env::var("OPENRPG_ASSET_VAULT")
+            .expect("OPENRPG_ASSET_VAULT must name the authorized private Vault");
+        let selection = std::env::var("OPENRPG_ASSET_VERIFY_IDS_JSON")
+            .expect("OPENRPG_ASSET_VERIFY_IDS_JSON must name the selected IDs JSON");
+        let ids: Vec<String> = serde_json::from_slice(
+            &fs::read(selection).expect("selected IDs JSON must be readable"),
+        )
+        .expect("selection must be a JSON array of source IDs");
+        assert!(!ids.is_empty());
+        assert_eq!(ids.iter().collect::<BTreeSet<_>>().len(), ids.len());
+        let mut library = Library::new(Path::new(&root)).unwrap();
+        let mut images = 0;
+        for id in &ids {
+            let LibraryResponse::Page { page } = library
+                .execute(LibraryRequest::Search {
+                    query: LibraryQuery {
+                        text: id.clone(),
+                        availability: "source_support".into(),
+                        limit: MAX_LIMIT,
+                        ..LibraryQuery::default()
+                    },
+                })
+                .unwrap()
+            else {
+                panic!("selected source search must return a page");
+            };
+            let card = page.assets.iter().find(|card| card.id == *id).unwrap();
+            let LibraryResponse::Details { detail } = library
+                .execute(LibraryRequest::Details {
+                    id: id.clone(),
+                    revision: page.revision.clone(),
+                })
+                .unwrap()
+            else {
+                panic!("selected source must return verified details");
+            };
+            assert_eq!(detail.card.id, *id);
+            assert_eq!(detail.card.availability, "source_support");
+            assert!(!detail.card.runtime_qualified);
+            assert!(detail.model_path.is_none());
+            assert!(detail.source_path.is_some());
+            assert!(!detail.license.is_empty());
+            let LibraryResponse::Page { page: filtered } = library
+                .execute(LibraryRequest::Search {
+                    query: LibraryQuery {
+                        text: id.clone(),
+                        pack: card.pack.clone(),
+                        family: card.family.clone(),
+                        asset_type: card.asset_type.clone(),
+                        subtype: card.subtype.clone(),
+                        availability: "source_support".into(),
+                        limit: MAX_LIMIT,
+                        ..LibraryQuery::default()
+                    },
+                })
+                .unwrap()
+            else {
+                panic!("source filters must return a page");
+            };
+            assert!(filtered.assets.iter().any(|card| card.id == *id));
+            if card.has_thumbnail {
+                let LibraryResponse::Thumbnail { bytes } = library
+                    .execute(LibraryRequest::Thumbnail {
+                        id: id.clone(),
+                        revision: page.revision.clone(),
+                    })
+                    .unwrap()
+                else {
+                    panic!("selected preview must return image bytes");
+                };
+                assert!(bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+                images += 1;
+            }
+            assert!(
+                library
+                    .execute(LibraryRequest::Model {
+                        id: id.clone(),
+                        revision: page.revision,
+                    })
+                    .is_err(),
+                "a preserved source must not become a placement model"
+            );
+        }
+        eprintln!(
+            "Selected private sources checked: {} details and filters, {} previews, no placement models",
+            ids.len(),
+            images
+        );
+    }
+
     #[test]
     #[ignore = "Requires OPENRPG_ASSET_VAULT pointing to the real private asset library"]
     fn live_source_support_catalog() {

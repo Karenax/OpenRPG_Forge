@@ -101,6 +101,7 @@ pub struct SourceGraphGlbProgram {
     pub original_disabled_passes: Vec<String>,
     /// Exact serialized importer settings, including unresolved -1 defaults.
     pub original_texture_imports: Vec<SourceGraphTexture>,
+    pub scene_textures: Vec<forge_assets::source_graph_bundle::SourceGraphSceneTexture>,
     normal_decode_modes: [Option<SourceGraphNormalDecodeMode>; 8],
     captured_images: Option<Vec<SourceGraphImportedTexture>>,
     scalar_parameters:
@@ -185,19 +186,80 @@ impl SourceGraphGlbProgram {
     /// Device support is checked before mutation. Rendering/source parity and
     /// original camera, time and disabled pass routing remain host responsibilities.
     pub fn register_captured_images(
+        self,
+        shaders: &mut Assets<Shader>,
+        registry: &mut SourceGraphShaderRegistry,
+        image_assets: &mut Assets<Image>,
+        render_device: &RenderDevice,
+        source: SourceGraphUniforms,
+    ) -> Result<SourceGraphMaterial, &'static str> {
+        if !self.scene_textures.is_empty() {
+            return Err("Required scene textures need explicit admitted bindings");
+        }
+        self.register_images(
+            shaders,
+            registry,
+            image_assets,
+            render_device,
+            source,
+            Vec::new(),
+        )
+    }
+
+    /// Borrow admitted scene handles beside owned captured authored images.
+    /// Validation/rollback never allocates or removes the borrowed images.
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "Existing image registration context plus opaque scene admission"
+    )]
+    pub fn register_captured_images_with_scene(
+        self,
+        shaders: &mut Assets<Shader>,
+        registry: &mut SourceGraphShaderRegistry,
+        image_assets: &mut Assets<Image>,
+        render_device: &RenderDevice,
+        source: SourceGraphUniforms,
+        scene: &crate::source_graph_scene_textures::SourceGraphSceneTextureBindings,
+    ) -> Result<SourceGraphMaterial, &'static str> {
+        let handles = scene.for_program(&self.scene_textures, image_assets)?;
+        self.register_images(
+            shaders,
+            registry,
+            image_assets,
+            render_device,
+            source,
+            handles,
+        )
+    }
+
+    #[allow(
+        clippy::too_many_arguments,
+        reason = "Atomic ownership-aware image registration transaction"
+    )]
+    fn register_images(
         mut self,
         shaders: &mut Assets<Shader>,
         registry: &mut SourceGraphShaderRegistry,
         image_assets: &mut Assets<Image>,
         render_device: &RenderDevice,
         mut source: SourceGraphUniforms,
+        scene: Vec<(usize, Handle<Image>)>,
     ) -> Result<SourceGraphMaterial, &'static str> {
         let prepared = self
             .captured_images
             .take()
             .ok_or("GLB has no captured image batch")?;
-        if prepared.len() != self.program.required_texture_count {
+        if prepared.len() + scene.len() != self.program.required_texture_count {
             return Err("Captured image batch binding count differs");
+        }
+        if self.scene_textures.iter().any(|d| {
+            d.format
+                == forge_assets::source_graph_bundle::SourceGraphSceneTextureFormat::Rgba32Float
+        }) && !render_device
+            .features()
+            .contains(wgpu::Features::FLOAT32_FILTERABLE)
+        {
+            return Err("Scene Float32 image requires enabled FLOAT32_FILTERABLE");
         }
         if prepared
             .iter()
@@ -210,11 +272,20 @@ impl SourceGraphGlbProgram {
         }
         source.normal_decode_modes = normal_decode_uniforms(self.normal_decode_modes);
         let scalar_parameters = self.scalar_parameters.take();
-        let handles: Vec<_> = prepared
+        let mut handles: Vec<_> = prepared
             .into_iter()
             .map(|image| image_assets.add(image.into_unqualified_image()))
             .collect();
         let created: Vec<_> = handles.iter().map(Handle::id).collect();
+        for (slot, handle) in scene {
+            if slot != handles.len() {
+                for id in created {
+                    image_assets.remove(id);
+                }
+                return Err("Scene image slots are not dense after authored images");
+            }
+            handles.push(handle);
+        }
         let result =
             register_source_graph_material(shaders, registry, self.program, source, handles);
         if result.is_err() {
@@ -245,6 +316,9 @@ impl SourceGraphGlbProgram {
             return Err(
                 "Captured storage requires register_captured_images; external PNG handles are forbidden",
             );
+        }
+        if !self.scene_textures.is_empty() {
+            return Err("Required scene textures need captured registration");
         }
         source.normal_decode_modes = normal_decode_uniforms(self.normal_decode_modes);
         register_source_graph_material(shaders, registry, self.program, source, images)
@@ -363,7 +437,7 @@ pub fn source_graph_program_from_glb(
         write_depth: state.write_depth,
     };
     forward_state.validate().map_err(str::to_owned)?;
-    let captured_images = if matches!(contract.schema_version, 3..=6) {
+    let captured_images = if matches!(contract.schema_version, 3..=7) {
         Some(
             contract
                 .textures
@@ -385,7 +459,7 @@ pub fn source_graph_program_from_glb(
             shaders,
             forward_index: 0,
             prepass_index: 1,
-            required_texture_count: contract.textures.len(),
+            required_texture_count: contract.texture_binding_count(),
             forward_state,
             original_transparent: state.transparent,
             original_alpha_test: state.alpha_test,
@@ -395,6 +469,7 @@ pub fn source_graph_program_from_glb(
         original_render_queue: state.render_queue,
         original_disabled_passes: state.disabled_passes.clone(),
         original_texture_imports: contract.textures.clone(),
+        scene_textures: contract.scene_textures.clone(),
         normal_decode_modes: contract.normal_decode_modes,
         captured_images,
         scalar_parameters: contract
@@ -429,6 +504,7 @@ mod normal_binding_tests {
             },
             libraries: vec![],
             textures: vec![],
+            scene_textures: vec![],
             state: SourceGraphPipelineState {
                 color_write_mask: None,
                 color_blend: [1, 0],
@@ -514,6 +590,7 @@ mod normal_binding_tests {
             },
             libraries: vec![],
             textures: vec![],
+            scene_textures: vec![],
             state: SourceGraphPipelineState {
                 color_write_mask: None,
                 color_blend: [1, 0],
@@ -577,6 +654,7 @@ mod color_mask_transport_tests {
             },
             libraries: vec![],
             textures: vec![],
+            scene_textures: vec![],
             state: SourceGraphPipelineState {
                 color_write_mask: mask,
                 color_blend: [5, 10],

@@ -62,6 +62,7 @@ pub fn prepare_tree_promotion(
             placement_id,
         },
         ManualPlacement {
+            particles: None,
             physics: None,
             id: placement_id,
             name,

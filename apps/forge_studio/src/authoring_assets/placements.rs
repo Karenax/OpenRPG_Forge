@@ -37,6 +37,7 @@ struct Prepared {
     placements: Vec<ManualPlacement>,
     assets: BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, bool)>,
     physics: BTreeMap<forge_core::EntityId, super::source_graph_physics::SourcePhysicsPayload>,
+    particles: BTreeMap<forge_core::EntityId, super::source_graph_particles::SourceParticlePayload>,
 }
 enum Request {
     Clear,
@@ -419,6 +420,8 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
         }
     }
     let mut physics = BTreeMap::new();
+    let mut particles = BTreeMap::new();
+    let mut particle_cache = BTreeMap::new();
     for placement in &placements {
         if let Some(pin) = &placement.physics {
             if !source_keys.contains(&(placement.asset_id, placement.asset_hash)) {
@@ -432,11 +435,40 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
             .await?;
             physics.insert(placement.id, payload);
         }
+        if let Some(pin) = &placement.particles {
+            if !source_keys.contains(&(placement.asset_id, placement.asset_hash)) {
+                return Err("Le paquet d’effet sauvegardé exige son porteur source".into());
+            }
+            let key = (
+                placement.asset_id,
+                placement.asset_hash,
+                pin.manifest_sha256,
+                pin.package_sha256,
+            );
+            let payload = if let Some(payload) = particle_cache.get(&key) {
+                Clone::clone(payload)
+            } else {
+                let payload = super::vault::saved_particles_for_model(
+                    placement.asset_id,
+                    placement.asset_hash,
+                    pin,
+                )
+                .await?;
+                total += payload.wire.len();
+                if total > 256 * 1024 * 1024 {
+                    return Err("Budget de fichiers placements et effets dépassé (256 Mio)".into());
+                }
+                particle_cache.insert(key, payload.clone());
+                payload
+            };
+            particles.insert(placement.id, payload);
+        }
     }
     Ok(Prepared {
         placements,
         assets,
         physics,
+        particles,
     })
 }
 
@@ -640,6 +672,7 @@ impl Projection {
                     root,
                     carrier.clone(),
                     prepared.physics.remove(&placement.id),
+                    prepared.particles.remove(&placement.id),
                 );
             }
             self.objects.push(Object {

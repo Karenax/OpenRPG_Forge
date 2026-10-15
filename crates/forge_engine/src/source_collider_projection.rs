@@ -1,8 +1,6 @@
 //! Disposable source collider children beneath the existing placement hierarchy.
 //! Contact policy is an explicit caller input, never inferred from render LODs.
 use crate::{source_colliders, source_graph_scene::SourceGraphNode};
-#[cfg(target_arch = "wasm32")]
-use bevy::ecs as bevy_ecs;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
     ColliderDisabled, CollisionGroups, ContactSkin, Friction, Restitution, Sensor, SolverGroups,

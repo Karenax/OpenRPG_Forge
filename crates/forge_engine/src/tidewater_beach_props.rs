@@ -725,6 +725,7 @@ mod tests {
             .into_iter()
             .enumerate()
             .map(|(ordinal, template)| ManualPlacement {
+                particles: None,
                 physics: None,
                 id: EntityId::deterministic(format!("beach-common-{ordinal}")),
                 name: template.kind,

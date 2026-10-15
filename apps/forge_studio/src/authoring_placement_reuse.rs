@@ -18,7 +18,8 @@ pub(super) fn retained<'a>(
     let target = &desired[index];
     (source.asset_id == target.asset_id
         && source.asset_hash == target.asset_hash
-        && source.physics == target.physics)
+        && source.physics == target.physics
+        && source.particles == target.particles)
         .then_some(target)
 }
 
@@ -50,6 +51,7 @@ mod tests {
     fn same_carrier_rebuilds_for_changed_physics_but_retains_authoring_edits() {
         use forge_project::zone_authoring::placements::PhysicsPackageReference;
         let source = ManualPlacement {
+            particles: None,
             id: EntityId::deterministic("physical-reuse-object"),
             name: "Collision conservée".into(),
             asset_id: AssetId::deterministic("physical-reuse-asset"),
@@ -135,6 +137,7 @@ mod tests {
     #[test]
     fn reuse_preserves_identity_but_never_substitutes_asset_pins() {
         let source = ManualPlacement {
+            particles: None,
             physics: None,
             id: EntityId::deterministic("reuse-object"),
             name: "Objet".into(),

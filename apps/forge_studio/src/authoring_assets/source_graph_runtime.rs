@@ -8,12 +8,15 @@ use super::{
     source_graph_lod,
 };
 use bevy::{ecs as bevy_ecs, prelude::*};
+use leptos::prelude::Callable;
 use std::collections::BTreeMap;
 
 #[derive(Resource, Clone, Copy)]
 pub(super) struct SourceClock {
     pub current_seconds: f32,
     pub previous_seconds: f32,
+    pub delta_seconds: f32,
+    pub sequence: u64,
 }
 #[derive(Clone, Copy)]
 pub(super) struct RuntimePolicy {
@@ -37,6 +40,8 @@ impl RuntimePolicy {
 struct Resident {
     host: SourceSceneHost,
     policy: RuntimePolicy,
+    particle_input: forge_engine::source_particle_host_input::HostedParticleInput,
+    input_error: Option<String>,
 }
 #[derive(Resource, Default)]
 pub(super) struct SourceSceneResidents {
@@ -73,7 +78,7 @@ fn viewport_lod_camera(world: &mut World) -> Result<source_graph_lod::LodCamera,
 /// Do not remove borrowed assets or cache entries from Assets explicitly.
 pub(super) fn retain(
     world: &mut World,
-    host: SourceSceneHost,
+    mut host: SourceSceneHost,
     policy: RuntimePolicy,
 ) -> Result<(), String> {
     world.init_resource::<SourceSceneResidents>();
@@ -82,18 +87,25 @@ pub(super) fn retain(
         .scenes
         .contains_key(&host.root)
     {
+        host.release_particle_instances(world);
         return Err("A source host already owns this render root".into());
     }
     if world
         .get::<super::source_graph_scene::SourceSceneAttached>(host.root)
         .is_none()
     {
+        host.release_particle_instances(world);
         return Err("Source root is not attached".into());
     }
-    world
-        .resource_mut::<SourceSceneResidents>()
-        .scenes
-        .insert(host.root, Resident { host, policy });
+    world.resource_mut::<SourceSceneResidents>().scenes.insert(
+        host.root,
+        Resident {
+            host,
+            policy,
+            particle_input: Default::default(),
+            input_error: None,
+        },
+    );
     Ok(())
 }
 
@@ -108,6 +120,7 @@ pub(super) fn release(world: &mut World, root: Entity) -> usize {
         return 0;
     };
     let count = resident.host.remove_colliders(world);
+    resident.host.release_particle_instances(world);
     if let Ok(mut entity) = world.get_entity_mut(root) {
         entity.remove::<SourceFrameStatus>();
     }
@@ -121,6 +134,7 @@ pub(super) fn update(world: &mut World) {
     }
     let clock = world.get_resource::<SourceClock>().copied();
     let camera = viewport_lod_camera(world);
+    let particle_camera = current_particle_camera(world);
     world.resource_scope(|world, residents: Mut<SourceSceneResidents>| {
         let mut residents = residents;
         residents.scenes.retain(|root, resident| {
@@ -129,30 +143,47 @@ pub(super) fn update(world: &mut World) {
                 // Clear surviving owned children too, including a child that
                 // lost its parent before the root disappeared.
                 resident.host.remove_colliders(world);
+                resident.host.release_particle_instances(world);
                 return false;
             }
-            let result = clock
-                .ok_or_else(|| "Explicit source viewport clock unavailable".to_owned())
-                .and_then(|clock| resident.policy.frame(clock))
-                .and_then(|frame| resident.host.update_runtime_frame(world, &frame))
-                .and_then(|_| {
-                    if resident
-                        .host
-                        .original_state
-                        .as_ref()
-                        .is_some_and(|state| !state.lod_groups.is_empty())
-                    {
-                        resident
-                            .host
-                            .update_lod(world, camera.as_ref().map_err(Clone::clone)?)?;
+            resident.host.invalidate_particle_frames(world);
+            let result = resident.input_error.as_ref().map_or_else(
+                || {
+                    if !resident.host.particle_instances.is_empty() {
+                        let (pose, clip) = particle_camera.as_ref().map_err(Clone::clone)?;
+                        resident.host.update_particle_frames(
+                            world,
+                            resident.policy.source_absolute_world_from_target_world,
+                            *pose,
+                            *clip,
+                        )?;
                     }
-                    Ok(())
-                });
+                    clock
+                        .ok_or_else(|| "Explicit source viewport clock unavailable".to_owned())
+                        .and_then(|clock| resident.policy.frame(clock))
+                        .and_then(|frame| resident.host.update_runtime_frame(world, &frame))
+                        .and_then(|_| {
+                            if resident
+                                .host
+                                .original_state
+                                .as_ref()
+                                .is_some_and(|state| !state.lod_groups.is_empty())
+                            {
+                                resident
+                                    .host
+                                    .update_lod(world, camera.as_ref().map_err(Clone::clone)?)?;
+                            }
+                            Ok(())
+                        })
+                },
+                |error| Err(error.clone()),
+            );
             match result {
                 Ok(_) => {
                     world.entity_mut(*root).insert(SourceFrameStatus::Updated);
                 }
                 Err(error) => {
+                    resident.host.cancel_particle_frames(world);
                     world
                         .entity_mut(*root)
                         .insert((Visibility::Hidden, SourceFrameStatus::Refused(error)));
@@ -161,6 +192,32 @@ pub(super) fn update(world: &mut World) {
             true
         });
     });
+}
+
+fn current_particle_camera(world: &mut World) -> Result<(Mat4, Mat4), String> {
+    let views:Vec<_>=world.query_filtered::<(Entity,&Camera),forge_engine::tidewater_sky::preview::SceneCameraFilter>()
+        .iter(world).filter(|(_,camera)|camera.is_active).map(|(entity,_)|entity).collect();
+    if views.len() != 1 {
+        return Err("Exactly one current particle viewport camera required".into());
+    }
+    let entity = views[0];
+    if world.get::<Camera3d>(entity).is_none()
+        || world
+            .get::<bevy::render::camera::TemporalJitter>(entity)
+            .is_some()
+    {
+        return Err("Particle viewport requires a current non-jittered 3D camera".into());
+    }
+    let camera = world.get::<Camera>(entity).unwrap();
+    let pose = world
+        .get::<GlobalTransform>(entity)
+        .ok_or("Current particle camera transform absent")?
+        .to_matrix();
+    let clip = camera.clip_from_view();
+    if camera.physical_viewport_size().is_none() {
+        return Err("Current particle camera viewport not computed".into());
+    }
+    Ok((pose, clip))
 }
 
 #[cfg(test)]
@@ -218,6 +275,8 @@ mod tests {
             original_state: None,
             object_basis: None,
             source_document: serde_json::json!({}),
+            carrier_sha256: forge_core::bytes_sha256(b"fixture"),
+            particle_instances: Vec::new(),
             // Include a foreign record as a negative ownership control. The
             // real projection clear must preserve its differently owned child.
             collider_projection: Some(ColliderProjection {
@@ -275,18 +334,93 @@ mod tests {
 fn capture_viewport_clock(time: Res<Time>, mut clock: ResMut<SourceClock>) {
     clock.current_seconds = time.elapsed_secs();
     clock.previous_seconds = time.elapsed_secs() - time.delta_secs();
+    clock.delta_seconds = time.delta_secs();
+    clock.sequence = clock.sequence.wrapping_add(1);
+}
+
+/// Runs before owner Update systems, so this explicit delta reaches the same frame.
+fn forward_particle_inputs(world: &mut World) {
+    let clock = world.get_resource::<SourceClock>().copied();
+    let controls = super::source_graph_particles::take_controls();
+    world.resource_scope(|world, residents: Mut<SourceSceneResidents>| {
+        let mut residents = residents;
+        for control in controls {
+            let root = match control.target {
+                super::source_graph_particles::ControlTarget::Preview => {
+                    super::source_graph_preview::current_root(world)
+                }
+                super::source_graph_particles::ControlTarget::Placement(id) => {
+                    let roots: Vec<_> = world
+                        .query::<(Entity, &forge_engine::ManualPlacementProjection)>()
+                        .iter(world)
+                        .filter(|(entity, placement)| {
+                            placement.0.id == id && residents.scenes.contains_key(entity)
+                        })
+                        .map(|(entity, _)| entity)
+                        .collect();
+                    if roots.len() == 1 {
+                        Some(roots[0])
+                    } else {
+                        None
+                    }
+                }
+            };
+            let result = (|| {
+                let resident = residents
+                    .scenes
+                    .get_mut(&root.ok_or("Effet chargé introuvable")?)
+                    .ok_or("Effet chargé introuvable")?;
+                if resident.host.particle_instances.is_empty() {
+                    return Err("Cet objet ne contient pas d’effet chargé".into());
+                }
+                if let Some(error) = &resident.input_error {
+                    return Err(error.clone());
+                }
+                resident.particle_input.push_event(control.event)
+            })();
+            control.reply.run(result);
+        }
+        for (root, resident) in &mut residents.scenes {
+            if resident.host.particle_instances.is_empty() || resident.input_error.is_some() {
+                continue;
+            }
+            let result = clock
+                .ok_or("Horloge explicite de scène indisponible".to_owned())
+                .and_then(|clock| {
+                    resident.particle_input.advance(
+                        world,
+                        &resident.host.particle_instances,
+                        clock.sequence,
+                        clock.delta_seconds,
+                    )
+                });
+            if let Err(error) = result {
+                resident.input_error = Some(error.clone());
+                if let Ok(mut entity) = world.get_entity_mut(*root) {
+                    entity.insert((Visibility::Hidden, SourceFrameStatus::Refused(error)));
+                }
+            }
+        }
+    });
 }
 pub(super) fn register(app: &mut App) {
     app.insert_resource(SourceLodBias(1.0));
     app.insert_resource(SourceClock {
         current_seconds: 0.,
         previous_seconds: 0.,
+        delta_seconds: 0.,
+        sequence: 0,
     });
     app.init_resource::<SourceSceneResidents>();
     app.add_systems(
+        PreUpdate,
+        (capture_viewport_clock, forward_particle_inputs).chain(),
+    );
+    app.add_systems(
         PostUpdate,
-        (capture_viewport_clock, update)
-            .chain()
-            .after(bevy::transform::TransformSystems::Propagate),
+        update
+            .after(bevy::transform::TransformSystems::Propagate)
+            .after(bevy::camera::CameraUpdateSystems)
+            .before(forge_engine::source_particle_compute::SourceParticleProjectionUpdate),
     );
 }

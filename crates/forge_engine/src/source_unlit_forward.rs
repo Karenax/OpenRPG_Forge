@@ -81,6 +81,8 @@ impl SourceUnlitForwardExtension {
         let mut textures = images.into_iter().map(Some).chain(std::iter::repeat(None));
         let bindings = SourceGraphExtension {
             program_key: SourceGraphKey {
+                requires_source_state: false,
+                source_state_ready: false,
                 requires_native_srgb_encoder: false,
                 native_srgb_encoder_ready: false,
                 requires_deferred_srgb: false,
@@ -104,6 +106,8 @@ impl SourceUnlitForwardExtension {
             },
             original_alpha_to_mask: false,
             source,
+            source_state: super::source_state_buffer::unused_source_state_handle(),
+            source_state_admitted: false,
             scalars,
             diffuse_probe: crate::source_graph::SourceGraphDiffuseProbeUniforms::default(),
             native_srgb_thresholds: None,
@@ -256,6 +260,7 @@ pub type SourceUnlitForwardMaterial =
 pub struct SourceUnlitForwardPlugin;
 impl Plugin for SourceUnlitForwardPlugin {
     fn build(&self, app: &mut App) {
+        super::source_state_buffer::install_unused_state_asset(app);
         app.add_plugins(MaterialPlugin::<SourceUnlitForwardMaterial>::default());
     }
 }

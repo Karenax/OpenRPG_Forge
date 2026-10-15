@@ -31,6 +31,7 @@ impl OwnedPhysics {
 struct Record {
     carrier: Arc<[u8]>,
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<super::source_graph_particles::SourceParticlePayload>,
     owned_nodes: Vec<Entity>,
     pose: Option<Mat4>,
     contacts: Option<PhysicsSceneSettings>,
@@ -53,6 +54,7 @@ pub(super) fn submit(
     root: Entity,
     carrier: Arc<[u8]>,
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<super::source_graph_particles::SourceParticlePayload>,
 ) {
     commands.queue(move |world: &mut World| {
         if world.get_entity(root).is_err() {
@@ -69,6 +71,7 @@ pub(super) fn submit(
             Record {
                 carrier,
                 physics,
+                particles,
                 owned_nodes: Vec::new(),
                 pose: None,
                 contacts: None,
@@ -149,6 +152,9 @@ fn mount(
         .chain(host.attached.primitives.iter().copied())
         .collect::<Vec<_>>();
     let result = (|| {
+        if let Some(particles) = &record.particles {
+            particles.install(world, &mut host, &record.carrier)?;
+        }
         if let (Some(physics), Some(settings)) = (&record.physics, settings) {
             host.install_physics_package_with_settings(
                 world,
@@ -163,6 +169,7 @@ fn mount(
     })();
     if let Err(error) = result {
         host.remove_colliders(world);
+        host.release_particle_instances(world);
         for &entity in &owned {
             if entity != root && world.get_entity(entity).is_ok() {
                 world.despawn(entity);

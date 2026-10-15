@@ -487,19 +487,24 @@ fn background_bank_change_keeps_geometry_without_qualifying_stale_projection() {
     );
     assert_eq!(derived_bindings(&app), original);
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
-    while app
+    // Synchronize on the real worker before publishing its result. Repeated full
+    // app updates would recalculate the same bank constraints and fingerprints
+    // while competing with other terrain tests for the global compute pools.
+    while !app
         .world()
-        .resource::<TerrainLodProjectionStats>()
-        .projected_tier
-        .is_none()
+        .resource::<TerrainLodCache>()
+        .pending
+        .as_ref()
+        .expect("background preparation started")
+        .is_finished()
     {
         assert!(
             std::time::Instant::now() < deadline,
             "terrain background deadline"
         );
         std::thread::yield_now();
-        app.update();
     }
+    app.update();
     let stats = app.world().resource::<TerrainLodProjectionStats>();
     assert_eq!(stats.projected_tier, tier);
     assert_eq!(stats.bank_constrained_chunks, 1);

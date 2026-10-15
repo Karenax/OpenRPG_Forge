@@ -68,6 +68,11 @@ pub fn register_source_unlit_forward_material(
     if !artifact.source.contains("@vertex") || !artifact.source.contains("@fragment") {
         return Err("Forward entry stage is incomplete");
     }
+    if forge_assets::source_graph_bundle::stage_requires_state_buffer(&artifact.source)
+        .map_err(|_| "Source forward state declaration is not canonical")?
+    {
+        return Err("Resident source state requires the shared SourceGraph material profile");
+    }
     if texture_count(&artifact.source)? != program.required_texture_count {
         return Err("Source forward declarations differ from required image count");
     }

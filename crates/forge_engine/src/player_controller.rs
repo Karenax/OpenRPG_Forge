@@ -388,6 +388,46 @@ pub struct ForgePlayerCamera;
 #[derive(Clone, Resource)]
 struct PlayerRuntimeProfile(PlayerControllerProfileDocument);
 
+/// Reads the actual projected camera input gain for native replay adapters.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn look_sensitivity_radians(world: &World) -> Result<f32, String> {
+    let profile = world
+        .get_resource::<PlayerRuntimeProfile>()
+        .ok_or("Player input profile unavailable")?;
+    let sensitivity = profile
+        .0
+        .camera
+        .look_sensitivity_degrees_per_unit
+        .to_radians();
+    if !sensitivity.is_finite() || sensitivity <= 0.0 {
+        return Err("Invalid player look sensitivity".into());
+    }
+    Ok(sensitivity)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn walk_speed_mps(world: &World) -> Result<f32, String> {
+    let profile = world
+        .get_resource::<PlayerRuntimeProfile>()
+        .ok_or("Player input profile unavailable")?;
+    let speed = profile.0.controller.walk_speed_mps;
+    if !speed.is_finite() || speed <= 0.0 {
+        return Err("Invalid player walk speed".into());
+    }
+    Ok(speed)
+}
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn braking_mps2(world: &World) -> Result<f32, String> {
+    let profile = world
+        .get_resource::<PlayerRuntimeProfile>()
+        .ok_or("Player input profile unavailable")?;
+    let braking = profile.0.controller.braking_mps2;
+    if !braking.is_finite() || braking <= 0.0 {
+        return Err("Invalid player braking".into());
+    }
+    Ok(braking)
+}
+
 #[derive(Component, Debug)]
 struct PlayerMotionState {
     horizontal_velocity: Vec3,

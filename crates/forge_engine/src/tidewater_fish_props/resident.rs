@@ -548,6 +548,7 @@ mod tests {
                 .unwrap(),
         );
         let placement = ManualPlacement {
+            particles: None,
             physics: None,
             id: EntityId::deterministic("fish-resident-test"),
             name: "fish".into(),

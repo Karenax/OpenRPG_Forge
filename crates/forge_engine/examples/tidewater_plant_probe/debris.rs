@@ -252,6 +252,7 @@ fn stage(world: &mut World, input: &Input) -> Result<(), String> {
         .templates()
         .into_iter()
         .map(|template| ManualPlacement {
+            particles: None,
             physics: None,
             id: forge_core::EntityId::deterministic(format!(
                 "native-debris:{}",

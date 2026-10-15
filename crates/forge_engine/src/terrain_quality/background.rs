@@ -19,6 +19,13 @@ pub(super) struct Preparation {
     task: Task<PreparationOutput>,
 }
 
+#[cfg(test)]
+impl Preparation {
+    pub(super) fn is_finished(&self) -> bool {
+        self.task.is_finished()
+    }
+}
+
 pub(super) fn discard_completed(cache: &mut TerrainLodCache) {
     if cache
         .pending

@@ -22,6 +22,7 @@ def write(path, value):
 SOURCE_SCOPES = ['crates', 'apps', 'tools', 'third_party', 'scripts', 'examples',
                  'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo', '.gitignore',
                  '.github', 'deny.toml']
+MAX_VALIDATED_CARGO_BUILD_JOBS = 64
 
 
 def git_paths(source, *arguments, full_checkout=False):
@@ -127,11 +128,36 @@ def shared_build_environment(cache):
     return env
 
 
+def adopt_validated_cargo_jobs(environment, env):
+    """Copy only the authenticated receipt's bounded Cargo job intent."""
+    raw = environment.get('CARGO_BUILD_JOBS')
+    if (not isinstance(raw, str) or not raw.isascii() or
+            not raw.isdecimal()):
+        raise ValueError('Validated CARGO_BUILD_JOBS must be an ASCII decimal string')
+    jobs = int(raw)
+    if raw != str(jobs) or not 1 <= jobs <= MAX_VALIDATED_CARGO_BUILD_JOBS:
+        raise ValueError(
+            f'Validated CARGO_BUILD_JOBS must be between 1 and '
+            f'{MAX_VALIDATED_CARGO_BUILD_JOBS}')
+    # The caller records this same map in the adoption proof. Do not accept
+    # the receipt by merely dropping jobs from the environment comparison.
+    env['CARGO_BUILD_JOBS'] = str(jobs)
+    return str(jobs)
+
+
+def release_stage_command(validator, name):
+    for stage_name, command, cwd in validator.STAGES['release']:
+        if stage_name == name:
+            return command, cwd
+    raise ValueError(f'Validated release stage is absent: {name}')
+
+
 def validated_gate3_inputs(validator, evidence, stage, source_files, cache, env):
     """Adopt authenticated outputs; completed_receipt performs the common closure."""
     mode = 'wasm' if stage == 'prepare-frontend' else 'release'
     manifest, receipt = validator.completed_receipt(evidence, mode, source_files, cache)
     environment = receipt.get('build_environment', {})
+    adopt_validated_cargo_jobs(environment, env)
     keys = ('CARGO_TARGET_DIR', 'CARGO_BUILD_JOBS', 'CARGO_INCREMENTAL',
             'CARGO_NET_OFFLINE', 'RUSTFLAGS', 'CARGO_TERM_COLOR', 'NO_COLOR')
     if (manifest.get('build_environment') != environment or
@@ -151,17 +177,23 @@ def validated_gate3_inputs(validator, evidence, stage, source_files, cache, env)
         'frontend': frontend,
     }
     executable = None
-    if stage == 'studio':
-        executable = cache / 'release/forge-studio.exe'
+    if stage in ('studio', 'game'):
+        relative = ('release/forge-studio.exe' if stage == 'studio'
+                    else 'release/examples/tidewater_plant_probe.exe')
+        executable = cache / relative
         # completed_receipt verifies the exact release artifact inventory and
-        # its WASM/source/log chain. Retain that original pin in the adoption.
+        # its WASM/source/log chain. Retain the original artifact pin in the
+        # delivery adoption instead of rebuilding or copying a candidate.
         pin = next((pin for pin in receipt['artifacts']
                     if Path(pin['path']).resolve() == executable), None)
         if pin is None:
-            raise ValueError('Validated common Studio release artifact is absent')
-        links.update(artifact=pin,
-                     wasm_source_manifest_sha256=sha(evidence / 'wasm-source-manifest.json'),
-                     wasm_result_sha256=sha(evidence / 'wasm-result.json'))
+            label = 'Studio' if stage == 'studio' else 'native game'
+            raise ValueError(f'Validated common {label} release artifact is absent')
+        links.update(artifact=pin)
+        if stage == 'studio':
+            links.update(
+                wasm_source_manifest_sha256=sha(evidence / 'wasm-source-manifest.json'),
+                wasm_result_sha256=sha(evidence / 'wasm-result.json'))
     return executable, pins, links, environment
 
 
@@ -174,8 +206,8 @@ def shared_rebuild(args):
     if args.stage == 'reuse-launcher':
         raise ValueError('reuse-launcher is disabled; it does not rebuild the shared applications')
     validated_evidence = getattr(args, 'validated_gate3_evidence', None)
-    if validated_evidence and args.stage not in ('prepare-frontend', 'studio'):
-        raise ValueError('--validated-gate3-evidence adopts only the canonical frontend and Studio release')
+    if validated_evidence and args.stage not in ('prepare-frontend', 'studio', 'game'):
+        raise ValueError('--validated-gate3-evidence adopts only the canonical frontend, Studio, or game release')
     if args.frontend_assets or args.previous_build:
         raise ValueError('Shared builds use the canonical Trunk asset hook, not candidate inputs')
     if not args.cache:
@@ -262,7 +294,7 @@ def shared_rebuild(args):
             else:
                 # Share the validator's exact Cargo target/features/profile and
                 # canonical config, without running the source-rewriting Tauri CLI.
-                _, command, cwd = validator.STAGES['release'][-1]
+                command, cwd = release_stage_command(validator, 'studio-release')
                 run(command, cwd, 'shared-studio-native-build')
                 executable = cache / 'release/forge-studio.exe'
             if frontend_inputs(frontend) != pins:
@@ -273,17 +305,26 @@ def shared_rebuild(args):
                      'profile': 'release',
                      'configuration': 'canonical Studio; native release; Trunk release'})
         else:
-            env.pop('RUSTFLAGS', None)
-            run(['cargo', 'rustc', '-p', 'forge_engine', '--example', 'tidewater_plant_probe',
-                 '--locked', '--offline', '-j', '1',
-                 '--config', 'profile.dev.package.forge_engine.opt-level=3',
-                 '--config', 'profile.dev.package.forge_engine.debug=0',
-                 '--config', 'profile.dev.package.forge_engine.debug-assertions=false',
-                 '--', '-C', 'opt-level=3', '-C', 'debuginfo=0', '-C', 'debug-assertions=off'],
-                source, 'shared-game-native-build')
-            executable = cache / 'debug/examples/tidewater_plant_probe.exe'
-            extra = {'configuration': 'Cargo dev SDK; engine and native example optimized at level 3',
-                     'workspace_dependencies_of_game_built_from_shared_sources': True}
+            if adopted:
+                executable, pins, links, _ = adopted
+                extra = {'validated_gate3': links, 'adopted_verified_output': True,
+                         'frontend': str(frontend), 'frontend_pins': pins,
+                         'profile': 'release',
+                         'configuration': 'validated common native game release'}
+                if frontend_inputs(frontend) != pins:
+                    raise ValueError('Canonical frontend changed during native game adoption')
+            else:
+                env.pop('RUSTFLAGS', None)
+                run(['cargo', 'rustc', '-p', 'forge_engine', '--example', 'tidewater_plant_probe',
+                     '--locked', '--offline', '-j', '1',
+                     '--config', 'profile.dev.package.forge_engine.opt-level=3',
+                     '--config', 'profile.dev.package.forge_engine.debug=0',
+                     '--config', 'profile.dev.package.forge_engine.debug-assertions=false',
+                     '--', '-C', 'opt-level=3', '-C', 'debuginfo=0', '-C', 'debug-assertions=off'],
+                    source, 'shared-game-native-build')
+                executable = cache / 'debug/examples/tidewater_plant_probe.exe'
+                extra = {'configuration': 'Cargo dev SDK; engine and native example optimized at level 3',
+                         'workspace_dependencies_of_game_built_from_shared_sources': True}
         if executable:
             regular_input(cache, executable)
         if adopted:

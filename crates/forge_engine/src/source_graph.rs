@@ -55,6 +55,9 @@ pub use source_program::{SourceGraphMaterialProgram, register_source_graph_mater
 #[path = "source_graph_scalars.rs"]
 mod source_scalars;
 pub use source_scalars::SourceGraphScalarUniforms;
+#[path = "source_graph_state_buffer.rs"]
+mod source_state_buffer;
+pub use source_state_buffer::SourceGraphStateBufferBinding;
 #[path = "source_graph_diffuse_probe.rs"]
 mod source_diffuse_probe;
 pub use source_diffuse_probe::{SOURCE_GRAPH_DIFFUSE_PROBE_WGSL, SourceGraphDiffuseProbeUniforms};
@@ -185,6 +188,8 @@ pub struct SourceGraphUniforms {
     reason = "Independent authored coverage, color and scene resource flags are retained in the pipeline key"
 )]
 pub struct SourceGraphKey {
+    pub requires_source_state: bool,
+    pub source_state_ready: bool,
     pub requires_native_srgb_encoder: bool,
     pub native_srgb_encoder_ready: bool,
     pub requires_deferred_srgb: bool,
@@ -221,6 +226,11 @@ pub struct SourceGraphExtension {
     pub original_alpha_to_mask: bool,
     #[uniform(100)]
     pub source: SourceGraphUniforms,
+    /// GPU state remains owned by its producer; no per-particle CPU projection.
+    #[storage(130, read_only)]
+    source_state: Handle<bevy::render::storage::ShaderBuffer>,
+    #[reflect(ignore)]
+    source_state_admitted: bool,
     /// Additional declaration-ordered values for programs with runtime properties.
     #[uniform(120)]
     pub scalars: SourceGraphScalarUniforms,
@@ -279,6 +289,7 @@ pub struct SourceGraphExtension {
 impl From<&SourceGraphExtension> for SourceGraphKey {
     fn from(value: &SourceGraphExtension) -> Self {
         SourceGraphKey {
+            source_state_ready: value.source_state_admitted,
             original_alpha_to_mask: value.original_alpha_to_mask,
             native_srgb_encoder_ready: value.native_srgb_validated
                 && value.native_srgb_thresholds.is_some()
@@ -327,6 +338,9 @@ impl SourceGraphExtension {
     /// Reject required scene resources before mutating any frame clocks.
     /// Content SHA is checked by the opaque table constructor, not inferred here.
     pub fn validate_scene_dependencies(&self, images: &Assets<Image>) -> Result<(), &'static str> {
+        if self.program_key.requires_source_state && !self.source_state_admitted {
+            return Err("Required source state buffer is not bound");
+        }
         source_srgb_runtime::validate_extension(self, images)?;
         if self.program_key.requires_deferred_srgb && self.deferred_srgb_lookup.is_none() {
             return Err("Required deferred sRGB lookup is absent");
@@ -435,6 +449,8 @@ impl SourceGraphExtension {
             sky_cube: None,
             sky_cube_binding: None,
             source,
+            source_state: source_state_buffer::unused_source_state_handle(),
+            source_state_admitted: false,
             texture_0: textures.next().unwrap(),
             texture_1: textures.next().unwrap(),
             texture_2: textures.next().unwrap(),
@@ -559,8 +575,9 @@ impl MaterialExtension for SourceGraphExtension {
         layout: &MeshVertexBufferLayoutRef,
         key: MaterialExtensionKey<Self>,
     ) -> Result<(), SpecializedMeshPipelineError> {
-        if (key.bind_group_data.requires_native_srgb_encoder
-            && !key.bind_group_data.native_srgb_encoder_ready)
+        if (key.bind_group_data.requires_source_state && !key.bind_group_data.source_state_ready)
+            || (key.bind_group_data.requires_native_srgb_encoder
+                && !key.bind_group_data.native_srgb_encoder_ready)
             || (key.bind_group_data.requires_deferred_srgb
                 && !key.bind_group_data.deferred_srgb_ready)
             || (key.bind_group_data.requires_preintegrated_brdf
@@ -719,6 +736,7 @@ pub type SourceGraphMaterial = ExtendedMaterial<SourceGraphPhaseMaterial, Source
 pub struct SourceGraphPlugin;
 impl Plugin for SourceGraphPlugin {
     fn build(&self, app: &mut App) {
+        source_state_buffer::install_unused_state_asset(app);
         bevy::shader::load_shader_library!(app, "source_graph_srgb_encode.wgsl");
         app.init_resource::<source_srgb_runtime::NativeSrgbRuntime>();
         app.add_systems(Last, source_srgb_runtime::ensure_native_srgb_bindings);
@@ -1016,6 +1034,8 @@ mod ten_texture_binding_tests {
     use super::*;
     fn key() -> SourceGraphKey {
         SourceGraphKey {
+            requires_source_state: false,
+            source_state_ready: false,
             requires_native_srgb_encoder: false,
             native_srgb_encoder_ready: false,
             requires_deferred_srgb: false,
@@ -1057,6 +1077,30 @@ mod ten_texture_binding_tests {
             source_scale_mip_min: Vec4::ONE,
             normal_decode_modes: [Vec4::splat(-1.0); 2],
         }
+    }
+
+    #[test]
+    fn required_state_never_becomes_ready_without_an_admitted_buffer() {
+        let mut k = key();
+        k.requires_source_state = true;
+        let mut extension =
+            SourceGraphExtension::from_source_bindings(k, source(), 0, vec![]).unwrap();
+        let images = Assets::<Image>::default();
+        assert!(extension.validate_scene_dependencies(&images).is_err());
+        assert!(!SourceGraphKey::from(&extension).source_state_ready);
+        let mut buffers = Assets::<bevy::render::storage::ShaderBuffer>::default();
+        let handle = buffers.add(bevy::render::storage::ShaderBuffer::new(
+            &[0; 32],
+            bevy::asset::RenderAssetUsages::default(),
+        ));
+        let binding = SourceGraphStateBufferBinding::new(handle, &buffers).unwrap();
+        extension.set_source_state_buffer(&binding);
+        assert!(SourceGraphKey::from(&extension).source_state_ready);
+        extension.validate_source_state_buffer(&buffers).unwrap();
+        extension.validate_scene_dependencies(&images).unwrap();
+        extension.clear_source_state_buffer();
+        assert!(!SourceGraphKey::from(&extension).source_state_ready);
+        assert!(extension.validate_source_state_buffer(&buffers).is_err());
     }
     fn images(n: usize) -> Vec<Handle<Image>> {
         (0..n)

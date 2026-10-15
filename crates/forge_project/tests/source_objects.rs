@@ -15,6 +15,7 @@ fn session() -> ZoneEditSession {
 
 fn source() -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("generic-source-object"),
         name: "Generic source object".into(),

@@ -4,6 +4,11 @@
 use forge_core::{ContentHash, bytes_sha256};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
+#[path = "source_graph_bundle/scene_textures.rs"]
+mod scene_textures;
+pub use scene_textures::{
+    SourceGraphSceneTexture, SourceGraphSceneTextureDimensions, SourceGraphSceneTextureFormat,
+};
 #[path = "source_graph_bundle/imported_storage.rs"]
 mod imported_storage;
 pub use imported_storage::{
@@ -38,7 +43,7 @@ pub const SOURCE_GRAPH_MAX_TEXTURES: usize = SOURCE_GRAPH_TEXTURE_BINDINGS.len()
 pub const fn source_graph_texture_capacity(schema_version: u32) -> Option<usize> {
     match schema_version {
         2..=5 => Some(7),
-        6 => Some(SOURCE_GRAPH_MAX_TEXTURES),
+        6 | 7 => Some(SOURCE_GRAPH_MAX_TEXTURES),
         _ => None,
     }
 }
@@ -106,6 +111,8 @@ pub struct SourceGraphMaterialContract {
     pub prepass: SourceGraphBlob,
     pub libraries: Vec<SourceGraphBlob>,
     pub textures: Vec<SourceGraphTexture>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub scene_textures: Vec<SourceGraphSceneTexture>,
     pub state: SourceGraphPipelineState,
     pub requires_original_vertex_color: bool,
     /// Unknown source packing stays None until independently qualified.
@@ -155,6 +162,7 @@ pub enum SourceGraphContractError {
     PipelineState,
     UnqualifiedNormalDecode,
     ScalarParameters,
+    SceneTexture,
     ImportedStorage(SourceGraphImportedStorageError),
 }
 
@@ -201,6 +209,9 @@ pub(crate) fn validate_texture_integrity(
         }
         storage
             .validate(views)
+            .map_err(SourceGraphContractError::ImportedStorage)?;
+        storage
+            .validate_bound_source(views, texture.png.sha256, texture.source_meta_sha256)
             .map_err(SourceGraphContractError::ImportedStorage)?;
         let srgb = matches!(
             storage.format,
@@ -277,9 +288,69 @@ pub const SOURCE_GRAPH_SKY_CUBE_DECLARATION: &str = "@group(#{MATERIAL_BIND_GROU
 pub const SOURCE_GRAPH_SKY_SAMPLER_DECLARATION: &str =
     "@group(#{MATERIAL_BIND_GROUP}) @binding(124) var source_sky_cube_sampler:sampler;";
 
+/// Transient source state supplied by the host, never an implicit GLB default.
+/// The compiler owns record layout; this shared binding only transports words.
+pub const SOURCE_GRAPH_STATE_BUFFER_DECLARATION: &str =
+    "@group(#{MATERIAL_BIND_GROUP}) @binding(130) var<storage,read> source_state:array<vec4<u32>>;";
+
+/// Admit only the shared read-only state ABI and reject conflicting declarations.
+/// Absence means no state dependency; it never supplies a zero-filled substitute.
+pub fn stage_requires_state_buffer(source: &str) -> Result<bool, SourceGraphContractError> {
+    let mut seen = false;
+    for line in source.lines().map(str::trim) {
+        if line.starts_with("//") {
+            continue;
+        }
+        if line.contains("@binding(")
+            && (line.contains("source_state")
+                || line.contains("@binding(130)")
+                || (line.contains("@group(#{MATERIAL_BIND_GROUP})")
+                    && line.contains("var<storage")))
+        {
+            if seen || line != SOURCE_GRAPH_STATE_BUFFER_DECLARATION {
+                return Err(SourceGraphContractError::TextureLayout);
+            }
+            seen = true;
+        }
+    }
+    Ok(seen)
+}
+
+#[cfg(test)]
+mod source_state_layout_tests {
+    use super::*;
+
+    #[test]
+    fn source_state_is_explicit_and_does_not_change_texture_count() {
+        assert!(!stage_requires_state_buffer("// @binding(130) source_state").unwrap());
+        assert!(stage_requires_state_buffer(SOURCE_GRAPH_STATE_BUFFER_DECLARATION).unwrap());
+        assert_eq!(
+            stage_texture_count(SOURCE_GRAPH_STATE_BUFFER_DECLARATION).unwrap(),
+            0
+        );
+    }
+
+    #[test]
+    fn state_buffer_aliases_writable_types_and_duplicate_bindings_are_rejected() {
+        for changed in [
+            SOURCE_GRAPH_STATE_BUFFER_DECLARATION.replace("storage,read", "storage,read_write"),
+            SOURCE_GRAPH_STATE_BUFFER_DECLARATION.replace("130", "129"),
+            SOURCE_GRAPH_STATE_BUFFER_DECLARATION.replace("vec4<u32>", "vec4<f32>"),
+            SOURCE_GRAPH_STATE_BUFFER_DECLARATION.replace("#{MATERIAL_BIND_GROUP}", "0"),
+            format!(
+                "{SOURCE_GRAPH_STATE_BUFFER_DECLARATION}\n{SOURCE_GRAPH_STATE_BUFFER_DECLARATION}"
+            ),
+        ] {
+            assert!(stage_requires_state_buffer(&changed).is_err());
+            assert!(stage_texture_count(&changed).is_err());
+        }
+    }
+}
+
 /// Canonical authored slots and explicit scene resources, shared with runtime
 /// registration. Scene resources never contribute to the authored slot count.
 pub fn stage_texture_count(source: &str) -> Result<usize, SourceGraphContractError> {
+    stage_requires_state_buffer(source)?;
     let mut count = 0;
     let mut samplers = 0;
     let mut native_srgb_seen = false;
@@ -379,7 +450,8 @@ mod ten_texture_layout_tests {
             assert_eq!(source_graph_texture_capacity(schema), Some(7));
         }
         assert_eq!(source_graph_texture_capacity(6), Some(10));
-        assert_eq!(source_graph_texture_capacity(7), None);
+        assert_eq!(source_graph_texture_capacity(7), Some(10));
+        assert_eq!(source_graph_texture_capacity(8), None);
         assert_eq!(
             &SOURCE_GRAPH_TEXTURE_BINDINGS[..7],
             &[
@@ -559,10 +631,11 @@ impl SourceGraphMaterialContract {
     /// Check referenced bytes and native binding ABI before constructing assets.
     /// Callers must also qualify original import settings, frames and uniforms.
     pub fn validate_integrity(&self, views: &[&[u8]]) -> Result<(), SourceGraphContractError> {
+        self.validate_scene_textures()?;
         let texture_capacity = source_graph_texture_capacity(self.schema_version)
             .ok_or(SourceGraphContractError::Schema)?;
         if (self.schema_version == 2 && self.textures.iter().any(|t| t.imported_storage.is_some()))
-            || (matches!(self.schema_version, 3..=6)
+            || (matches!(self.schema_version, 3..=7)
                 && self.textures.iter().any(|t| t.imported_storage.is_none()))
         {
             return Err(SourceGraphContractError::Schema);
@@ -573,7 +646,7 @@ impl SourceGraphMaterialContract {
         {
             return Err(SourceGraphContractError::Schema);
         }
-        if self.textures.len() > texture_capacity || self.libraries.len() > 16 {
+        if self.texture_binding_count() > texture_capacity || self.libraries.len() > 16 {
             return Err(SourceGraphContractError::TextureLayout);
         }
         for stage in [&self.forward, &self.prepass] {
@@ -588,7 +661,7 @@ impl SourceGraphMaterialContract {
             {
                 return Err(SourceGraphContractError::InvalidShader);
             }
-            if stage_texture_count(source)? != self.textures.len() {
+            if stage_texture_count(source)? != self.texture_binding_count() {
                 return Err(SourceGraphContractError::TextureLayout);
             }
         }
@@ -676,6 +749,7 @@ mod normal_decode_tests {
             },
             libraries: vec![],
             textures: vec![],
+            scene_textures: vec![],
             state: SourceGraphPipelineState {
                 color_write_mask: None,
                 color_blend: [1, 0],
@@ -721,6 +795,7 @@ mod normal_decode_tests {
             },
             libraries: vec![],
             textures: vec![],
+            scene_textures: vec![],
             state: SourceGraphPipelineState {
                 color_write_mask: None,
                 color_blend: [1, 0],

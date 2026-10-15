@@ -148,6 +148,7 @@ struct Fixture {
 }
 #[derive(Resource)]
 struct Probe {
+    authored_archive: Option<Vec<u8>>,
     authored_start: Option<forge_project::zone_authoring::start::ZoneStart>,
     grass: Option<grass::Grass>,
     hill_heights: Option<hill_shadow::Input>,
@@ -753,6 +754,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         app.insert_resource(forge_engine::tidewater_wind::AcquiredFrame::reference()?);
     }
     app.insert_resource(Probe {
+        authored_archive: files.get("canonical-zone.json").cloned(),
         authored_start: files
             .get("canonical-zone.json")
             .map(|bytes| {

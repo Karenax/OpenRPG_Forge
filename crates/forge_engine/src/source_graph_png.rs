@@ -234,7 +234,7 @@ mod tests {
                     if c == 3 {
                         assert_eq!((value * 65535.0).round() as u16, source);
                     } else {
-                        let nonlinear = if value <= 0.0031308 {
+                        let nonlinear = if value <= 0.003_130_8 {
                             12.92 * value
                         } else {
                             1.055 * value.powf(1.0 / 2.4) - 0.055

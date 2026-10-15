@@ -614,6 +614,7 @@ mod tests {
         });
         let mut placements = (0..17)
             .map(|index| ManualPlacement {
+                particles: None,
                 physics: None,
                 id: EntityId::deterministic(format!("boardwalk-common-{index}")),
                 name: "Fixture boardwalk".into(),
@@ -700,6 +701,7 @@ mod tests {
         let mut moved = template.transform;
         moved.translation_m.x += 2.0;
         let placement = ManualPlacement {
+            particles: None,
             physics: None,
             id: EntityId::deterministic("boardwalk-authored-test"),
             name: "Passerelle déplacée".into(),

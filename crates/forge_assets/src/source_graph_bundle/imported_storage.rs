@@ -3,6 +3,11 @@
 use crate::source_graph_bundle::SourceGraphBlob;
 use forge_core::{ContentHash, bytes_sha256};
 use serde::{Deserialize, Serialize};
+#[path = "imported_storage/renderdoc.rs"]
+mod renderdoc;
+#[cfg(test)]
+#[path = "imported_storage/renderdoc_tests.rs"]
+mod renderdoc_tests;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ImportedStorageFormat {
@@ -13,6 +18,7 @@ pub enum ImportedStorageFormat {
     Bc4RUnorm,
     Rgb8Unorm,
     Rgba8Unorm,
+    Rgb10a2Unorm,
 }
 impl ImportedStorageFormat {
     fn layout(self) -> (u32, u64) {
@@ -20,7 +26,7 @@ impl ImportedStorageFormat {
             Self::Bc1RgbaUnorm | Self::Bc1RgbaUnormSrgb | Self::Bc4RUnorm => (4, 8),
             Self::Bc3RgbaUnorm | Self::Bc3RgbaUnormSrgb => (4, 16),
             Self::Rgb8Unorm => (1, 3),
-            Self::Rgba8Unorm => (1, 4),
+            Self::Rgba8Unorm | Self::Rgb10a2Unorm => (1, 4),
         }
     }
     fn native_name(self) -> &'static str {
@@ -32,6 +38,7 @@ impl ImportedStorageFormat {
             Self::Bc4RUnorm => "R_BC4_UNorm",
             Self::Rgb8Unorm => "R8G8B8_UNorm",
             Self::Rgba8Unorm => "R8G8B8A8_UNorm",
+            Self::Rgb10a2Unorm => "A2B10G10R10_UNormPack32",
         }
     }
 }
@@ -60,6 +67,9 @@ pub struct ImportedTextureStorage {
     /// Legacy schema 1 keeps its original capture and serialized shape.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub native_capture: Option<NativeCaptureIdentity>,
+    /// Immutable source/resource binding proof for original-frame mip exports.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_binding: Option<SourceGraphBlob>,
     pub schema_version: u32,
     pub storage: SourceGraphBlob,
     /// Entire original native capture JSON, not rewritten or stripped.
@@ -77,6 +87,8 @@ pub enum NativeCaptureProtocol {
     IsolatedReadableMips,
     #[serde(rename = "unity_native_gpu_mip_readback.v1")]
     GpuMipReadback,
+    #[serde(rename = "renderdoc_original_frame_mips.v1")]
+    RenderDocOriginalMips,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -108,8 +120,17 @@ impl ImportedTextureStorage {
     pub fn validate<'a>(&self, views: &'a [&[u8]]) -> Result<&'a [u8], StorageError> {
         if !matches!(
             (self.schema_version, self.native_capture.is_some()),
-            (1, false) | (2, true)
+            (1, false) | (2 | 3, true)
         ) {
+            return Err(StorageError::Schema);
+        }
+        let original_frame = self
+            .native_capture
+            .as_ref()
+            .is_some_and(|id| id.protocol == NativeCaptureProtocol::RenderDocOriginalMips);
+        if original_frame != (self.schema_version == 3)
+            || original_frame != self.source_binding.is_some()
+        {
             return Err(StorageError::Schema);
         }
         if self.width == 0
@@ -169,7 +190,7 @@ impl ImportedTextureStorage {
         let capture: serde_json::Value =
             serde_json::from_slice(capture).map_err(|_| StorageError::Capture)?;
         if let Some(identity) = &self.native_capture {
-            self.validate_native_capture(&capture, identity, data.len())?;
+            self.validate_native_capture(&capture, identity, data.len(), views)?;
             return Ok(data);
         }
         self.validate_legacy_capture(&capture, data.len())?;
@@ -244,6 +265,7 @@ impl ImportedTextureStorage {
         capture: &serde_json::Value,
         identity: &NativeCaptureIdentity,
         bytes: usize,
+        views: &[&[u8]],
     ) -> Result<(), StorageError> {
         use NativeCaptureProtocol::{GpuMipReadback, IsolatedReadableMips};
         let guid = &identity.source_guid;
@@ -253,6 +275,9 @@ impl ImportedTextureStorage {
                 .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
         {
             return Err(StorageError::Capture);
+        }
+        if identity.protocol == NativeCaptureProtocol::RenderDocOriginalMips {
+            return self.validate_renderdoc_capture(capture, views);
         }
         // Batch status is retained verbatim as diagnostic evidence. It may report
         // failures in other rows; storage integrity is determined by this row's
@@ -276,6 +301,7 @@ impl ImportedTextureStorage {
             return Err(StorageError::Capture);
         }
         match identity.protocol {
+            NativeCaptureProtocol::RenderDocOriginalMips => return Err(StorageError::Capture),
             IsolatedReadableMips => {
                 let before = row["settings_before"]
                     .as_str()
@@ -361,6 +387,7 @@ pub(crate) mod tests {
         let value = ImportedTextureStorage {
             schema_version: 1,
             native_capture: None,
+            source_binding: None,
             storage: SourceGraphBlob {
                 buffer_view: 0,
                 sha256: bytes_sha256(&data),
@@ -390,6 +417,53 @@ pub(crate) mod tests {
         let wire = serde_json::to_vec(&v).unwrap();
         let v: ImportedTextureStorage = serde_json::from_slice(&wire).unwrap();
         assert_eq!(v.validate(&[&d, &c]).unwrap(), d);
+    }
+    #[test]
+    fn rgb10a2_odd_extent_mips_keep_packing_identity_after_roundtrip() {
+        let (_, capture, mut value) = fixture();
+        let data: Vec<u8> = (0u32..18).flat_map(u32::to_le_bytes).collect();
+        value.width = 3;
+        value.height = 5;
+        value.format = ImportedStorageFormat::Rgb10a2Unorm;
+        value.storage.sha256 = bytes_sha256(&data);
+        value.mips = [(3, 5, 0, 60), (1, 2, 60, 8), (1, 1, 68, 4)]
+            .map(|(width, height, offset, bytes)| ImportedStorageMip {
+                width,
+                height,
+                offset,
+                bytes,
+                sha256: bytes_sha256(
+                    &data[usize::try_from(offset).unwrap()
+                        ..usize::try_from(offset + bytes).unwrap()],
+                ),
+            })
+            .to_vec();
+        let mut native: serde_json::Value = serde_json::from_slice(&capture).unwrap();
+        let row = &mut native["cases"][0];
+        row["width"] = 3.into();
+        row["height"] = 5.into();
+        row["raw_whole_bytes"] = 72.into();
+        row["graphics_format"] = "A2B10G10R10_UNormPack32".into();
+        row["mips"] = serde_json::json!([
+            {"level":0,"width":3,"height":5,"bytes":60},
+            {"level":1,"width":1,"height":2,"bytes":8},
+            {"level":2,"width":1,"height":1,"bytes":4}
+        ]);
+        let capture = serde_json::to_vec(&native).unwrap();
+        value.capture.sha256 = bytes_sha256(&capture);
+        let wire = serde_json::to_vec(&value).unwrap();
+        let reopened: ImportedTextureStorage = serde_json::from_slice(&wire).unwrap();
+        assert_eq!(reopened, value);
+        assert_eq!(reopened.validate(&[&data, &capture]).unwrap(), data);
+
+        // Swapping red/blue packing must remain a refusal after outer rehash.
+        native["cases"][0]["graphics_format"] = "A2R10G10B10_UNormPack32".into();
+        let swapped = serde_json::to_vec(&native).unwrap();
+        value.capture.sha256 = bytes_sha256(&swapped);
+        assert_eq!(
+            value.validate(&[&data, &swapped]),
+            Err(StorageError::Capture)
+        );
     }
     #[test]
     fn altered_mip_refuses_even_with_new_full_hash() {
@@ -470,6 +544,9 @@ mod native_protocol_tests {
         let mips:Vec<_>=value.mips.iter().enumerate().map(|(i,m)|serde_json::json!({"level":i,"width":m.width,"height":m.height,"bytes":m.bytes,"native_readback_ok":true,"error":""})).collect();
         let mut row = serde_json::json!({"guid":guid,"width":4,"height":4,"graphics_format":"R_BC4_UNorm","error":"","mips":mips});
         let fields = match protocol {
+            NativeCaptureProtocol::RenderDocOriginalMips => {
+                panic!("Original-frame exports use their separate capture fixture")
+            }
             NativeCaptureProtocol::IsolatedReadableMips => {
                 serde_json::json!({"settings_before":settings,"settings_restored":settings,"settings_restored_equal":true,"gpu_samples_bit_exact":true,"private_readability_override":true,"mip_count":3,"whole_bytes":24,"filter_mode":1,"wrap_u":1,"wrap_v":1,"wrap_w":1,"aniso":1,"mip_bias":0.0})
             }
@@ -508,6 +585,9 @@ mod native_protocol_tests {
             let (data, capture, mut value) = fixture(protocol);
             let mut raw: serde_json::Value = serde_json::from_slice(&capture).unwrap();
             match protocol {
+                NativeCaptureProtocol::RenderDocOriginalMips => {
+                    panic!("Original-frame exports use their separate capture fixture")
+                }
                 NativeCaptureProtocol::IsolatedReadableMips => {
                     raw["rows"][0]["settings_restored_equal"] = serde_json::json!(false);
                 }

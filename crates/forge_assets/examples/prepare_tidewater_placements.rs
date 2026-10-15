@@ -72,6 +72,7 @@ fn build_placements(
         };
         transform.validate()?;
         placements.push(ManualPlacement {
+            particles: None,
             physics: None,
             id: EntityId::deterministic(format!(
                 "{}:{}:{}",

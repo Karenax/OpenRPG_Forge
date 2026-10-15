@@ -10,6 +10,11 @@ use std::{
 
 pub const FILE_NAME: &str = "forge-studio.local.json";
 const MAX_BYTES: u64 = 65_536;
+const GAME_ENV_NAMES: [&str; 3] = [
+    "FORGE_NATIVE_GAME_EXECUTABLE",
+    "FORGE_NATIVE_GAME_CONTENT_ROOT",
+    "FORGE_NATIVE_GAME_SESSION_ROOT",
+];
 static CONFIGURATION: OnceLock<Result<Option<Configuration>, String>> = OnceLock::new();
 
 #[derive(Default, Deserialize)]
@@ -31,9 +36,55 @@ pub struct GameConfiguration {
 }
 
 pub fn game() -> Result<GameConfiguration, String> {
+    if let Some(game) = parse_game_override(
+        std::env::var_os(GAME_ENV_NAMES[0]),
+        std::env::var_os(GAME_ENV_NAMES[1]),
+        std::env::var_os(GAME_ENV_NAMES[2]),
+    )? {
+        return Ok(game);
+    }
     configuration()?
         .and_then(|c| c.game.clone())
         .ok_or_else(|| "Le jeu séparé n’est pas configuré près du Studio.".into())
+}
+
+fn parse_game_override(
+    executable: Option<OsString>,
+    content_root: Option<OsString>,
+    session_root: Option<OsString>,
+) -> Result<Option<GameConfiguration>, String> {
+    if executable.is_none() && content_root.is_none() && session_root.is_none() {
+        return Ok(None);
+    }
+    let (Some(executable), Some(content_root), Some(session_root)) =
+        (executable, content_root, session_root)
+    else {
+        return Err(format!(
+            "Configuration du jeu incomplète : fournir ensemble {}.",
+            GAME_ENV_NAMES.join(", ")
+        ));
+    };
+    let paths = [
+        PathBuf::from(executable),
+        PathBuf::from(content_root),
+        PathBuf::from(session_root),
+    ];
+    for (name, path) in GAME_ENV_NAMES.iter().zip(&paths) {
+        if path.as_os_str().is_empty() {
+            return Err(format!("Configuration du jeu : {name} est vide."));
+        }
+        if !path.is_absolute() {
+            return Err(format!(
+                "Configuration du jeu : {name} doit être un chemin absolu."
+            ));
+        }
+    }
+    let [executable, content_root, session_root] = paths;
+    Ok(Some(GameConfiguration {
+        executable,
+        content_root,
+        session_root,
+    }))
 }
 
 #[derive(Deserialize)]
@@ -165,6 +216,61 @@ pub fn module_inputs() -> Result<ModuleInputs, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn absolute_game_paths() -> [PathBuf; 3] {
+        let root = std::env::temp_dir().join("Forge installé · 世界");
+        [
+            root.join("bin/jeu séparé.exe"),
+            root.join("contenu référencé"),
+            root.join("sessions utilisateur"),
+        ]
+    }
+
+    #[test]
+    fn absent_game_override_leaves_the_profile_available() {
+        assert!(parse_game_override(None, None, None).unwrap().is_none());
+    }
+
+    #[test]
+    fn complete_game_override_preserves_all_absolute_unicode_paths() {
+        let [executable, content_root, session_root] = absolute_game_paths();
+        let game = parse_game_override(
+            Some(executable.clone().into_os_string()),
+            Some(content_root.clone().into_os_string()),
+            Some(session_root.clone().into_os_string()),
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(game.executable, executable);
+        assert_eq!(game.content_root, content_root);
+        assert_eq!(game.session_root, session_root);
+    }
+
+    #[test]
+    fn partial_game_overrides_cannot_be_completed_from_a_profile() {
+        let paths = absolute_game_paths();
+        for mask in 1_u8..7 {
+            let [executable, content_root, session_root] = std::array::from_fn(|index| {
+                (mask & (1 << index) != 0).then(|| paths[index].clone().into_os_string())
+            });
+            assert!(parse_game_override(executable, content_root, session_root).is_err());
+        }
+    }
+
+    #[test]
+    fn empty_or_relative_game_override_paths_are_rejected_by_name() {
+        for (index, name) in GAME_ENV_NAMES.into_iter().enumerate() {
+            for invalid in [OsString::new(), OsString::from("relative/game")] {
+                let mut inputs = absolute_game_paths().map(|path| Some(path.into_os_string()));
+                inputs[index] = Some(invalid);
+                let [executable, content_root, session_root] = inputs;
+                assert!(matches!(
+                    parse_game_override(executable, content_root, session_root),
+                    Err(error) if error.contains(name)
+                ));
+            }
+        }
+    }
 
     #[test]
     fn paths_are_relative_to_the_executable_not_the_shell() {

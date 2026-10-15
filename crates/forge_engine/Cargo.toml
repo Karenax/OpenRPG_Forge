@@ -51,6 +51,22 @@ wasm-bindgen-futures.workspace = true
 workspace = true
 
 [[example]]
+name = "verify_source_particle_compute"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_particle_timeline"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_graph_state_binding"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_graph_state_draw"
+required-features = ["private-source-fixtures"]
+
+[[example]]
 name = "verify_browser_source_glb_v114"
 crate-type = ["cdylib"]
 required-features = ["web", "private-source-fixtures"]

@@ -1,6 +1,6 @@
 //! Complete material projection using the viewport's common resident resources.
 use super::{State, imported_buildings};
-use bevy::{ecs as bevy_ecs, prelude::*};
+use bevy::prelude::*;
 use forge_engine::{
     tidewater_material::VillageMaterial,
     tidewater_ocean_depth::{self, SceneDepth},

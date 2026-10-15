@@ -18,6 +18,7 @@ fn reconciliation_preserves_manual_tree_across_regeneration_and_archives() {
         placement_id: EntityId::deterministic("reconciled-manual-tree"),
     };
     let placement = ManualPlacement {
+        particles: None,
         physics: None,
         id: origin.placement_id,
         name: "Retouche verrouillée".into(),

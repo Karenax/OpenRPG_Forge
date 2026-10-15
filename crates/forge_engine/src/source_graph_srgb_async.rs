@@ -1,16 +1,17 @@
 //! Generated GPU calibration advanced once per frame; no wait loop or file input.
 use super::source_srgb_curve::{NativeSrgbBoundaryWitness, NativeSrgbCurve, NativeSrgbDeviceKey};
+#[cfg(not(target_arch = "wasm32"))]
+use bevy::render::render_resource::PollType;
 use bevy::{
     platform::time::Instant,
     render::{
         render_resource::{
             BindGroupDescriptor, BindGroupEntry, BufferAsyncError, BufferDescriptor, BufferUsages,
             ColorTargetState, ColorWrites, CommandEncoderDescriptor, Extent3d, LoadOp, MapMode,
-            Operations, Origin3d, PollType, RawFragmentState, RawRenderPipelineDescriptor,
-            RawVertexState, RenderPassColorAttachment, RenderPassDescriptor,
-            ShaderModuleDescriptor, ShaderSource, StoreOp, TexelCopyBufferInfo,
-            TexelCopyBufferLayout, TexelCopyTextureInfo, TextureAspect, TextureDescriptor,
-            TextureDimension, TextureFormat, TextureUsages,
+            Operations, Origin3d, RawFragmentState, RawRenderPipelineDescriptor, RawVertexState,
+            RenderPassColorAttachment, RenderPassDescriptor, ShaderModuleDescriptor, ShaderSource,
+            StoreOp, TexelCopyBufferInfo, TexelCopyBufferLayout, TexelCopyTextureInfo,
+            TextureAspect, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         renderer::{RenderDevice, RenderQueue},
     },

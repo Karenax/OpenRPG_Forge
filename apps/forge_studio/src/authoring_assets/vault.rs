@@ -6,7 +6,9 @@ use forge_core::{AssetId, ContentHash};
 use leptos::prelude::*;
 use wasm_bindgen::{JsCast, JsValue};
 
+mod saved_particles;
 mod saved_physics;
+pub(super) use saved_particles::load_for_model as saved_particles_for_model;
 pub(crate) use saved_physics::SavedPhysicsDetails;
 pub(super) use saved_physics::load_for_model as saved_physics_for_model;
 
@@ -121,6 +123,58 @@ async fn physics_for_model(
         package_sha256,
     )?;
     Ok(Some(super::source_graph_physics::SourcePhysicsPayload {
+        wire: wire.into(),
+        carrier_sha256,
+        manifest_sha256,
+        package_sha256,
+    }))
+}
+
+async fn particles_for_model(
+    model: &LibraryModel,
+    revision: &str,
+    profile: &serde_json::Value,
+) -> Result<Option<super::source_graph_particles::SourceParticlePayload>, String> {
+    let Some(declaration) = profile.get("source_particle_package") else {
+        return Ok(None);
+    };
+    let pin = |key: &str| {
+        ContentHash::parse(
+            declaration[key]
+                .as_str()
+                .ok_or("Empreinte d’effet absente")?,
+        )
+        .map_err(|e| e.to_string())
+    };
+    let carrier_sha256 = pin("carrier_sha256")?;
+    if carrier_sha256 != model.sha256 {
+        return Err("Effet différent du modèle sélectionné".into());
+    }
+    let manifest_sha256 = pin("manifest_sha256")?;
+    let package_sha256 = pin("sha256")?;
+    let request = crate::asset_library_protocol::LibraryParticleRequest {
+        schema_version: 1,
+        id: model.id.clone(),
+        revision: revision.into(),
+        carrier_sha256,
+        manifest_sha256,
+        package_sha256,
+    };
+    let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let wire = read_wire_from(
+        "read_asset_particles",
+        &request,
+        forge_assets::source_particle_package::MAX_PACKAGE_BYTES,
+    )
+    .await?;
+    forge_assets::source_particle_package::SourceParticlePackage::decode_pinned(
+        &wire,
+        carrier_sha256,
+        manifest_sha256,
+        package_sha256,
+    )?
+    .resolve_for_carrier(&model.bytes)?;
+    Ok(Some(super::source_graph_particles::SourceParticlePayload {
         wire: wire.into(),
         carrier_sha256,
         manifest_sha256,
@@ -319,7 +373,8 @@ pub(crate) fn VaultActions(
             let result = async {
                 let model = self::selected(id.clone(), revision.clone()).await?;
                 let physics = physics_for_model(&model, &revision, &profile).await?;
-                Ok::<_, String>((model, physics))
+                let particles = particles_for_model(&model, &revision, &profile).await?;
+                Ok::<_, String>((model, physics, particles))
             }
             .await;
             let _ = working.try_set(false);
@@ -330,7 +385,7 @@ pub(crate) fn VaultActions(
             {
                 return;
             }
-            let (model, physics) = match result {
+            let (model, physics, particles) = match result {
                 Ok(model) => model,
                 Err(e) => {
                     let _ = status.try_set(format!("Modèle refusé : {e}"));
@@ -353,6 +408,16 @@ pub(crate) fn VaultActions(
                     return;
                 }
                 let reference = (model.asset_id, model.sha256);
+                let particle_pin = particles.as_ref().map(|payload| {
+                    Box::new(
+                        forge_project::zone_authoring::placements::ParticlePackageReference {
+                            schema_version: 1,
+                            carrier_sha256: payload.carrier_sha256,
+                            manifest_sha256: payload.manifest_sha256,
+                            package_sha256: payload.package_sha256,
+                        },
+                    )
+                });
                 // The regular projection reads this saved reference itself;
                 // never inject bytes into a second map or bypass Preview/Apply.
                 crate::authoring_brush_pointer::arm(
@@ -366,7 +431,7 @@ pub(crate) fn VaultActions(
                                 return Err("Zone modifiée ; recommencer le placement".into());
                             }
                             let point = *points?.first().ok_or("Cliquer le terrain")?;
-                            super::placement_controls::insertion::prepare(
+                            super::placement_controls::insertion::prepare_with_packages(
                                 &current,
                                 &name,
                                 reference,
@@ -378,6 +443,7 @@ pub(crate) fn VaultActions(
                                     },
                                 ),
                                 point,
+                                (None, particle_pin.clone()),
                             )
                         })();
                         bindings.send.run(request);
@@ -392,6 +458,7 @@ pub(crate) fn VaultActions(
                 model.id,
                 model.bytes,
                 physics,
+                particles,
             ) {
                 bindings
                     .status

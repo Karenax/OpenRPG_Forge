@@ -8,6 +8,7 @@ pub const SOURCE_SCALAR_CAPACITY: usize = 64;
 pub struct SourceMaterialScalarParameters {
     names: Vec<String>,
     values: [f32; SOURCE_SCALAR_CAPACITY],
+    words: std::collections::BTreeMap<usize, u32>,
 }
 
 impl SourceMaterialScalarParameters {
@@ -27,7 +28,27 @@ impl SourceMaterialScalarParameters {
             names.push(name);
             values[index] = value;
         }
-        Ok(Self { names, values })
+        Ok(Self {
+            names,
+            values,
+            words: std::collections::BTreeMap::new(),
+        })
+    }
+
+    /// Compiler-owned binary lanes use finite placeholders in the editable
+    /// scalar domain. Their exact words are restored only in the uniform ABI.
+    pub fn from_compiler_slots_and_words(
+        slots: Vec<(String, f32)>,
+        words: std::collections::BTreeMap<usize, u32>,
+    ) -> Result<Self, &'static str> {
+        let mut parameters = Self::from_compiler_slots(slots)?;
+        if words.keys().any(|index| {
+            *index >= parameters.names.len() || parameters.values[*index].to_bits() != 0
+        }) {
+            return Err("binary source lane must have a declared zero scalar placeholder");
+        }
+        parameters.words = words;
+        Ok(parameters)
     }
 
     #[must_use]
@@ -37,12 +58,17 @@ impl SourceMaterialScalarParameters {
 
     #[must_use]
     pub fn value(&self, name: &str) -> Option<f32> {
-        self.slot(name).map(|index| self.values[index])
+        self.slot(name)
+            .filter(|index| !self.words.contains_key(index))
+            .map(|index| self.values[index])
     }
 
     /// Update this material instance without changing slot order or another clone.
     pub fn set_value(&mut self, name: &str, value: f32) -> Result<(), &'static str> {
         let index = self.slot(name).ok_or("undeclared source scalar")?;
+        if self.words.contains_key(&index) {
+            return Err("compiler binary source lane is not an editable scalar");
+        }
         if !value.is_finite() {
             return Err("nonfinite source scalar override");
         }
@@ -53,7 +79,12 @@ impl SourceMaterialScalarParameters {
     #[must_use]
     pub fn vec4_lanes(&self) -> [[f32; 4]; 16] {
         std::array::from_fn(|lane| {
-            std::array::from_fn(|component| self.values[lane * 4 + component])
+            std::array::from_fn(|component| {
+                let index = lane * 4 + component;
+                self.words
+                    .get(&index)
+                    .map_or(self.values[index], |word| f32::from_bits(*word))
+            })
         })
     }
 
@@ -62,6 +93,9 @@ impl SourceMaterialScalarParameters {
         let mut bytes = [0_u8; 256];
         for (index, value) in self.values.iter().enumerate() {
             bytes[index * 4..index * 4 + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        for (index, word) in &self.words {
+            bytes[index * 4..index * 4 + 4].copy_from_slice(&word.to_le_bytes());
         }
         bytes
     }

@@ -505,6 +505,8 @@ mod tests {
             RenderAssetUsages::default(),
         ));
         let key = SourceGraphKey {
+            requires_source_state: false,
+            source_state_ready: false,
             requires_native_srgb_encoder: false,
             native_srgb_encoder_ready: false,
             requires_deferred_srgb: false,

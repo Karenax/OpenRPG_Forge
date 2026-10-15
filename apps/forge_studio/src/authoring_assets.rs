@@ -51,6 +51,7 @@ mod source_graph_intake;
 )]
 mod source_graph_lights;
 mod source_graph_lod;
+mod source_graph_particles;
 mod source_graph_physics;
 mod source_graph_placement;
 mod source_graph_preview;
@@ -296,6 +297,7 @@ pub(super) fn AssetBrowserControls(
                         <output aria-live="polite">{move || verification.get()}</output>
                         <button disabled=move || busy.get() on:click=move |_| show_preview(browser, selected, busy)>"Aperçu 3D temporaire"</button>
                         <button on:click=move |_| cancel_preview()>"Retirer l’aperçu / revenir à la carte"</button>
+                        <source_graph_particles::SourceParticleControls target=source_graph_particles::ControlTarget::Preview/>
                         <output aria-live="polite">{move || preview_output.get()}</output>
                     </section>
                 })

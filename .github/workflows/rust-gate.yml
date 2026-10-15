@@ -41,6 +41,8 @@ jobs:
         run: cargo test --workspace --all-targets --locked
       - name: Build native runtime
         run: cargo build --locked --release -p forge_runtime
+      - name: Build separate native game
+        run: cargo build --locked --release -p forge_engine --example tidewater_plant_probe
       - name: Build Studio shell without installer bundle
         working-directory: apps/forge_studio
         run: cargo tauri build --no-bundle

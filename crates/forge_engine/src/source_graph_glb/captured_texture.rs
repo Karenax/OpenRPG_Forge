@@ -39,6 +39,9 @@ pub fn prepare_captured_source_graph_texture(
         SourceGraphImportedStorageFormat::Rgba8Unorm => {
             SourceGraphImportedTextureFormat::Rgba8Unorm
         }
+        SourceGraphImportedStorageFormat::Rgb10a2Unorm => {
+            SourceGraphImportedTextureFormat::Rgb10a2Unorm
+        }
     };
     let mips = storage
         .mips

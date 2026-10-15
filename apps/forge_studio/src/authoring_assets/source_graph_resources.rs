@@ -214,7 +214,16 @@ pub(super) fn register_with_sampling(
                 disabled: program.original_disabled_passes.clone(),
             },
         );
-        programs.insert(index, program);
+        let scene_bindings = if program.scene_textures.is_empty() {
+            None
+        } else {
+            let inputs = world.get_resource::<forge_engine::source_graph_scene_textures::SourceGraphSceneTextureInputs>()
+                .ok_or("Required source scene image producer unavailable")?;
+            Some(forge_engine::source_graph_scene_textures::SourceGraphSceneTextureBindings::prepare(
+                &program.scene_textures, world.resource::<Assets<Image>>(), inputs.viewport, &inputs.images,
+            ).map_err(str::to_owned)?)
+        };
+        programs.insert(index, (program, scene_bindings));
     }
     // Decode all meshes before registration, preserving the same selected routes.
     let mut prepared_meshes = BTreeMap::new();
@@ -229,14 +238,23 @@ pub(super) fn register_with_sampling(
                 let mut images = world.resource_mut::<Assets<Image>>();
                 programs
                     .into_iter()
-                    .map(|(index, program)| {
+                    .map(|(index, (program, scene_bindings))| {
                         let context = uniforms
                             .iter()
                             .find(|((_, i), _)| *i == index)
                             .expect("Material instance exists")
                             .1
                             .clone();
-                        let material = if program.requires_captured_images() {
+                        let material = if let Some(scene) = scene_bindings {
+                            program.register_captured_images_with_scene(
+                                &mut shaders,
+                                &mut registry,
+                                &mut images,
+                                &device,
+                                context,
+                                &scene,
+                            )
+                        } else if program.requires_captured_images() {
                             program.register_captured_images(
                                 &mut shaders,
                                 &mut registry,

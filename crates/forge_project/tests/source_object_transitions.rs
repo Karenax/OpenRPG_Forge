@@ -24,6 +24,7 @@ fn session() -> ZoneEditSession {
 
 fn source() -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("source-door"),
         name: "Imported door".into(),
@@ -733,6 +734,7 @@ fn static_source_edits_do_not_block_imported_source_change_but_plant_edits_do() 
         .unwrap();
     plant_session.execute(&request).unwrap();
     let plant_source = ManualPlacement {
+        particles: None,
         physics: None,
         id: EntityId::deterministic("imported-plant-source"),
         name: "Imported plant".into(),

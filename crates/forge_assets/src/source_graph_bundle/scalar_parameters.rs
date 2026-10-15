@@ -9,6 +9,9 @@ pub struct SourceGraphScalarParameterContract {
     pub names: Vec<String>,
     /// Complete little-endian 16-vec4 ABI, including zero unused slots.
     pub values: SourceGraphBlob,
+    /// Compiler controls are transported as words and excluded from float edits.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub word_lanes: Vec<usize>,
 }
 
 impl SourceGraphMaterialContract {
@@ -33,7 +36,7 @@ impl SourceGraphMaterialContract {
         let Some(contract) = &self.scalar_parameters else {
             return Ok(None);
         };
-        if self.schema_version != 5
+        if !matches!(self.schema_version, 5 | 7)
             || contract.names.is_empty()
             || contract.names.len() > SOURCE_SCALAR_CAPACITY
             || contract.names.iter().any(|name| name.len() > 256)
@@ -44,6 +47,24 @@ impl SourceGraphMaterialContract {
         if bytes.len() != SOURCE_SCALAR_CAPACITY * 4 {
             return Err(SourceGraphContractError::ScalarParameters);
         }
+        let mut words = std::collections::BTreeMap::new();
+        for index in &contract.word_lanes {
+            if self.schema_version != 7
+                || *index >= contract.names.len()
+                || words.contains_key(index)
+            {
+                return Err(SourceGraphContractError::ScalarParameters);
+            }
+            let offset = index * 4;
+            words.insert(
+                *index,
+                u32::from_le_bytes(
+                    bytes[offset..offset + 4]
+                        .try_into()
+                        .expect("checked packet length"),
+                ),
+            );
+        }
         let slots = contract
             .names
             .iter()
@@ -52,16 +73,21 @@ impl SourceGraphMaterialContract {
                 let offset = index * 4;
                 (
                     name.clone(),
-                    f32::from_le_bytes(
-                        bytes[offset..offset + 4]
-                            .try_into()
-                            .expect("checked packet length"),
-                    ),
+                    if words.contains_key(&index) {
+                        0.0
+                    } else {
+                        f32::from_le_bytes(
+                            bytes[offset..offset + 4]
+                                .try_into()
+                                .expect("checked packet length"),
+                        )
+                    },
                 )
             })
             .collect();
-        let parameters = SourceMaterialScalarParameters::from_compiler_slots(slots)
-            .map_err(|_| SourceGraphContractError::ScalarParameters)?;
+        let parameters =
+            SourceMaterialScalarParameters::from_compiler_slots_and_words(slots, words)
+                .map_err(|_| SourceGraphContractError::ScalarParameters)?;
         // Reject nonfinite values, undeclared trailing values, and noncanonical padding.
         if parameters.little_endian_uniform_bytes().as_slice() != bytes {
             return Err(SourceGraphContractError::ScalarParameters);
@@ -77,6 +103,35 @@ mod tests {
 
     const STAGE: &[u8] =
         b"@group(#{MATERIAL_BIND_GROUP}) @binding(120) var<uniform> values:vec4<f32>;";
+    #[test]
+    fn compiler_binary_lanes_preserve_nan_shaped_words_without_float_edits() {
+        let mut packet = packet();
+        packet[4..8].copy_from_slice(&u32::MAX.to_le_bytes());
+        let mut material = contract(&packet);
+        material.schema_version = 7;
+        material.scalar_parameters.as_mut().unwrap().word_lanes = vec![1];
+        material.validate_integrity(&[STAGE, &packet]).unwrap();
+        let mut values = material
+            .read_scalar_parameters(&[STAGE, &packet])
+            .unwrap()
+            .unwrap();
+        assert_eq!(values.little_endian_uniform_bytes(), packet);
+        assert_eq!(values.vec4_lanes()[0][1].to_bits(), u32::MAX);
+        assert_eq!(values.value("measured_mask_g"), None);
+        assert!(values.set_value("measured_mask_g", 0.0).is_err());
+        material
+            .scalar_parameters
+            .as_mut()
+            .unwrap()
+            .word_lanes
+            .clear();
+        assert!(material.validate_integrity(&[STAGE, &packet]).is_err());
+        material.scalar_parameters.as_mut().unwrap().word_lanes = vec![1, 1];
+        assert!(material.validate_integrity(&[STAGE, &packet]).is_err());
+        material.scalar_parameters.as_mut().unwrap().word_lanes = vec![1];
+        material.schema_version = 5;
+        assert!(material.validate_integrity(&[STAGE, &packet]).is_err());
+    }
     fn contract(packet: &[u8]) -> SourceGraphMaterialContract {
         let hash = bytes_sha256(STAGE);
         serde_json::from_value(serde_json::json!({

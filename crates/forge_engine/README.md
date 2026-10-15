@@ -1,5 +1,143 @@
 # forge_engine
 
+`source_particle_compute` exécute les programmes de simulation admis dans le
+renderer Bevy partagé, avant les caméras. Son ABI conserve l'atlas RGBAHalf,
+le sampler, les 64 descripteurs de courbes et les buffers d'entrée/sortie GPU.
+Chaque requête est encodée une seule fois ; remplacer une requête avance la
+simulation, retirer son slot retire sa préparation. Aucun programme de pack,
+chemin disque, propriété auteur ou entité par particule n'est intégré au plugin.
+Le caller vérifie provenance et SHA avant admission ; les programmes et buffers
+restent des projections jetables, pas des documents auteur.
+
+Le statut `Encoded` confirme une commande GPU, pas sa complétion. Le vérificateur
+privé `verify_source_particle_compute` nécessite un manifeste externe épinglé
+et compare la lecture GPU aux octets attendus. Il utilise le checkout commun,
+sans incorporer de shaders ou données achetés au dépôt. Ce chemin de calcul ne
+qualifie pas l'émission complète, les matériaux, le rendu d'un effet ou sa
+disponibilité dans Studio ; ces raccords gardent leurs preuves propres.
+
+`SourceParticleComputeSequence` conserve deux buffers distincts et alterne leur
+rôle après chaque encodage réussi. Un pas en attente reste en attente ; une
+compilation ou une erreur ne publie aucun nouvel état. Le caller conserve son
+pas source tant que `submit_next` renvoie `false`. Le programme privé
+`verify_source_particle_timeline` suit plusieurs pas sans réinjecter d'états
+CPU et compare les readbacks estampillés aux références natives externes.
+Les propriétés résident dans les buffers ; seuls les paramètres de pas sont
+fournis entre les dispatches. Les références ne sont jamais des entrées GPU.
+
+`submit_ordered` regroupe les phases d'un même pas source dans le slot existant.
+Toutes leurs ressources et pipelines sont admis avant le premier dispatch ;
+la chaîne de buffers s'exécute dans l'ordre avant les caméras. Une compilation,
+une ressource absente ou une erreur bloque le groupe entier. La séquence ne
+publie que le buffer final après encodage de toutes les phases, sans réupload
+CPU. Ce mécanisme ne qualifie pas à lui seul un spawner ou un effet complet.
+
+`with_publication_buffer` configure avant la première soumission un troisième
+buffer GPU distinct. Son handle reste fixe pour les consommateurs de rendu ;
+seule la dernière phase admise y copie les octets déclarés. Le renderer vérifie
+la présence, les tailles et les usages de copie avant tout dispatch du groupe.
+Une compilation, une ressource absente ou une destination trop petite conserve
+la publication précédente. Les shaders ne changent pas et aucun état de
+particule ne repasse par le CPU. Cette publication est distincte d'une clôture
+GPU et du raccord automatique de la projection vertex aux matériaux de scène.
+
+`copy_input_prefix_from` ajoute une copie GPU admise avant le premier dispatch,
+en conservant le suffixe statique de l'entrée. `after_slot` impose une dépendance
+de producteur : l'ordre de rendu est topologique, indépendant des numéros de
+slots. Un producteur absent/en attente retient son consommateur ; son échec et
+les cycles sont refusés avant toute copie/dispatch concerné.
+
+`SourceParticleProjection` renouvelle la requête admise depuis la scène, après
+la mise à jour des propriétaires. Son entrée copie le préfixe publié, son shader
+projette la géométrie fournie et sa sortie fixe alimente le matériau déclaré.
+Le matériau n'est modifié que si son binding change. Le retrait du composant
+retire son slot ; les ressources partagées restent empruntées. Les programmes,
+layouts, coordonnées et tailles demeurent des admissions du caller ; ce plugin
+ne fabrique ni shader de pack ni géométrie et ne remplace pas le transport auteur.
+
+`register_source_particle_compute_program` admet un WGSL standalone avant
+mutation des assets : SHA-256, analyse et validation Naga, présence et stage
+de l'entrée compute, puis dimensions statiques du workgroup portable. Les
+imports Bevy, overrides et capacités optionnelles sont refusés dans ce profil.
+Un refus ne crée aucun shader ni pipeline device. Les requêtes bas niveau qui
+reçoivent un handle exigent toujours une admission par leur caller ; les
+bindings du programme et les ressources réelles gardent leurs propres contrôles.
+
+`SourceParticleEmitterSequence` associe une horloge source à une séquence GPU
+par propriétaire. Des événements et un delta produisent des commandes typées
+Reset/Allocate/Update que le caller abaisse vers son ABI source explicitement
+admis. L'horloge et le buffer publié ne changent qu'après encodage de toutes les
+phases ; ce commit reste distinct d'une complétion GPU. Un groupe en attente
+conserve son candidat ; un retour `false` laisse les nouveaux événements/delta
+à la charge du caller. Un échec conserve l'état précédemment publié. Ce raccord
+ne crée pas d'entité de scène et ne remplace pas un transport d'effet auteur.
+
+`SourceParticleSceneOwner` porte ce contrôleur sur une entité runtime. Son
+plugin opt-in traite des événements/deltas explicitement fournis, sans horloge
+implicite. Les frames restent en FIFO pendant l'attente GPU ; les compteurs
+soumis/terminés et l'état publié changent séparément. Un échec de lowering ou
+de shader conserve les entrées non soumises et l'état précédent. Des slots
+dupliqués sont refusés avant soumission. Un composant frais redémarre un owner
+échoué avec ses ressources nouvellement admises. Le retrait ou remplacement
+du composant retire ses jobs ; les assets empruntés ne sont pas supprimés.
+Le host demeure responsable des documents auteur, des données de projection
+vertex, des matériaux et du raccord aux placements Studio.
+
+Les programmes SourceGraph peuvent déclarer explicitement `source_state` en
+lecture seule sur la liaison130. `SourceGraphStateBufferBinding` admet un buffer
+résident de mots GPU complets ; le compilateur conserve la responsabilité du
+layout de ses records. Le matériau attend ce buffer quand le shader le demande,
+sans fournir de particules à zéro ni remplacer le programme source. Changer le
+buffer publié après un encodage conserve les valeurs sur le GPU ; cette liaison
+ne qualifie pas à elle seule le dessin, le matériau ou l'émission d'un effet.
+
+Le vérificateur privé `verify_source_graph_state_draw` admet un manifeste externe
+épinglé et projette ses attributs mesh natifs sans créer de modèle. Il dessine
+plusieurs checkpoints de la simulation résidente dans le renderer commun et
+conserve les readbacks d'état et d'image, y compris la disparition. Sa passe
+fragment diagnostique vérifie la couverture et le mouvement ; elle ne qualifie
+ni le matériau auteur, ni un effet complet, ni son accès dans Studio.
+Ses textures optionnelles passent par l'adapter de stockage importé existant :
+mipmaps complètes, formats BC/sRGB et samplers sont conservés. Le banc vérifie
+les identités de vues et samplers sur le véritable bind group ; les valeurs de
+surface affichées gardent leur qualification distincte de l'éclairage auteur.
+Le manifeste peut imposer le viewport natif pour comparer les mêmes pixels.
+
+Le même vérificateur accepte après les trois arguments habituels un deuxième
+manifeste et son SHA-256 : `manifest sha output companion_manifest companion_sha`.
+Les deux calendriers autonomes sont soumis avant l'attente GPU, dans des slots
+et des buffers distincts, puis leurs checkpoints sont dessinés séparément.
+Tous les paramètres hors calendrier doivent être identiques : ce banc partage
+le programme, les textures, la géométrie, le matériau et la caméra admis. Il
+refuse des ressources différentes plutôt que d'en déduire une adaptation.
+Les sorties sont séparées dans `owner-0`/`owner-1` ; les références natives sont
+exclusivement des contrôles CPU. Les buffers physiques sont comparés après
+chaque round. Cela qualifie les états/horloges/rendus des calendriers admis ;
+l'enregistrement sur des entités runtime, Studio et l'effet complet restent
+des raccords à vérifier séparément.
+Les captures ordinaires restent en Float16 ; une égalité de leurs valeurs ne
+prouve pas la parité Float32. Un programme diagnostique externe peut transporter
+les octets Float32 par des canaux dyadiques exactement représentables, puis le
+vérificateur réouvre ces bits sans les utiliser comme entrées du rendu.
+Le rapport enregistre l'API et l'adaptateur GPU réellement choisis, ainsi que
+les descripteurs des samplers liés. Les contrôles de surface doivent conserver
+cette identité : une égalité sous Direct3D 12 ne qualifie pas Vulkan ou WebGPU.
+Avec `readback_texture_mips`, le banc ajoute uniquement l'usage de copie aux
+textures diagnostiques et relit chaque mip sur le même device Bevy, sans
+régénération ni décompression. `diagnostic_lod_max_override` est réservé aux
+contrôles privés de borne LOD ; il ne modifie pas la politique produit.
+`diagnostic_anisotropy_override` permet aussi un contrôle privé explicite,
+borné aux valeurs supportées et au filtrage linéaire. Une parité dans le banc
+compute ne prouve pas celle du vertex réellement dessiné : attributs chargés,
+sorties transformées et interpolation conservent leurs contrôles distincts.
+Le manifeste privé peut aussi déclarer `vertex_projection` : un programme
+externe épinglé, un bank de1024 octets, une entrée compute et le nombre exact
+de vertices. Le mesh est chargé une fois en storage ; l'état source est copié
+sur le GPU avant le dispatch dans la file compute existante. Le buffer projeté
+conserve cet état en tête et alimente directement le matériau. Le banc vérifie
+l'écho des octets et l'identité du buffer lié ; il ne publie pas une qualification
+d'éclairage, d'émission ou de retouches à partir de cette projection seule.
+
 `source_mesh_colliders` relie les observations MeshCollider natives aux buffers
 de collision conservés dans les GLB. Il refuse les owners, identités, options
 de cuisson et politiques incohérents. Les non-convexes utilisent leurs triangles
@@ -870,3 +1008,10 @@ equivalence or render admission follows from successful preparation. Studio's
 source host can consume a pinned manifest and confined candidate resolver through
 `install_physics_transport`; the library loading path still needs to supply these
 inputs and receive its own runtime and visual verification.
+
+Source-graph captured textures also admit packed `rgb10a2_unorm` storage.
+The wire contract requires the source packing `A2B10G10R10_UNormPack32`;
+the Bevy adapter retains each original four-byte texel and mip in
+`TextureFormat::Rgb10a2Unorm`, without converting to RGBA8. Odd uncompressed
+extents remain legal. Packing identity, mip sizes and hashes are checked;
+accepting storage alone does not qualify GPU sampling or authored lighting.

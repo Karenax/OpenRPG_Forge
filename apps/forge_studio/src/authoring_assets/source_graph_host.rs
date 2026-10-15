@@ -22,6 +22,8 @@ pub(super) struct SourceSceneHost {
     pub original_state: Option<source_graph_state::StatePlan>,
     pub object_basis: Option<source_graph_context::ObjectBasis>,
     pub source_document: serde_json::Value,
+    pub carrier_sha256: forge_core::ContentHash,
+    pub particle_instances: Vec<forge_engine::source_particle_host::HostedSourceParticle>,
     pub collider_projection: Option<forge_engine::source_collider_projection::ColliderProjection>,
     pub collider_scene_projection:
         Option<forge_engine::source_collider_scene::ColliderSceneProjection>,
@@ -31,6 +33,128 @@ pub(super) struct SourceSceneHost {
 struct ShadowLayer(usize);
 
 impl SourceSceneHost {
+    pub fn invalidate_particle_frames(&self, world: &mut World) {
+        for instance in &self.particle_instances {
+            instance.invalidate_current_frame(world);
+        }
+    }
+    pub fn cancel_particle_frames(&self, world: &mut World) {
+        for instance in &self.particle_instances {
+            instance.cancel_current_frame(world);
+        }
+    }
+    pub fn update_particle_frames(
+        &self,
+        world: &mut World,
+        source_world: Mat4,
+        camera_world: Mat4,
+        clip_from_view: Mat4,
+    ) -> Result<(), String> {
+        if self.particle_instances.is_empty() {
+            return Ok(());
+        }
+        let basis = self
+            .object_basis
+            .ok_or("Declared source object basis unavailable")?;
+        let plans = self
+            .particle_instances
+            .iter()
+            .map(|instance| {
+                instance.prepare_current_scene_frame(
+                    world,
+                    source_world,
+                    basis.target_from_source,
+                    camera_world,
+                    clip_from_view,
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        for plan in plans {
+            plan.apply(world)?;
+        }
+        Ok(())
+    }
+    pub fn install_particle_package(
+        &mut self,
+        world: &mut World,
+        carrier: &[u8],
+        wire: &[u8],
+        expected: forge_core::ContentHash,
+        resources: &std::collections::BTreeMap<String, Vec<u8>>,
+        slots: &[(u64, u64)],
+    ) -> Result<(), String> {
+        if !self.particle_instances.is_empty() {
+            return Err("Source host already owns particle instances".into());
+        }
+        if forge_core::bytes_sha256(carrier) != self.carrier_sha256 {
+            return Err("Particle carrier differs from attached host".into());
+        }
+        let package =
+            forge_assets::source_particle_transport::SourceParticleTransport::decode_for_carrier(
+                wire,
+                expected,
+                carrier,
+                |name| {
+                    resources
+                        .get(name)
+                        .cloned()
+                        .ok_or("Particle package resource absent".into())
+                },
+            )?;
+        if slots.len() != package.contract.owners.len() {
+            return Err("Particle host slot count differs".into());
+        }
+        let mut plans = Vec::new();
+        for declaration in &package.contract.owners {
+            let node = *self
+                .attached
+                .nodes
+                .get(&declaration.source_node)
+                .ok_or("Particle source node not attached")?;
+            let material = self
+                .registered
+                .bindings
+                .source_materials
+                .get(&(declaration.source_node, declaration.source_material))
+                .ok_or("Particle source material not attached")?
+                .clone();
+            let prepared =
+                forge_engine::source_particle_transport::PreparedSourceParticleOwner::prepare(
+                    declaration,
+                    &package.resources,
+                )?;
+            plans.push((node, material, prepared));
+        }
+        let mut installed = Vec::new();
+        for ((node, material, prepared), (producer, projection)) in plans.into_iter().zip(slots) {
+            match forge_engine::source_particle_host::HostedSourceParticle::install(
+                world,
+                prepared,
+                node,
+                material,
+                *producer,
+                *projection,
+            ) {
+                Ok(instance) => installed.push(instance),
+                Err(error) => {
+                    for instance in &mut installed {
+                        instance.release(world);
+                    }
+                    return Err(error);
+                }
+            }
+        }
+        self.particle_instances = installed;
+        Ok(())
+    }
+
+    pub fn release_particle_instances(&mut self, world: &mut World) {
+        for instance in &mut self.particle_instances {
+            instance.release(world);
+        }
+        self.particle_instances.clear();
+    }
+
     /// Resolve measured contacts only with explicit target-scene settings.
     /// The source offset and original observations remain distinct from target
     /// skin; success does not qualify native simulation or reveal the scene.
@@ -509,6 +633,8 @@ pub(super) fn mount(
             original_state,
             object_basis,
             source_document: glb.document().clone(),
+            carrier_sha256: forge_core::bytes_sha256(bytes),
+            particle_instances: Vec::new(),
             collider_projection: None,
             collider_scene_projection: None,
         })),

@@ -38,6 +38,7 @@ pub(super) fn PlacedObjectControls(
     on_command: SendCommand,
 ) -> impl IntoView {
     let (id, locked, name) = (placement.id, placement.locked, placement.name);
+    let has_effect = placement.particles.is_some();
     let physical_reference = placement.physics.map(|pin| view! {
         <super::super::vault::SavedPhysicsDetails asset_id=placement.asset_id model_sha256=placement.asset_hash pin=*pin/>
     });
@@ -99,6 +100,10 @@ pub(super) fn PlacedObjectControls(
                 translation.x, translation.y, translation.z, if locked { "verrouillé" } else { "modifiable" })}</p>
             <button on:click=move |_| super::super::placements::focus(id)>"Cadrer cet objet dans la carte"</button>
             {physical_reference}
+            <Show when=move ||has_effect>
+                <super::super::source_graph_particles::SourceParticleControls
+                    target=super::super::source_graph_particles::ControlTarget::Placement(id)/>
+            </Show>
             <div hidden=move || advanced.get()>
                 <super::gizmo::GizmoControls state=state id=id locked=locked pivot=pivot alignment=Callback::new(move |()| snap()) on_command=on_command/>
                 <button disabled=locked on:click=move |_| {

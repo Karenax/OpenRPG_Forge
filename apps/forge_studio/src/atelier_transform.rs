@@ -221,6 +221,7 @@ mod tests {
             },
             corrections: ZoneCorrections {
                 placements: Some(vec![ManualPlacement {
+                    particles: None,
                     physics: None,
                     id,
                     name: "Arche".into(),
@@ -306,6 +307,7 @@ mod tests {
             corrections: ZoneCorrections::default(),
         };
         let source = ManualPlacement {
+            particles: None,
             physics: None,
             id: forge_core::EntityId::deterministic("atelier-verified-source"),
             name: "Source vérifiée".into(),

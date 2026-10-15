@@ -58,6 +58,35 @@ pub struct LibraryPhysicsRequest {
     pub manifest_sha256: ContentHash,
 }
 
+/// Metadata-owned particle package; the client never supplies a filesystem path.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LibraryParticleRequest {
+    pub schema_version: u32,
+    pub id: String,
+    pub revision: String,
+    pub carrier_sha256: ContentHash,
+    pub manifest_sha256: ContentHash,
+    pub package_sha256: ContentHash,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LibrarySavedParticleRequest {
+    pub schema_version: u32,
+    pub asset_id: forge_core::AssetId,
+    pub carrier_sha256: ContentHash,
+    pub manifest_sha256: ContentHash,
+    pub package_sha256: ContentHash,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum ParticleReadRequest {
+    Current(LibraryParticleRequest),
+    Saved(LibrarySavedParticleRequest),
+}
+
 /// A saved placement pins its package independently of the current search page.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

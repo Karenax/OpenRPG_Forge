@@ -33,8 +33,8 @@ impl PlacementChanges {
             };
             let new = &after[index];
             result.references += usize::from(
-                (old.asset_id, old.asset_hash, &old.physics)
-                    != (new.asset_id, new.asset_hash, &new.physics),
+                (old.asset_id, old.asset_hash, &old.physics, &old.particles)
+                    != (new.asset_id, new.asset_hash, &new.physics, &new.particles),
             );
             result.transforms += usize::from(old.transform != new.transform);
             result.names += usize::from(old.name != new.name);
@@ -60,6 +60,15 @@ pub struct PhysicsPackageReference {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ParticlePackageReference {
+    pub schema_version: u32,
+    pub carrier_sha256: ContentHash,
+    pub manifest_sha256: ContentHash,
+    pub package_sha256: ContentHash,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ManualPlacement {
     pub id: EntityId,
     pub name: String,
@@ -69,6 +78,9 @@ pub struct ManualPlacement {
     /// Exact saved collision package for this carrier; absent on ordinary models.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub physics: Option<Box<PhysicsPackageReference>>,
+    /// Exact particle resources belonging to this carrier; no renderer state is saved.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub particles: Option<Box<ParticlePackageReference>>,
     pub transform: Transform,
     pub locked: bool,
 }
@@ -108,9 +120,13 @@ pub enum PlacementEdit {
         expected_asset_id: AssetId,
         expected_asset_hash: ContentHash,
         expected_physics: Option<Box<PhysicsPackageReference>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expected_particles: Option<Box<ParticlePackageReference>>,
         asset_id: AssetId,
         asset_hash: ContentHash,
         physics: Option<Box<PhysicsPackageReference>>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        particles: Option<Box<ParticlePackageReference>>,
     },
     SetLocked {
         id: EntityId,
@@ -139,6 +155,11 @@ pub(super) fn validate(placements: &[ManualPlacement]) -> Result<(), String> {
             physics.schema_version != 1 || physics.carrier_sha256 != placement.asset_hash
         }) {
             return Err("Physics reference must pin the placement carrier".into());
+        }
+        if placement.particles.as_ref().is_some_and(|particles| {
+            particles.schema_version != 1 || particles.carrier_sha256 != placement.asset_hash
+        }) {
+            return Err("Particle reference must pin the placement carrier".into());
         }
     }
     Ok(())
@@ -228,15 +249,22 @@ impl ZoneAuthoringHead {
                 expected_asset_id,
                 expected_asset_hash,
                 expected_physics,
+                expected_particles,
                 asset_id,
                 asset_hash,
                 physics,
+                particles,
             } => {
                 replace_pinned_asset(
                     placements,
                     ids,
-                    &(expected_asset_id, expected_asset_hash, expected_physics),
-                    &(asset_id, asset_hash, physics),
+                    &(
+                        expected_asset_id,
+                        expected_asset_hash,
+                        expected_physics,
+                        expected_particles,
+                    ),
+                    &(asset_id, asset_hash, physics, particles),
                 )?;
             }
             PlacementEdit::SetLocked { id, locked } => {
@@ -268,7 +296,12 @@ fn find(placements: &mut [ManualPlacement], id: EntityId) -> Result<&mut ManualP
         .ok_or_else(|| "Unknown placement ID".into())
 }
 
-type ReplacementPin = (AssetId, ContentHash, Option<Box<PhysicsPackageReference>>);
+type ReplacementPin = (
+    AssetId,
+    ContentHash,
+    Option<Box<PhysicsPackageReference>>,
+    Option<Box<ParticlePackageReference>>,
+);
 
 fn replace_pinned_asset(
     placements: &mut [ManualPlacement],
@@ -288,14 +321,19 @@ fn replace_pinned_asset(
     }
     for id in ids {
         let placement = find(placements, id)?;
-        if (placement.asset_id, placement.asset_hash, &placement.physics)
-            != (expected.0, expected.1, &expected.2)
+        if (
+            placement.asset_id,
+            placement.asset_hash,
+            &placement.physics,
+            &placement.particles,
+        ) != (expected.0, expected.1, &expected.2, &expected.3)
         {
             return Err("Placement reference changed; review replacement again".into());
         }
         placement.asset_id = target.0;
         placement.asset_hash = target.1;
         placement.physics.clone_from(&target.2);
+        placement.particles.clone_from(&target.3);
     }
     Ok(())
 }
@@ -318,7 +356,7 @@ fn replace_asset(
     }
     for id in ids {
         let placement = find(placements, id)?;
-        if placement.physics.is_some() {
+        if placement.physics.is_some() || placement.particles.is_some() {
             return Err(
                 "Replacing this asset requires an explicitly reviewed physics package".into(),
             );

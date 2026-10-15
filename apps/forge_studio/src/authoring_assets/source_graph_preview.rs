@@ -12,6 +12,7 @@ enum Request {
         String,
         Vec<u8>,
         Option<super::source_graph_physics::SourcePhysicsPayload>,
+        Option<super::source_graph_particles::SourceParticlePayload>,
     ),
     Clear,
 }
@@ -20,13 +21,17 @@ thread_local! {static REQUEST:RefCell<Option<Request>>=const{RefCell::new(None)}
 struct State {
     root: Option<Entity>,
 }
+pub(super) fn current_root(world: &World) -> Option<Entity> {
+    world.get_resource::<State>().and_then(|state| state.root)
+}
 
 pub(super) fn submit(
     id: String,
     bytes: Vec<u8>,
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<super::source_graph_particles::SourceParticlePayload>,
 ) {
-    REQUEST.with(|r| r.replace(Some(Request::Show(id, bytes, physics))));
+    REQUEST.with(|r| r.replace(Some(Request::Show(id, bytes, physics, particles))));
 }
 pub(super) fn cancel() {
     REQUEST.with(|r| r.replace(Some(Request::Clear)));
@@ -58,6 +63,7 @@ fn mount(
     id: &str,
     bytes: &[u8],
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
+    particles: Option<super::source_graph_particles::SourceParticlePayload>,
 ) -> Result<Entity, String> {
     let offset = Vec3::new(0., 1024., 0.);
     let transform = Transform::from_translation(offset);
@@ -108,6 +114,9 @@ fn mount(
     // or camera exposure; no source identity selects or overrides a layer.
     .and_then(|mut host| {
         let result = (|| {
+            if let Some(particles) = particles {
+                particles.install(world, &mut host, bytes)?;
+            }
             if let (Some(physics), Some(contacts)) = (physics, contacts) {
                 host.install_physics_package_with_settings(
                     world,
@@ -121,6 +130,7 @@ fn mount(
         })();
         if let Err(error) = result {
             host.remove_colliders(world);
+            host.release_particle_instances(world);
             return Err(error);
         }
         Ok(host)
@@ -143,14 +153,16 @@ pub(super) fn update(world: &mut World) {
     }
     match request {
         Request::Clear => {}
-        Request::Show(id, bytes, physics) => match mount(world, &id, &bytes, physics) {
-            Ok(root) => {
-                world.resource_mut::<State>().root = Some(root);
-                super::preview_status(
-                    "Scène source chargée ; contrôle du rendu et des niveaux de détail encore requis avant affichage.",
-                );
+        Request::Show(id, bytes, physics, particles) => {
+            match mount(world, &id, &bytes, physics, particles) {
+                Ok(root) => {
+                    world.resource_mut::<State>().root = Some(root);
+                    super::preview_status(
+                        "Scène source chargée ; contrôle du rendu et des niveaux de détail encore requis avant affichage.",
+                    );
+                }
+                Err(reason) => super::preview_status(&format!("Aperçu refusé : {reason}")),
             }
-            Err(reason) => super::preview_status(&format!("Aperçu refusé : {reason}")),
-        },
+        }
     }
 }

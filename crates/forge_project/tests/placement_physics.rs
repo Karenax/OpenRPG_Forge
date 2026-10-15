@@ -9,6 +9,7 @@ use forge_project::{
 
 fn object() -> ManualPlacement {
     ManualPlacement {
+        particles: None,
         id: EntityId::deterministic("physical-object"),
         name: "Retouche conservée".into(),
         asset_id: AssetId::deterministic("physical-asset"),
@@ -57,9 +58,11 @@ fn replacement(
         expected_asset_id: source.asset_id,
         expected_asset_hash: source.asset_hash,
         expected_physics: source.physics.clone(),
+        expected_particles: source.particles.clone(),
         asset_id: source.asset_id,
         asset_hash: source.asset_hash,
         physics,
+        particles: source.particles.clone(),
     }
 }
 

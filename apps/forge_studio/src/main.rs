@@ -79,6 +79,29 @@ async fn read_asset_physics(request: String) -> Result<tauri::ipc::Response, Str
 
 /// Raw IPC avoids expanding a GLB into a JSON array of decimal bytes.
 #[tauri::command]
+async fn read_asset_particles(request: String) -> Result<tauri::ipc::Response, String> {
+    if request.len() > 8192 {
+        return Err("Requête d’effet trop volumineuse".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let request: forge_studio_frontend::asset_library_protocol::ParticleReadRequest =
+            serde_json::from_str(&request).map_err(|e| e.to_string())?;
+        with_asset_library(|library| match request {
+            forge_studio_frontend::asset_library_protocol::ParticleReadRequest::Current(
+                request,
+            ) => library.read_particle_package(request),
+            forge_studio_frontend::asset_library_protocol::ParticleReadRequest::Saved(request) => {
+                library.read_saved_particle_package(&request)
+            }
+        })
+        .map(tauri::ipc::Response::new)
+    })
+    .await
+    .map_err(|e| format!("Lecture d’effet interrompue : {e}"))?
+}
+
+/// Raw IPC avoids expanding a GLB into a JSON array of decimal bytes.
+#[tauri::command]
 async fn read_asset_model(request: String) -> Result<tauri::ipc::Response, String> {
     if request.len() > 8192 {
         return Err("Requête de modèle trop volumineuse".into());
@@ -393,8 +416,10 @@ fn main() {
             read_asset_library,
             read_asset_model,
             read_asset_physics,
+            read_asset_particles,
             native_game::launch_native_game,
-            native_game::native_game_running
+            native_game::native_game_running,
+            native_game::native_game_diagnostics
         ])
         .run(tauri::generate_context!())
         .expect("failed to run OpenRPG Forge Studio");
@@ -638,14 +663,15 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 7);
+        assert_eq!(permissions.len(), 8);
         assert_eq!(permissions[0], "allow-execute-studio-command");
         assert_eq!(permissions[1], "allow-read-asset-library");
         assert_eq!(permissions[2], "allow-read-asset-model");
         assert_eq!(permissions[3], "allow-read-asset-physics");
         assert_eq!(permissions[4], "allow-launch-native-game");
         assert_eq!(permissions[5], "allow-native-game-running");
-        assert_eq!(permissions[6], "core:window:deny-set-title");
+        assert_eq!(permissions[6], "allow-native-game-diagnostics");
+        assert_eq!(permissions[7], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
@@ -659,7 +685,8 @@ mod tests {
                 "allow-read-asset-model",
                 "allow-read-asset-physics",
                 "allow-launch-native-game",
-                "allow-native-game-running"
+                "allow-native-game-running",
+                "allow-native-game-diagnostics"
             ]
         );
     }
