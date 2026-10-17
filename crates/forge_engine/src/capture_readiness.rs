@@ -45,6 +45,14 @@ pub(super) struct CaptureProgress {
     failed: bool,
 }
 
+/// Frame on which the readiness gate issued the screenshot request.
+/// This does not assert GPU readback completion or correctness of the pixels.
+pub fn issued_capture_frame(world: &World) -> Option<u32> {
+    world
+        .get_resource::<CaptureProgress>()
+        .and_then(|progress| progress.issued_frame)
+}
+
 impl CaptureProgress {
     /// Shared startup gate for still captures and offline movement recordings.
     /// This observes known pipelines, not the correctness of the rendered pixels.

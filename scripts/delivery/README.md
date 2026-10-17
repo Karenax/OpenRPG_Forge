@@ -61,7 +61,7 @@ Depuis le 11 octobre 2026, les conversations travaillent dans le checkout commun
 compile directement cette version. Son dossier de preuves contient des inventaires,
 commandes et logs ; il ne reçoit aucune copie de sources, frontend ou exécutable.
 
-Le validateur commun produit le seul frontend WASM et le seul Studio release.
+Le validateur commun produit le frontend WASM, le Studio et le jeu natif release.
 Les étapes de livraison adoptent leurs reçus complets avec une option explicite ;
 elles ne relancent alors ni Trunk ni Cargo et ne copient aucun produit.
 Les commandes suivantes restent à exécuter après stabilisation des sources :
@@ -77,16 +77,16 @@ python scripts/Validate-Gate3WorkingTree.py wasm --evidence $validatedGate3Evide
 python scripts/Validate-Gate3WorkingTree.py release --evidence $validatedGate3Evidence --target-dir $sharedCargoCache
 python scripts/delivery/complete_rebuild.py --shared-working-tree --stage prepare-frontend --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
 python scripts/delivery/complete_rebuild.py --shared-working-tree --stage studio --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
-python scripts/delivery/complete_rebuild.py --shared-working-tree --stage game --evidence $sharedNativeEvidence --cache $sharedCargoCache
+python scripts/delivery/complete_rebuild.py --shared-working-tree --stage game --validated-gate3-evidence $validatedGate3Evidence --evidence $sharedNativeEvidence --cache $sharedCargoCache
 ```
 
 L'adoption appelle les fonctions du validateur commun et exige des reçus `PASS`
 complets : sources actuelles, suppressions, driver, commandes, logs, cache et
 environnement identiques à l'intention de livraison. Le frontend actuel ferme
 les artifacts du worker, ses sources et les assets locaux acquis. L'adoption
-Studio exige aussi le hash et la taille du binaire release, ainsi que sa chaîne
-WASM ; les SHA des manifestes et résultats originaux restent liés dans les preuves
-de livraison. Le packaging rouvre cette chaîne avant de consommer le Studio.
+de Studio et du jeu exige aussi le hash et la taille de chaque binaire release,
+ainsi que sa chaîne WASM ; les SHA des manifestes et résultats originaux restent liés dans les preuves
+de livraison. Le packaging rouvre ces chaînes avant de consommer les deux exécutables.
 La commande d'adoption ne lance pas le compilateur ; `rustc_version` reste `null`
 et le hash du fichier `rust-toolchain.toml` accompagne la provenance originale.
 
@@ -97,10 +97,13 @@ que le validateur, avec le même profil et les mêmes features. Il embarque ce
 `dist` avec `tauri.conf.json` et son URL `index.html?authoring=1`, sans override
 `TAURI_CONFIG`. Le binaire reste dans `CHEMIN_CACHE/release/forge-studio.exe`.
 Les assets locaux passent par le hook commun ; `--frontend-assets` et les anciens
-candidats sont refusés. L'option d'adoption est réservée à ces deux étapes.
-`game` compile le même checkout et conserve son résultat dans
+candidats sont refusés. L'option d'adoption est disponible pour `prepare-frontend`,
+`studio` et `game`. Pour `game`, elle adopte le jeu natif validé dans
+`CHEMIN_CACHE/release/examples/tidewater_plant_probe.exe`, sans reconstruction.
+Sans cette option, `game` compile le même checkout et conserve son résultat dans
 `CHEMIN_CACHE/debug/examples/tidewater_plant_probe.exe`. Le profil optimise le moteur
 et l'exemple natif au niveau 3 ; il ne constitue pas un build release/LTO du workspace.
+Ce build dev reste destiné aux essais locaux ; l'assembleur commun exige le jeu release.
 Le runtime `forge_runtime` contrôlé par le validateur conserve son propre rôle ;
 la recette du jeu installé utilise le target Tidewater et ses arguments explicites.
 Sérialiser les compilations lourdes.
@@ -156,6 +159,7 @@ python scripts/delivery/build_classic_installer.py --shared-working-tree `
   --webview2 $offlineWebview `
   --webview2-sha256 2a6add76c37bfa872eb8c2b22d45b3216b8e2a1f193e0774006340ff62ac5fa0 `
   --cargo 'C:\Users\karen\.cargo\bin\cargo.exe' `
+  --cargo-cache 'C:\Users\karen\.cargo\registry' `
   --node 'C:\Users\karen\AppData\Local\hermes\node\node.exe' `
   --nsis 'C:\Program Files (x86)\NSIS\makensis.exe' `
   --version 0.1.0-preview.20261011 --output $principalInstaller
@@ -164,9 +168,14 @@ python scripts/delivery/build_classic_installer.py --shared-working-tree `
 Ces noms de dossiers de preuves sont à réserver pour l'exécution réelle. S'ils existent,
 les conserver et choisir de nouveaux dossiers de preuves ; les chemins des sources,
 du dist, du cache et de l'installateur principal restent communs. Le chemin de données
-`runtime-data` doit être préparé et identifié comme autorité courante avant cette commande.
+`runtime-data` est une entrée générique de développement, à préparer et identifier
+avant cette commande ; sa présence ne garantit pas la carte ou la révision qualifiée.
+Pour Gate 4, suivre la [recette de campagne](../../docs/testing/GATE4_PACKAGE_ACCEPTANCE.md#dossier-dune-campagne)
+et son admission épinglée : reprendre exactement la carte, les sources d'auteur,
+le module et les assets retenus, avec leurs tailles et SHA-256. Ne pas substituer
+le dossier générique aux données exactes liées aux preuves de cette campagne.
 Les reçus natifs exigés pointent vers `E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\release\forge-studio.exe`
-et `E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\debug\examples\tidewater_plant_probe.exe` ;
+et `E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002\release\examples\tidewater_plant_probe.exe` ;
 le builder refuse un exécutable de candidat situé ailleurs.
 
 Si le Setup principal existe déjà, ajouter explicitement `--replace-output
@@ -182,6 +191,29 @@ La réutilisation historique du launcher installé passe par `build_classic_inst
 --frozen-archive --reuse-native-build`, avec les trois binaires et leurs sources identiques.
 
 ## Assemblage et vérification
+
+L'assemblage courant exige `--cargo-cache` pointant vers la racine Cargo
+`registry/` contenant `cache/` et `src/`. Le builder vérifie avant les compilations
+et l'assemblage les neuf archives Symphonia 0.6.1 épinglées dans
+`application_sources.json`, leur correspondance avec `Cargo.lock`, les sources
+locales, les licences MPL-2.0 et notices originales, dont la notice Sun G.711.
+Un fichier manquant, modifié, lié ou hors inventaire est refusé ; aucun fetch n'est
+exécuté. Les archives gzip/tar `.crate` exactes et les textes conservés voyagent
+dans `licenses/native-media/` du seul pack applications. `NOTICE.txt` indique
+l'accès local aux sources, et `manifest.json` épingle versions/origines/fichiers.
+Le reçu figure dans `input-provenance.json` et les chemins de notices sont déclarés
+dans les licences du pack. Le client n'a besoin ni du cache Cargo ni d'un accès réseau.
+Ce raccord n'est pas un avis juridique ou un audit de toutes les dépendances.
+La branche historique `--frozen-archive` ne lit pas ce cache et ne change pas ses
+sources/licences de référence.
+
+Contrôle autonome sans compilation (sortie JSON sur stdout) :
+
+```powershell
+python -B scripts/delivery/application_sources.py --verify-only `
+  --cargo-cache 'C:\Users\karen\.cargo\registry'
+python -B scripts/delivery/test_application_sources.py -v
+```
 
 `build_delivery.py --shared-working-tree` décrit les entrées explicites. Pour un jeu reconstruit,
 fournir aussi `--launcher` avec le véritable launcher Aube de production ; le Hub

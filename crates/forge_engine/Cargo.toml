@@ -43,6 +43,9 @@ getrandom = { version = "=0.3.4", default-features = false, features = ["wasm_js
 # Validate Forge optical WGSL with the same Naga version already locked by Bevy.
 naga = { version = "=29.0.4", features = ["wgsl-in"] }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+forge_delivery = { path = "../../tools/forge_delivery" }
+
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 console_error_panic_hook.workspace = true
 wasm-bindgen-futures.workspace = true

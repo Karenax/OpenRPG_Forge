@@ -9,6 +9,7 @@ import subprocess
 from datetime import datetime, timezone
 
 from build_delivery import assemble, copy, digest, package, regular, write
+import application_sources
 from complete_rebuild import (
     SOURCE_SCOPES, frontend_inputs, gate3_validator, regular_input,
     informative_checkout_changes, shared_build_environment, shared_source_inputs,
@@ -91,6 +92,9 @@ def build_shared_installer(args):
         raise ValueError('Shared installers require current native builds and explicit content inputs')
     if not all((args.native_evidence, args.playtest, args.webview2, args.webview2_sha256)):
         raise ValueError('Shared installer requires --native-evidence, --playtest, --webview2 and --webview2-sha256')
+    # Refuse missing/corrupt offline dependency sources before costly build work.
+    # assemble preflights again and stages its own immutable checked snapshot.
+    application_sources.prepare_for_assembly(args, repo)
     evidence, cache, output = args.evidence.resolve(), args.target.resolve(), args.output.absolute()
     for location in (evidence, cache, output):
         if location == repo or any(location.is_relative_to(repo / scope) for scope in SOURCE_SCOPES):
@@ -162,7 +166,8 @@ def build_shared_installer(args):
                  runtime=native['game']['executable'], runtime_proof=native['game']['proof_path'],
                  launcher_proof=launcher_receipt, source_manifest=source_manifest,
                   source_revision=native_inputs['head'], playtest=args.playtest.resolve(), area_id=args.area_id,
-                 webview2=args.webview2.resolve(), output=payload, version=args.version))
+                 webview2=args.webview2.resolve(), output=payload, version=args.version,
+                 cargo_cache=args.cargo_cache))
         # These are the normal NSIS bootstrap names, inside its private payload.
         copy(launcher, payload / 'Forge.exe')
         copy(hub, payload / 'Forge-ContentManager.exe')
@@ -223,6 +228,8 @@ def main():
     parser.add_argument("--reuse-native-build",type=Path,help="Reuse a proven build only when scoped source inventories are byte-identical")
     parser.add_argument("--version", default="0.1.0-preview.20261010.3")
     parser.add_argument('--native-evidence', type=Path, help='Completed shared Studio/Game build receipts')
+    parser.add_argument('--cargo-cache', type=Path,
+                        help='Explicit Cargo registry root containing pinned offline dependency source archives')
     parser.add_argument('--playtest', type=Path, help='Explicit current content and authoring data')
     parser.add_argument('--area-id')
     parser.add_argument('--webview2', type=Path)

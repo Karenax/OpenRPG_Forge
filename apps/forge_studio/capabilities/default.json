@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-window",
-  "description": "Studio exposes typed authoring commands, read-only private asset library queries and configured native-game launch/status/diagnostics. The browser cannot supply paths or process arguments. No privileged Tauri core command is granted; title mutation remains denied.",
+  "description": "Studio exposes typed authoring commands, reviewed byte-only asset imports, local module exports, private asset library queries and configured native-game launch/status/diagnostics. The browser cannot supply paths or process arguments. No privileged Tauri core command is granted; title mutation remains denied.",
   "windows": ["main", "atelier"],
   "local": true,
-  "permissions": ["allow-execute-studio-command", "allow-read-asset-library", "allow-read-asset-model", "allow-read-asset-physics", "allow-launch-native-game", "allow-native-game-running", "allow-native-game-diagnostics", "core:window:deny-set-title"]
+  "permissions": ["allow-execute-studio-command", "allow-execute-asset-import", "allow-export-module", "allow-read-asset-library", "allow-read-asset-model", "allow-read-asset-physics", "allow-launch-native-game", "allow-launch-exported-module", "allow-native-game-running", "allow-native-game-diagnostics", "core:window:deny-set-title"]
 }

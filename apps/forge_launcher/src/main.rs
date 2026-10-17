@@ -1,7 +1,11 @@
 #![deny(unsafe_code)]
 
 use forge_launcher_frontend::{LauncherCommand, LauncherResponse, LauncherSettings, WindowAction};
-use std::{ffi::OsStr, process::Child, sync::Mutex};
+use std::{
+    ffi::OsStr,
+    process::Child,
+    sync::{Arc, Mutex},
+};
 
 #[path = "installed_play.rs"]
 mod play;
@@ -18,15 +22,19 @@ struct LauncherState {
     clippy::needless_pass_by_value,
     reason = "Tauri deserializes command payloads and window handles into owned values"
 )]
-fn execute_launcher_command(
+async fn execute_launcher_command(
     command: LauncherCommand,
     window: tauri::WebviewWindow,
-    state: tauri::State<'_, LauncherState>,
-) -> LauncherResponse {
+    state: tauri::State<'_, Arc<LauncherState>>,
+) -> Result<LauncherResponse, String> {
     if let LauncherCommand::Window { action } = command {
-        return execute_window_action(&window, action);
+        return Ok(execute_window_action(&window, action));
     }
-    execute_state_command(command, &state)
+    // Inventory and admission hash installed files; keep this work off the UI thread.
+    let state = Arc::clone(state.inner());
+    tauri::async_runtime::spawn_blocking(move || execute_state_command(command, &state))
+        .await
+        .map_err(|error| format!("La commande du launcher n’a pas abouti : {error}"))
 }
 
 fn execute_state_command(command: LauncherCommand, state: &LauncherState) -> LauncherResponse {
@@ -56,6 +64,10 @@ fn execute_state_command(command: LauncherCommand, state: &LauncherState) -> Lau
             Err(reason) => LauncherResponse::Rejected { reason },
         },
         LauncherCommand::RequestLaunch => play::launch(&state.game),
+        LauncherCommand::ListModules => play::modules(),
+        LauncherCommand::RequestModuleLaunch { selection } => {
+            play::launch_module(&state.game, selection)
+        }
         LauncherCommand::Window { .. } => LauncherResponse::Rejected {
             reason: "L’action de fenêtre doit être traitée par la fenêtre appelante.".to_owned(),
         },
@@ -152,7 +164,7 @@ fn main() {
     });
     probe.configure(&mut context);
     tauri::Builder::default()
-        .manage(LauncherState::default())
+        .manage(Arc::new(LauncherState::default()))
         .manage(probe)
         .setup(webview_probe::setup)
         .on_page_load(webview_probe::loaded)

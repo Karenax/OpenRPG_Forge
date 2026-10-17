@@ -15,6 +15,7 @@ pub(super) fn read(bytes: &[u8]) -> Result<Option<SourceGraphGlb<'_>>, String> {
 
 /// Used only by the existing ordinary glTF path. Source mounting has its own
 /// explicit frame/material admission; errors cannot authorize a fallback.
+#[cfg(test)]
 pub(super) fn require_ordinary_loader(bytes: &[u8]) -> Result<(), String> {
     match read(bytes)? {
         None => Ok(()),

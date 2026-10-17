@@ -79,6 +79,103 @@ mod source_graph_state;
 pub(crate) mod vault;
 pub(crate) mod verify;
 
+/// Verified user-library GLBs share the current authoring preview world.
+pub(crate) fn preview_imported_asset(id: String, bytes: Vec<u8>) -> Result<(), String> {
+    if !crate::authoring_viewport::can_preview_asset() {
+        return Err("Ouvrir la carte en mode édition pour prévisualiser le modèle.".into());
+    }
+    let ticket = preview::ticket();
+    if preview::submit_scene_with_physics(ticket, id, bytes, None, None) {
+        Ok(())
+    } else {
+        Err("Aperçu remplacé ; recommencer.".into())
+    }
+}
+
+/// The same pointer and Preview/Apply commands own imported model placement.
+pub(crate) fn place_imported_asset(
+    bindings: crate::atelier_ui::MainBindings,
+    name: String,
+    id: forge_core::AssetId,
+    sha256: forge_core::ContentHash,
+) -> Result<(), String> {
+    if bindings.busy.get_untracked() || !crate::authoring_viewport::can_preview_asset() {
+        return Err("Ouvrir la carte en mode édition et terminer la commande en cours.".into());
+    }
+    let head = placement_controls::head(bindings.state.get_untracked())?;
+    let expected = head.content_hash()?;
+    cancel_preview();
+    crate::authoring_brush_pointer::arm(
+        2.0,
+        false,
+        Callback::new(move |points: Result<Vec<[f32; 2]>, String>| {
+            let request = (|| {
+                let current = placement_controls::head(bindings.state.get_untracked())?;
+                if current.content_hash()? != expected {
+                    return Err("Zone modifiée ; recommencer le placement.".into());
+                }
+                let point = *points?.first().ok_or("Cliquer le terrain")?;
+                placement_controls::insertion::prepare(
+                    &current,
+                    &name,
+                    (id, sha256),
+                    (
+                        forge_core::Transform::IDENTITY,
+                        forge_world::placement_snap::PlacementSnap {
+                            grid_step_m: None,
+                            surface_offset_m: Some(0.0),
+                        },
+                    ),
+                    point,
+                )
+            })();
+            bindings.send.run(request);
+        }),
+    );
+    bindings
+        .status
+        .set("Cliquer le terrain pour proposer le placement ; examiner puis appliquer.".into());
+    Ok(())
+}
+
+/// Adopt a reviewed library revision for one selected object, keeping its identity.
+pub(crate) fn replace_imported_asset(
+    bindings: crate::atelier_ui::MainBindings,
+    id: forge_core::AssetId,
+    sha256: forge_core::ContentHash,
+) -> Result<(), String> {
+    if bindings.busy.get_untracked() || !crate::authoring_viewport::can_preview_asset() {
+        return Err("Terminer la commande en cours et ouvrir la carte en mode édition.".into());
+    }
+    let selected = bindings
+        .placement
+        .get_untracked()
+        .ok_or("Sélectionner l’objet à remplacer sur la carte.")?;
+    let head = placement_controls::head(bindings.state.get_untracked())?;
+    let source = objects::lookup(&head, selected)?;
+    if source.physics.is_some() || source.particles.is_some() {
+        return Err("Cet objet porte un paquet physique ou d’effet. Utiliser un remplacement qui traite explicitement ces données.".into());
+    }
+    let action = forge_project::zone_authoring::placements::PlacementEdit::ReplaceAsset {
+        ids: vec![selected],
+        expected_asset_id: source.asset_id,
+        expected_asset_hash: source.asset_hash,
+        asset_id: id,
+        asset_hash: sha256,
+    };
+    let key = serde_json::to_string(&(head.content_hash()?, &action)).map_err(|e| e.to_string())?;
+    let request = objects::edit(
+        &head,
+        action,
+        forge_core::CommandId::deterministic(format!("imported-asset-replacement:{key}")),
+    )?;
+    cancel_preview();
+    bindings.send.run(Ok(
+        forge_project::authoring::AuthoringRequest::PreviewZone { request },
+    ));
+    Ok(())
+}
+
 thread_local! {
     static PREVIEW_STATUS: std::cell::RefCell<Option<RwSignal<String>>> = const { std::cell::RefCell::new(None) };
 }

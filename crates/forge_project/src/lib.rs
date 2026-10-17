@@ -8,6 +8,8 @@ pub mod building;
 pub mod effective_quality;
 mod environment;
 pub mod imported_vegetation;
+pub mod module_gameplay_visuals;
+pub mod module_package;
 mod player;
 mod quality;
 pub mod sampled_terrain;

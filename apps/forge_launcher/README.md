@@ -6,6 +6,11 @@ La présentation canonique est conservée dans `canonical-ui`, copiée depuis
 Le frontend embarqué conserve le guide, le bestiaire, les illustrations, la navigation
 et le dialogue de sortie. Le seul raccord de distribution utilise les recettes
 génériques `forge_delivery` pour le jeu installé et sa copie utilisateur du workspace.
+Le menu Jouer conserve Tidewater et présente aussi les modules `.orpmod` v2 admis
+dans l’installation, avec un choix explicite de carte. L’inventaire et les refus
+viennent de `installed_modules::inventory` ; le lancement transmet uniquement
+`ModuleId` et `AreaId` à `installed_modules::start`, qui revalide le plan et ses pins
+côté natif. Aucun chemin ou argument exécutable n’est fourni par le frontend.
 
 `Forge.exe` ouvre ce launcher. Le Hub est un gestionnaire de contenu séparé,
 `Forge-ContentManager.exe`, et l’assistant NSIS reste un installateur séparé.

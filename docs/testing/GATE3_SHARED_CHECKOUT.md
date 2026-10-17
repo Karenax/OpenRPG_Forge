@@ -8,13 +8,16 @@ neuf ; conserver les résultats précédents.
 ```powershell
 $env:CARGO_INCREMENTAL = '0'
 $env:RUSTFLAGS = '-C debuginfo=0'
+$env:RUST_TEST_THREADS = '2'
+$env:CARGO_BUILD_JOBS = '2'
 python scripts/Validate-Gate3WorkingTree.py native --evidence E:/OpenRPG_Forge/.gate3-evidence/20261011/shared-NNN --target-dir E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002
 python scripts/Replay-Gate3PrivateInputs.py --evidence E:/OpenRPG_Forge/.gate3-evidence/20261011/shared-NNN
 python scripts/Validate-Gate3WorkingTree.py wasm --evidence E:/OpenRPG_Forge/.gate3-evidence/20261011/shared-NNN --target-dir E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002
 python scripts/Validate-Gate3WorkingTree.py release --evidence E:/OpenRPG_Forge/.gate3-evidence/20261011/shared-NNN --target-dir E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002
+python scripts/Validate-Gate3WorkingTree.py supply --evidence E:/OpenRPG_Forge/.gate3-evidence/20261011/shared-NNN --target-dir E:/OpenRPG_Forge/.gate3-ntfs-cargo-20261002
 ```
 
-Les quatre étapes exigent des entrées de build inchangées. La carte comprend les
+Les cinq étapes exigent des entrées de build inchangées. La carte comprend les
 exemples locaux, les locks Cargo et configurations locales, la CI et les helpers
 de build. Seuls les scripts Python d'orchestration sous `scripts/hivemind` qui ne
 sont consommés par aucune de ces étapes sont hors périmètre bloquant. Les autres
@@ -22,13 +25,23 @@ formats restent inclus, notamment le candidat Rust inclus par un exemple moteur.
 L'inventaire complet du checkout et ses changements avant/après sont conservés
 séparément avec leurs SHA ; une conversation parallèle reste ainsi visible.
 
+Le nombre de threads de test est conservé dans le reçu d'environnement. Deux
+threads bornent la concurrence des fixtures physiques et terrain volumineuses ;
+les assertions et délais internes des contrats restent identiques.
+
+Le nombre de jobs Cargo est également conservé dans le reçu. Le driver utilise
+un job par défaut et respecte une valeur `CARGO_BUILD_JOBS` explicite ; deux jobs
+permettent ici de compiler les cibles indépendantes en parallèle. Ce réglage
+ne change ni les contrats ni le nombre de threads d'exécution des tests.
+
 Le replay utilise exactement les
 binaires de la suite native et refuse un manifeste devenu obsolète. Avant le build
 release, contrôler que le reçu worker du `dist` correspond aux sources et que ses
 assets sont présents pour les parcours locaux. Les tests peuvent copier uniquement
 des données de fixture pour protéger le workspace utilisateur.
 
-Le release épingle les deux exécutables effectivement produits, le frontend,
+Le release épingle les trois exécutables effectivement produits (runtime de
+socle, Studio et véritable jeu séparé `examples/tidewater_plant_probe`), le frontend,
 le worker et les assets. La livraison commune peut adopter ces preuves via
 `--validated-gate3-evidence` : elle vérifie la chaîne avant de réutiliser le même
 `release/forge-studio.exe`, sans reconstruire ou copier une autre application.
@@ -71,3 +84,8 @@ conservés comme données épinglées. Aucun index, bootstrap ou WASM n'est réc
 
 Une réussite de compilation ne clôture pas Gate 3. Scénarios publics, observation
 GPU, revue humaine du build actuel et CI sur sa révision exacte restent distincts.
+
+Depuis le chantier de clôture du 13 octobre, le stage `native-game-release`
+fait partie du reçu release. Le binaire de socle `forge_runtime` ne remplace pas
+la construction ni les essais du jeu réellement lancé par le Studio. Les anciens
+reçus à deux artefacts restent historiques ; ils ne qualifient pas ce raccord RPG.

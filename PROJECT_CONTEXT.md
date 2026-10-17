@@ -1,5 +1,56 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## État courant — Gate 4 clôturée localement au 16 octobre 2026
+
+Le [rapport final Gate 4](docs/evidence/gate4/GATE4_CLOSURE_20261016.md) porte le verdict
+**clôturée localement**, la matrice des seize critères et les preuves du lot
+`0.1.0-preview.20261016.019`, avec leurs composants réemployés et leurs limites.
+Les récits datés ci-dessous restent historiques et ne remplacent pas cet état.
+La qualification de distribution, Windows vierge, Linux et la réserve GLib
+restent distincts. Aucun PASS distant n'est déduit, aucun commit/push ni démarrage
+d'une gate suivante n'est implicite.
+
+## Baseline — Gate 3 clôturée le 15 octobre 2026
+
+**Gate 3 est clôturée sur la version commune**, après audit des critères
+R3-A, R3-B et R3-P01 à R3-P05. Le candidat publié est
+`3e0044d5f63b26c678d9db19380a66db832d9de3`, empreinte Source013
+`4178ac3b3f7d028cb5b94ca0d870d67c245fc0418a595f375e6a8eb75027b163`.
+Les 2 201 tests natifs, WASM, supply et trois Release passent localement ;
+les campagnes natives, parcours publics Studio et sauvegarde/reprise du jeu
+installé sont reliés à cette version par leurs composants vérifiés.
+
+L'acceptation propriétaire de la boucle RPG séparée du 13 octobre reste acquise.
+Le propriétaire retire le 15 octobre la CI GitHub des critères bloquants de
+cette clôture, selon [ADR-0023](docs/ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md).
+Le run `38762140900` reste `NOT RUN — infrastructure billing`, sans PASS distant.
+Le [rapport de clôture](docs/evidence/gate3/GATE3_CLOSURE_20261015.md) contient
+la matrice complète, les empreintes, les preuves et leurs limites.
+
+Gate 4 — assets gouvernés et `.orpmod` v2 — est ouverte par la demande suivante ; ses
+critères, la qualification de distribution, Windows vierge et la réserve GLib
+restent distincts. Le chantier global de généricité/parité du rendu n'est pas
+déclaré achevé par cette clôture. Aucun nouveau commit ou push n'est implicite.
+Les sections datées suivantes gardent leurs constats historiques et ne
+remplacent pas cet état courant.
+
+## Objectif propriétaire du 13 octobre — clôture Gate 3
+
+Le propriétaire accepte explicitement la boucle RPG dans le jeu séparé :
+dialogue, quête, combat, sauvegarde/reprise et parcours complet créé depuis
+Studio. Il demande ensuite de lancer le travail avec pour objectif de clôturer
+Gate 3. Cette acceptation propriétaire est acquise ; les preuves machine et
+la condition CI restent distinctes. Le noyau RPG est désormais raccordé dans
+les sources du jeu séparé, avec retour de diagnostic au Studio résident.
+La qualification native/GPU et environnementale de ce raccord reste à acquérir,
+sur la version commune, en préservant son lanceur. Voir
+[l'acceptation et le protocole de clôture](docs/evidence/gate3/GATE3_OWNER_RPG_ACCEPTANCE_20261013.md).
+La [matrice de préparation courante](docs/evidence/gate3/GATE3_CLOSURE_READINESS_20261013.md)
+distingue les contrôles source, les fixtures SDK, l'acceptation propriétaire,
+les parcours publics Studio, les campagnes natives et la CI.
+Gate 3 reste ouverte pendant cette finalisation ; aucune ouverture de Gate 4
+ni publication Git supplémentaire n'est implicite.
+
 ## Publication Studio et CI — 13 octobre 2026
 
 Le lot Studio de 52 fichiers est publié sur `origin/Rust` par le commit
@@ -56,8 +107,11 @@ Le propriétaire demande de rétablir « Lancer le jeu » exclusivement vers une
 fenêtre native séparée. Le test intégré demeure retiré. Le lancement transmet
 une archive immuable de la carte courante, y compris ses retouches appliquées
 non sauvegardées et son départ auteur, sans sauvegarde implicite ni gel du Studio.
-Le runtime natif existant reste une promenade ; les fonctions RPG encore absentes
-de ce runtime ne sont pas déclarées livrées par ce raccord. Gate 3 reste ouverte.
+Au début du chantier, le runtime natif existant ne fournissait qu'une promenade.
+Le raccord RPG et le rapport de retour sont maintenant implémentés dans les
+sources communes ; ils ne sont pas déclarés qualifiés ou livrés par le seul
+ancien raccord de lancement. Voir la matrice de préparation du 13 octobre.
+Gate 3 reste ouverte.
 
 ## Lancement du Studio — correctif du 12 octobre 2026
 
@@ -78,11 +132,12 @@ Le backend refuse aussi les anciennes commandes de lancement avant d'ouvrir ou
 de figer une session. L'édition de carte, le départ enregistré et les définitions
 de gameplay sont conservés. Ce retrait ne constitue pas une optimisation mesurée.
 
-La partie RPG doit être raccordée au jeu séparé, sur les mêmes documents et
-commandes génériques. Le jeu livré ne fournit actuellement qu'une promenade
-native ; dialogue, quête, combat et sauvegarde RPG n'y sont pas raccordés.
-La revue P05 sur le Studio retiré n'est plus proposée. Gate 3 reste ouverte et
-la partie complète reste à qualifier dans le jeu séparé. Les résultats datés
+Au début de ce chantier, le jeu livré ne fournissait qu'une promenade native,
+sans dialogue, quête, combat ni sauvegarde RPG raccordés. Le raccord des mêmes
+documents et commandes génériques est désormais implémenté dans les sources
+communes. La revue P05 du jeu séparé est acceptée par le propriétaire le
+13 octobre ; celle du Studio retiré n'est plus proposée. Gate 3 reste ouverte
+et les preuves techniques courantes du jeu séparé restent à acquérir. Les résultats datés
 sur le précédent Studio sont historiques, sans qualification du Studio modifié.
 Voir [le retrait et sa validation](docs/evidence/gate3/STUDIO_PLAYTEST_RETIRED_20261012.md).
 
@@ -113,11 +168,15 @@ ultérieures ni clôture technique complète. Le candidat RPG isolé Source075
 (1951 tests natifs PASS, 52 ignorés et parcours intégrés) ; ces preuves historiques restent attachées à ce snapshot. Les corrections
 retenues ont désormais leur propre validation locale dans le bilan de consolidation.
 
-CI distante : [run du 11 octobre 38123749165](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38123749165)
-sur `48a894d550c5770a5ea50bc54707113e85ab5218`. WASM et supply-chain PASS ;
-Windows/Linux FAIL à Clippy ; tests et builds natifs suivants non exécutés.
-ADR-0006 ne couvre plus ces jobs qui ont réellement démarré. Une CI complète
-PASS sur la révision finale reste nécessaire ; les anciens `NOT RUN` sont historiques.
+Dernier constat CI revérifié le 13 octobre : [run 38394829662](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38394829662)
+sur `4799ebb3dfa98795d97862f0fed3cd4f6a876887`, de nouveau refusé avant toute étape
+pour facturation/plafond : quatre jobs, `steps=[]`, **NOT RUN — infrastructure billing**.
+Le [run historique du 11 octobre 38123749165](https://github.com/Karenax/OpenRPG_Forge/actions/runs/38123749165)
+sur `48a894d550c5770a5ea50bc54707113e85ab5218` avait exécuté les runners : WASM et
+supply-chain PASS ; Windows/Linux FAIL à Clippy, sans tests/builds natifs suivants.
+ADR-0006 ne couvre plus ces erreurs et n'est pas reconduit par ce nouveau refus
+pour facturation. Une CI complète PASS sur la révision finale reste nécessaire ;
+les résultats locaux et les anciens runs conservent leurs révisions propres.
 
 Le [candidat installable initial du 10 octobre](docs/planning/INSTALLABLE_DELIVERY_20261010.md) a été rejeté par le propriétaire et remplacé par la [correction R3](docs/planning/INSTALLABLE_DELIVERY_20261010_R3.md). R3 conserve les données et couvre deux relancements natifs Tidewater réels. Windows vierge et acceptation visuelle humaine restent à vérifier ; ses binaires moteur du 9 octobre ne comprennent pas le lot moteur/CI consolidé ici.
 La reprise du 10 octobre conserve l'exigence de moteur générique décrite ci-dessous.

@@ -17,6 +17,12 @@ pub enum WorkspaceAction {
         id: ModuleId,
         name: String,
     },
+    ImportModule {
+        project_id: ProjectId,
+        id: ModuleId,
+        name: String,
+        origin: super::ModuleOriginPin,
+    },
     AttachZone {
         project_id: ProjectId,
         module_id: ModuleId,
@@ -139,6 +145,14 @@ impl WorkspaceSession {
                 id,
                 name,
             } => self.head.with_module(*project_id, *id, name.clone())?,
+            WorkspaceAction::ImportModule {
+                project_id,
+                id,
+                name,
+                origin,
+            } => self
+                .head
+                .with_imported_module(*project_id, *id, name.clone(), *origin)?,
             WorkspaceAction::AttachZone {
                 project_id,
                 module_id,

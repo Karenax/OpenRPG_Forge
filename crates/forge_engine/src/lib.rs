@@ -14,6 +14,7 @@ pub use bridge_crossing_probe::{
     BridgeCrossingProbePlugin, BridgeCrossingProbeStatus, BridgeTemporalLodStatus,
 };
 mod capture_readiness;
+pub use capture_readiness::issued_capture_frame;
 pub mod finite_perspective;
 mod manual_placement_identity;
 #[cfg(feature = "physics-rapier")]

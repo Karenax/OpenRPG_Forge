@@ -22,6 +22,7 @@ pub const MAX_PROJECTS: usize = 64;
 pub const MAX_MODULES: usize = 256;
 pub const MAX_ZONES: usize = 4096;
 pub const MAX_NAME_BYTES: usize = 256;
+pub const MAX_MODULE_ORIGIN_PACKAGE_BYTES: u64 = 256 * 1024 * 1024;
 const SCHEMA: &str = "forge.workspace";
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -46,7 +47,27 @@ pub struct ProjectEntry {
 pub struct ModuleEntry {
     pub id: ModuleId,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub origin: Option<ModuleOriginPin>,
     pub zones: Vec<ZoneReference>,
+}
+
+/// Corresponding admitted package and receipt, resolved at fixed native paths.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ModuleOriginPin {
+    pub package_sha256: ContentHash,
+    pub package_bytes: u64,
+    pub receipt_sha256: ContentHash,
+}
+
+impl ModuleOriginPin {
+    pub fn validate(&self) -> Result<(), WorkspaceError> {
+        if self.package_bytes == 0 || self.package_bytes > MAX_MODULE_ORIGIN_PACKAGE_BYTES {
+            return Err(WorkspaceError::Origin("package byte budget"));
+        }
+        Ok(())
+    }
 }
 
 /// Hashes, never a user-controlled filesystem path. Storage verifies the archive
@@ -71,6 +92,8 @@ pub enum WorkspaceError {
     Duplicate,
     #[error("project is absent from this workspace")]
     MissingProject,
+    #[error("invalid module origin: {0}")]
+    Origin(&'static str),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -108,6 +131,9 @@ impl WorkspaceHead {
             let mut module_names = BTreeSet::new();
             for module in &project.modules {
                 validate_name(&module.name)?;
+                if let Some(origin) = module.origin {
+                    origin.validate()?;
+                }
                 if !modules.insert(module.id) || !module_names.insert(&module.name) {
                     return Err(WorkspaceError::Duplicate);
                 }
@@ -177,8 +203,31 @@ impl WorkspaceHead {
         project.modules.push(ModuleEntry {
             id,
             name,
+            origin: None,
             zones: Vec::new(),
         });
+        proposed.validate()?;
+        Ok(proposed)
+    }
+
+    pub fn with_imported_module(
+        &self,
+        project_id: ProjectId,
+        id: ModuleId,
+        name: String,
+        origin: ModuleOriginPin,
+    ) -> Result<Self, WorkspaceError> {
+        origin.validate()?;
+        let mut proposed = self.with_module(project_id, id, name)?;
+        // with_module validates uniqueness before the origin can be attached. There
+        // is deliberately no setter capable of replacing an existing origin.
+        let module = proposed
+            .projects
+            .iter_mut()
+            .find(|project| project.id == project_id)
+            .and_then(|project| project.modules.iter_mut().find(|module| module.id == id))
+            .ok_or(WorkspaceError::MissingProject)?;
+        module.origin = Some(origin);
         proposed.validate()?;
         Ok(proposed)
     }

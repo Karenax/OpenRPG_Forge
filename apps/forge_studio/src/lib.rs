@@ -7,6 +7,15 @@
     )
 )]
 
+#[cfg(not(target_arch = "wasm32"))]
+pub mod asset_import_native;
+pub mod asset_import_protocol;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod gameplay_visual_native;
+pub mod module_export_protocol;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod module_workspace_bootstrap;
+
 use forge_core::EntityId;
 use forge_project::WeatherState;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
@@ -22,6 +31,8 @@ use forge_world::{
     embedded_visual_valley_water_document, embedded_visual_valley_weather_profile,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod asset_import_ui;
 pub mod asset_library_model_wire;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod asset_library_native;
@@ -34,6 +45,8 @@ mod audit_labels;
 pub mod launch_configuration;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod module_asset_native;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod module_export_ui;
 pub mod promotion_preview_gate;
 pub mod reconciliation_protocol;
 
@@ -44,8 +57,7 @@ pub const fn embedded_playtest_available() -> bool {
     false
 }
 
-pub const EMBEDDED_PLAYTEST_RETIRED: &str =
-    "Le mode test intégré a été retiré. La partie RPG dans le jeu séparé reste à finaliser.";
+pub const EMBEDDED_PLAYTEST_RETIRED: &str = "Le mode test intégré a été retiré. Utilisez Lancer le jeu pour jouer dans une fenêtre séparée.";
 
 /// Reject old clients before they freeze an authoring session or start a renderer.
 pub fn validate_authoring_mode(
@@ -826,6 +838,8 @@ mod authoring_draft_scope;
 mod authoring_exclusions;
 #[cfg(all(target_arch = "wasm32", feature = "web"))]
 mod authoring_gameplay;
+#[cfg(all(target_arch = "wasm32", feature = "web"))]
+mod authoring_gameplay_visuals;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]
 mod authoring_imported_quality_observation;
 #[cfg(any(test, all(target_arch = "wasm32", feature = "web")))]

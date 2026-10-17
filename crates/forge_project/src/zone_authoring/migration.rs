@@ -33,6 +33,7 @@ impl ZoneMigrationProposal {
         // v3 must never downgrade an already validated imported source.
         base.schema_version = base.schema_version.max(3);
         let corrections = ZoneCorrections {
+            gameplay_visuals: None,
             physics: None,
             source_object_edits: None,
             gameplay: None,

@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![deny(unsafe_code)]
-use forge_delivery::{Result, archive, install, launch, manifest};
+use forge_delivery::{Result, archive, install, installed_modules, launch, manifest};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{
@@ -20,14 +20,29 @@ struct Host {
 #[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
 enum Request {
     Status,
+    Modules,
+    PlanModule {
+        selection: installed_modules::ModuleSelection,
+    },
+    LaunchModule {
+        selection: installed_modules::ModuleSelection,
+    },
     Bundled,
     Select,
     SelectRoot,
-    SetRoot { path: String },
-    Prepare { files: Vec<String> },
-    Apply { command_id: String },
+    SetRoot {
+        path: String,
+    },
+    Prepare {
+        files: Vec<String>,
+    },
+    Apply {
+        command_id: String,
+    },
     Verify,
-    Launch { app: String },
+    Launch {
+        app: String,
+    },
     Rollback,
 }
 
@@ -95,7 +110,7 @@ fn powershell(script: &str) -> Command {
 
 fn select_packages() -> Result<Vec<String>> {
     // Fixed OS dialog, no user-supplied script or shell command. Kept off the UI thread.
-    let script = "$OutputEncoding=[System.Text.Encoding]::UTF8; [Console]::OutputEncoding=$OutputEncoding; Add-Type -AssemblyName System.Windows.Forms; $d=New-Object System.Windows.Forms.OpenFileDialog; $d.Filter='Packages Forge (*.forgepack)|*.forgepack'; $d.Multiselect=$true; if($d.ShowDialog() -eq 'OK'){ConvertTo-Json -Compress -InputObject @($d.FileNames)}else{'[]'}";
+    let script = "$OutputEncoding=[System.Text.Encoding]::UTF8; [Console]::OutputEncoding=$OutputEncoding; Add-Type -AssemblyName System.Windows.Forms; $d=New-Object System.Windows.Forms.OpenFileDialog; $d.Filter='Packages Forge (*.forgepack;*.orpmod)|*.forgepack;*.orpmod'; $d.Multiselect=$true; if($d.ShowDialog() -eq 'OK'){ConvertTo-Json -Compress -InputObject @($d.FileNames)}else{'[]'}";
     let output = powershell(script).output().map_err(|e| e.to_string())?;
     if !output.status.success() {
         return Err("Le sélecteur de packages n'a pas pu s'ouvrir".into());
@@ -127,6 +142,7 @@ fn installed_pack_view(root: &Path, pack: &install::InstalledPack) -> Result<Val
         return Err(format!("Contenu installé invalide : {}", pack.id));
     }
     Ok(json!({
+        "id": descriptor.id,
         "label": descriptor.label,
         "version": descriptor.version,
         "kind": descriptor.kind
@@ -180,7 +196,12 @@ fn execute(request: Request, host: &Host) -> Result<Value> {
                     let product = install::product(&root, &state.active)?;
                     let packs = std::iter::once(&state.active.core)
                         .chain(state.active.packs.values())
-                        .map(|pack| installed_pack_view(&root, pack))
+                        .map(|pack| match installed_pack_view(&root, pack) {
+                            Err(problem) if pack.kind == manifest::Kind::Module => Ok(json!({
+                                "id":pack.id,"label":pack.id,"kind":pack.kind,"problem":problem
+                            })),
+                            result => result,
+                        })
                         .collect::<Result<Vec<_>>>()?;
                     Ok(
                         json!({"installed":true,"root":root,"product":product,"packs":packs,"state":state}),
@@ -195,6 +216,11 @@ fn execute(request: Request, host: &Host) -> Result<Value> {
                 }
                 Err(error) => Err(error),
             }
+        }
+        Request::Modules => value(&installed_modules::inventory(&root)?),
+        Request::PlanModule { selection } => value(&installed_modules::plan(&root, selection)?),
+        Request::LaunchModule { selection } => {
+            Ok(json!({"process_id":installed_modules::start(&root,selection)?.id()}))
         }
         Request::Bundled => bundled(),
         Request::Select => value(&select_packages()?),

@@ -65,6 +65,25 @@ fn set_paused(value: bool) {
     });
 }
 
+pub(crate) fn exported_game_opened() {
+    set_diagnostics(None);
+    set_paused(true);
+}
+
+pub(crate) fn exported_game_starting() {
+    set_diagnostics(None);
+}
+
+pub(crate) async fn exported_game_refused() {
+    match refresh_diagnostics().await {
+        Ok(true) => (),
+        Ok(false) => {
+            diagnostic_unavailable("aucun bilan fourni après le refus de lancement".into())
+        }
+        Err(error) => diagnostic_unavailable(error),
+    }
+}
+
 fn diagnostic_view() -> Option<DiagnosticView> {
     DIAGNOSTICS.with(|slot| slot.get().and_then(|value| value.get()))
 }
@@ -239,6 +258,13 @@ pub(super) fn PausedView() -> impl IntoView {
     let failure = RwSignal::new(String::new());
     let polling = RwSignal::new(false);
     wasm_bindgen_futures::spawn_local(async {
+        // A WebView reload does not terminate the native child. Restore its pause.
+        if crate::web::invoke_tauri_raw("native_game_running", js_sys::Object::new().as_ref())
+            .await
+            .is_ok_and(|value| value.as_bool() == Some(true))
+        {
+            set_paused(true);
+        }
         // Recover the last backend report after a UI remount, without resuming
         // or rebuilding the retained map.
         let _ = refresh_diagnostics().await;

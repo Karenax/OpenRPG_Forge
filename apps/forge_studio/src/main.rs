@@ -12,6 +12,48 @@ static AUTHORING_HOST: OnceLock<
     Mutex<Result<forge_project::authoring::host::AuthoringHost, String>>,
 > = OnceLock::new();
 
+fn with_asset_imports<T>(
+    operation: impl FnOnce(
+        &forge_studio_frontend::asset_import_native::AssetImportStore,
+    ) -> Result<T, String>,
+) -> Result<T, String> {
+    use forge_studio_frontend::asset_import_native::AssetImportStore;
+    static IMPORTS: OnceLock<Mutex<Result<AssetImportStore, String>>> = OnceLock::new();
+    let store = IMPORTS.get_or_init(|| {
+        Mutex::new(
+            forge_studio_frontend::launch_configuration::authoring_root()
+                .and_then(|root| {
+                    root.ok_or_else(|| {
+                        "Configurez un espace utilisateur pour importer des assets.".to_owned()
+                    })
+                })
+                .and_then(|root| AssetImportStore::new(&root.join("asset-imports"))),
+        )
+    });
+    let guard = store
+        .lock()
+        .map_err(|_| "Bibliothèque d’imports temporairement indisponible".to_owned())?;
+    operation(guard.as_ref().map_err(Clone::clone)?)
+}
+
+/// Typed raw uploads carry bytes and identities, never client filesystem paths.
+#[tauri::command]
+async fn execute_asset_import(
+    request: tauri::ipc::Request<'_>,
+) -> Result<tauri::ipc::Response, String> {
+    use forge_studio_frontend::asset_import_protocol::{decode_request, encode_response};
+    let decoded = match request.body() {
+        tauri::ipc::InvokeBody::Raw(bytes) => decode_request(bytes)?,
+        tauri::ipc::InvokeBody::Json(_) => return Err("Transfert binaire d’import attendu".into()),
+    };
+    tauri::async_runtime::spawn_blocking(move || {
+        let response = with_asset_imports(|store| store.execute(decoded))?;
+        encode_response(&response).map(tauri::ipc::Response::new)
+    })
+    .await
+    .map_err(|error| format!("Import interrompu : {error}"))?
+}
+
 /// Read-only adapter: the `WebView` supplies IDs and filters, never filesystem paths.
 #[tauri::command]
 async fn read_asset_library(request: String) -> Result<String, String> {
@@ -148,11 +190,27 @@ fn execute_module_model_request(
     if *schema_version != 2 {
         return Err("Version de requête de modèle du module invalide".into());
     }
+    let (asset_id, sha256) = (*asset_id, *sha256);
+    if forge_studio_frontend::launch_configuration::authoring_root()?.is_some()
+        && let Some(file) = with_asset_imports(|store| store.lookup_model(asset_id, sha256))?
+    {
+        if file.kind != forge_assets::governed_import::GovernedAssetKind::Mesh {
+            return Err("Cet asset importé n’est pas un modèle 3D".into());
+        }
+        let reply =
+            ModuleModelReply::Model(forge_studio_frontend::asset_library_protocol::ModuleModel {
+                asset_id,
+                sha256,
+                catalog_sha256: file.catalog_sha256,
+                collision: None,
+                bytes: file.upload.bytes,
+            });
+        return forge_studio_frontend::asset_library_model_wire::encode_module(reply);
+    }
     let resolver = RESOLVER
         .get_or_init(ModuleAssetResolver::from_environment)
         .as_ref()
         .map_err(ToString::to_string)?;
-    let (asset_id, sha256) = (*asset_id, *sha256);
     let reply = match resolver {
         None => ModuleModelReply::Missing { asset_id, sha256 },
         Some(resolver) => match resolver.resolve(asset_id, sha256) {
@@ -171,7 +229,7 @@ fn with_authoring_host<T>(
         forge_studio_frontend::launch_configuration::authoring_root()
             .and_then(|root| root.ok_or_else(|| "Configurez authoring_root dans forge-studio.local.json pour ouvrir vos modules.".to_owned()))
             .and_then(|root| forge_project::authoring::host::AuthoringHost::new(std::path::Path::new(&root)))
-            .map(|host| host.with_zone_validator(forge_world::promotion_preflight::validate_origins))
+            .map(|host| host.with_zone_validator(validate_studio_zone))
     ));
     host.lock()
         .map_err(|_| "authoring session unavailable after internal error".to_owned())
@@ -181,6 +239,42 @@ fn with_authoring_host<T>(
                 .map_err(|error| error.clone())
                 .and_then(operation)
         })
+}
+
+mod native_module_export;
+
+#[tauri::command]
+async fn export_module(
+    request: String,
+) -> Result<forge_studio_frontend::module_export_protocol::ModuleExportResult, String> {
+    if request.len() > 64 * 1024 {
+        return Err("Requête d’export trop volumineuse".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let request = serde_json::from_str(&request).map_err(|e| e.to_string())?;
+        native_module_export::execute(request)
+    })
+    .await
+    .map_err(|e| format!("Export interrompu : {e}"))?
+}
+
+fn validate_studio_zone(
+    head: &forge_project::zone_authoring::ZoneAuthoringHead,
+) -> Result<(), String> {
+    forge_world::promotion_preflight::validate_origins(head)?;
+    let bindings = head
+        .corrections
+        .gameplay_visuals
+        .as_deref()
+        .unwrap_or_default();
+    if bindings.is_empty() {
+        return Ok(());
+    }
+    with_asset_imports(|store| {
+        forge_studio_frontend::gameplay_visual_native::verify_models(bindings, |id, pin| {
+            store.lookup_model(id, pin)
+        })
+    })
 }
 
 fn execute_authoring(request: forge_project::authoring::AuthoringRequest) -> StudioResponse {
@@ -413,11 +507,14 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             execute_studio_command,
+            execute_asset_import,
+            export_module,
             read_asset_library,
             read_asset_model,
             read_asset_physics,
             read_asset_particles,
             native_game::launch_native_game,
+            native_game::launch_exported_module,
             native_game::native_game_running,
             native_game::native_game_diagnostics
         ])
@@ -663,15 +760,18 @@ mod tests {
         let capability: Value =
             serde_json::from_str(include_str!("../capabilities/default.json")).unwrap();
         let permissions = capability["permissions"].as_array().unwrap();
-        assert_eq!(permissions.len(), 8);
+        assert_eq!(permissions.len(), 11);
         assert_eq!(permissions[0], "allow-execute-studio-command");
-        assert_eq!(permissions[1], "allow-read-asset-library");
-        assert_eq!(permissions[2], "allow-read-asset-model");
-        assert_eq!(permissions[3], "allow-read-asset-physics");
-        assert_eq!(permissions[4], "allow-launch-native-game");
-        assert_eq!(permissions[5], "allow-native-game-running");
-        assert_eq!(permissions[6], "allow-native-game-diagnostics");
-        assert_eq!(permissions[7], "core:window:deny-set-title");
+        assert_eq!(permissions[1], "allow-execute-asset-import");
+        assert_eq!(permissions[2], "allow-export-module");
+        assert_eq!(permissions[3], "allow-read-asset-library");
+        assert_eq!(permissions[4], "allow-read-asset-model");
+        assert_eq!(permissions[5], "allow-read-asset-physics");
+        assert_eq!(permissions[6], "allow-launch-native-game");
+        assert_eq!(permissions[7], "allow-launch-exported-module");
+        assert_eq!(permissions[8], "allow-native-game-running");
+        assert_eq!(permissions[9], "allow-native-game-diagnostics");
+        assert_eq!(permissions[10], "core:window:deny-set-title");
         let granted: Vec<_> = permissions
             .iter()
             .filter_map(Value::as_str)
@@ -681,10 +781,13 @@ mod tests {
             granted,
             [
                 "allow-execute-studio-command",
+                "allow-execute-asset-import",
+                "allow-export-module",
                 "allow-read-asset-library",
                 "allow-read-asset-model",
                 "allow-read-asset-physics",
                 "allow-launch-native-game",
+                "allow-launch-exported-module",
                 "allow-native-game-running",
                 "allow-native-game-diagnostics"
             ]

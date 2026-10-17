@@ -141,6 +141,10 @@ pub(super) fn preview_label(state: &AuthoringState, receipt: &ZoneReceipt) -> St
 }
 
 fn preview_primary_change(state: &AuthoringState, receipt: &ZoneReceipt) -> Option<String> {
+    if let Some(label) = crate::authoring_gameplay_visuals::preview_label(receipt) {
+        super::authoring_preview::clear();
+        return Some(label);
+    }
     if receipt.applied.physics != receipt.inverse.physics {
         super::authoring_preview::clear();
         return Some(receipt.applied.physics.as_ref().map_or_else(

@@ -1,12 +1,44 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
+## État courant — Gate 4 clôturée localement au 16 octobre 2026
+
+**Gate 3 est clôturée** sur les preuves locales Source013 et l'acceptation
+propriétaire de la boucle RPG créée depuis Studio, dans le jeu séparé.
+Le [bilan de clôture](../evidence/gate3/GATE3_CLOSURE_20261015.md) rapproche
+les 21 critères R3-A/R3-B/R3-P01–05 des acquisitions réelles.
+Le propriétaire retire la CI GitHub des critères bloquants de cette clôture
+dans [ADR-0023](../ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md) ;
+le run distant reste NOT RUN et aucun PASS CI n'est inventé.
+Gate 4 porte le verdict **clôturée localement** selon le
+[rapport final](../evidence/gate4/GATE4_CLOSURE_20261016.md), sur le lot
+`0.1.0-preview.20261016.019`. Les seize cases ci-dessous renvoient à sa matrice.
+Les constats datés gardent leur portée historique ; les gates suivantes ne sont
+pas ouvertes par cette mise à jour.
+
+## Objectif de clôture Gate 3 — 13 octobre 2026
+
+Le propriétaire accepte la boucle RPG et le parcours créé depuis Studio dans
+le jeu séparé, puis autorise le travail jusqu'à clôture de Gate 3. Cette
+acceptation couvre le verdict propriétaire ; elle ne coche pas les preuves
+machine ou la CI à leur place. Le raccord natif RPG est désormais implémenté
+dans les sources communes ; sa qualification d'exécution reste distincte.
+La qualification conserve les critères environnementaux ci-dessous, le Studio
+résident et la version
+commune. Voir [le suivi de cette décision](../evidence/gate3/GATE3_OWNER_RPG_ACCEPTANCE_20261013.md).
+Les critères restent ouverts tant que leur preuve technique courante manque.
+La [matrice de préparation de clôture](../evidence/gate3/GATE3_CLOSURE_READINESS_20261013.md)
+sépare preuves machine, fixtures SDK, acceptation propriétaire et parcours
+Studio/native/CI ; aucune case de gate n'est cochée par la préparation.
+
 ## Décision du 12 octobre 2026 — test Studio retiré
 
 Le mode test intégré, jugé injouable par le propriétaire, est retiré de Studio.
 L'édition, le départ enregistré et les définitions RPG restent disponibles.
-P05 reste à réaliser dans le jeu séparé, après raccordement des mêmes documents
-au moteur de gameplay et à ses commandes/persistance. Le jeu natif livré est
-actuellement une promenade, sans parcours RPG complet. Aucune clôture de Gate 3
+Au début du chantier, le jeu natif livré n'offrait qu'une promenade, sans
+parcours RPG complet. Le raccord des mêmes documents au moteur de gameplay et
+à ses commandes/persistance est désormais implémenté dans les sources communes.
+P05 dans le jeu séparé est accepté par le propriétaire le 13 octobre ; les
+preuves techniques du raccord restent à acquérir. Aucune clôture de Gate 3
 ni dérogation de fluidité n'est accordée par ce retrait. Les preuves Studio
 antérieures restent datées ; voir [le retrait](../evidence/gate3/STUDIO_PLAYTEST_RETIRED_20261012.md).
 
@@ -4003,36 +4035,35 @@ pas de verdict de gate. Voir R2_WORKSPACE_CHECK_20260914.md.
 
 # Gate 3 — Première boucle RPG environnementale
 
-Gate active depuis le 1er octobre 2026 ; carte de référence : Tidewater Rust.
-Objectif propriétaire : clôturer cette gate. La validation de Gate 2 n'est pas
-une validation anticipée des critères Gate 3. Plan : GATE3_PREPARATION_PLAN.md.
-
-Lecture au 10 octobre : test humain accepté sur le correctif 005, preuves
-automatisées locales sur Source075, adoption et CI finale encore distinctes.
-Les cases ci-dessous restent des critères de qualification intégrée ; ne pas
-les interpréter comme une absence de toute implémentation ou preuve locale.
+**Clôturée le 15 octobre 2026**, carte de référence : Tidewater Rust, candidat
+commun Source013 publié sous `3e0044d5f63b26c678d9db19380a66db832d9de3`.
+Le [rapport de clôture](../evidence/gate3/GATE3_CLOSURE_20261015.md) documente
+chaque critère et la réutilisation bornée des composants012 inchangés.
+L'acceptation de Gate 2 n'a pas servi de preuve anticipée de Gate 3 ; les
+acquisitions propres à Gate 3 sont conservées. La CI GitHub est retirée du
+critère bloquant par ADR-0023, sans qualification distante.
 
 ## R3-A — Fondations
 
-- [ ] joueur, stats minimales et inventaire ;
-- [ ] PNJ et navigation ;
-- [ ] interaction ciblée ;
-- [ ] dialogue ;
-- [ ] quête ;
-- [ ] ennemi ;
-- [ ] combat ;
-- [ ] sauvegarde/reprise.
+- [x] joueur, stats minimales et inventaire ;
+- [x] PNJ et navigation ;
+- [x] interaction ciblée ;
+- [x] dialogue ;
+- [x] quête ;
+- [x] ennemi ;
+- [x] combat ;
+- [x] sauvegarde/reprise.
 
 ## R3-B — Monde comme arme
 
-- [ ] objet poussable ;
-- [ ] objet lançable ;
-- [ ] dégâts d’impact ;
-- [ ] chute ou piège ;
-- [ ] feu ;
-- [ ] eau/extinction ;
-- [ ] objet destructible ;
-- [ ] réaction IA au danger.
+- [x] objet poussable ;
+- [x] objet lançable ;
+- [x] dégâts d’impact ;
+- [x] chute ou piège ;
+- [x] feu ;
+- [x] eau/extinction ;
+- [x] objet destructible ;
+- [x] réaction IA au danger.
 
 ## R3-C — Parcours
 
@@ -4041,33 +4072,39 @@ ou neutraliser un ennemi, récupère un objet, termine l’objectif, sauvegarde 
 
 La gate passe uniquement si le parcours est authoré depuis le Studio.
 
-- [ ] `R3-P01` relier village, forêt et intérieur par des lieux et références valides, avec deux approches de quête et une conséquence persistante.
-- [ ] `R3-P02` retoucher une réplique et une porte depuis Studio, puis reprendre une sauvegarde sans perdre texte, liens ou état de quête.
-- [ ] `R3-P03` provoquer un objectif inaccessible ou une référence absente ; le diagnostic mène à l'objet ou à la condition à corriger.
-- [ ] `R3-P04` rejouer depuis un état de test choisi ; isoler la simulation des documents authorés et conserver la révision de reproduction.
-- [ ] `R3-P05` observer une partie complète dans le jeu séparé pour la lisibilité et le rythme, en distinguant cette revue du passage des tests automatisés. Le test intégré Studio est retiré par décision du 12 octobre ; le raccordement RPG natif reste requis.
+- [x] `R3-P01` relier village, forêt et intérieur par des lieux et références valides, avec deux approches de quête et une conséquence persistante.
+- [x] `R3-P02` retoucher une réplique et une porte depuis Studio, puis reprendre une sauvegarde sans perdre texte, liens ou état de quête.
+- [x] `R3-P03` provoquer un objectif inaccessible ou une référence absente ; le diagnostic mène à l'objet ou à la condition à corriger.
+- [x] `R3-P04` rejouer depuis un état de test choisi ; isoler la simulation des documents authorés et conserver la révision de reproduction.
+- [x] `R3-P05` observer une partie complète dans le jeu séparé pour la lisibilité et le rythme, en distinguant cette revue du passage des tests automatisés. Acceptation propriétaire acquise le 13 octobre ; qualification technique consolidée le 15 octobre dans le rapport de clôture. Le test intégré Studio est retiré par décision du 12 octobre.
 
 ---
 
 # Gate 4 — Assets gouvernés et `.orpmod` v2
 
-- [ ] catalogue d’assets ;
-- [ ] import GLB ;
-- [ ] import textures ;
-- [ ] import audio ;
-- [ ] provenance et licence ;
-- [ ] hash et dérivés ;
-- [ ] thumbnails ;
-- [ ] validation publication ;
-- [ ] package `.orpmod` v2 ;
-- [ ] protections archive ;
-- [ ] installation ;
-- [ ] chargement runtime ;
-- [ ] second module de régression ;
-- [ ] import expérimental de données Solaren sélectionnées.
+Ouverte par le propriétaire le 15 octobre 2026, après la clôture Gate 3.
+Le [plan de réalisation](GATE4_IMPLEMENTATION_PLAN.md) suit les lots et les
+preuves ; les contrats seuls ne qualifient pas les parcours Studio et jeu.
+État au 16 octobre 2026 : **clôturée localement**, selon le
+[rapport final](../evidence/gate4/GATE4_CLOSURE_20261016.md) et sa matrice des seize critères.
 
-- [ ] `R4-P01` installer et jouer l'aventure de référence sans accès au workspace source, à l'Asset Vault ou au fournisseur IA.
-- [ ] `R4-P02` remplacer un asset par une variante gouvernée sans casser ses liens gameplay ; conserver les retouches dans une source authorée ou une recette, pas uniquement un cache Blender.
+- [x] catalogue d’assets ;
+- [x] import GLB ;
+- [x] import textures ;
+- [x] import audio ;
+- [x] provenance et licence ;
+- [x] hash et dérivés ;
+- [x] thumbnails ;
+- [x] validation publication ;
+- [x] package `.orpmod` v2 ;
+- [x] protections archive ;
+- [x] installation ;
+- [x] chargement runtime ;
+- [x] second module de régression ;
+- [x] import expérimental de données Solaren sélectionnées.
+
+- [x] `R4-P01` installer et jouer l'aventure de référence sans accès au workspace source, à l'Asset Vault ou au fournisseur IA.
+- [x] `R4-P02` remplacer un asset par une variante gouvernée sans casser ses liens gameplay ; conserver les retouches dans une source authorée ou une recette, pas uniquement un cache Blender.
 
 ---
 

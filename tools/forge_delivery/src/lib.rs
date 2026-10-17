@@ -2,10 +2,18 @@
 //! Immutable packages are verified before one atomic installation-head update.
 #![deny(unsafe_code)]
 
+#[cfg(test)]
+extern crate self as forge_delivery;
+
 pub mod archive;
 pub mod install;
+pub mod installed_modules;
 pub mod launch;
 pub mod manifest;
+pub mod module_builder;
+pub mod module_runtime;
+pub mod orpmod;
+pub mod selected_legacy_dialogue;
 
 pub type Result<T> = std::result::Result<T, String>;
 

@@ -10,6 +10,9 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [dependencies]
+forge_assets = { path = "../../crates/forge_assets" }
+forge_core = { path = "../../crates/forge_core" }
+forge_project = { path = "../../crates/forge_project" }
 serde = { version = "=1.0.229", features = ["derive"] }
 serde_json = "=1.0.151"
 sha2 = "=0.11.0"

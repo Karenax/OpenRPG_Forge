@@ -5,6 +5,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+// The native no-reparse adapter is the only local exception; see ADR-0024.
+#[cfg(windows)]
+#[allow(unsafe_code)]
+mod windows_path_guard;
+
 pub const MAX_MANIFEST: u64 = 64 * 1024 * 1024;
 pub const MAX_FILES: usize = 250_000;
 pub const MAX_FILE_BYTES: u64 = 16 * 1024 * 1024 * 1024;
@@ -173,7 +178,10 @@ fn check_existing(path: &Path) -> Result<()> {
     match std::fs::symlink_metadata(path) {
         Ok(_) => no_links(path),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error.to_string()),
+        Err(error) => Err(format!(
+            "Inspect package ancestor {}: {error}",
+            path.display()
+        )),
     }
 }
 
@@ -189,10 +197,17 @@ pub fn safe_chain(path: &Path) -> Result<()> {
     {
         return Err("Absolute normalized path required".into());
     }
-    for ancestor in path.ancestors() {
-        check_existing(ancestor)?;
+    #[cfg(windows)]
+    {
+        windows_path_guard::safe_chain(path)
     }
-    Ok(())
+    #[cfg(not(windows))]
+    {
+        for ancestor in path.ancestors() {
+            check_existing(ancestor)?;
+        }
+        Ok(())
+    }
 }
 
 impl Descriptor {

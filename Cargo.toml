@@ -11,7 +11,7 @@ members = [
     "apps/forge_studio",
     "tools/forge_cli",
 ]
-exclude = ["tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0", "third_party/rapier3d-0.35.0-glamx0.2", "third_party/bevy_image-0.19.1-ruzstd0.9.1"]
+exclude = ["tools/forge_delivery", "tools/forge_navigation_benchmark", "third_party/rerecast-0.4.0", "third_party/rapier3d-0.35.0-glamx0.2", "third_party/bevy_image-0.19.1-ruzstd0.9.1"]
 resolver = "3"
 
 [workspace.package]

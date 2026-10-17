@@ -1,5 +1,14 @@
 # Gate 3 — Plan détaillé de préparation
 
+## État courant — 15 octobre 2026
+
+**Gate 3 est clôturée.** Le [rapport de clôture](../evidence/gate3/GATE3_CLOSURE_20261015.md)
+rapproche les critères officiels des preuves locales et de l'acceptation
+propriétaire. La CI GitHub est retirée du critère bloquant par
+[ADR-0023](../ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md), sans PASS distant.
+Le texte daté de préparation ci-dessous reste historique ; les lots proposés
+G3-01 à G3-10 ne constituent pas de nouveaux critères de passage.
+
 Date initiale : 23 septembre 2026. État actualisé au 10 octobre 2026 :
 **exécution active sur Tidewater, Gate 3 ouverte** depuis l'autorisation
 propriétaire [ADR-0018](../ADR/ADR-0018-gate2-owner-validation-gate3-tidewater.md).

@@ -16,6 +16,12 @@ il présente une relecture avant application. Le bouton de livraison jointe n’
 affiché dans le hub déjà installé; les contenus supplémentaires s’ajoutent avec le
 sélecteur de packages.
 
+Les `.orpmod` v2 installés et admis affichent un bouton Jouer par zone dans leur
+ligne de contenu. Le gestionnaire transmet uniquement les identités module/carte
+à `forge_delivery::installed_modules` ; celui-ci vérifie le package et le jeu
+installés, prépare les pins canoniques et démarre le jeu séparé. Un module refusé
+garde son diagnostic sans masquer les autres modules sains. Aube reste inchangée.
+
 `forge_hub --root ABSOLUTE_INSTALL_ROOT` ouvre une installation spécifique.
 Sans argument, le hub reprend d'abord le dossier qui contient l'exécutable si un
 `installation.json` voisin y est présent ; sinon il utilise la racine standard par

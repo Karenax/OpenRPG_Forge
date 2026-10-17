@@ -22,6 +22,9 @@ const {chromium} = require(process.env.FORGE_PLAYWRIGHT_MODULE || 'playwright');
       {id:'forge-applications',label:window.fixtureTitle || 'Launcher, éditeur et jeu',kind:'applications',version:'preview',bytes:370645707,files:1100},
       {id:'reference-assets',label:'Assets de l’aventure de référence',kind:'assets',version:'preview',bytes:475808350,files:1000},
       {id:'reference-module',label:'Module de référence',kind:'module',version:'preview',bytes:54614767,files:27},
+      {id:'00000000-0000-0000-0000-000000000101',label:'Les quais',kind:'module',version:'1.0.0',bytes:24000,files:8},
+      {id:'00000000-0000-0000-0000-000000000201',label:'Les montagnes',kind:'module',version:'1.0.0',bytes:26000,files:8},
+      {id:'00000000-0000-0000-0000-000000000301',label:'Module incomplet',kind:'module',version:'1.0.0',bytes:26000,files:8},
     ];
     const snapshot = {core:{id:'forge-applications',kind:'applications'},packs:{assets:{id:'reference-assets',kind:'assets'},module:{id:'reference-module',kind:'module'}}};
     window.__TAURI__ = {core:{invoke:async (_command,{request}) => {
@@ -35,6 +38,11 @@ const {chromium} = require(process.env.FORGE_PLAYWRIGHT_MODULE || 'playwright');
         case 'apply': installed = true; return {revision:1};
         case 'verify': return {revision:1};
         case 'launch': return {process_id:123};
+        case 'modules': return {modules:[
+          {module_id:'00000000-0000-0000-0000-000000000101',name:'Les quais',version:'1.0.0',zones:[{area_id:'00000000-0000-0000-0000-000000000102'}]},
+          {module_id:'00000000-0000-0000-0000-000000000201',name:'Les montagnes',version:'1.0.0',zones:[{area_id:'00000000-0000-0000-0000-000000000202'}]},
+        ],rejected:[{pack_id:'00000000-0000-0000-0000-000000000301',reason:'assets/model.glb absent'}]};
+        case 'launch_module': return {process_id:234};
         default: throw new Error('Unexpected fixture action: '+request.action);
       }
     }}};
@@ -64,6 +72,12 @@ const {chromium} = require(process.env.FORGE_PLAYWRIGHT_MODULE || 'playwright');
     await page.screenshot({path:path.join(output,'hub-review.png'),fullPage:true});
     await page.locator('#apply').click();
     await page.waitForFunction(() => !document.getElementById('play').disabled);
+    assert.equal(await page.locator('[data-module-launch]').count(),2,'Both admitted v2 modules need a public play action; the legacy module must retain its original recipe');
+    assert.ok((await page.locator('#packs').textContent()).includes('assets/model.glb absent'),'A rejected module needs its own actionable diagnosis');
+    await page.locator('[data-module-launch]').nth(1).click();
+    assert.deepEqual(await page.evaluate(() => window.fixtureCalls.find(call => call.action==='launch_module')),
+      {action:'launch_module',selection:{module_id:'00000000-0000-0000-0000-000000000201',area_id:'00000000-0000-0000-0000-000000000202'}},
+      'Module launch accepts stable IDs only, never a frontend-supplied executable or filesystem path');
     await page.locator('#play').click();
     await page.waitForFunction(() => window.fixtureCalls.some(call => call.action==='launch'));
     await page.screenshot({path:path.join(output,'hub-installed.png'),fullPage:true});
@@ -84,6 +98,7 @@ const {chromium} = require(process.env.FORGE_PLAYWRIGHT_MODULE || 'playwright');
       original_artwork_loaded:true,review_displays_selected_destination:true,
       verification_feedback_preserved:true,package_title_rendered_as_text:true,
       apply_and_launch_fixture:true,minimum_viewport_no_horizontal_overflow:true,
+      two_admitted_modules_have_public_launch_actions:true,module_launch_requests_ids_only:true,rejected_module_diagnosis_visible:true,
       screenshots:['hub-destination.png','hub-review.png','hub-installed.png','hub-minimum-window.png'],
       native_folder_dialog_tested:false,native_tauri_visual_tested:false,human_visual_acceptance:false,
     },null,2)+'\n');

@@ -26,7 +26,9 @@ pub(crate) fn imported_document() -> Option<TerrainDocument> {
 }
 
 pub(super) fn can_preview_asset() -> bool {
-    can_project_sources() && !PLAYING.with(std::cell::Cell::get)
+    can_project_sources()
+        && !PLAYING.with(std::cell::Cell::get)
+        && !super::authoring_native_game::paused()
 }
 
 /// Source reconstruction must remain available while playtest waits for its caches.
@@ -83,7 +85,10 @@ pub fn AuthoringWorkspace() -> impl IntoView {
             <style>{include_str!("authoring_gold.css")}</style>
             <header class="topbar">
                 <h1>"OpenRPG Forge"</h1><span class="authoring-brand-caption">"Atelier de création"</span>
-                <super::asset_library_ui::LibraryLauncher/>
+                <div inert=move ||super::authoring_native_game::paused() style="display:contents">
+                    <super::asset_library_ui::LibraryLauncher/>
+                    <crate::asset_import_ui::AssetImportLauncher/>
+                </div>
                 <super::atelier_ui::WindowControls link=atelier/>
                 <details class="forge-technical-menu"><summary>"Aide & diagnostics"</summary>
                     <div><p>"Ces pages rechargent l’atelier. Terminez vos aperçus avant de naviguer."</p>

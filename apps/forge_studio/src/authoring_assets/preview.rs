@@ -273,23 +273,6 @@ fn update(
     );
 }
 
-pub(super) fn configure(
-    root: Entity,
-    id: &str,
-    entities: impl Iterator<Item = Entity>,
-    nodes: &PreviewNodes,
-    commands: &mut Commands,
-) -> Result<Option<(Vec3, f32)>, &'static str> {
-    configure_layout(
-        root,
-        id,
-        SceneLayout::CatalogLod0,
-        entities,
-        nodes,
-        commands,
-    )
-}
-
 pub(super) fn configure_layout(
     root: Entity,
     id: &str,

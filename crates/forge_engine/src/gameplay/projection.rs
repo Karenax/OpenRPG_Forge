@@ -150,6 +150,7 @@ pub(super) fn synchronize(
         ),
         With<GameplayBody>,
     >,
+    visuals: Option<Res<super::visuals::GameplayVisualStatus>>,
 ) {
     let events = std::mem::take(&mut runtime.effects);
     for event in &events {
@@ -206,7 +207,8 @@ pub(super) fn synchronize(
             }
         }
     }
-    status.ready = expected == ready
+    status.ready = visuals.is_none_or(|v| v.error.is_none() && v.ready == v.expected)
+        && expected == ready
         && runtime.entities.len()
             == runtime.session.document().objects.len() + runtime.session.document().actors.len();
 }

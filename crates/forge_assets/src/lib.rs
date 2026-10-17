@@ -5,7 +5,10 @@
 pub mod asset_browser;
 mod glb_preflight;
 mod governed_asset_kit;
+pub mod governed_import;
 mod imported_catalog;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod media_validation;
 pub mod source_collision_geometry;
 pub mod source_decal_lifetime;
 pub mod source_fragment;

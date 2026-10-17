@@ -9,6 +9,21 @@ Confirmation au commit Gate 0 : run `33339077298`, commit
 `a7c506f099b50100ad49f3ae6d01d541c9b63d49`
 Complète : `ADR-0001-rust-webgpu-greenfield.md`
 
+## Actualisation — 15 octobre 2026 : décision propre à la clôture Gate 3
+
+Le propriétaire retire la CI GitHub des critères bloquants de la clôture Gate 3
+actuelle, par l'instruction : « on arret d'attendre les validation de git, c'est
+pas un critère a retenir ». Cette décision est consignée dans
+[ADR-0023](ADR-0023-gate3-owner-removes-github-ci-criterion.md), sur le candidat
+`3e0044d5f63b26c678d9db19380a66db832d9de3` et ses preuves locales identifiées.
+Elle remplace, uniquement pour cette clôture Gate 3, l'exigence d'attendre une
+CI complète PASS avant le verdict. Elle ne réactive pas la présente exception
+historique, n'en prolonge aucune portée aux autres gates et ne qualifie aucune
+release ou plateforme distante. Le run `38762140900` reste `NOT RUN — infrastructure
+billing`, avec quatre jobs sans étape exécutée. Les résultats et conditions datés
+ci-dessous restent conservés comme historique ; les exigences de distribution
+restent distinctes et inchangées.
+
 ## Actualisation — 10 octobre 2026
 
 L'exception de facturation reste une décision historique pour les runs sans

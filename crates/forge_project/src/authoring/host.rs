@@ -8,6 +8,7 @@ mod compaction;
 mod game_save;
 mod gameplay;
 mod managed;
+mod origin;
 mod recovery;
 mod session;
 mod terrain_source;

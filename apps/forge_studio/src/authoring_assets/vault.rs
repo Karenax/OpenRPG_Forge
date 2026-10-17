@@ -291,7 +291,7 @@ pub(crate) async fn reference(
 
 /// Module catalogues publish explicit UUIDs, while the Vault has its own strict
 /// identity namespace. Only the typed V2 Missing reply permits a Vault fallback.
-pub(crate) async fn installed_reference(
+pub(super) async fn installed_reference(
     asset_id: AssetId,
     sha256: ContentHash,
 ) -> Result<(String, Vec<u8>, super::preview::SceneLayout), String> {

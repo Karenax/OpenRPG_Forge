@@ -13,6 +13,7 @@ pub mod exclusions;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod file_session;
 pub mod gameplay;
+pub mod gameplay_visuals;
 pub mod imported_plants;
 pub mod inspection;
 pub mod migration;
@@ -59,6 +60,9 @@ pub struct DensityOverride {
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ZoneCorrections {
+    /// Governed visuals share zone review/history. Omission preserves historical hashes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gameplay_visuals: Option<Vec<crate::module_gameplay_visuals::GameplayVisualBinding>>,
     /// Explicit shared scene contact policy (head v15); omission preserves old hashes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub physics: Option<Box<physics::PhysicsSceneSettings>>,
@@ -129,6 +133,9 @@ impl ZoneAuthoringHead {
         }
         if let Some(document) = self.corrections.gameplay.as_deref() {
             gameplay::validate(self, document)?;
+        }
+        if let Some(bindings) = &self.corrections.gameplay_visuals {
+            gameplay_visuals::validate(self, bindings)?;
         }
         if let Some(origins) = &self.corrections.promotions {
             promotion::validate(self, origins)?;
@@ -276,6 +283,9 @@ impl ZoneCorrections {
     /// Minimum head version required by the present authoring domains.
     #[must_use]
     pub fn schema_version(&self) -> u32 {
+        if self.gameplay_visuals.is_some() {
+            return 17;
+        }
         if self.placements.as_ref().is_some_and(|placements| {
             placements
                 .iter()

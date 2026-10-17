@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, VecDeque};
 mod danger_motion;
 mod projection;
 mod simulation;
+pub mod visuals;
 pub use danger_motion::{DangerMotionActor, DangerMotionState};
 pub use projection::GameplayProjectionStatus;
 
@@ -129,8 +130,12 @@ impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
         use bevy_rapier3d::prelude::PhysicsSet;
         app.init_resource::<crate::navigation::NavigationRuntime>()
+            .init_resource::<visuals::GameplayVisualPlan>()
+            .init_resource::<visuals::GameplayVisualStatus>()
             .init_resource::<crate::navigation::NavigationPolicy>()
             .add_systems(Startup, projection::spawn)
+            .add_systems(Startup, visuals::attach.after(projection::spawn))
+            .add_systems(PostUpdate, visuals::observe)
             .configure_sets(
                 FixedUpdate,
                 GameplaySet::Drive

@@ -1,0 +1,260 @@
+{
+  "schema": "forge.delivery.application-source-inventory",
+  "version": 1,
+  "name_prefix": "symphonia",
+  "registry_cache_directory": "index.crates.io-1949cf8c6b5b557f",
+  "components": [
+    {
+      "name": "symphonia",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 17306,
+      "sha256": "a7edef6a96b696d4e0cab5ee9ebb7ca155ed95f30a6b45bbb8b97d2727f02424",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-bundle-flac",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 31240,
+      "sha256": "6405d5c34ff6f8f7ca08a4101efe66d21e180f7322ef9359900a0e55698a7892",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-codec-pcm",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 12334,
+      "sha256": "e04ba75686acbe43542fdd374571195f0530c0b7785ca25cc6840e9c6c4b6eea",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        },
+        {
+          "member": "src/lib.rs",
+          "first_line": 122,
+          "last_line": 149,
+          "bytes": 1253,
+          "sha256": "673f2b05752a92e46f537cf7a771a3ae9191e4d8084c98ab6d331eb2dfdecc44",
+          "output": "notices/symphonia-codec-pcm-sun.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-codec-vorbis",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 32024,
+      "sha256": "73d90b4fcf796137cc683c538282804ff9629f8ad9dbfd881fcbba331ac4e986",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-common",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 19904,
+      "sha256": "2acc3fcc18ec9b8cdd48614e259c4cf0d27b71d41e5d9b120b42c5adab12d7c4",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-core",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 150679,
+      "sha256": "01c412864d599d4750d0c3d684d7e093ec05e5309681ef5252cc1096a437f6e0",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-format-ogg",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 32956,
+      "sha256": "0b5495e7f7e3c7035328d82b6d6e377eef289bb0c4105bdeb557fc93a833f994",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-format-riff",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 29502,
+      "sha256": "1ff70929083a8c1a5f6cd7c904b6071c7914ad04739b510c2f7239dfc9b7dabe",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>",
+        "dedobbin <dedobbindedobbin@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    },
+    {
+      "name": "symphonia-metadata",
+      "version": "0.6.1",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "bytes": 59497,
+      "sha256": "83713a97705d77bdef7cdbc0768fd6e5a54e4cd7e48d60a806ae85639e2c87c6",
+      "license": "MPL-2.0",
+      "repository": "https://github.com/pdeljanov/Symphonia",
+      "authors": [
+        "Philip Deljanov <philip.deljanov@gmail.com>"
+      ],
+      "license_file": {
+        "member": "LICENSE",
+        "bytes": 16725,
+        "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30"
+      },
+      "notices": [
+        {
+          "member": "src/lib.rs",
+          "first_line": 1,
+          "last_line": 6,
+          "bytes": 280,
+          "sha256": "d5ee3b70616122583dc05c0cb3e5a8e9c3c5a1adf3e547db4ec9df6d4e7d9e82",
+          "output": "notices/symphonia-copyright.txt"
+        }
+      ]
+    }
+  ]
+}

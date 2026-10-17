@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
-use forge_delivery::{Result, archive, install, launch, manifest::Descriptor};
+use forge_delivery::{Result, archive, install, installed_modules, launch, manifest::Descriptor};
 use std::{
     io::{self, Write},
     path::{Path, PathBuf},
@@ -65,6 +65,44 @@ fn approve(plan: &install::Plan) -> Result<()> {
 fn run() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     match args.first().map(String::as_str) {
+        Some("module-check") if args.len() == 4 => {
+            let cache=Path::new(&args[3]);
+            forge_delivery::manifest::safe_chain(cache)?;
+            let area=args[2].parse::<forge_core::AreaId>().map_err(|e|e.to_string())?;
+            let loaded=forge_delivery::module_runtime::load(Path::new(&args[1]),area,Some(cache))?;
+            let descriptor=forge_delivery::manifest::confined(&loaded.package_root,"package-manifest.json")?;
+            let package_manifest_sha256=if descriptor.try_exists().map_err(|e|e.to_string())? {
+                let descriptor:Descriptor=forge_delivery::read_json(&descriptor)?;
+                let hash=forge_core::bytes_sha256(&forge_delivery::json(&descriptor)?);
+                forge_delivery::module_runtime::verify_transport_revision(&loaded,hash)?;
+                Some(hash)
+            }else{None};
+            print(&serde_json::json!({"schema":"forge.module-check","version":1,
+                "module_id":loaded.manifest.module_id,"area_id":area,"head_hash":loaded.zone.head().content_hash()?,
+                "archive_sha256":forge_core::bytes_sha256(&loaded.archive),"package_manifest_sha256":package_manifest_sha256,
+                "module_manifest_canonical_sha256":forge_core::bytes_sha256(&loaded.manifest.to_bytes().map_err(|e|e.to_string())?),
+                "package_root":loaded.package_root,"source_blobs":loaded.source_blobs.len(),
+                "gpu_started":false,"runtime_qualified":false}))
+        }
+        Some("modules") if args.len() == 2 => print(&installed_modules::inventory(Path::new(&args[1]))?),
+        Some("module-launch-plan") if args.len() == 4 => {
+            print(&installed_modules::plan(Path::new(&args[1]), module_selection(&args[2], &args[3])?)?)
+        }
+        Some("module-launch") if args.len() == 4 => {
+            let child=installed_modules::start(Path::new(&args[1]), module_selection(&args[2], &args[3])?)?;
+            print(&serde_json::json!({"process_id":child.id()}))
+        }
+        Some("orpmod-validate") if args.len() == 2 || (args.len() == 3 && args[2] == "--publish") => {
+            print(&forge_delivery::orpmod::validate_directory(Path::new(&args[1]), args.len() == 3)?)
+        }
+        Some("orpmod-pack") if args.len() == 4 || (args.len() == 5 && args[4] == "--publish") => {
+            let descriptor: Descriptor = forge_delivery::read_json(Path::new(&args[2]))?;
+            let (descriptor, revision) = forge_delivery::orpmod::pack(Path::new(&args[1]), descriptor, Path::new(&args[3]), args.len() == 5)?;
+            print(&serde_json::json!({"manifest_sha256":revision,"archive_sha256":forge_delivery::file_hash(Path::new(&args[3]))?,"descriptor":descriptor}))
+        }
+        Some("orpmod-inspect") if args.len() == 2 || (args.len() == 3 && args[2] == "--publish") => {
+            print(&forge_delivery::orpmod::inspect(Path::new(&args[1]), args.len() == 3)?)
+        }
         Some("pack") if args.len() == 4 => {
             let descriptor: Descriptor = forge_delivery::read_json(Path::new(&args[2]))?;
             let (descriptor, revision) = archive::pack(Path::new(&args[1]), descriptor, Path::new(&args[3]))?;
@@ -131,8 +169,19 @@ fn run() -> Result<()> {
             }
             menu(&root)
         }
-        _ => Err("Usage: forge_delivery pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
+        _ => Err("Usage: forge_delivery module-check PACKAGE AREA_ID CACHE_ABSOLUTE | modules ROOT | module-launch-plan ROOT MODULE_ID AREA_ID | module-launch ROOT MODULE_ID AREA_ID | pack SOURCE DESCRIPTOR OUTPUT | inspect PACKAGE | plan ROOT PACKAGE... | plan-file ROOT OUTPUT PACKAGE... | apply PLAN | uninstall ROOT | setup ROOT PACKAGE... | status ROOT | verify ROOT | rollback-plan ROOT | launch ROOT game|editor | launcher ROOT".into()),
     }
+}
+
+fn module_selection(module: &str, area: &str) -> Result<installed_modules::ModuleSelection> {
+    Ok(installed_modules::ModuleSelection {
+        module_id: module
+            .parse::<forge_core::ModuleId>()
+            .map_err(|e| e.to_string())?,
+        area_id: area
+            .parse::<forge_core::AreaId>()
+            .map_err(|e| e.to_string())?,
+    })
 }
 
 fn manifest_path(root: &Path, value: &str) -> Result<PathBuf> {

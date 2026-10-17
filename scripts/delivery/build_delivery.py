@@ -13,6 +13,7 @@ import shutil
 import subprocess
 
 from complete_rebuild import frontend_inputs, shared_source_inputs, source_inputs_equal
+import application_sources
 
 
 def digest(path):
@@ -158,6 +159,8 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--version", default="0.1.0-preview.20261008")
     parser.add_argument("--source-revision", required=True)
+    parser.add_argument("--cargo-cache", type=Path,
+                        help="Cargo registry root for pinned application sources; required for shared assembly, offline only")
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--shared-working-tree', action='store_true')
     mode.add_argument('--frozen-archive', action='store_true', help='Historical assembly inputs only')
@@ -169,6 +172,8 @@ def assemble(args):
     if args.shared_working_tree and not all((args.runtime, args.runtime_proof,
                                            args.source_manifest, args.launcher_proof)):
         raise ValueError('Shared assembly requires current Game, Studio and launcher build receipts')
+    source_bundle = (application_sources.prepare_for_assembly(args, Path(__file__).resolve().parents[2])
+                     if args.shared_working_tree else None)
     aube_proof = json.loads(args.aube_proof.read_bytes())
     aube_sources = args.aube_proof.parent / "source-inputs.json"
     if (aube_proof.get("outputs", {}).get("forge-launcher.exe") != digest(args.launcher) or
@@ -271,6 +276,8 @@ def assemble(args):
         static_manifest = Path(json.loads(receipt.read_text(encoding='utf-8-sig'))['asset_root']) / 'frontend-static-inputs.json'
         copy(static_manifest, core / 'provenance/studio-static-inputs.json')
     copy(args.playtest / "licenses", core / "licenses")
+    source_receipt = (application_sources.stage_sources(source_bundle, core)
+                      if source_bundle is not None else None)
     (core / "PROVENANCE.md").write_text(
         "# Applications natives de la livraison locale\n\n"
         "Launcher : L’Aube des royaumes. Hub : gestionnaire de contenu séparé. Studio et jeu sont identifiés par leurs preuves de build.\n"
@@ -323,8 +330,11 @@ def assemble(args):
                    required_packs=[dict(id=p["id"],manifest_sha256=p["manifest_sha256"],kind=p["kind"])
                                    for p in (asset_entry,module_entry)], optional_packs=["asset-library"],
                    authoring_seed=dict(pack_id="reference-module",path="workspace"))
-    application_entry = package(args.delivery_cli, core, args.output,
-                                descriptor("forge-applications", "Launcher, éditeur et jeu", "applications", args.version, args.source_revision, product))
+    application_descriptor = descriptor("forge-applications", "Launcher, éditeur et jeu", "applications", args.version, args.source_revision, product)
+    if source_receipt is not None:
+        application_descriptor["license_paths"].extend([
+            "licenses/native-media/NOTICE.txt", "licenses/native-media/manifest.json"])
+    application_entry = package(args.delivery_cli, core, args.output, application_descriptor)
     copy(args.hub, args.output / "ForgeSetup.exe")
     copy(args.delivery_cli, args.output / "forge-delivery.exe")
     copy(args.webview2, args.output / "prerequisites/MicrosoftEdgeWebView2RuntimeInstallerX64.exe")
@@ -350,6 +360,7 @@ def assemble(args):
           game_build_proof_sha256=digest(args.runtime_proof) if args.runtime_proof else None,
           launcher_sha256=digest(args.launcher), content_manager_sha256=digest(args.hub), cli_sha256=digest(args.delivery_cli),
           shared_working_tree=args.shared_working_tree,
+          **({"application_sources": source_receipt} if source_receipt is not None else {}),
           game_capability="native_walk_preview", gate3_closed=False, release_qualified=False))
     if args.shared_working_tree:
         validate_shared_applications(args, source_manifest,

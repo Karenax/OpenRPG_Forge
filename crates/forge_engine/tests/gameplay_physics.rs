@@ -1096,8 +1096,9 @@ fn restore_capsule_resync_contact(app: &mut App, player: Entity, object_entity: 
 
 #[test]
 fn physical_regression_capsule_resync_cannot_reuse_previous_contact_for_push() {
-    use bevy_rapier3d::prelude::{KinematicCharacterControllerOutput, PhysicsSet};
+    use bevy_rapier3d::prelude::{ExternalImpulse, KinematicCharacterControllerOutput, PhysicsSet};
     let (mut app, object, object_entity, player) = prepared_capsule_resync_contact_witness();
+    assert!(app.world().get::<ExternalImpulse>(object_entity).is_none());
     let old_pose = app.world().get::<Transform>(player).unwrap().translation;
     let old_collider = app.world().get::<Collider>(player).unwrap().clone();
     let (before, before_tick) = {
@@ -1158,7 +1159,13 @@ fn physical_regression_capsule_resync_cannot_reuse_previous_contact_for_push() {
         "{}",
         runtime.feedback()
     );
-    assert!(!runtime.session().state().objects[&object].in_motion);
+    // Contact with a real dynamic body can leave solver motion before this
+    // request. Test the refused action's effects rather than assuming rest.
+    assert_eq!(runtime.session().state().objects[&object].initiator, None);
+    assert!(
+        app.world().get::<ExternalImpulse>(object_entity).is_none(),
+        "a refused stale contact must not project a gameplay impulse"
+    );
 
     // A new genuine contact must still authorize the same action.
     restore_capsule_resync_contact(&mut app, player, object_entity);
@@ -1176,12 +1183,281 @@ fn physical_regression_capsule_resync_cannot_reuse_previous_contact_for_push() {
         })
         .unwrap();
     app.update();
+    let world = app.world();
+    let after = world.resource::<GameplayRuntime>().session().state();
+    assert_eq!(after.sequence, before + 1);
+    assert_eq!(after.objects[&object].initiator, Some(actor));
     assert_eq!(
-        app.world()
-            .resource::<GameplayRuntime>()
-            .session()
-            .state()
-            .sequence,
-        before + 1
+        world
+            .get::<ExternalImpulse>(object_entity)
+            .expect("the accepted fresh contact must project its impulse")
+            .impulse,
+        Vec3::X
     );
+}
+
+fn stationary_attack_app(separation: f32) -> (App, EntityId, EntityId) {
+    let mut document = player_save_fixture();
+    let player = document.player;
+    let enemy = id("stationary-attack/enemy");
+    let mut target = actor(
+        enemy,
+        "Stationary attack target",
+        ActorRole::Enemy,
+        CoreVec3::new(separation, 0.95, -6.0),
+    );
+    target.max_vitality = 40;
+    document.actors.push(target);
+    let mut app = app(document, ContentHash::from_bytes([0x86; 32]));
+    wait_for_player_saveable(&mut app);
+    wait_for_body(&mut app, enemy, RigidBody::KinematicPositionBased);
+    for _ in 0..12 {
+        app.update();
+    }
+    (app, player, enemy)
+}
+
+fn queue_stationary_attack(app: &mut App, target: EntityId, command: &str) {
+    let mut runtime = app.world_mut().resource_mut::<GameplayRuntime>();
+    let actor = runtime.session().document().player;
+    let expected_sequence = runtime.session().state().sequence;
+    runtime
+        .queue(GameRequest {
+            command_id: CommandId::deterministic(command),
+            expected_sequence,
+            actor,
+            action: GameAction::Attack { target },
+        })
+        .unwrap();
+    for _ in 0..8 {
+        app.update();
+        if !app
+            .world()
+            .resource::<GameplayRuntime>()
+            .has_queued_actions()
+        {
+            return;
+        }
+    }
+    panic!("stationary attack was not processed");
+}
+
+#[test]
+fn stationary_kcc_contact_allows_attack_after_real_approach_and_stop() {
+    use bevy_rapier3d::prelude::KinematicCharacterControllerOutput;
+    // This start offset exercises a real discrete KCC stop in the outer part
+    // of its prediction gap, beyond the previous 0.05 m unskinned action cast.
+    let (mut app, player_id, enemy) = stationary_attack_app(2.525);
+    let command = submit_player_command(
+        &mut app,
+        PlayerControlCommand {
+            move_axis: Vec2::X,
+            ..default()
+        },
+    );
+    wait_for_player_command(&mut app, command);
+    let mut blocked = false;
+    for _ in 0..240 {
+        app.update();
+        let snapshot = app.world().resource::<PlayerRuntimeSnapshot>();
+        if snapshot.player_position.x > 1.0
+            && snapshot.desired_translation.x > 0.01
+            && snapshot.effective_translation.x.abs() < 0.0001
+        {
+            blocked = true;
+            break;
+        }
+    }
+    assert!(blocked, "a real KCC approach must be stopped by the target");
+    let command = submit_player_command(&mut app, PlayerControlCommand::default());
+    wait_for_player_command(&mut app, command);
+    for _ in 0..60 {
+        app.update();
+    }
+    let stopped = app.world().resource::<PlayerRuntimeSnapshot>().clone();
+    let enemy_entity = entity_for(&mut app, enemy);
+    let target = app
+        .world()
+        .get::<Transform>(enemy_entity)
+        .unwrap()
+        .translation;
+    let gap = stopped.player_position.xz().distance(target.xz()) - 0.7;
+    assert!(gap > 0.05 && gap <= 0.06, "resting KCC gap: {gap}");
+    let player = app
+        .world_mut()
+        .query_filtered::<Entity, With<ForgePlayerCharacter>>()
+        .single(app.world())
+        .unwrap();
+    assert!(
+        !app.world()
+            .get::<KinematicCharacterControllerOutput>(player)
+            .unwrap()
+            .collisions
+            .iter()
+            .any(|collision| collision.entity == enemy_entity),
+        "the test must exercise stationary proximity, not a retained target collision"
+    );
+    for _ in 0..12 {
+        app.update();
+        let snapshot = app.world().resource::<PlayerRuntimeSnapshot>();
+        assert!(snapshot.player_position.distance(stopped.player_position) < 0.001);
+        assert!(snapshot.effective_translation.x.abs() < 0.0001);
+    }
+    for (index, expected_health, expected_stamina) in [(0, 20, 95), (1, 0, 90)] {
+        queue_stationary_attack(&mut app, enemy, &format!("stationary-attack/{index}"));
+        let runtime = app.world().resource::<GameplayRuntime>();
+        let state = runtime.session().state();
+        assert_eq!(
+            state.actors[&enemy].vitality,
+            expected_health,
+            "{}",
+            runtime.feedback()
+        );
+        assert_eq!(state.actors[&player_id].stamina, expected_stamina);
+        assert_eq!(state.sequence, index + 1);
+    }
+}
+
+#[test]
+fn stationary_kcc_contact_refuses_target_beyond_contact_envelope_inside_rpg_range() {
+    let (mut app, player, enemy) = stationary_attack_app(0.77);
+    queue_stationary_attack(&mut app, enemy, "stationary-attack/distant");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    assert!(runtime.feedback().contains("no physical contact confirmed"));
+    assert_eq!(runtime.session().state().sequence, 0);
+    assert_eq!(runtime.session().state().actors[&enemy].vitality, 40);
+    assert_eq!(runtime.session().state().actors[&player].stamina, 100);
+}
+
+#[test]
+fn stationary_kcc_contact_uses_effective_relative_controller_offset() {
+    use bevy_rapier3d::control::{CharacterLength, KinematicCharacterController};
+    let (mut app, player, enemy) = stationary_attack_app(0.77);
+    app.world_mut()
+        .query_filtered::<&mut KinematicCharacterController, With<ForgePlayerCharacter>>()
+        .single_mut(app.world_mut())
+        .unwrap()
+        .offset = CharacterLength::Relative(0.03 / 1.8);
+    for _ in 0..12 {
+        app.update();
+    }
+    queue_stationary_attack(&mut app, enemy, "stationary-attack/relative-offset");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    assert_eq!(
+        runtime.session().state().sequence,
+        1,
+        "{}",
+        runtime.feedback()
+    );
+    assert_eq!(runtime.session().state().actors[&enemy].vitality, 20);
+    assert_eq!(runtime.session().state().actors[&player].stamina, 95);
+}
+
+#[test]
+fn stationary_kcc_contact_keeps_real_occlusion_and_releases_when_wall_is_removed() {
+    let (mut app, player, enemy) = stationary_attack_app(0.75);
+    let wall = app
+        .world_mut()
+        .spawn((
+            RigidBody::Fixed,
+            Collider::cuboid(0.005, 2.0, 0.5),
+            Transform::from_xyz(0.375, 0.95, -6.0),
+        ))
+        .id();
+    for _ in 0..4 {
+        app.update();
+    }
+    queue_stationary_attack(&mut app, enemy, "stationary-attack/occluded");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    assert!(runtime.feedback().contains("target is occluded"));
+    assert_eq!(runtime.session().state().sequence, 0);
+    assert_eq!(runtime.session().state().actors[&enemy].vitality, 40);
+    assert_eq!(runtime.session().state().actors[&player].stamina, 100);
+    app.world_mut().despawn(wall);
+    for _ in 0..4 {
+        app.update();
+    }
+    queue_stationary_attack(&mut app, enemy, "stationary-attack/wall-removed");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    assert_eq!(
+        runtime.session().state().sequence,
+        1,
+        "{}",
+        runtime.feedback()
+    );
+    assert_eq!(runtime.session().state().actors[&enemy].vitality, 20);
+    assert_eq!(runtime.session().state().actors[&player].stamina, 95);
+}
+
+#[test]
+fn stationary_kcc_contact_allows_attack_from_oblique_resting_pose() {
+    use bevy_rapier3d::prelude::KinematicCharacterControllerOutput;
+    // Start from the recorded oblique placement, then let the real controller
+    // settle. Exact immutable backend geometry is covered by the private
+    // contact-band unit test; this integration checks resolved physics/actions.
+    let start = Vec3::new(
+        f32::from_bits(0x3fdf_8f6b),
+        f32::from_bits(0x3f68_f5bb),
+        f32::from_bits(0xc03f_f628),
+    );
+    let mut document = player_save_fixture();
+    document.actors[0].position = CoreVec3::new(start.x, start.y, start.z);
+    let player_id = document.player;
+    let enemy = id("stationary-attack/oblique-resting-pose");
+    let mut target = actor(
+        enemy,
+        "Oblique stationary capsule target",
+        ActorRole::Enemy,
+        CoreVec3::new(2.5, f32::from_bits(0x3f66_6666), -3.0),
+    );
+    target.max_vitality = 40;
+    document.actors.push(target);
+    let mut app = app(document, ContentHash::from_bytes([0x87; 32]));
+    wait_for_player_saveable(&mut app);
+    wait_for_body(&mut app, enemy, RigidBody::KinematicPositionBased);
+    for _ in 0..60 {
+        app.update();
+    }
+    let stopped = app.world().resource::<PlayerRuntimeSnapshot>().clone();
+    let player = app
+        .world_mut()
+        .query_filtered::<Entity, With<ForgePlayerCharacter>>()
+        .single(app.world())
+        .unwrap();
+    let enemy_entity = entity_for(&mut app, enemy);
+    assert!(
+        !app.world()
+            .get::<KinematicCharacterControllerOutput>(player)
+            .unwrap()
+            .collisions
+            .iter()
+            .any(|collision| collision.entity == enemy_entity),
+        "a retained KCC target collision must not authenticate stationary proximity"
+    );
+    for _ in 0..12 {
+        app.update();
+        let snapshot = app.world().resource::<PlayerRuntimeSnapshot>();
+        assert!(snapshot.player_position.distance(stopped.player_position) < 0.001);
+        assert!(snapshot.desired_translation.xz().length() <= 0.001);
+        assert!(snapshot.effective_translation.length() <= 0.001);
+    }
+    for (index, expected_health, expected_stamina) in [(0, 20, 95), (1, 0, 90)] {
+        queue_stationary_attack(
+            &mut app,
+            enemy,
+            &format!("stationary-attack/oblique/{index}"),
+        );
+        let runtime = app.world().resource::<GameplayRuntime>();
+        assert_eq!(
+            runtime.session().state().actors[&enemy].vitality,
+            expected_health,
+            "{}",
+            runtime.feedback()
+        );
+        assert_eq!(
+            runtime.session().state().actors[&player_id].stamina,
+            expected_stamina
+        );
+        assert_eq!(runtime.session().state().sequence, index + 1);
+    }
 }

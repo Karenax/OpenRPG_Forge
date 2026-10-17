@@ -452,6 +452,7 @@ pub(super) fn SecondaryWorkspace() -> impl IntoView {
             <style>{include_str!("authoring_gold.css")}</style>
             <header class="topbar"><h1>"OpenRPG Forge"</h1><span>"Atelier secondaire"</span>
                 <crate::asset_library_ui::LibraryLauncher/>
+                <crate::asset_import_ui::AssetImportLauncher/>
                 <button class="atelier-map-mode" aria-pressed=move || reply.get().snapshot.map_only.to_string()
                     on:click=move |_|submit.run(Intent::MapOnly { enabled: !reply.get_untracked().snapshot.map_only })>
                     {move || if reply.get().snapshot.map_only { "Afficher les panneaux sur la carte" } else { "Carte seule sur l’écran principal" }}

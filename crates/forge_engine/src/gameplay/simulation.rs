@@ -5,8 +5,9 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
-    Collider, CollisionEvent, KinematicCharacterControllerOutput, QueryFilter, RapierContext,
-    ReadRapierContext, ShapeCastOptions, Sleeping, Velocity,
+    CharacterLength, Collider, CollisionEvent, KinematicCharacterController,
+    KinematicCharacterControllerOutput, QueryFilter, RapierContext, ReadRapierContext, Sleeping,
+    Velocity,
 };
 use forge_core::CommandId;
 use forge_gameplay::{
@@ -33,6 +34,7 @@ type Player<'w, 's> = Query<
     (
         &'static Transform,
         &'static Collider,
+        &'static KinematicCharacterController,
         Option<Ref<'static, KinematicCharacterControllerOutput>>,
     ),
     With<ForgePlayerCharacter>,
@@ -105,7 +107,7 @@ pub(super) fn observe(
         runtime.error = Some("Gameplay physics context unavailable".into());
         return;
     };
-    let Ok((transform, collider, output)) = player.single() else {
+    let Ok((transform, collider, controller, output)) = player.single() else {
         runtime.error = Some("Gameplay player collider unavailable".into());
         return;
     };
@@ -167,6 +169,7 @@ pub(super) fn observe(
             &context,
             binding.player_entity,
             backend,
+            controller,
             current_output,
             wet,
         ));
@@ -243,6 +246,7 @@ fn execute_pending_actions(
     context: &RapierContext,
     player_entity: Entity,
     backend: &bevy_rapier3d::rapier::prelude::Collider,
+    controller: &KinematicCharacterController,
     output: Option<&KinematicCharacterControllerOutput>,
     wet: bool,
 ) -> Vec<forge_gameplay::GameplayEvent> {
@@ -254,6 +258,7 @@ fn execute_pending_actions(
             context,
             player_entity,
             backend,
+            controller,
             output,
             wet,
         );
@@ -520,6 +525,84 @@ fn perceive(
     }
 }
 
+fn current_contact_offset(
+    collider: &bevy_rapier3d::rapier::prelude::Collider,
+    controller: &KinematicCharacterController,
+) -> Option<f32> {
+    // Match Rapier KCC's normalized up and compute_dims/CharacterLength::eval.
+    // Its prediction band is offset + 0.05. Query contact between the canonical
+    // backend shapes within that band: a directional sweep can miss resting,
+    // nearly parallel capsules even when the separation lies inside the band.
+    let up = controller.up.try_normalize()?;
+    let extents = collider.shape().compute_local_aabb().extents();
+    let up_extent = extents.x * up.x.abs() + extents.y * up.y.abs() + extents.z * up.z.abs();
+    let offset = match controller.offset {
+        CharacterLength::Absolute(value) => value,
+        CharacterLength::Relative(factor) => up_extent * factor,
+    };
+    (up_extent.is_finite() && offset.is_finite() && offset >= 0.0).then_some(offset)
+}
+
+fn backend_contact_band(
+    first: &bevy_rapier3d::rapier::prelude::Collider,
+    second: &bevy_rapier3d::rapier::prelude::Collider,
+    prediction: f32,
+) -> bool {
+    if !prediction.is_finite()
+        || prediction < 0.0
+        || !first.is_enabled()
+        || !second.is_enabled()
+        || !first.position().is_finite()
+        || !second.position().is_finite()
+    {
+        return false;
+    }
+    bevy_rapier3d::parry::query::contact(
+        first.position(),
+        first.shape(),
+        second.position(),
+        second.shape(),
+        prediction,
+    )
+    .ok()
+    .flatten()
+    .is_some_and(|contact| {
+        contact.dist.is_finite()
+            && contact.dist <= prediction
+            && contact.point1.is_finite()
+            && contact.point2.is_finite()
+            && contact.normal1.is_finite()
+            && contact.normal2.is_finite()
+    })
+}
+
+fn current_target_collider<'a>(
+    context: &'a RapierContext<'_>,
+    player: &bevy_rapier3d::rapier::prelude::Collider,
+    target: Entity,
+) -> Option<&'a bevy_rapier3d::rapier::prelude::Collider> {
+    let target = context
+        .colliders
+        .entity2collider()
+        .get(&target)
+        .and_then(|handle| context.colliders.colliders.get(*handle))?;
+    // Admission is shared by every physical-contact proof, including a
+    // previous narrow-phase pair or this tick's controller output.
+    if [player, target].iter().any(|collider| {
+        !collider.is_enabled()
+            || collider.parent().is_some_and(|parent| {
+                context
+                    .rigidbody_set
+                    .bodies
+                    .get(parent)
+                    .is_none_or(|body| !body.is_enabled())
+            })
+    }) {
+        return None;
+    }
+    Some(target)
+}
+
 #[allow(
     clippy::too_many_arguments,
     reason = "the contact proof binds one request to its canonical player collider, target and water observation"
@@ -530,6 +613,7 @@ fn action_observation(
     context: &RapierContext,
     player_entity: Entity,
     player_collider: &bevy_rapier3d::rapier::prelude::Collider,
+    controller: &KinematicCharacterController,
     output: Option<&KinematicCharacterControllerOutput>,
     wet: bool,
 ) -> ActionObservation {
@@ -565,21 +649,16 @@ fn action_observation(
     };
     let target_position = engine(position);
     let pose = player_collider.position();
-    let direction = (target_position - pose.translation).normalize_or_zero();
-    let touching = context
-        .contact_pair(player_entity, entity)
-        .is_some_and(|p| p.has_any_active_contact())
-        || output.is_some_and(|o| o.collisions.iter().any(|c| c.entity == entity))
-        || context
-            .cast_shape(
-                pose.translation,
-                pose.rotation,
-                direction,
-                player_collider.shape(),
-                ShapeCastOptions::with_max_time_of_impact(0.05),
-                QueryFilter::default().predicate(&|candidate| candidate == entity),
-            )
-            .is_some();
+    let touching =
+        current_target_collider(context, player_collider, entity).is_some_and(|target_collider| {
+            context
+                .contact_pair(player_entity, entity)
+                .is_some_and(|p| p.has_any_active_contact())
+                || output.is_some_and(|o| o.collisions.iter().any(|c| c.entity == entity))
+                || current_contact_offset(player_collider, controller).is_some_and(|offset| {
+                    backend_contact_band(player_collider, target_collider, 0.05 + offset)
+                })
+        });
     ActionObservation {
         line_of_sight: visible(
             context,
@@ -590,5 +669,74 @@ fn action_observation(
         ),
         confirmed_contact: touching,
         water_contact: wet,
+    }
+}
+
+#[cfg(test)]
+mod contact_band_tests {
+    use super::backend_contact_band;
+    use bevy::prelude::Vec3;
+    use bevy_rapier3d::rapier::prelude::{Collider, ColliderBuilder, SharedShape};
+
+    fn recorded_capsules() -> (Collider, Collider) {
+        let player = ColliderBuilder::capsule_y(0.55, 0.35)
+            .translation(Vec3::new(
+                f32::from_bits(0x3fdf_8f6b),
+                f32::from_bits(0x3f68_f5bb),
+                f32::from_bits(0xc03f_f628),
+            ))
+            .build();
+        let target = ColliderBuilder::capsule_y(0.6, 0.35)
+            .translation(Vec3::new(2.5, f32::from_bits(0x3f66_6666), -3.0))
+            .build();
+        (player, target)
+    }
+
+    #[test]
+    fn backend_contact_band_accepts_exact_recorded_capsule_pose() {
+        // This f32 pose makes the previous 0.06 m directional sweep miss.
+        // The physical shape-pair contact is inside the unchanged KCC band.
+        let (player, target) = recorded_capsules();
+        assert!(backend_contact_band(&player, &target, 0.05 + 0.01));
+    }
+
+    #[test]
+    fn backend_contact_band_refuses_capsules_separated_by_more_than_prediction() {
+        let (player, mut target) = recorded_capsules();
+        target.set_translation(player.position().translation + Vec3::new(0.77, -0.01, 0.0));
+        assert!(!backend_contact_band(&player, &target, 0.05 + 0.01));
+    }
+
+    #[test]
+    fn backend_contact_band_refuses_disabled_or_nonfinite_inputs() {
+        let (mut player, mut target) = recorded_capsules();
+        player.set_enabled(false);
+        assert!(!backend_contact_band(&player, &target, 0.06));
+        player.set_enabled(true);
+        target.set_enabled(false);
+        assert!(!backend_contact_band(&player, &target, 0.06));
+        target.set_enabled(true);
+        for prediction in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, -0.01] {
+            assert!(!backend_contact_band(&player, &target, prediction));
+        }
+        target.set_translation(Vec3::new(f32::NAN, 0.0, 0.0));
+        assert!(!backend_contact_band(&player, &target, 0.06));
+    }
+
+    #[test]
+    fn backend_contact_band_refuses_unsupported_shape_pairs() {
+        let first = ColliderBuilder::new(SharedShape::halfspace(Vec3::Y)).build();
+        let second = ColliderBuilder::new(SharedShape::halfspace(Vec3::Y)).build();
+        assert!(
+            bevy_rapier3d::parry::query::contact(
+                first.position(),
+                first.shape(),
+                second.position(),
+                second.shape(),
+                0.06,
+            )
+            .is_err()
+        );
+        assert!(!backend_contact_band(&first, &second, 0.06));
     }
 }

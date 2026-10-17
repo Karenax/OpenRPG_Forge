@@ -169,9 +169,16 @@ pub(super) fn update(world: &mut World) {
                                 .as_ref()
                                 .is_some_and(|state| !state.lod_groups.is_empty())
                             {
-                                resident
+                                let decisions = resident
                                     .host
                                     .update_lod(world, camera.as_ref().map_err(Clone::clone)?)?;
+                                if bevy::log::tracing::enabled!(bevy::log::Level::TRACE) {
+                                    for decision in decisions {
+                                        bevy::log::trace!(source_root=?root,source_node=decision.node,
+                                            relative_height=decision.relative_height,selected_lod=?decision.level,
+                                            "source LOD decision");
+                                    }
+                                }
                             }
                             Ok(())
                         })

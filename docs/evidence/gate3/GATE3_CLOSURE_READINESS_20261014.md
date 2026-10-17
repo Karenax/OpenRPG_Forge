@@ -1,6 +1,23 @@
 # Gate 3 — reprise du 14 octobre 2026
 
-**Gate 3 reste ouverte.** Le propriétaire autorise, lors de la reprise de
+## Verdict courant — clôture du 15 octobre 2026
+
+**Gate 3 est clôturée.** Le [rapport final](GATE3_CLOSURE_20261015.md) consolide
+les 21 critères et leurs preuves locales sur Source013, publiée au commit
+`3e0044d5f63b26c678d9db19380a66db832d9de3`.
+Le propriétaire retire explicitement la CI GitHub des critères bloquants de
+cette clôture dans [ADR-0023](../../ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md).
+Le run `38762140900` reste NOT RUN pour facturation/plafond, sans étape exécutée.
+Les réserves de distribution GLib et Windows vierge restent conservées.
+
+Ce document est le journal des acquisitions successives. Les mentions
+« ouverte », « non publiée » ou « CI encore due » ci-dessous décrivent leurs
+snapshots antérieurs ; elles ne remplacent pas le verdict final ci-dessus.
+Les reçus bruts et leurs flags de qualification datés ne sont pas réécrits.
+
+## Journal historique de préparation
+
+**Gate 3 restait ouverte lors de ces préparatifs.** Le propriétaire autorise, lors de la reprise de
 l'après-midi du 14 octobre, la qualification de la version commune actuelle
 pendant que les conversions de modèles continuent sur F:. Cette décision
 remplace l'attente de fin du rendu confirmée le matin. L'acceptation de

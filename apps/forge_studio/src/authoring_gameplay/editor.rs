@@ -269,6 +269,8 @@ pub(crate) fn GameplayEditor(
             </details>
         </Show>
         </fieldset></details>
+        <crate::authoring_gameplay_visuals::GameplayVisualControls state=state busy=busy send=send/>
+        <crate::module_export_ui::ModuleExportControls state=state busy=busy/>
     }
 }
 

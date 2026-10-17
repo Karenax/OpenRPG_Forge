@@ -19,6 +19,9 @@ const PHYSICS_DELTA_VERSION: u32 = 42;
 const PLACEMENT_PHYSICS_ARCHIVE_VERSION: u32 = 43;
 const PLACEMENT_PHYSICS_COMPACT_VERSION: u32 = 44;
 const PLACEMENT_PHYSICS_DELTA_VERSION: u32 = 45;
+const GAMEPLAY_VISUALS_ARCHIVE_VERSION: u32 = 46;
+const GAMEPLAY_VISUALS_COMPACT_VERSION: u32 = 47;
+const GAMEPLAY_VISUALS_DELTA_VERSION: u32 = 48;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -491,6 +494,7 @@ impl ZoneEditSession {
                 | SOURCE_OBJECT_DELTA_VERSION
                 | PHYSICS_DELTA_VERSION
                 | PLACEMENT_PHYSICS_DELTA_VERSION
+                | GAMEPLAY_VISUALS_DELTA_VERSION
         ) {
             return delta::decode(bytes);
         }
@@ -510,6 +514,7 @@ impl ZoneEditSession {
                 | SOURCE_OBJECT_COMPACT_VERSION
                 | PHYSICS_COMPACT_VERSION
                 | PLACEMENT_PHYSICS_COMPACT_VERSION
+                | GAMEPLAY_VISUALS_COMPACT_VERSION
         ) {
             return compact::decode(bytes);
         }
@@ -539,6 +544,9 @@ impl ZoneEditSession {
 }
 
 fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
+    if has_gameplay_visuals(receipts) {
+        return GAMEPLAY_VISUALS_ARCHIVE_VERSION;
+    }
     if has_placement_physics(receipts) {
         return PLACEMENT_PHYSICS_ARCHIVE_VERSION;
     }
@@ -592,6 +600,12 @@ fn archive_version(receipts: &[ZoneReceipt]) -> u32 {
     } else {
         1
     }
+}
+
+fn has_gameplay_visuals(receipts: &[ZoneReceipt]) -> bool {
+    receipts.iter().any(|receipt| {
+        receipt.applied.gameplay_visuals.is_some() || receipt.inverse.gameplay_visuals.is_some()
+    })
 }
 
 fn has_physics(receipts: &[ZoneReceipt]) -> bool {

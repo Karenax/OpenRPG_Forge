@@ -43,6 +43,7 @@ fn label(action: &WorkspaceAction) -> String {
     match action {
         WorkspaceAction::CreateProject { name, .. } => format!("Création du projet « {name} »"),
         WorkspaceAction::CreateModule { name, .. } => format!("Création du module « {name} »"),
+        WorkspaceAction::ImportModule { name, .. } => format!("Import du module « {name} »"),
         WorkspaceAction::AttachZone { .. } => {
             "Ajout d’une zone au module (création ou adoption)".into()
         }

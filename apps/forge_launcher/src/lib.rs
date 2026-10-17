@@ -89,9 +89,30 @@ pub enum WindowAction {
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum LauncherCommand {
     Snapshot,
-    SaveSettings { settings: LauncherSettings },
+    SaveSettings {
+        settings: LauncherSettings,
+    },
     RequestLaunch,
-    Window { action: WindowAction },
+    ListModules,
+    RequestModuleLaunch {
+        selection: forge_delivery::installed_modules::ModuleSelection,
+    },
+    Window {
+        action: WindowAction,
+    },
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct InstalledAdventure {
+    pub name: String,
+    pub version: String,
+    pub zones: Vec<forge_delivery::installed_modules::ModuleSelection>,
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+pub struct RejectedAdventure {
+    pub pack_id: String,
+    pub reason: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -104,6 +125,10 @@ pub enum LauncherResponse {
     },
     SettingsSaved {
         settings: LauncherSettings,
+    },
+    Modules {
+        modules: Vec<InstalledAdventure>,
+        rejected: Vec<RejectedAdventure>,
     },
     LaunchBlocked {
         code: String,
@@ -153,5 +178,24 @@ mod tests {
         let decoded: LauncherCommand =
             serde_json::from_str(&encoded).expect("command must deserialize");
         assert_eq!(decoded, command);
+    }
+
+    #[test]
+    fn module_launch_accepts_ids_only_and_rejects_invalid_or_extra_fields() {
+        let selection = serde_json::json!({
+            "module_id": "b65b7a97-77d4-58a1-9a0f-3304d680ff2c",
+            "area_id": "30e53b52-88ff-50bf-8ded-18283e0a48d6",
+        });
+        let command = serde_json::json!({
+            "kind": "request-module-launch", "selection": selection,
+        });
+        let parsed: LauncherCommand = serde_json::from_value(command.clone()).unwrap();
+        assert_eq!(serde_json::to_value(parsed).unwrap(), command);
+        let mut invalid = command.clone();
+        invalid["selection"]["area_id"] = "invalid".into();
+        assert!(serde_json::from_value::<LauncherCommand>(invalid).is_err());
+        let mut path_override = command;
+        path_override["selection"]["executable"] = "foreign.exe".into();
+        assert!(serde_json::from_value::<LauncherCommand>(path_override).is_err());
     }
 }

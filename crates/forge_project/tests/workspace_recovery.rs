@@ -129,6 +129,7 @@ fn candidate_zone() -> (forge_core::AreaId, Vec<u8>, ReviewedZone, WorkspaceHead
             modules: vec![ModuleEntry {
                 id: ModuleId::deterministic("recovery-module"),
                 name: "Recovered module".into(),
+                origin: None,
                 zones: vec![object.reference().clone()],
             }],
         }],

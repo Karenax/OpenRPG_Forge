@@ -13,19 +13,24 @@ use std::{
 const MAGIC: &[u8; 8] = b"FORGEPK1";
 
 pub fn header(file: &mut File) -> Result<(Descriptor, String)> {
+    let length = file.metadata().map_err(|e| e.to_string())?.len();
+    header_reader(file, length)
+}
+
+pub(crate) fn header_reader(reader: &mut impl Read, length: u64) -> Result<(Descriptor, String)> {
     let mut magic = [0_u8; 8];
-    file.read_exact(&mut magic).map_err(|e| e.to_string())?;
+    reader.read_exact(&mut magic).map_err(|e| e.to_string())?;
     if &magic != MAGIC {
         return Err("Invalid Forge package signature".into());
     }
     let mut size = [0_u8; 8];
-    file.read_exact(&mut size).map_err(|e| e.to_string())?;
+    reader.read_exact(&mut size).map_err(|e| e.to_string())?;
     let size = u64::from_le_bytes(size);
     if size == 0 || size > manifest::MAX_MANIFEST {
         return Err("Package descriptor exceeds limits".into());
     }
     let mut bytes = vec![0; usize::try_from(size).map_err(|e| e.to_string())?];
-    file.read_exact(&mut bytes).map_err(|e| e.to_string())?;
+    reader.read_exact(&mut bytes).map_err(|e| e.to_string())?;
     let descriptor: Descriptor = serde_json::from_slice(&bytes).map_err(|e| e.to_string())?;
     descriptor.validate()?;
     if json(&descriptor)? != bytes {
@@ -34,7 +39,7 @@ pub fn header(file: &mut File) -> Result<(Descriptor, String)> {
     let payload = descriptor.files.iter().try_fold(0_u64, |sum, f| {
         sum.checked_add(f.bytes).ok_or("Package size overflow")
     })?;
-    if file.metadata().map_err(|e| e.to_string())?.len() != 16 + size + payload {
+    if length != 16 + size + payload {
         return Err("Truncated package or trailing data".into());
     }
     Ok((descriptor, hash(&bytes)))
@@ -42,7 +47,17 @@ pub fn header(file: &mut File) -> Result<(Descriptor, String)> {
 
 pub fn inspect(path: &Path) -> Result<(Descriptor, String)> {
     manifest::no_links(path)?;
-    header(&mut File::open(path).map_err(|e| e.to_string())?)
+    let result = header(&mut File::open(path).map_err(|e| e.to_string())?)?;
+    if path
+        .extension()
+        .and_then(|s| s.to_str())
+        .is_some_and(|s| s.eq_ignore_ascii_case("orpmod"))
+        && (result.0.kind != manifest::Kind::Module
+            || !result.0.files.iter().any(|f| f.path == "module.json"))
+    {
+        return Err("An .orpmod requires a semantic module manifest".into());
+    }
+    Ok(result)
 }
 
 fn inventory(root: &Path, folder: &Path, files: &mut Vec<Entry>) -> Result<()> {
@@ -232,6 +247,7 @@ pub fn verify_directory(root: &Path, revision: &str) -> Result<Descriptor> {
             return Err(format!("Installed file integrity mismatch: {}", entry.path));
         }
     }
+    crate::orpmod::verify_installed(root, &descriptor)?;
     Ok(descriptor)
 }
 

@@ -50,6 +50,8 @@ mod full_stall;
 mod grass;
 #[path = "tidewater_plant_probe/hill_shadow.rs"]
 mod hill_shadow;
+#[cfg(not(target_arch = "wasm32"))]
+mod module_game;
 #[path = "tidewater_object_shadow_probe/mod.rs"]
 mod object_shadow;
 #[path = "tidewater_ocean_spectrum_probe/mod.rs"]
@@ -256,6 +258,13 @@ fn read_vectors<const N: usize>(bytes: &[u8]) -> Result<Vec<[f32; N]>, Box<dyn E
     reason = "bounded standalone asset validation and probe setup"
 )]
 fn main() -> Result<(), Box<dyn Error>> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if std::env::args_os()
+        .nth(1)
+        .is_some_and(|argument| argument == "--module")
+    {
+        return module_game::run(std::env::args_os().skip(1));
+    }
     let mut args = std::env::args_os().skip(1);
     let root = PathBuf::from(args.next().ok_or("fixture directory required")?).canonicalize()?;
     let screenshot = PathBuf::from(args.next().ok_or("new screenshot path required")?);

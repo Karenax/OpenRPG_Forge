@@ -11,9 +11,12 @@ use std::{
     sync::Mutex,
     time::{SystemTime, UNIX_EPOCH},
 };
+#[path = "native_game_module.rs"]
+mod module;
 
 struct RunningGame {
     child: Child,
+    _input: Option<File>,
     log: PathBuf,
     pins: ReportPins,
 }
@@ -324,6 +327,19 @@ pub async fn launch_native_game(expected_hash: String) -> Result<u32, String> {
         .map_err(|e| e.to_string())?
 }
 
+/// The browser names a native export receipt by pins, never by a filesystem path.
+#[tauri::command]
+pub async fn launch_exported_module(
+    expected_hash: String,
+    package_sha256: String,
+) -> Result<u32, String> {
+    let expected = ContentHash::parse(&expected_hash).map_err(|e| e.to_string())?;
+    let package = ContentHash::parse(&package_sha256).map_err(|e| e.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || module::launch(expected, package))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
 #[allow(
     clippy::too_many_lines,
     reason = "Snapshot, child logging and spawn are one ordered launch transaction"
@@ -335,6 +351,7 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         previous?;
         return Err("Le jeu est déjà ouvert dans une autre fenêtre.".into());
     }
+    current.last_diagnostics = None;
     let config = forge_studio_frontend::launch_configuration::game()?;
     if !config.executable.is_file() {
         return Err(format!("Jeu introuvable : {}", config.executable.display()));
@@ -350,6 +367,15 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         .map(|document| document.functional_hash().map_err(|e| e.to_string()))
         .transpose()?;
     let (terrain, _) = zone.head().effective()?;
+    if terrain.sampled_source.is_none() {
+        if functional_hash.is_none() {
+            return Err("Créer les définitions RPG de cette carte avant de lancer le jeu.".into());
+        }
+        // The exporter and module launcher acquire their own host/game locks.
+        // Keep the ordinary imported-terrain recipe below unchanged.
+        drop(current);
+        return launch_authored_module(expected, terrain.name);
+    }
     let source = terrain
         .sampled_source
         .as_ref()
@@ -462,12 +488,16 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x0800_0000);
     }
-    let child = command
-        .spawn()
-        .map_err(|e| format!("Démarrage du jeu impossible : {e}"))?;
+    let child = super::with_authoring_host(|host| {
+        host.game_archive(expected)?;
+        command
+            .spawn()
+            .map_err(|e| format!("Démarrage du jeu impossible : {e}"))
+    })?;
     let id = child.id();
     current.running = Some(RunningGame {
         child,
+        _input: None,
         log: session.join("game.log"),
         pins: ReportPins {
             pid: id,
@@ -485,6 +515,21 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
         ));
     }
     Ok(id)
+}
+
+fn launch_authored_module(expected: ContentHash, name: String) -> Result<u32, String> {
+    let exported = crate::native_module_export::execute(
+        forge_studio_frontend::module_export_protocol::ModuleExportRequest {
+            schema_version: 1,
+            expected_head: expected,
+            name,
+            version: "0.0.0-local".into(),
+            publisher: "Session locale du Studio".into(),
+            license_text: "Instantané de jeu à usage local. Les licences et conditions du contenu importé restent applicables et sont conservées avec leurs preuves. Aucun droit de redistribution supplémentaire n’est accordé par ce lancement.".into(),
+            redistributable: false,
+        },
+    )?;
+    module::launch(exported.source_hash, exported.package_sha256)
 }
 
 #[cfg(test)]

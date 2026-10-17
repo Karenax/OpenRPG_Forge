@@ -676,6 +676,12 @@ fn acquire(root: &Path) -> Result<Lock> {
     Ok(Lock { _file: file })
 }
 
+/// Share the installer lock across a final admission and native spawn boundary.
+pub(crate) fn with_lock<T>(root: &Path, operation: impl FnOnce() -> Result<T>) -> Result<T> {
+    let _lock = acquire(root)?;
+    operation()
+}
+
 fn write_new(path: &Path, bytes: &[u8]) -> Result<()> {
     let mut file = OpenOptions::new()
         .create_new(true)

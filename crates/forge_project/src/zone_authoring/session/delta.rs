@@ -39,6 +39,9 @@ fn assign<T>(change: Change<T>, target: &mut T) {
 #[serde(deny_unknown_fields)]
 struct CorrectionsDelta {
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    gameplay_visuals:
+        Option<Change<Option<Vec<crate::module_gameplay_visuals::GameplayVisualBinding>>>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     physics: Option<Change<Option<Box<crate::zone_authoring::physics::PhysicsSceneSettings>>>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     source_object_edits:
@@ -75,6 +78,11 @@ struct CorrectionsDelta {
 impl CorrectionsDelta {
     fn between(a: &ZoneCorrections, b: &ZoneCorrections) -> Result<Self, String> {
         Ok(Self {
+            gameplay_visuals: if a.gameplay_visuals.is_some() || b.gameplay_visuals.is_some() {
+                Some(difference(&a.gameplay_visuals, &b.gameplay_visuals)?)
+            } else {
+                None
+            },
             physics: if a.physics.is_some() || b.physics.is_some() {
                 Some(difference(&a.physics, &b.physics)?)
             } else {
@@ -161,6 +169,9 @@ impl CorrectionsDelta {
         })
     }
     fn apply(self, target: &mut ZoneCorrections) {
+        if let Some(change) = self.gameplay_visuals {
+            assign(change, &mut target.gameplay_visuals);
+        }
         if let Some(change) = self.physics {
             assign(change, &mut target.physics);
         }
@@ -360,6 +371,7 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
                 | super::SOURCE_OBJECT_DELTA_VERSION
                 | super::PHYSICS_DELTA_VERSION
                 | super::PLACEMENT_PHYSICS_DELTA_VERSION
+                | super::GAMEPLAY_VISUALS_DELTA_VERSION
         )
         || archive.commands.len() > 1024
     {
@@ -406,6 +418,9 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
 }
 
 fn version(receipts: &[ZoneReceipt]) -> u32 {
+    if super::has_gameplay_visuals(receipts) {
+        return super::GAMEPLAY_VISUALS_DELTA_VERSION;
+    }
     if super::has_placement_physics(receipts) {
         return super::PLACEMENT_PHYSICS_DELTA_VERSION;
     }

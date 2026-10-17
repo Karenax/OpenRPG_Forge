@@ -66,13 +66,31 @@ planning détaillent le travail mais ne redéfinissent pas la vision.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
 Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md).
-Gate 2 est clôturée par validation du propriétaire selon ADR-0018 ; Gate 3 reste ouverte.
-Le blocage historique de facturation ne décrit plus la CI actuelle : le run du 11 octobre 2026
-`38123749165` sur `48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners.
-WASM et supply-chain ont réussi ; Windows et Linux ont échoué sur Clippy.
-Les tests et builds natifs suivants n'ont pas été exécutés.
-Les corrections locales nécessitent une nouvelle CI sur leur révision publiée avant tout verdict
-distant. Chaque gate conserve les preuves de la précédente.
+Gate 2 est clôturée par validation du propriétaire selon ADR-0018 ; Gate 3 est clôturée
+le 15 octobre sur les preuves locales et les validations propriétaire, selon
+[le rapport de clôture](docs/evidence/gate3/GATE3_CLOSURE_20261015.md) et ADR-0023.
+Gate 4 porte le verdict **clôturée localement** au 16 octobre 2026, selon
+[son rapport final](docs/evidence/gate4/GATE4_CLOSURE_20261016.md), lot `0.1.0-preview.20261016.019`.
+Ses preuves locales restent distinctes de la distribution, de Windows vierge,
+de Linux et des résultats distants. Les gates suivantes ne sont pas ouvertes
+par cette mise à jour ; aucune publication Git n'est implicite.
+Le run historique du 11 octobre 2026 `38123749165` sur
+`48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners : WASM et supply-chain
+ont réussi ; Windows/Linux ont échoué à Clippy, sans exécuter les tests/builds natifs suivants.
+Le run du 13 octobre `38394829662`, sur `4799ebb3dfa98795d97862f0fed3cd4f6a876887`,
+a été refusé avant toute étape pour facturation/plafond : quatre jobs, `steps=[]`,
+verdict `NOT RUN — infrastructure billing`.
+Le run du 15 octobre `38762140900`, sur le candidat publié
+`3e0044d5f63b26c678d9db19380a66db832d9de3`, présente le même refus : les quatre jobs
+Windows, Linux, WASM et supply-chain n'ont exécuté aucune étape. Ce résultat demeure
+`NOT RUN — infrastructure billing`, sans qualification distante.
+Le propriétaire décide le 15 octobre d'arrêter l'attente des validations GitHub et de retirer
+la CI GitHub des critères bloquants de la clôture Gate 3 actuelle, selon
+[ADR-0023](docs/ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md).
+Cette décision ne réactive pas ADR-0006 et ne qualifie ni Linux ni une release ; les autres
+critères techniques et leurs preuves locales restent exigés et sont rapprochés dans le rapport
+de clôture. Tout verdict distant PASS exige une exécution distante réussie
+sur la révision concernée. Chaque gate conserve les preuves de la précédente.
 
 La branche `main` est une référence historique C#/Godot, pas une dépendance. Sa référence initiale est
 `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`.

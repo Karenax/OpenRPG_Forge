@@ -20,6 +20,27 @@ function item(list, label, detail) {
   meta.textContent = detail;
   li.append(name, meta);
   list.append(li);
+  return li;
+}
+
+function moduleActions(row, module) {
+  row.style.flexWrap = 'wrap';
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;flex-basis:100%';
+  module.zones.forEach((zone, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button secondary';
+    button.dataset.moduleLaunch = module.module_id;
+    button.textContent = module.zones.length === 1 ? 'Jouer ce module' : `Jouer la zone ${index + 1}`;
+    button.title = `Carte ${zone.area_id}`;
+    button.onclick = () => task(async () => {
+      await call({action:'launch_module',selection:{module_id:module.module_id,area_id:zone.area_id}});
+      subtitleOverride = `${module.name} est ouvert dans le jeu séparé.`;
+    }, `Ouverture de ${module.name}…`);
+    actions.append(button);
+  });
+  row.append(actions);
 }
 
 async function call(request) {
@@ -47,6 +68,7 @@ function updateActionStates() {
   $('choose-root').disabled = busy;
   $('set-root').disabled = busy || !destinationDirty;
   $('root-path').disabled = busy;
+  document.querySelectorAll('[data-module-launch]').forEach(button => { button.disabled = blocked || !installed; });
 }
 
 function acceptRootResult(result) {
@@ -98,13 +120,26 @@ async function refresh() {
       : `Les fichiers seront conservés dans ${state.root}.`;
     $('packs').replaceChildren();
     if (installed) {
+      const modules = await call({action:'modules'});
+      const admitted = new Map((Array.isArray(modules.modules) ? modules.modules : []).map(module => [module.module_id,module]));
+      const rejected = new Map((Array.isArray(modules.rejected) ? modules.rejected : []).map(module => [module.pack_id,module.reason]));
       $('title').textContent = 'Gérer votre installation';
       $('subtitle').textContent = subtitleOverride || 'Ajoutez des contenus, vérifiez les fichiers ou revenez à une version précédente.';
       $('version').textContent = `Installation ${state.state.revision}`;
       $('status').textContent = 'Installation prête · contenus séparés';
       (Array.isArray(state.packs) ? state.packs : []).forEach(pack => {
         const version = pack.version ? `Version ${pack.version}` : '';
-        item($('packs'), pack.label || 'Contenu Forge', [kindLabel(pack.kind), version].filter(Boolean).join(' · '));
+        const module = admitted.get(pack.id);
+        const row = item($('packs'), module ? module.name : pack.label || 'Contenu Forge', [kindLabel(pack.kind), version].filter(Boolean).join(' · '));
+        if (module) moduleActions(row,module);
+        const problem = rejected.get(pack.id) || pack.problem;
+        if (problem) {
+          const diagnostic = document.createElement('p');
+          diagnostic.textContent = `Contenu indisponible : ${problem}`;
+          diagnostic.style.cssText = 'flex-basis:100%;overflow-wrap:anywhere';
+          row.style.flexWrap = 'wrap';
+          row.append(diagnostic);
+        }
       });
     } else {
       $('title').innerHTML = 'Installer et gérer<br><em>vos contenus.</em>';
