@@ -1,5 +1,11 @@
 # Reconstruire une livraison Windows locale
 
+Pour préparer le poste et retrouver les données locales, commencer par
+[le guide de reprise](../../docs/HANDOFF.md). Gate 4 est clôturée localement
+sur le lot 019 selon [le rapport final](../../docs/evidence/gate4/GATE4_CLOSURE_20261016.md).
+Les exemples datés ci-dessous restent des procédures et preuves de leurs lots ;
+leurs chemins et reçus ne doivent pas être réutilisés pour qualifier de nouvelles sources.
+
 Ces outils de développement produisent un installateur EXE hors ligne ou un dossier
 de packages : launcher, éditeur, jeu natif, module et assets détachés. Python, Cargo, Trunk et wasm-bindgen
 ne sont pas nécessaires sur le poste client. Windows x64 et WebView2 le sont.

@@ -63,6 +63,8 @@ Avant toute modification importante, lire dans cet ordre :
 
 `PROJECT_CONTEXT.md` est l’unique contexte narratif canonique de cette branche. Les documents de
 planning détaillent le travail mais ne redéfinissent pas la vision.
+Le guide opératoire `docs/HANDOFF.md` décrit la reprise hors Codex, les données
+externes et l'inventaire local à préserver ; il ne redéfinit pas les gates.
 
 Gate C est qualifiée par un snapshot source intact et une baseline sous overlay Forge, selon ADR-0003.
 Gate 0 est passée sur preuves automatisées locales sous ADR-0004, ADR-0005 et ADR-0006 ; Gate 1 est clôturée localement sous dérogations (rapport GATE1_CLOSURE_20260912.md).

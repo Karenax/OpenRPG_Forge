@@ -42,7 +42,7 @@ preuves techniques du raccord restent à acquérir. Aucune clôture de Gate 3
 ni dérogation de fluidité n'est accordée par ce retrait. Les preuves Studio
 antérieures restent datées ; voir [le retrait](../evidence/gate3/STUDIO_PLAYTEST_RETIRED_20261012.md).
 
-## État actif — 11 octobre 2026
+## État historique — 11 octobre 2026
 
 La [version commune du 11 octobre](../evidence/gate3/GATE3_SHARED_VERSION_20261011.md)
 reprend les travaux des autres conversations dans le checkout Rust principal.

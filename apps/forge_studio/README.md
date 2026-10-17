@@ -1,5 +1,13 @@
 # forge_studio
 
+## Current status — 17 October 2026
+
+Gate 3 closed on 15 October; Gate 4 closed locally on 16 October, delivery
+`0.1.0-preview.20261016.019`. Start with the repository
+[handoff guide](../../docs/HANDOFF.md) for development outside Codex, external
+data and build prerequisites. The dated Gate 1 proof sections below retain
+their original scope and do not reopen completed gates.
+
 ## Current authoring launch and native game
 
 The owner's canonical entry is `E:/OpenRPG_Forge/Lancer-Editeur.cmd`. It opens
@@ -25,12 +33,16 @@ runtime in a separate window. The editor keeps its map, camera, canvas and GPU
 resources resident while pausing rendering. Closing the game resumes the same
 viewport without reloading the page or map. A second native game cannot be
 opened from the same Studio while the first is running. The embedded playtest
-is retired. The current native runtime supports walking exploration; RPG quest,
-dialogue, combat and save integration remain required for Gate 3.
+is retired. The separate native game now integrates quest, dialogue, combat
+and save/resume, as qualified by the
+[Gate 3 closure report](../../docs/evidence/gate3/GATE3_CLOSURE_20261015.md).
+The generic `forge_runtime` target and the installed game's
+`tidewater_plant_probe` target have distinct roles; see the delivery README.
 
 The owner's game/return test passed on 13 October. See
 [`STUDIO_RESIDENT_GAME_RETURN_20261013.md`](../../docs/evidence/gate3/STUDIO_RESIDENT_GAME_RETURN_20261013.md)
-for binary identity, scope and limits. This is not P05 full-RPG acceptance.
+for binary identity, scope and limits of that return test. The separate P05
+acceptance and later machine evidence are recorded in the Gate 3 closure report.
 
 Run the eight browser pacing/pause regression tests from the repository root:
 

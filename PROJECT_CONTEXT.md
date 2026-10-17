@@ -1,5 +1,10 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+Pour reprendre le développement hors Codex, lire le [guide de reprise](docs/HANDOFF.md).
+Il décrit les procédures et données locales sans redéfinir l'état canonique ci-dessous.
+Les sections datées sont des archives : leurs anciennes attentes et autorisations
+ne remplacent pas les décisions plus récentes ni une demande actuelle.
+
 ## État courant — Gate 4 clôturée localement au 16 octobre 2026
 
 Le [rapport final Gate 4](docs/evidence/gate4/GATE4_CLOSURE_20261016.md) porte le verdict

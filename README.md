@@ -1,92 +1,99 @@
-# OpenRPG Forge — branche Rust/WebGPU
+# OpenRPG Forge
 
-## État courant — Gate 1 clôturée le 12 septembre 2026
+OpenRPG Forge est un moteur et un atelier de création de RPG 3D en **Rust**, avec
+**Bevy, wgpu/WebGPU et Rapier**. Le Studio utilise **Tauri 2 et Leptos/WASM**.
+La branche maintenue et définie par défaut sur GitHub est `Rust`.
 
-**PASS automatisé local sous ADR-0006, avec les dérogations acceptées.**
-Dérogations saccades pendant les changements de qualité et kit : ADR-0013 ;
-comparaison Godot/Cadle validée explicitement. 738 tests PASS, 2 ignorés
-préexistants ; builds et replays natif/Studio PASS. Révision propre qualifiée
-`7386e00a1d9e8531470b57bcd8da190636a9e390`. [Rapport de clôture](docs/evidence/gate1/GATE1_CLOSURE_20260912.md).
-CI distante NOT RUN ; aucune publication ni qualification de distribution.
-Le travail Gate 2 est suivi séparément et ne fait pas partie de ce snapshot.
-Les états ouverts et attentes antérieurs ci-dessous sont historiques ;
-ils ne doivent pas rouvrir les décisions soldées par ce rapport.
+Le projet vise un parcours complet : créer un monde avec ou sans IA, retoucher
+précisément cartes, personnages et histoire, conserver ces corrections lors des
+régénérations, puis jouer, sauvegarder et distribuer une aventure. Cette vision
+reste distincte des capacités actuellement qualifiées.
 
+## État au 17 octobre 2026
 
-Cette branche est une réécriture indépendante et expérimentale d’OpenRPG Forge.
+| Étape | État documenté |
+|---|---|
+| Gate C — référence Cadle | Qualifiée selon son protocole et ses limites |
+| Gate 0 — fondations natives, WebGPU et Studio | Passée sur preuves locales et décisions documentées |
+| Gate 1 — rendu et Visual Valley | Clôturée localement sous dérogations |
+| Gate 2 — édition de monde | Clôturée par validation propriétaire |
+| Gate 3 — première boucle RPG | Clôturée le 15 octobre |
+| Gate 4 — assets gouvernés, modules et installation | Clôturée localement sous Windows le 16 octobre |
 
-Le résultat final visé est de **créer un RPG avec l'IA puis retoucher précisément son monde, ses
-personnages et son histoire dans le Studio, sans perdre ces corrections lors des régénérations**.
-Le parcours complet va jusqu'au jeu, à la sauvegarde et à la distribution ; l'édition reste possible
-sans IA. Les priorités et preuves attendues sont définies dans la vision de
-[`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) et déclinées dans la
-[`roadmap`](docs/planning/MIGRATION_ROADMAP.md). Cette cible n'est pas une déclaration de capacités livrées.
+Le lot Gate 4 est `0.1.0-preview.20261016.019`. Les rapports
+[Gate 3](docs/evidence/gate3/GATE3_CLOSURE_20261015.md) et
+[Gate 4](docs/evidence/gate4/GATE4_CLOSURE_20261016.md) précisent les versions,
+critères, preuves et réserves. Les gates suivantes ne sont pas ouvertes par ces
+clôtures. Le [contexte canonique](PROJECT_CONTEXT.md) et la
+[roadmap](docs/planning/MIGRATION_ROADMAP.md) portent le suivi détaillé.
 
-Elle a été créée le **30 août 2026** comme branche orpheline vide, sans ancêtre commun avec `main`.
-Son objectif n’est pas de convertir mécaniquement le code C#/Godot existant, mais de reconstruire le
-produit sur un socle **Rust + Bevy + wgpu/WebGPU**, en conservant les connaissances, les exigences,
-les formats utiles et les assets gouvernés du projet historique.
+## Parcours et capacités actuels
 
-## Priorité absolue
+- **Studio** : navigation par module et carte, édition du monde, retouches,
+  sauvegarde et création des données RPG selon les périmètres qualifiés.
+- **Jeu natif séparé** : dialogue, quête, combat et sauvegarde/reprise dans les
+  parcours documentés. Le Studio conserve sa carte pendant la partie puis
+  reprend son viewport au retour.
+- **Assets gouvernés** : imports GLB, textures et audio, provenance, licences,
+  empreintes, variantes et validation de publication.
+- **Modules** : packages `.orpmod` v2, dépendances, contrôles d'archives,
+  installation et régression avec un second module.
+- **Livraison Windows locale** : un installateur principal, un launcher Aube,
+  un gestionnaire de contenus, le Studio et le jeu, avec contenus séparables.
 
-La première réussite attendue n’est pas la reproduction des centaines de fonctions du projet Godot.
-La première réussite est une tranche verticale visuellement convaincante et performante :
+Ces capacités sont rattachées aux scénarios et composants des rapports de gate.
+Elles ne constituent pas une qualification générale de tous les modules,
+matériels ou usages futurs. L'assistant IA complet, la narration avancée,
+le scripting et le multijoueur restent suivis par la roadmap.
 
-- une vallée extérieure de 512 × 512 m ;
-- terrain sculpté et texturé ;
-- forêt dense et herbe animée ;
-- eau, brouillard, lumière et météo ;
-- personnage jouable à la troisième personne ;
-- collisions ;
-- édition directe de la carte ;
-- sauvegarde, rechargement et passage immédiat en mode jeu ;
-- cible de 60 FPS en 1080p sur un PC milieu de gamme de référence.
+## Limites de qualification
 
-La reconstruction des fonctions RPG, du Creator, de ForgeScript, des modules, du MCP et du
-multijoueur ne commence qu’après validation de cette base visuelle et technique.
+La clôture locale ne vaut pas qualification de distribution générale, de
+Windows vierge ou de Linux. La réserve `RUSTSEC-2024-0429` concernant GLib
+reste documentée ; aucune performance générale ou acceptation artistique n'est
+inférée des seuls tests automatisés.
 
-## Documents obligatoires
+Le dernier run Gate 3 documenté reste **NOT RUN — infrastructure billing**.
+[ADR-0023](docs/ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md) retire
+l'attente GitHub des critères de cette clôture Gate 3, sans produire de PASS
+distant. Les anciennes décisions de CI gardent leur portée datée.
 
-Avant toute modification :
+## Reprendre le développement
 
-1. lire [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) ;
-2. lire [`AGENTS.md`](AGENTS.md) ;
-3. lire [`docs/ADR/ADR-0001-rust-webgpu-greenfield.md`](docs/ADR/ADR-0001-rust-webgpu-greenfield.md) ;
-4. lire [`docs/ADR/ADR-0002-cadle-upstream-reference.md`](docs/ADR/ADR-0002-cadle-upstream-reference.md) ;
-5. lire [`docs/ADR/ADR-0003-cadle-qualification-lock-overlay.md`](docs/ADR/ADR-0003-cadle-qualification-lock-overlay.md) ;
-6. lire les décisions Gate 0 [`ADR-0004`](docs/ADR/ADR-0004-gate0-draw-call-telemetry-exception.md), [`ADR-0005`](docs/ADR/ADR-0005-studio-web-confirmed-gate0.md) et [`ADR-0006`](docs/ADR/ADR-0006-remote-ci-exception-gates-0-4.md) ;
-7. consulter [`docs/planning/MIGRATION_ROADMAP.md`](docs/planning/MIGRATION_ROADMAP.md) ;
-8. consulter [`docs/migration/LEGACY_REUSE_MATRIX.md`](docs/migration/LEGACY_REUSE_MATRIX.md) avant de reprendre une capacité de `main`.
+Commencer par le **[guide de reprise hors Codex](docs/HANDOFF.md)**. Il décrit
+les prérequis, les procédures de compilation et validation, les données hors Git,
+le lancement du poste actuel et le travail local à préserver.
 
-`PROJECT_CONTEXT.md` est la source de vérité narrative de cette branche.
+Le développement ne nécessite ni Codex ni OpenViking. Un clone contient les
+sources versionnées ; les cartes privées, le Vault, certains assets et les
+preuves locales doivent être restaurés séparément pour reproduire leur parcours.
+Les chemins du poste du propriétaire ne sont pas des valeurs universelles.
 
-## État actuel
+Documents de référence :
 
-Gate C et Gate 0 sont passées. Le workspace Rust épinglé, le runtime Bevy natif, le viewport
-Bevy/WebGPU WASM et le Studio Tauri 2 + Leptos utilisent désormais la même scène Forge versionnée.
-Les preuves locales reproductibles et le rapport sont dans
-[`docs/evidence/gate0/LOCAL_VALIDATION.md`](docs/evidence/gate0/LOCAL_VALIDATION.md) et
-[`docs/reports/GATE_0_REPORT.md`](docs/reports/GATE_0_REPORT.md).
+- [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) : vision et état canonique.
+- [AGENTS.md](AGENTS.md) : architecture et règles de contribution.
+- [Décisions d'architecture](docs/ADR) : choix et dérogations explicites.
+- [Roadmap](docs/planning/MIGRATION_ROADMAP.md) : critères et progression.
+- [Studio](apps/forge_studio/README.md) : parcours et détails du sous-système.
+- [Livraison Windows](scripts/delivery/README.md) : reconstruction et reçus.
 
-La gate active est **Gate 1 — Visual Valley**. Les revues visuelles humaines de Gate 0 restent
-explicitement différées par ADR-0005. La CI GitHub distante est `NOT RUN` à cause du blocage de
-facturation du compte ; ADR-0006 autorise jusqu’à Gate 4 le passage sur preuves locales sans jamais
-présenter cette CI comme verte. Cadle reste une référence locale : aucun de ses assets n’est copié ou
-publié dans Forge.
+Les documents sont versionnés avec les sources ; les sections historiques ne
+remplacent pas les états plus récents. Une modification locale doit être
+commitée puis poussée pour apparaître sur GitHub.
 
-## Référence historique
+## Architecture et historique
 
-La référence C#/Godot initiale est la branche `main` au commit :
+Les documents et règles métier Forge restent indépendants de Bevy, Tauri et
+Rapier. Les adapters projettent les données versionnées vers le rendu, la
+physique et l'interface ; les entités moteur ne sont pas le format canonique.
 
-```text
-a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0
-```
+La réécriture Rust a commencé le 30 août 2026 sur une branche orpheline.
+L'ancien projet C#/Godot est une référence historique, identifiée notamment par
+le commit `a7f4a3f5dd0eeff1dc060ea1237b1d7d650b7ca0`. Il ne constitue pas une
+dépendance d'exécution du produit Rust. Toute reprise suit la
+[matrice historique](docs/migration/LEGACY_REUSE_MATRIX.md).
 
-Cette référence sert à extraire les exigences et les données utiles. Elle ne devient jamais une
-dépendance d’exécution de la nouvelle architecture.
-
-## Référence exécutable
-
-Cadle sert de base de travail locale et de donneur de techniques pour le terrain, la végétation, le
-rendu et le harness. Il ne devient pas le runtime produit : Forge reste Rust + Bevy + wgpu/WebGPU et
-doit compiler, tester et fonctionner sans le clone Cadle.
+Cadle sert de référence de techniques selon les ADR et leurs contraintes de
+licence. Forge doit compiler et fonctionner sans son clone ; aucun asset Cadle
+n'est publié dans le produit.

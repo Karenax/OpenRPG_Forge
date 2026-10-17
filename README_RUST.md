@@ -1,9 +1,14 @@
-# OpenRPG Forge — fondation Rust Gate 0
+# OpenRPG Forge — procédures historiques de fondation Gate 0
 
-Ce document est le point d'entrée opératoire de la branche orpheline `Rust`. Le socle Gate 0 est
-exécutable localement, mais la gate reste ouverte tant que les jobs CI distants Windows, Linux et
-WASM ne sont pas verts et que les limites consignées dans `docs/reports/GATE_0_REPORT.md` ne sont pas
-levées.
+Pour une reprise actuelle, utiliser le [guide de reprise](docs/HANDOFF.md), le
+[contexte canonique](PROJECT_CONTEXT.md) et la [roadmap](docs/planning/MIGRATION_ROADMAP.md).
+Gate 3 est clôturée et Gate 4 clôturée localement au 16 octobre 2026.
+
+Les procédures ci-dessous décrivent l'environnement et les preuves Gate 0 du
+30 août. Elles ne constituent pas le parcours actuel d'édition Tidewater ou de
+livraison. Les anciennes conditions de CI ne rouvrent pas les gates clôturées ;
+consulter les actualisations d'ADR-0006 et ADR-0023. Les commandes historiques
+ne sont pas une qualification du checkout actuel.
 
 ## Environnement qualifié le 30 août 2026
 
@@ -95,12 +100,13 @@ Le binaire produit est `target/release/forge-studio.exe`. La sélection par hié
 3D traverse un canal Rust typé ; le backend rejette les `EntityId` absents du document partagé. La
 latence aller-retour est affichée dans l'inspecteur.
 
-## CI et statut de Gate 0
+## CI et statut de Gate 0 — exigences initiales historiques
 
 `.github/workflows/rust-gate.yml` définit les jobs format, Clippy, tests, Windows, Linux, WASM et
 chaîne d'approvisionnement. La configuration locale ne vaut pas exécution distante : sans push
-autorisé et sans run GitHub Actions vert, Gate 0 ne peut pas être déclarée passée et Gate 1 ne doit
-pas commencer.
+autorisé et sans run GitHub Actions vert, le protocole initial refusait le passage
+de Gate 0. Les décisions et clôtures ultérieures remplacent cette condition
+historique dans leur portée explicite ; voir l'état courant en tête de document.
 
 ## Frontières
 
