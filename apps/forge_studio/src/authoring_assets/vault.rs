@@ -19,7 +19,9 @@ thread_local! {
 async fn read_model(request: LibraryRequest) -> Result<LibraryModel, String> {
     // Wait before invoking IPC, so pending requests hold only small metadata.
     // Keep admission through original SHA verification; cancellation releases it.
-    let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = MODEL_READ_GATE
+        .with(super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     let bytes = read_wire(&request).await?;
     let model = crate::asset_library_model_wire::decode(bytes)?;
     if model.asset_id != vault_asset_id(&model.id) {
@@ -69,7 +71,9 @@ async fn selected_physics(
     request: crate::asset_library_protocol::LibraryPhysicsRequest,
     package_sha256: ContentHash,
 ) -> Result<forge_assets::source_physics_package::SourcePhysicsPackage, String> {
-    let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = MODEL_READ_GATE
+        .with(super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     let wire = read_wire_from(
         "read_asset_physics",
         &request,
@@ -109,7 +113,9 @@ async fn physics_for_model(
         carrier_sha256,
         manifest_sha256,
     };
-    let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = MODEL_READ_GATE
+        .with(super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     let wire = read_wire_from(
         "read_asset_physics",
         &request,
@@ -160,7 +166,9 @@ async fn particles_for_model(
         manifest_sha256,
         package_sha256,
     };
-    let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = MODEL_READ_GATE
+        .with(super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     let wire = read_wire_from(
         "read_asset_particles",
         &request,
@@ -191,6 +199,7 @@ pub(crate) fn SourcePhysicsDetails(
     profile: serde_json::Value,
 ) -> impl IntoView {
     let declaration = profile.get("source_physics_package").cloned();
+    drop(profile);
     let available = declaration.is_some();
     let working = RwSignal::new(false);
     let status = RwSignal::new(String::new());
@@ -296,7 +305,9 @@ pub(super) async fn installed_reference(
     sha256: ContentHash,
 ) -> Result<(String, Vec<u8>, super::preview::SceneLayout), String> {
     let reply = {
-        let _permit = MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+        let _permit = MODEL_READ_GATE
+            .with(super::model_read_gate::ModelReadGate::acquire)?
+            .await;
         let wire = read_wire(&ModuleModelRequest::ModuleModelReference {
             schema_version: 2,
             asset_id,
@@ -347,16 +358,8 @@ pub(crate) fn VaultActions(
         if working.get_untracked() || bindings.busy.get_untracked() {
             return;
         }
-        let head = match super::placement_controls::head(bindings.state.get_untracked()) {
-            Ok(head) if crate::authoring_viewport::can_preview_asset() => head,
-            Ok(_) => {
-                status.set("Ouvrir la carte en mode édition.".into());
-                return;
-            }
-            Err(e) => {
-                status.set(e);
-                return;
-            }
+        let Some(head) = placement_head(&bindings, status) else {
+            return;
         };
         if !placeable {
             return;
@@ -418,41 +421,7 @@ pub(crate) fn VaultActions(
                         },
                     )
                 });
-                // The regular projection reads this saved reference itself;
-                // never inject bytes into a second map or bypass Preview/Apply.
-                crate::authoring_brush_pointer::arm(
-                    2.0,
-                    false,
-                    Callback::new(move |points: Result<Vec<[f32; 2]>, String>| {
-                        let request = (|| {
-                            let current =
-                                super::placement_controls::head(bindings.state.get_untracked())?;
-                            if current.content_hash()? != head.content_hash()? {
-                                return Err("Zone modifiée ; recommencer le placement".into());
-                            }
-                            let point = *points?.first().ok_or("Cliquer le terrain")?;
-                            super::placement_controls::insertion::prepare_with_packages(
-                                &current,
-                                &name,
-                                reference,
-                                (
-                                    forge_core::Transform::IDENTITY,
-                                    forge_world::placement_snap::PlacementSnap {
-                                        grid_step_m: None,
-                                        surface_offset_m: Some(0.0),
-                                    },
-                                ),
-                                point,
-                                (None, particle_pin.clone()),
-                            )
-                        })();
-                        bindings.send.run(request);
-                    }),
-                );
-                bindings
-                    .status
-                    .set("Cliquer le terrain pour proposer le placement ; Échap annule.".into());
-                close.run(());
+                arm_placement(bindings, head, name, reference, particle_pin, close);
             } else if super::preview::submit_scene_with_physics(
                 ticket,
                 model.id,
@@ -475,4 +444,66 @@ pub(crate) fn VaultActions(
             {bindings.is_none().then(|| view!{<p>"Ouvrez cette bibliothèque depuis une carte pour utiliser l’aperçu et le placement."</p>})}
         </div>
     }
+}
+
+fn arm_placement(
+    bindings: crate::atelier_ui::MainBindings,
+    head: forge_project::zone_authoring::ZoneAuthoringHead,
+    name: String,
+    reference: (forge_core::AssetId, ContentHash),
+    particle_pin: Option<Box<forge_project::zone_authoring::placements::ParticlePackageReference>>,
+    close: Callback<()>,
+) {
+    // The regular projection reads this saved reference itself;
+    // never inject bytes into a second map or bypass Preview/Apply.
+    crate::authoring_brush_pointer::arm(
+        2.0,
+        false,
+        Callback::new(move |points: Result<Vec<[f32; 2]>, String>| {
+            let request = (|| {
+                let current = super::placement_controls::head(bindings.state.get_untracked())?;
+                if current.content_hash()? != head.content_hash()? {
+                    return Err("Zone modifiée ; recommencer le placement".into());
+                }
+                let point = *points?.first().ok_or("Cliquer le terrain")?;
+                super::placement_controls::insertion::prepare_with_packages(
+                    &current,
+                    &name,
+                    reference,
+                    (
+                        forge_core::Transform::IDENTITY,
+                        forge_world::placement_snap::PlacementSnap {
+                            grid_step_m: None,
+                            surface_offset_m: Some(0.0),
+                        },
+                    ),
+                    point,
+                    (None, particle_pin.clone()),
+                )
+            })();
+            bindings.send.run(request);
+        }),
+    );
+    bindings
+        .status
+        .set("Cliquer le terrain pour proposer le placement ; Échap annule.".into());
+    close.run(());
+}
+
+fn placement_head(
+    bindings: &crate::atelier_ui::MainBindings,
+    status: RwSignal<String>,
+) -> Option<forge_project::zone_authoring::ZoneAuthoringHead> {
+    let head = match super::placement_controls::head(bindings.state.get_untracked()) {
+        Ok(head) if crate::authoring_viewport::can_preview_asset() => head,
+        Ok(_) => {
+            status.set("Ouvrir la carte en mode édition.".into());
+            return None;
+        }
+        Err(e) => {
+            status.set(e);
+            return None;
+        }
+    };
+    Some(head)
 }

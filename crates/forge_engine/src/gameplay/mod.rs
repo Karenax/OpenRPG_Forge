@@ -146,7 +146,8 @@ impl Plugin for GameplayPlugin {
                 FixedUpdate,
                 GameplaySet::Observe
                     .after(PhysicsSet::Writeback)
-                    .after(crate::PlayerControllerSet::Observe),
+                    .after(crate::PlayerControllerSet::Observe)
+                    .after(crate::player_motion_extension::PlayerMotionPublication),
             )
             .add_systems(
                 FixedUpdate,

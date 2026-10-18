@@ -1,7 +1,7 @@
 //! Verified procedural acquisition; publication shares the library generation boundary.
-use forge_assets::tidewater_debris::native::NativeInput;
 use forge_core::{AssetId, ContentHash};
-use forge_engine::tidewater_debris::{DebrisTemplate, PreparedDebris};
+use forge_tidewater::tidewater_debris::{DebrisTemplate, PreparedDebris};
+use forge_tidewater_assets::tidewater_debris::native::NativeInput;
 use std::{cell::RefCell, collections::BTreeSet, rc::Rc};
 
 pub(crate) struct Prepared {
@@ -42,7 +42,7 @@ pub(super) async fn load(
     }
     // Fail before publishing if renderer decoding or the shared source ABI differs.
     let geometry = PreparedDebris::from_package(&input.geometry)?;
-    forge_engine::tidewater_debris::nature::shader_source(&input.nature_program)?;
+    forge_tidewater::tidewater_debris::nature::shader_source(&input.nature_program)?;
     let assets = geometry
         .objects
         .iter()

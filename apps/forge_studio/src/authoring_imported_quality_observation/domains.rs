@@ -1,7 +1,7 @@
 //! Current imported resources and CPU uniforms; unavailable budgets stay explicit.
 use super::{CurrentProfileInventory, Origin, ParameterValue as V};
 use bevy::prelude::*;
-use forge_engine::{
+use forge_tidewater::{
     tidewater_plants::PlantMaterial,
     tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
 };
@@ -96,7 +96,7 @@ pub(super) fn terrain_profile(world: &World, out: &mut CurrentProfileInventory) 
 pub(super) fn shadow_profile(world: &World, out: &mut CurrentProfileInventory) {
     let resource = Origin::MainWorldResource;
     if let Some(target) =
-        world.get_resource::<forge_engine::tidewater_object_shadow::graph::Target>()
+        world.get_resource::<forge_tidewater::tidewater_object_shadow::graph::Target>()
     {
         out.image(world, "shadows/depth", &target.image);
         out.put(
@@ -107,7 +107,7 @@ pub(super) fn shadow_profile(world: &World, out: &mut CurrentProfileInventory) {
         );
     }
     if let Some(sample) = world
-        .get_resource::<forge_engine::tidewater_object_shadow::receiver::GpuObservation>()
+        .get_resource::<forge_tidewater::tidewater_object_shadow::receiver::GpuObservation>()
         .and_then(|observation| observation.0.as_ref())
     {
         out.numbers(
@@ -162,7 +162,7 @@ pub(super) fn vegetation_profile(world: &mut World, out: &mut CurrentProfileInve
 
 pub(super) fn environment_profile(world: &World, out: &mut CurrentProfileInventory) {
     let Some(environment) =
-        world.get_resource::<forge_engine::tidewater_scene_environment::ResidentEnvironment>()
+        world.get_resource::<forge_tidewater::tidewater_scene_environment::ResidentEnvironment>()
     else {
         return;
     };
@@ -201,12 +201,12 @@ pub(super) fn water_profile(world: &World, out: &mut CurrentProfileInventory) {
     out.put(
         "water/resident_optics_present",
         V::Boolean(
-            world.contains_resource::<forge_engine::tidewater_ocean_optics::ResidentOptics>(),
+            world.contains_resource::<forge_tidewater::tidewater_ocean_optics::ResidentOptics>(),
         ),
         resource,
         true,
     );
-    if let Some(ocean) = world.get_resource::<forge_engine::tidewater_ocean::Targets>() {
+    if let Some(ocean) = world.get_resource::<forge_tidewater::tidewater_ocean::Targets>() {
         for (index, image) in ocean.images.iter().enumerate() {
             out.image(world, &format!("water/ocean_{index}"), image);
         }
@@ -229,7 +229,7 @@ pub(super) fn water_profile(world: &World, out: &mut CurrentProfileInventory) {
             false,
         );
     }
-    if let Some(control) = world.get_resource::<forge_engine::tidewater_refraction::Control>() {
+    if let Some(control) = world.get_resource::<forge_tidewater::tidewater_refraction::Control>() {
         out.put(
             "water/refraction_capture_enabled",
             V::Boolean(control.enabled),
@@ -239,7 +239,7 @@ pub(super) fn water_profile(world: &World, out: &mut CurrentProfileInventory) {
     }
     underwater_profile(world, out);
     if let Some(observation) =
-        world.get_resource::<forge_engine::tidewater_refraction::Observation>()
+        world.get_resource::<forge_tidewater::tidewater_refraction::Observation>()
     {
         out.put(
             "water/refraction_descriptor_size",
@@ -259,7 +259,7 @@ pub(super) fn water_profile(world: &World, out: &mut CurrentProfileInventory) {
 fn underwater_profile(world: &World, out: &mut CurrentProfileInventory) {
     let resource = Origin::MainWorldResource;
     if let Some(control) =
-        world.get_resource::<forge_engine::tidewater_underwater::TidewaterUnderwaterControl>()
+        world.get_resource::<forge_tidewater::tidewater_underwater::TidewaterUnderwaterControl>()
     {
         out.put(
             "water/underwater_enabled",
@@ -275,7 +275,7 @@ fn underwater_profile(world: &World, out: &mut CurrentProfileInventory) {
         );
     }
     if let Some(control) =
-        world.get_resource::<forge_engine::tidewater_underwater_lighting::Control>()
+        world.get_resource::<forge_tidewater::tidewater_underwater_lighting::Control>()
     {
         out.put(
             "water/underwater_lighting_enabled",

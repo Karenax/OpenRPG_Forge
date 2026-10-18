@@ -27,9 +27,14 @@ if ((& git -C $root branch --show-current).Trim() -ne "Rust") {
 
 Push-Location $root
 try {
+    & python -B -m unittest discover -s scripts -p test_engine_boundaries.py -v
+    if ($LASTEXITCODE -ne 0) {
+        throw "Engine architecture boundary checks failed."
+    }
     Invoke-Cargo -Arguments @("fmt", "--all", "--", "--check")
     Invoke-Cargo -Arguments @("clippy", "--workspace", "--all-targets", "--locked", "--", "-D", "warnings")
-    Invoke-Cargo -Arguments @("test", "--workspace", "--all-targets", "--locked")
+    # Readiness deadlines are wall-clock checks; do not compete with parallel fixture I/O.
+    Invoke-Cargo -Arguments @("test", "--workspace", "--all-targets", "--locked", "--", "--test-threads=1")
     if (-not $SkipWasm) {
         Invoke-Cargo -Arguments @("check", "-p", "forge_engine", "--target", "wasm32-unknown-unknown", "--no-default-features", "--features", "web", "--locked")
         Invoke-Cargo -Arguments @("clippy", "-p", "forge_studio", "--target", "wasm32-unknown-unknown", "--no-default-features", "--features", "web", "--locked", "--", "-D", "warnings")

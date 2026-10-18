@@ -372,10 +372,10 @@ impl SourceSceneHost {
                 camera,
             )
         })();
-        if result.is_err() {
-            if let Ok(mut root) = world.get_entity_mut(self.root) {
-                root.insert(Visibility::Hidden);
-            }
+        if result.is_err()
+            && let Ok(mut root) = world.get_entity_mut(self.root)
+        {
+            root.insert(Visibility::Hidden);
         }
         result
     }
@@ -432,7 +432,8 @@ impl SourceSceneHost {
             Err(mut error) => {
                 for draw in installed.into_iter().rev() {
                     if let Err(reason) = uninstall_source_graph_shadow_route(world, draw) {
-                        error.push_str(&format!("; shadow rollback refused: {reason}"));
+                        use std::fmt::Write as _;
+                        let _ = write!(error, "; shadow rollback refused: {reason}");
                     }
                 }
                 if let Ok(mut root) = world.get_entity_mut(self.root) {

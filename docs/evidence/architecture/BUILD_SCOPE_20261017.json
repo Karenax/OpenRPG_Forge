@@ -1,0 +1,13 @@
+{
+  "schema": "forge.architecture-build-scope",
+  "version": 1,
+  "product_owned_include_guard": "PASS",
+  "build_inputs": 2518,
+  "checkout_entries": 5951,
+  "orchestration_in_build": 0,
+  "orchestration_in_checkout": 2521,
+  "historical_candidate_in_checkout": true,
+  "product_harness_in_build": true,
+  "historical_receipts_modified": false,
+  "product_cargo_paths_guard": "PASS"
+}

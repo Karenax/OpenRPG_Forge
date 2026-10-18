@@ -9,19 +9,12 @@ use serde::{Deserialize, Serialize};
 mod compact;
 mod delta;
 mod source_blobs;
+mod versions;
 
 const SOURCE_OBJECT_ARCHIVE_VERSION: u32 = 37;
-const SOURCE_OBJECT_COMPACT_VERSION: u32 = 38;
-const SOURCE_OBJECT_DELTA_VERSION: u32 = 39;
 const PHYSICS_ARCHIVE_VERSION: u32 = 40;
-const PHYSICS_COMPACT_VERSION: u32 = 41;
-const PHYSICS_DELTA_VERSION: u32 = 42;
 const PLACEMENT_PHYSICS_ARCHIVE_VERSION: u32 = 43;
-const PLACEMENT_PHYSICS_COMPACT_VERSION: u32 = 44;
-const PLACEMENT_PHYSICS_DELTA_VERSION: u32 = 45;
 const GAMEPLAY_VISUALS_ARCHIVE_VERSION: u32 = 46;
-const GAMEPLAY_VISUALS_COMPACT_VERSION: u32 = 47;
-const GAMEPLAY_VISUALS_DELTA_VERSION: u32 = 48;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -447,7 +440,7 @@ impl ZoneEditSession {
         Ok(ZoneCompactionReview {
             head_hash: self.head.content_hash()?,
             source_version: if self.compact_archive {
-                compact::version(&self.receipts)
+                compact::version(&self.receipts)?
             } else {
                 archive_version(&self.receipts)
             },
@@ -479,44 +472,10 @@ impl ZoneEditSession {
             return Err("Zone archive exceeds 4 MiB".into());
         }
         let header: Header = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
-        if matches!(
-            header.version,
-            6 | 7
-                | 12
-                | 15
-                | 18
-                | 21
-                | 24
-                | 27
-                | 30
-                | 33
-                | 36
-                | SOURCE_OBJECT_DELTA_VERSION
-                | PHYSICS_DELTA_VERSION
-                | PLACEMENT_PHYSICS_DELTA_VERSION
-                | GAMEPLAY_VISUALS_DELTA_VERSION
-        ) {
-            return delta::decode(bytes);
-        }
-        if matches!(
-            header.version,
-            3 | 5
-                | 9
-                | 11
-                | 14
-                | 17
-                | 20
-                | 23
-                | 26
-                | 29
-                | 32
-                | 35
-                | SOURCE_OBJECT_COMPACT_VERSION
-                | PHYSICS_COMPACT_VERSION
-                | PLACEMENT_PHYSICS_COMPACT_VERSION
-                | GAMEPLAY_VISUALS_COMPACT_VERSION
-        ) {
-            return compact::decode(bytes);
+        match versions::encoding(header.version)? {
+            versions::Encoding::Delta => return delta::decode(bytes),
+            versions::Encoding::Compact => return compact::decode(bytes),
+            versions::Encoding::Full => {}
         }
         let archive: Archive = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
         if archive.schema != "forge.zone-edit-session"

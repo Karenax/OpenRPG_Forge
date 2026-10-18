@@ -139,16 +139,26 @@ pub(super) fn planes_json() -> Value {
         }).collect::<Vec<_>>())
     }))
 }
+#[derive(Clone, Copy)]
+pub(super) struct Geometry {
+    pub pivot: Vec3,
+    pub vectors: [Vec3; 3],
+    pub length: f32,
+}
+
 pub(super) fn show(
     id: EntityId,
     editable: bool,
     camera: &Camera,
     transform: &GlobalTransform,
     size: Vec2,
-    pivot: Vec3,
-    vectors: [Vec3; 3],
-    length: f32,
+    geometry: Geometry,
 ) {
+    let Geometry {
+        pivot,
+        vectors,
+        length,
+    } = geometry;
     let Ok(center) = camera.world_to_viewport(transform, pivot) else {
         clear();
         return;
@@ -207,128 +217,7 @@ pub(super) fn show(
         }
     });
     if changed && let Some(document) = web_sys::window().and_then(|w| w.document()) {
-        set(
-            &document,
-            "forge-selection-handles",
-            "style",
-            "display:block",
-        );
-        set(
-            &document,
-            "forge-selection-handles",
-            "viewBox",
-            &format!("0 0 {} {}", size.x, size.y),
-        );
-        set(
-            &document,
-            "forge-selection-handles",
-            "data-placement-id",
-            &id.to_string(),
-        );
-        set(
-            &document,
-            "forge-selection-handles",
-            "data-editable",
-            if editable { "true" } else { "false" },
-        );
-        for name in ["x", "y", "z"] {
-            for prefix in ["axis", "arrow", "label"] {
-                set(
-                    &document,
-                    &format!("handle-{prefix}-{name}"),
-                    "style",
-                    "display:none",
-                );
-            }
-        }
-        for name in ["xy", "xz", "yz"] {
-            set(
-                &document,
-                &format!("handle-plane-{name}"),
-                "style",
-                "display:none",
-            );
-            set(
-                &document,
-                &format!("handle-plane-label-{name}"),
-                "style",
-                "display:none",
-            );
-        }
-        for (axis, tip) in &axes {
-            let name = axis_name(*axis);
-            let v = (*tip - center).normalize_or_zero();
-            let side = Vec2::new(-v.y, v.x);
-            for prefix in ["axis", "arrow", "label"] {
-                set(&document, &format!("handle-{prefix}-{name}"), "style", "");
-            }
-            let base = *tip - v * 13.0;
-            let label = *tip + v * 13.0;
-            let line = format!("handle-axis-{name}");
-            for (k, value) in [
-                ("x1", center.x),
-                ("y1", center.y),
-                ("x2", tip.x),
-                ("y2", tip.y),
-            ] {
-                set(&document, &line, k, &value.to_string());
-            }
-            let q = [*tip, base + side * 6.0, base - side * 6.0];
-            set(
-                &document,
-                &format!("handle-arrow-{name}"),
-                "points",
-                &q.iter()
-                    .map(|p| format!("{},{}", p.x, p.y))
-                    .collect::<Vec<_>>()
-                    .join(" "),
-            );
-            set(
-                &document,
-                &format!("handle-label-{name}"),
-                "x",
-                &label.x.to_string(),
-            );
-            set(
-                &document,
-                &format!("handle-label-{name}"),
-                "y",
-                &label.y.to_string(),
-            );
-        }
-        for (plane, quad) in &planes {
-            let name = plane.name();
-            let label = quad.iter().copied().sum::<Vec2>() / 4.0;
-            set(&document, &format!("handle-plane-{name}"), "style", "");
-            set(
-                &document,
-                &format!("handle-plane-label-{name}"),
-                "style",
-                "",
-            );
-            set(
-                &document,
-                &format!("handle-plane-{name}"),
-                "points",
-                &quad
-                    .iter()
-                    .map(|p| format!("{},{}", p.x, p.y))
-                    .collect::<Vec<_>>()
-                    .join(" "),
-            );
-            set(
-                &document,
-                &format!("handle-plane-label-{name}"),
-                "x",
-                &label.x.to_string(),
-            );
-            set(
-                &document,
-                &format!("handle-plane-label-{name}"),
-                "y",
-                &label.y.to_string(),
-            );
-        }
+        render_svg(&document, id, editable, size, center, &axes, &planes);
     }
     SCREEN.with(|s| {
         s.replace(Some(Screen {
@@ -340,4 +229,136 @@ pub(super) fn show(
             planes,
         }))
     });
+}
+
+fn render_svg(
+    document: &web_sys::Document,
+    id: EntityId,
+    editable: bool,
+    size: Vec2,
+    center: Vec2,
+    axes: &[(Axis, Vec2)],
+    planes: &[(Plane, [Vec2; 4])],
+) {
+    set(
+        document,
+        "forge-selection-handles",
+        "style",
+        "display:block",
+    );
+    set(
+        document,
+        "forge-selection-handles",
+        "viewBox",
+        &format!("0 0 {} {}", size.x, size.y),
+    );
+    set(
+        document,
+        "forge-selection-handles",
+        "data-placement-id",
+        &id.to_string(),
+    );
+    set(
+        document,
+        "forge-selection-handles",
+        "data-editable",
+        if editable { "true" } else { "false" },
+    );
+    for name in ["x", "y", "z"] {
+        for prefix in ["axis", "arrow", "label"] {
+            set(
+                document,
+                &format!("handle-{prefix}-{name}"),
+                "style",
+                "display:none",
+            );
+        }
+    }
+    for name in ["xy", "xz", "yz"] {
+        set(
+            document,
+            &format!("handle-plane-{name}"),
+            "style",
+            "display:none",
+        );
+        set(
+            document,
+            &format!("handle-plane-label-{name}"),
+            "style",
+            "display:none",
+        );
+    }
+    render_axes(document, center, axes);
+    for (plane, quad) in planes {
+        let name = plane.name();
+        let label = quad.iter().copied().sum::<Vec2>() / 4.0;
+        set(document, &format!("handle-plane-{name}"), "style", "");
+        set(document, &format!("handle-plane-label-{name}"), "style", "");
+        set(
+            document,
+            &format!("handle-plane-{name}"),
+            "points",
+            &quad
+                .iter()
+                .map(|p| format!("{},{}", p.x, p.y))
+                .collect::<Vec<_>>()
+                .join(" "),
+        );
+        set(
+            document,
+            &format!("handle-plane-label-{name}"),
+            "x",
+            &label.x.to_string(),
+        );
+        set(
+            document,
+            &format!("handle-plane-label-{name}"),
+            "y",
+            &label.y.to_string(),
+        );
+    }
+}
+
+fn render_axes(document: &web_sys::Document, center: Vec2, axes: &[(Axis, Vec2)]) {
+    for (axis, tip) in axes {
+        let name = axis_name(*axis);
+        let v = (*tip - center).normalize_or_zero();
+        let perpendicular = Vec2::new(-v.y, v.x);
+        for prefix in ["axis", "arrow", "label"] {
+            set(document, &format!("handle-{prefix}-{name}"), "style", "");
+        }
+        let base = *tip - v * 13.0;
+        let label = *tip + v * 13.0;
+        let line = format!("handle-axis-{name}");
+        for (k, value) in [
+            ("x1", center.x),
+            ("y1", center.y),
+            ("x2", tip.x),
+            ("y2", tip.y),
+        ] {
+            set(document, &line, k, &value.to_string());
+        }
+        let q = [*tip, base + perpendicular * 6.0, base - perpendicular * 6.0];
+        set(
+            document,
+            &format!("handle-arrow-{name}"),
+            "points",
+            &q.iter()
+                .map(|p| format!("{},{}", p.x, p.y))
+                .collect::<Vec<_>>()
+                .join(" "),
+        );
+        set(
+            document,
+            &format!("handle-label-{name}"),
+            "x",
+            &label.x.to_string(),
+        );
+        set(
+            document,
+            &format!("handle-label-{name}"),
+            "y",
+            &label.y.to_string(),
+        );
+    }
 }

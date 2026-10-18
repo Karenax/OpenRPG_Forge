@@ -83,14 +83,19 @@ mod tests {
     use forge_core::bytes_sha256;
 
     fn imported() -> AssetCatalog {
-        AssetCatalog { schema_version: 1, assets: vec![AssetRecord {
-            id: AssetId::deterministic(b"tidewater/building/0"),
-            logical_name: "tidewater/building/0".into(), kind: AssetKind::Mesh,
-            source: AssetSource::External {
-                uri: "https://github.com/dgreenheck/tidewater/tree/1438b1abfcaee3267092b75573014f4d9b4a983c".into(),
-                declared_license: Some("MIT".into()),
-            }, content_hash: bytes_sha256(b"descriptor with native material bindings"),
-        }] }
+        AssetCatalog {
+            schema_version: 1,
+            assets: vec![AssetRecord {
+                id: AssetId::deterministic(b"fixture/building/0"),
+                logical_name: "fixture/building/0".into(),
+                kind: AssetKind::Mesh,
+                source: AssetSource::External {
+                    uri: "https://example.invalid/fixture/building".into(),
+                    declared_license: Some("MIT".into()),
+                },
+                content_hash: bytes_sha256(b"descriptor with native material bindings"),
+            }],
+        }
     }
 
     #[test]

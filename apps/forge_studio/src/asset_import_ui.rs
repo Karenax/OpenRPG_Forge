@@ -1,5 +1,8 @@
 //! User-library import dialog. Every durable mutation is a reviewed native command.
-use crate::asset_import_protocol::*;
+use crate::asset_import_protocol::{
+    ImportCandidate, ImportReadRole, ImportRequest, ImportResponse, ImportSource, ImportSourceKind,
+    ImportState, ImportUpload, MAX_PACKET_BYTES, PreparedImport, decode_response, encode_request,
+};
 use forge_assets::governed_import::{
     AssetProvenance, AssetRights, GovernedAssetKind, GovernedImportAsset, RedistributionRights,
 };
@@ -26,12 +29,17 @@ struct Ui {
     local: RwSignal<bool>,
     authored: RwSignal<bool>,
     recipe: RwSignal<bool>,
+    uploads: StoredValue<UploadSlots>,
+    preview_url: RwSignal<String>,
+    preview_kind: RwSignal<String>,
+    bindings: StoredValue<Option<crate::atelier_ui::MainBindings>>,
+}
+
+#[derive(Clone, Copy)]
+struct UploadSlots {
     payload: RwSignal<Option<ImportUpload>>,
     source: RwSignal<Option<ImportUpload>>,
     thumbnail: RwSignal<Option<ImportUpload>>,
-    preview_url: RwSignal<String>,
-    preview_kind: RwSignal<String>,
-    bindings: Option<crate::atelier_ui::MainBindings>,
 }
 
 impl Ui {
@@ -62,14 +70,19 @@ impl Ui {
             local: RwSignal::new(false),
             authored: RwSignal::new(false),
             recipe: RwSignal::new(false),
-            payload: RwSignal::new(None),
-            source: RwSignal::new(None),
-            thumbnail: RwSignal::new(None),
+            uploads: StoredValue::new(UploadSlots {
+                payload: RwSignal::new(None),
+                source: RwSignal::new(None),
+                thumbnail: RwSignal::new(None),
+            }),
             preview_url: RwSignal::new(String::new()),
             preview_kind: RwSignal::new(String::new()),
-            bindings: use_context::<crate::atelier_ui::MainBindings>().or_else(|| {
-                use_context::<crate::atelier_ui::Link>().and_then(|link| link.main.get_untracked())
-            }),
+            bindings: StoredValue::new(use_context::<crate::atelier_ui::MainBindings>().or_else(
+                || {
+                    use_context::<crate::atelier_ui::Link>()
+                        .and_then(|link| link.main.get_untracked())
+                },
+            )),
         }
     }
     fn current(self) -> Option<GovernedImportAsset> {
@@ -85,9 +98,9 @@ impl Ui {
         self.selected.set(Some(asset.id));
         self.parent.set(asset.derived_from);
         self.plan.set(None);
-        self.payload.set(None);
-        self.source.set(None);
-        self.thumbnail.set(None);
+        self.uploads.get_value().payload.set(None);
+        self.uploads.get_value().source.set(None);
+        self.uploads.get_value().thumbnail.set(None);
         self.name.set(asset.name.clone());
         self.kind.set(kind_name(asset.kind).into());
         self.author.set(asset.provenance.author.clone());
@@ -114,9 +127,9 @@ impl Ui {
         self.selected.set(None);
         self.parent.set(None);
         self.plan.set(None);
-        self.payload.set(None);
-        self.source.set(None);
-        self.thumbnail.set(None);
+        self.uploads.get_value().payload.set(None);
+        self.uploads.get_value().source.set(None);
+        self.uploads.get_value().thumbnail.set(None);
         self.name.set(String::new());
         self.proof.set(String::new());
         self.authored.set(false);
@@ -145,6 +158,8 @@ impl Ui {
             .get_untracked()
             .ok_or("Actualiser la collection avant l’import")?;
         let payload = self
+            .uploads
+            .get_value()
             .payload
             .get_untracked()
             .ok_or("Choisir le fichier à importer")?;
@@ -184,15 +199,20 @@ impl Ui {
             license_text: self.proof.get_untracked(),
             payload,
             authored_changes: self.authored.get_untracked(),
-            source: self.source.get_untracked().map(|upload| ImportSource {
-                kind: if self.recipe.get_untracked() {
-                    ImportSourceKind::Recipe
-                } else {
-                    ImportSourceKind::AuthoredFile
-                },
-                upload,
-            }),
-            thumbnail: self.thumbnail.get_untracked(),
+            source: self
+                .uploads
+                .get_value()
+                .source
+                .get_untracked()
+                .map(|upload| ImportSource {
+                    kind: if self.recipe.get_untracked() {
+                        ImportSourceKind::Recipe
+                    } else {
+                        ImportSourceKind::AuthoredFile
+                    },
+                    upload,
+                }),
+            thumbnail: self.uploads.get_value().thumbnail.get_untracked(),
         })
     }
 }
@@ -296,14 +316,19 @@ fn MetadataFields(ui: Ui) -> impl IntoView {
 
 #[component]
 fn SourceFields(ui: Ui) -> impl IntoView {
-    view! {<fieldset disabled=move||ui.busy.get() on:input=move |_|ui.plan.set(None)><legend>"Fichiers"</legend><label>"Fichier à importer (256 Mio maximum)"<input type="file" accept=".glb,.png,.jpg,.jpeg,.wav,.ogg,.flac" on:change=move|e|pick_upload(e,ui.payload,268_435_456,ui)/></label><p>{move||ui.payload.get().map(|f|format!("{} · {} octets",f.name,f.byte_length))}</p>
+    view! {<fieldset disabled=move||ui.busy.get() on:input=move |_|ui.plan.set(None)><legend>"Fichiers"</legend><label>"Fichier à importer (256 Mio maximum)"<input type="file" accept=".glb,.png,.jpg,.jpeg,.wav,.ogg,.flac" on:change=move|e|pick_upload(&e,ui.uploads.get_value().payload,268_435_456,ui)/></label><p>{move||ui.uploads.get_value().payload.get().map(|f|format!("{} · {} octets",f.name,f.byte_length))}</p>
     <label class="asset-import-check"><input type="checkbox" prop:checked=move||ui.authored.get() on:change=move|e|ui.authored.set(event_target_checked(&e))/>"Ce fichier comprend des retouches à préserver."</label>
-    <label>"Source de travail ou recette JSON conservée (obligatoire pour les retouches et variantes)"<input type="file" accept=".blend,.glb,.png,.jpg,.jpeg,.wav,.ogg,.flac,.json" on:change=move|e|pick_upload(e,ui.source,268_435_456,ui)/></label>
+    <label>"Source de travail ou recette JSON conservée (obligatoire pour les retouches et variantes)"<input type="file" accept=".blend,.glb,.png,.jpg,.jpeg,.wav,.ogg,.flac,.json" on:change=move|e|pick_upload(&e,ui.uploads.get_value().source,268_435_456,ui)/></label>
     <label class="asset-import-check"><input type="checkbox" prop:checked=move||ui.recipe.get() on:change=move|e|ui.recipe.set(event_target_checked(&e))/>"La source est une recette JSON."</label>
-    <label>"Vignette choisie (PNG, 2 Mio maximum)"<input type="file" accept=".png" on:change=move|e|pick_upload(e,ui.thumbnail,2_097_152,ui)/></label><p>"Une image choisie n’est pas une capture du modèle. Une texture utilise sa propre image en l’absence de vignette."</p></fieldset>}
+    <label>"Vignette choisie (PNG, 2 Mio maximum)"<input type="file" accept=".png" on:change=move|e|pick_upload(&e,ui.uploads.get_value().thumbnail,2_097_152,ui)/></label><p>"Une image choisie n’est pas une capture du modèle. Une texture utilise sa propre image en l’absence de vignette."</p></fieldset>}
 }
 
-fn pick_upload(event: leptos::ev::Event, slot: RwSignal<Option<ImportUpload>>, limit: u32, ui: Ui) {
+fn pick_upload(
+    event: &leptos::ev::Event,
+    slot: RwSignal<Option<ImportUpload>>,
+    limit: u32,
+    ui: Ui,
+) {
     slot.set(None);
     let file = event
         .target()
@@ -373,9 +398,11 @@ fn mutate(ui: Ui, request: ImportRequest) {
             Ok(ImportResponse::Applied { receipt }) => {
                 let _ = ui.plan.try_set(None);
                 let _ = ui.selected.try_set(receipt.asset_id);
-                let _ = ui.payload.try_set(None);
-                let _ = ui.source.try_set(None);
-                let _ = ui.thumbnail.try_set(None);
+                if let Some(uploads) = ui.uploads.try_get_value() {
+                    let _ = uploads.payload.try_set(None);
+                    let _ = uploads.source.try_set(None);
+                    let _ = uploads.thumbnail.try_set(None);
+                }
                 if receipt.undo {
                     let _ = ui.parent.try_set(None);
                 }
@@ -463,7 +490,7 @@ fn place(ui: Ui, close: Callback<()>, replacement: bool) {
             .set("Seul un modèle 3D se place sur la carte".into());
         return;
     }
-    let Some(bindings) = ui.bindings else {
+    let Some(bindings) = ui.bindings.get_value() else {
         ui.status.set("Ouvrir une carte avant le placement".into());
         return;
     };

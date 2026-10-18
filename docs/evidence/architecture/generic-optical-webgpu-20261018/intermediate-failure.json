@@ -1,0 +1,12 @@
+{
+  "schema": "forge.webgpu-intermediate-failure.v1",
+  "passed": false,
+  "failure": "Effect slate-courtyard-flare did not affect enough pixels: 0",
+  "observed_by": "Browser DOM and screenshot",
+  "sha256": {
+    "generic_scene_webgpu_probe_bg.wasm": "fd337e1f1b052024b6efa91a473ee4bee1f2edb28db8bdf100eab41b8f7b9d43",
+    "generic_scene_webgpu_probe.js": "91da7cec934d717c0b7633bd311ac791a820e54101eccb5beb308fb8c2667907",
+    "first-failure.png": "57b90b40fc827fbbb7a0b8c0446ad77188268119c606ff2a97df169aeee1e0a8",
+    "generic-validation-inputs-20261018-final-v5-before.json": "a2b60517745a5897e8ba9567cf2b14362e6878c7b20a65f2d1ccef3560429ce6"
+  }
+}

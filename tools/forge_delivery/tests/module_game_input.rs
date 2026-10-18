@@ -1,4 +1,4 @@
-#[path = "../../../crates/forge_engine/examples/module_game/input.rs"]
+#[path = "../../../crates/forge_tidewater/examples/module_game/input.rs"]
 mod input;
 
 use forge_core::AreaId;

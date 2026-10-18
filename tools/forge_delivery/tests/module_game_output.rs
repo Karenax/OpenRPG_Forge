@@ -1,4 +1,4 @@
-#[path = "../../../crates/forge_engine/examples/module_game/output.rs"]
+#[path = "../../../crates/forge_tidewater/examples/module_game/output.rs"]
 mod output;
 use std::{
     fs,

@@ -57,8 +57,10 @@ pub use scene::{SourceParticleSceneOwner, SourceParticleScenePlugin};
 mod dependencies;
 use dependencies::{admit_dependencies, dispatch_order};
 
+#[cfg(feature = "physics-rapier")]
 #[path = "source_particle_projection.rs"]
 mod projection;
+#[cfg(feature = "physics-rapier")]
 pub use projection::{
     SourceParticleProjection, SourceParticleProjectionPlugin, SourceParticleProjectionUpdate,
 };

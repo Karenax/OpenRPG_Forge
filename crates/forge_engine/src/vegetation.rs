@@ -48,10 +48,6 @@ pub(crate) use prototype_projection::quality_ready as governed_quality_ready;
 pub use prototype_projection::{
     VegetationPrototypeForestPreview, governed_forest_ready, stop_governed_forest,
 };
-#[cfg(not(feature = "physics-rapier"))]
-pub(crate) fn governed_quality_ready(_world: &World) -> bool {
-    false
-}
 pub use quality::{
     VegetationQualityObservation, VegetationQualityRequest, update_vegetation_sources,
     update_vegetation_sources_with_buildings, update_vegetation_sources_with_paths,

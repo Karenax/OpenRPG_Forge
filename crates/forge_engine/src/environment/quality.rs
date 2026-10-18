@@ -28,10 +28,12 @@ impl EnvironmentQualityRequest {
         self.tier
     }
 
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn clear_effective(&mut self) {
         self.effective = None;
     }
 
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn effective_identity(&self) -> Option<QualityApplicationIdentity> {
         self.effective.map(|(identity, _)| identity)
     }

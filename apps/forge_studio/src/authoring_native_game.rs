@@ -78,9 +78,9 @@ pub(crate) async fn exported_game_refused() {
     match refresh_diagnostics().await {
         Ok(true) => (),
         Ok(false) => {
-            diagnostic_unavailable("aucun bilan fourni après le refus de lancement".into())
+            diagnostic_unavailable("aucun bilan fourni après le refus de lancement");
         }
-        Err(error) => diagnostic_unavailable(error),
+        Err(error) => diagnostic_unavailable(&error),
     }
 }
 
@@ -96,7 +96,7 @@ fn set_diagnostics(value: Option<DiagnosticView>) {
     });
 }
 
-fn diagnostic_unavailable(reason: String) {
+fn diagnostic_unavailable(reason: &str) {
     set_diagnostics(Some(DiagnosticView {
         summary: format!("Bilan du test indisponible : {reason}"),
         details: String::new(),
@@ -232,8 +232,8 @@ pub(super) fn LaunchGame(
                             status.set(error);
                             match refresh_diagnostics().await {
                                 Ok(true) => (),
-                                Ok(false) => diagnostic_unavailable("aucun bilan fourni après le refus de lancement".into()),
-                                Err(error) => diagnostic_unavailable(error),
+                                Ok(false) => diagnostic_unavailable("aucun bilan fourni après le refus de lancement"),
+                                Err(error) => diagnostic_unavailable(&error),
                             }
                         },
                     }
@@ -289,9 +289,9 @@ pub(super) fn PausedView() -> impl IntoView {
                             match refresh_diagnostics().await {
                                 Ok(true) => (),
                                 Ok(false) => {
-                                    diagnostic_unavailable("aucun bilan de partie retourné".into())
+                                    diagnostic_unavailable("aucun bilan de partie retourné");
                                 }
-                                Err(error) => diagnostic_unavailable(error),
+                                Err(error) => diagnostic_unavailable(&error),
                             }
                             set_paused(false);
                         }
@@ -304,9 +304,9 @@ pub(super) fn PausedView() -> impl IntoView {
                         Ok(false) => {
                             // A polling error alone does not confirm that the
                             // backend's child has exited. Keep its last known state.
-                            diagnostic_unavailable("la fermeture du jeu n’est pas confirmée".into())
+                            diagnostic_unavailable("la fermeture du jeu n’est pas confirmée");
                         }
-                        Err(error) => diagnostic_unavailable(error),
+                        Err(error) => diagnostic_unavailable(&error),
                     }
                 }
             }

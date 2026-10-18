@@ -1,0 +1,12 @@
+{
+  "scope": "RGB comparison of central scene area, excluding the diagnostic overlay; not performance or artistic qualification",
+  "roi": [
+    480,
+    300,
+    1560,
+    800
+  ],
+  "changed_pixels": 45994,
+  "roi_pixels": 540000,
+  "source_images_inspected": true
+}

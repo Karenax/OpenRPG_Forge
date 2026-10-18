@@ -17,7 +17,7 @@ pub(super) fn bind_selection(state: RwSignal<Option<AuthoringState>>, on_command
             on_command,
         )
     }));
-    on_cleanup(|| super::super::placements::gizmo::unbind_auto());
+    on_cleanup(super::super::placements::gizmo::unbind_auto);
 }
 
 #[component]

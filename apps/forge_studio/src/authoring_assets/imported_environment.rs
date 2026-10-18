@@ -2,7 +2,7 @@
 mod programs;
 use super::imported_buildings;
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::tidewater_scene_environment::ResidentEnvironment;
+use forge_tidewater::tidewater_scene_environment::ResidentEnvironment;
 use std::{cell::Cell, sync::atomic::Ordering};
 use wasm_bindgen::JsCast;
 
@@ -22,18 +22,18 @@ struct Preparing;
 struct PreviewGeneration(std::sync::Arc<std::sync::atomic::AtomicBool>, u64);
 
 pub(crate) fn install(app: &mut App) -> Result<(), String> {
-    forge_engine::tidewater_atmosphere::register(app)?;
-    forge_engine::tidewater_clouds::register(app)?;
-    forge_engine::tidewater_environment::live::register(app)?;
+    forge_tidewater::tidewater_atmosphere::register(app)?;
+    forge_tidewater::tidewater_clouds::register(app)?;
+    forge_tidewater::tidewater_environment::live::register(app)?;
     imported_buildings::restore_environment()?;
     imported_buildings::restore_buildings()?;
     imported_buildings::restore_terrain()?;
     imported_buildings::restore_plants()?;
     imported_buildings::restore_fish_stand()?;
     app.add_plugins(MaterialPlugin::<
-        forge_engine::tidewater_plants::PlantMaterial,
+        forge_tidewater::tidewater_plants::PlantMaterial,
     >::default());
-    forge_engine::tidewater_sky::preview::install(app);
+    forge_tidewater::tidewater_sky::preview::install(app);
     super::imported_scene::install(app);
     super::fish_stand_scene::install(app)?;
     super::fish_props_scene::install(app);
@@ -42,7 +42,7 @@ pub(crate) fn install(app: &mut App) -> Result<(), String> {
 }
 
 fn stage_plants(world: &mut World, update: imported_buildings::PlantUpdate) {
-    use forge_engine::tidewater_plants::{self, textures::ResidentTextures};
+    use forge_tidewater::tidewater_plants::{self, textures::ResidentTextures};
     let imported_buildings::PlantUpdate::Replace(prepared) = update else {
         world.remove_resource::<ResidentTextures>();
         return;
@@ -74,7 +74,8 @@ fn update(world: &mut World) {
             let resident = prepared.stage(&mut world.resource_mut::<Assets<Image>>());
             world.insert_resource(resident);
         } else {
-            world.remove_resource::<forge_engine::tidewater_terrain::textures::ResidentSurface>();
+            world
+                .remove_resource::<forge_tidewater::tidewater_terrain::textures::ResidentSurface>();
         }
     }
     if let Some((geometry, library)) = imported_buildings::take_buildings() {
@@ -126,7 +127,7 @@ fn update(world: &mut World) {
 }
 
 fn update_preview(world: &mut World) {
-    use forge_engine::tidewater_sky::preview;
+    use forge_tidewater::tidewater_sky::preview;
     if PREVIEW_REQUEST.with(|r| r.replace(false)) {
         match preview::request(world) {
             Ok(()) => {
@@ -166,7 +167,7 @@ fn update_preview(world: &mut World) {
 }
 
 fn paint(bytes: &[u8]) -> Result<(), String> {
-    use forge_engine::tidewater_sky::preview::{HEIGHT, WIDTH};
+    use forge_tidewater::tidewater_sky::preview::{HEIGHT, WIDTH};
     let canvas = web_sys::window()
         .and_then(|w| w.document())
         .and_then(|d| d.get_element_by_id("forge-imported-sky-preview"))

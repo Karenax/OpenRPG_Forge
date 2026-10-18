@@ -58,6 +58,7 @@ impl Plugin for QualityCpuTracePlugin {
     }
 }
 
+#[cfg(any(feature = "physics-rapier", test))]
 pub(crate) fn record_elapsed(
     frame: Option<&mut QualityCpuFrame>,
     phase: QualityCpuPhase,

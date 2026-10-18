@@ -1,0 +1,114 @@
+{
+  "adapter": "WgpuWrapper(AdapterInfo { name: \"AMD Radeon RX 7800 XT\", vendor: 4098, device: 29822, device_type: DiscreteGpu, device_pci_bus_id: \"\", driver: \"AMD proprietary driver\", driver_info: \"26.8.1 (LLPC)\", backend: Vulkan, subgroup_min_size: 32, subgroup_max_size: 64, transient_saves_memory: false })",
+  "capture_files": [
+    "amber-courtyard-ao.png",
+    "amber-courtyard-baseline.png",
+    "amber-courtyard-control.png",
+    "amber-courtyard-flare.png",
+    "amber-courtyard-grain.png",
+    "slate-courtyard-ao.png",
+    "slate-courtyard-baseline.png",
+    "slate-courtyard-control.png",
+    "slate-courtyard-flare.png",
+    "slate-courtyard-grain.png"
+  ],
+  "comparisons": [
+    {
+      "changed_pixels": 15977,
+      "effect": "grain",
+      "scene": "slate-courtyard",
+      "sha256": "de4fc581c32d9507422c1d5eff329fc61dd48f647a672ccfd2cfa9ecb699ced1"
+    },
+    {
+      "changed_pixels": 23035,
+      "effect": "flare",
+      "scene": "slate-courtyard",
+      "sha256": "fba9bae52e5dd59c404a665faf04d9ff11337c4b61abe6f1cc7ba441568561b9"
+    },
+    {
+      "changed_pixels": 10903,
+      "effect": "ao",
+      "scene": "slate-courtyard",
+      "sha256": "6a0defd2b3180a54ea140936f61c77b7a5092ad3485fd96c301b4dfe1b183e49"
+    },
+    {
+      "changed_pixels": 17437,
+      "effect": "grain",
+      "scene": "amber-courtyard",
+      "sha256": "dd66beb6b9dd981c0d46e1214394218d0eb7957635c258de954b495aec8c7853"
+    },
+    {
+      "changed_pixels": 20773,
+      "effect": "flare",
+      "scene": "amber-courtyard",
+      "sha256": "6e16508eb58b2b6585f5b89a871110611eb34f7f7b883618d14de39d12ade699"
+    },
+    {
+      "changed_pixels": 10627,
+      "effect": "ao",
+      "scene": "amber-courtyard",
+      "sha256": "905cffabbee6c437e5a504c9dfa630104ca48363ff04d3cf570f192d75a9a99e"
+    }
+  ],
+  "control_frames_byte_equal": true,
+  "failure": null,
+  "global_engine_genericity_qualified": false,
+  "height": 160,
+  "imported_materials": 0,
+  "observations": [
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "baseline",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "baseline",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "control",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "control",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "grain",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "grain",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 1.5), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "flare",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 1.5), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "flare",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "ao",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "ao",
+      "scene": "amber-courtyard"
+    }
+  ],
+  "passed": true,
+  "schema": "forge.generic-optical-gpu-proof.v1",
+  "source_assets": 0,
+  "width": 256
+}

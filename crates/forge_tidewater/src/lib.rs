@@ -1,0 +1,73 @@
+#![deny(unsafe_code)]
+//! Optional map integration, outside the generic engine.
+
+pub mod ambient_occlusion;
+pub mod amphibious_locomotion;
+#[cfg(feature = "physics-rapier")]
+pub mod authoring_buildings;
+pub mod breaker_geometry;
+pub mod cloud_controller;
+pub mod exposure_metering;
+pub mod film_grain;
+pub mod lens_flare;
+pub mod ocean_spectrum;
+pub mod pendulum_motion;
+pub mod scene_wind;
+pub mod source_local_lights;
+pub mod spray_budget;
+pub mod sun_cascades;
+pub mod tidewater_air_haze;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_assets;
+pub mod tidewater_atmosphere;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_beach_props;
+pub mod tidewater_boardwalk;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_boat;
+pub mod tidewater_caustics;
+pub mod tidewater_clouds;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_debris;
+pub mod tidewater_environment;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_fish_props;
+pub mod tidewater_hill_shadow;
+pub mod tidewater_hull_mask;
+pub mod tidewater_material;
+pub mod tidewater_mesh;
+pub mod tidewater_object_shadow;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_ocean;
+pub mod tidewater_ocean_depth;
+pub mod tidewater_ocean_geometry;
+pub mod tidewater_ocean_optics;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_pier;
+pub mod tidewater_pier_animation;
+pub mod tidewater_plants;
+pub mod tidewater_plaza;
+pub mod tidewater_refraction;
+#[cfg(feature = "physics-rapier")]
+pub mod tidewater_scene_environment;
+pub mod tidewater_shore_field;
+pub mod tidewater_shore_sim;
+pub mod tidewater_sky;
+pub mod tidewater_stall;
+pub mod tidewater_surface_queries;
+pub mod tidewater_temporal;
+pub mod tidewater_temporal_frame;
+pub mod tidewater_terrain;
+pub mod tidewater_terrain_edits;
+pub mod tidewater_underwater;
+pub mod tidewater_underwater_lighting;
+pub mod tidewater_village_props;
+mod view_depth;
+pub mod water_height_queries;
+
+#[cfg(feature = "physics-rapier")]
+pub mod amphibious_player;
+#[cfg(feature = "physics-rapier")]
+pub use amphibious_locomotion::ClimbableLadder;
+#[cfg(feature = "physics-rapier")]
+pub use amphibious_player::{AmphibiousPlayerInput, AmphibiousPlayerPlugin, AmphibiousPlayerState};

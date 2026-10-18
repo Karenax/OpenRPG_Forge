@@ -1,5 +1,11 @@
 # OpenRPG Forge
 
+Validation du 18 octobre : [rapport de séparation moteur/carte](docs/evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
+14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
+générique et des extensions optiques gardent des périmètres distincts.
+Le dernier parcours natif instrumenté de la carte conserve une réserve de cadence
+(44,81 FPS moyens pour un seuil de 60) ; ses contrôles fonctionnels passent.
+
 OpenRPG Forge est un moteur et un atelier de création de RPG 3D en **Rust**, avec
 **Bevy, wgpu/WebGPU et Rapier**. Le Studio utilise **Tauri 2 et Leptos/WASM**.
 La branche maintenue et définie par défaut sur GitHub est `Rust`.
@@ -9,7 +15,7 @@ précisément cartes, personnages et histoire, conserver ces corrections lors de
 régénérations, puis jouer, sauvegarder et distribuer une aventure. Cette vision
 reste distincte des capacités actuellement qualifiées.
 
-## État au 17 octobre 2026
+## État au 18 octobre 2026
 
 | Étape | État documenté |
 |---|---|
@@ -26,6 +32,19 @@ Le lot Gate 4 est `0.1.0-preview.20261016.019`. Les rapports
 critères, preuves et réserves. Les gates suivantes ne sont pas ouvertes par ces
 clôtures. Le [contexte canonique](PROJECT_CONTEXT.md) et la
 [roadmap](docs/planning/MIGRATION_ROADMAP.md) portent le suivi détaillé.
+
+La [reprise d’architecture du 18 octobre](docs/planning/ENGINE_RESERVES_20261018.md)
+consigne la correction des diagnostics Studio WebGPU et les nouvelles API communes
+de locomotion, animation et optique, avec captures natives et WebGPU indépendantes.
+La réserve Clippy WASM est levée. La généricité globale reste à terminer ; les
+contrôles et captures de cette reprise sont distingués des anciennes qualifications.
+
+La [séparation stricte moteur/carte](docs/ADR/ADR-0026-strict-engine-map-separation.md)
+retire ensuite de `forge_engine` et de `forge_assets` les ports, shaders,
+acquisitions, fixtures et notices Tidewater. Ils appartiennent aux composants
+facultatifs `forge_tidewater` et `forge_tidewater_assets`, qui utilisent les
+contrats génériques. Le moteur n'en dépend pas et ne conserve aucun alias de
+leurs anciennes API. Cette séparation est contrôlée automatiquement.
 
 ## Parcours et capacités actuels
 
@@ -47,6 +66,13 @@ matériels ou usages futurs. L'assistant IA complet, la narration avancée,
 le scripting et le multijoueur restent suivis par la roadmap.
 
 ## Limites de qualification
+
+**La qualification complète des capacités reste ouverte.** Les ports de référence
+sont maintenant hors du moteur, dans le composant de carte. Leur extraction ne
+qualifie pas tous les effets sur tous les contenus. La clôture des parcours RPG
+et de packaging ne solde pas cette exigence. Voir l'[analyse et les corrections de
+dette d'architecture](docs/planning/ENGINE_ARCHITECTURE_DEBT_20261017.md), qui
+distingue les extractions réalisées, les contrôles et le travail restant.
 
 La clôture locale ne vaut pas qualification de distribution générale, de
 Windows vierge ou de Linux. La réserve `RUSTSEC-2024-0429` concernant GLib

@@ -21,6 +21,7 @@ use forge_world::{
 use serde::Serialize;
 use std::{error::Error, fmt};
 
+#[cfg(feature = "physics-rapier")]
 pub mod authoring;
 mod banks;
 #[cfg(test)]

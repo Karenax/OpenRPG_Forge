@@ -1,0 +1,669 @@
+{
+  "schema": "forge.engine-architecture-inventory",
+  "version": 1,
+  "head": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "scope": "Current readable Rust product sources; src counts include provenance comments. No GPU or runtime qualification.",
+  "engine_named_map_occurrences": 1066,
+  "engine_named_map_files": [
+    {
+      "path": "crates/forge_engine/src/ambient_occlusion.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/amphibious_locomotion.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/amphibious_player_tests.rs",
+      "occurrences_including_provenance": 36
+    },
+    {
+      "path": "crates/forge_engine/src/authoring_buildings.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/breaker_geometry.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/cloud_controller.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/exposure_metering.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/film_grain.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/gameplay/simulation.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/lens_flare.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/lib.rs",
+      "occurrences_including_provenance": 38
+    },
+    {
+      "path": "crates/forge_engine/src/ocean_spectrum.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/player_controller.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/scene_wind/acquisition.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/source_local_lights/collection.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/source_local_lights/scene.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/source_local_lights.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/spray_budget.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/sun_cascades.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/terrain_brush_cursor.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/lighting.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/moon.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/passes.rs",
+      "occurrences_including_provenance": 13
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/render_volume.rs",
+      "occurrences_including_provenance": 26
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/scene.rs",
+      "occurrences_including_provenance": 29
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze/targets.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_air_haze.rs",
+      "occurrences_including_provenance": 38
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_assets/local_lights.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_assets/materials.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_assets/placements.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_assets/scene.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_assets.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_atmosphere/acquisition.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_atmosphere/controller.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_atmosphere/readback.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_atmosphere.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_beach_props.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_boardwalk.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_boat.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_caustics/gpu.rs",
+      "occurrences_including_provenance": 12
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_caustics.rs",
+      "occurrences_including_provenance": 19
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_clouds/live.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_clouds/mod.rs",
+      "occurrences_including_provenance": 7
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_clouds/validation.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/collisions.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/nature.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/pebble_material.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/pebble_mesh.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/pebbles.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_draws.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_images.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_lod.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_material.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_meshes.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_placements.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_scene_tests.rs",
+      "occurrences_including_provenance": 7
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_shadow.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scanned_shadow_runtime.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scene/tests.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris/scene.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_debris.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/controller.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/live/compute.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/live/mod.rs",
+      "occurrences_including_provenance": 13
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/live/samplers.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/programs/cycle.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/programs.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_environment/resident.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/lod.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/material.rs",
+      "occurrences_including_provenance": 20
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/pose.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/resident.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/shadow/gpu.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/shadow.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props/surface.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_fish_props.rs",
+      "occurrences_including_provenance": 16
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_hill_shadow.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_hull_mask/shaders.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_hull_mask.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_material/local_lights/gpu.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_material/local_lights.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_material/scene_buffer/ownership.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_material.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_mesh.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/animation.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/fish_extract.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/graph.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/live.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/receiver.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/receiver_observation.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/scene.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/terrain/authored.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/terrain.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow/wind.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_object_shadow.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_ocean.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_ocean_depth.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_ocean_geometry.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_ocean_optics.rs",
+      "occurrences_including_provenance": 65
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_pier.rs",
+      "occurrences_including_provenance": 14
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_pier_animation.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_pier_lights.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/canonical/tests.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/canonical.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/grass.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/picking/occluders.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/picking/render.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/picking.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/scene/resident/picking.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/scene/resident.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/scene/shadow.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/scene.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants/textures.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plants.rs",
+      "occurrences_including_provenance": 7
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_plaza.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_refraction/mirror.rs",
+      "occurrences_including_provenance": 10
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_refraction/shaders.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_refraction.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_scene_environment.rs",
+      "occurrences_including_provenance": 31
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_shore_field.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_shore_sim.rs",
+      "occurrences_including_provenance": 18
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_sky/frame_lighting.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_sky/preview.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_sky/solar.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_sky/solar_lighting.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_sky.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/contact_camera.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/contact_frame.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/contact_gpu.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/full_material.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/full_scene.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall/full_shader.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_stall.rs",
+      "occurrences_including_provenance": 10
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_surface_queries.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/base_readback.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/fish.rs",
+      "occurrences_including_provenance": 7
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/frame.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/full_stall.rs",
+      "occurrences_including_provenance": 6
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/observation.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/pebble.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/phase.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/render.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/render_owned.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/render_owner.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/resolve.rs",
+      "occurrences_including_provenance": 21
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/resolve_readback.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/scanned.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/shaders.rs",
+      "occurrences_including_provenance": 31
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/targets.rs",
+      "occurrences_including_provenance": 7
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal/trace_readback.rs",
+      "occurrences_including_provenance": 11
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_temporal_frame.rs",
+      "occurrences_including_provenance": 3
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain/lod.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain/normals/ao.rs",
+      "occurrences_including_provenance": 2
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain/normals.rs",
+      "occurrences_including_provenance": 4
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain/scene.rs",
+      "occurrences_including_provenance": 14
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain/textures.rs",
+      "occurrences_including_provenance": 1
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_terrain.rs",
+      "occurrences_including_provenance": 9
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_underwater/medium.rs",
+      "occurrences_including_provenance": 8
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_underwater/shafts.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_underwater.rs",
+      "occurrences_including_provenance": 43
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_underwater_lighting.rs",
+      "occurrences_including_provenance": 18
+    },
+    {
+      "path": "crates/forge_engine/src/tidewater_village_props.rs",
+      "occurrences_including_provenance": 5
+    },
+    {
+      "path": "crates/forge_engine/src/water_height_queries.rs",
+      "occurrences_including_provenance": 3
+    }
+  ],
+  "product_rust_includes_from_orchestration": [],
+  "example_rust_files": 233,
+  "example_rust_lines": 62715,
+  "genericity_qualified": false
+}

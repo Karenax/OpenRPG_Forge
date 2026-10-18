@@ -1,0 +1,632 @@
+{
+  "schema": "forge.strict-map-boundary-proof.v1",
+  "timestamp_utc": "2026-10-18T20:20:31.658699+00:00",
+  "head": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "branch": "Rust",
+  "working_tree": "shared, modified, uncommitted",
+  "strict_source_and_dependency_boundary_passed": true,
+  "scope": "Generic engine and its local production dependency source closure; map ports remain optional components.",
+  "generic_local_closure": [
+    {
+      "crate": "forge_assets",
+      "source_files": 36,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_core",
+      "source_files": 4,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_engine",
+      "source_files": 195,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_gameplay",
+      "source_files": 8,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_navigation",
+      "source_files": 3,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_project",
+      "source_files": 84,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    },
+    {
+      "crate": "forge_world",
+      "source_files": 66,
+      "named_map_occurrences": 0,
+      "map_source_copyright_occurrences": 0
+    }
+  ],
+  "checks": [
+    {
+      "program": "python",
+      "log_sha256": "e6801eb3e39dabf19237b4eddbe3fbc004f09271f9d7d107e5e4c7937d1885a8",
+      "exit_code": 0,
+      "name": "input-before",
+      "arguments": [
+        "scripts/Snapshot-WorkingTree.py",
+        "--output",
+        "output\\strict-map-reproduction-20261018-final-v4\\inputs-before.json"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "name": "format",
+      "arguments": [
+        "fmt",
+        "--all",
+        "--",
+        "--check"
+      ]
+    },
+    {
+      "program": "python",
+      "log_sha256": "357a5b744bf47c350d5de59488371b99ce066b0ecaf537763cea4ab7590a1a4d",
+      "exit_code": 0,
+      "name": "boundaries",
+      "arguments": [
+        "scripts/test_engine_boundaries.py"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "86db5d0f96c1b2adf89a95589aa9dd900096518f1ccfcffad0b3f99e89de6f24",
+      "exit_code": 0,
+      "name": "engine-native-check",
+      "arguments": [
+        "check",
+        "-p",
+        "forge_engine",
+        "--lib",
+        "--locked",
+        "--offline",
+        "-j",
+        "2"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "64c5a1e62cde6d9ccf4e2ab09da33a30f42e24b80b0ad9f4f7b565327c6a336d",
+      "exit_code": 0,
+      "name": "engine-minimal-check",
+      "arguments": [
+        "clippy",
+        "-p",
+        "forge_engine",
+        "--lib",
+        "--no-default-features",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "9ab6a0fc039e5380a890e6f28be2103db5c7591668796726acc6ed192bafea44",
+      "exit_code": 0,
+      "name": "engine-web-check",
+      "arguments": [
+        "check",
+        "-p",
+        "forge_engine",
+        "--lib",
+        "--target",
+        "wasm32-unknown-unknown",
+        "--no-default-features",
+        "--features",
+        "web",
+        "--locked",
+        "--offline",
+        "-j",
+        "2"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "47cd2a7c498587b8373bf73412447fafee6b158358c93dae05256291cd54029d",
+      "exit_code": 0,
+      "name": "engine-dependency-tree",
+      "arguments": [
+        "tree",
+        "-p",
+        "forge_engine",
+        "--edges",
+        "normal",
+        "--locked",
+        "--offline"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "66911d4769a727ff7849e5f9a6d9ab6ca933a892690c72c6512641f9a9799deb",
+      "exit_code": 0,
+      "name": "native-clippy",
+      "arguments": [
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "191feae2119822ba260effc16a43ab47e33de39784c3bbedef41a34db72ee1f1",
+      "exit_code": 0,
+      "name": "studio-wasm-clippy",
+      "arguments": [
+        "clippy",
+        "-p",
+        "forge_studio",
+        "--target",
+        "wasm32-unknown-unknown",
+        "--no-default-features",
+        "--features",
+        "web",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "f510de1f64d7aaa60eec9f69b478a198cc00fb3c00ca3301ed9df6e444c44341",
+      "exit_code": 0,
+      "name": "workspace-tests",
+      "arguments": [
+        "test",
+        "--workspace",
+        "--lib",
+        "--tests",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--",
+        "--test-threads=1"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "3a220e45898c9c62b7538865f75fa19fbb7dd9879b8c010a247b46cfae656ef4",
+      "exit_code": 0,
+      "name": "native-optical-proof",
+      "arguments": [
+        "run",
+        "-p",
+        "forge_tidewater",
+        "--example",
+        "generic_scene_render_probe",
+        "--features",
+        "qualification",
+        "--locked",
+        "--offline",
+        "-j",
+        "2",
+        "--",
+        "output\\strict-map-reproduction-20261018-final-v4\\native"
+      ]
+    },
+    {
+      "program": "cargo",
+      "log_sha256": "8ee65c3e11dd5b7e9f65056b62b3d6d4206072c094012e91abe0f4dca1bc3751",
+      "exit_code": 0,
+      "name": "browser-optical-build",
+      "arguments": [
+        "build",
+        "-p",
+        "forge_tidewater",
+        "--example",
+        "generic_scene_webgpu_probe",
+        "--target",
+        "wasm32-unknown-unknown",
+        "--no-default-features",
+        "--features",
+        "web,qualification",
+        "--locked",
+        "--offline",
+        "-j",
+        "2"
+      ]
+    },
+    {
+      "program": "wasm-bindgen",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "name": "browser-bindings",
+      "arguments": [
+        "--target",
+        "web",
+        "--out-dir",
+        "output\\strict-map-reproduction-20261018-final-v4\\generic-optical-wasm",
+        "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\wasm32-unknown-unknown\\debug\\examples\\generic_scene_webgpu_probe.wasm"
+      ]
+    },
+    {
+      "program": "python",
+      "log_sha256": "bda3019c94d56b32c8bc433ee4ae831ed7a5db88ef89a74da9aad63b864d7acd",
+      "exit_code": 0,
+      "name": "input-after",
+      "arguments": [
+        "scripts/Snapshot-WorkingTree.py",
+        "--compare",
+        "output\\strict-map-reproduction-20261018-final-v4\\inputs-before.json",
+        "--output",
+        "output\\strict-map-reproduction-20261018-final-v4\\inputs-after.json"
+      ]
+    }
+  ],
+  "workspace_tests": {
+    "passed": 2232,
+    "failed": 0,
+    "ignored": 56,
+    "suites": 117
+  },
+  "native_optical_extension_passed": true,
+  "native_optical_scope": "Optional reference extension on two procedural scenes; not generic engine code.",
+  "preservation": {
+    "shader_moves": [
+      {
+        "before": "crates/forge_engine/src/ambient_occlusion.wgsl",
+        "after": "crates/forge_tidewater/src/ambient_occlusion.wgsl",
+        "sha256": "45fd48c557d7355a8fc6d007a8afdcf64a758ddae0cb16a504e71d03901d8b4c",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/ambient_occlusion_blur.wgsl",
+        "after": "crates/forge_tidewater/src/ambient_occlusion_blur.wgsl",
+        "sha256": "338e05f2832492c5cef162ec03bc83798b5e37dfc57a62667eed5b430c4d4adf",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/ambient_occlusion_composite.wgsl",
+        "after": "crates/forge_tidewater/src/ambient_occlusion_composite.wgsl",
+        "sha256": "482d8095fc40f8c485e940ff370436aedfc5f5445265df66b54f6a36ba27fdf2",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/ambient_occlusion_depth.wgsl",
+        "after": "crates/forge_tidewater/src/ambient_occlusion_depth.wgsl",
+        "sha256": "dbe3ea4f5ce0c135e100729d9c6466d8854a1b90c07c97b243fa9e1f0d753082",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/film_grain.wgsl",
+        "after": "crates/forge_tidewater/src/film_grain.wgsl",
+        "sha256": "af07f7af9705af7ac22d94ae0bb6c530e71d2ae976c5c8e129a305e69c55b931",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/lens_flare.wgsl",
+        "after": "crates/forge_tidewater/src/lens_flare.wgsl",
+        "sha256": "60dc987c10694b7a674f9a9bcbde751be16485cad8f045b45ff5b4793bc05040",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/lens_flare_visibility.wgsl",
+        "after": "crates/forge_tidewater/src/lens_flare_visibility.wgsl",
+        "sha256": "bf75236a4059ba76313aae10cd2982794fe1a36befeb04a97c383d05394cd60a",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze.wgsl",
+        "sha256": "d35e4f0eceab00ef8d58d206789ac142deda9c0b56d9b74ce54718d9a315f5e6",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_cloud_view.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_cloud_view.wgsl",
+        "sha256": "dfea2f0576c215064a08a4e910ff300f153c403bfe4a97541d36f43696cdcb19",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_composite.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_composite.wgsl",
+        "sha256": "0bc0e6647c32b061343d879120643f89879e94c1ccf5506e2c5ed5c77ca0af88",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_core.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_core.wgsl",
+        "sha256": "cec53a59fd82783862ceeddd659f8521c0308c35ee575c2bb44059c2cc993b61",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_march.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_march.wgsl",
+        "sha256": "0e57168cc459cfe246fc2eec5287b9b62c05451ac91f77f374a30da668e9b3e4",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_mask.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_mask.wgsl",
+        "sha256": "7959ae1eb6778f1b1966e6786d9d7c95465f705efd58b320e79b0b59ff6b6413",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_radial.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_radial.wgsl",
+        "sha256": "8f556ed2013d4b68cef4c3030c64f5d2fb649c63409b39d1d80cba955ec4d866",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_air_haze_volume.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_air_haze_volume.wgsl",
+        "sha256": "30c494f4a9db09690a93f9c951d9e17d5329f3453974c102228bd1d17a7a934d",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_caustics.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_caustics.wgsl",
+        "sha256": "870b0ecbbe6fcda95cb95b78a715cbcda5935e481c6fe4f6be7c5113bdbc5ccb",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_caustics/light_map_lookup.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_caustics/light_map_lookup.wgsl",
+        "sha256": "5f5a1d092821a7974c8df04f61108bee8bd459b2acbb8d855bf1f9c97f0ed6df",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_caustics/sample.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_caustics/sample.wgsl",
+        "sha256": "c425468fc7a8d0ebfaa17881665bfb077aa83396639b4c0df7581e87709fa3c8",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_caustics/underwater_shadow.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_caustics/underwater_shadow.wgsl",
+        "sha256": "dc71305b0138a373ed5705a0270c11f441be15b7647838c72de48aac4dba9556",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_caustics/village_lite.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_caustics/village_lite.wgsl",
+        "sha256": "eb3b8a8973dcef6094dcc7276bce4dde74b28fd5625b55240692239907071c9b",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_fish_props/material_fragment.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_fish_props/material_fragment.wgsl",
+        "sha256": "e2942e96ac57473ca497c60a5b984c670ece37e4c5835b053b0d988d338b29f0",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_fish_props/material_vertex.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_fish_props/material_vertex.wgsl",
+        "sha256": "2c8ce60c24ee129131f0734d31d95228b66d022877928143fdb4e53ab25972fd",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_hull_mask/distance.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_hull_mask/distance.wgsl",
+        "sha256": "9334deea8d571e924c9d59c457ff98b33ffd199ffde4351da0e0508120011709",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_material/local_lights.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_material/local_lights.wgsl",
+        "sha256": "4bb3bfa94523a2643d902f3026e565b59d1b870f6debe6cb201033316979a59c",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_sky/cloud_filter.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_sky/cloud_filter.wgsl",
+        "sha256": "c9d9ec79fbc0598b29e8d310c212cb33117a55be1b5f3e4a1fdfaa4e579b39fa",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_stall.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_stall.wgsl",
+        "sha256": "c105394663f046cb04a4187037f5763ba23e31c2276aa7f56cea6da067e6bc00",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_stall/contact_shadow.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_stall/contact_shadow.wgsl",
+        "sha256": "7c3db9c4dda2599ddfa54a87e938f560288f43d3c5389f6ca2e27c8f4fc846e1",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_stall/full_adapter.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_stall/full_adapter.wgsl",
+        "sha256": "f6696b372b3f5224d0d7c1ad4519a2f631fa4cf7ca930c8c0963c71256034a12",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_stall/full_library.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_stall/full_library.wgsl",
+        "sha256": "f1d1395ebeb2011d52453c17fef95a723917b27f02810d468217efa6e4ff1dc2",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/packet.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/packet.wgsl",
+        "sha256": "bdd5654d893b086ae4ad7d868992f70b98a4a15dd805e847e2e6bb4f82b50346",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/resolve.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/resolve.wgsl",
+        "sha256": "2b7ad03baccea23c4ccefeb03d04eff80e1db304a6079f1bbef14a9147411c8d",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/seed.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/seed.wgsl",
+        "sha256": "3b80b5c3838446803e594f92e5048161a524a803dcbc0733b2fdf63d5336d5ca",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/sky.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/sky.wgsl",
+        "sha256": "0175ff8263d03df3d31ad50dc6bb47e1bd400926cad7ef6bc419cb60c90d0d4d",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/standard.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/standard.wgsl",
+        "sha256": "c41e2d29e81eebff9dc5354bad591289800483c19b6184130ac88472ce009fd7",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_temporal/trace.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_temporal/trace.wgsl",
+        "sha256": "4d807c550cc48a041fbbe240555ee43999c47bf5ca88db0bad65d9b51e674387",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_underwater.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_underwater.wgsl",
+        "sha256": "b4bb5f39f14ba7dec33383de72ad337e6eea3b31d6a75e3de082cc5419c2b879",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_underwater_lighting.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_underwater_lighting.wgsl",
+        "sha256": "5de8686e40c340fb48cd60d9f232ce03aae33fe60ea199ed671ee82437bc34f7",
+        "unchanged": true
+      },
+      {
+        "before": "crates/forge_engine/src/tidewater_underwater_shafts.wgsl",
+        "after": "crates/forge_tidewater/src/tidewater_underwater_shafts.wgsl",
+        "sha256": "25674b93f1870215ba8fd94d21206a3bdeb02823ccdd2d7451ea66e01747f417",
+        "unchanged": true
+      }
+    ],
+    "external_dependency_versions_and_checksums_unchanged": true,
+    "external_packages": 938,
+    "map_notice_sha256": "bf7d406711a4cbf9af0b9eb5f2cf464ae88053e999e0e64a92b3423494dd8699",
+    "map_notice_unchanged": true,
+    "unchanged_moved_fixture_files": [
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-entry-full/boardwalks.json",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-entry-full/boardwalks.json",
+        "sha256": "b35f4e9a77fca526eb6a5fa38bfc5ad42116951f19776d69c84cafaf720f4cb1"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-entry-full/provenance.json",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-entry-full/provenance.json",
+        "sha256": "1fb9d3685c26b2fff1c94bd50d9804fe537c92dbf8d9b07ce353cb78bc6897a8"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-entry-full/terrain-document.json",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-entry-full/terrain-document.json",
+        "sha256": "50b659ee8700f901d78019bc4ee3d5365614047954587301d315c570c530d219"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-entry-full/terrain-samples.bin",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-entry-full/terrain-samples.bin",
+        "sha256": "be03f5db50e1fb328ac2c030348626103b52887efad27a3014505d37583594a3"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-entry/tile.f32",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-entry/tile.f32",
+        "sha256": "fc6968ed7726f74f00a352b06486458af99345711bdee94896ea1bfad89dfd07"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-seam/provenance.json",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-seam/provenance.json",
+        "sha256": "6cabca309d78eb007e8de200febd6637849173c344a234c72ed6fff4f4eed79a"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-seam/start-anchor.json",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-seam/start-anchor.json",
+        "sha256": "da8137b5c7c615fbf20fba60c392e07fa3494dd2becde45142f921e406c6b439"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-seam/tile-z-256.f32",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-seam/tile-z-256.f32",
+        "sha256": "7df5393280789c3b9c04442d992559ea38c65a7bd70fe919dfe1ef74c2702661"
+      },
+      {
+        "from": "crates/forge_engine/tests/fixtures/tidewater-seam/tile-z-384.f32",
+        "to": "crates/forge_tidewater/tests/fixtures/tidewater-seam/tile-z-384.f32",
+        "sha256": "50cf40a19986434a28288426451c3adbd994a20a89a87ecd7b3baacac9e118c9"
+      }
+    ]
+  },
+  "runner_input_before_sha256": "4452a79aeab993f3b3e29ecf92b6f968313a8b5709b2c2f5b241cbe5b2b64aef",
+  "runner_input_after_sha256": "62eb967c2ff272f1faaba94351b9390ee172dab8d97ff5de41a9b771e7bf1f48",
+  "runner_build_inputs_stable": true,
+  "global_renderer_genericity_qualified": false,
+  "remote_ci": "NOT RUN",
+  "installed_applications_updated": false,
+  "git_commit_created": false,
+  "git_push_performed": false,
+  "independent_generic_runtime": {
+    "passed": true,
+    "proof": "strict-engine-runtime-20261018/build.json",
+    "runs": "strict-engine-runtime-20261018/runs.json",
+    "scenes": 2,
+    "ready_pipelines_each": 43,
+    "pending_pipelines_each": 0,
+    "failed_pipelines_each": 0,
+    "captures_inspected": true,
+    "pixel_comparison": "strict-engine-runtime-20261018/pixel-comparison.json",
+    "scope": "Two primitive scenes through the generic runtime; no named-map component dependency."
+  },
+  "webgpu_optical_extension": {
+    "passed": true,
+    "proof": "strict-map-optical-20261018/webgpu/proof.json",
+    "screenshot": "strict-map-optical-20261018/webgpu/browser.png",
+    "adapter_identity_opaque": true,
+    "scope": "Optional map-owned reference ports on two procedural scenes; grain, flare, AO."
+  },
+  "native_optical_extension_proof": "strict-map-optical-20261018/native/proof.json",
+  "public_optical_file_pins": "strict-map-optical-20261018/files.json",
+  "browser_cleanup": {
+    "tabs_closed": true,
+    "owned_localhost_server_stopped": true,
+    "receipt": "strict-map-optical-20261018/webgpu/cleanup.json"
+  },
+  "unrelated_preexisting_orchestration_edits_unchanged": true,
+  "additional_map_smoke": {
+    "status": "Functional PASS; cadence FAIL with delivery optimizations",
+    "optimized_proof": "STRICT_MAP_OPTIMIZED_SMOKE_20261018.json",
+    "development_proof": "STRICT_MAP_DEVELOPMENT_SMOKE_20261018.json",
+    "development_result": "Functional PASS; cadence FAIL, retained.",
+    "thresholds_changed": false,
+    "cadence_reserve_open": true,
+    "full_map_visual_parity_qualified": false
+  },
+  "auxiliary_checks": {
+    "python_syntax_scripts": 3,
+    "powershell_syntax_scripts": 3,
+    "scoped_git_diff_check": "PASS"
+  },
+  "final_production_source_pins_verified": 2194,
+  "completed_utc": "2026-10-18T20:39:43.330038+00:00",
+  "documentation_updated": true,
+  "cadence_reserve_open": true,
+  "proof_process_cleanup_verified": true
+}

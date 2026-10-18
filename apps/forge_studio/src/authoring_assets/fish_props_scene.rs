@@ -7,9 +7,14 @@ use bevy::{
     render::storage::ShaderBuffer,
 };
 use forge_core::{AssetId as ForgeAssetId, EntityId};
-use forge_engine::{
-    ManualPlacementProjection,
-    tidewater_fish_props::{
+use forge_project::zone_authoring::placements::ManualPlacement;
+use std::{
+    cell::{Cell, RefCell},
+    collections::BTreeMap,
+};
+use {
+    forge_engine::ManualPlacementProjection,
+    forge_tidewater::tidewater_fish_props::{
         PreparedFishProps,
         material::{self, FishMaterial},
         resident::ResidentFishProps,
@@ -17,14 +22,15 @@ use forge_engine::{
         surface::SpecularMode,
     },
 };
-use forge_project::zone_authoring::placements::ManualPlacement;
-use std::{
-    cell::{Cell, RefCell},
-    collections::BTreeMap,
-};
+
+type Readiness = Result<Option<(u64, Vec<ManualPlacement>)>, String>;
+type ShadowGeometry = (
+    Vec<(Entity, bevy::asset::AssetId<Mesh>)>,
+    std::sync::Arc<Vec<shadow::MaskedMesh>>,
+);
 
 thread_local! {
-    static READY: RefCell<Result<Option<(u64,Vec<ManualPlacement>)>,String>> = const { RefCell::new(Ok(None)) };
+    static READY: RefCell<Readiness> = const { RefCell::new(Ok(None)) };
     static FOCUS: Cell<Option<EntityId>> = const { Cell::new(None) };
 }
 
@@ -36,10 +42,7 @@ struct State {
     skin: Option<Handle<ShaderBuffer>>,
     materials: BTreeMap<ForgeAssetId, Handle<FishMaterial>>,
     shadow_shader: Option<std::sync::Arc<String>>,
-    shadow_geometry: Option<(
-        Vec<(Entity, bevy::asset::AssetId<Mesh>)>,
-        std::sync::Arc<Vec<shadow::MaskedMesh>>,
-    )>,
+    shadow_geometry: Option<ShadowGeometry>,
 }
 
 fn desired() -> Vec<ManualPlacement> {
@@ -123,7 +126,7 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
         lighting.object_settings = receiver.0.settings.clone();
     }
     if let Some(environment) =
-        world.get_resource::<forge_engine::tidewater_scene_environment::ResidentEnvironment>()
+        world.get_resource::<forge_tidewater::tidewater_scene_environment::ResidentEnvironment>()
     {
         lighting.scene_lighting = environment.scene_lighting.clone();
         lighting.environment = environment.environment.clone();
@@ -162,7 +165,7 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
         }
         state.resident = Some(prepared.stage_authored(world, &state.materials, &sources)?);
         state.generation = Some(generation);
-        state.sources = sources.clone();
+        state.sources.clone_from(&sources);
     } else if state.sources != sources {
         let same_inventory = state.sources.len() == sources.len()
             && state.sources.iter().all(|old| {
@@ -175,30 +178,7 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
                 .resident
                 .as_ref()
                 .ok_or("Projection FishProps absente")?;
-            for (root, id, _) in resident.authored_roots() {
-                let source = sources
-                    .iter()
-                    .find(|source| source.id == *id)
-                    .ok_or("Placement FishProps absent")?;
-                let t = source.transform;
-                world.entity_mut(*root).insert((
-                    ManualPlacementProjection(source.clone()),
-                    Transform {
-                        translation: Vec3::new(
-                            t.translation_m.x,
-                            t.translation_m.y,
-                            t.translation_m.z,
-                        ),
-                        rotation: Quat::from_xyzw(
-                            t.rotation.x,
-                            t.rotation.y,
-                            t.rotation.z,
-                            t.rotation.w,
-                        ),
-                        scale: Vec3::new(t.scale.x, t.scale.y, t.scale.z),
-                    },
-                ));
-            }
+            move_existing(world, resident, &sources)?;
         } else {
             let prepared = PreparedFishProps::from_package(&package)?;
             let next = prepared.stage_authored(world, &state.materials, &sources)?;
@@ -206,94 +186,10 @@ fn stage(world: &mut World, state: &mut State) -> Result<bool, String> {
                 previous.clear(world);
             }
         }
-        state.sources = sources.clone();
+        state.sources.clone_from(&sources);
     }
-    // Copy only lighting from the common scene; preserve each instance's LOD/time uniforms.
-    let resident_lighting = imported_scene::resident_lighting_material(world)
-        .ok_or("Éclairage résident des poissons absent")?;
-    forge_engine::tidewater_material::SceneLighting::new(
-        resident_lighting
-            .scene_lighting
-            .sun_direction
-            .truncate()
-            .to_array(),
-        resident_lighting
-            .scene_lighting
-            .sun_color
-            .truncate()
-            .to_array(),
-        resident_lighting
-            .scene_lighting
-            .environment_sh
-            .map(|value| value.truncate().to_array()),
-    )?;
-    let mut replacements = Vec::new();
-    for (id, value) in world.resource::<Assets<FishMaterial>>().iter() {
-        let mut next = value.clone();
-        next.update_scene_receivers(&resident_lighting)?;
-        if next != *value {
-            replacements.push((id, next));
-        }
-    }
-    let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-    for (id, next) in replacements {
-        if let Some(mut value) = materials.get_mut(id) {
-            *value = next;
-        }
-    }
-    let cameras:Vec<_>=world.query_filtered::<(&Camera,&GlobalTransform,&Frustum),forge_engine::tidewater_sky::preview::SceneCameraFilter>()
-        .iter(world).filter(|(camera,_,_)|camera.is_active).map(|(_,global,frustum)|(global.translation(),*frustum)).collect();
-    if cameras.len() != 1 {
-        return Ok(false);
-    }
-    let (camera, frustum) = cameras[0];
-    let frame = if editing {
-        0
-    } else {
-        world.resource::<bevy::diagnostic::FrameCount>().0
-    };
-    let resident = state
-        .resident
-        .as_mut()
-        .ok_or("Projection FishProps absente")?;
-    resident.update_view(
-        world,
-        camera,
-        |center, radius| {
-            frustum.intersects_sphere(
-                &Sphere {
-                    center: center.into(),
-                    radius,
-                },
-                true,
-            )
-        },
-        time,
-        frame,
-    )?;
-    let resident = state
-        .resident
-        .as_ref()
-        .ok_or("Projection FishProps absente")?;
-    let ready = resident.authored_roots().iter().all(|(root, id, _)| {
-        sources
-            .iter()
-            .find(|source| source.id == *id)
-            .is_some_and(|source| {
-                world
-                    .get::<ManualPlacementProjection>(*root)
-                    .is_some_and(|projection| projection.0 == *source)
-                    && world.get::<GlobalTransform>(*root).is_some_and(|global| {
-                        world.get::<Transform>(*root).is_some_and(|local| {
-                            global.to_matrix().abs_diff_eq(local.to_matrix(), 1e-5)
-                        })
-                    })
-            })
-    });
-    if ready {
-        publish_shadow(world, state, time)?;
-    }
-    Ok(ready)
+    update_receivers(world)?;
+    update_view(world, state, &sources, editing, time)
 }
 
 fn publish_shadow(world: &mut World, state: &mut State, time: f32) -> Result<(), String> {
@@ -376,7 +272,7 @@ pub(super) fn update(world: &mut World) {
                     *slot.borrow_mut() = Ok(Some((
                         imported_buildings::published_generation(),
                         desired(),
-                    )))
+                    )));
                 });
                 true
             }
@@ -413,4 +309,126 @@ pub(super) fn update(world: &mut World) {
             FOCUS.with(|slot| slot.set(None));
         }
     });
+}
+
+fn update_receivers(world: &mut World) -> Result<(), String> {
+    // Copy only lighting from the common scene; preserve each instance's LOD/time uniforms.
+    let resident_lighting = imported_scene::resident_lighting_material(world)
+        .ok_or("Éclairage résident des poissons absent")?;
+    forge_tidewater::tidewater_material::SceneLighting::new(
+        resident_lighting
+            .scene_lighting
+            .sun_direction
+            .truncate()
+            .to_array(),
+        resident_lighting
+            .scene_lighting
+            .sun_color
+            .truncate()
+            .to_array(),
+        resident_lighting
+            .scene_lighting
+            .environment_sh
+            .map(|value| value.truncate().to_array()),
+    )?;
+    let mut replacements = Vec::new();
+    for (id, value) in world.resource::<Assets<FishMaterial>>().iter() {
+        let mut next = value.clone();
+        next.update_scene_receivers(&resident_lighting)?;
+        if next != *value {
+            replacements.push((id, next));
+        }
+    }
+    let mut materials = world.resource_mut::<Assets<FishMaterial>>();
+    for (id, next) in replacements {
+        if let Some(mut value) = materials.get_mut(id) {
+            *value = next;
+        }
+    }
+    Ok(())
+}
+
+fn update_view(
+    world: &mut World,
+    state: &mut State,
+    sources: &[ManualPlacement],
+    editing: bool,
+    time: f32,
+) -> Result<bool, String> {
+    let cameras:Vec<_>=world.query_filtered::<(&Camera,&GlobalTransform,&Frustum),forge_tidewater::tidewater_sky::preview::SceneCameraFilter>()
+        .iter(world).filter(|(camera,_,_)|camera.is_active).map(|(_,global,frustum)|(global.translation(),*frustum)).collect();
+    if cameras.len() != 1 {
+        return Ok(false);
+    }
+    let (camera, frustum) = cameras[0];
+    let frame = if editing {
+        0
+    } else {
+        world.resource::<bevy::diagnostic::FrameCount>().0
+    };
+    let resident = state
+        .resident
+        .as_mut()
+        .ok_or("Projection FishProps absente")?;
+    resident.update_view(
+        world,
+        camera,
+        |center, radius| {
+            frustum.intersects_sphere(
+                &Sphere {
+                    center: center.into(),
+                    radius,
+                },
+                true,
+            )
+        },
+        time,
+        frame,
+    )?;
+    let resident = state
+        .resident
+        .as_ref()
+        .ok_or("Projection FishProps absente")?;
+    let ready = resident.authored_roots().iter().all(|(root, id, _)| {
+        sources
+            .iter()
+            .find(|source| source.id == *id)
+            .is_some_and(|source| {
+                world
+                    .get::<ManualPlacementProjection>(*root)
+                    .is_some_and(|projection| projection.0 == *source)
+                    && world.get::<GlobalTransform>(*root).is_some_and(|global| {
+                        world.get::<Transform>(*root).is_some_and(|local| {
+                            global.to_matrix().abs_diff_eq(local.to_matrix(), 1e-5)
+                        })
+                    })
+            })
+    });
+    if ready {
+        publish_shadow(world, state, time)?;
+    }
+    Ok(ready)
+}
+
+fn move_existing(
+    world: &mut World,
+    resident: &ResidentFishProps,
+    sources: &[ManualPlacement],
+) -> Result<(), String> {
+    for (root, id, _) in resident.authored_roots() {
+        let source = sources
+            .iter()
+            .find(|source| source.id == *id)
+            .ok_or("Placement FishProps absent")?;
+        let t = source.transform;
+        world.entity_mut(*root).insert((
+            ManualPlacementProjection(source.clone()),
+            Transform {
+                translation: Vec3::new(t.translation_m.x, t.translation_m.y, t.translation_m.z),
+                rotation: Quat::from_xyzw(t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w),
+                scale: Vec3::new(t.scale.x, t.scale.y, t.scale.z),
+            },
+        ));
+    }
+    Ok(())
 }

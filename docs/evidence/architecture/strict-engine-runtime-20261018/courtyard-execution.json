@@ -1,0 +1,25 @@
+{
+  "scene": "courtyard",
+  "binary": "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\debug\\forge_runtime.exe",
+  "binary_sha256": "2b1898715d9981a765fccaf0003a9e9a5c525d569a05bcbfe4b10e135cf0d01d",
+  "arguments": [
+    "--scene",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard.json",
+    "--capture",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard\\scene.png",
+    "--capture-frame",
+    "240",
+    "--metrics",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard\\metrics.json",
+    "--metrics-warmup-frames",
+    "10",
+    "--exit-after-frames",
+    "600"
+  ],
+  "pid": 25660,
+  "creation_date": "2026-10-18T22:02:22.169099+02:00",
+  "started_utc": "2026-10-18T20:02:22.3673764Z",
+  "exit_code": 0,
+  "process_exited": true,
+  "document_sha256": "befca4ad02d7fc16a10117408dc0fd254edc1685f968da2635406db25c4010ed"
+}

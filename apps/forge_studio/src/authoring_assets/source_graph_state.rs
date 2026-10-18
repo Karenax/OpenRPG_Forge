@@ -127,7 +127,7 @@ pub(super) fn prepare(
                     file_id,
                     enabled: boolean(renderer, "enabled")?,
                     force_rendering_off: boolean(renderer, "force_rendering_off")?,
-                    shadow_casting_mode: shadow as u8,
+                    shadow_casting_mode: u8::try_from(shadow).map_err(|_| "Invalid shadow mode")?,
                     receive_shadows: boolean(renderer, "receive_shadows")?,
                 },
             );
@@ -139,58 +139,7 @@ pub(super) fn prepare(
     {
         return Err("Draw lacks an exact original renderer binding".into());
     }
-    let groups = doc["extras"]["original_lod_groups"]
-        .as_array()
-        .ok_or("Original LOD declarations absent")?;
-    for group in groups {
-        let path = group["node_path"]
-            .as_str()
-            .ok_or("LOD source node absent")?;
-        let index = *paths.get(path).ok_or("LOD group node absent")?;
-        if !parents.contains_key(&index) {
-            continue;
-        }
-        identity(&group["source_component_identity"])?;
-        boolean(group, "enabled")?;
-        let levels = group["levels"]
-            .as_array()
-            .ok_or("Original LOD levels absent")?;
-        let mut previous = f32::INFINITY;
-        for level in levels {
-            let height = level["screen_relative_height"]
-                .as_f64()
-                .ok_or("LOD threshold absent")? as f32;
-            if !height.is_finite() || !(0.0..=1.0).contains(&height) || height >= previous {
-                return Err("Invalid authored LOD threshold order".into());
-            }
-            previous = height;
-            let ids = level["renderer_components"]
-                .as_array()
-                .ok_or("LOD renderer identities absent")?;
-            let declared_paths = level["renderer_node_paths"]
-                .as_array()
-                .ok_or("LOD renderer paths absent")?;
-            if ids.len() != declared_paths.len() {
-                return Err("LOD renderer paths/identities differ".into());
-            }
-            for (id, path) in ids.iter().zip(declared_paths) {
-                let member = *paths
-                    .get(path.as_str().ok_or("LOD renderer path invalid")?)
-                    .ok_or("LOD renderer node absent")?;
-                let renderer = plan
-                    .renderers
-                    .get(&member)
-                    .ok_or("LOD renderer outside admitted scene")?;
-                let (guid, file_id) = identity(id)?;
-                if renderer.guid != guid || renderer.file_id != file_id {
-                    return Err("LOD reference changed renderer identity".into());
-                }
-            }
-        }
-        if plan.lod_groups.insert(index, group.clone()).is_some() {
-            return Err("Duplicate original LOD group".into());
-        }
-    }
+    prepare_lod_groups(doc, parents, &paths, &mut plan)?;
     Ok(Some(plan))
 }
 
@@ -245,4 +194,66 @@ impl StatePlan {
             }
         }
     }
+}
+
+fn prepare_lod_groups(
+    doc: &Value,
+    parents: &BTreeMap<usize, Option<usize>>,
+    paths: &BTreeMap<&str, usize>,
+    plan: &mut StatePlan,
+) -> Result<(), String> {
+    let groups = doc["extras"]["original_lod_groups"]
+        .as_array()
+        .ok_or("Original LOD declarations absent")?;
+    for group in groups {
+        let path = group["node_path"]
+            .as_str()
+            .ok_or("LOD source node absent")?;
+        let index = *paths.get(path).ok_or("LOD group node absent")?;
+        if !parents.contains_key(&index) {
+            continue;
+        }
+        identity(&group["source_component_identity"])?;
+        boolean(group, "enabled")?;
+        let levels = group["levels"]
+            .as_array()
+            .ok_or("Original LOD levels absent")?;
+        let mut previous = f32::INFINITY;
+        for level in levels {
+            let height = super::source_graph_context::number(
+                &level["screen_relative_height"],
+                "LOD threshold",
+            )?;
+            if !height.is_finite() || !(0.0..=1.0).contains(&height) || height >= previous {
+                return Err("Invalid authored LOD threshold order".into());
+            }
+            previous = height;
+            let ids = level["renderer_components"]
+                .as_array()
+                .ok_or("LOD renderer identities absent")?;
+            let declared_paths = level["renderer_node_paths"]
+                .as_array()
+                .ok_or("LOD renderer paths absent")?;
+            if ids.len() != declared_paths.len() {
+                return Err("LOD renderer paths/identities differ".into());
+            }
+            for (id, path) in ids.iter().zip(declared_paths) {
+                let member = *paths
+                    .get(path.as_str().ok_or("LOD renderer path invalid")?)
+                    .ok_or("LOD renderer node absent")?;
+                let renderer = plan
+                    .renderers
+                    .get(&member)
+                    .ok_or("LOD renderer outside admitted scene")?;
+                let (guid, file_id) = identity(id)?;
+                if renderer.guid != guid || renderer.file_id != file_id {
+                    return Err("LOD reference changed renderer identity".into());
+                }
+            }
+        }
+        if plan.lod_groups.insert(index, group.clone()).is_some() {
+            return Err("Duplicate original LOD group".into());
+        }
+    }
+    Ok(())
 }

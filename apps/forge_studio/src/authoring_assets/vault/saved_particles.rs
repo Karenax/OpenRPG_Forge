@@ -17,7 +17,9 @@ pub(in crate::authoring_assets) async fn load_for_model(
         manifest_sha256: pin.manifest_sha256,
         package_sha256: pin.package_sha256,
     };
-    let _permit = super::MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = super::MODEL_READ_GATE
+        .with(super::super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     let wire = super::read_wire_from(
         "read_asset_particles",
         &request,

@@ -1,5 +1,10 @@
 //! Package adapter feeding the common catalog; it does not place or edit objects.
-use super::*;
+use super::{
+    beach_props_package, beach_props_templates, boardwalk_package, boardwalk_templates,
+    building_package, debris_templates, fish_props_package, fish_props_templates,
+    fish_stand_reference, pier_package, pier_template, plaza_package, plaza_templates,
+    village_props_package, village_props_templates,
+};
 use crate::authoring_assets::catalog::Entry;
 
 pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
@@ -28,25 +33,25 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             add(
                 template.source_id,
                 template.asset_id,
-                forge_assets::tidewater_boardwalk::package_hash(),
+                forge_tidewater_assets::tidewater_boardwalk::package_hash(),
             );
         }
     }
-    if pier_package().is_some() {
-        if let Some(template) = pier_template() {
-            add(
-                template.source_id,
-                template.asset_id,
-                forge_assets::tidewater_pier::package_hash(),
-            );
-        }
+    if pier_package().is_some()
+        && let Some(template) = pier_template()
+    {
+        add(
+            template.source_id,
+            template.asset_id,
+            forge_tidewater_assets::tidewater_pier::package_hash(),
+        );
     }
     for template in plaza_templates() {
         if plaza_package().is_some() {
             add(
                 template.source_id,
                 template.asset_id,
-                forge_assets::tidewater_plaza::package_hash(),
+                forge_tidewater_assets::tidewater_plaza::package_hash(),
             );
         }
     }
@@ -55,7 +60,7 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             add(
                 template.source_id,
                 template.asset_id,
-                forge_assets::tidewater_village_props::package_hash(),
+                forge_tidewater_assets::tidewater_village_props::package_hash(),
             );
         }
     }
@@ -64,7 +69,7 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             add(
                 template.source_id,
                 template.asset_id,
-                forge_assets::tidewater_beach_props::package_hash(),
+                forge_tidewater_assets::tidewater_beach_props::package_hash(),
             );
         }
     }
@@ -73,7 +78,7 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             add(
                 template.source_id,
                 template.asset_id,
-                forge_assets::tidewater_fish_props::package_hash(),
+                forge_tidewater_assets::tidewater_fish_props::package_hash(),
             );
         }
     }
@@ -82,7 +87,7 @@ pub(in crate::authoring_assets) fn entries() -> Vec<Entry> {
             id: format!("verified-package/{}", template.asset_id),
             label: format!("{} · {}", template.kind, template.source_id),
             kind: "decoration".into(),
-            reference: (template.asset_id, forge_assets::tidewater_debris::package_hash()),
+            reference: (template.asset_id, forge_tidewater_assets::tidewater_debris::package_hash()),
             provenance: "Décor Tidewater vérifié, source 1438b1ab ; licences conservées dans le paquet importé.".into(),
         });
     }

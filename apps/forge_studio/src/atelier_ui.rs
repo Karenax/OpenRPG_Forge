@@ -41,7 +41,7 @@ pub(super) fn periodic(callback: impl Fn() + 'static) {
 
 #[derive(Clone, Copy)]
 pub(super) struct Link {
-    /// Shared within this main window, including siblings of AuthoringControls.
+    /// Shared within this main window, including siblings of `AuthoringControls`.
     pub main: RwSignal<Option<MainBindings>>,
     pub open: RwSignal<bool>,
     pub map_only: RwSignal<bool>,

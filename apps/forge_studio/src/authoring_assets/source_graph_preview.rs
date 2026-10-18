@@ -12,7 +12,7 @@ enum Request {
         String,
         Vec<u8>,
         Option<super::source_graph_physics::SourcePhysicsPayload>,
-        Option<super::source_graph_particles::SourceParticlePayload>,
+        Option<Box<super::source_graph_particles::SourceParticlePayload>>,
     ),
     Clear,
 }
@@ -31,7 +31,14 @@ pub(super) fn submit(
     physics: Option<super::source_graph_physics::SourcePhysicsPayload>,
     particles: Option<super::source_graph_particles::SourceParticlePayload>,
 ) {
-    REQUEST.with(|r| r.replace(Some(Request::Show(id, bytes, physics, particles))));
+    REQUEST.with(|r| {
+        r.replace(Some(Request::Show(
+            id,
+            bytes,
+            physics,
+            particles.map(Box::new),
+        )))
+    });
 }
 pub(super) fn cancel() {
     REQUEST.with(|r| r.replace(Some(Request::Clear)));
@@ -154,6 +161,7 @@ pub(super) fn update(world: &mut World) {
     match request {
         Request::Clear => {}
         Request::Show(id, bytes, physics, particles) => {
+            let particles = particles.map(|payload| *payload);
             match mount(world, &id, &bytes, physics, particles) {
                 Ok(root) => {
                     world.resource_mut::<State>().root = Some(root);

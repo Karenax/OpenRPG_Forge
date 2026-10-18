@@ -30,10 +30,13 @@ web = [
     "dep:web-sys",
     "dep:serde-wasm-bindgen",
     "forge_engine/web",
+    "forge_tidewater/web",
+    "forge_tidewater/qualification",
     "forge_engine/qualification",
 ]
 
 [dependencies]
+forge_tidewater_assets.workspace = true
 forge_assets.workspace = true
 forge_core.workspace = true
 forge_gameplay.workspace = true
@@ -48,6 +51,7 @@ forge_delivery = { path = "../../tools/forge_delivery" }
 tauri = { version = "=2.11.5", optional = true , features = [] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+forge_tidewater = { workspace = true, optional = true }
 bevy = { workspace = true, features = ["webgpu"], optional = true }
 console_error_panic_hook = { workspace = true, optional = true }
 forge_engine = { workspace = true, optional = true }

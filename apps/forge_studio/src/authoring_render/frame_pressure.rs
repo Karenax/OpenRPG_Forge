@@ -92,10 +92,10 @@ fn submitted(
 ) {
     let kinds = [
         std::any::TypeId::of::<StandardMaterial>(),
-        std::any::TypeId::of::<forge_engine::tidewater_material::VillageMaterial>(),
-        std::any::TypeId::of::<forge_engine::tidewater_plants::PlantMaterial>(),
-        std::any::TypeId::of::<forge_engine::tidewater_terrain::lod::LodMaterial>(),
-        std::any::TypeId::of::<forge_engine::tidewater_fish_props::material::FishMaterial>(),
+        std::any::TypeId::of::<forge_tidewater::tidewater_material::VillageMaterial>(),
+        std::any::TypeId::of::<forge_tidewater::tidewater_plants::PlantMaterial>(),
+        std::any::TypeId::of::<forge_tidewater::tidewater_terrain::lod::LodMaterial>(),
+        std::any::TypeId::of::<forge_tidewater::tidewater_fish_props::material::FishMaterial>(),
     ];
     for (index, kind) in kinds.iter().enumerate() {
         self::store_count(

@@ -2,11 +2,11 @@
 use super::super::{imported_buildings, placements};
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_core::{AssetId, ContentHash, EntityId};
-use forge_engine::{
+use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater::{
     source_local_lights::{collection::Collection, projection::ResidentSourceLights},
     tidewater_assets::local_lights::BuildingLightBindings,
 };
-use forge_project::zone_authoring::placements::ManualPlacement;
 use std::{cell::RefCell, collections::BTreeMap};
 
 type Receipt = (u64, forge_core::ContentHash, Vec<ManualPlacement>);
@@ -25,7 +25,7 @@ struct State {
 
 pub(super) fn install(app: &mut App) {
     READY.with(|slot| *slot.borrow_mut() = Ok(None));
-    if let Err(error) = forge_engine::tidewater_material::local_lights::gpu::register(app) {
+    if let Err(error) = forge_tidewater::tidewater_material::local_lights::gpu::register(app) {
         READY.with(|slot| *slot.borrow_mut() = Err(error));
         return;
     }
@@ -63,8 +63,8 @@ fn collect(world: &mut World) {
     orders.sort_unstable();
     let mut query = world.query_filtered::<(Entity, &Camera), (
         With<Camera3d>,
-        Without<forge_engine::tidewater_refraction::CaptureCamera>,
-        Without<forge_engine::tidewater_sky::preview::PreviewCamera>,
+        Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
+        Without<forge_tidewater::tidewater_sky::preview::PreviewCamera>,
     )>();
     let mut active = query.iter(world).filter(|(_, camera)| camera.is_active);
     let Some((camera, _)) = active.next() else {
@@ -74,7 +74,7 @@ fn collect(world: &mut World) {
         return;
     }
     // Read the same night value as the live sky shader, not a second solar clock.
-    let mut query = world.query::<&MeshMaterial3d<forge_engine::tidewater_sky::SkyMaterial>>();
+    let mut query = world.query::<&MeshMaterial3d<forge_tidewater::tidewater_sky::SkyMaterial>>();
     let mut skies = query.iter(world);
     let Some(sky) = skies.next() else {
         return;
@@ -83,7 +83,7 @@ fn collect(world: &mut World) {
         return;
     }
     let Some(material) = world
-        .get_resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+        .get_resource::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
         .and_then(|materials| materials.get(&sky.0))
     else {
         return;
@@ -92,12 +92,12 @@ fn collect(world: &mut World) {
     let Some(time) = world.get_resource::<Time>() else {
         return;
     };
-    let settings = forge_engine::source_local_lights::Settings {
+    let settings = forge_tidewater::source_local_lights::Settings {
         delta_seconds: time.delta_secs_f64(),
         night,
         enabled: true,
         strength: 1.0,
-        flashlight: forge_engine::source_local_lights::Flashlight::default(),
+        flashlight: forge_tidewater::source_local_lights::Flashlight::default(),
     };
     world.resource_scope(|world, mut collection: Mut<Collection>| {
         // collect invalidates on every refusal, including foreign or missing lamps.
@@ -169,7 +169,7 @@ fn reconcile(world: &mut World) {
         retire(world, &mut state);
         READY.with(|slot| *slot.borrow_mut() = Ok(None));
         if world
-            .get_resource::<forge_engine::tidewater_assets::scene::ResidentScene>()
+            .get_resource::<forge_tidewater::tidewater_assets::scene::ResidentScene>()
             .is_none_or(|scene| !scene.is_synchronized(world))
         {
             // Geometry may have been rebuilt after this frame's propagation.

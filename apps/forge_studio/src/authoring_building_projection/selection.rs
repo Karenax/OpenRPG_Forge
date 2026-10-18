@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
 };
 use forge_core::ContentHash;
-use forge_engine::authoring_buildings::BuildingPartIdentity;
+use forge_tidewater::authoring_buildings::BuildingPartIdentity;
 use leptos::prelude::{RwSignal, Set};
 use std::cell::Cell;
 
@@ -64,7 +64,7 @@ pub(super) fn pick(
     projection: Res<super::Projection>,
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     parts: Query<&BuildingPartIdentity>,
     mut raycast: MeshRayCast,

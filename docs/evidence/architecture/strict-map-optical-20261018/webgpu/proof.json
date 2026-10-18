@@ -1,0 +1,102 @@
+{
+  "adapter": "WgpuWrapper(AdapterInfo { name: \"\", vendor: 0, device: 0, device_type: Other, device_pci_bus_id: \"\", driver: \"\", driver_info: \"\", backend: BrowserWebGpu, subgroup_min_size: 4, subgroup_max_size: 128, transient_saves_memory: false })",
+  "comparisons": [
+    {
+      "changed_pixels": 16072,
+      "effect": "grain",
+      "scene": "slate-courtyard",
+      "sha256": "fb9ba1672f85cc2bd95b895fa939f5e6df4478b5a684cab7af943c843aadd2fd"
+    },
+    {
+      "changed_pixels": 23035,
+      "effect": "flare",
+      "scene": "slate-courtyard",
+      "sha256": "6935378b0c9a75e21fa7d6cb9a6bab9872d76de70a586952b8e9d80e3ffe942e"
+    },
+    {
+      "changed_pixels": 10897,
+      "effect": "ao",
+      "scene": "slate-courtyard",
+      "sha256": "44ade30555bf7d3f5fd78e2cf4848cc9f097ff845428f8bc0fbcc94782104e80"
+    },
+    {
+      "changed_pixels": 17565,
+      "effect": "grain",
+      "scene": "amber-courtyard",
+      "sha256": "469884c387352e541e8335f6401bf688cf6279fc6923195833e43944aa3909ca"
+    },
+    {
+      "changed_pixels": 20773,
+      "effect": "flare",
+      "scene": "amber-courtyard",
+      "sha256": "6e16508eb58b2b6585f5b89a871110611eb34f7f7b883618d14de39d12ade699"
+    },
+    {
+      "changed_pixels": 10617,
+      "effect": "ao",
+      "scene": "amber-courtyard",
+      "sha256": "b9d6743e87fef9250d44309a0558ffb5594896c4cf00ea2a959d58e32a494765"
+    }
+  ],
+  "control_frames_byte_equal": true,
+  "failure": null,
+  "global_engine_genericity_qualified": false,
+  "height": 160,
+  "imported_materials": 0,
+  "observations": [
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "baseline",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "baseline",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "control",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "control",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "grain",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "grain",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 1.5), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "flare",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 1.5), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "flare",
+      "scene": "amber-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "ao",
+      "scene": "slate-courtyard"
+    },
+    {
+      "flare_cpu_inputs": "Some(LensFlare { sun: Vec4(0.61772585, 0.032732904, 0.6546581, 0.0), optics: Vec4(1.6, 6.0294986, 1.0, 0.0), light: Vec4(8.0, 6.0, 4.0, 1.0) })",
+      "phase": "ao",
+      "scene": "amber-courtyard"
+    }
+  ],
+  "passed": true,
+  "schema": "forge.generic-optical-gpu-proof.v1",
+  "source_assets": 0,
+  "width": 256
+}

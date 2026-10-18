@@ -86,11 +86,11 @@ pub(super) fn inspect(
     }
 }
 
-pub(crate) fn static_collider_ready(world: &World, entity: Entity) -> bool {
+pub fn static_collider_ready(world: &World, entity: Entity) -> bool {
     collider_ready(world, entity, false)
 }
 
-pub(crate) fn static_sensor_ready(world: &World, entity: Entity) -> bool {
+pub fn static_sensor_ready(world: &World, entity: Entity) -> bool {
     collider_ready(world, entity, true)
 }
 

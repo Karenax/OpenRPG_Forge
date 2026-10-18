@@ -1,0 +1,373 @@
+{
+  "schema": "forge.architecture-reserves-validation",
+  "version": 1,
+  "timestamp_utc": "2026-10-18T09:47:42.825964+00:00",
+  "base_commit": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "branch": "Rust",
+  "checkout": "shared, dirty, no commit or push",
+  "toolchain": {
+    "rust": "1.98.0",
+    "cargo": "1.98.0",
+    "wasm_bindgen": "0.2.127",
+    "python": "3.13.14"
+  },
+  "studio_wasm_clippy_reserve_closed": true,
+  "global_engine_genericity_qualified": false,
+  "workspace_lib_and_integration_tests": {
+    "suites": 114,
+    "passed": 2230,
+    "failed": 0,
+    "ignored": 56
+  },
+  "workspace_doctests": {
+    "suites": 9,
+    "passed": 0,
+    "failed": 0,
+    "ignored": 0
+  },
+  "architecture_boundaries": {
+    "passed": 5,
+    "failed": 0
+  },
+  "native_clippy_all_targets": "PASS",
+  "studio_wasm_clippy": "PASS",
+  "webgpu_probe_clippy": "PASS",
+  "native_gpu": {
+    "passed": true,
+    "captures": 10,
+    "comparisons": [
+      {
+        "changed_pixels": 16025,
+        "effect": "grain",
+        "scene": "slate-courtyard",
+        "sha256": "14ef24697e130fefbfd51757d0ab5157d7f185036c82c5271084e7b8f431e681"
+      },
+      {
+        "changed_pixels": 23035,
+        "effect": "flare",
+        "scene": "slate-courtyard",
+        "sha256": "fba9bae52e5dd59c404a665faf04d9ff11337c4b61abe6f1cc7ba441568561b9"
+      },
+      {
+        "changed_pixels": 10903,
+        "effect": "ao",
+        "scene": "slate-courtyard",
+        "sha256": "6a0defd2b3180a54ea140936f61c77b7a5092ad3485fd96c301b4dfe1b183e49"
+      },
+      {
+        "changed_pixels": 17464,
+        "effect": "grain",
+        "scene": "amber-courtyard",
+        "sha256": "ce614523148e0926835bb7e66dba37c3f13ba0e63825e469e25606028d358395"
+      },
+      {
+        "changed_pixels": 20773,
+        "effect": "flare",
+        "scene": "amber-courtyard",
+        "sha256": "6e16508eb58b2b6585f5b89a871110611eb34f7f7b883618d14de39d12ade699"
+      },
+      {
+        "changed_pixels": 10627,
+        "effect": "ao",
+        "scene": "amber-courtyard",
+        "sha256": "905cffabbee6c437e5a504c9dfa630104ca48363ff04d3cf570f192d75a9a99e"
+      }
+    ],
+    "adapter": "WgpuWrapper(AdapterInfo { name: \"AMD Radeon RX 7800 XT\", vendor: 4098, device: 29822, device_type: DiscreteGpu, device_pci_bus_id: \"\", driver: \"AMD proprietary driver\", driver_info: \"26.8.1 (LLPC)\", backend: Vulkan, subgroup_min_size: 32, subgroup_max_size: 64, transient_saves_memory: false })"
+  },
+  "browser_webgpu": {
+    "independent_initializations_passed": 2,
+    "captures_exported": 10,
+    "comparisons": [
+      {
+        "changed_pixels": 16041,
+        "effect": "grain",
+        "scene": "slate-courtyard",
+        "sha256": "b873334df6c31631bbe6c52fc8a8384c47617d2ff4cb6ae9a0f4f1d1200d7e4f"
+      },
+      {
+        "changed_pixels": 23035,
+        "effect": "flare",
+        "scene": "slate-courtyard",
+        "sha256": "6935378b0c9a75e21fa7d6cb9a6bab9872d76de70a586952b8e9d80e3ffe942e"
+      },
+      {
+        "changed_pixels": 10897,
+        "effect": "ao",
+        "scene": "slate-courtyard",
+        "sha256": "44ade30555bf7d3f5fd78e2cf4848cc9f097ff845428f8bc0fbcc94782104e80"
+      },
+      {
+        "changed_pixels": 17444,
+        "effect": "grain",
+        "scene": "amber-courtyard",
+        "sha256": "0657adae796a3dc0f1c61586e7b1e7338d7d7bbdbd0b839f2c36d8c7c6ea03b8"
+      },
+      {
+        "changed_pixels": 20773,
+        "effect": "flare",
+        "scene": "amber-courtyard",
+        "sha256": "6e16508eb58b2b6585f5b89a871110611eb34f7f7b883618d14de39d12ade699"
+      },
+      {
+        "changed_pixels": 10617,
+        "effect": "ao",
+        "scene": "amber-courtyard",
+        "sha256": "b9d6743e87fef9250d44309a0558ffb5594896c4cf00ea2a959d58e32a494765"
+      }
+    ],
+    "adapter": "WgpuWrapper(AdapterInfo { name: \"\", vendor: 0, device: 0, device_type: Other, device_pci_bus_id: \"\", driver: \"\", driver_info: \"\", backend: BrowserWebGpu, subgroup_min_size: 4, subgroup_max_size: 128, transient_saves_memory: false })",
+    "wasm_payload_sha256": "123e4dda03c4ba90ad96ca2a9977726dea9967b14bdcc2ae1e859f90bf963432",
+    "reproduced_payload_matches_executed_payload": true
+  },
+  "tidewater_regression": {
+    "pass": true,
+    "exit_code": 0,
+    "binary_sha256": "ba8b053a1adedc10eb98291526ef8b2c7cbf6b2428d842e81716128d9e73baf3",
+    "inputs_unchanged": true,
+    "binary_unchanged": true,
+    "source_fish_preparation_pass": true,
+    "pebble_resources_staged": true,
+    "limits": [
+      "bounded controller smoke only",
+      "Pebble resource staging and readiness do not independently prove visible Pebble pixels",
+      "no full map coverage or source visual parity",
+      "no Studio editing qualification"
+    ]
+  },
+  "tidewater_local_artifacts_sha256": {
+    "island.png": "c953fa6275e66cd04ba840acbb03e260f9b2bf1f5f38de4d3b4db221349a917f",
+    "island.wind-a.png": "2826dda2b11a78394985382aa1af7cfed369edc556549454db440a7491ac7b7b",
+    "island.wind-b.png": "15ceb4062082743ce8f45295e96382540881582b40a3baabe53e864b9b679981"
+  },
+  "reproduction_runner": {
+    "passed": true,
+    "checks": [
+      {
+        "exit_code": 0,
+        "arguments": [
+          "scripts/Snapshot-WorkingTree.py",
+          "--output",
+          "output\\generic-engine-reproduction-20261018\\inputs-before.json"
+        ],
+        "name": "input-before",
+        "log_sha256": "97ff0b085d6fde4d451bcbc256af916361c44c09a52af5110e6ce893dbcb7434",
+        "program": "python"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "fmt",
+          "--all",
+          "--",
+          "--check"
+        ],
+        "name": "format",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "scripts/test_engine_boundaries.py"
+        ],
+        "name": "boundaries",
+        "log_sha256": "b1f35b7100a51c8e866a5fdf1813b4366addfafcd6e3fc6ef62c104af3678ae5",
+        "program": "python"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "clippy",
+          "--workspace",
+          "--all-targets",
+          "--locked",
+          "--offline",
+          "-j",
+          "2",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "name": "native-clippy",
+        "log_sha256": "3c6b8ef1b0a7adc9b0619f6e8a440b0df9eaea08233078c69b4ba733e7481390",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "clippy",
+          "-p",
+          "forge_studio",
+          "--target",
+          "wasm32-unknown-unknown",
+          "--no-default-features",
+          "--features",
+          "web",
+          "--locked",
+          "--offline",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "name": "studio-wasm-clippy",
+        "log_sha256": "855b653567bf3db9a82ef929d07f72074a1f362c850b9f8c3b802690a8507cf1",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "test",
+          "--workspace",
+          "--lib",
+          "--tests",
+          "--locked",
+          "--offline",
+          "-j",
+          "2",
+          "--",
+          "--test-threads=1"
+        ],
+        "name": "workspace-tests",
+        "log_sha256": "1722ef11b4a2247b4fbbe28330ba37bf771e7d8a2e6d034cbe94b5f4dd24d6d1",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "run",
+          "-p",
+          "forge_engine",
+          "--example",
+          "generic_scene_render_probe",
+          "--features",
+          "qualification",
+          "--locked",
+          "--offline",
+          "-j",
+          "2",
+          "--",
+          "output\\generic-engine-reproduction-20261018\\native"
+        ],
+        "name": "native-optical-proof",
+        "log_sha256": "e29db60d22ff94519ca65e5a7fd510270cd9c258a61c4e97d2d216f2f98d4bc5",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "build",
+          "-p",
+          "forge_engine",
+          "--example",
+          "generic_scene_webgpu_probe",
+          "--target",
+          "wasm32-unknown-unknown",
+          "--no-default-features",
+          "--features",
+          "web,qualification",
+          "--locked",
+          "--offline",
+          "-j",
+          "2"
+        ],
+        "name": "browser-optical-build",
+        "log_sha256": "97cd6334bcfccf2aace6904e60eaee0fba2fd9b21a8c4172a4426fdddd35f738",
+        "program": "cargo"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "--target",
+          "web",
+          "--out-dir",
+          "output\\generic-engine-reproduction-20261018\\generic-optical-wasm",
+          "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\wasm32-unknown-unknown\\debug\\examples\\generic_scene_webgpu_probe.wasm"
+        ],
+        "name": "browser-bindings",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "program": "wasm-bindgen"
+      },
+      {
+        "exit_code": 0,
+        "arguments": [
+          "scripts/Snapshot-WorkingTree.py",
+          "--compare",
+          "output\\generic-engine-reproduction-20261018\\inputs-before.json",
+          "--output",
+          "output\\generic-engine-reproduction-20261018\\inputs-after.json"
+        ],
+        "name": "input-after",
+        "log_sha256": "97ff0b085d6fde4d451bcbc256af916361c44c09a52af5110e6ce893dbcb7434",
+        "program": "python"
+      }
+    ],
+    "checks_file_sha256": "5bfac80e83597a9b41d655e53b85eb1d8b67b59d52669d77b4261de092f32608",
+    "input_before_sha256": "4fd9eb67205e4681407fce29ff55e3a465f620c0d458ea6aecf195560b5e679d",
+    "input_after_sha256": "5bc8706bd6e1e987fb1287432c20333f4d5423746594a8141c9ea043f40de62f",
+    "input_comparison": {
+      "baseline": "output\\generic-engine-reproduction-20261018\\inputs-before.json",
+      "changed_build_inputs": [],
+      "git_identity_changed": false,
+      "passed": true
+    }
+  },
+  "post_runner_changes": [
+    ".github/workflows/rust-gate.yml",
+    "crates/forge_engine/COMMON_SCENE_INPUTS.md"
+  ],
+  "ci_wasm_guard": {
+    "added": true,
+    "command_tested_locally": true,
+    "remote_ci": "NOT RUN"
+  },
+  "log_sha256": {
+    "native-clippy-flare-final-20261018.log": "0d63cd8c9f0c7674ed11e1927b1d310ab4012d6da7f66ca7356f836255d8d2d0",
+    "studio-wasm-flare-final-20261018.log": "d54a7db3e5cd1e7e8e04283b0ba6fd8afdffdb59efbf64616095eec79290cfb5",
+    "webgpu-probe-clippy-20261018.log": "af7d0665b111bbc904acdea9b48c79d78eb8ad3d4fa2188ff3c5961d93d05181",
+    "workspace-tests-flare-final-20261018.log": "5399168a10b3805e2284ef936b60859917c81b516f69d757019493f37b8cfd01",
+    "workspace-doctests-final-20261018.log": "38d2751d960c3267cf789508ed19053ad115e9e0bd315dd2be4b244803f853c1",
+    "optical-webgpu-diagnostic-build-20261018.log": "c86c7e9612ebd6662e2b80efae14ef8aca57cfe79076f255e4198bb9a6d20a46",
+    "optical-webgpu-diagnostic-bindings-20261018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "optical-native-platform-final-20261018.log": "aee4957ad8acdd09422acc22eec30f65554a281f6dbf992a367646e89299115f",
+    "tidewater-regression-final-build-20261018.log": "e85fdc27f3706b22045b6823d71702e2055b2f561fab61eec7c6981ae60466e2",
+    "tidewater-regression-final-run-20261018.log": "e465abf25470c324e8dae23baff522c04f631aae1657dc8f21f37f53405ddcec",
+    "reproduction-runner-20261018.log": "be17f5fa7d865bda0d55a3cbf3f506e44d9c9df45dbabd4cd722d24a148ce4ac",
+    "ci-wasm-command-local-20261018.log": "789ff2ab3e2c8d4c311a3529e7774cf91a9b45dd238db9f6691e05a6ed0c06cd",
+    "format-final-20261018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "boundaries-final-20261018.log": "8ef73d44692f22ecd07191fb0a03c2fd111980a1ed20586aa68f9103c5f2a203"
+  },
+  "image_sha256": {
+    "generic-optical-native-final-20261018/amber-courtyard-ao.png": "12ba43a78c421c4a2514c2967ded2b6b0dfd6397d1ca338c5e115fef413ade08",
+    "generic-optical-native-final-20261018/amber-courtyard-baseline.png": "1e5a46893ef3084b8fefa2497eed0a1532c6644c9dfe629d9ada88bfb6a7e8c9",
+    "generic-optical-native-final-20261018/amber-courtyard-control.png": "1e5a46893ef3084b8fefa2497eed0a1532c6644c9dfe629d9ada88bfb6a7e8c9",
+    "generic-optical-native-final-20261018/amber-courtyard-flare.png": "55afadc11436c845fa41f1ea7cd95ecb1ff2900455def371d6ce8ca93251efe9",
+    "generic-optical-native-final-20261018/amber-courtyard-grain.png": "782ca5bcdf1476f56c3df3457b58f796e758f46bd123a0dc459114781c1b9375",
+    "generic-optical-native-final-20261018/slate-courtyard-ao.png": "56196ee2c135f3925f271e7450a7332de891049a193183feb265bf584946ee78",
+    "generic-optical-native-final-20261018/slate-courtyard-baseline.png": "0d18d472ffcccc4ee929cb21485f7b66caafccb127385e438d1f7aac6dccaecf",
+    "generic-optical-native-final-20261018/slate-courtyard-control.png": "0d18d472ffcccc4ee929cb21485f7b66caafccb127385e438d1f7aac6dccaecf",
+    "generic-optical-native-final-20261018/slate-courtyard-flare.png": "8ef065f5368fa4d6c452774b58cf225cb5a791e263570b172bf6203fa9e8e858",
+    "generic-optical-native-final-20261018/slate-courtyard-grain.png": "d75d39c52a083b387e8d0a6938d64c4fe6a40a2b87baf5449ca59ae56abc1dff",
+    "generic-optical-webgpu-20261018/amber-courtyard-ao.png": "d43c7e20efa79de9859ffff91134c8f29c314bfed0270eb604329753cec53531",
+    "generic-optical-webgpu-20261018/amber-courtyard-baseline.png": "f67730f7fdb26dc81ddadc1f6ae7eabffd62c43a8c9bd4992725e1d5b35c7072",
+    "generic-optical-webgpu-20261018/amber-courtyard-control.png": "f67730f7fdb26dc81ddadc1f6ae7eabffd62c43a8c9bd4992725e1d5b35c7072",
+    "generic-optical-webgpu-20261018/amber-courtyard-flare.png": "4724b45abbdbc537fb33fc961aeb78e5c23aef03d858eac415a1cb2e0ab81c00",
+    "generic-optical-webgpu-20261018/amber-courtyard-grain.png": "381d8fc2986131440a2c4dff1599c263133bd1209d04c9b65f3f48fd161f35e5",
+    "generic-optical-webgpu-20261018/browser-first-pass.png": "f3e72db0ff15a84670f44375ae3c3542c45dbd45a6aba58c171db746f166ada3",
+    "generic-optical-webgpu-20261018/browser.png": "c628917c487855831b15560eae3f7de69e92b3accfd6f59c29cc087c7e6ef881",
+    "generic-optical-webgpu-20261018/intermediate-failure.png": "57b90b40fc827fbbb7a0b8c0446ad77188268119c606ff2a97df169aeee1e0a8",
+    "generic-optical-webgpu-20261018/slate-courtyard-ao.png": "ae5df21ec29d6b33510e98ea3113b91f3d84e148f5d15f187cc3af55608e39dc",
+    "generic-optical-webgpu-20261018/slate-courtyard-baseline.png": "1cf4b3c4f19fe2dccd710075293cc42652c34346aa159e6329b04c4bd16ef071",
+    "generic-optical-webgpu-20261018/slate-courtyard-control.png": "1cf4b3c4f19fe2dccd710075293cc42652c34346aa159e6329b04c4bd16ef071",
+    "generic-optical-webgpu-20261018/slate-courtyard-flare.png": "fac4a13c835badf2e11653817e42fd2c7e64f5bf789f4f0773fd02902e317995",
+    "generic-optical-webgpu-20261018/slate-courtyard-grain.png": "a1f5e7d65c51678df48f709bb552b970248f3fabf38a894e5d20b1864072f3ed"
+  },
+  "limits": [
+    "LDR sRGB, MSAA off and depth prepass; no temporal HDR or multisampled qualification",
+    "Tidewater smoke is bounded and does not prove full map coverage, source visual parity or Studio editing",
+    "Other engine families, legacy temporal HDR coupling and fixed controller capsule dimensions remain open",
+    "No release, installer, clean-Windows, Linux or remote CI qualification"
+  ],
+  "compiled_rust_wgsl_cargo_inputs_unchanged": true,
+  "source_input_receipt_sha256": "0b04263a639a1b7577b43478c35bafde7d0cca35facff7ba024a8ba9b79761af"
+}

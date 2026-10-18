@@ -78,7 +78,7 @@ pub(super) fn MapShelf(
             if c.borrow().revision == Some(revision) {
                 c.borrow_mut().revision = None;
             }
-        })
+        });
     });
     let rows = move || {
         let _ = revision.get();
@@ -269,73 +269,7 @@ fn update(world: &mut World) {
     let Some(parts) = grouped.get(&row.id) else {
         return;
     };
-    let mut min = Vec3::splat(f32::INFINITY);
-    let mut max = Vec3::splat(f32::NEG_INFINITY);
-    let mut layers = Vec::new();
-    for (entity, lo, hi) in parts {
-        min = min.min(*lo);
-        max = max.max(*hi);
-        let original = world.get::<RenderLayers>(*entity).cloned();
-        let extended = original.clone().unwrap_or_default().with(LAYER);
-        world.entity_mut(*entity).insert(extended);
-        layers.push((*entity, original));
-    }
-    let lights: Vec<_> = world
-        .query_filtered::<Entity, With<DirectionalLight>>()
-        .iter(world)
-        .collect();
-    for entity in lights {
-        let original = world.get::<RenderLayers>(entity).cloned();
-        world
-            .entity_mut(entity)
-            .insert(original.clone().unwrap_or_default().with(LAYER));
-        layers.push((entity, original));
-    }
-    let center = (min + max) * 0.5;
-    let radius = ((max - min).length() * 0.5).max(0.1);
-    let mut texture = Image::new_target_texture(SIZE, SIZE, TextureFormat::Rgba8UnormSrgb, None);
-    texture.texture_descriptor.usage |= TextureUsages::COPY_SRC;
-    let target = world.resource_mut::<Assets<Image>>().add(texture);
-    let camera = world
-        .spawn((
-            forge_engine::tidewater_sky::preview::PreviewCamera,
-            Camera3d::default(),
-            Camera {
-                order: -30,
-                clear_color: ClearColorConfig::Custom(Color::srgb(0.91, 0.89, 0.84)),
-                ..default()
-            },
-            RenderTarget::Image(target.clone().into()),
-            Msaa::Off,
-            RenderLayers::layer(LAYER),
-            Transform::from_translation(
-                center + Vec3::new(1.0, 0.65, 1.0).normalize() * radius * 3.2,
-            )
-            .looking_at(center, Vec3::Y),
-            Projection::Perspective(PerspectiveProjection {
-                fov: 45_f32.to_radians(),
-                near: 0.01,
-                far: radius * 10.0,
-                ..default()
-            }),
-        ))
-        .id();
-    let reader = world
-        .spawn(Readback::texture(target.clone()))
-        .observe(receive)
-        .id();
-    world.insert_resource(Capture {
-        key: row.key,
-        head: hash,
-        camera,
-        reader,
-        target,
-        layers,
-        started: frame,
-        done: false,
-        previous: Vec::new(),
-        stable: 0,
-    });
+    start_capture(world, hash, &row, parts, frame);
 }
 
 #[allow(clippy::needless_pass_by_value, reason = "Bevy observer parameters")]
@@ -356,7 +290,9 @@ fn receive(event: On<ReadbackComplete>, capture: Option<ResMut<Capture>>, frame:
     }
     let nonuniform = event
         .data
-        .chunks_exact(4)
+        .as_chunks::<4>()
+        .0
+        .iter()
         .any(|pixel| pixel != &event.data[..4]);
     capture.stable = if nonuniform && capture.previous == event.data {
         capture.stable + 1
@@ -406,4 +342,80 @@ fn encode(bytes: &[u8]) -> Result<String, String> {
     canvas
         .to_data_url()
         .map_err(|_| "Encodage impossible".into())
+}
+
+fn start_capture(
+    world: &mut World,
+    hash: ContentHash,
+    row: &Row,
+    parts: &[(Entity, Vec3, Vec3)],
+    frame: u32,
+) {
+    let mut min = Vec3::splat(f32::INFINITY);
+    let mut max = Vec3::splat(f32::NEG_INFINITY);
+    let mut layers = Vec::new();
+    for (entity, lo, hi) in parts {
+        min = min.min(*lo);
+        max = max.max(*hi);
+        let original = world.get::<RenderLayers>(*entity).cloned();
+        let extended = original.clone().unwrap_or_default().with(LAYER);
+        world.entity_mut(*entity).insert(extended);
+        layers.push((*entity, original));
+    }
+    let lights: Vec<_> = world
+        .query_filtered::<Entity, With<DirectionalLight>>()
+        .iter(world)
+        .collect();
+    for entity in lights {
+        let original = world.get::<RenderLayers>(entity).cloned();
+        world
+            .entity_mut(entity)
+            .insert(original.clone().unwrap_or_default().with(LAYER));
+        layers.push((entity, original));
+    }
+    let center = (min + max) * 0.5;
+    let radius = ((max - min).length() * 0.5).max(0.1);
+    let mut texture = Image::new_target_texture(SIZE, SIZE, TextureFormat::Rgba8UnormSrgb, None);
+    texture.texture_descriptor.usage |= TextureUsages::COPY_SRC;
+    let target = world.resource_mut::<Assets<Image>>().add(texture);
+    let camera = world
+        .spawn((
+            forge_tidewater::tidewater_sky::preview::PreviewCamera,
+            Camera3d::default(),
+            Camera {
+                order: -30,
+                clear_color: ClearColorConfig::Custom(Color::srgb(0.91, 0.89, 0.84)),
+                ..default()
+            },
+            RenderTarget::Image(target.clone().into()),
+            Msaa::Off,
+            RenderLayers::layer(LAYER),
+            Transform::from_translation(
+                center + Vec3::new(1.0, 0.65, 1.0).normalize() * radius * 3.2,
+            )
+            .looking_at(center, Vec3::Y),
+            Projection::Perspective(PerspectiveProjection {
+                fov: 45_f32.to_radians(),
+                near: 0.01,
+                far: radius * 10.0,
+                ..default()
+            }),
+        ))
+        .id();
+    let reader = world
+        .spawn(Readback::texture(target.clone()))
+        .observe(receive)
+        .id();
+    world.insert_resource(Capture {
+        key: row.key,
+        head: hash,
+        camera,
+        reader,
+        target,
+        layers,
+        started: frame,
+        done: false,
+        previous: Vec::new(),
+        stable: 0,
+    });
 }

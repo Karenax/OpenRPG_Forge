@@ -74,9 +74,8 @@ pub(super) fn PhysicsControls(
                 <button on:click=move |_| { matrix.set(Some([u32::MAX; 32])); super::authoring_shortcuts::cancel_preview(); }>"Activer toutes les interactions"</button>
                 <button on:click=move |_| { matrix.set(Some([0; 32])); super::authoring_shortcuts::cancel_preview(); }>"Désactiver toutes les interactions"</button>
                 <label>"Couche à régler"<select prop:value=move || selected_layer.get().to_string() on:change=move |ev| {
-                    if let Ok(layer) = event_target_value(&ev).parse::<usize>() {
-                        if layer < 32 { selected_layer.set(layer); }
-                    }
+                    if let Ok(layer) = event_target_value(&ev).parse::<usize>()
+                        && layer < 32 { selected_layer.set(layer); }
                 }>{(0..32).map(|layer| view! { <option value=layer.to_string()>{format!("Couche {layer}")}</option> }).collect_view()}</select></label>
                 <Show when=move || matrix.get().is_some() fallback=|| view! { <p>"Choisir une configuration ci-dessus pour commencer."</p> }>
                     <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0.25rem">

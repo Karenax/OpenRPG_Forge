@@ -9,8 +9,8 @@ use bevy::{
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstance, WorldInstanceSpawner},
 };
-use forge_engine::authoring_buildings::ProjectionRapierColliderHandle;
 use forge_project::{authoring::AuthoringState, zone_authoring::placements::ManualPlacement};
+use forge_tidewater::authoring_buildings::ProjectionRapierColliderHandle;
 use std::{
     cell::{Cell, RefCell},
     collections::{BTreeMap, BTreeSet},
@@ -126,7 +126,7 @@ pub(crate) fn observe(state: &AuthoringState) {
                 .zone_head
                 .as_ref()
                 .and_then(|head| head.content_hash().ok()),
-        )
+        );
     });
     let placements = state
         .zone_head
@@ -360,65 +360,7 @@ async fn prepare(placements: Vec<ManualPlacement>, epoch: u64) -> Result<Prepare
                 && !super::imported_buildings::is_fish_props_asset(p.asset_id)
         })
         .collect();
-    let resident = RESIDENT.with(|slot| slot.borrow().clone());
-    let mut catalog = None;
-    let mut assets = BTreeMap::new();
-    let mut total = 0;
-    let mut seen = std::collections::BTreeSet::new();
-    let mut source_keys = BTreeSet::new();
-    for placement in &placements {
-        if !current(epoch) {
-            return Err("Chargement remplacé".into());
-        }
-        let key = (placement.asset_id, placement.asset_hash);
-        if !seen.insert(key) {
-            continue;
-        }
-        if let Some((size, source)) = resident.get(&key) {
-            total += size;
-            if *source {
-                source_keys.insert(key);
-            }
-        } else {
-            if catalog.is_none() {
-                catalog = Some(super::load_browser().await);
-            }
-            let browser = catalog.as_ref().ok_or("Catalogue indisponible")?;
-            let (name, bytes, layout) = match browser {
-                Ok(browser) => match browser.resolve(key.0, key.1) {
-                    Ok(asset) => (
-                        asset.id.clone(),
-                        super::verify::check(asset).await?,
-                        super::preview::SceneLayout::CatalogLod0,
-                    ),
-                    Err(forge_assets::asset_browser::AssetResolutionError::Missing(_)) => {
-                        super::vault::installed_reference(key.0, key.1).await?
-                    }
-                    Err(error) => return Err(error.to_string()),
-                },
-                Err(kit_error) => super::vault::installed_reference(key.0, key.1)
-                    .await
-                    .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?,
-            };
-            let source = super::source_graph_route::read(&bytes)?.is_some();
-            if source
-                && matches!(
-                    layout,
-                    super::preview::SceneLayout::ModuleStaticTriangles { .. }
-                )
-            {
-                return Err("Le rôle statique du module ne remplace pas les rôles physiques d'un host source.".into());
-            }
-            if source {
-                source_keys.insert(key);
-            }
-            total += bytes.len();
-            assets.insert(key, (name, bytes, layout, source));
-        }
-        if total > 256 * 1024 * 1024 {
-            return Err("Budget de fichiers placements dépassé (256 Mio)".into());
-        }
-    }
+    let (assets, source_keys, mut total) = prepare_geometry(&placements, epoch).await?;
     let mut physics = BTreeMap::new();
     let mut particles = BTreeMap::new();
     let mut particle_cache = BTreeMap::new();
@@ -584,38 +526,7 @@ impl Projection {
         }
         self.epoch = EPOCH.with(Cell::get);
         let previous = self.retain_reusable(&prepared.placements, commands);
-        for (key, (name, bytes, layout, source)) in prepared.assets {
-            if self.assets.contains_key(&key) {
-                continue;
-            }
-            let size = bytes.len();
-            let path = format!(
-                "placements-{}-{}-{}.glb",
-                EPOCH.with(Cell::get),
-                key.0,
-                key.1
-            );
-            let (handle, source) = if source {
-                (None, Some(std::sync::Arc::<[u8]>::from(bytes)))
-            } else {
-                super::preview::insert(&path, bytes);
-                let handle: Handle<WorldAsset> = server.load(
-                    GltfAssetLabel::Scene(0).from_asset(format!("authoring-preview://{path}")),
-                );
-                (Some(handle), None)
-            };
-            self.assets.insert(
-                key,
-                ResidentAsset {
-                    name,
-                    layout,
-                    handle,
-                    source,
-                    path,
-                    bytes: size,
-                },
-            );
-        }
+        self.adopt_assets(prepared.assets, server);
         RESIDENT.with(|slot| {
             slot.replace(
                 self.assets
@@ -832,8 +743,7 @@ fn update(
         &mut state,
         &mut commands,
         &server,
-        &instances,
-        &spawner,
+        (&instances, &spawner),
         &nodes,
         &collision_extras,
         &source_status,
@@ -887,8 +797,7 @@ fn qualify(
     state: &mut Projection,
     commands: &mut Commands,
     server: &AssetServer,
-    instances: &Query<&WorldInstance>,
-    spawner: &WorldInstanceSpawner,
+    instance_lookup: (&Query<&WorldInstance>, &WorldInstanceSpawner),
     nodes: &super::preview::PreviewNodes,
     collision_extras: &Query<&bevy::gltf::GltfExtras>,
     source_status: &Query<(
@@ -896,18 +805,11 @@ fn qualify(
         Option<&super::source_graph_runtime::SourceFrameStatus>,
     )>,
 ) -> Result<bool, &'static str> {
+    let (instances, spawner) = instance_lookup;
     for object in &mut state.objects {
         if object.handle.is_none() {
             if let Ok((status, frame)) = source_status.get(object.root) {
-                if let super::source_graph_placement::Status::Refused(reason) = status {
-                    report(format!("Placement source refusé : {reason}"));
-                    return Err("Montage du placement source refusé");
-                }
-                if let Some(super::source_graph_runtime::SourceFrameStatus::Refused(reason)) = frame
-                {
-                    report(format!("Frame du placement source refusée : {reason}"));
-                    return Err("Frame source refusée");
-                }
+                qualify_source(status, frame)?;
             }
             continue; // GPU pass/LOD admission is still required before reveal.
         }
@@ -1108,4 +1010,123 @@ fn publish_diagnostic(state: &Projection, nodes: &DiagnosticNodes) {
             ..Default::default()
         },
     });
+}
+
+type PreparedAssets = BTreeMap<AssetKey, (String, Vec<u8>, super::preview::SceneLayout, bool)>;
+async fn prepare_geometry(
+    placements: &[ManualPlacement],
+    epoch: u64,
+) -> Result<(PreparedAssets, BTreeSet<AssetKey>, usize), String> {
+    let resident = RESIDENT.with(|slot| slot.borrow().clone());
+    let mut catalog = None;
+    let mut assets = BTreeMap::new();
+    let mut total = 0;
+    let mut seen = std::collections::BTreeSet::new();
+    let mut source_keys = BTreeSet::new();
+    for placement in placements {
+        if !current(epoch) {
+            return Err("Chargement remplacé".into());
+        }
+        let key = (placement.asset_id, placement.asset_hash);
+        if !seen.insert(key) {
+            continue;
+        }
+        if let Some((size, source)) = resident.get(&key) {
+            total += size;
+            if *source {
+                source_keys.insert(key);
+            }
+        } else {
+            if catalog.is_none() {
+                catalog = Some(super::load_browser().await);
+            }
+            let browser = catalog.as_ref().ok_or("Catalogue indisponible")?;
+            let (name, bytes, layout) = match browser {
+                Ok(browser) => match browser.resolve(key.0, key.1) {
+                    Ok(asset) => (
+                        asset.id.clone(),
+                        super::verify::check(asset).await?,
+                        super::preview::SceneLayout::CatalogLod0,
+                    ),
+                    Err(forge_assets::asset_browser::AssetResolutionError::Missing(_)) => {
+                        super::vault::installed_reference(key.0, key.1).await?
+                    }
+                    Err(error) => return Err(error.to_string()),
+                },
+                Err(kit_error) => super::vault::installed_reference(key.0, key.1)
+                    .await
+                    .map_err(|e| format!("Catalogue : {kit_error}; Modèle installé : {e}"))?,
+            };
+            let source = super::source_graph_route::read(&bytes)?.is_some();
+            if source
+                && matches!(
+                    layout,
+                    super::preview::SceneLayout::ModuleStaticTriangles { .. }
+                )
+            {
+                return Err("Le rôle statique du module ne remplace pas les rôles physiques d'un host source.".into());
+            }
+            if source {
+                source_keys.insert(key);
+            }
+            total += bytes.len();
+            assets.insert(key, (name, bytes, layout, source));
+        }
+        if total > 256 * 1024 * 1024 {
+            return Err("Budget de fichiers placements dépassé (256 Mio)".into());
+        }
+    }
+    Ok((assets, source_keys, total))
+}
+
+impl Projection {
+    fn adopt_assets(&mut self, assets: PreparedAssets, server: &AssetServer) {
+        for (key, (name, bytes, layout, source)) in assets {
+            if self.assets.contains_key(&key) {
+                continue;
+            }
+            let size = bytes.len();
+            let path = format!(
+                "placements-{}-{}-{}.glb",
+                EPOCH.with(Cell::get),
+                key.0,
+                key.1
+            );
+            let (handle, source) = if source {
+                (None, Some(std::sync::Arc::<[u8]>::from(bytes)))
+            } else {
+                super::preview::insert(&path, bytes);
+                let handle: Handle<WorldAsset> = server.load(
+                    GltfAssetLabel::Scene(0).from_asset(format!("authoring-preview://{path}")),
+                );
+                (Some(handle), None)
+            };
+            self.assets.insert(
+                key,
+                ResidentAsset {
+                    name,
+                    layout,
+                    handle,
+                    source,
+                    path,
+                    bytes: size,
+                },
+            );
+        }
+    }
+}
+
+fn qualify_source(
+    status: &super::source_graph_placement::Status,
+    frame: Option<&super::source_graph_runtime::SourceFrameStatus>,
+) -> Result<(), &'static str> {
+    if let super::source_graph_placement::Status::Refused(reason) = status {
+        report(format!("Placement source refusé : {reason}"));
+        return Err("Montage du placement source refusé");
+    }
+    if let Some(super::source_graph_runtime::SourceFrameStatus::Refused(reason)) = frame {
+        report(format!("Frame du placement source refusée : {reason}"));
+        return Err("Frame source refusée");
+    }
+    Ok(())
 }

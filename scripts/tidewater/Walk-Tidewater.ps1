@@ -44,7 +44,7 @@ try {
     $env:FORGE_TIDEWATER_PEBBLE_PROGRAM_ROOT = $pebbleProgram
     Remove-Item Env:FORGE_TIDEWATER_STATIC_POSTFX -ErrorAction SilentlyContinue
     if (-not $SkipBuild) {
-        & cargo +1.98.0 build -p forge_engine --example tidewater_plant_probe --locked --offline -j 1
+        & cargo +1.98.0 build -p forge_tidewater --example tidewater_plant_probe --locked --offline -j 1
         if ($LASTEXITCODE -ne 0) { throw 'La compilation Tidewater a échoué.' }
     }
     $executable = Join-Path $env:CARGO_TARGET_DIR 'debug/examples/tidewater_plant_probe.exe'

@@ -1,0 +1,23 @@
+[package]
+name = "forge_tidewater_assets"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license.workspace = true
+description = "Optional Tidewater map acquisitions and data package validation."
+
+[dependencies]
+forge_world.workspace = true
+forge_assets.workspace = true
+forge_core.workspace = true
+serde.workspace = true
+# Retain captured f64 phases/matrices before the renderer's explicit f32 conversion.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+thiserror.workspace = true
+
+[dev-dependencies]
+forge_project.workspace = true
+
+[lints]
+workspace = true

@@ -118,9 +118,14 @@ Sérialiser les compilations lourdes.
 suivis et non suivis des périmètres `crates`, `apps`, `tools`, `third_party`, `scripts`,
 `examples`, `.github`, manifestes racine, `deny.toml` et `.cargo`, suppressions suivies
 explicites, lockfiles locaux voisins des manifestes présents et configurations Cargo
-ignorées. Seuls les scripts Python sous `scripts/hivemind` sont classés comme
-orchestration non consommée par ces builds ; tous leurs autres formats restent des
-entrées bloquantes, dont le candidat Rust inclus par un exemple Cargo.
+ignorées. Depuis l'extraction des harnesses du 17 octobre, `scripts/hivemind/**`
+est classé comme orchestration/acquisition non consommée par ces builds. Avant
+cette exclusion, le validateur refuse toute inclusion Rust explicite depuis le
+produit vers ce dossier, y compris les chemins construits avec `concat!`/`env!`.
+Les chemins de dépendances, de targets et de membres des manifestes Cargo sont
+contrôlés également ; une dépendance de chemin ne contourne pas cette exclusion.
+Le code compilé des probes réside dans `forge_tidewater/examples/support`. Les assets
+statiques réellement consommés gardent leurs manifestes, pins et contrôles propres.
 
 `working_tree_files` et les métadonnées Git conservent aussi l'inventaire complet du
 checkout. Chaque étape garde les inventaires avant/après et leurs SHA ; les différences

@@ -28,6 +28,7 @@ pub struct WaterQualityRequest {
 }
 
 impl WaterQualityRequest {
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn clear_effective(&mut self) {
         self.effective = None;
     }
@@ -242,6 +243,7 @@ impl ForwardReflectionObservation {
             })
         });
     }
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn matches_application(&self, guard: &QualityApplicationGuard) -> bool {
         self.effective_request == Some(guard.identity())
             && self.matches_policy(
@@ -254,6 +256,7 @@ impl ForwardReflectionObservation {
 
     /// Exact renderer budgets, independent of an application receipt. This can
     /// establish the bounded adapter contract before installing its first plan.
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn budgets_match(&self) -> bool {
         self.projection_matches
             && self.requested.as_ref().is_some_and(|settings| {
@@ -278,6 +281,7 @@ impl ForwardReflectionObservation {
     }
 
     /// CPU projection only. This does not establish optical support or GPU readiness.
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn matches_policy(&self, policy: Option<&str>, tier: VisualQualityTier) -> bool {
         policy.is_some_and(|hash| !hash.is_empty() && self.policy_hash.as_deref() == Some(hash))
             && self.requested_tier == Some(tier)

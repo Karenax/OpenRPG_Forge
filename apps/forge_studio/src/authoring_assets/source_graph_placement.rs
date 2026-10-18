@@ -210,9 +210,7 @@ fn declared_world_mapping(document: &serde_json::Value, key: &str) -> Result<Mat
     }
     let mut rows = [0.; 16];
     for (value, target) in values.iter().zip(&mut rows) {
-        *target = value
-            .as_f64()
-            .ok_or("Conversion monde source non numérique")? as f32;
+        *target = source_graph_context::number(value, "Conversion monde source")?;
     }
     source_graph_context::world_mapping(Mat4::from_cols_array(&rows).transpose(), Vec3::ZERO)
 }
@@ -281,7 +279,7 @@ fn refresh(world: &mut World) {
                 .entity_mut(root)
                 .insert((Visibility::Hidden, GlobalTransform::from(pose)));
             record.pose = Some(pose);
-            record.contacts = contacts.clone();
+            record.contacts.clone_from(&contacts);
             let status = match mount(world, root, record, pose, contacts.as_ref()) {
                 Ok((nodes, physics)) => {
                     record.owned_nodes = nodes;

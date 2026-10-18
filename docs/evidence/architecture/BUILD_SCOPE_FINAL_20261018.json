@@ -1,0 +1,12 @@
+{
+  "schema": "forge.architecture-build-scope",
+  "version": 1,
+  "build_inputs": 2547,
+  "checkout_entries": 6026,
+  "orchestration_in_build": 0,
+  "orchestration_in_checkout": 2521,
+  "product_owned_include_guard": "PASS",
+  "product_cargo_paths_guard": "PASS",
+  "genericity_qualified": false,
+  "snapshot": "final-docs-after"
+}

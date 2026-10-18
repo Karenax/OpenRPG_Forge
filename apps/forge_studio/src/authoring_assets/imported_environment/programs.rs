@@ -1,7 +1,7 @@
 //! Prepare library programs on this scene's device, with generation-safe adoption.
 use super::imported_buildings;
 use bevy::{ecs as bevy_ecs, prelude::*, render::renderer::RenderDevice};
-use forge_engine::{
+use forge_tidewater::{
     tidewater_environment::{
         live,
         programs::{Input, Prepared},
@@ -116,7 +116,7 @@ pub(super) fn update(world: &mut World) {
         live::stage(world, programs, targets, atmosphere, clouds)?;
         if let Err(error) = live::bind_lighting(
             world,
-            forge_engine::tidewater_material::scene_buffer::HANDLE,
+            forge_tidewater::tidewater_material::scene_buffer::HANDLE,
         ) {
             live::clear(world);
             return Err(error);

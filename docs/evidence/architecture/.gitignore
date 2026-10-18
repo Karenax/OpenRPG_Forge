@@ -1,0 +1,4 @@
+# Detailed acquisition logs stay local; compact receipts retain their hashes.
+*.log
+/generic-optical-wasm/
+/local-*/

@@ -3,9 +3,6 @@
 //! Bevy rendering adapter for shared Forge documents.
 
 #[cfg(feature = "physics-rapier")]
-pub mod authoring_buildings;
-
-#[cfg(feature = "physics-rapier")]
 mod bridge;
 #[cfg(feature = "qualification")]
 mod bridge_crossing_probe;
@@ -17,6 +14,7 @@ mod capture_readiness;
 pub use capture_readiness::issued_capture_frame;
 pub mod finite_perspective;
 mod manual_placement_identity;
+pub mod scene_camera;
 #[cfg(feature = "physics-rapier")]
 pub mod source_collider_projection;
 #[cfg(feature = "physics-rapier")]
@@ -66,93 +64,40 @@ pub use profile_warmup::{PreparedQualityVariant, ProfileWarmup, ProfileWarmupPha
 mod post_process_quality;
 pub use post_process_quality::{PostProcessQualityObservation, PostProcessQualityRequest};
 pub mod atmospheric_haze;
-pub mod breaker_geometry;
-pub mod cloud_controller;
 #[cfg(feature = "physics-rapier")]
 pub mod gameplay;
 #[cfg(feature = "physics-rapier")]
 mod governed_asset_kit;
+pub mod lens_flare_sun;
 #[cfg(all(feature = "physics-rapier", not(target_arch = "wasm32")))]
 pub mod native_gameplay;
 #[cfg(feature = "physics-rapier")]
 pub mod navigation;
-pub mod ocean_spectrum;
 #[cfg(feature = "physics-rapier")]
-mod physics;
+pub mod physics;
 #[cfg(feature = "physics-rapier")]
-mod player_camera;
+pub mod player_camera;
 #[cfg(feature = "physics-rapier")]
-mod player_controller;
+pub mod player_controller;
+#[cfg(feature = "physics-rapier")]
+pub mod player_motion_extension;
 #[cfg(feature = "physics-rapier")]
 pub mod playtest_timing;
 #[cfg(feature = "physics-rapier")]
 pub mod sampled_terrain_physics;
 mod shadow_quality;
-pub mod source_local_lights;
 #[cfg(feature = "physics-rapier")]
 pub mod source_mesh_pipeline;
 pub mod source_particle_compute;
 pub mod source_particle_frame;
+#[cfg(feature = "physics-rapier")]
 pub mod source_particle_host;
+#[cfg(feature = "physics-rapier")]
 pub mod source_particle_host_input;
+#[cfg(feature = "physics-rapier")]
 pub mod source_particle_transport;
-pub mod spray_budget;
-pub mod sun_cascades;
 mod temporal_lod;
-pub mod tidewater_air_haze;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_assets;
-pub mod tidewater_atmosphere;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_beach_props;
-pub mod tidewater_boardwalk;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_boat;
-pub mod tidewater_caustics;
-pub mod tidewater_clouds;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_debris;
-pub mod tidewater_environment;
-pub mod tidewater_exposure;
-pub mod tidewater_film_grain;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_fish_props;
-pub mod tidewater_gtao;
-pub mod tidewater_hill_shadow;
-pub mod tidewater_hull_mask;
-pub mod tidewater_lens_flare;
-pub mod tidewater_locomotion;
-pub mod tidewater_material;
-pub mod tidewater_mesh;
-pub mod tidewater_object_shadow;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_ocean;
-pub mod tidewater_ocean_depth;
-pub mod tidewater_ocean_geometry;
-pub mod tidewater_ocean_optics;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_pier;
-pub mod tidewater_pier_animation;
-pub mod tidewater_pier_motion;
-pub mod tidewater_plants;
-pub mod tidewater_plaza;
-pub mod tidewater_refraction;
-#[cfg(feature = "physics-rapier")]
-pub mod tidewater_scene_environment;
-pub mod tidewater_shore_field;
-pub mod tidewater_shore_sim;
-pub mod tidewater_sky;
-pub mod tidewater_stall;
-pub mod tidewater_surface_queries;
-pub mod tidewater_temporal;
-pub mod tidewater_temporal_frame;
-pub mod tidewater_terrain;
-pub mod tidewater_terrain_edits;
-pub mod tidewater_underwater;
-pub mod tidewater_underwater_lighting;
-pub mod tidewater_village_props;
-pub mod tidewater_water_query;
-pub mod tidewater_wind;
+pub mod water_medium;
 pub use temporal_lod::{TemporalLod, TemporalLodError, TemporalLodPolicy, TemporalLodSample};
 #[cfg(feature = "physics-rapier")]
 mod terrain_quality;
@@ -188,6 +133,7 @@ pub use vegetation_prototypes::{
 };
 mod visual_valley;
 mod water;
+#[cfg(feature = "physics-rapier")]
 pub use water::authoring as authoring_water;
 pub use water::{
     WaterDepthOpticsPreview, WaterQualityObservation, WaterQualityRequest,
@@ -203,7 +149,9 @@ pub mod source_graph;
 pub mod source_graph_glb;
 #[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene;
+#[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene_geometry;
+#[cfg(feature = "physics-rapier")]
 pub mod source_graph_scene_textures;
 mod weather;
 
@@ -243,8 +191,7 @@ pub use player_controller::{
     ForgePlayerCamera, ForgePlayerCharacter, PendingPlayerControlCommand, PlayerControlCommand,
     PlayerControlCommandError, PlayerControllerPlugin, PlayerControllerSet, PlayerInputFocus,
     PlayerRuntimeBindingSnapshot, PlayerRuntimeBindings, PlayerRuntimeSnapshot,
-    PlayerSimulationReady, PlayerSpawnPoint, TidewaterLadder, TidewaterPlayerInput,
-    TidewaterPlayerPlugin, TidewaterPlayerState,
+    PlayerSimulationReady, PlayerSpawnPoint,
 };
 pub use shadow_quality::{
     ShadowQualityObservation, ShadowQualityRequest, VisualValleyShadowQualityPlugin,
@@ -271,6 +218,7 @@ pub use visual_valley::{
     VisualValleyShadowObservationStatus, VisualValleyShadowStats, VisualValleyStats,
     VisualValleyTerrainChunk, VisualValleyTerrainExtension, VisualValleyTerrainMaterial,
 };
+#[cfg(feature = "physics-rapier")]
 pub(crate) use visual_valley::{VisualValleyChunkDebugBounds, build_bevy_terrain_mesh};
 pub use water::{
     VISUAL_VALLEY_WATER_CLEARANCE_M, VisualValleyRiverBankSurface, VisualValleyWaterExtension,

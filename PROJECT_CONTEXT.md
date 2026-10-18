@@ -1,11 +1,45 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+Validation du 18 octobre : [rapport de séparation moteur/carte](docs/evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
+14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
+générique et des extensions optiques gardent des périmètres distincts.
+Le dernier parcours natif instrumenté de la carte conserve une réserve de cadence
+(44,81 FPS moyens pour un seuil de 60) ; ses contrôles fonctionnels passent.
+
 Pour reprendre le développement hors Codex, lire le [guide de reprise](docs/HANDOFF.md).
 Il décrit les procédures et données locales sans redéfinir l'état canonique ci-dessous.
 Les sections datées sont des archives : leurs anciennes attentes et autorisations
 ne remplacent pas les décisions plus récentes ni une demande actuelle.
 
 ## État courant — Gate 4 clôturée localement au 16 octobre 2026
+
+Décision propriétaire du 18 octobre — séparation stricte : `forge_engine` et
+`forge_assets` ne possèdent plus de code, shader, acquisition, fixture ou notice
+Tidewater. Les ports et projections sont dans `forge_tidewater`, les paquets
+de carte dans `forge_tidewater_assets`. Ces composants utilisent le moteur et
+les contrats d'assets génériques, sans dépendance inverse ni façade de
+compatibilité. Le joueur et les outils de terrain passent par des observations
+de mouvement et des marqueurs de caméra neutres. Voir
+[ADR-0026](docs/ADR/ADR-0026-strict-engine-map-separation.md).
+Les notices suivent les fichiers portés, hors du moteur. Les paragraphes de
+reprise antérieurs ci-dessous gardent leur portée datée ; les anciens noms de
+paquets ne décrivent plus l'organisation actuelle. La qualification graphique
+des ports, les installations existantes et les verdicts de gates restent distincts.
+
+Revue d'architecture du 17 octobre : l'exigence de moteur générique reste
+incomplète. Les premiers contrats d'exposition et de requêtes d'eau sont extraits,
+les exemples identiques mutualisés et le routage d'archives centralisé ; ces
+corrections ne requalifient aucun parcours GPU ni binaire installé. L'[analyse
+et le travail restant](docs/planning/ENGINE_ARCHITECTURE_DEBT_20261017.md) détaillent
+les preuves et réserves, sans modifier les verdicts de gates ci-dessous.
+
+Reprise du 18 octobre : les 80 diagnostics initiaux de Clippy Studio WebGPU sont
+corrigés ; Clippy strict natif et Studio WASM passent. Les entrées communes
+de locomotion, animation, milieu et optique sont étendues. Les 2 230 tests
+natifs réussis (56 ignorés), les probes optiques natif/WebGPU sur deux scènes
+procédurales et le smoke Tidewater sont rapprochés dans le
+[bilan de reprise](docs/planning/ENGINE_RESERVES_20261018.md). La réserve globale
+de généricité reste ouverte, sans changement des gates ni publication implicite.
 
 Le [rapport final Gate 4](docs/evidence/gate4/GATE4_CLOSURE_20261016.md) porte le verdict
 **clôturée localement**, la matrice des seize critères et les preuves du lot

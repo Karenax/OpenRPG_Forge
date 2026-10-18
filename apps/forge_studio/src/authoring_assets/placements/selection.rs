@@ -90,7 +90,7 @@ pub(super) fn reconcile(placements: &[super::ManualPlacement]) {
 pub(super) fn pick(
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     parts: Query<&PlacementPart>,
     mut raycast: MeshRayCast,

@@ -39,7 +39,7 @@ fn fixture() -> (GameplayDocument, FixtureIds) {
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("first-loop/module"),
-        area_id: AreaId::deterministic("first-loop/tidewater"),
+        area_id: AreaId::deterministic("first-loop/independent"),
         profile: fixture_profile(),
         player: ids.player,
         actors: fixture_actors(&ids),

@@ -2,11 +2,11 @@
 use super::super::{imported_buildings, placements};
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_core::EntityId;
-use forge_engine::{
-    tidewater_pier::ResidentPier, tidewater_pier_animation::ResidentPierMotion,
-    tidewater_wind::WindFrame,
-};
 use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater::{
+    scene_wind::WindFrame, tidewater_pier::ResidentPier,
+    tidewater_pier_animation::ResidentPierMotion,
+};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, BTreeSet},
@@ -47,7 +47,7 @@ fn animate(world: &mut World) {
     let ids: BTreeSet<_> = desired.iter().map(|p| p.id).collect();
     if ids.len() != desired.len() {
         READY.with(|slot| {
-            *slot.borrow_mut() = Err("Duplicate canonical pier motion instance".into())
+            *slot.borrow_mut() = Err("Duplicate canonical pier motion instance".into());
         });
         return;
     }

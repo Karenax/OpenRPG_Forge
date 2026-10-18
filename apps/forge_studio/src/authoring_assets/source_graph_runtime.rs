@@ -1,5 +1,5 @@
 //! Shared transient ownership for preview and persisted placement render roots.
-//! Persistence remains in ManualPlacement; this holds only renderer handles.
+//! Persistence remains in `ManualPlacement`; this holds only renderer handles.
 //! Viewport clock and camera drive source frames and measured perspective LODs.
 //! Scene reveal remains a separate render admission.
 use super::{
@@ -59,7 +59,7 @@ pub(super) struct SourceLodBias(pub f32);
 
 fn viewport_lod_camera(world: &mut World) -> Result<source_graph_lod::LodCamera, String> {
     let views: Vec<_> = world
-        .query_filtered::<(Entity, &Camera), forge_engine::tidewater_sky::preview::SceneCameraFilter>()
+        .query_filtered::<(Entity, &Camera), forge_tidewater::tidewater_sky::preview::SceneCameraFilter>()
         .iter(world)
         .filter(|(_, camera)| camera.is_active)
         .map(|(entity, _)| entity)
@@ -102,7 +102,8 @@ pub(super) fn retain(
         Resident {
             host,
             policy,
-            particle_input: Default::default(),
+            particle_input: forge_engine::source_particle_host_input::HostedParticleInput::default(
+            ),
             input_error: None,
         },
     );
@@ -126,7 +127,7 @@ pub(super) fn release(world: &mut World, root: Entity) -> usize {
     }
     count
 }
-/// Schedule after TransformSystems::Propagate, before render extraction.
+/// Schedule after `TransformSystems::Propagate`, before render extraction.
 /// The common viewport must explicitly supply its current/previous clock.
 pub(super) fn update(world: &mut World) {
     if !world.contains_resource::<SourceSceneResidents>() {
@@ -186,7 +187,7 @@ pub(super) fn update(world: &mut World) {
                 |error| Err(error.clone()),
             );
             match result {
-                Ok(_) => {
+                Ok(()) => {
                     world.entity_mut(*root).insert(SourceFrameStatus::Updated);
                 }
                 Err(error) => {
@@ -202,7 +203,7 @@ pub(super) fn update(world: &mut World) {
 }
 
 fn current_particle_camera(world: &mut World) -> Result<(Mat4, Mat4), String> {
-    let views:Vec<_>=world.query_filtered::<(Entity,&Camera),forge_engine::tidewater_sky::preview::SceneCameraFilter>()
+    let views:Vec<_>=world.query_filtered::<(Entity,&Camera),forge_tidewater::tidewater_sky::preview::SceneCameraFilter>()
         .iter(world).filter(|(_,camera)|camera.is_active).map(|(entity,_)|entity).collect();
     if views.len() != 1 {
         return Err("Exactly one current particle viewport camera required".into());
@@ -225,6 +226,103 @@ fn current_particle_camera(world: &mut World) -> Result<(Mat4, Mat4), String> {
         return Err("Current particle camera viewport not computed".into());
     }
     Ok((pose, clip))
+}
+
+/// The authoring viewport owns one current/previous Bevy clock. Paused time
+/// remains paused; no wall-clock or captured asset timestamp is introduced.
+fn capture_viewport_clock(time: Res<Time>, mut clock: ResMut<SourceClock>) {
+    let time = time.into_inner();
+    clock.current_seconds = time.elapsed_secs();
+    clock.previous_seconds = time.elapsed_secs() - time.delta_secs();
+    clock.delta_seconds = time.delta_secs();
+    clock.sequence = clock.sequence.wrapping_add(1);
+}
+
+/// Runs before owner Update systems, so this explicit delta reaches the same frame.
+fn forward_particle_inputs(world: &mut World) {
+    let clock = world.get_resource::<SourceClock>().copied();
+    let controls = super::source_graph_particles::take_controls();
+    world.resource_scope(|world, residents: Mut<SourceSceneResidents>| {
+        let mut residents = residents;
+        for control in controls {
+            let root = match control.target {
+                super::source_graph_particles::ControlTarget::Preview => {
+                    super::source_graph_preview::current_root(world)
+                }
+                super::source_graph_particles::ControlTarget::Placement(id) => {
+                    let roots: Vec<_> = world
+                        .query::<(Entity, &forge_engine::ManualPlacementProjection)>()
+                        .iter(world)
+                        .filter(|(entity, placement)| {
+                            placement.0.id == id && residents.scenes.contains_key(entity)
+                        })
+                        .map(|(entity, _)| entity)
+                        .collect();
+                    if roots.len() == 1 {
+                        Some(roots[0])
+                    } else {
+                        None
+                    }
+                }
+            };
+            let result = (|| {
+                let resident = residents
+                    .scenes
+                    .get_mut(&root.ok_or("Effet chargé introuvable")?)
+                    .ok_or("Effet chargé introuvable")?;
+                if resident.host.particle_instances.is_empty() {
+                    return Err("Cet objet ne contient pas d’effet chargé".into());
+                }
+                if let Some(error) = &resident.input_error {
+                    return Err(error.clone());
+                }
+                resident.particle_input.push_event(control.event)
+            })();
+            control.reply.run(result);
+        }
+        for (root, resident) in &mut residents.scenes {
+            if resident.host.particle_instances.is_empty() || resident.input_error.is_some() {
+                continue;
+            }
+            let result = clock
+                .ok_or("Horloge explicite de scène indisponible".to_owned())
+                .and_then(|clock| {
+                    resident.particle_input.advance(
+                        world,
+                        &resident.host.particle_instances,
+                        clock.sequence,
+                        clock.delta_seconds,
+                    )
+                });
+            if let Err(error) = result {
+                resident.input_error = Some(error.clone());
+                if let Ok(mut entity) = world.get_entity_mut(*root) {
+                    entity.insert((Visibility::Hidden, SourceFrameStatus::Refused(error)));
+                }
+            }
+        }
+    });
+}
+pub(super) fn register(app: &mut App) {
+    app.insert_resource(SourceLodBias(1.0));
+    app.insert_resource(SourceClock {
+        current_seconds: 0.,
+        previous_seconds: 0.,
+        delta_seconds: 0.,
+        sequence: 0,
+    });
+    app.init_resource::<SourceSceneResidents>();
+    app.add_systems(
+        PreUpdate,
+        (capture_viewport_clock, forward_particle_inputs).chain(),
+    );
+    app.add_systems(
+        PostUpdate,
+        update
+            .after(bevy::transform::TransformSystems::Propagate)
+            .after(bevy::camera::CameraUpdateSystems)
+            .before(forge_engine::source_particle_compute::SourceParticleProjectionUpdate),
+    );
 }
 
 #[cfg(test)]
@@ -334,100 +432,4 @@ mod tests {
         assert!(world.resource::<SourceSceneResidents>().scenes.is_empty());
         update(&mut world);
     }
-}
-
-/// The authoring viewport owns one current/previous Bevy clock. Paused time
-/// remains paused; no wall-clock or captured asset timestamp is introduced.
-fn capture_viewport_clock(time: Res<Time>, mut clock: ResMut<SourceClock>) {
-    clock.current_seconds = time.elapsed_secs();
-    clock.previous_seconds = time.elapsed_secs() - time.delta_secs();
-    clock.delta_seconds = time.delta_secs();
-    clock.sequence = clock.sequence.wrapping_add(1);
-}
-
-/// Runs before owner Update systems, so this explicit delta reaches the same frame.
-fn forward_particle_inputs(world: &mut World) {
-    let clock = world.get_resource::<SourceClock>().copied();
-    let controls = super::source_graph_particles::take_controls();
-    world.resource_scope(|world, residents: Mut<SourceSceneResidents>| {
-        let mut residents = residents;
-        for control in controls {
-            let root = match control.target {
-                super::source_graph_particles::ControlTarget::Preview => {
-                    super::source_graph_preview::current_root(world)
-                }
-                super::source_graph_particles::ControlTarget::Placement(id) => {
-                    let roots: Vec<_> = world
-                        .query::<(Entity, &forge_engine::ManualPlacementProjection)>()
-                        .iter(world)
-                        .filter(|(entity, placement)| {
-                            placement.0.id == id && residents.scenes.contains_key(entity)
-                        })
-                        .map(|(entity, _)| entity)
-                        .collect();
-                    if roots.len() == 1 {
-                        Some(roots[0])
-                    } else {
-                        None
-                    }
-                }
-            };
-            let result = (|| {
-                let resident = residents
-                    .scenes
-                    .get_mut(&root.ok_or("Effet chargé introuvable")?)
-                    .ok_or("Effet chargé introuvable")?;
-                if resident.host.particle_instances.is_empty() {
-                    return Err("Cet objet ne contient pas d’effet chargé".into());
-                }
-                if let Some(error) = &resident.input_error {
-                    return Err(error.clone());
-                }
-                resident.particle_input.push_event(control.event)
-            })();
-            control.reply.run(result);
-        }
-        for (root, resident) in &mut residents.scenes {
-            if resident.host.particle_instances.is_empty() || resident.input_error.is_some() {
-                continue;
-            }
-            let result = clock
-                .ok_or("Horloge explicite de scène indisponible".to_owned())
-                .and_then(|clock| {
-                    resident.particle_input.advance(
-                        world,
-                        &resident.host.particle_instances,
-                        clock.sequence,
-                        clock.delta_seconds,
-                    )
-                });
-            if let Err(error) = result {
-                resident.input_error = Some(error.clone());
-                if let Ok(mut entity) = world.get_entity_mut(*root) {
-                    entity.insert((Visibility::Hidden, SourceFrameStatus::Refused(error)));
-                }
-            }
-        }
-    });
-}
-pub(super) fn register(app: &mut App) {
-    app.insert_resource(SourceLodBias(1.0));
-    app.insert_resource(SourceClock {
-        current_seconds: 0.,
-        previous_seconds: 0.,
-        delta_seconds: 0.,
-        sequence: 0,
-    });
-    app.init_resource::<SourceSceneResidents>();
-    app.add_systems(
-        PreUpdate,
-        (capture_viewport_clock, forward_particle_inputs).chain(),
-    );
-    app.add_systems(
-        PostUpdate,
-        update
-            .after(bevy::transform::TransformSystems::Propagate)
-            .after(bevy::camera::CameraUpdateSystems)
-            .before(forge_engine::source_particle_compute::SourceParticleProjectionUpdate),
-    );
 }

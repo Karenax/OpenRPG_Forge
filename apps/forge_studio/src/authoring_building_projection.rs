@@ -4,8 +4,8 @@ use crate::authoring_projection_diagnostics::{
 };
 use bevy::{ecs as bevy_ecs, prelude::*};
 use forge_core::ContentHash;
-use forge_engine::authoring_buildings::BuildingProjection;
 use forge_project::{authoring::AuthoringState, zone_authoring::ZoneAuthoringHead};
+use forge_tidewater::authoring_buildings::BuildingProjection;
 use leptos::prelude::*;
 use std::{cell::RefCell, collections::BTreeMap};
 
@@ -115,7 +115,7 @@ fn material_ready(world: &World, projection: &Projection, count: usize) -> bool 
         .is_some_and(|lighting| projection.batch.scene_material_is_current(world, &lighting))
 }
 
-/// Called by imported_scene after its real material publication, before its shadow pass.
+/// Called by `imported_scene` after its real material publication, before its shadow pass.
 pub(crate) fn sync_material(world: &mut World) {
     let Some(projection) = world.get_resource::<Projection>() else {
         return;
@@ -216,7 +216,7 @@ fn update(world: &mut World) {
     sync_material(world);
 }
 
-fn part_key(identity: forge_engine::authoring_buildings::BuildingPartIdentity) -> String {
+fn part_key(identity: forge_tidewater::authoring_buildings::BuildingPartIdentity) -> String {
     format!("{}/{}", identity.building, identity.part)
 }
 

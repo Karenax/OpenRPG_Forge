@@ -75,7 +75,8 @@ fn finite_matrix(mut clip: Mat4, lens: &PerspectiveProjection) -> Option<Mat4> {
 /// Accept both Bevy's infinite depth and the exact finite coefficients derived
 /// by this module; arbitrary depth rows or angular offsets remain unsupported.
 #[allow(clippy::float_cmp)] // Structural zeros and depth coefficients must match exactly.
-pub(crate) fn standard_reverse_perspective(m: Mat4, near: f32, far: f32) -> bool {
+#[must_use]
+pub fn standard_reverse_perspective(m: Mat4, near: f32, far: f32) -> bool {
     let Some(finite) = depth_coefficients(near, far) else {
         return false;
     };

@@ -1,0 +1,58 @@
+[
+  {
+    "scene": "courtyard",
+    "binary": "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\debug\\forge_runtime.exe",
+    "binary_sha256": "2b1898715d9981a765fccaf0003a9e9a5c525d569a05bcbfe4b10e135cf0d01d",
+    "arguments": [
+      "--scene",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard.json",
+      "--capture",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard\\scene.png",
+      "--capture-frame",
+      "240",
+      "--metrics",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\courtyard\\metrics.json",
+      "--metrics-warmup-frames",
+      "10",
+      "--exit-after-frames",
+      "600"
+    ],
+    "pid": 25660,
+    "creation_date": "2026-10-18T22:02:22.169099+02:00",
+    "started_utc": "2026-10-18T20:02:22.3673764Z",
+    "exit_code": 0,
+    "process_exited": true,
+    "document_sha256": "befca4ad02d7fc16a10117408dc0fd254edc1685f968da2635406db25c4010ed",
+    "capture_sha256": "31bdde700392491cffb5f3940e53dcf1df0122875e16e7bc108471a7589b6d6e",
+    "metrics_sha256": "c3579fd7017849d51b0d5970707402c65f14ebca079d9c42a621d3e81004627b",
+    "source_hash": "71754ba10f4f0dc87a3423f6fca3b573be263a1c8150492d730b76447c88ac54"
+  },
+  {
+    "scene": "raised-platform",
+    "binary": "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\debug\\forge_runtime.exe",
+    "binary_sha256": "2b1898715d9981a765fccaf0003a9e9a5c525d569a05bcbfe4b10e135cf0d01d",
+    "arguments": [
+      "--scene",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform.json",
+      "--capture",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform\\scene.png",
+      "--capture-frame",
+      "240",
+      "--metrics",
+      "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform\\metrics.json",
+      "--metrics-warmup-frames",
+      "10",
+      "--exit-after-frames",
+      "600"
+    ],
+    "pid": 23844,
+    "creation_date": "2026-10-18T22:02:28.578888+02:00",
+    "started_utc": "2026-10-18T20:02:28.7196656Z",
+    "exit_code": 0,
+    "process_exited": true,
+    "document_sha256": "b16960cfed1d8dd0a024c297e3e68999168c7bec1b15d6cc17a6ab8fc3235808",
+    "capture_sha256": "0a228735a9979eb629021070b8682019f1eadb14da75092ab22472d40155e2f5",
+    "metrics_sha256": "ba68c6710b6ce9418b0198b2b4afb40822ee3c1b26f616d2293590655fed7fe6",
+    "source_hash": "8d78282e1c08643091167d7b8e1f405253b68acc4ced6b543c2004279cd653c5"
+  }
+]

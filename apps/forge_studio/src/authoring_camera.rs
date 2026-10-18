@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use std::cell::RefCell;
 
 type EditorCameraFilter = (
-    forge_engine::tidewater_sky::preview::SceneCameraFilter,
+    forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     Without<forge_engine::ForgePlayerCamera>,
 );
 

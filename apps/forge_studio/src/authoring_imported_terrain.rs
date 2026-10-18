@@ -5,23 +5,27 @@ use crate::authoring_assets::imported_buildings;
 use bevy::ecs::system::SystemParam;
 use bevy::render::error_handler::RenderErrorHandler;
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::{
-    sampled_terrain_physics::{self, PreparedSampledTerrainPhysics, SampledTerrainPhysicsState},
-    tidewater_hill_shadow as hill,
-    tidewater_object_shadow::graph as shadows,
-    tidewater_ocean, tidewater_ocean_geometry, tidewater_ocean_optics,
-    tidewater_scene_environment::ResidentEnvironment,
-    tidewater_shore_sim,
-    tidewater_terrain::{
-        TerrainSettings,
-        lod::ViewGeometry,
-        scene::{self, Bindings, PreparedTerrain, ResidentTerrain},
-    },
-};
 use forge_project::{TerrainDocument, authoring::playtest::PlaytestIdentity};
 use forge_world::sampled_terrain::SampledTerrainPlan;
 use forge_world::{WorldSketchCamera, WorldSketchCameraRole};
 use std::sync::{Arc, atomic::Ordering};
+use {
+    forge_engine::sampled_terrain_physics::{
+        self, PreparedSampledTerrainPhysics, SampledTerrainPhysicsState,
+    },
+    forge_tidewater::{
+        tidewater_hill_shadow as hill,
+        tidewater_object_shadow::graph as shadows,
+        tidewater_ocean, tidewater_ocean_geometry, tidewater_ocean_optics,
+        tidewater_scene_environment::ResidentEnvironment,
+        tidewater_shore_sim,
+        tidewater_terrain::{
+            TerrainSettings,
+            lod::ViewGeometry,
+            scene::{self, Bindings, PreparedTerrain, ResidentTerrain},
+        },
+    },
+};
 
 #[derive(Resource)]
 #[allow(
@@ -41,7 +45,7 @@ struct ProjectionState {
     flat_water: Option<Entity>,
     clear_cloud_shadow: Option<Handle<Image>>,
     geometry: Option<ViewGeometry>,
-    geometry_nodes: Option<Vec<forge_world::cdlod::CdlodNode>>,
+    geometry_nodes: Option<Vec<forge_tidewater_assets::cdlod::CdlodNode>>,
     debug_ocean_geometry: bool,
     ocean_optics: bool,
     shore_sim: bool,
@@ -131,9 +135,10 @@ pub(crate) fn launch(
                 .map_err(|error| error.to_string())?;
             if ocean_optics {
                 // Same source capsule and camera limits as the native Tidewater walk.
-                profile.controller.capsule_radius_m = forge_engine::tidewater_locomotion::RADIUS;
+                profile.controller.capsule_radius_m =
+                    forge_tidewater::amphibious_locomotion::RADIUS;
                 profile.controller.capsule_half_segment_m =
-                    forge_engine::tidewater_locomotion::WALK_HEIGHT * 0.5
+                    forge_tidewater::amphibious_locomotion::WALK_HEIGHT * 0.5
                         - profile.controller.capsule_radius_m;
                 profile.controller.walk_speed_mps = 3.0;
                 profile.controller.sprint_multiplier = 6.2 / 3.0;
@@ -199,10 +204,11 @@ pub(crate) fn launch(
         if playtest.is_some() {
             app.add_plugins((
                 bevy::post_process::auto_exposure::AutoExposurePlugin,
-                forge_engine::tidewater_gtao::TidewaterGtaoPlugin,
-                forge_engine::tidewater_film_grain::TidewaterFilmGrainPlugin,
-                forge_engine::tidewater_lens_flare::TidewaterLensFlarePlugin,
-                forge_engine::tidewater_air_haze::TidewaterAirHazePlugin,
+                forge_tidewater::ambient_occlusion::AmbientOcclusionPlugin,
+                forge_tidewater::film_grain::FilmGrainPlugin,
+                forge_tidewater::lens_flare::LensFlarePlugin,
+                forge_tidewater::tidewater_material::ImportedSunRelayPlugin,
+                forge_tidewater::tidewater_air_haze::TidewaterAirHazePlugin,
             ));
         }
         sampled_terrain_physics::register(&mut app);
@@ -305,7 +311,7 @@ pub(crate) fn launch(
             app.world_mut().entity_mut(camera).insert((
                 bevy::camera::Hdr,
                 bevy::core_pipeline::tonemapping::Tonemapping::AcesFitted,
-                forge_engine::tidewater_underwater::TidewaterUnderwaterCamera,
+                forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera,
             ));
         }
         app.insert_resource(ProjectionState {
@@ -363,10 +369,10 @@ pub(crate) fn launch(
         if playtest.is_some() && ocean_optics {
             let queries = app
                 .world()
-                .resource::<forge_engine::tidewater_surface_queries::Targets>()
+                .resource::<forge_tidewater::tidewater_surface_queries::Targets>()
                 .queries
                 .clone();
-            match forge_engine::TidewaterPlayerPlugin::new(queries, Arc::new(plan)) {
+            match forge_tidewater::AmphibiousPlayerPlugin::new(queries, Arc::new(plan)) {
                 Ok(player) => {
                     app.add_plugins(player);
                 }
@@ -385,14 +391,14 @@ pub(crate) fn launch(
                 (adopt_player_camera, project, update_live_clouds)
                     .chain()
                     .after(bevy::transform::TransformSystems::Propagate)
-                    .after(forge_engine::tidewater_underwater::TidewaterUnderwaterUpdateSet),
+                    .after(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
             );
             app.add_systems(
                 PostUpdate,
                 crate::authoring_temporal::update
                     .after(adopt_player_camera)
-                    .before(forge_engine::tidewater_temporal::FrameSystems::Prepare)
-                    .before(forge_engine::tidewater_refraction::Synchronize),
+                    .before(forge_tidewater::tidewater_temporal::FrameSystems::Prepare)
+                    .before(forge_tidewater::tidewater_refraction::Synchronize),
             );
             crate::authoring_viewport::report(
                 "Préparation du terrain importé et de la simulation à pied.".into(),
@@ -409,7 +415,7 @@ pub(crate) fn launch(
                 )
                     .chain()
                     .after(bevy::transform::TransformSystems::Propagate)
-                    .after(forge_engine::tidewater_underwater::TidewaterUnderwaterUpdateSet),
+                    .after(forge_tidewater::tidewater_underwater::WaterMediumUpdateSet),
             );
             crate::authoring_viewport::report(
                 "Préparation du terrain, des bâtiments et de l’environnement importés.".into(),
@@ -475,7 +481,7 @@ fn configure_playtest_graphics(
     if state.ocean_optics {
         commands
             .entity(camera)
-            .insert(forge_engine::tidewater_underwater::TidewaterUnderwaterCamera);
+            .insert(forge_tidewater::tidewater_underwater::TidewaterUnderwaterCamera);
     }
     if let Ok(mut camera_3d) = cameras_3d.get_mut(camera) {
         camera_3d.depth_texture_usages.0 |=
@@ -485,16 +491,17 @@ fn configure_playtest_graphics(
                 bevy::render::render_resource::TextureUsages::COPY_SRC.bits();
         }
     }
-    let curve = match forge_engine::tidewater_exposure::source_compensation_curve() {
-        Ok(curve) => curves.add(curve),
-        Err(error) => {
-            crate::authoring_viewport::report(format!(
-                "Exposition Tidewater indisponible : {error}"
-            ));
-            return;
-        }
-    };
-    let mask = images.add(forge_engine::tidewater_exposure::source_metering_mask());
+    let curve =
+        match forge_tidewater::exposure_metering::ExposureProfile::default().compensation_curve() {
+            Ok(curve) => curves.add(curve),
+            Err(error) => {
+                crate::authoring_viewport::report(format!(
+                    "Exposition Tidewater indisponible : {error}"
+                ));
+                return;
+            }
+        };
+    let mask = images.add(forge_tidewater::exposure_metering::center_weighted_metering_mask());
     commands.insert_resource(GraphicsExposureHandles {
         curve: curve.clone(),
         mask: mask.clone(),
@@ -526,13 +533,15 @@ fn configure_playtest_graphics(
             ..Bloom::NATURAL
         },
         Fxaa::default(),
-        forge_engine::tidewater_gtao::TidewaterGtao::new(profile.ambient_occlusion),
-        forge_engine::tidewater_lens_flare::TidewaterLensFlare::new(profile.lens_flare),
+        forge_tidewater::ambient_occlusion::AmbientOcclusionSettings::new(
+            profile.ambient_occlusion,
+        ),
+        forge_tidewater::lens_flare::LensFlare::new(profile.lens_flare),
         (
-            forge_engine::tidewater_air_haze::TidewaterAirHaze::default(),
+            forge_tidewater::tidewater_air_haze::TidewaterAirHaze::default(),
             forge_engine::atmospheric_haze::AirHazeSettings::new(profile.air_haze),
         ),
-        forge_engine::tidewater_film_grain::TidewaterFilmGrain::new(profile.film_grain),
+        forge_tidewater::film_grain::FilmGrain::new(profile.film_grain),
         AutoExposure {
             filter: 0.0..=1.0,
             speed_brighten: 1.6,
@@ -573,10 +582,11 @@ struct PlaytestGraphicsParams<'w, 's> {
     >,
     bloom: Query<'w, 's, &'static mut bevy::post_process::bloom::Bloom>,
     vignette: Query<'w, 's, &'static mut bevy::post_process::effect_stack::Vignette>,
-    ambient_occlusion: Query<'w, 's, &'static mut forge_engine::tidewater_gtao::TidewaterGtao>,
-    lens_flare: Query<'w, 's, &'static mut forge_engine::tidewater_lens_flare::TidewaterLensFlare>,
+    ambient_occlusion:
+        Query<'w, 's, &'static mut forge_tidewater::ambient_occlusion::AmbientOcclusionSettings>,
+    lens_flare: Query<'w, 's, &'static mut forge_tidewater::lens_flare::LensFlare>,
     air_haze: Query<'w, 's, &'static mut forge_engine::atmospheric_haze::AirHazeSettings>,
-    village_materials: ResMut<'w, Assets<forge_engine::tidewater_material::VillageMaterial>>,
+    village_materials: ResMut<'w, Assets<forge_tidewater::tidewater_material::VillageMaterial>>,
     applied: Local<'s, Option<(Entity, crate::authoring_input::PlaytestGraphics, bool)>>,
     temporal: Query<'w, 's, (), With<bevy::anti_alias::taa::TemporalAntiAliasing>>,
     prepasses: Query<
@@ -648,13 +658,15 @@ fn apply_playtest_graphics(params: PlaytestGraphicsParams) {
         }
     }
     if profile.film_grain > 0.0 {
-        commands.entity(camera).insert(
-            forge_engine::tidewater_film_grain::TidewaterFilmGrain::new(profile.film_grain),
-        );
+        commands
+            .entity(camera)
+            .insert(forge_tidewater::film_grain::FilmGrain::new(
+                profile.film_grain,
+            ));
     } else {
         commands
             .entity(camera)
-            .remove::<forge_engine::tidewater_film_grain::TidewaterFilmGrain>();
+            .remove::<forge_tidewater::film_grain::FilmGrain>();
     }
     if profile.auto_exposure {
         if let Some(exposure) = exposure {
@@ -800,7 +812,7 @@ pub(crate) fn project(world: &mut World) {
     reason = "The callback advances the source cloud producer and publishes its frame diagnostics."
 )]
 fn update_live_clouds(world: &mut World) {
-    use forge_engine::{cloud_controller, tidewater_clouds};
+    use forge_tidewater::{cloud_controller, tidewater_clouds};
     if crate::authoring_immersion::held(world) {
         return;
     }
@@ -818,8 +830,8 @@ fn update_live_clouds(world: &mut World) {
         .get_resource::<ProjectionState>()
         .is_some_and(|state| state.acknowledged && !state.pending && !state.failed)
         || !tidewater_clouds::live::can_submit(world)
-        || (forge_engine::tidewater_environment::live::is_staged(world)
-            && !forge_engine::tidewater_environment::live::can_submit(world))
+        || (forge_tidewater::tidewater_environment::live::is_staged(world)
+            && !forge_tidewater::tidewater_environment::live::can_submit(world))
         || world.resource::<LiveCloudTime>().failed
     {
         return;
@@ -850,18 +862,18 @@ fn update_live_clouds(world: &mut World) {
         let mut input = environment.cloud_continuation.input;
         input.camera = camera;
         input.underwater = world
-            .get_resource::<forge_engine::tidewater_underwater::TidewaterUnderwaterObservation>()
+            .get_resource::<forge_tidewater::tidewater_underwater::UnderwaterObservation>()
             .is_some_and(|observation| observation.camera_underwater());
         input.dt = dt;
         let solar = solar::advance(world, &mut environment, dt, camera.position[1])?;
         if let Some(frame) = solar {
             input.light_direction = frame.key.to_array();
         }
-        if !forge_engine::tidewater_material::scene_buffer::ownership::gpu_owned(
+        if !forge_tidewater::tidewater_material::scene_buffer::ownership::gpu_owned(
             world,
-            &forge_engine::tidewater_material::scene_buffer::HANDLE,
+            &forge_tidewater::tidewater_material::scene_buffer::HANDLE,
         ) {
-            forge_engine::tidewater_material::scene_buffer::publish(
+            forge_tidewater::tidewater_material::scene_buffer::publish(
                 world,
                 &environment.scene_lighting,
             )?;
@@ -878,20 +890,20 @@ fn update_live_clouds(world: &mut World) {
             // irradiance event. Encoded commands alone are not a readback.
             tidewater_clouds::live::submit(world, &output)?;
         }
-        if forge_engine::tidewater_environment::live::is_staged(world) {
+        if forge_tidewater::tidewater_environment::live::is_staged(world) {
             let submitted = tidewater_clouds::live::submitted_frame(world)?;
             let sky = world
-                .resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+                .resource::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
                 .iter()
                 .find(|(_, sky)| sky.transmittance == environment.atmosphere.images[0])
                 .map(|(_, sky)| [sky.settings.moon_disk, sky.settings.stars_time_night])
                 .ok_or("Ciel de cette génération absent")?;
             let atmosphere = world
-                .resource::<forge_engine::tidewater_atmosphere::Targets>()
+                .resource::<forge_tidewater::tidewater_atmosphere::Targets>()
                 .params;
-            forge_engine::tidewater_environment::live::submit(
+            forge_tidewater::tidewater_environment::live::submit(
                 world,
-                forge_engine::tidewater_environment::live::FrameInput {
+                forge_tidewater::tidewater_environment::live::FrameInput {
                     dt,
                     sun: atmosphere[3].truncate().as_dvec3().to_array(),
                     force: false,
@@ -923,8 +935,8 @@ fn update_live_clouds(world: &mut World) {
             return;
         }
     };
-    let solar_readback =
-        solar_hours.zip(forge_engine::tidewater_atmosphere::readback::last_completed_reader(world));
+    let solar_readback = solar_hours
+        .zip(forge_tidewater::tidewater_atmosphere::readback::last_completed_reader(world));
     let mut time = world.resource_mut::<LiveCloudTime>();
     time.previous = Some(now);
     time.submitted += 1;
@@ -932,7 +944,7 @@ fn update_live_clouds(world: &mut World) {
     let view =
         world.resource::<tidewater_clouds::Targets>().images[5 + output.view_index * 2].clone();
     for (_, material) in world
-        .resource_mut::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+        .resource_mut::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
         .iter_mut()
     {
         material.clouds = params;
@@ -940,25 +952,25 @@ fn update_live_clouds(world: &mut World) {
             material.cloud_view = Some(view.clone());
         }
     }
-    refresh_cloud_receivers::<forge_engine::tidewater_plants::PlantMaterial>(
+    refresh_cloud_receivers::<forge_tidewater::tidewater_plants::PlantMaterial>(
         world,
         params,
         |material| &material.clouds,
         |material, value| material.clouds = value,
     );
-    refresh_cloud_receivers::<forge_engine::tidewater_material::VillageMaterial>(
+    refresh_cloud_receivers::<forge_tidewater::tidewater_material::VillageMaterial>(
         world,
         params,
         |material| &material.clouds,
         |material, value| material.clouds = value,
     );
-    refresh_cloud_receivers::<forge_engine::tidewater_terrain::TerrainMaterial>(
+    refresh_cloud_receivers::<forge_tidewater::tidewater_terrain::TerrainMaterial>(
         world,
         params,
         |material| &material.clouds,
         |material, value| material.clouds = value,
     );
-    refresh_cloud_receivers::<forge_engine::tidewater_terrain::lod::LodMaterial>(
+    refresh_cloud_receivers::<forge_tidewater::tidewater_terrain::lod::LodMaterial>(
         world,
         params,
         |material| &material.base.clouds,
@@ -1021,11 +1033,9 @@ fn project_ready(world: &mut World, state: &mut ProjectionState) -> Result<(), S
             .nodes(view)?;
         // Preserve the exact source order, including distance sorting. Only a
         // different selection needs packing, extraction and a fresh GPU mesh.
-        if !state
-            .geometry_nodes
-            .as_deref()
-            .is_some_and(|previous| forge_world::cdlod::same_node_geometry(previous, &nodes))
-        {
+        if !state.geometry_nodes.as_deref().is_some_and(|previous| {
+            forge_tidewater_assets::cdlod::same_node_geometry(previous, &nodes)
+        }) {
             let resident = world.resource::<ResidentTerrain>().clone();
             if let Some(entity) = resident.entity {
                 if let Some((mesh, _)) = ViewGeometry::mesh_from_nodes(&nodes) {
@@ -1079,7 +1089,7 @@ fn project_ready(world: &mut World, state: &mut ProjectionState) -> Result<(), S
 fn rebuild(
     world: &mut World,
     state: &mut ProjectionState,
-    view: forge_world::cdlod::CdlodView,
+    view: forge_tidewater_assets::cdlod::CdlodView,
 ) -> Result<(), String> {
     if !imported_buildings::has_environment() {
         return Err("La bibliothèque courante ne fournit pas d'environnement".into());
@@ -1188,7 +1198,7 @@ fn rebuild(
         .map_or([UVec4::ZERO; 3], |targets| targets.params);
     world.insert_resource(crate::authoring_imported_shadows::Receiver(shadow.clone()));
     let caustics = world
-        .get_resource::<forge_engine::tidewater_caustics::CausticMaterialInputs>()
+        .get_resource::<forge_tidewater::tidewater_caustics::CausticMaterialInputs>()
         .cloned();
     terrain.stage(
         world,
@@ -1215,7 +1225,7 @@ fn rebuild(
         ocean_geometry.stage(world, view)?;
     }
     if let Some(ocean_optics) = ocean_optics {
-        forge_engine::tidewater_ocean_depth::resize(world, state.camera)?;
+        forge_tidewater::tidewater_ocean_depth::resize(world, state.camera)?;
         ocean_optics.stage(world)?;
     }
     physics.stage(world);
@@ -1345,7 +1355,7 @@ fn spawn_flat_water(world: &mut World) -> Entity {
 }
 
 fn spawn_sky(world: &mut World) -> Entity {
-    use forge_engine::tidewater_sky::{Settings, SkyMaterial};
+    use forge_tidewater::tidewater_sky::{Settings, SkyMaterial};
     let environment = world.resource::<ResidentEnvironment>();
     let atmosphere = &environment.atmosphere;
     let sun = atmosphere.params[3].truncate();
@@ -1383,7 +1393,7 @@ fn spawn_sky(world: &mut World) -> Entity {
 pub(crate) fn camera_view(
     transform: &Transform,
     projection: &PerspectiveProjection,
-) -> Result<forge_world::cdlod::CdlodView, String> {
+) -> Result<forge_tidewater_assets::cdlod::CdlodView, String> {
     use bevy::math::{DMat4, DQuat, DVec3, DVec4};
     let near = f64::from(projection.near);
     let far = f64::from(projection.far);
@@ -1407,7 +1417,7 @@ pub(crate) fn camera_view(
         .transpose()
         .to_cols_array_2d()
         .map(DVec4::from_array);
-    Ok(forge_world::cdlod::CdlodView {
+    Ok(forge_tidewater_assets::cdlod::CdlodView {
         position: position.to_array(),
         planes: [
             rows[3] + rows[0],

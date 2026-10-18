@@ -1,0 +1,106 @@
+{
+  "schema": "forge.architecture-validation",
+  "version": 1,
+  "base_commit": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "checkout": "Rust (modified shared checkout)",
+  "checks": [
+    {
+      "name": "workspace_tests",
+      "command": "cargo test --workspace --all-targets --locked --offline -j 2",
+      "log": "workspace-tests-bounded-20261017.log",
+      "log_sha256": "4fa07d055464e8dfc85c34f22b7548d1e206e34d9ada438cf39735e00b1cfb48",
+      "exit_code": 0,
+      "metrics": {
+        "passed": 2355,
+        "failed": 0,
+        "ignored": 56,
+        "suites": 250
+      }
+    },
+    {
+      "name": "project_tests",
+      "command": "cargo test -p forge_project --lib --tests --locked --offline",
+      "log": "project-tests-20261017.log",
+      "log_sha256": "e5ca6630bc1b8f87bcd54df786af794baaa680b517ced607d79df7bae88c2321",
+      "exit_code": 0,
+      "metrics": {
+        "passed": 278,
+        "failed": 0,
+        "ignored": 1
+      }
+    },
+    {
+      "name": "engine_tests",
+      "command": "cargo test -p forge_engine --lib --test generic_scene_inputs --locked --offline",
+      "log": "engine-tests-corrected-20261017.log",
+      "log_sha256": "340aeb0753d4d47c63ee7980e996a21fa330863f2d8f507e6a8eb8bce58837c9",
+      "exit_code": 0,
+      "metrics": {
+        "passed": 946,
+        "failed": 0,
+        "ignored": 31
+      }
+    },
+    {
+      "name": "native_clippy",
+      "command": "cargo clippy --workspace --all-targets --locked --offline -- -D warnings",
+      "log": "clippy-corrected-20261017.log",
+      "log_sha256": "50626d425c93eaa2c49510d04fa3722eb5e7a69fb6e20da773f93af2d18a40e5",
+      "exit_code": 0,
+      "metrics": {}
+    },
+    {
+      "name": "engine_wasm_check",
+      "command": "cargo check -p forge_engine --target wasm32-unknown-unknown --no-default-features --features web --locked --offline",
+      "log": "webgpu-engine-20261017.log",
+      "log_sha256": "dd176817d2ad44b054d25252dde74e10b7e8c0ccbd9c986fb764d9f0be2f255d",
+      "exit_code": 0,
+      "metrics": {}
+    },
+    {
+      "name": "studio_wasm_check",
+      "command": "cargo check -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked --offline",
+      "log": "webgpu-studio-check-20261017.log",
+      "log_sha256": "4623f81c28b8beeed9ac222d82c362b17cedd4fd1aa36ad4ebbedae8fcf32093",
+      "exit_code": 0,
+      "metrics": {}
+    },
+    {
+      "name": "studio_wasm_clippy",
+      "command": "cargo clippy -p forge_studio --target wasm32-unknown-unknown --no-default-features --features web --locked --offline -- -D warnings",
+      "log": "webgpu-studio-20261017.log",
+      "log_sha256": "1718dcfde765769ad55f0a5085affb476e811acb717a2aaedc061cb1c070eccc",
+      "exit_code": 101,
+      "metrics": {
+        "lint_diagnostics": 80,
+        "all_diagnostic_files_identical_to_base": true
+      }
+    },
+    {
+      "name": "architecture_boundaries",
+      "command": "python scripts/test_engine_boundaries.py",
+      "log": "boundaries-20261017.log",
+      "log_sha256": "70263cba8c5248249c8e6ceb7a040fd3e48880178b538fe00d44507af819ef69",
+      "exit_code": 0,
+      "metrics": {
+        "passed": 4
+      }
+    },
+    {
+      "name": "rust_format",
+      "command": "cargo fmt --all -- --check",
+      "exit_code": 0
+    },
+    {
+      "name": "scoped_diff_whitespace",
+      "command": "git diff --check -- <46 changed scoped tracked paths>",
+      "exit_code": 0
+    }
+  ],
+  "initial_failures_preserved_separately": true,
+  "initial_unbounded_workspace_build": "intentionally interrupted; bounded replay passed",
+  "genericity_qualified": false,
+  "gpu_qualified": false,
+  "release_qualified": false,
+  "remote_ci_executed": false
+}

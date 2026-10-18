@@ -2,7 +2,7 @@
 #[cfg(target_arch = "wasm32")]
 use bevy::ecs as bevy_ecs;
 use bevy::prelude::*;
-use forge_engine::tidewater_fish_props::shadow::{Frame, MaskedMesh};
+use forge_tidewater::tidewater_fish_props::shadow::{Frame, MaskedMesh};
 use std::{any::TypeId, collections::BTreeMap, sync::Arc};
 
 pub(super) struct Village;
@@ -125,7 +125,7 @@ mod tests {
                 vertices: vec![x as u8; 84],
                 indices: vec![0; 12],
             }]),
-            poses: vec![forge_engine::tidewater_fish_props::shadow::gpu::Pose {
+            poses: vec![forge_tidewater::tidewater_fish_props::shadow::gpu::Pose {
                 model: Mat4::from_translation(Vec3::X * x),
                 enabled: true,
             }],

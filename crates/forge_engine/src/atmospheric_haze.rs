@@ -70,6 +70,10 @@ impl AirHazeSettings {
     }
 }
 
+/// Ordering boundary for the display-space haze pass, after HDR reconstruction.
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LdrHazePass;
+
 #[cfg(test)]
 mod tests {
     use super::*;

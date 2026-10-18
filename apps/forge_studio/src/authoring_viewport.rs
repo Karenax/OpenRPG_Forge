@@ -85,7 +85,7 @@ pub fn AuthoringWorkspace() -> impl IntoView {
             <style>{include_str!("authoring_gold.css")}</style>
             <header class="topbar">
                 <h1>"OpenRPG Forge"</h1><span class="authoring-brand-caption">"Atelier de création"</span>
-                <div inert=move ||super::authoring_native_game::paused() style="display:contents">
+                <div inert=super::authoring_native_game::paused style="display:contents">
                     <super::asset_library_ui::LibraryLauncher/>
                     <crate::asset_import_ui::AssetImportLauncher/>
                 </div>
@@ -98,7 +98,7 @@ pub fn AuthoringWorkspace() -> impl IntoView {
             </header>
             <div class="authoring-body">
                 <aside class="authoring-tools" aria-label="Outils de zone"
-                    inert=move || super::authoring_native_game::paused()>
+                    inert=super::authoring_native_game::paused>
                     <super::authoring_controls::AuthoringControls/>
                 </aside>
                 <section class="authoring-view" aria-label="Terrain édité">

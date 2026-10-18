@@ -2,6 +2,22 @@
 
 ## État courant — Gate 4 clôturée localement au 16 octobre 2026
 
+La [décision de séparation stricte du 18 octobre](../ADR/ADR-0026-strict-engine-map-separation.md)
+déplace les ports et données de carte dans deux composants facultatifs. Le moteur
+et les contrats d'assets génériques ne contiennent plus de référence à Tidewater,
+ni dépendance vers ces composants. Les observations de mouvement et les caméras
+hors écran emploient des contrats moteur neutres. Les constats d'architecture
+précédents ci-dessous restent datés ; la qualification complète des capacités
+graphiques et les limites des parcours installés demeurent distinctes.
+
+La [réserve d'architecture moteur du 17 octobre](ENGINE_ARCHITECTURE_DEBT_20261017.md)
+reste ouverte : généricité complète et preuves indépendantes natif/WebGPU à
+acquérir. Les premières corrections de code ne clôturent pas cette réserve.
+La [reprise du 18 octobre](ENGINE_RESERVES_20261018.md) lève la réserve Clippy
+Studio WASM et ajoute des contrats communs ainsi que des preuves GPU indépendantes
+pour grain, flare et AO. L'extraction et les preuves des autres familles restent
+à réaliser ; aucune nouvelle gate n'est ouverte par cette reprise.
+
 **Gate 3 est clôturée** sur les preuves locales Source013 et l'acceptation
 propriétaire de la boucle RPG créée depuis Studio, dans le jeu séparé.
 Le [bilan de clôture](../evidence/gate3/GATE3_CLOSURE_20261015.md) rapproche

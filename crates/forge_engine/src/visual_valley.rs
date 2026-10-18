@@ -297,9 +297,11 @@ impl Plugin for VisualValleyPlugin {
         } else {
             prepare_visual_valley(&self.document)
         };
-        let mut prepared = prepared
+        let prepared = prepared
             .unwrap_or_else(|error| panic!("VisualValleyPlugin requires valid terrain: {error}"));
         let stats = prepared.stats.clone();
+        #[cfg(feature = "physics-rapier")]
+        let mut prepared = prepared;
         #[cfg(feature = "physics-rapier")]
         let terrain_cache = prepared
             .terrain_cache
@@ -499,6 +501,9 @@ fn prepare_generated_visual_valley(
         lod_zero_chunks: generated.chunks.len(),
     };
 
+    #[cfg(not(feature = "physics-rapier"))]
+    drop(generated);
+
     Ok(PreparedVisualValleyScene {
         name: document.name.clone(),
         chunks,
@@ -696,6 +701,8 @@ fn spawn_visual_valley(
                 Transform::IDENTITY,
             ))
             .id();
+        #[cfg(not(feature = "physics-rapier"))]
+        let _ = entity;
         #[cfg(feature = "physics-rapier")]
         bindings.register_render(
             chunk.marker.id,

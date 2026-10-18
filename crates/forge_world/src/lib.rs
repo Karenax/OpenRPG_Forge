@@ -4,7 +4,6 @@
 
 pub mod building_layout;
 mod building_vegetation;
-pub mod cdlod;
 mod clouds;
 pub mod editor_vegetation;
 mod environment;
@@ -37,7 +36,6 @@ pub mod terrain_brush_preview;
 pub mod terrain_brush_stroke;
 mod terrain_generation;
 pub mod terrain_material_brush;
-pub mod tidewater_vegetation;
 mod vegetation;
 pub mod vegetation_density_brush;
 pub mod vegetation_density_preview;

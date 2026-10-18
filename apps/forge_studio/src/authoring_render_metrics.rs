@@ -28,16 +28,16 @@ pub(super) fn ViewportMetrics() -> impl IntoView {
 pub(super) struct MaterialActivity {
     standard: bevy::ecs::message::MessageCursor<AssetEvent<StandardMaterial>>,
     village: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_engine::tidewater_material::VillageMaterial>,
+        AssetEvent<forge_tidewater::tidewater_material::VillageMaterial>,
     >,
     plants: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_engine::tidewater_plants::PlantMaterial>,
+        AssetEvent<forge_tidewater::tidewater_plants::PlantMaterial>,
     >,
     terrain: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_engine::tidewater_terrain::lod::LodMaterial>,
+        AssetEvent<forge_tidewater::tidewater_terrain::lod::LodMaterial>,
     >,
     fish: bevy::ecs::message::MessageCursor<
-        AssetEvent<forge_engine::tidewater_fish_props::material::FishMaterial>,
+        AssetEvent<forge_tidewater::tidewater_fish_props::material::FishMaterial>,
     >,
     buffers: bevy::ecs::message::MessageCursor<AssetEvent<ShaderBuffer>>,
     changed: [usize; 6],
@@ -84,16 +84,16 @@ pub(super) fn observe_materials(world: &mut World, mut activity: Local<MaterialA
             .get_resource::<Assets<StandardMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_engine::tidewater_material::VillageMaterial>>()
+            .get_resource::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_engine::tidewater_plants::PlantMaterial>>()
+            .get_resource::<Assets<forge_tidewater::tidewater_plants::PlantMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_engine::tidewater_terrain::lod::LodMaterial>>()
+            .get_resource::<Assets<forge_tidewater::tidewater_terrain::lod::LodMaterial>>()
             .map_or(0, Assets::len),
         world
-            .get_resource::<Assets<forge_engine::tidewater_fish_props::material::FishMaterial>>()
+            .get_resource::<Assets<forge_tidewater::tidewater_fish_props::material::FishMaterial>>()
             .map_or(0, Assets::len),
     ];
     let prepared = world

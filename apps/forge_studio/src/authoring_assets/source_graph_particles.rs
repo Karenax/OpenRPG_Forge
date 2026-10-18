@@ -35,11 +35,10 @@ pub(super) fn take_controls() -> Vec<ControlRequest> {
 pub(super) fn SourceParticleControls(target: ControlTarget) -> impl IntoView {
     let status = RwSignal::new(String::new());
     let reply = Callback::new(move |result: Result<(), String>| {
-        let _ = status.try_set(
-            result
-                .map(|()| "Commande d’effet transmise.".into())
-                .unwrap_or_else(|error| format!("Effet refusé : {error}")),
-        );
+        let _ = status.try_set(result.map_or_else(
+            |error| format!("Effet refusé : {error}"),
+            |()| "Commande d’effet transmise.".into(),
+        ));
     });
     let action = move |event| {
         if let Err(error) = submit(ControlRequest {

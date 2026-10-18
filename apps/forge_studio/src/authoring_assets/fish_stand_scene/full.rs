@@ -1,7 +1,7 @@
 //! Complete material projection using the viewport's common resident resources.
 use super::{State, imported_buildings};
 use bevy::prelude::*;
-use forge_engine::{
+use forge_tidewater::{
     tidewater_material::VillageMaterial,
     tidewater_ocean_depth::{self, SceneDepth},
     tidewater_stall::{
@@ -19,7 +19,7 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
 
 fn inputs(world: &World, lighting: &VillageMaterial) -> Result<contact_gpu::Inputs, String> {
     let time = world
-        .get_resource::<forge_engine::tidewater_wind::WindFrame>()
+        .get_resource::<forge_tidewater::scene_wind::WindFrame>()
         .ok_or("Horloge commune du stand absente")?
         .material_uniform()
         .w;
@@ -28,7 +28,7 @@ fn inputs(world: &World, lighting: &VillageMaterial) -> Result<contact_gpu::Inpu
         0.0
     } else {
         world
-            .get_resource::<Assets<forge_engine::tidewater_sky::SkyMaterial>>()
+            .get_resource::<Assets<forge_tidewater::tidewater_sky::SkyMaterial>>()
             .and_then(|materials| materials.iter().next())
             .ok_or("Ciel commun du stand absent")?
             .1
@@ -52,8 +52,8 @@ fn resize_depth(world: &mut World) -> Result<(), String> {
     let camera = {
         let mut cameras = world.query_filtered::<(Entity, &Camera), (
             With<Camera3d>,
-            Without<forge_engine::tidewater_sky::preview::PreviewCamera>,
-            Without<forge_engine::tidewater_refraction::CaptureCamera>,
+            Without<forge_tidewater::tidewater_sky::preview::PreviewCamera>,
+            Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
         )>();
         let mut active = cameras.iter(world).filter(|(_, camera)| camera.is_active);
         let camera = active.next().ok_or("Caméra principale du stand absente")?.0;

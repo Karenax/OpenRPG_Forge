@@ -7,8 +7,6 @@ mod plan;
 pub use plan::{SampledTerrainPlan, SampledTerrainPlanError};
 mod mesh;
 pub use mesh::SampledTerrainPatch;
-mod bounds;
-pub use bounds::RasterLodBounds;
 
 #[derive(Debug)]
 pub struct SampledTerrain {
@@ -42,6 +40,12 @@ impl SampledTerrain {
     #[must_use]
     pub const fn source(&self) -> &SampledTerrainSource {
         &self.source
+    }
+
+    /// Validated row-major samples, exposed read-only to renderer adapters.
+    #[must_use]
+    pub fn heights(&self) -> &[f32] {
+        &self.heights
     }
 
     /// Uses double precision interpolation of exact float32 samples, preserving

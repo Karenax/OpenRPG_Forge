@@ -111,12 +111,12 @@ impl Admission {
     }
 
     pub(super) fn still_available(&self) -> Result<(), String> {
-        if let Self::Package(entry) = self {
-            if !current_imported().iter().any(|current| current == entry) {
-                return Err(
-                    "Bibliothèque remplacée depuis la demande ; recommencer le placement".into(),
-                );
-            }
+        if let Self::Package(entry) = self
+            && !current_imported().iter().any(|current| current == entry)
+        {
+            return Err(
+                "Bibliothèque remplacée depuis la demande ; recommencer le placement".into(),
+            );
         }
         Ok(())
     }

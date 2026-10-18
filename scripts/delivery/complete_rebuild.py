@@ -46,8 +46,8 @@ def regular_input(source, path):
 def shared_source_inputs(source):
     """Use the common build map; retain the complete checkout inventory as evidence.
 
-    Only Hivemind Python orchestration is outside the compiled-input map. The
-    common classifier retains every other format there, including Rust includes.
+    Hivemind orchestration/acquisition is outside the compiled-input map. The
+    common validator refuses Rust includes and Cargo paths back into that directory.
     Git state and informative checkout changes do not alter compiled source bytes.
     """
     validator = gate3_validator(source)
@@ -67,7 +67,7 @@ def shared_source_inputs(source):
             'tracked': tracked, 'modified': modified, 'untracked': untracked,
             'ignored_local_inputs': local, 'deleted': deleted, 'files': pins,
             'working_tree_files': checkout_files,
-            'source_scope_exclusions': ['scripts/hivemind/**/*.py (orchestration only)']}
+            'source_scope_exclusions': ['scripts/hivemind/** (orchestration/acquisition only; product includes refused)']}
 
 
 def frontend_inputs(frontend):
@@ -315,11 +315,14 @@ def shared_rebuild(args):
                     raise ValueError('Canonical frontend changed during native game adoption')
             else:
                 env.pop('RUSTFLAGS', None)
-                run(['cargo', 'rustc', '-p', 'forge_engine', '--example', 'tidewater_plant_probe',
+                run(['cargo', 'rustc', '-p', 'forge_tidewater', '--example', 'tidewater_plant_probe',
                      '--locked', '--offline', '-j', '1',
                      '--config', 'profile.dev.package.forge_engine.opt-level=3',
                      '--config', 'profile.dev.package.forge_engine.debug=0',
                      '--config', 'profile.dev.package.forge_engine.debug-assertions=false',
+                     '--config', 'profile.dev.package.forge_tidewater.opt-level=3',
+                     '--config', 'profile.dev.package.forge_tidewater.debug=0',
+                     '--config', 'profile.dev.package.forge_tidewater.debug-assertions=false',
                      '--', '-C', 'opt-level=3', '-C', 'debuginfo=0', '-C', 'debug-assertions=off'],
                     source, 'shared-game-native-build')
                 executable = cache / 'debug/examples/tidewater_plant_probe.exe'
@@ -482,11 +485,14 @@ def main():
                  'configuration': 'native debug; WebAssembly release; navigation worker release'}
     else:
         env.pop('RUSTFLAGS', None)
-        run(['cargo', 'rustc', '-p', 'forge_engine', '--example', 'tidewater_plant_probe',
+        run(['cargo', 'rustc', '-p', 'forge_tidewater', '--example', 'tidewater_plant_probe',
              '--locked', '--offline', '-j', '1',
              '--config', 'profile.dev.package.forge_engine.opt-level=3',
              '--config', 'profile.dev.package.forge_engine.debug=0',
              '--config', 'profile.dev.package.forge_engine.debug-assertions=false',
+                     '--config', 'profile.dev.package.forge_tidewater.opt-level=3',
+                     '--config', 'profile.dev.package.forge_tidewater.debug=0',
+                     '--config', 'profile.dev.package.forge_tidewater.debug-assertions=false',
              '--', '-C', 'opt-level=3', '-C', 'debuginfo=0', '-C', 'debug-assertions=off'],
             source, 'game-native-build')
         executable = base / 'forge-game.exe'

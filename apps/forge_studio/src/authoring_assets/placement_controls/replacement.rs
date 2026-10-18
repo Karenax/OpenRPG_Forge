@@ -75,7 +75,7 @@ pub(super) fn ReplacementControls(
                     let checked = browser.check().await;
                     busy.set(false);
                     if !super::super::preview::is_current(ticket) || selected.get_untracked() != name { return; }
-                    let result = checked.and_then(|_| {
+                    let result = checked.and_then(|()| {
                         browser.still_available()?;
                         if head(state.get_untracked())?.content_hash()? != hash {
                             return Err("Zone modifiée ; recommencer l’examen du remplacement".into());

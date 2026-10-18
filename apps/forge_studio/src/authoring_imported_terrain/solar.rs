@@ -1,6 +1,6 @@
 //! Ordered solar/atmosphere publication for the imported scene generation.
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::{
+use forge_tidewater::{
     tidewater_atmosphere as atmosphere,
     tidewater_scene_environment::ResidentEnvironment,
     tidewater_sky::{self, frame_lighting::FrameLighting, solar},
@@ -66,8 +66,8 @@ pub(super) fn advance(
     };
     let completed = completed?;
     let lighting = FrameLighting::new(frame, &completed.lighting)?;
-    if world.contains_resource::<forge_engine::tidewater_ocean_optics::ResidentOptics>() {
-        forge_engine::tidewater_ocean_optics::update_lighting(world, &lighting, params)?;
+    if world.contains_resource::<forge_tidewater::tidewater_ocean_optics::ResidentOptics>() {
+        forge_tidewater::tidewater_ocean_optics::update_lighting(world, &lighting, params)?;
     }
     // CPU consumers (shadow projection and flare) need the same direct light.
     // The diffuse SH stays GPU-owned; never overwrite it with the acquired tail.
@@ -75,7 +75,7 @@ pub(super) fn advance(
     environment.scene_lighting.sun_color =
         Vec3::from_array(completed.lighting.sun_color.map(|value| value as f32)).extend(0.0);
     for (_, material) in world
-        .resource_mut::<Assets<forge_engine::tidewater_material::VillageMaterial>>()
+        .resource_mut::<Assets<forge_tidewater::tidewater_material::VillageMaterial>>()
         .iter_mut()
         .filter(|(_, material)| {
             material.shared_scene_lighting

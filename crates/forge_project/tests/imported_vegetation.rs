@@ -19,7 +19,7 @@ fn row(key: u8) -> Vec<u8> {
 fn block(bytes: &[u8], count: u32) -> ImportedVegetationBlock {
     ImportedVegetationBlock {
         layer_id: "trees".into(),
-        prototype_key: "tidewater_trees".into(),
+        prototype_key: "fixture_trees".into(),
         count,
         encoding: ImportedInstanceEncoding::TransformF64LeV1,
         instances_sha256: bytes_sha256(bytes),

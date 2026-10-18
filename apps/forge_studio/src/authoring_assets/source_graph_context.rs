@@ -17,7 +17,7 @@ fn affine(matrix: Mat4) -> Result<(), String> {
         || matrix.x_axis.w != 0.0
         || matrix.y_axis.w != 0.0
         || matrix.z_axis.w != 0.0
-        || matrix.w_axis.w != 1.0
+        || matrix.w_axis.w.to_bits() != 1.0_f32.to_bits()
     {
         return Err("Current source frame must be finite, affine and invertible".into());
     }
@@ -31,7 +31,7 @@ fn row_major(value: &Value) -> Result<Mat4, String> {
     }
     let mut rows = [0.0; 16];
     for (i, value) in values.iter().enumerate() {
-        rows[i] = value.as_f64().ok_or("Source basis value is not numeric")? as f32;
+        rows[i] = number(value, "Source basis")?;
     }
     let matrix = Mat4::from_cols_array(&rows).transpose();
     affine(matrix)?;
@@ -151,7 +151,7 @@ pub(super) fn world_mapping(
     Ok(mapping)
 }
 
-/// HDRP HDCamera's explicit current/previous time parameter convention.
+/// HDRP `HDCamera`'s explicit current/previous time parameter convention.
 /// The viewport owns the times; this helper does not select a simulation clock.
 pub(super) fn time_parameters(seconds: f32) -> Result<Vec4, String> {
     if !seconds.is_finite() {
@@ -159,3 +159,7 @@ pub(super) fn time_parameters(seconds: f32) -> Result<Vec4, String> {
     }
     Ok(Vec4::new(seconds, seconds.sin(), seconds.cos(), 0.0))
 }
+
+#[path = "source_graph_scalar.rs"]
+mod scalar;
+pub(super) use scalar::number;

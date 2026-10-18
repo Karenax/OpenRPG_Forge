@@ -1,0 +1,22 @@
+[
+  {
+    "path": "index.html",
+    "sha256": "111747321a78374f635617c13d88f12938e74919dc3ed1d2818eb6ab6956ef27"
+  },
+  {
+    "path": "generic-optical-wasm\\generic_scene_webgpu_probe_bg.wasm",
+    "sha256": "eafa0185ba83c00889a6250f260064276f130a7ea2bd072e1c7b85bb6abee802"
+  },
+  {
+    "path": "generic-optical-wasm\\generic_scene_webgpu_probe_bg.wasm.d.ts",
+    "sha256": "5de3561ca62e4f57d8cf21edab736baaba6bc6736116c5675cbcd004e8e7a755"
+  },
+  {
+    "path": "generic-optical-wasm\\generic_scene_webgpu_probe.d.ts",
+    "sha256": "b3422c6a86c894ad94dbe76882946894b4cb3c9e4d7e589f90f2bbdb8adc7512"
+  },
+  {
+    "path": "generic-optical-wasm\\generic_scene_webgpu_probe.js",
+    "sha256": "a923229b69aefc9558cd27358ca87bb0f8137e2673afb37394f6c5584dc93b5a"
+  }
+]

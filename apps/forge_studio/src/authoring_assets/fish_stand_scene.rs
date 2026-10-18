@@ -8,14 +8,16 @@ use bevy::{
     prelude::*,
     world_serialization::{WorldAsset, WorldAssetRoot, WorldInstanceReady},
 };
-use forge_engine::{
-    ManualPlacementPart, ManualPlacementProjection,
-    tidewater_fish_props::material::{self as fish_material, FishMaterial},
-    tidewater_scene_environment::ResidentEnvironment,
-    tidewater_stall::{FishStandResident, full_material::FullMaterial},
-};
 use forge_project::zone_authoring::placements::ManualPlacement;
 use std::{cell::RefCell, collections::BTreeMap};
+use {
+    forge_engine::{ManualPlacementPart, ManualPlacementProjection},
+    forge_tidewater::{
+        tidewater_fish_props::material::{self as fish_material, FishMaterial},
+        tidewater_scene_environment::ResidentEnvironment,
+        tidewater_stall::{FishStandResident, full_material::FullMaterial},
+    },
+};
 
 mod full;
 mod lod;
@@ -97,7 +99,7 @@ pub(super) fn ready() -> Result<bool, String> {
 pub(super) fn install(app: &mut App) -> Result<(), String> {
     super::fish_shadow_scene::install(app);
     app.add_plugins((
-        MaterialPlugin::<forge_engine::tidewater_stall::FishStandMaterial>::default(),
+        MaterialPlugin::<forge_tidewater::tidewater_stall::FishStandMaterial>::default(),
         MaterialPlugin::<FullMaterial>::default(),
     ))
     .init_resource::<State>()
@@ -107,7 +109,7 @@ pub(super) fn install(app: &mut App) -> Result<(), String> {
             .after(crate::authoring_assets::imported_scene::update)
             .after(bevy::transform::TransformSystems::Propagate),
     );
-    forge_engine::tidewater_stall::install_shader(app)?;
+    forge_tidewater::tidewater_stall::install_shader(app)?;
     full::install(app)
 }
 
@@ -120,7 +122,7 @@ fn clear(world: &mut World, state: &mut State) {
 }
 
 fn purge(world: &mut World, state: &mut State) {
-    world.remove_resource::<forge_engine::tidewater_stall::contact_gpu::Inputs>();
+    world.remove_resource::<forge_tidewater::tidewater_stall::contact_gpu::Inputs>();
     state.shadow_shader = None;
     clear(world, state);
     if let Some(path) = state.joe_path.take() {
@@ -285,8 +287,8 @@ fn synchronize(
 fn prepare_fish_assets(
     world: &mut World,
     state: &mut State,
-    reference: &forge_assets::tidewater_fish_stand::FishStandReference,
-    package: &forge_assets::tidewater_fish_stand::FishStandPackage,
+    reference: &forge_tidewater_assets::tidewater_fish_stand::FishStandReference,
+    package: &forge_tidewater_assets::tidewater_fish_stand::FishStandPackage,
 ) -> Result<(), String> {
     if state.joe.is_none() {
         let path = format!("fish-stand-{}-joe.glb", reference.bundle_hash);
@@ -317,7 +319,7 @@ fn prepare_fish_assets(
         let surface =
             imported_buildings::fish_props_package().ok_or("Matériau FishProps source absent")?;
         state.shadow_shader = Some(std::sync::Arc::new(
-            forge_engine::tidewater_fish_props::shadow::shader_source(&surface)?,
+            forge_tidewater::tidewater_fish_props::shadow::shader_source(&surface)?,
         ));
         let building = imported_buildings::building_package().ok_or("Éclairage source absent")?;
         let lighting_source = std::str::from_utf8(
@@ -330,7 +332,7 @@ fn prepare_fish_assets(
             world,
             &surface,
             lighting_source,
-            forge_engine::tidewater_fish_props::surface::SpecularMode::ThreeReference,
+            forge_tidewater::tidewater_fish_props::surface::SpecularMode::ThreeReference,
         )?;
         let lighting =
             super::imported_scene::lighting(world).ok_or("Éclairage de l’étal indisponible")?;
@@ -338,7 +340,7 @@ fn prepare_fish_assets(
         let mut prepared = Vec::new();
         let time = world.resource::<Time>().elapsed_secs();
         let templates =
-            forge_engine::tidewater_fish_props::PreparedFishProps::from_game_package(&game)?
+            forge_tidewater::tidewater_fish_props::PreparedFishProps::from_game_package(&game)?
                 .templates;
         if templates.len() != package.fish().len() {
             return Err("Inventaire d'étal différent".into());
@@ -374,32 +376,7 @@ fn prepare_fish_assets(
             });
         }
     }
-    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
-    let time = if editing {
-        0.0
-    } else {
-        world.resource::<Time>().elapsed_secs()
-    };
-    let frame = if editing {
-        0
-    } else {
-        world.resource::<bevy::diagnostic::FrameCount>().0
-    };
-    let mut materials = world.resource_mut::<Assets<FishMaterial>>();
-    for asset in &state.fish {
-        let handle = &asset.material;
-        let material = materials
-            .get(handle)
-            .ok_or("Matériau d’étal indisponible")?;
-        if material.settings.info.w != time || material.settings.frame_index != frame {
-            let mut material = materials
-                .get_mut(handle)
-                .ok_or("Matériau d’étal indisponible")?;
-            material.settings.info.w = time;
-            material.settings.frame_index = frame;
-        }
-    }
-    Ok(())
+    update_fish_materials(world, state)
 }
 
 #[derive(serde::Deserialize)]
@@ -420,7 +397,7 @@ fn spawn_fish_stand(
     source: &ManualPlacement,
     mesh: &Handle<Mesh>,
     material: &Handle<FullMaterial>,
-    package: &forge_assets::tidewater_fish_stand::FishStandPackage,
+    package: &forge_tidewater_assets::tidewater_fish_stand::FishStandPackage,
 ) -> Result<(Entity, Vec<Handle<FishMaterial>>), String> {
     let joe = state.joe.clone().ok_or("Joe GLB unavailable")?;
     let fish_handles = state
@@ -443,7 +420,7 @@ fn spawn_fish_stand(
     let mut stall = world.spawn((
         Mesh3d(mesh.clone()),
         MeshMaterial3d(material.clone()),
-        forge_engine::tidewater_object_shadow::scene::OpaqueCaster,
+        forge_tidewater::tidewater_object_shadow::scene::OpaqueCaster,
         Transform::IDENTITY,
         Visibility::Inherited,
         ChildOf(root),
@@ -517,4 +494,35 @@ pub(crate) fn update(world: &mut World) {
             crate::authoring_camera::focus_object(transform.translation(), 12.0);
         }
     }
+}
+
+fn update_fish_materials(world: &mut World, state: &State) -> Result<(), String> {
+    let editing = world.contains_resource::<crate::authoring_render::FastEditing>();
+    let time = if editing {
+        0.0
+    } else {
+        world.resource::<Time>().elapsed_secs()
+    };
+    let frame = if editing {
+        0
+    } else {
+        world.resource::<bevy::diagnostic::FrameCount>().0
+    };
+    let mut materials = world.resource_mut::<Assets<FishMaterial>>();
+    for asset in &state.fish {
+        let handle = &asset.material;
+        let material = materials
+            .get(handle)
+            .ok_or("Matériau d’étal indisponible")?;
+        if material.settings.info.w.to_bits() != time.to_bits()
+            || material.settings.frame_index != frame
+        {
+            let mut material = materials
+                .get_mut(handle)
+                .ok_or("Matériau d’étal indisponible")?;
+            material.settings.info.w = time;
+            material.settings.frame_index = frame;
+        }
+    }
+    Ok(())
 }

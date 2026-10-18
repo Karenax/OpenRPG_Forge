@@ -53,38 +53,6 @@ fn derived_cell_centres_preserve_source_edges_and_average_corner_edits() {
     assert_eq!(original.cell_center_heights(), heights);
 }
 
-#[test]
-#[allow(clippy::float_cmp)]
-fn lod_bounds_include_source_border_and_author_adjustments() {
-    use forge_world::sampled_terrain::RasterLodBounds;
-    let (mut document, _) = fixture();
-    let bytes: Vec<_> = (0_u16..64)
-        .flat_map(|v| f32::from(v).to_le_bytes())
-        .collect();
-    document.extent_m = TerrainExtent::new(8.0, 8.0);
-    let source = document.sampled_source.as_mut().unwrap();
-    source.width = 8;
-    source.height = 8;
-    source.origin_xz_m = [-4.0; 2];
-    source.samples_sha256 = bytes_sha256(&bytes);
-    let bounds =
-        RasterLodBounds::from_plan(&SampledTerrainPlan::from_document(&document, &bytes).unwrap())
-            .unwrap();
-    assert_eq!(bounds.bounds_for([-4.0; 2], 4.0).unwrap(), [-1.0, 65.0]);
-    assert_eq!(bounds.bounds_for([-4.0; 2], 8.0).unwrap(), [-91.0, 65.0]);
-    assert_eq!(bounds.bounds_for([20.0; 2], 4.0).unwrap(), [-91.0, -88.0]);
-    document.height_sampling.base_elevation_m = 3.0;
-    document.height_deltas = vec![
-        TerrainHeightDelta::new(1, 1, -7.0),
-        TerrainHeightDelta::new(2, 2, 11.0),
-    ];
-    let bounds =
-        RasterLodBounds::from_plan(&SampledTerrainPlan::from_document(&document, &bytes).unwrap())
-            .unwrap();
-    assert_eq!(bounds.bounds_for([-4.0; 2], 4.0).unwrap(), [-5.0, 79.0]);
-    assert!(bounds.bounds_for([f64::NAN, 0.0], 4.0).is_err());
-}
-
 fn fixture() -> (TerrainDocument, Vec<u8>) {
     let bytes: Vec<_> = (0_u16..16)
         .flat_map(|v| f32::from(v).to_le_bytes())

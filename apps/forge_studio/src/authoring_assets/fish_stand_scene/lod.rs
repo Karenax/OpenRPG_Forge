@@ -4,9 +4,9 @@ use bevy::{
     ecs as bevy_ecs,
     prelude::*,
 };
-use forge_engine::{
-    ManualPlacementPart,
-    tidewater_fish_props::{lod, material::FishMaterial},
+use {
+    forge_engine::ManualPlacementPart,
+    forge_tidewater::tidewater_fish_props::{lod, material::FishMaterial},
 };
 
 #[derive(Clone)]
@@ -77,7 +77,7 @@ pub(super) fn retire(world: &mut World, handles: Vec<Handle<FishMaterial>>) {
 
 pub(super) fn update(world: &mut World) -> Result<(), String> {
     let cameras: Vec<_> = world.query_filtered::<(&Camera, &GlobalTransform, &Frustum),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter>().iter(world)
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter>().iter(world)
         .filter(|(camera,_,_)| camera.is_active).map(|(_,global,frustum)|(global.translation(),*frustum)).collect();
     if cameras.len() != 1 {
         return Ok(());
@@ -134,7 +134,7 @@ pub(super) fn update(world: &mut World) -> Result<(), String> {
     }
     let lighting = super::super::imported_scene::resident_lighting_material(world)
         .ok_or("Éclairage résident des poissons d'étal absent")?;
-    forge_engine::tidewater_material::SceneLighting::new(
+    forge_tidewater::tidewater_material::SceneLighting::new(
         lighting.scene_lighting.sun_direction.truncate().to_array(),
         lighting.scene_lighting.sun_color.truncate().to_array(),
         lighting
@@ -171,7 +171,8 @@ pub(super) fn update(world: &mut World) -> Result<(), String> {
 #[derive(Resource, Default)]
 struct ShadowCache {
     key: Vec<(Entity, bevy::asset::AssetId<Mesh>)>,
-    geometry: Option<std::sync::Arc<Vec<forge_engine::tidewater_fish_props::shadow::MaskedMesh>>>,
+    geometry:
+        Option<std::sync::Arc<Vec<forge_tidewater::tidewater_fish_props::shadow::MaskedMesh>>>,
 }
 
 pub(super) fn clear_shadow(world: &mut World) {
@@ -185,9 +186,9 @@ pub(super) fn publish_shadow(
     world: &mut World,
     shader: Option<std::sync::Arc<String>>,
 ) -> Result<(), String> {
-    use forge_engine::tidewater_fish_props::shadow;
+    use forge_tidewater::tidewater_fish_props::shadow;
     let cameras: Vec<_> = world.query_filtered::<(&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter>().iter(world)
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter>().iter(world)
         .filter(|(camera,_)| camera.is_active).map(|(_,global)|global.translation()).collect();
     let target = world
         .get_resource::<crate::authoring_imported_shadows::Receiver>()

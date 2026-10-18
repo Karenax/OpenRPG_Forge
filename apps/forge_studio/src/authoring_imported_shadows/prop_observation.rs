@@ -1,6 +1,6 @@
 //! CPU projection and visibility evidence; neither draw completion nor pixel parity.
 use bevy::prelude::*;
-use forge_engine::{
+use forge_tidewater::{
     tidewater_beach_props::ResidentBeachProps, tidewater_material::VillageMaterial,
     tidewater_village_props::ResidentVillageProps,
 };

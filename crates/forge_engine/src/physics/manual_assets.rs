@@ -13,7 +13,7 @@ pub struct ManualPlacementCollisionPlugin;
 
 /// Bake a box's local yaw into its shape so a placement's nonuniform scale
 /// applies to the exact volume without introducing a sheared child transform.
-pub(crate) fn yawed_box_collider(half: Vec3, yaw: f32) -> Result<Collider, &'static str> {
+pub fn yawed_box_collider(half: Vec3, yaw: f32) -> Result<Collider, &'static str> {
     if !half.is_finite() || half.min_element() <= 0.0 || !yaw.is_finite() {
         return Err("invalid_oriented_box");
     }

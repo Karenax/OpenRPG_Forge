@@ -1,0 +1,9 @@
+{
+  "builder": "cargo test --workspace --lib --tests (binary targets for integration tests)",
+  "binary_sha256": "2b1898715d9981a765fccaf0003a9e9a5c525d569a05bcbfe4b10e135cf0d01d",
+  "binary_last_write_utc": "2026-10-18T19:48:14.987704+00:00",
+  "matching_dependency_executable": "forge_runtime.exe",
+  "depfile_sha256": "e6f802b73d09cafffa9ae06a2a042fa14e29ef9d57d422a69270a022bf29194d",
+  "depfile_named_map_occurrences": 0,
+  "workspace_native_tests_passed": 2232
+}

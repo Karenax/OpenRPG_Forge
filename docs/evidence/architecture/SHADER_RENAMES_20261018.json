@@ -1,0 +1,50 @@
+{
+  "schema": "forge.optical-shader-renames",
+  "version": 1,
+  "base_commit": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "shaders": [
+    {
+      "before": "crates/forge_engine/src/tidewater_film_grain.wgsl",
+      "after": "crates/forge_engine/src/film_grain.wgsl",
+      "normalized_source_sha256": "af07f7af9705af7ac22d94ae0bb6c530e71d2ae976c5c8e129a305e69c55b931",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_gtao.wgsl",
+      "after": "crates/forge_engine/src/ambient_occlusion.wgsl",
+      "normalized_source_sha256": "45fd48c557d7355a8fc6d007a8afdcf64a758ddae0cb16a504e71d03901d8b4c",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_gtao_depth.wgsl",
+      "after": "crates/forge_engine/src/ambient_occlusion_depth.wgsl",
+      "normalized_source_sha256": "dbe3ea4f5ce0c135e100729d9c6466d8854a1b90c07c97b243fa9e1f0d753082",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_gtao_blur.wgsl",
+      "after": "crates/forge_engine/src/ambient_occlusion_blur.wgsl",
+      "normalized_source_sha256": "338e05f2832492c5cef162ec03bc83798b5e37dfc57a62667eed5b430c4d4adf",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_gtao_composite.wgsl",
+      "after": "crates/forge_engine/src/ambient_occlusion_composite.wgsl",
+      "normalized_source_sha256": "482d8095fc40f8c485e940ff370436aedfc5f5445265df66b54f6a36ba27fdf2",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_lens_flare.wgsl",
+      "after": "crates/forge_engine/src/lens_flare.wgsl",
+      "normalized_source_sha256": "60dc987c10694b7a674f9a9bcbde751be16485cad8f045b45ff5b4793bc05040",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    },
+    {
+      "before": "crates/forge_engine/src/tidewater_lens_flare_visibility.wgsl",
+      "after": "crates/forge_engine/src/lens_flare_visibility.wgsl",
+      "normalized_source_sha256": "bf75236a4059ba76313aae10cd2982794fe1a36befeb04a97c383d05394cd60a",
+      "wgsl_bytes_equal_after_lf_normalization": true
+    }
+  ],
+  "gpu_execution_proven_by_this_manifest": false
+}

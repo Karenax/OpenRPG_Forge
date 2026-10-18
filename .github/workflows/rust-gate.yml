@@ -35,14 +35,16 @@ jobs:
           cargo install --locked wasm-bindgen-cli --version 0.2.127
       - name: Format
         run: cargo fmt --all -- --check
+      - name: Engine architecture boundaries
+        run: python -B -m unittest discover -s scripts -p test_engine_boundaries.py -v
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Test
-        run: cargo test --workspace --all-targets --locked
+        run: cargo test --workspace --all-targets --locked -- --test-threads=1
       - name: Build native runtime
         run: cargo build --locked --release -p forge_runtime
       - name: Build separate native game
-        run: cargo build --locked --release -p forge_engine --example tidewater_plant_probe
+        run: cargo build --locked --release -p forge_tidewater --example tidewater_plant_probe
       - name: Build Studio shell without installer bundle
         working-directory: apps/forge_studio
         run: cargo tauri build --no-bundle
@@ -59,6 +61,8 @@ jobs:
           cargo install --locked wasm-bindgen-cli --version 0.2.127
       - name: Build WebGPU engine adapter
         run: cargo check --locked --target wasm32-unknown-unknown -p forge_engine --no-default-features --features web
+      - name: Lint Studio WebGPU
+        run: cargo clippy --locked --target wasm32-unknown-unknown -p forge_studio --no-default-features --features web -- -D warnings
       - name: Build Studio WebGPU bundle
         working-directory: apps/forge_studio
         run: trunk build --release --config Trunk.toml

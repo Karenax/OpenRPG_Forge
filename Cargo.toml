@@ -6,6 +6,8 @@ members = [
     "crates/forge_project",
     "crates/forge_world",
     "crates/forge_engine",
+    "crates/forge_tidewater",
+    "crates/forge_tidewater_assets",
     "crates/forge_assets",
     "apps/forge_runtime",
     "apps/forge_studio",
@@ -22,6 +24,8 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [workspace.dependencies]
+forge_tidewater = { path = "crates/forge_tidewater", default-features = false }
+forge_tidewater_assets = { path = "crates/forge_tidewater_assets" }
 bevy = { version = "=0.19.1", default-features = false, features = ["3d", "ui"] }
 bevy_rapier3d = { version = "=0.36.0", default-features = false, features = ["dim3"] }
 console_error_panic_hook = "=0.1.7"

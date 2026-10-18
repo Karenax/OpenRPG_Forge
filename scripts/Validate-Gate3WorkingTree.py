@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+import tomllib
 
 SOURCE = Path(__file__).resolve().parents[1]
 PREFIXES = ("apps/", "crates/", "tools/", "third_party/", ".cargo/", "scripts/", ".github/", "examples/")
@@ -50,14 +51,53 @@ def read_json(path):
 
 
 def is_build_input(name):
-    """Hivemind Python orchestration is inventoried separately, not built here.
+    """Orchestration/acquisition stays in the checkout ledger, not the build map.
 
-    Cargo/Trunk/worker/delivery/NSIS/private-replay consumers were checked.
-    Retain every non-Python input there, including the Rust candidate included
-    by verify_townsmith_material_layouts.rs and any shader or binary payload.
+    Compiled verification harnesses are owned under forge_tidewater/examples.
+    source_inventories refuses direct product includes back into orchestration
+    before excluding it; consumed static assets retain their separate pins.
     """
     return (name in ROOT_INPUTS or name.startswith(PREFIXES)) and not (
-        name.startswith('scripts/hivemind/') and name.lower().endswith('.py'))
+        name.startswith('scripts/hivemind/'))
+
+
+def require_product_owned_includes():
+    """Reject explicit Rust includes and Cargo paths back into orchestration."""
+    manifests = [SOURCE / 'Cargo.toml', *(SOURCE / '.cargo').rglob('*.toml')]
+    for directory in ('apps', 'crates', 'tools'):
+        manifests.extend((SOURCE / directory).rglob('Cargo.toml'))
+        for path in (SOURCE / directory).rglob('*.rs'):
+            if any(part in ('target', 'vendor') for part in path.parts):
+                continue
+            source = '\n'.join(line for line in path.read_text(encoding='utf-8').splitlines()
+                               if not line.lstrip().startswith('//'))
+            macros = re.findall(r'\binclude(?:_str|_bytes)?!\s*\((.*?)\)\s*;', source, re.S)
+            macros += re.findall(r'#\[path\s*=\s*(.*?)\]', source, re.S)
+            for macro in macros:
+                target = ''.join(re.findall(r'"([^"]*)"', macro)).replace('\\', '/').casefold()
+                require('hivemind' not in target.split('/'),
+                        f'Product source includes orchestration input: {path}')
+
+    def compilation_paths(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key == 'path' and isinstance(child, str):
+                    yield child
+                elif key in ('members', 'default-members') and isinstance(child, list):
+                    yield from (item for item in child if isinstance(item, str))
+                else:
+                    yield from compilation_paths(child)
+        elif isinstance(value, list):
+            for child in value:
+                yield from compilation_paths(child)
+
+    for path in manifests:
+        if not path.is_file() or any(part in ('target', 'vendor') for part in path.parts):
+            continue
+        document = tomllib.loads(path.read_text(encoding='utf-8-sig'))
+        for target in compilation_paths(document):
+            require('hivemind' not in target.replace('\\', '/').casefold().split('/'),
+                    f'Product manifest references orchestration input: {path}')
 
 
 def has_reparse_attribute(path):
@@ -65,6 +105,7 @@ def has_reparse_attribute(path):
 
 
 def source_inventories():
+    require_product_owned_includes()
     def git_names(*arguments, paths=None):
         command = ["git", "ls-files", *arguments, "-z"]
         if paths is not None:
@@ -402,7 +443,7 @@ STAGES = {
         # The canonical dist was built and authenticated by the wasm stage.
         ("studio-release", ["cargo", "build", "--release", "--locked", "--offline", "-p", "forge_studio", "--bin", "forge-studio", "--features", "tauri/custom-protocol"], SOURCE),
         # This is the actual separate game configured beside the shared Studio.
-        ("native-game-release", ["cargo", "build", "--release", "--locked", "--offline", "-p", "forge_engine", "--example", "tidewater_plant_probe"], SOURCE),
+        ("native-game-release", ["cargo", "build", "--release", "--locked", "--offline", "-p", "forge_tidewater", "--example", "tidewater_plant_probe"], SOURCE),
     ],
     "supply": [
         ("deny", ["cargo", "deny", "check", "licenses", "bans", "sources", "advisories"], SOURCE),
@@ -447,7 +488,7 @@ def main():
     write(manifest_path, {
         'schema': 'forge.gate3.source-inputs.v1',
         "source": str(SOURCE), "base_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=SOURCE).decode().strip(),
-        "scope": "Shared build inputs, including local Cargo locks/configurations; non-consumed hivemind Python orchestration separately inventoried",
+        "scope": "Shared product build inputs, including local Cargo locks/configurations; non-consumed orchestration/acquisition separately inventoried after include guards",
         "fingerprint_sha256": fingerprint(before), "files": before,
         "driver_sha256": sha(Path(__file__)), "target_dir": env["CARGO_TARGET_DIR"],
         'build_environment': build_environment,

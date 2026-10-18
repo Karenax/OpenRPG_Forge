@@ -1,0 +1,216 @@
+{
+  "schema": "forge.runtime-metrics",
+  "schema_version": 8,
+  "source_hash": "71754ba10f4f0dc87a3423f6fca3b573be263a1c8150492d730b76447c88ac54",
+  "gpu": {
+    "memory": {
+      "sampled_frame": 0,
+      "elapsed_seconds": 0.0,
+      "scope": "backend_allocator_not_resident_vram_or_process_total",
+      "status": "available",
+      "allocator": {
+        "allocated_bytes": 524728,
+        "reserved_bytes": 201326592,
+        "allocation_count": 4,
+        "block_count": 2
+      }
+    },
+    "name": "AMD Radeon RX 7800 XT",
+    "vendor": 4098,
+    "device": 29822,
+    "device_type": "DiscreteGpu",
+    "driver": "AMD proprietary driver",
+    "driver_info": "26.8.1 (LLPC)",
+    "backend": "Vulkan",
+    "max_texture_dimension_2d": 16384,
+    "max_bind_groups": 8,
+    "max_uniform_buffer_binding_size": 2147483647,
+    "max_storage_buffer_binding_size": 2147483644
+  },
+  "window": {
+    "initial": {
+      "logical_width": 1920.0,
+      "logical_height": 1080.0,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "scale_factor": 1.0,
+      "resizable": true,
+      "present_mode_request": "auto_vsync",
+      "vsync_requested": true
+    },
+    "final_state": {
+      "logical_width": 1920.0,
+      "logical_height": 1080.0,
+      "physical_width": 1920,
+      "physical_height": 1080,
+      "scale_factor": 1.0,
+      "resizable": true,
+      "present_mode_request": "auto_vsync",
+      "vsync_requested": true
+    },
+    "resize_request": null,
+    "resize_request_issued": false,
+    "resize_request_issued_frame": null,
+    "resize_request_observed": false,
+    "resize_request_observed_frame": null,
+    "resize_events_observed": 2,
+    "automated_close_frame": null,
+    "automated_close_issued": false,
+    "close_requests_observed": 0
+  },
+  "frame": {
+    "samples": 590,
+    "duration_ms": 4111.080099999999,
+    "mean_ms": 6.9679323728813545,
+    "p50_ms": 6.947,
+    "p95_ms": 7.9495,
+    "p99_ms": 10.077,
+    "max_ms": 28.0837,
+    "mean_fps": 143.51459607902072,
+    "one_percent_low_fps": 75.28287540433178,
+    "hitches_over_16_7_ms": 1,
+    "hitches_over_33_3_ms": 0,
+    "histogram": {
+      "frames_at_or_below_16_7_ms": 589,
+      "frames_over_16_7_ms_at_or_below_33_3_ms": 1,
+      "frames_over_33_3_ms": 0
+    }
+  },
+  "render_diagnostics": [
+    {
+      "path": "render/bin_unpacking/compute_shader_invocations",
+      "value": 320.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/bin_unpacking/elapsed_cpu",
+      "value": 0.0055,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/bin_unpacking/elapsed_gpu",
+      "value": 0.00652,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/clustering/elapsed_cpu",
+      "value": 0.0193,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/clustering/elapsed_gpu",
+      "value": 0.06984,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early_mesh_preprocessing/compute_shader_invocations",
+      "value": 320.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/early_mesh_preprocessing/elapsed_cpu",
+      "value": 0.0023,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/early_mesh_preprocessing/elapsed_gpu",
+      "value": 0.01912,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/clipper_invocations",
+      "value": 14.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/clipper_primitives_out",
+      "value": 14.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/elapsed_cpu",
+      "value": 0.0095,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/elapsed_gpu",
+      "value": 0.12712,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/main_opaque_pass_3d/fragment_shader_invocations",
+      "value": 1086894.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/main_opaque_pass_3d/vertex_shader_invocations",
+      "value": 28.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/clipper_invocations",
+      "value": 428.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/clipper_primitives_out",
+      "value": 428.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/elapsed_cpu",
+      "value": 0.0061,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ui/elapsed_gpu",
+      "value": 0.0086,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/ui/fragment_shader_invocations",
+      "value": 114402.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/ui/vertex_shader_invocations",
+      "value": 868.0,
+      "suffix": ""
+    },
+    {
+      "path": "render/upscaling/elapsed_cpu",
+      "value": 0.0026,
+      "suffix": "ms"
+    },
+    {
+      "path": "render/upscaling/elapsed_gpu",
+      "value": 0.04704,
+      "suffix": "ms"
+    }
+  ],
+  "render_work": {
+    "source_entities": 4,
+    "source_mesh_instances": 2,
+    "gpu_draw_calls": null,
+    "gpu_draw_call_status": "unavailable_bevy_0_19_no_global_counter",
+    "gpu_main_opaque_primitives": 14.0,
+    "gpu_main_opaque_vertex_shader_invocations": 28.0,
+    "gpu_main_opaque_fragment_shader_invocations": 1086894.0,
+    "timed_render_spans_observed": 6
+  },
+  "capture_readiness": {
+    "pipeline": {
+      "observation": 240,
+      "total": 43,
+      "ready": 43,
+      "pending": 0,
+      "failed": 0
+    },
+    "stable_observations": 187,
+    "required_stable_observations": 8,
+    "scene_ready": true,
+    "earliest_frame": 240,
+    "issued_frame": 240,
+    "callback_received_frame": 244
+  }
+}

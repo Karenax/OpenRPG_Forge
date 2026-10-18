@@ -57,7 +57,9 @@ pub(super) async fn load_saved(
     if let Some(wire) = CACHE.with(|cache| cache.borrow_mut().get(key)) {
         return Ok(payload(wire));
     }
-    let _permit = super::MODEL_READ_GATE.with(|gate| gate.acquire())?.await;
+    let _permit = super::MODEL_READ_GATE
+        .with(super::super::model_read_gate::ModelReadGate::acquire)?
+        .await;
     // Another request may have populated this exact identity while queued.
     if let Some(wire) = CACHE.with(|cache| cache.borrow_mut().get(key)) {
         return Ok(payload(wire));

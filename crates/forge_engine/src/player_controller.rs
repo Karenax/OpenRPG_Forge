@@ -22,10 +22,7 @@ use std::{error::Error, fmt};
 
 const CAMERA_COLLISION_MARGIN_M: f32 = 0.05;
 
-#[path = "tidewater_player.rs"]
-mod tidewater;
-pub use crate::tidewater_locomotion::TidewaterLadder;
-pub use tidewater::{TidewaterPlayerInput, TidewaterPlayerPlugin, TidewaterPlayerState};
+use crate::player_motion_extension::{PlayerMotionExtension, PlayerMotionPublication};
 
 /// Public fixed-schedule boundaries used by deterministic probes and later Studio playtests.
 #[derive(Clone, Debug, Hash, PartialEq, Eq, SystemSet)]
@@ -37,6 +34,9 @@ pub enum PlayerControllerSet {
     /// Projects the verified player pose into the single stable camera entity.
     Camera,
 }
+
+#[derive(SystemSet, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PlayerSpawnSet;
 
 /// Absolute world-space centre of the player capsule at startup.
 #[derive(Clone, Copy, Debug, PartialEq, Resource)]
@@ -139,6 +139,11 @@ pub struct PendingPlayerControlCommand {
 }
 
 impl PendingPlayerControlCommand {
+    #[must_use]
+    pub const fn raw_move_axis(&self) -> Vec2 {
+        self.held_raw_move_axis
+    }
+
     /// Cancels held/queued input while retaining the monotonic command sequence.
     pub fn cancel_input(&mut self) {
         self.pending_sequence = None;
@@ -185,7 +190,7 @@ impl PendingPlayerControlCommand {
         Ok(sequence)
     }
 
-    fn drain_tick(&mut self) -> (Option<u64>, PlayerControlCommand) {
+    pub fn drain_tick(&mut self) -> (Option<u64>, PlayerControlCommand) {
         let command = PlayerControlCommand {
             move_axis: self.held_move_axis,
             sprint: self.held_sprint,
@@ -264,6 +269,16 @@ impl Default for PlayerRuntimeBindings {
 }
 
 impl PlayerRuntimeBindings {
+    #[must_use]
+    pub fn player_entity(&self) -> Option<Entity> {
+        self.player_entity
+    }
+
+    #[must_use]
+    pub fn mesh_handle(&self) -> Option<&Handle<Mesh>> {
+        self.mesh_handle.as_ref()
+    }
+
     #[must_use]
     pub fn snapshot(&self) -> Option<PlayerRuntimeBindingSnapshot> {
         Some(PlayerRuntimeBindingSnapshot {
@@ -386,7 +401,7 @@ pub struct ForgePlayerCharacter;
 pub struct ForgePlayerCamera;
 
 #[derive(Clone, Resource)]
-struct PlayerRuntimeProfile(PlayerControllerProfileDocument);
+pub struct PlayerRuntimeProfile(pub PlayerControllerProfileDocument);
 
 /// Reads the actual projected camera input gain for native replay adapters.
 #[cfg(not(target_arch = "wasm32"))]
@@ -429,12 +444,12 @@ pub(crate) fn braking_mps2(world: &World) -> Result<f32, String> {
 }
 
 #[derive(Component, Debug)]
-struct PlayerMotionState {
-    horizontal_velocity: Vec3,
-    vertical_velocity_mps: f32,
-    grounded: bool,
-    fixed_tick: u64,
-    last_desired_translation: Vec3,
+pub struct PlayerMotionState {
+    pub horizontal_velocity: Vec3,
+    pub vertical_velocity_mps: f32,
+    pub grounded: bool,
+    pub fixed_tick: u64,
+    pub last_desired_translation: Vec3,
 }
 
 impl Default for PlayerMotionState {
@@ -562,14 +577,20 @@ impl Plugin for PlayerControllerPlugin {
                 FixedUpdate,
                 PlayerControllerSet::Camera.after(PlayerControllerSet::Observe),
             )
-            .add_systems(Startup, spawn_player_controller)
+            .configure_sets(
+                FixedUpdate,
+                PlayerMotionPublication
+                    .after(PlayerControllerSet::Observe)
+                    .before(PlayerControllerSet::Camera),
+            )
+            .add_systems(Startup, spawn_player_controller.in_set(PlayerSpawnSet))
             .add_systems(
                 FixedUpdate,
                 drive_player_controller
                     .in_set(PlayerControllerSet::Drive)
                     .run_if(bevy::ecs::schedule::common_conditions::not(
                         bevy::ecs::schedule::common_conditions::resource_exists::<
-                            TidewaterPlayerState,
+                            PlayerMotionExtension,
                         >,
                     )),
             )
@@ -872,7 +893,7 @@ fn drive_player_controller(
     snapshot.camera_pitch_radians = camera_rig.pitch_radians;
 }
 
-fn freeze_player_controller(
+pub fn freeze_player_controller(
     controller: &mut KinematicCharacterController,
     motion: &mut PlayerMotionState,
     snapshot: &mut PlayerRuntimeSnapshot,
@@ -894,7 +915,7 @@ fn freeze_player_controller(
     clippy::type_complexity,
     reason = "the query keeps all backend identity observations in one post-writeback snapshot"
 )]
-fn observe_player_controller(
+pub fn observe_player_controller(
     ready: Res<PlayerSimulationReady>,
     mut bindings: ResMut<PlayerRuntimeBindings>,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
@@ -945,7 +966,7 @@ fn update_player_camera(
     bindings: Res<PlayerRuntimeBindings>,
     rapier: ReadRapierContext,
     mut snapshot: ResMut<PlayerRuntimeSnapshot>,
-    tidewater: Option<ResMut<TidewaterPlayerState>>,
+    extension: Option<Res<PlayerMotionExtension>>,
     mut player: Query<(&Transform, &mut Visibility), With<ForgePlayerCharacter>>,
     mut camera: Query<
         (&mut Transform, &mut Projection, &mut PlayerCameraRig),
@@ -963,8 +984,11 @@ fn update_player_camera(
     let mut player_center = player_transform.translation;
     let mut capsule_half_height =
         controller_profile.capsule_radius_m + controller_profile.capsule_half_segment_m;
-    if let Some(mut state) = tidewater {
-        player_center = state.motion.eye(fixed_time.timestep().as_secs_f32());
+    if let Some(eye) = extension
+        .and_then(|state| state.camera_eye)
+        .filter(|eye| eye.is_finite())
+    {
+        player_center = eye;
         capsule_half_height = 0.0;
         effective_camera_profile.eye_height_m = 0.0;
         effective_camera_profile.pivot_height_m = 0.0;
@@ -1088,6 +1112,69 @@ mod tests {
     use bevy_rapier3d::prelude::{NoUserData, RapierPhysicsPlugin, TimestepMode};
     use forge_world::VisualValleyPlayerControllerRecipe;
     use std::time::Duration;
+
+    #[test]
+    fn external_motion_provider_controls_eye_and_releases_the_standard_driver() {
+        let profile = test_profile();
+        let height = capsule_half_height(&profile);
+        let mut app = test_app(profile, Vec3::new(0.0, height + 0.02, 0.0));
+        spawn_box(
+            &mut app,
+            Vec3::new(0.0, -0.1, 0.0),
+            Vec3::new(12.0, 0.1, 12.0),
+            Quat::IDENTITY,
+        );
+        start_and_settle(&mut app);
+        submit(
+            &mut app,
+            PlayerControlCommand {
+                toggle_camera: true,
+                ..default()
+            },
+        );
+        run_fixed(&mut app, 1);
+        assert_eq!(snapshot(&app).camera_mode, PlayerCameraMode::FirstPerson);
+        let identity = bindings(&app);
+        let before = snapshot(&app);
+        let eye = Vec3::new(3.0, 4.0, 5.0);
+        app.insert_resource(PlayerMotionExtension {
+            camera_eye: Some(eye),
+            ..default()
+        });
+        app.add_systems(
+            FixedUpdate,
+            (|extension: Option<ResMut<PlayerMotionExtension>>| {
+                if let Some(mut extension) = extension
+                    && let Some(eye) = &mut extension.camera_eye
+                {
+                    eye.y += 0.25;
+                }
+            })
+            .in_set(PlayerMotionPublication),
+        );
+        submit(
+            &mut app,
+            PlayerControlCommand {
+                move_axis: Vec2::Y,
+                ..default()
+            },
+        );
+        for _ in 0..4 {
+            app.update();
+        }
+        let external = snapshot(&app);
+        assert_eq!(external.fixed_tick, before.fixed_tick);
+        let camera = app
+            .world()
+            .get::<Transform>(identity.camera_entity)
+            .unwrap();
+        assert!(camera.translation.abs_diff_eq(eye + Vec3::Y, 1.0e-6));
+        app.world_mut().remove_resource::<PlayerMotionExtension>();
+        run_fixed(&mut app, 12);
+        assert!(snapshot(&app).player_position.z < before.player_position.z - 0.1);
+        assert_eq!(bindings(&app).player_entity, identity.player_entity);
+        assert_eq!(bindings(&app).camera_entity, identity.camera_entity);
+    }
 
     #[test]
     fn input_normalizes_diagonals_and_keeps_one_shots_until_one_fixed_tick() {

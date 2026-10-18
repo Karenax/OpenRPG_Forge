@@ -25,7 +25,7 @@ fn number(value: &Value, default: Option<f32>) -> Result<f32, String> {
     let number = if value.is_null() {
         default.ok_or("Required light number absent")?
     } else {
-        value.as_f64().ok_or("Light number is not numeric")? as f32
+        super::source_graph_context::number(value, "Light number")?
     };
     if !number.is_finite() || number < 0.0 {
         return Err("Light number must be finite and nonnegative".into());
@@ -44,8 +44,7 @@ pub(super) fn prepare(
     let definitions = definitions
         .map(|v| v.as_array().ok_or("Invalid KHR light array"))
         .transpose()?
-        .map(Vec::as_slice)
-        .unwrap_or(&[]);
+        .map_or(&[][..], Vec::as_slice);
     if definitions.len() > 65_536 {
         return Err("KHR light allocation limit".into());
     }
@@ -65,94 +64,8 @@ pub(super) fn prepare(
         let definition = definitions
             .get(light_index)
             .ok_or("KHR light reference out of range")?;
-        let mut rgb = [1.; 3];
-        if let Some(color) = definition.get("color") {
-            let values = color.as_array().ok_or("Invalid KHR light color")?;
-            if values.len() != 3 {
-                return Err("KHR light color requires three channels".into());
-            }
-            for (channel, value) in rgb.iter_mut().zip(values) {
-                *channel = number(value, None)?;
-                if *channel > 1. {
-                    return Err("KHR light color outside linear unit range".into());
-                }
-            }
-        }
-        let mut intensity = number(&definition["intensity"], Some(1.))?;
-        let range = number(&definition["range"], Some(20.))?;
-        if range == 0. {
-            return Err("KHR light range must be positive".into());
-        }
-        let color = Color::linear_rgb(rgb[0], rgb[1], rgb[2]);
+        let prepared = prepare_light(definition, native_transport)?;
         let source = definition.pointer("/extras/OPENRPG_source_light");
-        let (shadows, contact, radius) = if let Some(source) = source {
-            if source["schema_version"].as_u64() != Some(1) || !native_transport {
-                return Err("Source light requires explicit native transport admission".into());
-            }
-            let enabled = source["enabled"]
-                .as_bool()
-                .ok_or("Source light enabled state absent")?;
-            if !enabled {
-                intensity = 0.;
-            }
-            (
-                source["shadow_maps_enabled"]
-                    .as_bool()
-                    .ok_or("Source light shadow state absent")?,
-                source["contact_shadows_enabled"]
-                    .as_bool()
-                    .ok_or("Source contact shadow state absent")?,
-                number(&source["radius_m"], None)?,
-            )
-        } else {
-            (false, false, 0.)
-        };
-        // Match the pinned Bevy glTF loader: punctual intensity is candela,
-        // while Bevy PointLight/SpotLight intensity is luminous power (lumens).
-        let lumens = intensity * (4. * std::f32::consts::PI);
-        if !lumens.is_finite() {
-            return Err("KHR punctual light photometry overflow".into());
-        }
-        let prepared = match definition["type"].as_str() {
-            Some("point") => PreparedLight::Point(PointLight {
-                color,
-                intensity: lumens,
-                range,
-                radius,
-                shadow_maps_enabled: shadows,
-                contact_shadows_enabled: contact,
-                ..default()
-            }),
-            Some("spot") => {
-                let inner = number(&definition["spot"]["innerConeAngle"], Some(0.))?;
-                let outer = number(
-                    &definition["spot"]["outerConeAngle"],
-                    Some(std::f32::consts::FRAC_PI_4),
-                )?;
-                if outer <= 0. || outer > std::f32::consts::FRAC_PI_2 || inner >= outer {
-                    return Err("Invalid KHR spot cone".into());
-                }
-                PreparedLight::Spot(SpotLight {
-                    color,
-                    intensity: lumens,
-                    range,
-                    radius,
-                    inner_angle: inner,
-                    outer_angle: outer,
-                    shadow_maps_enabled: shadows,
-                    contact_shadows_enabled: contact,
-                    ..default()
-                })
-            }
-            Some("directional") => PreparedLight::Directional(DirectionalLight {
-                color,
-                illuminance: intensity,
-                shadow_maps_enabled: shadows,
-                contact_shadows_enabled: contact,
-                ..default()
-            }),
-            _ => return Err("Unknown KHR light kind".into()),
-        };
         result.push((
             *index,
             prepared,
@@ -197,6 +110,98 @@ impl LightPlan {
         }
         Ok(())
     }
+}
+
+fn prepare_light(definition: &Value, native_transport: bool) -> Result<PreparedLight, String> {
+    let mut rgb = [1.; 3];
+    if let Some(color) = definition.get("color") {
+        let values = color.as_array().ok_or("Invalid KHR light color")?;
+        if values.len() != 3 {
+            return Err("KHR light color requires three channels".into());
+        }
+        for (channel, value) in rgb.iter_mut().zip(values) {
+            *channel = number(value, None)?;
+            if *channel > 1. {
+                return Err("KHR light color outside linear unit range".into());
+            }
+        }
+    }
+    let mut intensity = number(&definition["intensity"], Some(1.))?;
+    let range = number(&definition["range"], Some(20.))?;
+    if range == 0. {
+        return Err("KHR light range must be positive".into());
+    }
+    let color = Color::linear_rgb(rgb[0], rgb[1], rgb[2]);
+    let source = definition.pointer("/extras/OPENRPG_source_light");
+    let (shadows, contact, radius) = if let Some(source) = source {
+        if source["schema_version"].as_u64() != Some(1) || !native_transport {
+            return Err("Source light requires explicit native transport admission".into());
+        }
+        let enabled = source["enabled"]
+            .as_bool()
+            .ok_or("Source light enabled state absent")?;
+        if !enabled {
+            intensity = 0.;
+        }
+        (
+            source["shadow_maps_enabled"]
+                .as_bool()
+                .ok_or("Source light shadow state absent")?,
+            source["contact_shadows_enabled"]
+                .as_bool()
+                .ok_or("Source contact shadow state absent")?,
+            number(&source["radius_m"], None)?,
+        )
+    } else {
+        (false, false, 0.)
+    };
+    // Match the pinned Bevy glTF loader: punctual intensity is candela,
+    // while Bevy PointLight/SpotLight intensity is luminous power (lumens).
+    let lumens = intensity * (4. * std::f32::consts::PI);
+    if !lumens.is_finite() {
+        return Err("KHR punctual light photometry overflow".into());
+    }
+    let prepared = match definition["type"].as_str() {
+        Some("point") => PreparedLight::Point(PointLight {
+            color,
+            intensity: lumens,
+            range,
+            radius,
+            shadow_maps_enabled: shadows,
+            contact_shadows_enabled: contact,
+            ..default()
+        }),
+        Some("spot") => {
+            let inner = number(&definition["spot"]["innerConeAngle"], Some(0.))?;
+            let outer = number(
+                &definition["spot"]["outerConeAngle"],
+                Some(std::f32::consts::FRAC_PI_4),
+            )?;
+            if outer <= 0. || outer > std::f32::consts::FRAC_PI_2 || inner >= outer {
+                return Err("Invalid KHR spot cone".into());
+            }
+            PreparedLight::Spot(SpotLight {
+                color,
+                intensity: lumens,
+                range,
+                radius,
+                inner_angle: inner,
+                outer_angle: outer,
+                shadow_maps_enabled: shadows,
+                contact_shadows_enabled: contact,
+                ..default()
+            })
+        }
+        Some("directional") => PreparedLight::Directional(DirectionalLight {
+            color,
+            illuminance: intensity,
+            shadow_maps_enabled: shadows,
+            contact_shadows_enabled: contact,
+            ..default()
+        }),
+        _ => return Err("Unknown KHR light kind".into()),
+    };
+    Ok(prepared)
 }
 
 #[cfg(test)]

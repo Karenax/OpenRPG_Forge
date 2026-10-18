@@ -26,7 +26,13 @@ pub struct TerrainBrushCursor {
 )]
 pub fn update_terrain_brush_cursor(
     mut cursor: ResMut<TerrainBrushCursor>,
-    cameras: Query<(&Camera, &GlobalTransform), crate::tidewater_sky::preview::SceneCameraFilter>,
+    cameras: Query<
+        (&Camera, &GlobalTransform),
+        (
+            With<Camera3d>,
+            Without<crate::scene_camera::OffscreenSceneCamera>,
+        ),
+    >,
     colliders: Query<
         (
             Option<&TerrainHeightfieldCollider>,

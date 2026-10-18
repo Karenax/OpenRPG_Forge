@@ -13,11 +13,6 @@ use bevy::{
     shader::ShaderCacheError,
 };
 use forge_core::{ContentHash, EntityId};
-use forge_engine::tidewater_plants::picking::{
-    self, decode,
-    occluders::{self, Prepared},
-    render::{Pass, View},
-};
 use forge_project::{
     VegetationLayerId,
     authoring::{AuthoringRequest, AuthoringState},
@@ -26,6 +21,11 @@ use forge_project::{
         imported_plants::ImportedPlantPlacementEdit,
         session::{ZoneAction, ZoneRequest},
     },
+};
+use forge_tidewater::tidewater_plants::picking::{
+    self, decode,
+    occluders::{self, Prepared},
+    render::{Pass, View},
 };
 use leptos::prelude::*;
 use std::cell::Cell;

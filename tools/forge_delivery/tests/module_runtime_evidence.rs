@@ -1,4 +1,4 @@
-#[path = "../../../crates/forge_engine/examples/module_game/evidence_contract.rs"]
+#[path = "../../../crates/forge_tidewater/examples/module_game/evidence_contract.rs"]
 mod evidence;
 use evidence::*;
 use forge_core::{AreaId, AssetId, EntityId, ModuleId, Transform, bytes_sha256};

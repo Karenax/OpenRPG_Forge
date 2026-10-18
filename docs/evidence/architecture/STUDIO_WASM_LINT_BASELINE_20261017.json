@@ -1,0 +1,642 @@
+{
+  "schema": "forge.studio-wasm-lint-baseline",
+  "version": 1,
+  "base_commit": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "diagnostics": [
+    {
+      "message": "error: binding's name is too similar to existing binding",
+      "path": "apps/forge_studio/src/authoring_assets/placements/gizmo/handles.rs",
+      "line": 261,
+      "lint": "similar_names",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: usage of wildcard import",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 2,
+      "lint": "wildcard_imports",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument (396 byte) is passed by value, but might be more efficient if passed by reference (limit: 256 byte)",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 232,
+      "lint": "large_types_passed_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument is passed by value, but not consumed in the function body",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 306,
+      "lint": "needless_pass_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument (396 byte) is passed by value, but might be more efficient if passed by reference (limit: 256 byte)",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 306,
+      "lint": "large_types_passed_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument (396 byte) is passed by value, but might be more efficient if passed by reference (limit: 256 byte)",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 365,
+      "lint": "large_types_passed_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument (396 byte) is passed by value, but might be more efficient if passed by reference (limit: 256 byte)",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 398,
+      "lint": "large_types_passed_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument (396 byte) is passed by value, but might be more efficient if passed by reference (limit: 256 byte)",
+      "path": "apps/forge_studio/src/asset_import_ui.rs",
+      "line": 457,
+      "lint": "large_types_passed_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: item in documentation is missing backticks",
+      "path": "apps/forge_studio/src/authoring_building_projection.rs",
+      "line": 118,
+      "lint": "doc_markdown",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_native_game.rs",
+      "line": 81,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument is passed by value, but not consumed in the function body",
+      "path": "apps/forge_studio/src/authoring_native_game.rs",
+      "line": 99,
+      "lint": "needless_pass_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_native_game.rs",
+      "line": 292,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_native_game.rs",
+      "line": 307,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this `if` statement can be collapsed",
+      "path": "apps/forge_studio/src/authoring_physics.rs",
+      "line": 77,
+      "lint": "collapsible_if",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_viewport.rs",
+      "line": 88,
+      "lint": "redundant_closure",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_viewport.rs",
+      "line": 101,
+      "lint": "redundant_closure",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this `if` statement can be collapsed",
+      "path": "apps/forge_studio/src/authoring_assets/catalog.rs",
+      "line": 114,
+      "lint": "collapsible_if",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: matching over `()` is more explicit",
+      "path": "apps/forge_studio/src/authoring_assets/catalog_drop.rs",
+      "line": 89,
+      "lint": "ignored_unit_patterns",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: very complex type used. Consider factoring parts into `type` definitions",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 27,
+      "lint": "type_complexity",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: very complex type used. Consider factoring parts into `type` definitions",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 39,
+      "lint": "type_complexity",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (193/100)",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 99,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: assigning the result of `Clone::clone()` may be inefficient",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 165,
+      "lint": "assigning_clones",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: assigning the result of `Clone::clone()` may be inefficient",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 209,
+      "lint": "assigning_clones",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_assets/fish_props_scene.rs",
+      "line": 376,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (112/100)",
+      "path": "apps/forge_studio/src/authoring_assets/fish_stand_scene.rs",
+      "line": 285,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: strict comparison of `f32` or `f64`",
+      "path": "apps/forge_studio/src/authoring_assets/fish_stand_scene.rs",
+      "line": 394,
+      "lint": "float_cmp",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: usage of wildcard import",
+      "path": "apps/forge_studio/src/authoring_assets/imported_buildings/catalog.rs",
+      "line": 2,
+      "lint": "wildcard_imports",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this `if` statement can be collapsed",
+      "path": "apps/forge_studio/src/authoring_assets/imported_buildings/catalog.rs",
+      "line": 35,
+      "lint": "collapsible_if",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (124/100)",
+      "path": "apps/forge_studio/src/authoring_assets/imported_buildings/source_objects.rs",
+      "line": 16,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_assets/imported_scene/motion.rs",
+      "line": 50,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (106/100)",
+      "path": "apps/forge_studio/src/authoring_assets/imported_scene.rs",
+      "line": 122,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_assets/map_shelf.rs",
+      "line": 77,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (159/100)",
+      "path": "apps/forge_studio/src/authoring_assets/map_shelf.rs",
+      "line": 178,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: using `chunks_exact` with a constant chunk size",
+      "path": "apps/forge_studio/src/authoring_assets/map_shelf.rs",
+      "line": 359,
+      "lint": "chunks_exact_to_as_chunks",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/placement_controls/gizmo.rs",
+      "line": 20,
+      "lint": "redundant_closure",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: matching over `()` is more explicit",
+      "path": "apps/forge_studio/src/authoring_assets/placement_controls/replacement.rs",
+      "line": 78,
+      "lint": "ignored_unit_patterns",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many arguments (8/7)",
+      "path": "apps/forge_studio/src/authoring_assets/placements/gizmo/handles.rs",
+      "line": 142,
+      "lint": "too_many_arguments",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (191/100)",
+      "path": "apps/forge_studio/src/authoring_assets/placements/gizmo/handles.rs",
+      "line": 142,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (119/100)",
+      "path": "apps/forge_studio/src/authoring_assets/placements/gizmo.rs",
+      "line": 222,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: consider adding a `;` to the last statement for consistent formatting",
+      "path": "apps/forge_studio/src/authoring_assets/placements.rs",
+      "line": 124,
+      "lint": "semicolon_if_nothing_returned",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (126/100)",
+      "path": "apps/forge_studio/src/authoring_assets/placements.rs",
+      "line": 348,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (112/100)",
+      "path": "apps/forge_studio/src/authoring_assets/placements.rs",
+      "line": 573,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many arguments (8/7)",
+      "path": "apps/forge_studio/src/authoring_assets/placements.rs",
+      "line": 886,
+      "lint": "too_many_arguments",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (102/100)",
+      "path": "apps/forge_studio/src/authoring_assets/placements.rs",
+      "line": 886,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: large size difference between variants",
+      "path": "apps/forge_studio/src/authoring_assets/preview.rs",
+      "line": 27,
+      "lint": "large_enum_variant",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: strict comparison of `f32` or `f64`",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_context.rs",
+      "line": 20,
+      "lint": "float_cmp",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_context.rs",
+      "line": 34,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: item in documentation is missing backticks",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_context.rs",
+      "line": 154,
+      "lint": "doc_markdown",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this `if` statement can be collapsed",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_host.rs",
+      "line": 375,
+      "lint": "collapsible_if",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: `format!(..)` appended to existing `String`",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_host.rs",
+      "line": 435,
+      "lint": "format_push_string",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lights.rs",
+      "line": 28,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (122/100)",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lights.rs",
+      "line": 38,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: called `map(<f>).unwrap_or(<a>)` on an `Option` value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lights.rs",
+      "line": 44,
+      "lint": "map_unwrap_or",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lod.rs",
+      "line": 51,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (127/100)",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lod.rs",
+      "line": 63,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lod.rs",
+      "line": 118,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_lod.rs",
+      "line": 132,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: called `map(<f>).unwrap_or_else(<g>)` on a `Result` value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_particles.rs",
+      "line": 39,
+      "lint": "map_unwrap_or",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: use of `Option<Option<T>>`",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_physics.rs",
+      "line": 7,
+      "lint": "option_option",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_placement.rs",
+      "line": 213,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: assigning the result of `Clone::clone()` may be inefficient",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_placement.rs",
+      "line": 284,
+      "lint": "assigning_clones",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: large size difference between variants",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_preview.rs",
+      "line": 10,
+      "lint": "large_enum_variant",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: item in documentation is missing backticks",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs",
+      "line": 2,
+      "lint": "doc_markdown",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: calling `HostedParticleInput::default()` is more clear than this expression",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs",
+      "line": 105,
+      "lint": "default_trait_access",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: item in documentation is missing backticks",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs",
+      "line": 129,
+      "lint": "doc_markdown",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: matching over `()` is more explicit",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs",
+      "line": 189,
+      "lint": "ignored_unit_patterns",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument is passed by value, but not consumed in the function body",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs",
+      "line": 341,
+      "lint": "needless_pass_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (143/100)",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_state.rs",
+      "line": 47,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `u64` to `u8` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_state.rs",
+      "line": 130,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: casting `f64` to `f32` may truncate the value",
+      "path": "apps/forge_studio/src/authoring_assets/source_graph_state.rs",
+      "line": 160,
+      "lint": "cast_possible_truncation",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault/saved_particles.rs",
+      "line": 20,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault/saved_physics.rs",
+      "line": 60,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 22,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 72,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 112,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 163,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this argument is passed by value, but not consumed in the function body",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 191,
+      "lint": "needless_pass_by_value",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: redundant closure",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 299,
+      "lint": "redundant_closure_for_method_calls",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: this function has too many lines (139/100)",
+      "path": "apps/forge_studio/src/authoring_assets/vault.rs",
+      "line": 330,
+      "lint": "too_many_lines",
+      "file_identical_to_head": true
+    },
+    {
+      "message": "error: item in documentation is missing backticks",
+      "path": "apps/forge_studio/src/atelier_ui.rs",
+      "line": 44,
+      "lint": "doc_markdown",
+      "file_identical_to_head": true
+    }
+  ],
+  "count": 80,
+  "in_unchanged_files": 80,
+  "by_file": {
+    "apps/forge_studio/src/authoring_assets/placements/gizmo/handles.rs": 3,
+    "apps/forge_studio/src/asset_import_ui.rs": 7,
+    "apps/forge_studio/src/authoring_building_projection.rs": 1,
+    "apps/forge_studio/src/authoring_native_game.rs": 4,
+    "apps/forge_studio/src/authoring_physics.rs": 1,
+    "apps/forge_studio/src/authoring_viewport.rs": 2,
+    "apps/forge_studio/src/authoring_assets/catalog.rs": 1,
+    "apps/forge_studio/src/authoring_assets/catalog_drop.rs": 1,
+    "apps/forge_studio/src/authoring_assets/fish_props_scene.rs": 6,
+    "apps/forge_studio/src/authoring_assets/fish_stand_scene.rs": 2,
+    "apps/forge_studio/src/authoring_assets/imported_buildings/catalog.rs": 2,
+    "apps/forge_studio/src/authoring_assets/imported_buildings/source_objects.rs": 1,
+    "apps/forge_studio/src/authoring_assets/imported_scene/motion.rs": 1,
+    "apps/forge_studio/src/authoring_assets/imported_scene.rs": 1,
+    "apps/forge_studio/src/authoring_assets/map_shelf.rs": 3,
+    "apps/forge_studio/src/authoring_assets/placement_controls/gizmo.rs": 1,
+    "apps/forge_studio/src/authoring_assets/placement_controls/replacement.rs": 1,
+    "apps/forge_studio/src/authoring_assets/placements/gizmo.rs": 1,
+    "apps/forge_studio/src/authoring_assets/placements.rs": 5,
+    "apps/forge_studio/src/authoring_assets/preview.rs": 1,
+    "apps/forge_studio/src/authoring_assets/source_graph_context.rs": 3,
+    "apps/forge_studio/src/authoring_assets/source_graph_host.rs": 2,
+    "apps/forge_studio/src/authoring_assets/source_graph_lights.rs": 3,
+    "apps/forge_studio/src/authoring_assets/source_graph_lod.rs": 4,
+    "apps/forge_studio/src/authoring_assets/source_graph_particles.rs": 1,
+    "apps/forge_studio/src/authoring_assets/source_graph_physics.rs": 1,
+    "apps/forge_studio/src/authoring_assets/source_graph_placement.rs": 2,
+    "apps/forge_studio/src/authoring_assets/source_graph_preview.rs": 1,
+    "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs": 5,
+    "apps/forge_studio/src/authoring_assets/source_graph_state.rs": 3,
+    "apps/forge_studio/src/authoring_assets/vault/saved_particles.rs": 1,
+    "apps/forge_studio/src/authoring_assets/vault/saved_physics.rs": 1,
+    "apps/forge_studio/src/authoring_assets/vault.rs": 7,
+    "apps/forge_studio/src/atelier_ui.rs": 1
+  },
+  "compiler_type_errors": 0,
+  "source_file_sha256": {
+    "apps/forge_studio/src/asset_import_ui.rs": "937c179eec38c40aa11cd76c26f9c8205a6a0c5a61fd56b4644b60320ea25a40",
+    "apps/forge_studio/src/atelier_ui.rs": "a73a6c3e2d6d4d7b926b2cfff204909a9e66ae058244483da15decb1ab060c3d",
+    "apps/forge_studio/src/authoring_assets/catalog.rs": "0877df72041ec1b9ad47c52ee06044e45c44b4aa36632313367ffe9491b27303",
+    "apps/forge_studio/src/authoring_assets/catalog_drop.rs": "38a6b4ef01b730722427f61a5db970d864d84d0636549ee2b32614340a193f26",
+    "apps/forge_studio/src/authoring_assets/fish_props_scene.rs": "da80937bd326c4cc13849d270da996a7bb14471767587855e8ce43f1db2cd635",
+    "apps/forge_studio/src/authoring_assets/fish_stand_scene.rs": "f5a694306509ac76d3f9a18485eb260cb192aee810492f16ca6da05cedbc662e",
+    "apps/forge_studio/src/authoring_assets/imported_buildings/catalog.rs": "314ed87148d7e9d48609c2290413b26dbd5068bf3387ddaf2c2ff8f78e2b4025",
+    "apps/forge_studio/src/authoring_assets/imported_buildings/source_objects.rs": "9078656e368565bf383ec9114414326b97362eba7616a88924eb7254cdac0178",
+    "apps/forge_studio/src/authoring_assets/imported_scene.rs": "124002a67838e98154483b318adf8da92a6900037c829700e7a9589cf098288a",
+    "apps/forge_studio/src/authoring_assets/imported_scene/motion.rs": "3adc14a2acbf3376a65c869330b285fc8ced6f3c49623d77686b97aa8e6e34e2",
+    "apps/forge_studio/src/authoring_assets/map_shelf.rs": "26ac45e1796ba5b530543da22f825384c93f0b56fe623e33f20e804ebb9aaf5b",
+    "apps/forge_studio/src/authoring_assets/placement_controls/gizmo.rs": "07d848acb9a33bd5b2a3e811960ced3e1acafcc3a2cb73e4c33f2a9671c2bbd8",
+    "apps/forge_studio/src/authoring_assets/placement_controls/replacement.rs": "c66525f7f92580f6b3b595a8dacb5bdf74bf08438bc7ef83b91a9fa4cf3bffc1",
+    "apps/forge_studio/src/authoring_assets/placements.rs": "470995bf07b4d8cb4da9fda34ddbd8296fefa0546e1faf7b4a19317ab33fe028",
+    "apps/forge_studio/src/authoring_assets/placements/gizmo.rs": "2665fa09868d94a02c4137f64217182fd1baaf64ec23cd7429105327e2a3bf7f",
+    "apps/forge_studio/src/authoring_assets/placements/gizmo/handles.rs": "7c9d4e7042cb3c08732567be05d928fa0ca38a74c47c8cd08585b87e14f4a977",
+    "apps/forge_studio/src/authoring_assets/preview.rs": "c3d76ce11410b676751222a17f9a045dd062bfdb3bc1580319192ba862594293",
+    "apps/forge_studio/src/authoring_assets/source_graph_context.rs": "d8d271e9d6f3eac2f57574d24d4f30c49eab444fa571ddb336130516e91de1e6",
+    "apps/forge_studio/src/authoring_assets/source_graph_host.rs": "cc5186070dda1d7ab8d706e959aa36734b6ccfed8d3d4e653178d898e49ecb49",
+    "apps/forge_studio/src/authoring_assets/source_graph_lights.rs": "1cbe72079cf899f68093a9388c10b4932d33227fdf12aec5c49ecd440a3160cd",
+    "apps/forge_studio/src/authoring_assets/source_graph_lod.rs": "7b461c04463fa7a883b66daa199c0fc8c95ae56c1e2f000ed683bf0b363d3112",
+    "apps/forge_studio/src/authoring_assets/source_graph_particles.rs": "4f52598af1ca886f0ee02cff92cbf081020ce76e93090f4bb1c3ec2d4a91f90a",
+    "apps/forge_studio/src/authoring_assets/source_graph_physics.rs": "f2495d144a6492fc1f20e238e2f8221b9dab06b5bec266a2be4b58894618418d",
+    "apps/forge_studio/src/authoring_assets/source_graph_placement.rs": "c24a591015cb53b367879190988e82e4d57af64be6797994b6ec9812c4ac0e05",
+    "apps/forge_studio/src/authoring_assets/source_graph_preview.rs": "b31235d7f15209b142a1b85274b42a4ae771afc202c3fcdbe41f00ff43acc8b1",
+    "apps/forge_studio/src/authoring_assets/source_graph_runtime.rs": "6e42c6aa4a550a754d01f29a8ad6e496eb6e37b1fa4fa2cfe4421c5a267583fe",
+    "apps/forge_studio/src/authoring_assets/source_graph_state.rs": "56cca67f6200fb8ee118260337828eee95fddf656ec113f5d5799e9690cac236",
+    "apps/forge_studio/src/authoring_assets/vault.rs": "dfa27b317254b2f1db093df5de0f87974f52ba7c431445992ca39f381917068f",
+    "apps/forge_studio/src/authoring_assets/vault/saved_particles.rs": "4b5715d298ed1be8ae2a4e479a3edafad439d41886a7c813d95b1bb5eefc6378",
+    "apps/forge_studio/src/authoring_assets/vault/saved_physics.rs": "4d7f958af225117b7831a59fa97166a5b5abe1fae2ed94403ed702ff699d4b78",
+    "apps/forge_studio/src/authoring_building_projection.rs": "9c781c341793c491fe065c63db23748e11fddcf49aac64e968245b22dada93fe",
+    "apps/forge_studio/src/authoring_native_game.rs": "361595b2c468c5fffc3d0dcbd989b52dcc3cc7c198990e47000b6b986aebe734",
+    "apps/forge_studio/src/authoring_physics.rs": "f6a356b56043bbc0913e51bf0013366835bba5ac901ef45d29bfead9d3708c89",
+    "apps/forge_studio/src/authoring_viewport.rs": "985b67fc4cf93f8cb2785b7b5ee924c46de5f471fc687a7ad003ea8a9562bcd9"
+  }
+}

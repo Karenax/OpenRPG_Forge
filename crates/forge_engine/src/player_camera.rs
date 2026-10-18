@@ -22,15 +22,16 @@ impl PlayerCameraMode {
 }
 
 #[derive(Clone, Copy, Component, Debug)]
-pub(crate) struct PlayerCameraRig {
-    pub(crate) mode: PlayerCameraMode,
-    pub(crate) yaw_radians: f32,
-    pub(crate) pitch_radians: f32,
-    pub(crate) boom_distance_m: f32,
+pub struct PlayerCameraRig {
+    pub mode: PlayerCameraMode,
+    pub yaw_radians: f32,
+    pub pitch_radians: f32,
+    pub boom_distance_m: f32,
 }
 
 impl PlayerCameraRig {
-    pub(crate) fn new(profile: &PlayerCameraProfile) -> Self {
+    #[must_use]
+    pub fn new(profile: &PlayerCameraProfile) -> Self {
         let initial_pitch_degrees =
             (-12.0_f32).clamp(profile.pitch_min_degrees, profile.pitch_max_degrees);
         Self {
@@ -45,7 +46,7 @@ impl PlayerCameraRig {
         clippy::cast_possible_truncation,
         reason = "yaw is wrapped to [-pi, pi) and pitch is profile-clamped before conversion to f32"
     )]
-    pub(crate) fn apply_look(&mut self, look_delta: Vec2, profile: &PlayerCameraProfile) {
+    pub fn apply_look(&mut self, look_delta: Vec2, profile: &PlayerCameraProfile) {
         // Commands guarantee finite f32 inputs, but a finite multiplication can still overflow in
         // f32. Accumulate in f64, wrap yaw, clamp pitch, then project back to finite f32 angles.
         let sensitivity = f64::from(profile.look_sensitivity_degrees_per_unit).to_radians();
@@ -59,7 +60,7 @@ impl PlayerCameraRig {
         ) as f32;
     }
 
-    pub(crate) fn toggle_mode(&mut self, profile: &PlayerCameraProfile) {
+    pub fn toggle_mode(&mut self, profile: &PlayerCameraProfile) {
         self.mode = self.mode.toggled();
         if self.mode == PlayerCameraMode::ThirdPerson {
             self.boom_distance_m = self
@@ -68,11 +69,13 @@ impl PlayerCameraRig {
         }
     }
 
-    pub(crate) fn view_rotation(self) -> Quat {
+    #[must_use]
+    pub fn view_rotation(self) -> Quat {
         Quat::from_rotation_y(self.yaw_radians) * Quat::from_rotation_x(self.pitch_radians)
     }
 
-    pub(crate) fn horizontal_rotation(self) -> Quat {
+    #[must_use]
+    pub fn horizontal_rotation(self) -> Quat {
         Quat::from_rotation_y(self.yaw_radians)
     }
 }
@@ -83,9 +86,9 @@ fn wrap_angle_radians(angle: f64) -> f64 {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct PlayerCameraPose {
-    pub(crate) translation: Vec3,
-    pub(crate) forward: Vec3,
-    pub(crate) pivot: Vec3,
+    pub translation: Vec3,
+    pub forward: Vec3,
+    pub pivot: Vec3,
 }
 
 pub(crate) fn third_person_pose(

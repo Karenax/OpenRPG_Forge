@@ -74,7 +74,7 @@ pub(crate) fn snapshot(
     let cameras: Vec<_> = world
         .query_filtered::<(Entity, &Camera), (
             With<ForgePlayerCamera>,
-            Without<forge_engine::tidewater_refraction::CaptureCamera>,
+            Without<forge_tidewater::tidewater_refraction::CaptureCamera>,
         )>()
         .iter(world)
         .filter(|(_, camera)| camera.is_active)

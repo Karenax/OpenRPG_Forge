@@ -108,7 +108,7 @@ fn draw(
     terrain: Res<forge_engine::TerrainRuntimeState>,
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     cursor: Res<forge_engine::TerrainBrushCursor>,
     mut cache: Local<Cache>,

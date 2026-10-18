@@ -1,0 +1,18 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><title>Forge — preuve optique WebGPU</title>
+<style>body{background:#20242b;color:#eee;font:16px system-ui;margin:24px}main{display:grid;grid-template-columns:repeat(auto-fit,256px);gap:16px}img{width:256px;height:160px}figure{margin:0}figcaption{font-size:12px}pre{white-space:pre-wrap}</style>
+<h1>Effets optiques communs — scènes procédurales</h1><p id="status">Initialisation WebGPU…</p><main id="images"></main><pre id="result"></pre>
+<script type="module">
+import init,{run_generic_probe} from './generic-optical-wasm/generic_scene_webgpu_probe.js';
+try {
+ await init(); const result=JSON.parse(await run_generic_probe()); window.forgeOpticalProof=result;
+ for(const [name,rgba] of Object.entries(result.images)) {
+  const figure=document.createElement('figure'),canvas=document.createElement('canvas'),caption=document.createElement('figcaption');
+  const rgb=new Uint8ClampedArray(rgba);for(let i=3;i<rgb.length;i+=4)rgb[i]=255;
+  canvas.width=result.width;canvas.height=result.height;canvas.getContext('2d').putImageData(new ImageData(rgb,result.width,result.height),0,0);
+  const preview=document.createElement('img');preview.alt=name;preview.src=canvas.toDataURL('image/png');
+  caption.textContent=name;figure.append(preview,caption);document.querySelector('#images').append(figure);
+ }
+ const {images,...summary}=result; document.querySelector('#result').textContent=JSON.stringify(summary,null,2);
+ document.querySelector('#status').textContent=result.passed?'PASS : pixels des trois effets vérifiés sur les deux scènes.':'FAIL : '+result.failure;
+} catch(error) {document.querySelector('#status').textContent='FAIL : '+error;document.querySelector('#result').textContent=String(error?.stack??error);}
+</script></html>

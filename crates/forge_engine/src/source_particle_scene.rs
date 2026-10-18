@@ -48,6 +48,7 @@ impl SourceParticleSceneOwner {
     pub(crate) fn queued_frame_events(&self, index: usize) -> &[SourceEmissionEvent] {
         &self.inputs[index].events
     }
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn instance_identity(&self) -> Arc<()> {
         self.identity.clone()
     }

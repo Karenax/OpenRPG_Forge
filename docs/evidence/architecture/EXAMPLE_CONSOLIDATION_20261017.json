@@ -1,0 +1,160 @@
+{
+  "schema": "forge.example-consolidation",
+  "version": 1,
+  "baseline_commit": "3c3a5efeba2473574597871f223d74aa800cf99a",
+  "groups": [
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_diffuse_material_draw.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_diffuse_material_draw.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_fine_sampling_v29.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_fine_uv1_v39.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_normal_roughness_draw.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_source_uv1_lighting_v37.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_source_uv1_v36.rs",
+          "sha256": "e699da4c59607c939d99d01004f4a91bb6af2d76e0dd17b4766ef18e397c6518",
+          "lines": 483
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_directional_brdf_draw.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_directional_brdf_draw.rs",
+          "sha256": "0dfd153d8a53540e734faec97c774e06329b839a1b9a4fbf5dfdf56d044f675f",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_directional_gbuffer_draw.rs",
+          "sha256": "0dfd153d8a53540e734faec97c774e06329b839a1b9a4fbf5dfdf56d044f675f",
+          "lines": 483
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_reflection_draw.rs",
+          "sha256": "0dfd153d8a53540e734faec97c774e06329b839a1b9a4fbf5dfdf56d044f675f",
+          "lines": 483
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_graph_probe_v33.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_graph_probe_v33.rs",
+          "sha256": "7d759bf442c313f1738f8dc37cca3106633d9085c7909ddcd932e8c95b4a20c9",
+          "lines": 493
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_graph_probe_v38.rs",
+          "sha256": "7d759bf442c313f1738f8dc37cca3106633d9085c7909ddcd932e8c95b4a20c9",
+          "lines": 493
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_graph_probe_v41.rs",
+          "sha256": "7d759bf442c313f1738f8dc37cca3106633d9085c7909ddcd932e8c95b4a20c9",
+          "lines": 493
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_lighting_components_v42.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v42.rs",
+          "sha256": "a164aaca9cbe02d1e9d736523bee7f7473d5df66ea35819475730a418e92dce4",
+          "lines": 493
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v47.rs",
+          "sha256": "a164aaca9cbe02d1e9d736523bee7f7473d5df66ea35819475730a418e92dce4",
+          "lines": 493
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v54.rs",
+          "sha256": "3f87d0dc10d740f0bc6110826deccafc437d855dbdd0d76e335631abb33a3fbf",
+          "lines": 494
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_lighting_components_v50.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v50.rs",
+          "sha256": "7e7100cfc6ff2d16b5dfb612b2d118fb1348be749b5e151ac28a688fb4744500",
+          "lines": 579
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v51.rs",
+          "sha256": "0e792638aa5d113366323cfab0ee61ca594c4451756999e06c1b16abc9e6595a",
+          "lines": 578
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_lighting_components_v52.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v52.rs",
+          "sha256": "b65da7b3d6baee7ad378134ad60104c1ae313a6a9b53b49e9ae343856421bfe8",
+          "lines": 494
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_lighting_components_v53.rs",
+          "sha256": "b65da7b3d6baee7ad378134ad60104c1ae313a6a9b53b49e9ae343856421bfe8",
+          "lines": 494
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    },
+    {
+      "shared": "crates/forge_engine/examples/support/source_glb_native_depth_draw.rs",
+      "entrypoints": [
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_native_depth_draw.rs",
+          "sha256": "88f49a4c8c35fc2b835860f39e3ee6af6df1b0bbd9a0a8e59f4ccaa012a196f1",
+          "lines": 587
+        },
+        {
+          "path": "crates/forge_engine/examples/verify_source_glb_native_depth_draw_v6.rs",
+          "sha256": "c4da01315f7b06a9c6018f3d3b39bc17f39205ded36b7ba9891baced8f9950bb",
+          "lines": 585
+        }
+      ],
+      "note": "Original copies differ only in comments or blank lines; runtime parameters and shader logic retained in the common implementation."
+    }
+  ],
+  "product_owned_probe": {
+    "historical_source": "scripts/hivemind/candidates/SourceTownsmithBevyPipelineAdmissionV1.rs",
+    "sha256": "a7fca5346f492192391dfb63161424cf501a932af06c0c7a8670dc6040e0b883",
+    "shared": "crates/forge_engine/examples/support/source_material_layouts.rs"
+  },
+  "gpu_qualified": false
+}

@@ -12,11 +12,14 @@ use std::collections::{HashMap, HashSet};
 
 pub(crate) const BUFFER: Handle<ShaderBuffer> =
     uuid_handle!("9d99b2de-e1b1-455a-9ce0-21e34a0d3221");
+#[cfg(any(feature = "physics-rapier", test))]
 const MAX_GROUPS: usize = 32_768;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) enum GroupKey {
+    #[cfg(any(feature = "physics-rapier", test))]
     Tree(forge_world::VegetationInstanceId),
+    #[cfg(any(feature = "physics-rapier", test))]
     Kit(Entity),
 }
 
@@ -24,6 +27,7 @@ pub(crate) enum GroupKey {
 pub(crate) struct Member {
     pub slot: u32,
     pub level: u32,
+    #[cfg(any(feature = "physics-rapier", test))]
     pub original_tag: u32,
     pub original_range: VisibilityRange,
 }
@@ -75,6 +79,7 @@ pub(crate) struct Groups {
 
 impl Groups {
     /// New geometry must receive fresh GPU evidence even when its distance policy is unchanged.
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn invalidate(&mut self, slot: u32) {
         let Some(index) = slot.checked_sub(1).map(|index| index as usize) else {
             return;
@@ -86,6 +91,7 @@ impl Groups {
             self.dirty = true;
         }
     }
+    #[cfg(any(feature = "physics-rapier", test))]
     pub(crate) fn register(
         &mut self,
         key: GroupKey,
@@ -230,6 +236,7 @@ pub(crate) fn install(app: &mut App) {
     );
 }
 
+#[cfg(feature = "physics-rapier")]
 fn gpu_ready(quality: Option<&crate::GlobalQualityStats>, frame: u32, registered: u32) -> bool {
     let Some(quality) = quality else {
         return false;
@@ -257,6 +264,7 @@ fn gpu_ready(quality: Option<&crate::GlobalQualityStats>, frame: u32, registered
 
 /// A started fade has already acquired both representations. Unrelated pipeline
 /// discovery may renew the global plan receipt without evicting these resources.
+#[cfg(feature = "physics-rapier")]
 fn prepared_epoch(quality: Option<&crate::GlobalQualityStats>, frame: u32) -> Option<u64> {
     let submission = &quality?.gpu_submission;
     (submission.renderer_epoch > 0
@@ -297,11 +305,18 @@ pub(crate) fn update(world: &mut World) {
     let mut active = cameras.iter(world).filter(|(camera, _)| camera.is_active);
     let camera = active.next().map(|(_, transform)| transform.translation());
     let camera = camera.filter(|_| active.next().is_none());
-    let quality = world.get_resource::<crate::GlobalQualityStats>();
-    let completed = gpu_ready(quality, frame, 0)
-        .then(|| quality.and_then(|q| q.gpu_submission.completed_frame))
-        .flatten();
-    let prepared = prepared_epoch(quality, frame);
+    #[cfg(feature = "physics-rapier")]
+    let (completed, prepared) = {
+        let quality = world.get_resource::<crate::GlobalQualityStats>();
+        let completed = gpu_ready(quality, frame, 0)
+            .then(|| quality.and_then(|q| q.gpu_submission.completed_frame))
+            .flatten();
+        (completed, prepared_epoch(quality, frame))
+    };
+    // Without the quality backend, no renderer-completion receipt exists.
+    // Retain the selected representation instead of inventing a ready fade.
+    #[cfg(not(feature = "physics-rapier"))]
+    let (completed, prepared) = (None::<u32>, None::<u64>);
     world.resource_scope(|world, mut groups: Mut<Groups>| {
         groups.frame = frame;
         let mut live = std::mem::take(&mut groups.live);

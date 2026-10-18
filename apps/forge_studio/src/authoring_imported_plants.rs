@@ -1,7 +1,7 @@
 //! Imported population in the terrain canvas; picking and plant shadows are separate.
 use crate::{authoring_assets::imported_buildings, authoring_imported_population as population};
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::tidewater_plants::{PlantMaterial, grass, picking, scene};
+use forge_tidewater::tidewater_plants::{PlantMaterial, grass, picking, scene};
 
 mod lighting;
 pub(crate) mod selection;
@@ -203,7 +203,7 @@ pub(crate) fn shadow_head(world: &World) -> Option<forge_core::ContentHash> {
 pub(crate) fn shadow_input(
     world: &World,
     camera: Vec4,
-) -> Option<Result<forge_engine::tidewater_object_shadow::plants::Input, String>> {
+) -> Option<Result<forge_tidewater::tidewater_object_shadow::plants::Input, String>> {
     world
         .get_resource::<State>()?
         .shadow
@@ -214,7 +214,7 @@ pub(crate) fn shadow_input(
 pub(crate) fn shadow_streams(
     world: &mut World,
     camera: Vec4,
-) -> Option<Result<Vec<forge_engine::tidewater_object_shadow::plants::Stream>, String>> {
+) -> Option<Result<Vec<forge_tidewater::tidewater_object_shadow::plants::Stream>, String>> {
     let mut state = world.get_resource_mut::<State>()?;
     let selected = state.shadow.as_ref()?.select_observed(camera);
     Some(selected.map(|(streams, observation)| {

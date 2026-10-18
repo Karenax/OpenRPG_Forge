@@ -30,7 +30,7 @@ enum PreviewRequest {
         Vec<u8>,
         SceneLayout,
         Option<super::source_graph_physics::SourcePhysicsPayload>,
-        Option<super::source_graph_particles::SourceParticlePayload>,
+        Option<Box<super::source_graph_particles::SourceParticlePayload>>,
     ),
     Clear,
 }
@@ -95,7 +95,7 @@ pub(super) fn submit_scene_with_physics(
             bytes,
             SceneLayout::AutonomousScene,
             physics,
-            particles,
+            particles.map(Box::new),
         )))
     });
     true
@@ -193,6 +193,7 @@ fn update(
         super::source_graph_preview::cancel();
         state.clear(&mut commands);
         if let PreviewRequest::Show(id, bytes, layout, physics, particles) = request {
+            let particles = particles.map(|payload| *payload);
             match super::source_graph_route::read(&bytes) {
                 Ok(Some(_)) => {
                     super::source_graph_preview::submit(id, bytes, physics, particles);

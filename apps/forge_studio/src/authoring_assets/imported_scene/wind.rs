@@ -1,11 +1,11 @@
 //! Shared imported-scene wind clock and shader upload, derived from source Frame.
 use bevy::prelude::*;
-use forge_engine::{
+use forge_tidewater::{
+    scene_wind::{AcquiredFrame, WindFrame},
     tidewater_debris::nature::NatureMaterial,
     tidewater_material::VillageMaterial,
     tidewater_plants::PlantMaterial,
     tidewater_terrain::{TerrainMaterial, lod::LodMaterial},
-    tidewater_wind::{AcquiredFrame, WindFrame},
 };
 use std::cell::RefCell;
 
@@ -16,7 +16,10 @@ thread_local! {
 pub(super) fn install(app: &mut App) -> Result<(), String> {
     READY.with(|slot| *slot.borrow_mut() = Ok(false));
     // Resume the captured global phase; acquired pendulums keep their own phases.
-    let acquired = AcquiredFrame::reference()?;
+    let acquired = {
+        let (bytes, frame) = forge_tidewater_assets::tidewater_environment::animation_reference()?;
+        AcquiredFrame::from_json(&bytes, frame)?
+    };
     app.insert_resource(acquired.wind_frame()?)
         .insert_resource(acquired)
         .add_systems(Update, advance_clock)

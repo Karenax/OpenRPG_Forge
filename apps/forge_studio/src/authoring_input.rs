@@ -369,8 +369,8 @@ type CameraEffectsQuery<'w, 's> = Query<
     'w,
     's,
     (
-        Option<&'static forge_engine::tidewater_gtao::TidewaterGtao>,
-        Option<&'static forge_engine::tidewater_lens_flare::TidewaterLensFlare>,
+        Option<&'static forge_tidewater::ambient_occlusion::AmbientOcclusionSettings>,
+        Option<&'static forge_tidewater::lens_flare::LensFlare>,
         Option<&'static forge_engine::atmospheric_haze::AirHazeSettings>,
         Option<&'static bevy::post_process::motion_blur::MotionBlur>,
     ),
@@ -390,12 +390,12 @@ pub(super) struct PublishParams<'w, 's> {
     focus: Option<Res<'w, PlayerInputFocus>>,
     ready: Option<Res<'w, forge_engine::PlayerSimulationReady>>,
     imported_clouds: Option<Res<'w, crate::authoring_imported_terrain::LiveCloudTime>>,
-    imported_ocean: Option<Res<'w, forge_engine::tidewater_ocean::Targets>>,
-    ocean_geometry: Option<Res<'w, forge_engine::tidewater_ocean_geometry::ResidentGeometry>>,
-    ocean_optics: Option<Res<'w, forge_engine::tidewater_ocean_optics::ResidentOptics>>,
-    shore_sim: Option<Res<'w, forge_engine::tidewater_shore_sim::Targets>>,
-    locomotion: Option<Res<'w, forge_engine::TidewaterPlayerState>>,
-    village_materials: Res<'w, Assets<forge_engine::tidewater_material::VillageMaterial>>,
+    imported_ocean: Option<Res<'w, forge_tidewater::tidewater_ocean::Targets>>,
+    ocean_geometry: Option<Res<'w, forge_tidewater::tidewater_ocean_geometry::ResidentGeometry>>,
+    ocean_optics: Option<Res<'w, forge_tidewater::tidewater_ocean_optics::ResidentOptics>>,
+    shore_sim: Option<Res<'w, forge_tidewater::tidewater_shore_sim::Targets>>,
+    locomotion: Option<Res<'w, forge_tidewater::AmphibiousPlayerState>>,
+    village_materials: Res<'w, Assets<forge_tidewater::tidewater_material::VillageMaterial>>,
     time: Res<'w, Time<Real>>,
 }
 
@@ -512,8 +512,8 @@ pub(super) fn publish(
     }
     if let Some(player) = locomotion {
         let mode = match player.motion.mode {
-            forge_engine::tidewater_locomotion::Mode::Walk => "marche",
-            forge_engine::tidewater_locomotion::Mode::Swim => "nage",
+            forge_tidewater::amphibious_locomotion::Mode::Walk => "marche",
+            forge_tidewater::amphibious_locomotion::Mode::Swim => "nage",
         };
         let _ = write!(text, " · mode Tidewater {mode}");
     }

@@ -288,9 +288,9 @@ fn update(world: &mut World) {
                 "Simulation suspendue · bâtiments/collisions en reconstruction ou incohérents",
             );
         }
-        if world.contains_resource::<forge_engine::TidewaterPlayerState>()
+        if world.contains_resource::<forge_tidewater::AmphibiousPlayerState>()
             && world
-                .get_resource::<forge_engine::tidewater_surface_queries::Targets>()
+                .get_resource::<forge_tidewater::tidewater_surface_queries::Targets>()
                 .and_then(|targets| targets.queries.latest())
                 .is_none_or(|batch| batch.count < 2)
         {

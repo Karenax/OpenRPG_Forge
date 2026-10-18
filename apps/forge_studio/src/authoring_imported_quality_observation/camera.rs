@@ -83,7 +83,7 @@ fn camera_post_profile(world: &World, entity: Entity, out: &mut CurrentProfileIn
         (
             "source_resolve",
             world
-                .get::<forge_engine::tidewater_temporal::resolve::ResolveEnabled>(entity)
+                .get::<forge_tidewater::tidewater_temporal::resolve::ResolveEnabled>(entity)
                 .is_some(),
         ),
     ] {
@@ -166,15 +166,15 @@ fn camera_post_aa(world: &World, entity: Entity, out: &mut CurrentProfileInvento
 
 fn camera_post_lighting(world: &World, entity: Entity, out: &mut CurrentProfileInventory) {
     let origin = Origin::MainWorldComponent;
-    if let Some(value) = world.get::<forge_engine::tidewater_gtao::TidewaterGtao>(entity) {
+    if let Some(value) =
+        world.get::<forge_tidewater::ambient_occlusion::AmbientOcclusionSettings>(entity)
+    {
         out.number("post/gtao_strength", value.strength(), origin, true);
     }
-    if let Some(value) = world.get::<forge_engine::tidewater_lens_flare::TidewaterLensFlare>(entity)
-    {
+    if let Some(value) = world.get::<forge_tidewater::lens_flare::LensFlare>(entity) {
         out.number("post/lens_flare_strength", value.strength(), origin, true);
     }
-    if let Some(value) = world.get::<forge_engine::tidewater_film_grain::TidewaterFilmGrain>(entity)
-    {
+    if let Some(value) = world.get::<forge_tidewater::film_grain::FilmGrain>(entity) {
         out.number("post/film_grain_intensity", value.intensity.x, origin, true);
     }
     if let Some(value) = world.get::<forge_engine::atmospheric_haze::AirHazeSettings>(entity) {

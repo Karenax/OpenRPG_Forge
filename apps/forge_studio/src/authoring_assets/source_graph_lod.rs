@@ -48,7 +48,7 @@ fn vector(value: &serde_json::Value) -> Result<Vec3, String> {
     }
     let mut result = [0.; 3];
     for (out, value) in result.iter_mut().zip(values) {
-        *out = value.as_f64().ok_or("LOD reference point is not numeric")? as f32;
+        *out = super::source_graph_context::number(value, "LOD reference point")?;
     }
     let result = Vec3::from_array(result);
     if !result.is_finite() {
@@ -107,21 +107,7 @@ pub(super) fn update(
         if !matrix.is_finite() || matrix.determinant() == 0. {
             return Err("Current source LOD transform is invalid".into());
         }
-        let local = vector(&group["local_reference_point"])?;
-        let point = matrix.transform_point3(local);
-        let scale = matrix
-            .x_axis
-            .truncate()
-            .length()
-            .max(matrix.y_axis.truncate().length())
-            .max(matrix.z_axis.truncate().length());
-        let size = group["size"].as_f64().ok_or("Source LOD size absent")? as f32;
-        let distance = camera.position.distance(point);
-        let height = (size * scale * camera.lod_bias)
-            / (2. * distance * (camera.vertical_fov_radians * 0.5).tan());
-        if !size.is_finite() || size <= 0. || height.is_nan() || height < 0. {
-            return Err("Invalid source LOD projected size".into());
-        }
+        let height = relative_height(matrix, camera, group)?;
         let levels = group["levels"]
             .as_array()
             .ok_or("Source LOD levels absent")?;
@@ -129,9 +115,10 @@ pub(super) fn update(
         let mut selected = None;
         let mut memberships = Vec::new();
         for (level, declaration) in levels.iter().enumerate() {
-            let threshold = declaration["screen_relative_height"]
-                .as_f64()
-                .ok_or("LOD threshold absent")? as f32;
+            let threshold = super::source_graph_context::number(
+                &declaration["screen_relative_height"],
+                "LOD threshold",
+            )?;
             if !threshold.is_finite() || !(0.0..=1.0).contains(&threshold) || threshold >= previous
             {
                 return Err("Source LOD thresholds are not ordered".into());
@@ -173,6 +160,17 @@ pub(super) fn update(
             level: selected,
         });
     }
+    apply_visibility(world, root, nodes, primitives, &visibility)?;
+    Ok(decisions)
+}
+
+fn apply_visibility(
+    world: &mut World,
+    root: Entity,
+    nodes: &BTreeMap<usize, Entity>,
+    primitives: &[Entity],
+    visibility: &BTreeMap<usize, bool>,
+) -> Result<(), String> {
     let by_entity: BTreeMap<_, _> = nodes.iter().map(|(i, e)| (*e, *i)).collect();
     let mut changes = Vec::new();
     for entity in primitives {
@@ -195,5 +193,28 @@ pub(super) fn update(
         });
     }
     world.entity_mut(root).remove::<OriginalLodDriverPending>();
-    Ok(decisions)
+    Ok(())
+}
+
+fn relative_height(
+    matrix: Mat4,
+    camera: &LodCamera,
+    group: &serde_json::Value,
+) -> Result<f32, String> {
+    let local = vector(&group["local_reference_point"])?;
+    let point = matrix.transform_point3(local);
+    let scale = matrix
+        .x_axis
+        .truncate()
+        .length()
+        .max(matrix.y_axis.truncate().length())
+        .max(matrix.z_axis.truncate().length());
+    let size = super::source_graph_context::number(&group["size"], "Source LOD size")?;
+    let distance = camera.position.distance(point);
+    let height = (size * scale * camera.lod_bias)
+        / (2. * distance * (camera.vertical_fov_radians * 0.5).tan());
+    if !size.is_finite() || size <= 0. || height.is_nan() || height < 0. {
+        return Err("Invalid source LOD projected size".into());
+    }
+    Ok(height)
 }

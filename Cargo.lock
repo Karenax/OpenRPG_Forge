@@ -3475,10 +3475,8 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bevy_rapier3d",
- "console_error_panic_hook",
  "forge_assets",
  "forge_core",
- "forge_delivery",
  "forge_gameplay",
  "forge_navigation",
  "forge_project",
@@ -3491,7 +3489,6 @@ dependencies = [
  "serde_json",
  "tracing",
  "wasm-bindgen",
- "wasm-bindgen-futures",
  "web-sys",
  "wgpu",
 ]
@@ -3560,6 +3557,8 @@ dependencies = [
  "forge_engine",
  "forge_gameplay",
  "forge_project",
+ "forge_tidewater",
+ "forge_tidewater_assets",
  "forge_world",
  "js-sys",
  "leptos",
@@ -3572,6 +3571,48 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "forge_tidewater"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_rapier3d",
+ "console_error_panic_hook",
+ "forge_assets",
+ "forge_core",
+ "forge_delivery",
+ "forge_engine",
+ "forge_gameplay",
+ "forge_navigation",
+ "forge_project",
+ "forge_tidewater_assets",
+ "forge_world",
+ "getrandom 0.3.4",
+ "indexmap 2.14.1",
+ "js-sys",
+ "naga",
+ "serde",
+ "serde_json",
+ "tracing",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu",
+]
+
+[[package]]
+name = "forge_tidewater_assets"
+version = "0.1.0"
+dependencies = [
+ "forge_assets",
+ "forge_core",
+ "forge_project",
+ "forge_world",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
 ]
 
 [[package]]

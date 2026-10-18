@@ -86,7 +86,7 @@ pub(super) fn begin(
             if !super::preview::is_current(ticket) || selected.get_untracked() != name {
                 return;
             }
-            let result = checked.and_then(|_| {
+            let result = checked.and_then(|()| {
                 browser.still_available()?;
                 let current = head(state.get_untracked())?;
                 if current.content_hash()? != expected

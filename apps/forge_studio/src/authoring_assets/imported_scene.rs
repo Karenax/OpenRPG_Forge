@@ -9,7 +9,8 @@ use bevy::{
     render::render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::{
+use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater::{
     tidewater_assets::{
         ResidentLibrary, ResidentMeshes, materials,
         scene::{PreparedScene, ResidentScene},
@@ -22,7 +23,6 @@ use forge_engine::{
     tidewater_scene_environment::ResidentEnvironment,
     tidewater_village_props::{PreparedVillageProps, ResidentVillageProps},
 };
-use forge_project::zone_authoring::placements::ManualPlacement;
 use std::{cell::RefCell, collections::BTreeMap, sync::atomic::Ordering};
 
 type Receipt = (
@@ -156,7 +156,7 @@ pub(crate) fn update(world: &mut World) {
         if state.sources.as_ref()!=Some(&desired) || state.boardwalk_sources.as_ref()!=Some(&boardwalks)
             || state.pier_sources.as_ref()!=Some(&piers) || state.plaza_sources.as_ref()!=Some(&plaza) || state.village_props_sources.as_ref()!=Some(&village_props) || state.beach_props_sources.as_ref()!=Some(&beach_props) { state.failed=false; }
         let Some(environment)=world.get_resource::<ResidentEnvironment>() else { return; };
-        let Some(hill)=world.get_resource::<forge_engine::tidewater_hill_shadow::Images>() else { return; };
+        let Some(hill)=world.get_resource::<forge_tidewater::tidewater_hill_shadow::Images>() else { return; };
         let Some(shadows)=world.get_resource::<crate::authoring_imported_shadows::Receiver>() else { return; };
         let key=(generation,environment.environment.id(),hill.output.id(),shadows.0.image.id());
         if state.key!=Some(key) { state.failed=false; }
@@ -205,25 +205,7 @@ pub(crate) fn update(world: &mut World) {
             let _ = READY.with(|slot| slot.replace(Ok(None)));
         }
     });
-    let generation = imported_buildings::published_generation();
-    let sources = placements::desired_debris();
-    let shared = world.resource::<State>().materials.clone();
-    let projected = if let Some(input) = imported_buildings::debris_input() {
-        debris::project(
-            world,
-            &input.geometry,
-            &input.input.collisions,
-            &input.input.nature_program,
-            generation,
-            &sources,
-            &shared,
-        )
-    } else {
-        debris::clear(world, generation)
-    };
-    if let Err(error) = projected {
-        placements::report(format!("Décors importés non projetés : {error}"));
-    }
+    project_decorations(world);
     focus_current(world);
     crate::authoring_building_projection::sync_material(world);
 }
@@ -255,7 +237,7 @@ fn focus_current(world: &World) {
         .get_resource::<ResidentBeachProps>()
         .and_then(|resident| resident.authored_parts(world, id));
     let debris_parts = world
-        .get_resource::<forge_engine::tidewater_debris::scene::ResidentScene>()
+        .get_resource::<forge_tidewater::tidewater_debris::scene::ResidentScene>()
         .and_then(|resident| {
             resident
                 .instances
@@ -330,10 +312,10 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
     )
     .map_err(|e| e.to_string())?;
     let caustics = world
-        .get_resource::<forge_engine::tidewater_caustics::CausticMaterialInputs>()
+        .get_resource::<forge_tidewater::tidewater_caustics::CausticMaterialInputs>()
         .cloned()
         .unwrap_or_else(|| {
-            forge_engine::tidewater_caustics::CausticMaterialInputs::disabled(
+            forge_tidewater::tidewater_caustics::CausticMaterialInputs::disabled(
                 &mut world.resource_mut::<Assets<Image>>(),
             )
         });
@@ -354,7 +336,7 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
         bounce_settings.w,
     );
     let environment = world.resource::<ResidentEnvironment>();
-    let hill = world.resource::<forge_engine::tidewater_hill_shadow::Images>();
+    let hill = world.resource::<forge_tidewater::tidewater_hill_shadow::Images>();
     let shadow = &world
         .resource::<crate::authoring_imported_shadows::Receiver>()
         .0;
@@ -386,7 +368,7 @@ fn refresh_materials(world: &mut World, state: &mut State, key: LightingKey) -> 
         })
         .collect::<Result<Vec<_>, _>>()?;
     if state.key.is_none_or(|previous| previous.0 != key.0) {
-        forge_engine::tidewater_material::stage_shader(world, shader)?;
+        forge_tidewater::tidewater_material::stage_shader(world, shader)?;
     }
     let mut assets = world.resource_mut::<Assets<VillageMaterial>>();
     for (name, material) in prepared {
@@ -604,4 +586,26 @@ fn replace(
     state.beach_props_sources = Some(beach_props.to_vec());
     state.key = Some(key);
     Ok(())
+}
+
+fn project_decorations(world: &mut World) {
+    let generation = imported_buildings::published_generation();
+    let sources = placements::desired_debris();
+    let shared = world.resource::<State>().materials.clone();
+    let projected = if let Some(input) = imported_buildings::debris_input() {
+        debris::project(
+            world,
+            &input.geometry,
+            &input.input.collisions,
+            &input.input.nature_program,
+            generation,
+            &sources,
+            &shared,
+        )
+    } else {
+        debris::clear(world, generation)
+    };
+    if let Err(error) = projected {
+        placements::report(format!("Décors importés non projetés : {error}"));
+    }
 }

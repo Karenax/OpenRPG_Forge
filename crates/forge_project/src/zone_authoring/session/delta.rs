@@ -284,7 +284,7 @@ impl SizeCache {
     ) -> Result<Self, String> {
         let header = encode(migration, head, &[])?;
         Ok(Self {
-            header_without_version: header.len() - version(&[]).to_string().len(),
+            header_without_version: header.len() - version(&[])?.to_string().len(),
             commands_bytes: 0,
             expanded_bytes: 0,
             previous_edit: ZoneCorrections::default(),
@@ -302,7 +302,7 @@ impl SizeCache {
         let command_bytes = canonical_json_bytes(&command)
             .map_err(|error| error.to_string())?
             .len();
-        let new_version = version(receipts).max(version(std::slice::from_ref(receipt)));
+        let new_version = version(receipts)?.max(version(std::slice::from_ref(receipt))?);
         let total = self.header_without_version
             + new_version.to_string().len()
             + self.commands_bytes
@@ -341,7 +341,7 @@ pub(super) fn encode(
     }
     let bytes = canonical_json_bytes(&Archive {
         schema: "forge.zone-edit-session".into(),
-        version: version(receipts),
+        version: version(receipts)?,
         migration: migration.clone(),
         head_hash: head.content_hash()?,
         commands,
@@ -356,23 +356,7 @@ pub(super) fn encode(
 pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
     let archive: Archive = serde_json::from_slice(bytes).map_err(|e| e.to_string())?;
     if archive.schema != "forge.zone-edit-session"
-        || !matches!(
-            archive.version,
-            6 | 7
-                | 12
-                | 15
-                | 18
-                | 21
-                | 24
-                | 27
-                | 30
-                | 33
-                | 36
-                | super::SOURCE_OBJECT_DELTA_VERSION
-                | super::PHYSICS_DELTA_VERSION
-                | super::PLACEMENT_PHYSICS_DELTA_VERSION
-                | super::GAMEPLAY_VISUALS_DELTA_VERSION
-        )
+        || super::versions::encoding(archive.version)? != super::versions::Encoding::Delta
         || archive.commands.len() > 1024
     {
         return Err("Unsupported delta archive or command limit".into());
@@ -411,52 +395,17 @@ pub(super) fn decode(bytes: &[u8]) -> Result<ZoneEditSession, String> {
     if session.head.content_hash()? != archive.head_hash {
         return Err("Delta archive head mismatch".into());
     }
-    if archive.version != version(&session.receipts) {
+    if archive.version != version(&session.receipts)? {
         return Err("Delta archive version does not cover its commands".into());
     }
     Ok(session)
 }
 
-fn version(receipts: &[ZoneReceipt]) -> u32 {
-    if super::has_gameplay_visuals(receipts) {
-        return super::GAMEPLAY_VISUALS_DELTA_VERSION;
-    }
-    if super::has_placement_physics(receipts) {
-        return super::PLACEMENT_PHYSICS_DELTA_VERSION;
-    }
-    if super::has_physics(receipts) {
-        return super::PHYSICS_DELTA_VERSION;
-    }
-    if super::has_source_objects(receipts) {
-        return super::SOURCE_OBJECT_DELTA_VERSION;
-    }
-    if super::archive_version(receipts) == 34 {
-        return 36;
-    }
-    if super::archive_version(receipts) == 31 {
-        return 33;
-    }
-    if super::has_vegetation_exclusions(receipts) {
-        return 30;
-    }
-    if super::has_reconciliation(receipts) {
-        return 27;
-    }
-    if super::has_promotions(receipts) {
-        24
-    } else if super::has_species(receipts) {
-        21
-    } else if super::has_start(receipts) {
-        18
-    } else if super::has_buildings(receipts) {
-        15
-    } else if super::has_rivers(receipts) {
-        12
-    } else if super::has_paths(receipts) {
-        7
-    } else {
-        6
-    }
+fn version(receipts: &[ZoneReceipt]) -> Result<u32, String> {
+    super::versions::encoded_version(
+        super::archive_version(receipts),
+        super::versions::Encoding::Delta,
+    )
 }
 
 fn check_expansion(total: &mut usize, request: &ZoneRequest) -> Result<(), String> {

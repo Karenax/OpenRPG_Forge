@@ -222,7 +222,7 @@ fn project(source: ForgeTransform) -> Transform {
 pub(super) fn update(
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     mut roots: Query<(&PlacementRoot, &mut Transform, &Visibility)>,
     mut gizmos: Gizmos,
@@ -263,48 +263,15 @@ pub(super) fn update(
             bevy(tool.current.translation_m)
         };
         let length = (camera_transform.translation().distance(pivot) * 0.12).clamp(0.5, 20.0);
-        if matches!(tool.mode, Mode::Translation | Mode::LocalTranslation { .. }) {
-            handles::show(
-                tool.id,
-                true,
-                camera,
-                camera_transform,
-                size,
-                pivot,
-                [
-                    axis_vector(&tool, Axis::X),
-                    axis_vector(&tool, Axis::Y),
-                    axis_vector(&tool, Axis::Z),
-                ],
-                length,
-            );
-        } else {
-            handles::clear();
-        }
-        if matches!(tool.mode, Mode::Rotation { .. }) {
-            rotation::draw(&mut gizmos, &tool, length);
-        } else {
-            for (axis, color) in [
-                (Axis::X, Color::srgb(1.0, 0.2, 0.2)),
-                (Axis::Y, Color::srgb(0.3, 1.0, 0.3)),
-                (Axis::Z, Color::srgb(0.3, 0.5, 1.0)),
-            ] {
-                let tip = pivot + axis_vector(&tool, axis) * length;
-                gizmos.line(pivot, tip, color);
-                if matches!(tool.mode, Mode::Scale) {
-                    gizmos.cube(
-                        Transform {
-                            translation: tip,
-                            rotation: project(tool.source).rotation,
-                            scale: Vec3::splat(length * 0.14),
-                        },
-                        color,
-                    );
-                } else {
-                    gizmos.sphere(tip, length * 0.07, color);
-                }
-            }
-        }
+        draw_tool(
+            camera,
+            camera_transform,
+            size,
+            &tool,
+            &mut gizmos,
+            pivot,
+            length,
+        );
         for (phase, position) in events {
             tool.phase = Some(phase);
             tool.click_normalized = Some(position);
@@ -353,7 +320,7 @@ pub(super) fn update(
 fn active_camera<'a>(
     cameras: &'a Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
 ) -> Option<(&'a Camera, &'a GlobalTransform)> {
     let mut cameras = cameras.iter().filter(|(camera, _)| camera.is_active);
@@ -363,7 +330,7 @@ fn active_camera<'a>(
 fn display_selection(
     cameras: &Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     roots: &Query<(&PlacementRoot, &mut Transform, &Visibility)>,
 ) {
@@ -392,9 +359,11 @@ fn display_selection(
             camera,
             transform,
             size,
-            pivot,
-            [Vec3::X, Vec3::Y, Vec3::Z],
-            length,
+            handles::Geometry {
+                pivot,
+                vectors: [Vec3::X, Vec3::Y, Vec3::Z],
+                length,
+            },
         );
         let axis_handles=Value::Array([Axis::X,Axis::Y,Axis::Z].into_iter().map(|axis| {
             let vector=match axis {Axis::X=>Vec3::X,Axis::Y=>Vec3::Y,Axis::Z=>Vec3::Z};
@@ -686,6 +655,61 @@ fn parameter(
             forge(ray.origin),
             forge(*ray.direction),
         )
+    }
+}
+
+fn draw_tool(
+    camera: &Camera,
+    camera_transform: &GlobalTransform,
+    size: Vec2,
+    tool: &Tool,
+    gizmos: &mut Gizmos,
+    pivot: Vec3,
+    length: f32,
+) {
+    if matches!(tool.mode, Mode::Translation | Mode::LocalTranslation { .. }) {
+        handles::show(
+            tool.id,
+            true,
+            camera,
+            camera_transform,
+            size,
+            handles::Geometry {
+                pivot,
+                vectors: [
+                    axis_vector(tool, Axis::X),
+                    axis_vector(tool, Axis::Y),
+                    axis_vector(tool, Axis::Z),
+                ],
+                length,
+            },
+        );
+    } else {
+        handles::clear();
+    }
+    if matches!(tool.mode, Mode::Rotation { .. }) {
+        rotation::draw(gizmos, tool, length);
+    } else {
+        for (axis, color) in [
+            (Axis::X, Color::srgb(1.0, 0.2, 0.2)),
+            (Axis::Y, Color::srgb(0.3, 1.0, 0.3)),
+            (Axis::Z, Color::srgb(0.3, 0.5, 1.0)),
+        ] {
+            let tip = pivot + axis_vector(tool, axis) * length;
+            gizmos.line(pivot, tip, color);
+            if matches!(tool.mode, Mode::Scale) {
+                gizmos.cube(
+                    Transform {
+                        translation: tip,
+                        rotation: project(tool.source).rotation,
+                        scale: Vec3::splat(length * 0.14),
+                    },
+                    color,
+                );
+            } else {
+                gizmos.sphere(tip, length * 0.07, color);
+            }
+        }
     }
 }
 

@@ -5,19 +5,21 @@ use bevy::{
     prelude::*,
     render::render_resource::TextureFormat,
 };
-use forge_assets::tidewater_debris::collisions::CollisionFrames;
-use forge_engine::{
-    ManualPlacementCollisionStatus, ManualPlacementProjection,
-    tidewater_debris::{
-        PreparedDebris,
-        nature::{self, NatureExtension, NatureMaterial},
-        scene::{PreparedScene, ResidentMaterials, ResidentScene},
-    },
-    tidewater_material::VillageMaterial,
-    tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
-};
 use forge_project::zone_authoring::placements::ManualPlacement;
+use forge_tidewater_assets::tidewater_debris::collisions::CollisionFrames;
 use std::{cell::RefCell, collections::BTreeMap};
+use {
+    forge_engine::{ManualPlacementCollisionStatus, ManualPlacementProjection},
+    forge_tidewater::{
+        tidewater_debris::{
+            PreparedDebris,
+            nature::{self, NatureExtension, NatureMaterial},
+            scene::{PreparedScene, ResidentMaterials, ResidentScene},
+        },
+        tidewater_material::VillageMaterial,
+        tidewater_terrain::{lod::LodMaterial, scene::ResidentTerrain},
+    },
+};
 
 type Receipt = (u64, Vec<ManualPlacement>);
 thread_local! {

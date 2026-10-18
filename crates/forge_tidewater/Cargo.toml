@@ -1,0 +1,115 @@
+[package]
+name = "forge_tidewater"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Optional Tidewater map projection and reference rendering extensions."
+
+[features]
+default = ["native"]
+native = ["physics-rapier", "forge_engine/native"]
+web = ["bevy/web", "bevy/webgpu", "physics-rapier", "forge_engine/web"]
+qualification = ["physics-rapier", "forge_engine/qualification"]
+# Purchased fixtures stay outside the repository and require an explicit local path.
+private-source-fixtures = []
+physics-rapier = ["forge_engine/physics-rapier", "dep:bevy_rapier3d", "dep:forge_assets", "dep:forge_navigation"]
+
+[dependencies]
+forge_engine.workspace = true
+forge_tidewater_assets.workspace = true
+bevy.workspace = true
+bevy_rapier3d = { workspace = true, optional = true }
+forge_assets = { workspace = true, optional = true }
+forge_core.workspace = true
+forge_gameplay.workspace = true
+forge_navigation = { workspace = true, optional = true }
+forge_project.workspace = true
+forge_world.workspace = true
+# Bevy's public SortedPhaseItem API names this exact already-locked type.
+indexmap = "=2.14.1"
+serde.workspace = true
+# Source clocks/camera values must round-trip exactly before GPU packet packing.
+serde_json = { workspace = true, features = ["float_roundtrip"] }
+tracing.workspace = true
+wgpu = { version = "=29.0.4", default-features = false, features = ["wgsl"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Worker", "WorkerOptions", "WorkerType", "MessageEvent", "ErrorEvent", "Window", "Performance"] }
+getrandom = { version = "=0.3.4", default-features = false, features = ["wasm_js"] }
+
+[dev-dependencies]
+# Validate Forge optical WGSL with the same Naga version already locked by Bevy.
+naga = { version = "=29.0.4", features = ["wgsl-in"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+forge_delivery = { path = "../../tools/forge_delivery" }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+console_error_panic_hook.workspace = true
+wasm-bindgen-futures.workspace = true
+
+[lints]
+workspace = true
+
+[[example]]
+name = "verify_source_particle_compute"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_particle_timeline"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_graph_state_binding"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_source_graph_state_draw"
+required-features = ["private-source-fixtures"]
+
+[[example]]
+name = "verify_browser_source_glb_v114"
+crate-type = ["cdylib"]
+required-features = ["web", "private-source-fixtures"]
+
+[[example]]
+name = "verify_browser_source_glb_v141"
+crate-type = ["cdylib"]
+required-features = ["web", "private-source-fixtures"]
+
+[[example]]
+name = "source_normal_precision_proof"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "verify_tidewater_boat_instance"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "verify_source_mesh_pipelines"
+required-features = ["native"]
+
+[[example]]
+name = "verify_source_local_lights"
+required-features = ["native"]
+
+[[example]]
+name = "source_fragment_render_probe"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "source_fragment_capture_probe_v3"
+required-features = ["physics-rapier"]
+
+[[example]]
+name = "generic_scene_render_probe"
+required-features = ["native"]
+
+[[example]]
+name = "generic_scene_webgpu_probe"
+crate-type = ["cdylib"]
+required-features = ["web"]

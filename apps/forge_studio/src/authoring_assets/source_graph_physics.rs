@@ -4,10 +4,14 @@ use bevy::prelude::IntoScheduleConfigs;
 use forge_project::zone_authoring::physics::PhysicsSceneSettings;
 use std::cell::RefCell;
 
-thread_local! { static REQUEST: RefCell<Option<Option<Box<PhysicsSceneSettings>>>> = const { RefCell::new(None) }; }
+enum Request {
+    Set(Box<PhysicsSceneSettings>),
+    Clear,
+}
+thread_local! { static REQUEST: RefCell<Option<Request>> = const { RefCell::new(None) }; }
 
 pub(super) fn observe(settings: Option<Box<PhysicsSceneSettings>>) {
-    REQUEST.with(|request| request.replace(Some(settings)));
+    REQUEST.with(|request| request.replace(Some(settings.map_or(Request::Clear, Request::Set))));
 }
 
 pub(super) fn register(app: &mut bevy::prelude::App) {
@@ -18,8 +22,12 @@ pub(super) fn register(app: &mut bevy::prelude::App) {
 }
 
 fn update(world: &mut bevy::prelude::World) {
-    let Some(settings) = REQUEST.with(|request| request.borrow_mut().take()) else {
+    let Some(request) = REQUEST.with(|request| request.borrow_mut().take()) else {
         return;
+    };
+    let settings = match request {
+        Request::Set(settings) => Some(settings),
+        Request::Clear => None,
     };
     let current = world
         .get_resource::<SceneContactSettings>()

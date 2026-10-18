@@ -1,0 +1,25 @@
+{
+  "scene": "raised-platform",
+  "binary": "E:\\OpenRPG_Forge\\.gate3-ntfs-cargo-20261002\\debug\\forge_runtime.exe",
+  "binary_sha256": "2b1898715d9981a765fccaf0003a9e9a5c525d569a05bcbfe4b10e135cf0d01d",
+  "arguments": [
+    "--scene",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform.json",
+    "--capture",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform\\scene.png",
+    "--capture-frame",
+    "240",
+    "--metrics",
+    "E:\\OpenRPG_Forge\\OpenRPG_Forge-Rust\\output\\strict-engine-runtime-20261018-v2\\raised-platform\\metrics.json",
+    "--metrics-warmup-frames",
+    "10",
+    "--exit-after-frames",
+    "600"
+  ],
+  "pid": 23844,
+  "creation_date": "2026-10-18T22:02:28.578888+02:00",
+  "started_utc": "2026-10-18T20:02:28.7196656Z",
+  "exit_code": 0,
+  "process_exited": true,
+  "document_sha256": "b16960cfed1d8dd0a024c297e3e68999168c7bec1b15d6cc17a6ab8fc3235808"
+}

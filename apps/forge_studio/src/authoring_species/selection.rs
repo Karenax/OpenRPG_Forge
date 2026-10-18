@@ -37,7 +37,7 @@ pub(crate) fn click(position: Vec2) {
 pub(crate) fn pick(
     cameras: Query<
         (&Camera, &GlobalTransform),
-        forge_engine::tidewater_sky::preview::SceneCameraFilter,
+        forge_tidewater::tidewater_sky::preview::SceneCameraFilter,
     >,
     parts: Query<&forge_engine::GovernedTreePrimitive>,
     source: Option<Res<forge_engine::VegetationScatterProjection>>,

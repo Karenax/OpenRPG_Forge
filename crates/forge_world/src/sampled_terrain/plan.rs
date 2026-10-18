@@ -14,7 +14,9 @@ pub struct SampledTerrainPlan {
 }
 
 impl SampledTerrainPlan {
-    pub(super) const fn raster(&self) -> &SampledTerrain {
+    /// Validated raster, borrowed immutably by projection adapters.
+    #[must_use]
+    pub const fn raster(&self) -> &SampledTerrain {
         &self.raster
     }
     /// Caller resolves immutable bytes from the document's content hash.

@@ -1,7 +1,8 @@
 use super::{GameplayBody, GameplayRuntime, engine, neutral};
+use crate::player_motion_extension::PlayerMotionExtension;
 use crate::{
     DomainEntityId, ForgePlayerCharacter, PlayerRuntimeBindings, PlayerRuntimeSnapshot,
-    PlayerSimulationReady, TidewaterPlayerState,
+    PlayerSimulationReady,
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
@@ -85,7 +86,7 @@ pub(super) fn observe(
     bodies: Bodies,
     player: Player,
     mut collisions: MessageReader<CollisionEvent>,
-    water: Option<Res<TidewaterPlayerState>>,
+    water: Option<Res<PlayerMotionExtension>>,
     mut timing: Option<ResMut<crate::playtest_timing::PlaytestTiming>>,
 ) {
     let mut timing_scope = crate::playtest_timing::TimingScope::new(
@@ -278,11 +279,11 @@ fn current_player_collider<'a>(
     entity: Entity,
     transform: &Transform,
     collider: &Collider,
-    water: Option<&TidewaterPlayerState>,
+    water: Option<&PlayerMotionExtension>,
 ) -> Option<&'a bevy_rapier3d::rapier::prelude::Collider> {
     let handle = context.colliders.entity2collider().get(&entity)?;
     let backend = context.colliders.colliders.get(*handle)?;
-    // Tidewater normalizes supported feet vertically after writeback. Capsule
+    // Motion providers may project supported feet after writeback. Capsule
     // transitions explicitly wait for backend synchronization; queries always
     // consume the installed capsule and pose, including the current height.
     let same_capsule = backend
@@ -300,8 +301,9 @@ fn current_player_collider<'a>(
         .xz()
         .abs_diff_eq(transform.translation.xz(), 1.0e-6)
         && pose.rotation.abs_diff_eq(transform.rotation, 1.0e-6)
-        && (water.is_some() || (pose.translation.y - transform.translation.y).abs() <= 1.0e-6);
-    (same_capsule && pose_current && !water.is_some_and(TidewaterPlayerState::backend_sync_pending))
+        && (water.is_some_and(|state| state.projects_vertical_pose)
+            || (pose.translation.y - transform.translation.y).abs() <= 1.0e-6);
+    (same_capsule && pose_current && !water.is_some_and(|state| state.backend_sync_pending))
         .then_some(backend)
 }
 
@@ -318,15 +320,8 @@ fn player_is_settled(snapshot: &PlayerRuntimeSnapshot) -> bool {
         && snapshot.effective_translation.length_squared() <= 0.001_f32.powi(2)
 }
 
-fn player_is_wet(water: Option<&TidewaterPlayerState>, position: Vec3) -> bool {
-    water.is_some_and(|state| {
-        let query = Vec2::from_array(state.water_query_position);
-        state.water_query_step > 0
-            && query.distance(position.xz()) < 1.0
-            && state.motion.water_mean.is_some()
-            && (state.motion.wade > 0.0
-                || matches!(state.motion.mode, crate::tidewater_locomotion::Mode::Swim))
-    })
+fn player_is_wet(water: Option<&PlayerMotionExtension>, position: Vec3) -> bool {
+    water.is_some_and(|state| state.is_wet_at(position))
 }
 
 fn make_frame(

@@ -1,10 +1,30 @@
 # Reprendre OpenRPG Forge hors Codex
 
-Dernière revue : 17 octobre 2026. Ce guide est un point d'entrée opératoire,
+Validation du 18 octobre : [rapport de séparation moteur/carte](evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
+14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
+générique et des extensions optiques gardent des périmètres distincts.
+Le dernier parcours natif instrumenté de la carte conserve une réserve de cadence
+(44,81 FPS moyens pour un seuil de 60) ; ses contrôles fonctionnels passent.
+
+Dernière revue : 18 octobre 2026. Ce guide est un point d'entrée opératoire,
 pas un second contexte narratif. Aucun compte Codex, plugin mémoire ou historique
 de conversation n'est requis pour lire le projet et développer ses sources.
 
 ## Lire et choisir le périmètre
+
+Depuis la séparation du 18 octobre, développer le moteur dans `crates/forge_engine`
+et les contrats génériques d'assets dans `crates/forge_assets`. La carte, ses
+ports et ses données résident dans `crates/forge_tidewater` et
+`crates/forge_tidewater_assets`. Aucun alias des anciennes API de carte ne reste
+dans le moteur. Les exemples de qualification se lancent avec `-p forge_tidewater`
+et les vérificateurs de données avec `-p forge_tidewater_assets` ; leurs noms et
+arguments restent les mêmes. Lire [ADR-0026](ADR/ADR-0026-strict-engine-map-separation.md)
+et les README des composants avant de reprendre un ancien script.
+
+`scripts/Test-GenericEngine.ps1 -PrepareBrowser` contrôle aussi le moteur seul,
+sans fonctionnalités par défaut et en WASM, puis le workspace et les ports.
+Les scripts historiques de `scripts/hivemind` ne constituent pas des outils
+produit et ne sont pas réécrits par cette séparation.
 
 1. Lire [PROJECT_CONTEXT.md](../PROJECT_CONTEXT.md), qui porte l'état canonique.
 2. Lire [AGENTS.md](../AGENTS.md) : architecture, gouvernance et règles de travail,
@@ -35,10 +55,16 @@ pour comprendre les règles du dépôt.
 
 ## Préserver le travail local avant la reprise
 
-Le commit de référence lors de cette revue est
+Le commit de référence de l'inventaire initial du 17 octobre est
 `2b0d60fa` (`feat: close Gate 4 governed assets and standalone module delivery`).
 Cela identifie un état Git, pas tous les fichiers locaux ni tous les octets
 qualifiés : le rapport Gate 4 référence aussi un gel de sources et ses preuves.
+
+La séparation du 18 octobre travaille depuis
+`3c3a5efeba2473574597871f223d74aa800cf99a`, toujours sur le checkout partagé
+modifié. Les nouveaux composants de carte et les contrats neutres doivent être
+conservés avec les suppressions de leurs anciens emplacements : un clone du
+commit seul ne reproduit pas ce lot local avant son commit et sa publication.
 
 L'[inventaire local daté](handoff/LOCAL_WORKTREE_20261017.json) liste les états
 Git et les chemins visibles pendant cette passation, hors fichiers de cette édition,
@@ -79,7 +105,7 @@ ou push n'est autorisé par ce guide.
 
 La procédure actuellement documentée vise Windows x64. Préparer Git, PowerShell
 7.2 ou plus récent (`pwsh`, utilisé par les hooks), Rustup avec MSVC/Windows SDK,
-WebView2 pour le shell Studio, Python 3 pour les outils et Node.js pour le
+WebView2 pour le shell Studio, Python 3.11 ou plus récent pour les outils et Node.js pour le
 frontend Aube et les tests navigateur. Ces outils de développement ne sont pas
 des prérequis du client installé. Linux n'est pas qualifié par cette passation.
 
@@ -177,3 +203,34 @@ lancement de jeu ou transfert de données n'a été effectué pour cette éditio
 Le propriétaire demande ensuite la publication du lot documentaire sur `Rust` ;
 elle conserve les autres travaux locaux hors de son périmètre.
 La reprise depuis un clone neuf sur un autre PC reste à éprouver.
+
+## Contrôles des entrées moteur communes — 18 octobre 2026
+
+Le [bilan d’architecture](planning/ENGINE_RESERVES_20261018.md) distingue les
+corrections réalisées de la généricité globale encore ouverte. Le runner local
+reproduit les garde-fous, Clippy natif/WASM, tests workspace et le probe optique :
+
+```powershell
+pwsh -NoProfile -File scripts/Test-GenericEngine.ps1 -PrepareBrowser
+```
+
+Il écrit dans un nouveau dossier `output/generic-engine-<date>`, déjà ignoré par
+Git. Il exige une toolchain et les dépendances Rust disponibles localement
+(`--locked --offline`) et le CLI `wasm-bindgen` pour préparer le navigateur.
+`-TargetDirectory` permet de choisir le cache Cargo. L’étape navigateur doit être
+exécutée sur localhost avec WebGPU : la préparation ne vaut pas preuve de rendu.
+Le [guide des API](../crates/forge_tidewater/COMMON_SCENE_INPUTS.md) précise les
+conventions et limites. Ce runner n’installe ni ne publie le produit et ne clôture
+aucune gate.
+
+Pour le probe navigateur, servir le dossier de résultat affiché par le runner :
+
+```powershell
+python -m http.server 8769 --bind 127.0.0.1 --directory "output/generic-engine-<date>"
+```
+
+Ouvrir `http://127.0.0.1:8769/index.html` dans un navigateur WebGPU. La page doit
+afficher PASS après les dix readbacks, puis arrêter le serveur avec Ctrl+C.
+Les outils vérifiés ici sont Rust 1.98.0 et `wasm-bindgen` 0.2.127, ce dernier
+devant correspondre au lockfile. Les dépendances et le CLI doivent être disponibles
+localement avant les commandes `--offline`.

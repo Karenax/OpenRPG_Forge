@@ -975,7 +975,7 @@ struct CapsuleResyncProbe {
     old_collider: Collider,
 }
 
-// Exercise the same public schedule boundary as a Tidewater ladder exit:
+// Exercise the same public schedule boundary as an external locomotion provider leaving a ladder:
 // resolve changes the ECS capsule/pose after writeback, then drive skips one
 // sweep while Rapier installs it. Contacts/output themselves are never injected.
 fn morph_capsule_after_writeback(

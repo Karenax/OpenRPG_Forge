@@ -32,8 +32,8 @@ pub(crate) fn install(app: &mut App) {
     app.sub_app_mut(bevy::render::RenderApp).configure_sets(
         bevy::render::renderer::RenderGraph,
         (
-            forge_engine::tidewater_atmosphere::AtmosphereCompute.run_if(|| false),
-            forge_engine::tidewater_clouds::CloudCompute.run_if(|| false),
+            forge_tidewater::tidewater_atmosphere::AtmosphereCompute.run_if(|| false),
+            forge_tidewater::tidewater_clouds::CloudCompute.run_if(|| false),
         ),
     );
     if let Some(canvas) = web_sys::window()

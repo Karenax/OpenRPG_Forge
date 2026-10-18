@@ -1,6 +1,6 @@
 //! Imported playtest immersion and transient comparison hold; no authored mutations.
 use bevy::{ecs as bevy_ecs, prelude::*};
-use forge_engine::{tidewater_ocean, tidewater_ocean_optics, tidewater_underwater};
+use forge_tidewater::{tidewater_ocean, tidewater_ocean_optics, tidewater_underwater};
 
 #[derive(Resource, Default)]
 struct ComparisonHold(bool);
@@ -66,14 +66,14 @@ fn apply_hold(world: &mut World) {
 #[allow(clippy::needless_pass_by_value, reason = "Bevy system parameter")]
 fn apply_graphics(
     mut control: ResMut<tidewater_underwater::TidewaterUnderwaterControl>,
-    mut lighting: ResMut<forge_engine::tidewater_underwater_lighting::Control>,
-    mut refraction: ResMut<forge_engine::tidewater_refraction::Control>,
+    mut lighting: ResMut<forge_tidewater::tidewater_underwater_lighting::Control>,
+    mut refraction: ResMut<forge_tidewater::tidewater_refraction::Control>,
 ) {
     let graphics = crate::authoring_input::graphics();
     control.enabled = graphics.underwater;
     control.shafts_strength = graphics.underwater_shafts;
     refraction.enabled = graphics.water_refraction_capture.into();
-    let next = forge_engine::tidewater_underwater_lighting::Control {
+    let next = forge_tidewater::tidewater_underwater_lighting::Control {
         enabled: graphics.underwater_lighting.into(),
         caustics_strength: graphics.underwater_caustics,
         shadow_refraction: graphics.underwater_shadow_refraction.into(),
