@@ -9,7 +9,7 @@
 Imaginez un territoire. Façonnez ses lieux, ses personnages et ses règles.
 Construisons ensemble l’atelier qui permettra d’en faire une aventure jouable.
 
-[**Site officiel — karenax.net/openrpg_forge**](https://karenax.net/openrpg_forge/) · [**Contribuer**](#rejoindre-la-forge) · [**Explorer la roadmap**](docs/planning/MIGRATION_ROADMAP.md) · [**Démarrer avec les sources**](docs/HANDOFF.md)
+[**Site officiel — karenax.net/openrpgforge**](https://karenax.net/openrpgforge/) · [**Contribuer**](#rejoindre-la-forge) · [**Explorer la roadmap**](docs/planning/MIGRATION_ROADMAP.md) · [**Démarrer avec les sources**](docs/HANDOFF.md)
 
 ![Le véritable Studio OpenRPG Forge, avec la carte Tidewater, son inspecteur et sa bibliothèque de décors](https://karenax.net/openrpgforge/assets/captures/studio-preview.webp)
 
