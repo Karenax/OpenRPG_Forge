@@ -6,6 +6,8 @@ use std::collections::BTreeMap;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ActorState {
+    #[serde(default = "initial_presence", skip_serializing_if = "is_present")]
+    pub active: bool,
     pub position: Vec3,
     pub vitality: u32,
     pub stamina: u32,
@@ -19,6 +21,8 @@ pub struct ActorState {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ObjectState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container: Option<crate::ContainerState>,
     pub position: Vec3,
     #[serde(default = "identity_rotation")]
     pub rotation_xyzw: [f32; 4],
@@ -34,6 +38,31 @@ pub struct ObjectState {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum GameAction {
+    RunScript {
+        script: EntityId,
+    },
+    StartCinematic {
+        sequence: EntityId,
+    },
+    SkipCinematic,
+    InterruptCinematic,
+    UseAbility {
+        ability: EntityId,
+        target: EntityId,
+    },
+    CancelEffect {
+        instance: EntityId,
+    },
+    TransferItem {
+        object: EntityId,
+        item: EntityId,
+        quantity: u32,
+        direction: crate::TransferDirection,
+    },
+    SetContainerLocked {
+        object: EntityId,
+        locked: bool,
+    },
     Pickup {
         object: EntityId,
     },
@@ -85,6 +114,64 @@ pub struct ActionObservation {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum GameplayEvent {
+    ScriptMessage {
+        script: EntityId,
+        text: String,
+    },
+    ScriptExecuted {
+        script: EntityId,
+        steps: usize,
+    },
+    CinematicStarted {
+        playback: crate::CinematicPlayback,
+    },
+    CinematicEnded {
+        sequence: EntityId,
+        cause: CommandId,
+        reason: crate::CinematicEndReason,
+        elapsed_ns: u64,
+    },
+    AbilityUsed {
+        ability: EntityId,
+        target: EntityId,
+    },
+    Healed {
+        target: EntityId,
+        amount: u32,
+    },
+    TimedEffectApplied {
+        effect: crate::ActiveEffect,
+    },
+    TimedEffectEnded {
+        instance: EntityId,
+        reason: crate::EffectEndReason,
+    },
+    CalendarTriggered {
+        event: EntityId,
+        cycle: u64,
+        scheduled_ns: u64,
+    },
+    EncounterActivated {
+        activation: crate::EncounterActivation,
+    },
+    FactionReaction {
+        change: crate::FactionConsequence,
+    },
+    VariableChanged {
+        variable: EntityId,
+        value: crate::NarrativeValue,
+    },
+    ItemTransferred {
+        object: EntityId,
+        actor: EntityId,
+        item: EntityId,
+        quantity: u32,
+        direction: crate::TransferDirection,
+    },
+    ContainerLocked {
+        object: EntityId,
+        locked: bool,
+    },
     PickedUp {
         object: EntityId,
         item: EntityId,
@@ -131,15 +218,27 @@ pub enum GameplayEvent {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GameReceipt {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simulation_time_ns: Option<u64>,
     pub request: GameRequest,
     pub sequence: u64,
     pub tick: u64,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub faction_witnesses: Vec<crate::FactionWitnessReceipt>,
     pub events: Vec<GameplayEvent>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct GameState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cinematic: Option<crate::CinematicPlayback>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simulation: Option<crate::SimulationState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub factions: Option<crate::FactionsState>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub narrative: Option<crate::NarrativeState>,
     pub sequence: u64,
     pub tick: u64,
     pub actors: BTreeMap<EntityId, ActorState>,
@@ -167,6 +266,19 @@ impl GameSession {
     ) -> Result<Self, GameplayError> {
         document.validate()?;
         let state = GameState {
+            cinematic: None,
+            simulation: document
+                .simulation
+                .as_ref()
+                .map(|_| crate::SimulationState::default()),
+            factions: document
+                .factions
+                .as_ref()
+                .map(|_| crate::FactionsState::default()),
+            narrative: document
+                .narrative
+                .as_ref()
+                .map(crate::NarrativeDefinition::initial_state),
             sequence: 0,
             tick: 0,
             actors: document
@@ -176,6 +288,7 @@ impl GameSession {
                     (
                         actor.id,
                         ActorState {
+                            active: document.actor_initially_present(actor.id),
                             position: actor.position,
                             vitality: actor.max_vitality,
                             stamina: document.profile.max_stamina,
@@ -192,6 +305,12 @@ impl GameSession {
                     (
                         object.id,
                         ObjectState {
+                            container: match &object.kind {
+                                crate::ObjectKind::Container { definition } => {
+                                    Some(definition.initial_state())
+                                }
+                                _ => None,
+                            },
                             position: object.position,
                             rotation_xyzw: identity_rotation(),
                             initiator: None,
@@ -252,6 +371,11 @@ impl GameSession {
             .actors
             .get_mut(&actor)
             .ok_or_else(|| GameplayError::MissingReference(actor.to_string()))?;
+        if !actor.active && actor.position != position {
+            return Err(GameplayError::ActionRefused(
+                "an absent actor cannot change pose".into(),
+            ));
+        }
         actor.position = position;
         Ok(())
     }
@@ -276,4 +400,16 @@ impl GameSession {
 
 pub(crate) fn identity_rotation() -> [f32; 4] {
     [0.0, 0.0, 0.0, 1.0]
+}
+
+fn initial_presence() -> bool {
+    true
+}
+
+#[allow(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "serde skip predicates receive a borrowed field"
+)]
+fn is_present(value: &bool) -> bool {
+    *value
 }

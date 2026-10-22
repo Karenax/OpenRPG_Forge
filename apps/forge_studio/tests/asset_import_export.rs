@@ -117,6 +117,59 @@ fn snapshot_includes_current_payload_source_and_embedded_licence_from_verified_b
 }
 
 #[test]
+fn module_snapshot_excludes_unrelated_assets_and_preserves_its_unplaced_origin_assets() {
+    let f = Fixture::new();
+    let mut owned = candidate("module-owned");
+    owned.provenance.rights.redistribution = RedistributionRights::Allowed;
+    owned.provenance.rights.redistribution_evidence = Some("Original authorship".into());
+    let owned = f.import(&owned);
+    let mut unrelated = candidate("other-module-private");
+    unrelated.asset_id = AssetId::deterministic("other-module-model");
+    unrelated.expected_revision = 1;
+    let unrelated = f.import(&unrelated);
+    let mut unplaced = candidate("module-unplaced");
+    unplaced.asset_id = AssetId::deterministic("module-unplaced");
+    unplaced.expected_revision = 2;
+    unplaced.provenance.rights.redistribution = RedistributionRights::Allowed;
+    unplaced.provenance.rights.redistribution_evidence = Some("Original authorship".into());
+    let unplaced = f.import(&unplaced);
+    let before = f.store.state().unwrap();
+    assert!(f.store.export_snapshot(&[], true).is_err());
+    let snapshot = f
+        .store
+        .export_module_snapshot(
+            &[(owned.asset.id, owned.asset.payload.sha256)],
+            &[unplaced.asset.id],
+            true,
+        )
+        .unwrap();
+    assert_eq!(snapshot.catalog.assets.len(), 2);
+    assert!(
+        snapshot
+            .catalog
+            .assets
+            .iter()
+            .any(|asset| asset.id == owned.asset.id)
+    );
+    assert!(
+        snapshot
+            .catalog
+            .assets
+            .iter()
+            .any(|asset| asset.id == unplaced.asset.id)
+    );
+    assert!(
+        !snapshot
+            .catalog
+            .assets
+            .iter()
+            .any(|asset| asset.id == unrelated.asset.id)
+    );
+    assert!(!snapshot.files.contains_key(&unrelated.asset.payload.path));
+    assert_eq!(f.store.state().unwrap(), before);
+}
+
+#[test]
 fn required_historical_pin_is_exported_without_silently_adopting_the_reimport() {
     let f = Fixture::new();
     let first = f.import(&candidate("first"));
@@ -271,6 +324,13 @@ fn historical_lineage_is_closed_with_its_parent_revision_and_conflicts_are_expli
         glb("parent-one")
     );
     assert!(!snapshot.files.contains_key(&new_parent.asset.payload.path));
+    let scoped = f
+        .store
+        .export_module_snapshot(&[(child.asset.id, child.asset.payload.sha256)], &[], false)
+        .unwrap();
+    assert_eq!(scoped.catalog.assets.len(), 2);
+    assert_eq!(scoped.files[&parent.asset.payload.path], glb("parent-one"));
+    assert!(!scoped.files.contains_key(&new_parent.asset.payload.path));
     assert!(
         f.store
             .export_snapshot(

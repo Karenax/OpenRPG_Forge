@@ -28,6 +28,15 @@ impl GameSession {
         request: &GameRequest,
         observation: ActionObservation,
     ) -> Result<GameReceipt, GameplayError> {
+        self.execute_with_witnesses(request, observation, &[])
+    }
+
+    pub fn execute_with_witnesses(
+        &mut self,
+        request: &GameRequest,
+        observation: ActionObservation,
+        witnesses: &[crate::FactionWitnessObservation],
+    ) -> Result<GameReceipt, GameplayError> {
         if let Some(receipt) = self
             .state
             .receipts
@@ -55,14 +64,27 @@ impl GameSession {
             .actors
             .get(&request.actor)
             .ok_or_else(|| GameplayError::MissingReference(request.actor.to_string()))?;
-        if actor.vitality == 0 {
-            return Err(refused("actor is defeated"));
+        if !actor.active || actor.vitality == 0 {
+            return Err(refused("actor is absent or defeated"));
+        }
+        if self.state.cinematic.is_some()
+            && request.actor == self.document.player
+            && !matches!(
+                request.action,
+                GameAction::SkipCinematic | GameAction::InterruptCinematic
+            )
+        {
+            return Err(refused(
+                "cinematic owns player control; skip or interrupt it first",
+            ));
         }
         if !observation.line_of_sight {
             return Err(refused("target is occluded"));
         }
         let mut next = self.state.clone();
-        let events = self.apply_action(&mut next, request, observation)?;
+        let faction_witnesses = self.snapshot_faction_witnesses(request, witnesses)?;
+        let mut events = self.apply_action(&mut next, request, observation)?;
+        events.extend(self.apply_faction_reactions(&mut next, request, &faction_witnesses)?);
         if next.tick_events_used.saturating_add(events.len())
             > self.document.profile.max_events_per_tick
         {
@@ -74,9 +96,14 @@ impl GameSession {
             .checked_add(1)
             .ok_or_else(|| refused("sequence overflow"))?;
         let receipt = GameReceipt {
+            simulation_time_ns: next
+                .simulation
+                .as_ref()
+                .map(|simulation| simulation.elapsed_ns),
             request: request.clone(),
             sequence: next.sequence,
             tick: next.tick,
+            faction_witnesses,
             events,
         };
         next.receipts.push(receipt.clone());
@@ -91,6 +118,40 @@ impl GameSession {
         observation: ActionObservation,
     ) -> Result<Vec<GameplayEvent>, GameplayError> {
         match request.action {
+            GameAction::RunScript { script } => self.apply_script(state, request, script),
+            GameAction::StartCinematic { sequence } => {
+                self.apply_start_cinematic(state, request, sequence)
+            }
+            GameAction::SkipCinematic => {
+                self.apply_stop_cinematic(state, request.actor, crate::CinematicEndReason::Skipped)
+            }
+            GameAction::InterruptCinematic => self.apply_stop_cinematic(
+                state,
+                request.actor,
+                crate::CinematicEndReason::Interrupted,
+            ),
+            GameAction::UseAbility { ability, target } => {
+                self.apply_ability(state, request, ability, target)
+            }
+            GameAction::CancelEffect { instance } => {
+                Self::apply_cancel_effect(state, request.actor, instance)
+            }
+            GameAction::TransferItem {
+                object,
+                item,
+                quantity,
+                direction,
+            } => self.apply_container_transfer(
+                state,
+                request.actor,
+                object,
+                item,
+                quantity,
+                direction,
+            ),
+            GameAction::SetContainerLocked { object, locked } => {
+                self.apply_container_lock(state, request.actor, object, locked)
+            }
             GameAction::Pickup { object } => self.apply_pickup(state, request, object),
             GameAction::ChooseDialogue {
                 speaker,
@@ -185,6 +246,11 @@ impl GameSession {
                         .ok_or_else(|| GameplayError::MissingReference(quest.to_string()))?;
                     if definition.giver != speaker
                         || state.quests.get(&quest) != Some(&QuestStatus::Available)
+                        || self.document.quest_flow(quest).is_some_and(|flow| {
+                            flow.prerequisites.iter().any(|prerequisite| {
+                                state.quests.get(prerequisite) != Some(&QuestStatus::Completed)
+                            })
+                        })
                     {
                         return Err(refused("quest cannot be accepted here"));
                     }
@@ -212,6 +278,16 @@ impl GameSession {
                     current.open = open;
                     events.push(GameplayEvent::DoorChanged { object, open });
                 }
+                DialogueEffect::SetVariable { .. }
+                | DialogueEffect::CompleteQuestSolution { .. }
+                | DialogueEffect::FailQuest { .. } => {
+                    events.extend(self.apply_narrative_effect(
+                        state,
+                        request.actor,
+                        speaker,
+                        effect,
+                    )?);
+                }
             }
         }
         if let Some(next) = selected.next {
@@ -235,7 +311,7 @@ impl GameSession {
             .actors
             .get(&target)
             .ok_or_else(|| GameplayError::MissingReference(target.to_string()))?;
-        if target == request.actor || target_state.vitality == 0 {
+        if target == request.actor || !target_state.active || target_state.vitality == 0 {
             return Err(refused("target cannot be attacked"));
         }
         Self::within(
@@ -257,16 +333,15 @@ impl GameSession {
         }
         actor.stamina -= profile.attack_stamina_cost;
         let protection = self
-            .document
-            .actor(target)
-            .ok_or_else(|| GameplayError::MissingReference(target.to_string()))?
-            .protection;
+            .attack_protection_for_state(state, target)
+            .ok_or_else(|| GameplayError::MissingReference(target.to_string()))?;
         let damage = profile.attack_damage.saturating_sub(protection);
         let victim = state
             .actors
             .get_mut(&target)
             .ok_or_else(|| refused("target disappeared"))?;
-        victim.vitality = victim.vitality.saturating_sub(damage);
+        let damage = damage.min(victim.vitality);
+        victim.vitality -= damage;
         events.push(GameplayEvent::Damage {
             target,
             contact: true,
@@ -276,7 +351,7 @@ impl GameSession {
         Ok(events)
     }
 
-    fn apply_door(
+    pub(crate) fn apply_door(
         &self,
         state: &mut GameState,
         request: &GameRequest,
@@ -427,6 +502,9 @@ impl GameSession {
         speaker: EntityId,
         quest: EntityId,
     ) -> Result<(), GameplayError> {
+        if self.document.quest_flow(quest).is_some() {
+            return Err(refused("quest requires an explicit solution"));
+        }
         let definition = self
             .document
             .quest(quest)
@@ -459,17 +537,13 @@ impl GameSession {
         Ok(())
     }
 
-    fn add_item(
+    pub(crate) fn add_item(
         &self,
         state: &mut GameState,
         actor: EntityId,
         item: EntityId,
         quantity: u32,
     ) -> Result<(), GameplayError> {
-        let definition = self
-            .document
-            .item(item)
-            .ok_or_else(|| GameplayError::MissingReference(item.to_string()))?;
         let capacity = self
             .document
             .actor(actor)
@@ -480,16 +554,7 @@ impl GameSession {
             .get_mut(&actor)
             .ok_or_else(|| GameplayError::MissingReference(actor.to_string()))?
             .inventory;
-        let current = inventory.get(&item).copied().unwrap_or(0);
-        let next = current
-            .checked_add(quantity)
-            .ok_or_else(|| refused("inventory quantity overflow"))?;
-        let total: u64 = inventory.values().map(|v| u64::from(*v)).sum();
-        if next > definition.max_stack || total + u64::from(quantity) > u64::from(capacity) {
-            return Err(refused("inventory full"));
-        }
-        inventory.insert(item, next);
-        Ok(())
+        crate::containers::insert_units(&self.document, inventory, capacity, item, quantity)
     }
 
     pub(crate) fn within(
@@ -501,8 +566,11 @@ impl GameSession {
         let source = state
             .actors
             .get(&actor)
-            .ok_or_else(|| GameplayError::MissingReference(actor.to_string()))?
-            .position;
+            .ok_or_else(|| GameplayError::MissingReference(actor.to_string()))?;
+        if !source.active {
+            return Err(refused("actor is absent"));
+        }
+        let source = source.position;
         let distance = (source.x - target.x).powi(2)
             + (source.y - target.y).powi(2)
             + (source.z - target.z).powi(2);
@@ -514,11 +582,44 @@ impl GameSession {
 
     #[must_use]
     pub fn condition(&self, actor: EntityId, condition: &Condition) -> bool {
-        Self::condition_for_state(&self.state, actor, condition)
+        self.condition_for_state(&self.state, actor, condition)
     }
 
-    fn condition_for_state(state: &GameState, actor: EntityId, condition: &Condition) -> bool {
+    pub(crate) fn condition_for_state(
+        &self,
+        state: &GameState,
+        actor: EntityId,
+        condition: &Condition,
+    ) -> bool {
         match *condition {
+            Condition::Relation {
+                observer,
+                subject,
+                comparison,
+                threshold,
+            } => self
+                .relation_for_state(state, observer, subject)
+                .is_some_and(|actual| {
+                    comparison.evaluate(
+                        &crate::NarrativeValue::Integer(i32::from(actual)),
+                        &crate::NarrativeValue::Integer(i32::from(threshold)),
+                    )
+                }),
+            Condition::Variable {
+                variable,
+                comparison,
+                ref value,
+            } => state
+                .narrative
+                .as_ref()
+                .and_then(|narrative| narrative.variables.get(&variable))
+                .is_some_and(|actual| comparison.evaluate(actual, value)),
+            Condition::All { ref conditions } => conditions
+                .iter()
+                .all(|condition| self.condition_for_state(state, actor, condition)),
+            Condition::Any { ref conditions } => conditions
+                .iter()
+                .any(|condition| self.condition_for_state(state, actor, condition)),
             Condition::Always => true,
             Condition::Quest { quest, status } => state.quests.get(&quest) == Some(&status),
             Condition::HasItem { item, quantity } => state
@@ -553,8 +654,8 @@ impl GameSession {
             .actors
             .get(&speaker)
             .ok_or_else(|| GameplayError::MissingReference(speaker.to_string()))?;
-        if speaker_state.vitality == 0 {
-            return Err(refused("speaker is defeated"));
+        if !speaker_state.active || speaker_state.vitality == 0 {
+            return Err(refused("speaker is absent or defeated"));
         }
         Self::within(
             state,
@@ -585,7 +686,7 @@ impl GameSession {
             choices: node
                 .choices
                 .iter()
-                .filter(|c| Self::condition_for_state(state, actor, &c.condition))
+                .filter(|c| self.condition_for_state(state, actor, &c.condition))
                 .map(|c| DialogueOption {
                     id: c.id,
                     text: c.text.clone(),

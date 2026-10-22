@@ -180,6 +180,27 @@ impl TerrainGenerationPlan {
         source_cache: &GeneratedTerrain,
         request: TerrainPartialUpdateRequest,
     ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        self.prepare_authoring_transition(source_cache, request, true)
+    }
+
+    /// Projects an already-authorized authoring snapshot, including undo/redo.
+    /// This is a derived-cache operation, not a document mutation command. The
+    /// exact live base, cache and structural compatibility remain mandatory;
+    /// the target's original revision and content hash are preserved.
+    pub fn apply_authoring_snapshot(
+        &self,
+        source_cache: &GeneratedTerrain,
+        request: TerrainPartialUpdateRequest,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        self.prepare_authoring_transition(source_cache, request, false)
+    }
+
+    fn prepare_authoring_transition(
+        &self,
+        source_cache: &GeneratedTerrain,
+        request: TerrainPartialUpdateRequest,
+        require_next_revision: bool,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
         if request.base_revision != self.document.revision {
             return Err(TerrainPartialUpdateError::StaleBaseRevision {
                 expected: self.document.revision,
@@ -193,12 +214,14 @@ impl TerrainGenerationPlan {
             });
         }
         validate_source_cache(self, source_cache)?;
-        let expected = self.document.revision.next()?;
-        if request.target_document.revision != expected {
-            return Err(TerrainPartialUpdateError::UnexpectedTargetRevision {
-                expected,
-                actual: request.target_document.revision,
-            });
+        if require_next_revision {
+            let expected = self.document.revision.next()?;
+            if request.target_document.revision != expected {
+                return Err(TerrainPartialUpdateError::UnexpectedTargetRevision {
+                    expected,
+                    actual: request.target_document.revision,
+                });
+            }
         }
         if !matches!(request.target_document.schema_version, 1..=3) {
             return Err(TerrainPartialUpdateError::TargetMustUseCurrentSchema);
@@ -221,7 +244,7 @@ impl TerrainGenerationPlan {
                 || self.document.material_overrides != request.target_document.material_overrides)
         {
             // A combined rename/delta gesture is not yet part of the editor contract.
-            return self.apply_partial_update(source_cache, request);
+            return self.prepare_partial_transition(source_cache, request, require_next_revision);
         }
         let changed_samples = if elevated {
             (0..=TERRAIN_GLOBAL_INTERVALS_PER_AXIS)
@@ -264,6 +287,15 @@ impl TerrainGenerationPlan {
         source_cache: &GeneratedTerrain,
         request: TerrainPartialUpdateRequest,
     ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
+        self.prepare_partial_transition(source_cache, request, true)
+    }
+
+    fn prepare_partial_transition(
+        &self,
+        source_cache: &GeneratedTerrain,
+        request: TerrainPartialUpdateRequest,
+        require_next_revision: bool,
+    ) -> Result<TerrainPartialUpdate, TerrainPartialUpdateError> {
         if request.base_revision != self.document.revision {
             return Err(TerrainPartialUpdateError::StaleBaseRevision {
                 expected: self.document.revision,
@@ -278,12 +310,14 @@ impl TerrainGenerationPlan {
         }
         validate_source_cache(self, source_cache)?;
 
-        let expected_revision = self.document.revision.next()?;
-        if request.target_document.revision != expected_revision {
-            return Err(TerrainPartialUpdateError::UnexpectedTargetRevision {
-                expected: expected_revision,
-                actual: request.target_document.revision,
-            });
+        if require_next_revision {
+            let expected_revision = self.document.revision.next()?;
+            if request.target_document.revision != expected_revision {
+                return Err(TerrainPartialUpdateError::UnexpectedTargetRevision {
+                    expected: expected_revision,
+                    actual: request.target_document.revision,
+                });
+            }
         }
         if !matches!(
             request.target_document.schema_version,

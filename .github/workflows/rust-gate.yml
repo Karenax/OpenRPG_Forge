@@ -1,10 +1,8 @@
 name: Rust gate
 
 on:
-  push:
-    branches: [Rust]
-  pull_request:
-    branches: [Rust]
+  # Owner decision 2026-10-22: GitHub is a remote backup; no automatic checks.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,6 +12,13 @@ env:
 
 jobs:
   native:
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_BUILD_JOBS: "2"
+      # Keep all tests and debug assertions; omit only symbols on small CI disks.
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      CARGO_PROFILE_TEST_DEBUG: "0"
+      NO_COLOR: "true"
     strategy:
       fail-fast: false
       matrix:
@@ -33,6 +38,21 @@ jobs:
           cargo install --locked trunk --version 0.21.14
           cargo install --locked tauri-cli --version 2.11.4
           cargo install --locked wasm-bindgen-cli --version 0.2.127
+      - name: Release installed-tool build intermediates
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_ACTIONS -ne 'true') { throw 'This cleanup is restricted to the CI runner.' }
+          $expectedTarget = [IO.Path]::GetFullPath((Join-Path $env:GITHUB_WORKSPACE 'target'))
+          $buildTarget = [IO.Path]::GetFullPath($env:CARGO_TARGET_DIR)
+          if ($buildTarget -ne $expectedTarget) { throw 'Unexpected CI build directory; preserved.' }
+          if ((Test-Path -LiteralPath $buildTarget) -and
+              ((Get-Item -LiteralPath $buildTarget -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw 'CI build directory is a link; preserved.'
+          }
+          cargo clean --release --target-dir $buildTarget
+          if ($LASTEXITCODE -ne 0) { throw 'Installed-tool build cleanup failed.' }
+          $disk = [IO.DriveInfo]::new([IO.Path]::GetPathRoot($buildTarget))
+          Write-Host ('CI available disk after tool build cleanup: {0:N2} GiB' -f ($disk.AvailableFreeSpace / 1GB))
       - name: Format
         run: cargo fmt --all -- --check
       - name: Engine architecture boundaries

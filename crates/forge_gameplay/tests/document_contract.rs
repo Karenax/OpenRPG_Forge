@@ -7,6 +7,12 @@ use forge_gameplay::{
 fn valid_document() -> GameplayDocument {
     let player = EntityId::deterministic("contract/player");
     GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("contract"),

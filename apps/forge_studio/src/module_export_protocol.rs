@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 pub struct ModuleExportRequest {
     pub schema_version: u32,
     pub expected_head: ContentHash,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_workspace_hash: Option<ContentHash>,
     pub name: String,
     pub version: String,
     pub publisher: String,
@@ -17,6 +19,9 @@ pub struct ModuleExportRequest {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ModuleExportResult {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_hash: Option<ContentHash>,
+    pub areas: usize,
     pub module_id: ModuleId,
     pub area_id: AreaId,
     pub source_hash: ContentHash,

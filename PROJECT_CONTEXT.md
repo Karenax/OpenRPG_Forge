@@ -1,5 +1,358 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Gate 5 clôturée localement — 22 octobre 2026
+
+**Gate 5 est clôturée localement** selon le
+[rapport final](docs/evidence/gate5/GATE5_CLOSURE_20261022.md) : treize domaines
+et R5-P01/P02 validés, preuves et archive vérifiées sur F:.
+Le propriétaire retire les contrôles GitHub des critères des gates et demande
+leur arrêt, GitHub servant de sauvegarde distante :
+[ADR-0034](docs/ADR/ADR-0034-github-backup-local-gate-validation.md).
+Le workflow distant est désactivé (`disabled_manually`) et ses déclencheurs
+automatiques sont retirés localement. Les validations locales restent exigées.
+Aucun commit/push du lot, aucune qualification de distribution ou acceptation
+esthétique, ni ouverture de Gate 6 ne sont déduits de cette clôture.
+Les étapes datées ci-dessous conservent la chronologie de la campagne.
+
+### Historique — ouverture du 19 octobre 2026
+
+Le propriétaire ouvre Gate 5 avec pour objectif sa clôture. Le
+[plan de réalisation](docs/planning/GATE5_IMPLEMENTATION_PLAN.md) suit les
+profils de règles, les surfaces du Creator, les treize domaines et les deux
+modules de qualification. La réalisation utilise le checkout commun et ses
+travaux présents. Gate 4 conserve sa clôture locale ; Gate 5 reste ouverte
+jusqu'aux preuves propres de ses critères. Aucune publication Git ni ouverture
+de Gate 6 n'est implicite.
+
+Consigne propriétaire du 21 octobre : construire et valider les fonctionnalités
+de base permettant de créer des quêtes ultérieurement. La campagne ne produit
+pas de quêtes ou d'aventure ; les données isolées existantes restent des tests
+minimaux des mécanismes génériques, sans enrichissement narratif.
+
+Complément de lisibilité du 21 octobre : une porte réelle de la bibliothèque
+Villa Forge est importée, prévisualisée et liée via le Studio. Le reçu central
+`door-library-import-e-001.receipt.json` conserve douze preuves vérifiées,
+la provenance privée et l'interdiction de redistribution ; les six anciens
+assets et le gameplay de la liaison sont conservés. La porte est ensuite
+ajustée en position, taille et orientation ; le tonneau Dungeon Builder est
+importé puis lié au conteneur existant. Les deux modèles sont observés dans le
+jeu. Les répétitions du script de
+test sont ensuite réduites de 4/8 à 1/1 par l'interface pour dégager l'écran ;
+les preuves historiques des quotas restent inchangées. Des contrôles génériques
+du placement du modèle lié sont ajoutés, avec trois tests ciblés et Clippy
+natif/WASM strict réussis. Le candidat `visual-model-controls-candidate-e-001`
+termine le 21 octobre à 18:56:57 UTC avec 2 498 tests workspace réussis,
+zéro échec, 56 ignorés, douze tests natifs de présentation réussis,
+Clippy natif/WASM, formatage et builds frontend/jeu/Studio conformes ; ses
+entrées compilables sont stables. Le verdict
+`BUILD_PASS_RUNTIME_NOT_VERIFIED` est conservé comme reçu de construction ;
+les contrôles graphiques ultérieurs constituent des preuves distinctes.
+La sélection manuelle du fichier par le propriétaire débloque l'import du
+tonneau ; `barrel-library-import-e-001.receipt.json` conserve sept fichiers
+vérifiés et la conservation des sept assets antérieurs. L'échelle nulle est
+refusée sans écriture, deux aperçus ne cumulent pas la rotation, et Annuler /
+Rétablir restaurent le placement de porte. Le reçu
+`library-model-placement-e-001.receipt.json` rapproche douze fichiers vérifiés,
+dont la fermeture/réouverture avec décalages et échelles exacts des deux modèles.
+Gameplay, physique, autres corrections, zones et modules sont conservés.
+La lisibilité globale et l'acceptation visuelle restent ouvertes.
+
+Rapprochement final du 21 octobre : les treize domaines et R5-P01/P02 passent
+localement, selon le [rapport de qualification locale](docs/evidence/gate5/GATE5_LOCAL_QUALIFICATION_20261021.md).
+La réouverture des deux zones retrouve le profil commun à 5 m, le masquage puis
+le réaffichage des factions conserve données et capacités, et B garde 3 m avec
+les scripts masqués. Le même Studio/runtime joue A, B, puis reprend A avec ses
+propres reçus et objets, après revue explicite de compatibilité des seules
+retouches de surfaces. Les deux réexports privés sont admis sur leurs trois
+zones avec profils, assets et origines exacts. Les reçus de persistance et de
+réexport conservent trente et dix-sept fichiers vérifiés sur F:.
+L'audit final retrouve 5 148 entrées compilables inchangées et les trois binaires
+exacts, malgré un HEAD avancé par un travail documentaire concurrent à
+`6934eb80842dc6f9670b2b9ddde39e7503f2a430`. La CI distante de ce candidat
+n'est pas exécutée ; aucune ancienne exception n'est étendue à Gate 5.
+Cette réserve de clôture, encore présente le 21 octobre, est levée par la
+décision propriétaire du 22 octobre consignée dans ADR-0034.
+Actualisation du 22 octobre : le run publié `39664002787` sur `6934eb80`
+réussit WASM/supply-chain, mais échoue sur Windows (disque plein pendant
+l'édition des exécutables de test) et Linux (perte de communication du runner,
+cause précise non prouvée). Ce run ne contient pas les changements locaux
+Gate 5 ni les limites de ressources déjà préparées dans le workflow local.
+Le [rapport local](docs/evidence/gate5/GATE5_LOCAL_QUALIFICATION_20261021.md)
+et `gate5-ci-review-20261022-e-001.zip` distinguent ce résultat du candidat
+local toujours sans exécution distante. Aucun nouveau correctif de workflow,
+publication, relance CI ou retrait de test n'est effectué dans cette reprise.
+La campagne est clôturée localement et archivée sur F:, originaux conservés ;
+aucun commit, push, publication ou passage à Gate 6 n'est effectué dans ce lot.
+Les paragraphes suivants conservent la chronologie
+des preuves et leurs limites d'alors.
+
+Le reçu `ui06-ui09-ui10-runtime-e-001.receipt.json` conserve ensuite 31 fichiers
+vérifiés sur F: (2 988 361 octets) et quatre sorties normales du nouveau jeu.
+UI09 et UI10 passent localement : sauvegarde avant la borne de 100 secondes,
+activation unique après reprise, défaite des deux acteurs, retour à 500 secondes,
+reprise sans doublon, puis seconde défaite et délai bloquant à 600 secondes
+avant réarmement à 700 secondes. Les identités sont conservées. Le tonneau
+permet le retrait des deux jetons de la solution alternative déjà définie ;
+la transition les consomme et remet une seule marque, conservée après reprise,
+sans nouvelle transaction ni nouvelle proposition de récompense. Les sources
+de gameplay sont inchangées par ces parties. Aucun contenu narratif n'est
+ajouté ; la qualification globale de Gate 5 reste ouverte.
+
+Le complément `ui06-two-paths-runtime-e-001.receipt.json` vérifie douze fichiers
+supplémentaires : partie fraîche distincte, restitution du sceau proposée
+seulement après la défaite, consommation et marque unique, puis reprise avec
+les sept reçus et la solution identiques. Les deux jetons restent au tonneau
+et la variable de l'autre chemin reste fausse. UI06 passe localement ; ces
+contrôles utilisent les définitions de test préexistantes sans les enrichir.
+
+Les reçus `ui07-perception-runtime-e-001.receipt.json` et
+`ui03-danger-runtime-e-001.receipt.json` vérifient ensuite respectivement
+dix-huit et quatorze fichiers sur F:. Le même témoin réagit à l'agression
+porte ouverte, sans réaction porte fermée ni propagation globale, avec causes
+et opinions conservées après reprise. La fermeture/réouverture des définitions
+de factions reste à terminer. Face à un feu sans dégâts, la sentinelle s'éloigne
+de 3,497 m tandis que le pillard reste malgré la visibilité du danger ; les
+vitalités, la position atteinte et l'unique allumage persistent après reprise.
+UI03 passe localement ; les acteurs et ce témoin ont des modèles génériques.
+
+Complément capacités : le rejeu UI08 valide localement coût atomique, refus du
+cumul, réduction des dégâts de contact de 20 à 10, retour à 20 après expiration,
+et reprise d'un effet actif avec identité/cause/échéance conservées sans nouveau
+coût. La seule retouche de calibration passe sa durée de 5 à 60 secondes via
+le Studio. Le reçu `ui08-runtime-e-002.receipt.json` conserve aussi la première
+observation arrivée après expiration, distincte du second cas actif réussi.
+Les dix-sept fichiers de preuve sont vérifiés et centralisés sur F: ; cet état
+remplace la réserve UI08 du paragraphe historique suivant.
+Le saut et l'interruption UI11 disposent également chacun d'une partie fraîche
+distincte, sans progression narrative ni consommation : reçu
+`ui11-independent-e-002.receipt.json` et huit fichiers vérifiés sur F:.
+
+Complément scripts : UI13 passe localement sur un refus de permission après
+une première écriture, le diagnostic vers l'instruction exacte, l'ajout de la
+permission manquante et le replay réel. Le refus conserve variable fausse,
+séquence zéro et aucun reçu ; la correction conserve les instructions et
+aboutit à une seule exécution, toujours unique après sauvegarde/reprise.
+Le reçu `ui12-ui13-diagnostic-e-001.receipt.json` rapproche vingt et un fichiers
+vérifiés sur F:. UI12 reste partiel : quotas, répétitions/messages et porte
+physique ne sont pas encore qualifiés par ce parcours. Aucune nouvelle quête
+n'est produite ; il s'agit des mécanismes génériques du Creator et du runtime.
+Le complément `ui12-cpu-e-001.receipt.json` valide ensuite le refus atomique du
+quota CPU, les répétitions imbriquées et leur correction de 16/16 à 4/8 via le
+Studio : 38 instructions exécutées, un seul reçu conservé après reprise et
+dix-neuf fichiers vérifiés sur F:. UI12 reste partiel pour le quota d'événements,
+le message et la porte physique ; ce résultat ne clôture pas Gate 5.
+Le reçu suivant `ui12-event-e-001.receipt.json` prouve le refus atomique du quota
+d'événements indépendamment du quota CPU, puis la correction de la seule boucle
+externe : 32 messages, 34 événements et un seul reçu identique après reprise.
+Dix-neuf fichiers sont vérifiés sur F:. Le candidat présente encore un remède
+générique pour ce refus ; la correction typée passe les 127 tests gameplay et
+Clippy strict du composant sur toutes ses cibles, avec formatage workspace
+vérifié. Voir `event-quota-remedy-targeted-e-001.receipt.json`.
+Le nouveau candidat commun `event-quota-remedy-candidate-e-001` termine ensuite
+avec 2 495 tests workspace réussis, zéro échec et 56 ignorés sur 262 cibles,
+Clippy natif/WASM et builds réussis, entrées compilées stables. Le rejeu réel
+`ui12-event-e-002.receipt.json` confirme le diagnostic `Budget` et son remède,
+le lien vers le message fautif, le refus atomique puis la correction et le
+même reçu unique après reprise. Vingt-deux fichiers sont vérifiés sur F:.
+La réserve du remède générique est levée ; la porte physique reste à qualifier
+pour UI12. La Gate 5 reste ouverte et la CI distante demeure distincte.
+
+Le complément `ui12-door-runtime-partial-e-001.receipt.json` conserve ensuite
+douze preuves vérifiées sur F: : porte minimale créée via le Studio, blocage
+physique fermé, ouverture visible par le script autorisé et courte avancée
+au-delà du point de blocage. La seule transaction contient 39 instructions et
+35 événements, dont 32 messages et un changement de porte. Le franchissement
+complet, sa reprise et la sortie normale restent à prouver ; UI12 reste partiel.
+Aucune quête n'est créée ou enrichie par cette fixture.
+Le reçu `ui12-door-resume-e-001.receipt.json` complète ensuite la persistance :
+porte ouverte et reçu unique strictement identique après reprise, sans nouveau
+coût ; deux sorties normales et huit preuves supplémentaires vérifiées sur F:.
+Le franchissement complet de la porte reste alors le seul critère manquant de UI12.
+Le reçu suivant `ui12-door-crossing-e-002.receipt.json` lève cette réserve :
+déplacement clavier réel jusqu'à Z = 0,546702 m, capsule entièrement au-delà du
+battant, reprise à la même position avec porte ouverte et reçu identique,
+deux sorties normales et douze preuves vérifiées sur F:. UI12 passe localement ;
+Gate 5 reste ouverte. Le propriétaire demande ensuite de rendre la scène de
+contrôle lisible avec des assets de la bibliothèque. Cette retouche visuelle
+conserve les mécanismes génériques et n'ajoute aucune quête ; la géométrie de
+test actuelle ne vaut pas acceptation visuelle.
+
+Complément du 21 octobre : la réouverture des deux instances de blueprint
+confirme héritage et override (UI02). Les deux plans cinématiques, la sauvegarde
+en cours, la reprise, la fin naturelle, le saut et l'interruption sont exercés
+dans le runtime commun (UI11). La caméra et les commandes reviennent ; une
+attaque physique est acceptée ensuite. Inventaires, quêtes et variables restent
+inchangés par la présentation ; le tassement physique inférieur au millimètre
+après reprise est consigné séparément. Le reçu `ui11-runtime-e-001.receipt.json`
+centralisé sur F: référence quinze preuves vérifiées. La capacité coûte cinq
+points une seule fois et son effet dure 5 000 ms ; UI08 reste partiel, notamment
+pour le calcul protégé, les refus et la reprise d'un effet actif. UI03 conserve
+sa réserve sur la fuite face au danger. Gate 5 reste ouverte.
+
+État courant au 21 octobre, après 11:30 UTC : le candidat
+`container-feedback-candidate-e-001` termine à 11:10:34 UTC, code 0, avec
+entrées compilées inchangées : Clippy strict natif/WASM, 2 495 tests réussis
+(zéro échec, 56 ignorés), formatage, frontend/worker, runtime et Studio.
+Le Studio corrigé est lancé après vérification des 3 025 fichiers frontend.
+Le jeu explique le dépôt filtré et conserve les quantités ; transfert accepté,
+sauvegarde/reprise et branche conditionnelle passent sur ce candidat (UI04/UI05).
+La solution de quête à deux jetons termine avec une seule récompense, conservée
+après reprise et sans nouveau choix de récompense. L'autre solution reste à jouer.
+Les deux acteurs sont configurés ; un essai d'attaque est refusé faute de contact
+physique réel. Le jeu ne doit pas confondre portée et contact ; la calibration
+des poses et le parcours de combat restent à terminer. Capacités, calendrier et
+cinématique à deux plans sont sauvegardés dans les sources par le Studio ; leurs
+parcours complets, factions, rencontres, scripts/diagnostics et R5-P01/P02 restent
+ouverts. La matrice de qualification distingue ces preuves des contrats métier.
+Toutes les nouvelles preuves sont centralisées sur F:, les builds et temporaires
+sur E:. Aucun fichier de tâche n'est créé sur C:.
+
+Historique des correctifs du 21 octobre : le candidat 003 est construit et le jeu séparé
+est observé dans le parcours Studio → partie → sauvegarde/reprise, puis A → B → A
+avec parties isolées et sources auteur inchangées. Le premier cas de règle commune
+révèle un bouton Annuler encore limité à la zone ; son correctif route les cartes
+gérées vers l'historique du module. Les 16 tests des modules et Clippy WASM passent,
+puis le replay global passe à 2 491 succès, zéro échec et 56 ignorés. Un refus
+Clippy portant sur la longueur du nouveau test conduit uniquement à factoriser
+ce test, avant reprise des contrôles et de la construction du frontend corrigé.
+Ce candidat termine à 07:47 UTC. La reprise sur deux zones vérifie l'héritage
+du profil et la portée commune, puis découvre un refus de projection du snapshot
+historique : la valeur est restaurée mais la révision terrain ancienne est refusée.
+Le test Rapier reproduit ce refus. Un chemin de projection explicite des snapshots
+acceptés est maintenant écrit ; les trois tests terrain ciblés passent à
+08:14 UTC, sans relâcher les révisions exigées pour les retouches ordinaires.
+Les 11 tests moteur de projection passent à 08:19 UTC, puis Clippy natif/WASM.
+Le replay global termine à 08:46:59 UTC : **2 493 succès, zéro échec, 56 ignorés**,
+sur 262 cibles ; le format passe à 08:47 UTC. Les builds frontend, jeu et Studio
+terminent à 09:14 UTC, code 0, avec entrées compilées inchangées. Le nouveau
+candidat rejoue 4 → 5 m, Undo à 4 puis Redo à 5 depuis la seconde zone,
+avec projections CPU/Rapier acquittées. Les deux zones sont sauvegardées à 5 m
+et l'autre module reste inchangé ; réouverture et calcul en jeu restent à prouver.
+Dans le Studio précédent, les formulaires ont aussi créé un
+blueprint partagé par deux instances : la révision donne une vitalité héritée
+de 50 au pillard, tandis que la seconde conserve 60 et sa fuite locales.
+Ces données sont sauvegardées et rapprochées sur F:, mais leur réouverture dans
+le candidat corrigé et leurs comportements en jeu restent à prouver.
+Le rejeu du calcul de portée observe ensuite la gardienne à 4,5 m : dialogue
+absent à 4 m et accessible à 5 m, seule règle gameplay modifiée. Une variable
+de dialogue et les transferts du coffre sont réellement sauvegardés/repris,
+séquence 3, sans modification des sources. Le menu masque cependant les
+dépôts interdits ; un correctif de présentation des demandes et du retour
+d'action est écrit. Ses 13 contrats de conteneurs passent à 09:53 UTC ; ses
+contrôles/builds et son rejeu graphique sont en cours. Les anciens candidats
+et leurs preuves gardent leur portée historique, sans qualification finale.
+Les parcours des treize domaines, les surfaces/réexports de R5-P02 et le candidat
+graphique final restent non qualifiés ; voir la matrice datée dans `docs/evidence/gate5`.
+
+Les premiers contrats de profil, blueprints, catalogue d'items et conteneurs
+sont implémentés côté domaine. Les tests ciblés de règles, héritage, transferts,
+historique et sauvegarde native passent ; la qualification
+des nouveaux parcours Studio reste à faire. Les compilations ont les périmètres
+détaillés ci-dessous. Les autres domaines de Gate 5 et
+R5-P01/P02 restent ouverts. Les caches, téléchargements et temporaires du
+chantier résident désormais sur E: selon la consigne propriétaire du 20 octobre,
+avec le checkout commun et le cache unique `.build/cargo-target`. Les preuves
+restent sur F: via `../Preuves-et-analyses/actives/gate5/20261019/` ; le catalogue
+central permet de retrouver l'historique sans réécrire ses reçus.
+
+Le backend de configuration commune du module et son protocole natif passent
+les tests ciblés de matérialisation, persistance et historique à deux zones : une
+commande, Save/Open et Undo/Redo communs, audit du preview conservé, refus des
+propositions incohérentes, des effets inter-modules et de la corruption historique.
+Le candidat backend précédent passe 347 tests gameplay/projet. Les nouveaux
+contrôles du Studio sont raccordés dans les sources ; leur compilation et leurs
+parcours restent à qualifier. L'admission v3 du profil et l'export de toutes les
+cartes sont implémentés dans le candidat de transport, avec réouverture par le
+producteur de workspace et conservation des archives. Leur qualification est en
+cours : 47 tests projet ciblés et 29 tests de construction/chargement/admission
+de paquets passent. La bibliothèque native du Studio sans desktop passe Clippy
+strict. Les tests du producteur et d'export des assets passent à 23:02 UTC le
+19 octobre : 24/24, dont deux modules dans une seule autorité, réouverture de
+toutes les zones avec profil commun, origines et sélection d'assets isolée.
+L'import dans le Studio, la cohabitation des deux modules et les parcours réels
+restent à prouver. Ces résultats ne ferment pas R5-P01/P02.
+
+Le lot C raccorde dans les sources les variables narratives typées, conditions
+composées bornées, solutions alternatives, échec et journal de quête projeté,
+avec une sauvegarde dédiée et les formulaires du Studio. Les 73 tests gameplay
+passent le 20 octobre à 00:24 UTC, dont neuf nouveaux tests narratifs et deux
+régressions de combat : les dégâts du reçu sont bornés à la vitalité perdue,
+ce qui préserve Save/Resume après une attaque surpuissante. Clippy strict gameplay/projet et
+20 tests d'intégration passent ; le test natif supplémentaire de sauvegarde v3
+passe avec les cinq tests de sauvegarde existants. Le frontend WASM passe Clippy
+strict le 20 octobre à 00:20 UTC sur le candidat narratif initial ; les retouches
+de formulaires suivantes passent le replay strict à 01:21 UTC. Le Studio desktop passe Clippy
+strict sur tous ses targets le 20 octobre à 01:01 UTC, avec un chemin explicite
+pour les données WebView2 avant création des fenêtres. Une retouche ultérieure
+remplace la panique de configuration invalide par une erreur de démarrage ;
+elle reste à revalider. Aucun parcours UI n'est qualifié.
+Le candidat factions raccorde maintenant le domaine, les reçus de témoins,
+conditions de relation et sauvegarde v4 ; 83 tests gameplay passent à 01:31 UTC,
+dont dix nouveaux contrats factions. L'adaptateur physique commun, les
+formulaires et deux tests d'intégration supplémentaires sont ensuite raccordés
+dans les sources, avec une même borne de perception dans le domaine et le moteur.
+Les 33 tests ciblés factions/projet passent à 01:47 UTC, dont Save/Open v4 par
+le host, aperçu sans écriture, retry, Undo/Redo et trois codecs d'archive.
+Clippy strict gameplay/projet passe ; moteur et formulaires passent le contrôle
+WASM strict à 02:22 UTC. Le scénario Rapier natif passe à 04:04 UTC : un mur
+masque un témoin, son retrait permet une seconde conséquence avec une cause
+distincte, et les relations survivent à Save/Resume. Cette preuve est headless ;
+les parcours graphiques restent à exercer. Un retry exact rejouait les événements
+dans l'adaptateur malgré son reçu métier unique ; le test physique reproduit ce
+défaut, puis les deux scénarios ciblés passent après correction à 04:15 UTC.
+Le lot D est maintenant raccordé au domaine, avec sauvegarde v5, et ses dix
+premiers tests de partie passent à 04:22 UTC. Le replay gameplay complet passe
+à 04:42 UTC : 102 tests réussis, dont onze contrats temporels. Le contrôle
+strict gameplay/projet passe à 04:35 UTC sur le candidat associé.
+Le host passe huit tests à 04:46 UTC, dont Save/Close/Open/Load v5, coûts
+conservés et expiration après reprise sans nouvelle consommation.
+Les deux scénarios Rapier temporels passent à 04:59 UTC : protection et
+expiration après reprise, activation sur une même identité physique, contact
+réel puis reprise sans doublon. Les formulaires temporels restent à compiler
+et les parcours graphiques restent à qualifier.
+Le lot E raccorde maintenant les scripts bornés et cinématiques au document,
+aux actions et à la sauvegarde v6. Ses onze tests de session réelle passent à
+05:02 UTC ; les treize tests isolés antérieurs restent une preuve distincte.
+Le replay complet passe à 05:18 UTC : **126 tests gameplay**, aucun échec.
+Clippy strict gameplay/projet, tous targets, passe à 05:14 UTC. Les raccordements
+de caméra, contrôle joueur, menu natif et formulaires sont écrits ; le contrôle
+WASM strict Studio/moteur passe à **05:36 UTC**. Le host passe **9/9 tests à 05:29 UTC**, dont
+Save/Close/Open/Load v6, script conservé, reprise puis saut de séquence et source
+authorée inchangée.
+Les **18 scénarios physiques natifs passent à 05:55 UTC**, incluant les deux
+scénarios caméra/entrées/reprise du lot E et le retry exact sans double promotion.
+Le premier échec conservé portait sur l'interprétation du dernier lot non vide
+dans le test, corrigée sans changer le contrat moteur. Ces preuves sont headless.
+La [matrice courante des treize domaines](docs/evidence/gate5/GATE5_QUALIFICATION_STATUS_20261020.md)
+sépare contrats, persistance, physique et parcours graphiques. Les autres
+critères de Gate 5 restent ouverts.
+
+Le contrôle natif strict du workspace, tous targets, passe le 20 octobre à
+**10:37 UTC** (`gate5-native-workspace-clippy-004.log`) sur le candidat corrigé.
+Le premier passage global des tests échoue sur une fixture de session gérée sans
+module propriétaire ; sa correction passe **10/10 tests d'intégration** avec un
+vrai module, sans modifier les règles produit. Ce refus reste conservé. Le replay
+global `gate5-native-workspace-tests-002.log` est interrompu sans reçu terminal :
+ses processus sont absents après la maintenance du stockage. Il ne fournit donc
+aucun verdict. La reprise `gate5-native-workspace-tests-e-001.log` termine à
+**22:19 UTC**, code **0** : **2 489 tests réussis, 56 ignorés**, sur 262 cibles,
+avec le profil actuel et le cache partagé E:. Les ignorés restent distincts des
+succès et sont inventoriés dans `native-workspace-tests-e-001.summary.json`.
+Le manifeste `source-inputs-reprise-20261020.json` confirme que les sources métier
+et `Cargo.lock` n'ont pas changé ; le profil, les lanceurs et la documentation
+ont évolué. Le premier lancement frontend E: refuse `NO_COLOR=1` avant tout build ;
+la tentative 002 corrige ce booléen d'environnement et reprend les contrôles
+stricts natif/WASM avant les builds. Les preuves restent dans la campagne centrale
+F:. Aucun build final ni parcours graphique n'est encore qualifié.
+
+La vérification distante actualise la réserve : le run publié du 18 octobre
+`39164674929` sur `e310d9b3` a exécuté ses jobs, avec WASM et supply-chain PASS,
+32 échecs de fixtures de bibliothèque d'assets sous Windows et un arrêt Linux
+faute d'espace. Le candidat local Gate 5 reste à qualifier à distance. Le
+séquenceur E: 002 passe Clippy natif à 22:33 UTC puis est arrêté pendant le
+contrôle WASM pour reproduire le défaut de références de racine Windows avant
+les builds ; son interruption et les processus terminés sont consignés.
+
 Validation du 18 octobre : [rapport de séparation moteur/carte](docs/evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
 14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
 générique et des extensions optiques gardent des périmètres distincts.
@@ -11,7 +364,41 @@ Il décrit les procédures et données locales sans redéfinir l'état canonique
 Les sections datées sont des archives : leurs anciennes attentes et autorisations
 ne remplacent pas les décisions plus récentes ni une demande actuelle.
 
-## État courant — Gate 4 clôturée localement au 16 octobre 2026
+## Perspective bonus — mondes vivants (non ouverte)
+
+Le propriétaire souhaite garder en réserve une éventuelle gate bonus où le Studio
+permettrait de créer des mondes plus réactifs que des aventures entièrement
+scriptées. Un village limité, avec des PNJ qui poursuivent des objectifs, se
+souviennent et réagissent aux actes du joueur, servirait de preuve avant tout
+monde plus vaste. Cette perspective ne modifie ni les critères ni l'ordre des
+gates actives ou futures ; son ouverture et sa place restent à décider.
+
+- Séparer le monde authoré dans le module, les faits persistants de chaque
+  campagne et les perceptions ou croyances propres à chaque PNJ. Conserver des
+  causes consultables et des sauvegardes versionnées, sans supposer que les
+  reçus de gameplay actuels constituent déjà un event sourcing mondial.
+- Permettre des dialogues libres par LLM à partir du savoir et du caractère du
+  PNJ. Les répliques et intentions d'action restent des propositions ; le moteur
+  valide les faits accessibles, les permissions et les effets avant application.
+- Faire tourner horaires, besoins et actions courantes par simulation et règles.
+  Aux décisions importantes, un modèle de décision facultatif de type JEV peut
+  départager des actions typées et déjà autorisées ; le jeu garde un parcours
+  déterministe complet sans fournisseur IA.
+- Envisager un directeur central qui surveille cohérence, répétition, rythme et
+  dérive des propositions, et sollicite ponctuellement des spécialistes du
+  dialogue, des relations ou des situations. Il ne réécrit pas les faits et ne
+  force pas le récit à revenir sur un scénario prévu.
+- Donner au créateur dans le Studio les limites d'autonomie, secrets, objectifs,
+  voix, règles de mémoire et outils de simulation/rejeu pour comprendre et
+  corriger les réactions, en préservant ses retouches.
+
+Le premier essai envisagé est le forgeron dont l'épée est volée : témoin direct,
+rumeur, restitution et réaction du chef doivent rester cohérents sur plusieurs
+sessions. Mesurer aussi latence, coût, contradictions, jouabilité sans IA et
+intérêt du jeu face à une version scriptée. Aucun ADR, numéro de gate, code ou
+verdict de qualification n'est adopté par cette note.
+
+## Référence — Gate 4 clôturée localement au 16 octobre 2026
 
 Décision propriétaire du 18 octobre — séparation stricte : `forge_engine` et
 `forge_assets` ne possèdent plus de code, shader, acquisition, fixture ou notice

@@ -27,8 +27,8 @@ pub(crate) fn ModuleExportControls(
             })
     };
     view! {
-        <details class="gameplay-module-export"><summary>"Exporter cette carte en module"</summary>
-            <p>"Le package contient cette carte RPG, ses modèles, images et sons importés, leurs sources, recettes et licences. Il se charge dans le jeu séparé."</p>
+        <details class="gameplay-module-export"><summary>{move ||if state.get().is_some_and(|state|state.module_creator_context.is_some()) {"Exporter le module complet"} else {"Exporter cette carte en module"}}</summary>
+            <p>"Le package contient toutes les cartes du module, leur profil commun s’il est configuré, les médias utilisés, leurs sources et licences. Une carte isolée reste exportée seule."</p>
             <label>"Nom du module"<input prop:value=move||name.get() on:input=move|e|name.set(event_target_value(&e))/></label>
             <label>"Version"<input prop:value=move||version.get() on:input=move|e|version.set(event_target_value(&e))/></label>
             <label>"Auteur / éditeur"<input prop:value=move||publisher.get() on:input=move|e|publisher.set(event_target_value(&e))/></label>
@@ -37,8 +37,10 @@ pub(crate) fn ModuleExportControls(
             <label><input type="checkbox" prop:checked=move||publish.get() on:change=move|e|publish.set(event_target_checked(&e))/>"Préparer pour redistribution : vérifier les droits du module et de chaque asset"</label>
             <button type="button" disabled=disabled on:click=move |_| {
                 let request = (|| {
-                    let head = state.get_untracked().and_then(|s|s.zone_head).ok_or("Ouvrir une carte RPG")?;
-                    Ok::<_,String>(ModuleExportRequest {schema_version:1, expected_head:head.content_hash()?,
+                    let current = state.get_untracked().ok_or("Ouvrir une carte RPG")?;
+                    let expected_workspace_hash = current.module_creator_context.map(|context|context.workspace_hash);
+                    let head = current.zone_head.ok_or("Ouvrir une carte RPG")?;
+                    Ok::<_,String>(ModuleExportRequest {schema_version:if expected_workspace_hash.is_some() {2} else {1}, expected_head:head.content_hash()?,expected_workspace_hash,
                         name:name.get_untracked(),version:version.get_untracked(),publisher:publisher.get_untracked(),
                         license_text:license.get_untracked(),redistributable:publish.get_untracked()})
                 })();
@@ -51,14 +53,15 @@ pub(crate) fn ModuleExportControls(
                     let _ = exporting.try_set(false);
                     if let Ok(ref receipt) = result { let _ = last.try_set(Some(receipt.clone())); }
                     let message = result.map_or_else(|e|format!("Export refusé : {e}"),|r|
-                        format!("Module créé : {} · SHA-256 {}. {}",r.package_path,r.package_sha256,
+                        format!("Module créé : {} carte(s) · {} · SHA-256 {}. {}",r.areas,r.package_path,r.package_sha256,
                             if r.redistributable {"Droits de redistribution déclarés et contrôlés."}
                             else {"Usage local ; redistribution non validée."}));
                     let _ = status.try_set(message);
                 });
             }>"Créer le fichier .orpmod"</button>
             <button type="button" disabled=move ||disabled() || last.get().is_none_or(|r|
-                state.get().and_then(|s|s.zone_head).and_then(|h|h.content_hash().ok())!=Some(r.source_hash))
+                state.get().and_then(|s|s.zone_head).and_then(|h|h.content_hash().ok())!=Some(r.source_hash)
+                || state.get().and_then(|s|s.module_creator_context).map(|context|context.module_hash)!=r.module_hash)
                 on:click=move |_| {
                     let Some(receipt) = last.get_untracked() else {return;};
                     crate::authoring_native_game::exported_game_starting();

@@ -98,16 +98,7 @@ impl AuthoringHost {
                 );
             }
             WorkspaceHostRequest::Apply { request } => {
-                let audit = self
-                    .pending_audit
-                    .clone()
-                    .unwrap_or_else(AuditStamp::legacy);
-                receipt = Some(
-                    self.workspace()?
-                        .session_mut()
-                        .execute_with_audit(&request, audit)
-                        .map_err(|error| error.to_string())?,
-                );
+                receipt = Some(self.apply_workspace_request(&request)?);
             }
             WorkspaceHostRequest::Adopt { request } => {
                 self.require_closed()?;
@@ -135,6 +126,26 @@ impl AuthoringHost {
         self.workspace
             .as_mut()
             .ok_or_else(|| "Open or create a workspace first".into())
+    }
+
+    fn apply_workspace_request(
+        &mut self,
+        request: &crate::workspace::session::WorkspaceRequest,
+    ) -> Result<crate::workspace::session::WorkspaceReceipt, String> {
+        if matches!(
+            request.action,
+            crate::workspace::session::WorkspaceAction::ConfigureCreator { .. }
+        ) {
+            return Err("Module Creator changes require the reviewed module operation".into());
+        }
+        let audit = self
+            .pending_audit
+            .clone()
+            .unwrap_or_else(AuditStamp::legacy);
+        self.workspace()?
+            .session_mut()
+            .execute_with_audit(request, audit)
+            .map_err(|error| error.to_string())
     }
 
     fn module_summaries(&mut self) -> Result<Vec<WorkspaceModuleSummary>, String> {

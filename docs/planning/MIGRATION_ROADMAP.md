@@ -1,6 +1,20 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-## État courant — Gate 4 clôturée localement au 16 octobre 2026
+## État courant — Gate 5 ouverte le 19 octobre 2026
+
+Ouverture explicite par le propriétaire, avec objectif de clôture. Le
+[plan de réalisation](GATE5_IMPLEMENTATION_PLAN.md) suit les lots et preuves.
+Gate 4 conserve sa clôture locale du 16 octobre. Les critères Gate 5 restent
+non qualifiés à l'ouverture ; aucune publication ou Gate 6 n'est implicite.
+
+La reprise du 20 octobre acquiert 2 489 tests natifs réussis (56 ignorés), Clippy
+natif strict et les contrôles supply-chain locaux, sur leurs inventaires datés.
+Les parcours graphiques restent ouverts. La vérification du dernier run publié
+du 18 octobre constate WASM/supply-chain réussis, des échecs de tests Windows
+de bibliothèque d'assets et un arrêt Linux faute d'espace. Le candidat Gate 5
+doit encore obtenir ses preuves distantes ; voir la matrice dans le plan.
+
+## Référence — Gate 4 clôturée localement au 16 octobre 2026
 
 La [décision de séparation stricte du 18 octobre](../ADR/ADR-0026-strict-engine-map-separation.md)
 déplace les ports et données de carte dans deux composants facultatifs. Le moteur
@@ -4126,6 +4140,11 @@ preuves ; les contrats seuls ne qualifient pas les parcours Studio et jeu.
 
 # Gate 5 — Creator RPG étendu
 
+**Ouverte le 19 octobre 2026**, avec objectif de clôture sur preuves.
+**Clôturée localement le 22 octobre 2026** selon le
+[rapport final](../evidence/gate5/GATE5_CLOSURE_20261022.md) et ADR-0034.
+Suivi : [plan de réalisation](GATE5_IMPLEMENTATION_PLAN.md).
+
 Reprendre progressivement les besoins historiques par parcours :
 
 - dialogues avancés ;
@@ -4144,8 +4163,14 @@ Reprendre progressivement les besoins historiques par parcours :
 
 Chaque lot référence les IDs historiques utiles, sans chercher une couverture artificielle.
 
-- [ ] `R5-P01` déclarer le profil de règles versionné et les capacités réellement implémentées ; inspecteurs, contenus et aide référencent les mêmes définitions.
-- [ ] `R5-P02` configurer les surfaces d'auteur par module dans le Studio partagé ; prouver un second module sans nouvel éditeur exécutable ni code spécial dans le moteur.
+- [x] `R5-P01` déclarer le profil de règles versionné et les capacités réellement implémentées ; inspecteurs, contenus et aide référencent les mêmes définitions. PASS local du 21 octobre, selon le [rapprochement final](../evidence/gate5/GATE5_LOCAL_QUALIFICATION_20261021.md).
+- [x] `R5-P02` configurer les surfaces d'auteur par module dans le Studio partagé ; prouver un second module sans nouvel éditeur exécutable ni code spécial dans le moteur. PASS local : configurations distinctes, masquage sans perte, A→B→A et réexports privés admis.
+
+Les treize domaines passent localement. **Gate 5 est clôturée localement** :
+le propriétaire retire les contrôles GitHub des critères des gates le 22 octobre,
+GitHub servant de sauvegarde distante. La CI du candidat reste non exécutée.
+La qualité esthétique de la scène,
+la distribution et les plateformes distantes ne sont pas qualifiées par ce bilan.
 
 ---
 

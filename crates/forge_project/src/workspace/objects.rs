@@ -62,7 +62,7 @@ impl ReviewedZone {
 }
 
 pub struct ZoneObjectStore {
-    root: PathBuf,
+    pub(super) root: PathBuf,
     // Cache replay results only. Every read still verifies physical bytes and sources.
     verified: std::sync::Mutex<std::collections::BTreeMap<ContentHash, VerifiedArchive>>,
 }

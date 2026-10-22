@@ -6,9 +6,15 @@ use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
 mod atomic_publish;
+pub mod creator;
+#[cfg(not(target_arch = "wasm32"))]
+mod creator_objects;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod export;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod file_session;
 pub mod history;
+pub use creator::ModuleCreatorReview;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod objects;
 #[cfg(not(target_arch = "wasm32"))]
@@ -49,7 +55,26 @@ pub struct ModuleEntry {
     pub name: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub origin: Option<ModuleOriginPin>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creator: Option<ModuleCreatorReference>,
     pub zones: Vec<ZoneReference>,
+}
+
+/// Immutable shared definition, published with all materialized zone references.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ModuleCreatorReference {
+    pub sha256: ContentHash,
+    pub bytes: u64,
+}
+
+impl ModuleCreatorReference {
+    pub fn validate(&self) -> Result<(), WorkspaceError> {
+        if self.bytes == 0 || self.bytes > forge_gameplay::MAX_MODULE_CREATOR_BYTES as u64 {
+            return Err(WorkspaceError::Creator("definition byte budget"));
+        }
+        Ok(())
+    }
 }
 
 /// Corresponding admitted package and receipt, resolved at fixed native paths.
@@ -94,6 +119,8 @@ pub enum WorkspaceError {
     MissingProject,
     #[error("invalid module origin: {0}")]
     Origin(&'static str),
+    #[error("invalid module creator: {0}")]
+    Creator(&'static str),
     #[error("invalid workspace JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash workspace: {0}")]
@@ -113,7 +140,16 @@ impl Default for WorkspaceHead {
 
 impl WorkspaceHead {
     pub fn validate(&self) -> Result<(), WorkspaceError> {
-        if self.schema != SCHEMA || self.schema_version != 1 || self.revision.get() == 0 {
+        let configured = self
+            .projects
+            .iter()
+            .flat_map(|project| &project.modules)
+            .any(|module| module.creator.is_some());
+        let expected_version = if configured { 2 } else { 1 };
+        if self.schema != SCHEMA
+            || self.schema_version != expected_version
+            || self.revision.get() == 0
+        {
             return Err(WorkspaceError::Schema);
         }
         if self.projects.len() > MAX_PROJECTS {
@@ -131,6 +167,9 @@ impl WorkspaceHead {
             let mut module_names = BTreeSet::new();
             for module in &project.modules {
                 validate_name(&module.name)?;
+                if let Some(creator) = module.creator {
+                    creator.validate()?;
+                }
                 if let Some(origin) = module.origin {
                     origin.validate()?;
                 }
@@ -204,8 +243,54 @@ impl WorkspaceHead {
             id,
             name,
             origin: None,
+            creator: None,
             zones: Vec::new(),
         });
+        proposed.validate()?;
+        Ok(proposed)
+    }
+
+    /// Pure all-area replacement. File adapters verify every immutable object first.
+    pub fn with_module_creator(
+        &self,
+        project_id: ProjectId,
+        module_id: ModuleId,
+        before: Option<ModuleCreatorReference>,
+        after: ModuleCreatorReference,
+        before_zones: &[ZoneReference],
+        after_zones: &[ZoneReference],
+    ) -> Result<Self, WorkspaceError> {
+        after.validate()?;
+        let mut proposed = self.clone();
+        let module = proposed
+            .projects
+            .iter_mut()
+            .find(|project| project.id == project_id)
+            .and_then(|project| {
+                project
+                    .modules
+                    .iter_mut()
+                    .find(|module| module.id == module_id)
+            })
+            .ok_or(WorkspaceError::MissingProject)?;
+        if module.creator != before || module.zones != before_zones {
+            return Err(WorkspaceError::Creator("module changed since review"));
+        }
+        if before_zones
+            .iter()
+            .map(|zone| zone.area_id)
+            .ne(after_zones.iter().map(|zone| zone.area_id))
+        {
+            return Err(WorkspaceError::Creator(
+                "configuration cannot add, remove or reorder zones",
+            ));
+        }
+        if before == Some(after) && before_zones == after_zones {
+            return Err(WorkspaceError::Creator("configuration has no change"));
+        }
+        module.creator = Some(after);
+        module.zones = after_zones.to_vec();
+        proposed.schema_version = 2;
         proposed.validate()?;
         Ok(proposed)
     }

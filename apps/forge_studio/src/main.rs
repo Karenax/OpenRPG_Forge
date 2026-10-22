@@ -7,6 +7,7 @@ use tauri::Manager;
 mod native_atelier;
 mod native_game;
 mod native_reconciliation;
+mod native_webview;
 
 static AUTHORING_HOST: OnceLock<
     Mutex<Result<forge_project::authoring::host::AuthoringHost, String>>,
@@ -470,8 +471,24 @@ fn execute_studio_command_sync(command: StudioCommand) -> StudioResponse {
     }
 }
 
-fn main() {
+fn main() -> Result<(), String> {
+    let mut context = tauri::generate_context!();
+    let data_directory = native_webview::data_directory()?;
+    let windows = native_webview::defer_windows(
+        &mut context.config_mut().app.windows,
+        data_directory.is_some(),
+    );
     tauri::Builder::default()
+        .setup(move |app| {
+            if let Some(directory) = &data_directory {
+                for window in &windows {
+                    tauri::WebviewWindowBuilder::from_config(app, window)?
+                        .data_directory(directory.clone())
+                        .build()?;
+                }
+            }
+            Ok(())
+        })
         .on_window_event(|window, event| {
             if window.label() == native_atelier::LABEL
                 && let tauri::WindowEvent::CloseRequested { api, .. } = event
@@ -518,8 +535,8 @@ fn main() {
             native_game::native_game_running,
             native_game::native_game_diagnostics
         ])
-        .run(tauri::generate_context!())
-        .expect("failed to run OpenRPG Forge Studio");
+        .run(context)
+        .map_err(|error| format!("Lancement du Studio impossible : {error}"))
 }
 
 fn finish_window_close(

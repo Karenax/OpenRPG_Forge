@@ -64,6 +64,26 @@ pub fn read(
 }
 
 fn zone_scope(receipt: &super::session::WorkspaceReceipt) -> Option<String> {
+    if let WorkspaceAction::ConfigureCreator {
+        project_id,
+        module_id,
+        ..
+    } = &receipt.request.action
+    {
+        let project = receipt
+            .after
+            .projects
+            .iter()
+            .find(|project| project.id == *project_id)?;
+        let module = project
+            .modules
+            .iter()
+            .find(|module| module.id == *module_id)?;
+        return Some(format!(
+            "{} / {} / toutes les zones",
+            project.name, module.name
+        ));
+    }
     let (project_id, module_id, area_id) = match &receipt.request.action {
         WorkspaceAction::AttachZone {
             project_id,

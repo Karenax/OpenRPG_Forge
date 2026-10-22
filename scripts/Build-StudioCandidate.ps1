@@ -5,8 +5,8 @@ param(
     [Parameter(Mandatory)][string]$Frontend,
     [Parameter(Mandatory)][ValidatePattern('^[0-9a-fA-F]{64}$')][string]$ExpectedWasmSha256,
     [Parameter(Mandatory)][string]$Output,
-    [string]$BuildCacheDirectory = 'E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-20260906',
-    [string]$TemporaryDirectory = 'E:/OpenRPG_Forge/.gate1-build-cache/terrain-water-temp-20260906',
+    [string]$BuildCacheDirectory = 'E:/OpenRPG_Forge/.build/cargo-target',
+    [string]$TemporaryDirectory = 'E:/OpenRPG_Forge/.build/tmp',
     [string]$GovernedKit,
     [ValidateSet('debug','release')][string]$ExpectedNavigationWorkerConfiguration = 'release',
     [ValidatePattern('^[A-Za-z0-9_-]+$')][string]$BinaryName = 'forge-studio',
@@ -67,9 +67,11 @@ if ($CandidateView -and -not (Test-Path -LiteralPath (Join-Path $frontendRoot 'f
 }
 $outputRoot = [IO.Path]::GetFullPath($Output)
 $importWorkRoot = [IO.Path]::GetFullPath('F:/OpenRPG_ImportWork').TrimEnd('\') + '\'
+$forgeStorageRoot = [IO.Path]::GetFullPath('F:/OpenRPG_Forge').TrimEnd('\') + '\'
 if ([IO.Path]::GetPathRoot($outputRoot) -ne 'E:\' -and
-    -not $outputRoot.StartsWith($importWorkRoot, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'Candidate output must stay on E: or inside F:/OpenRPG_ImportWork'
+    -not $outputRoot.StartsWith($importWorkRoot, [StringComparison]::OrdinalIgnoreCase) -and
+    -not $outputRoot.StartsWith($forgeStorageRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Candidate output must stay on E:, inside F:/OpenRPG_Forge or F:/OpenRPG_ImportWork'
 }
 if (Test-Path -LiteralPath $outputRoot) { throw 'Output already exists; refusing overwrite' }
 $branch = & git -C $repository branch --show-current
@@ -178,14 +180,13 @@ if ($entries | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePo
     throw 'Frontend reparse points are not supported'
 }
 $pins = @($entries | Where-Object { -not $_.PSIsContainer } | Sort-Object FullName | ForEach-Object {
-    [ordered]@{ path = [IO.Path]::GetRelativePath($frontendRoot, $_.FullName); sha256 = (Get-FileHash -LiteralPath $_.FullName).Hash }
+    [ordered]@{ path = [IO.Path]::GetRelativePath($frontendRoot, $_.FullName).Replace('\','/'); sha256 = (Get-FileHash -LiteralPath $_.FullName).Hash }
 })
 $inputPaths = @{}
 foreach ($pin in $pins) { $inputPaths[$pin.path] = Join-Path $frontendRoot $pin.path }
 if ($GovernedKit) {
-    if (Test-Path -LiteralPath (Join-Path $frontendRoot 'forge-kit')) {
-        throw 'Frontend already contains a kit; refusing an ambiguous replacement'
-    }
+    $stagedKit = Join-Path $frontendRoot 'forge-kit'
+    $hasStagedKit = Test-Path -LiteralPath $stagedKit
     $kitRoot = (Resolve-Path -LiteralPath $GovernedKit).Path
     if ((Get-Item -LiteralPath $kitRoot).Attributes -band [IO.FileAttributes]::ReparsePoint -or
         (Get-ChildItem -LiteralPath $kitRoot -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint })) {
@@ -214,10 +215,28 @@ if ($GovernedKit) {
         if ((Get-FileHash -LiteralPath $assetPath).Hash -ne $asset.glb.sha256) { throw 'Kit asset hash mismatch' }
         $kitFiles += $relative
     }
-    foreach ($name in $kitFiles | Select-Object -Unique) {
+    $kitFiles = @($kitFiles | Sort-Object -Unique)
+    if ($hasStagedKit) {
+        $stagedFiles = @(Get-ChildItem -LiteralPath $stagedKit -Recurse -File -Force | ForEach-Object {
+            [IO.Path]::GetRelativePath($stagedKit, $_.FullName).Replace('\','/')
+        })
+        if (-not $stagedFiles.Count -or
+            @(Compare-Object -CaseSensitive -ReferenceObject $kitFiles -DifferenceObject $stagedFiles).Count) {
+            throw 'Staged kit file set differs from the explicit GovernedKit'
+        }
+        foreach ($name in $kitFiles) {
+            if ((Get-FileHash -LiteralPath (Join-Path $stagedKit $name)).Hash -ne
+                (Get-FileHash -LiteralPath (Join-Path $kitRoot $name)).Hash) {
+                throw 'Staged kit hash differs from the explicit GovernedKit'
+            }
+        }
+    }
+    foreach ($name in $kitFiles) {
         $relative = 'forge-kit/' + $name
-        $inputPaths[$relative] = Join-Path $kitRoot $name
-        $pins += [ordered]@{ path = $relative; sha256 = (Get-FileHash -LiteralPath $inputPaths[$relative]).Hash }
+        if (-not $hasStagedKit) {
+            $inputPaths[$relative] = Join-Path $kitRoot $name
+            $pins += [ordered]@{ path = $relative; sha256 = (Get-FileHash -LiteralPath $inputPaths[$relative]).Hash }
+        }
     }
 }
 $entryUrl = 'index.html?forge_scene=world-sketch-visual-valley&forge_kit=governed&forge_forest=batches'
@@ -271,13 +290,15 @@ if ($null -ne $WindowX) {
 $configPath = Join-Path $outputRoot 'tauri-candidate.conf.json'
 $config | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $configPath -Encoding utf8
 $savedEnvironment = @{}
-foreach ($name in @('CARGO_TARGET_DIR', 'CARGO_INCREMENTAL', 'RUSTFLAGS', 'TEMP', 'TMP', 'NO_COLOR', 'CARGO_NET_OFFLINE')) {
+foreach ($name in @('CARGO_TARGET_DIR', 'CARGO_HOME', 'CARGO_INCREMENTAL', 'RUSTFLAGS', 'TEMP', 'TMP', 'NO_COLOR', 'CARGO_NET_OFFLINE')) {
     $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
 }
 try {
     $env:CARGO_TARGET_DIR = [IO.Path]::GetFullPath($BuildCacheDirectory)
+    $env:CARGO_HOME = 'E:\OpenRPG_Forge\.build\cargo-home'
     $env:CARGO_INCREMENTAL = '0'
-    $env:RUSTFLAGS = '-C debuginfo=0'
+    # Keep the caller's flags and the shared dev profile instead of rebuilding
+    # the dependency graph under a second, forced debug-information setting.
     $env:TEMP = [IO.Path]::GetFullPath($TemporaryDirectory)
     $env:TMP = $env:TEMP
     $null = New-Item -ItemType Directory -Force -Path $env:CARGO_TARGET_DIR, $env:TEMP
@@ -300,7 +321,7 @@ try {
     }
     [ordered]@{ status = 'BUILD_ONLY'; recorded_at_utc = [DateTime]::UtcNow.ToString('o');
         branch = $branch; binary_name = $BinaryName; executable_sha256 = (Get-FileHash -LiteralPath $executable).Hash;
-        build_cache_directory = $env:CARGO_TARGET_DIR; temporary_directory = $env:TEMP;
+        build_cache_directory = $env:CARGO_TARGET_DIR; temporary_directory = $env:TEMP; rustflags = $env:RUSTFLAGS;
         entry_url = $entryUrl; authoring = [bool]$Authoring; bridge_probe = [bool]$BridgeProbe;
         frontend_pins = $pins; runtime_verified = $false; gate_qualified = $false
     } | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputRoot 'build-proof.json') -Encoding utf8

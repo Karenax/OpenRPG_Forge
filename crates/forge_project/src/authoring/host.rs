@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 
 mod catalog;
 mod compaction;
+mod creator;
+mod export;
 mod game_save;
 mod gameplay;
 mod managed;
@@ -36,6 +38,8 @@ pub struct AuthoringHost {
     managed_compaction: Option<crate::workspace::session::WorkspaceRequest>,
     zone_validator: Option<ZoneValidator>,
     pending_audit: Option<AuditStamp>,
+    module_creator_pending: Option<(crate::workspace::ModuleCreatorReview, AuditStamp)>,
+    module_history_pending: Option<(crate::workspace::session::WorkspaceRequest, AuditStamp)>,
 }
 
 impl AuthoringHost {
@@ -73,6 +77,8 @@ impl AuthoringHost {
             managed_compaction: None,
             zone_validator: None,
             pending_audit: None,
+            module_creator_pending: None,
+            module_history_pending: None,
         })
     }
 
@@ -100,6 +106,9 @@ impl AuthoringHost {
         let mut zone_receipt = None;
         let mut zone_migration = None;
         let mut zone_compaction = None;
+        let mut module_creator_review = None;
+        let mut module_creator_affected = Vec::new();
+        let mut module_history_receipt = None;
         match command {
             AuthoringRequest::PreparePlaytest { expected_hash } => {
                 return self.prepare_playtest(expected_hash);
@@ -129,6 +138,37 @@ impl AuthoringHost {
             }
             AuthoringRequest::ApplyZone { request } => {
                 zone_receipt = Some(self.zone_command(&request, false)?);
+            }
+            AuthoringRequest::PreviewModuleCreator {
+                expected_workspace_hash,
+                profile,
+                surfaces,
+                required_capabilities,
+                command_id,
+            } => {
+                let (review, affected) = self.review_module_creator(
+                    expected_workspace_hash,
+                    profile,
+                    surfaces,
+                    required_capabilities,
+                    command_id,
+                )?;
+                module_creator_review = Some(review);
+                module_creator_affected = affected;
+            }
+            AuthoringRequest::ApplyModuleCreator { review } => {
+                self.apply_module_creator(&review)?;
+            }
+            AuthoringRequest::PreviewModuleHistory {
+                expected_workspace_hash,
+                redo,
+                command_id,
+            } => {
+                module_history_receipt =
+                    Some(self.review_module_history(expected_workspace_hash, redo, command_id)?);
+            }
+            AuthoringRequest::ApplyModuleHistory { request } => {
+                self.apply_module_history(&request)?;
             }
             AuthoringRequest::ReadHistory {
                 expected_hash,
@@ -194,6 +234,9 @@ impl AuthoringHost {
         state.zone_receipt = zone_receipt;
         state.zone_migration = zone_migration;
         state.zone_compaction = zone_compaction;
+        state.module_creator_review = module_creator_review;
+        state.module_creator_affected = module_creator_affected;
+        state.module_history_receipt = module_history_receipt;
         Ok(state)
     }
 
@@ -442,6 +485,10 @@ impl AuthoringHost {
         recovery: Option<super::RecoveryReview>,
     ) -> Result<AuthoringState, String> {
         Ok(AuthoringState {
+            module_creator_context: self.module_creator_context()?,
+            module_creator_review: None,
+            module_creator_affected: Vec::new(),
+            module_history_receipt: None,
             gameplay_module_id: self.gameplay_module_id(),
             managed_tabs: self.managed_tab_state(),
             zone_head: self.active.as_ref().and_then(ActiveSession::head).cloned(),
@@ -506,35 +553,6 @@ impl AuthoringHost {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn separate_game_exports_current_unsaved_zone_without_saving_or_freezing_it() {
-        use super::{ActiveSession, AuthoringHost, AuthoringRequest};
-        let root = std::env::temp_dir().join(format!("forge-game-export-{}", std::process::id()));
-        std::fs::create_dir_all(&root).unwrap();
-        let document =
-            crate::authoring::new_terrain("game", "zone", "Current unsaved map").unwrap();
-        let session =
-            crate::zone_authoring::session::ZoneEditSession::from_initial_terrain(document)
-                .unwrap();
-        let hash = session.head().content_hash().unwrap();
-        let expected_archive = session.archive_bytes().unwrap();
-        let mut host = AuthoringHost::new(&root).unwrap();
-        host.active = Some(ActiveSession::Managed {
-            session: Box::new(session),
-            dirty: true,
-        });
-        assert_eq!(host.game_archive(hash).unwrap(), expected_archive);
-        assert!(
-            host.game_archive(forge_core::ContentHash::from_bytes([0; 32]))
-                .is_err()
-        );
-        let state = host.execute(AuthoringRequest::Inspect).unwrap();
-        assert!(state.dirty);
-        assert_eq!(state.playtest_hash, None);
-        assert_eq!(state.zone_head.unwrap().content_hash().unwrap(), hash);
-        assert_eq!(std::fs::read_dir(&root).unwrap().count(), 0);
-        std::fs::remove_dir(&root).unwrap();
-    }
     use super::*;
     use crate::{
         TerrainDocument,

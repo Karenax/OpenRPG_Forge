@@ -9,6 +9,43 @@ fn invalid(message: &str) -> GameplayError {
 impl GameSession {
     pub(crate) fn validate_saved_action(&self, request: &GameRequest) -> Result<(), GameplayError> {
         let valid = match request.action {
+            GameAction::RunScript { script } => self.document.script_definition(script).is_some(),
+            GameAction::StartCinematic { sequence } => {
+                request.actor == self.document.player
+                    && self.document.cinematic_definition(sequence).is_some()
+            }
+            GameAction::SkipCinematic | GameAction::InterruptCinematic => {
+                request.actor == self.document.player && self.document.cinematics.is_some()
+            }
+            GameAction::UseAbility { ability, target } => {
+                self.document.simulation.as_ref().is_some_and(|simulation| {
+                    simulation.ability(ability).is_some_and(|definition| {
+                        definition.target != crate::AbilityTarget::SelfOnly
+                            || target == request.actor
+                    }) && simulation
+                        .actor_abilities
+                        .get(&request.actor)
+                        .is_some_and(|abilities| abilities.contains(&ability))
+                        && self.document.actor(target).is_some()
+                })
+            }
+            GameAction::CancelEffect { .. } => self.document.simulation.is_some(),
+            GameAction::TransferItem {
+                object,
+                item,
+                quantity,
+                ..
+            } => {
+                self.document.container_definition(object).is_some()
+                    && self
+                        .document
+                        .item(item)
+                        .is_some_and(|definition| quantity > 0 && quantity <= definition.max_stack)
+            }
+            GameAction::SetContainerLocked { object, .. } => self
+                .document
+                .container_definition(object)
+                .is_some_and(|definition| definition.key.is_some()),
             GameAction::Pickup { object } => self
                 .document
                 .object(object)
@@ -55,6 +92,39 @@ impl GameSession {
 
     pub(crate) fn validate_event(&self, event: &GameplayEvent) -> Result<(), GameplayError> {
         let valid = match *event {
+            GameplayEvent::FactionReaction { ref change } => {
+                self.document.factions.is_some()
+                    && self.document.actor(change.observer).is_some()
+                    && self.document.actor(change.subject).is_some()
+                    && (crate::MIN_RELATION..=crate::MAX_RELATION).contains(&change.previous)
+                    && (crate::MIN_RELATION..=crate::MAX_RELATION).contains(&change.current)
+                    && change.previous != change.current
+            }
+            GameplayEvent::VariableChanged {
+                variable,
+                ref value,
+            } => self
+                .document
+                .validate_variable_value(variable, value)
+                .is_ok(),
+            GameplayEvent::ItemTransferred {
+                object,
+                actor,
+                item,
+                quantity,
+                ..
+            } => {
+                self.document.container_definition(object).is_some()
+                    && self.document.actor(actor).is_some()
+                    && self
+                        .document
+                        .item(item)
+                        .is_some_and(|definition| quantity > 0 && quantity <= definition.max_stack)
+            }
+            GameplayEvent::ContainerLocked { object, .. } => self
+                .document
+                .container_definition(object)
+                .is_some_and(|definition| definition.key.is_some()),
             GameplayEvent::PickedUp {
                 object,
                 item,
@@ -108,6 +178,7 @@ impl GameSession {
             GameplayEvent::Fleeing { actor } => {
                 self.document.actor(actor).is_some_and(|a| a.flees_danger)
             }
+            _ => self.temporal_event_valid(event) || self.presentation_event_valid(event),
         };
         if valid {
             Ok(())

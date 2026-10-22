@@ -24,6 +24,12 @@ fn fixture() -> (
         flees_danger: false,
     };
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("visual-module"),

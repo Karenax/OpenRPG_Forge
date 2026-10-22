@@ -10,8 +10,10 @@
 #[cfg(not(target_arch = "wasm32"))]
 pub mod asset_import_native;
 pub mod asset_import_protocol;
+pub mod authoring_history_request;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod gameplay_visual_native;
+pub mod gameplay_visual_transform;
 pub mod module_export_protocol;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod module_workspace_bootstrap;

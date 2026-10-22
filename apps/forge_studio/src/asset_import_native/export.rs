@@ -21,6 +21,30 @@ impl AssetImportStore {
         required_pins: &[(AssetId, ContentHash)],
         publish: bool,
     ) -> Result<ImportedExportSnapshot, String> {
+        self.export_selection(required_pins, None, publish)
+    }
+
+    /// Preserve the module's still-available origin catalogue and referenced pins,
+    /// including their lineage, without selecting unrelated project-library assets.
+    pub fn export_module_snapshot(
+        &self,
+        required_pins: &[(AssetId, ContentHash)],
+        retained_assets: &[AssetId],
+        publish: bool,
+    ) -> Result<ImportedExportSnapshot, String> {
+        if retained_assets.len() > forge_assets::governed_import::MAX_IMPORT_ASSETS {
+            return Err("Too many retained module asset identities".into());
+        }
+        let retained: BTreeSet<_> = retained_assets.iter().copied().collect();
+        self.export_selection(required_pins, Some(&retained), publish)
+    }
+
+    fn export_selection(
+        &self,
+        required_pins: &[(AssetId, ContentHash)],
+        retained: Option<&BTreeSet<AssetId>>,
+        publish: bool,
+    ) -> Result<ImportedExportSnapshot, String> {
         let _lock = self.lock()?;
         let head = self.head()?;
         let required = requested(required_pins)?;
@@ -29,7 +53,15 @@ impl AssetImportStore {
         let mut snapshots = Vec::new();
         if let Some(hash) = head.current.catalog_sha256 {
             let catalog = self.catalog(hash)?;
-            selected.seed(&catalog);
+            if let Some(retained) = retained {
+                for asset in catalog.assets.iter().filter(|asset| {
+                    retained.contains(&asset.id) && !required.contains_key(&asset.id)
+                }) {
+                    selected.resolve(asset, &catalog, &required)?;
+                }
+            } else {
+                selected.seed(&catalog);
+            }
             snapshots.push(hash);
         }
         for hash in head.catalogs.iter().rev() {

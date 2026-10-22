@@ -17,6 +17,8 @@ use forge_gameplay::{
 };
 use std::collections::BTreeSet;
 
+mod faction_witnesses;
+
 type Bodies<'w, 's> = Query<
     'w,
     's,
@@ -137,6 +139,12 @@ pub(super) fn observe(
         runtime.enabled = false;
         return;
     };
+    frame.simulation_step_ns = runtime
+        .session
+        .document()
+        .simulation
+        .as_ref()
+        .map(|_| u64::try_from(fixed_time.timestep().as_nanos()).unwrap_or(u64::MAX));
     // The motion integrator keeps requested velocity while a KCC is blocked.
     // Only its resolved displacement carries the player's collision energy.
     let player_velocity = current_output.map_or(Vec3::ZERO, |_| {
@@ -263,10 +271,20 @@ fn execute_pending_actions(
             output,
             wet,
         );
-        match runtime.session.execute(&request, observation) {
+        let witnesses = faction_witnesses::collect(runtime, context, player_entity, &request);
+        let previous_sequence = runtime.session.state().sequence;
+        match runtime
+            .session
+            .execute_with_witnesses(&request, observation, &witnesses)
+        {
             Ok(receipt) => {
-                runtime.feedback = format!("Action acceptée · étape {}", receipt.sequence);
-                events.extend(receipt.events);
+                if receipt.sequence > previous_sequence {
+                    runtime.feedback = format!("Action acceptée · étape {}", receipt.sequence);
+                    events.extend(receipt.events);
+                } else {
+                    runtime.feedback =
+                        format!("Action déjà appliquée · étape {}", receipt.sequence);
+                }
             }
             Err(error) => runtime.feedback = error.to_string(),
         }
@@ -330,6 +348,7 @@ fn make_frame(
     player_position: Vec3,
 ) -> Option<PhysicsFrame> {
     let mut frame = PhysicsFrame {
+        simulation_step_ns: None,
         source_hash: runtime.session.source_hash(),
         tick: runtime.session.state().tick.checked_add(1)?,
         actors: vec![ActorObservation {
@@ -483,6 +502,15 @@ fn perceive(
             continue;
         }
         for actor in &frame.actors {
+            if runtime
+                .session
+                .state()
+                .actors
+                .get(&actor.actor)
+                .is_none_or(|actor| !actor.active)
+            {
+                continue;
+            }
             let current_position = frame
                 .objects
                 .iter()
@@ -612,10 +640,32 @@ fn action_observation(
     output: Option<&KinematicCharacterControllerOutput>,
     wet: bool,
 ) -> ActionObservation {
+    if matches!(
+        request.action,
+        GameAction::CancelEffect { .. }
+            | GameAction::RunScript { .. }
+            | GameAction::StartCinematic { .. }
+            | GameAction::SkipCinematic
+            | GameAction::InterruptCinematic
+    ) || matches!(request.action, GameAction::UseAbility { target, .. } if target == request.actor)
+    {
+        return ActionObservation {
+            line_of_sight: true,
+            confirmed_contact: false,
+            water_contact: wet,
+        };
+    }
     let target = match request.action {
+        GameAction::UseAbility { target, .. } | GameAction::Attack { target } => target,
+        GameAction::CancelEffect { .. }
+        | GameAction::RunScript { .. }
+        | GameAction::StartCinematic { .. }
+        | GameAction::SkipCinematic
+        | GameAction::InterruptCinematic => request.actor,
         GameAction::ChooseDialogue { speaker, .. } => speaker,
-        GameAction::Attack { target } => target,
         GameAction::Pickup { object }
+        | GameAction::TransferItem { object, .. }
+        | GameAction::SetContainerLocked { object, .. }
         | GameAction::SetDoor { object, .. }
         | GameAction::Push { object, .. }
         | GameAction::Throw { object, .. }

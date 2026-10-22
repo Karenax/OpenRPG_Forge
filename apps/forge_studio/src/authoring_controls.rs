@@ -27,8 +27,14 @@ fn record_event(events: RwSignal<Vec<ActionEvent>>, kind: &'static str, message:
 
 fn command_label(request: &AuthoringRequest) -> &'static str {
     match request {
-        AuthoringRequest::Preview { .. } | AuthoringRequest::PreviewZone { .. } => "Aperçu préparé",
-        AuthoringRequest::Apply { .. } | AuthoringRequest::ApplyZone { .. } => "Retouche appliquée",
+        AuthoringRequest::Preview { .. }
+        | AuthoringRequest::PreviewZone { .. }
+        | AuthoringRequest::PreviewModuleCreator { .. }
+        | AuthoringRequest::PreviewModuleHistory { .. } => "Aperçu préparé",
+        AuthoringRequest::Apply { .. }
+        | AuthoringRequest::ApplyZone { .. }
+        | AuthoringRequest::ApplyModuleCreator { .. }
+        | AuthoringRequest::ApplyModuleHistory { .. } => "Retouche appliquée",
         AuthoringRequest::Save => "Zone sauvegardée",
         AuthoringRequest::Inspect => "Session relue",
         _ => "Commande terminée",
@@ -517,6 +523,8 @@ fn refreshes_workspace(request: &AuthoringRequest) -> bool {
         AuthoringRequest::Save
             | AuthoringRequest::CompactZoneArchive { .. }
             | AuthoringRequest::ApplyZone { .. }
+            | AuthoringRequest::ApplyModuleCreator { .. }
+            | AuthoringRequest::ApplyModuleHistory { .. }
             | AuthoringRequest::OpenManaged { .. }
             | AuthoringRequest::Close
     )
@@ -550,9 +558,10 @@ fn observe_or_report(
 
 fn pending_preview(request: &AuthoringRequest) -> Option<AuthoringRequest> {
     match request {
-        AuthoringRequest::Preview { .. } | AuthoringRequest::PreviewZone { .. } => {
-            Some(request.clone())
-        }
+        AuthoringRequest::Preview { .. }
+        | AuthoringRequest::PreviewZone { .. }
+        | AuthoringRequest::PreviewModuleCreator { .. }
+        | AuthoringRequest::PreviewModuleHistory { .. } => Some(request.clone()),
         _ => None,
     }
 }
@@ -605,8 +614,8 @@ fn CommandBar(
         <div class="authoring-command-bar" role="group" aria-label="Actions de la zone courante">
             <button class="authoring-apply" title="Appliquer la retouche prévisualisée · Ctrl+Entrée" disabled=move || busy.get() || preview.get().is_none() || apply_error().is_some() on:click=move |_| send.run(preview.get_untracked().ok_or_else(|| "Prévisualiser une retouche d’abord".into()))>"Appliquer"</button>
             <output aria-live="polite" hidden=move || apply_error().is_none()>{move || apply_error().unwrap_or_default()}</output>
-            <button disabled=move || busy.get() || state.get().is_none_or(|s| !s.can_undo || s.playtest_hash.is_some()) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Undo))>"Annuler"</button>
-            <button disabled=move || busy.get() || state.get().is_none_or(|s| !s.can_redo || s.playtest_hash.is_some()) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Redo))>"Rétablir"</button>
+            <button title="Dans un module, examiner l’annulation puis Appliquer pour confirmer" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, false)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Undo))>"Annuler"</button>
+            <button title="Dans un module, examiner le rétablissement puis Appliquer pour confirmer" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| !super::authoring_history_request::available(&s, true)) on:click=move |_| send.run(prepare_edit(state.get_untracked(), TerrainAction::Redo))>"Rétablir"</button>
             <button title="Enregistrer les retouches appliquées · Ctrl+S" disabled=move || busy.get() || preview.get().is_some() || state.get().is_none_or(|s| s.document.is_none() || s.playtest_hash.is_some()) on:click=move |_| send.run(Ok(AuthoringRequest::Save))>"Sauvegarder"</button>
             <span class="gold-save-state" aria-live="polite">{move || if preview.get().is_some() { "Retouche en attente : Appliquer ou Abandonner avant de sélectionner un autre objet." } else if state.get().is_some_and(|s| s.dirty) { "Non enregistré" } else { "" }}</span>
             <button hidden=move || preview.get().is_none() on:click=move |_| cancel_preview.run(())>"Abandonner l’aperçu"</button>
@@ -709,13 +718,20 @@ fn shortcut_request(
             .filter(|r| {
                 matches!(
                     r,
-                    AuthoringRequest::Apply { .. } | AuthoringRequest::ApplyZone { .. }
+                    AuthoringRequest::Apply { .. }
+                        | AuthoringRequest::ApplyZone { .. }
+                        | AuthoringRequest::ApplyModuleCreator { .. }
+                        | AuthoringRequest::ApplyModuleHistory { .. }
                 )
             })
             .ok_or_else(|| "Prévisualiser une retouche avant Ctrl+Entrée".into()),
         EditorShortcut::Save => Ok(AuthoringRequest::Save),
-        EditorShortcut::Undo if current.can_undo => prepare_edit(state, TerrainAction::Undo),
-        EditorShortcut::Redo if current.can_redo => prepare_edit(state, TerrainAction::Redo),
+        EditorShortcut::Undo if super::authoring_history_request::available(current, false) => {
+            prepare_edit(state, TerrainAction::Undo)
+        }
+        EditorShortcut::Redo if super::authoring_history_request::available(current, true) => {
+            prepare_edit(state, TerrainAction::Redo)
+        }
         _ => Err("Aucune retouche à annuler ou rétablir".into()),
     }
 }
@@ -822,6 +838,12 @@ fn prepare_edit(
     action: TerrainAction,
 ) -> Result<AuthoringRequest, String> {
     let state = state.ok_or("Aucune session disponible")?;
+    if matches!(action, TerrainAction::Undo | TerrainAction::Redo) {
+        return super::authoring_history_request::prepare(
+            &state,
+            matches!(action, TerrainAction::Redo),
+        );
+    }
     if let Some(head) = state.zone_head {
         return super::authoring_zone::prepare_terrain(&head, action);
     }
@@ -868,6 +890,49 @@ fn reviewed_preview(
                     request: request.clone(),
                 },
                 super::authoring_zone::preview_label(state, receipt),
+            ))
+        }
+        AuthoringRequest::PreviewModuleCreator { command_id, .. } => {
+            let review = state
+                .module_creator_review
+                .as_ref()
+                .filter(|review| review.request.command_id == *command_id)?;
+            let names = state
+                .module_creator_affected
+                .iter()
+                .map(|zone| zone.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            Some((
+                AuthoringRequest::ApplyModuleCreator {
+                    review: Box::new(review.clone()),
+                },
+                format!(
+                    "Configuration commune du module · {} carte(s) mise(s) à jour : {}. Les contenus masqués sont conservés.",
+                    review.changed_areas.len(),
+                    names
+                ),
+            ))
+        }
+        AuthoringRequest::PreviewModuleHistory {
+            command_id, redo, ..
+        } => {
+            let receipt = state
+                .module_history_receipt
+                .as_ref()
+                .filter(|receipt| receipt.request.command_id == *command_id)?;
+            Some((
+                AuthoringRequest::ApplyModuleHistory {
+                    request: Box::new(receipt.request.clone()),
+                },
+                format!(
+                    "{} de la dernière opération du module, sur toutes ses cartes concernées.",
+                    if *redo {
+                        "Rétablissement"
+                    } else {
+                        "Annulation"
+                    }
+                ),
             ))
         }
         _ => None,

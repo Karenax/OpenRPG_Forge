@@ -113,6 +113,7 @@ impl Fixture {
             });
         }
         let manifest = ModulePackageManifest {
+            creator: None,
             schema: MODULE_PACKAGE_SCHEMA.into(),
             version: MODULE_PACKAGE_VERSION,
             project_id: project_id.unwrap(),

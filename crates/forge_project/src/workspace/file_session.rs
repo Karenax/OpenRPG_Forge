@@ -13,6 +13,10 @@ use std::{fs, path::Path};
 mod adoption_review;
 mod compaction;
 mod creation;
+mod creator;
+mod creator_settings;
+mod module_history;
+pub use super::ModuleCreatorReview;
 mod managed;
 pub mod recovery;
 
@@ -90,6 +94,15 @@ impl FileWorkspaceSession {
         &mut self.session
     }
 
+    pub(super) fn read_export_area(
+        &self,
+        project: forge_core::ProjectId,
+        reference: &super::ZoneReference,
+        budget: usize,
+    ) -> Result<Vec<u8>, String> {
+        self.objects.read_with_budget(project, reference, budget)
+    }
+
     #[must_use]
     pub fn is_dirty(&self) -> bool {
         self.saved_commands != Some(self.session.audit().len())
@@ -98,7 +111,9 @@ impl FileWorkspaceSession {
     pub fn execute(&mut self, request: &WorkspaceRequest) -> Result<WorkspaceReceipt, String> {
         if matches!(
             request.action,
-            WorkspaceAction::AttachZone { .. } | WorkspaceAction::UpdateZone { .. }
+            WorkspaceAction::AttachZone { .. }
+                | WorkspaceAction::UpdateZone { .. }
+                | WorkspaceAction::ConfigureCreator { .. }
         ) {
             return Err(
                 "Zone attachment requires explicit adoption of reviewed saved bytes".into(),
@@ -192,6 +207,7 @@ impl FileWorkspaceSession {
 }
 
 fn verify_references(session: &WorkspaceSession, objects: &ZoneObjectStore) -> Result<(), String> {
+    creator::verify_creator_references(session, objects)?;
     let mut seen = std::collections::BTreeSet::new();
     let heads = std::iter::once(session.head())
         .chain(session.audit().iter().flat_map(|r| [&r.before, &r.after]));

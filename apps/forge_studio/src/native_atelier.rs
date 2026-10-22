@@ -140,7 +140,7 @@ pub fn execute(window: &tauri::WebviewWindow, request: Request) -> Result<Studio
                         .as_ref()
                         .is_none_or(|c| c.position() != m.position())
                 });
-                let other = tauri::WebviewWindowBuilder::new(
+                let mut builder = tauri::WebviewWindowBuilder::new(
                     app,
                     LABEL,
                     tauri::WebviewUrl::App("index.html?atelier=1".into()),
@@ -149,9 +149,11 @@ pub fn execute(window: &tauri::WebviewWindow, request: Request) -> Result<Studio
                 .inner_size(1280.0, 840.0)
                 .min_inner_size(960.0, 640.0)
                 .disable_drag_drop_handler()
-                .visible(false)
-                .build()
-                .map_err(|e| e.to_string())?;
+                .visible(false);
+                if let Some(directory) = crate::native_webview::data_directory()? {
+                    builder = builder.data_directory(directory);
+                }
+                let other = builder.build().map_err(|e| e.to_string())?;
                 let reveal = (|| -> Result<(), tauri::Error> {
                     if let Some(monitor) = target {
                         other.set_position(*monitor.position())?;

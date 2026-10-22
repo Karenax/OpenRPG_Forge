@@ -518,10 +518,13 @@ fn launch(expected: ContentHash) -> Result<u32, String> {
 }
 
 fn launch_authored_module(expected: ContentHash, name: String) -> Result<u32, String> {
+    let expected_workspace_hash =
+        super::with_authoring_host(|host| host.module_export_revision(expected))?;
     let exported = crate::native_module_export::execute(
         forge_studio_frontend::module_export_protocol::ModuleExportRequest {
-            schema_version: 1,
+            schema_version: if expected_workspace_hash.is_some() {2} else {1},
             expected_head: expected,
+            expected_workspace_hash,
             name,
             version: "0.0.0-local".into(),
             publisher: "Session locale du Studio".into(),

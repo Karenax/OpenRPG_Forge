@@ -36,6 +36,7 @@ fn fixture(key: &str) -> (ModulePackageManifest, Vec<u8>) {
     let asset_hash = bytes_sha256(b"asset payload");
     (
         ModulePackageManifest {
+            creator: None,
             schema: MODULE_PACKAGE_SCHEMA.into(),
             version: MODULE_PACKAGE_VERSION,
             project_id,
@@ -852,4 +853,129 @@ fn distinct_catalog_identities_may_reference_the_same_exact_payload_file() {
     let mut conflicting = manifest;
     conflicting.assets[1].sha256 = bytes_sha256(b"different revision under the same filename");
     assert!(conflicting.validate().is_err());
+}
+
+fn shared_creator_zone() -> (ModulePackageManifest, ZoneEditSession) {
+    use forge_gameplay::{CreatorSurface, ModuleCreatorProfile};
+    let (mut manifest, mut zone) = visual_zone();
+    let document = zone.head().corrections.gameplay.as_deref().unwrap();
+    let definition = ModuleCreatorProfile::for_documents(
+        manifest.module_id,
+        document.profile.clone(),
+        vec![CreatorSurface::Rules],
+        &[document],
+    )
+    .unwrap();
+    let materialized = definition.apply_to(document).unwrap();
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(materialized),
+            forge_core::CommandId::deterministic("package-shared/materialize"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    manifest.version = forge_project::module_package::MODULE_PACKAGE_CREATOR_VERSION;
+    manifest.creator = Some(definition);
+    repin_archive(&mut manifest, &zone);
+    (manifest, zone)
+}
+
+#[test]
+fn package_versions_distinguish_legacy_and_shared_creator_without_changing_legacy_bytes() {
+    let (legacy, _) = fixture("legacy-creator");
+    let bytes = legacy.to_bytes().unwrap();
+    assert!(
+        serde_json::from_slice::<serde_json::Value>(&bytes)
+            .unwrap()
+            .get("creator")
+            .is_none()
+    );
+    assert_eq!(
+        ModulePackageManifest::from_bytes(&bytes)
+            .unwrap()
+            .to_bytes()
+            .unwrap(),
+        bytes
+    );
+    let (mut shared, zone) = shared_creator_zone();
+    shared
+        .validate_zone_archive(
+            zone.head().base.terrain.area_id,
+            &zone.archive_bytes().unwrap(),
+        )
+        .unwrap();
+    assert_eq!(
+        ModulePackageManifest::from_bytes(&shared.to_bytes().unwrap()).unwrap(),
+        shared
+    );
+    shared.version = MODULE_PACKAGE_VERSION;
+    assert!(matches!(shared.validate(), Err(ModulePackageError::Schema)));
+    shared.creator = None;
+    shared.version = forge_project::module_package::MODULE_PACKAGE_CREATOR_VERSION;
+    assert!(matches!(shared.validate(), Err(ModulePackageError::Schema)));
+}
+
+#[test]
+fn resigning_an_area_cannot_bypass_its_common_rules_or_surface_configuration() {
+    let (mut manifest, mut zone) = shared_creator_zone();
+    let original = manifest.clone();
+    let mut document = zone.head().corrections.gameplay.as_deref().unwrap().clone();
+    document.profile.attack_damage = 99;
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(document),
+            forge_core::CommandId::deterministic("package-shared/tamper-rules"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    let bytes = repin_archive(&mut manifest, &zone);
+    manifest.validate().unwrap();
+    assert!(matches!(
+        manifest.validate_zone_archive(manifest.zones[0].area_id, &bytes),
+        Err(ModulePackageError::Creator(_))
+    ));
+    let (mut manifest, mut zone) = shared_creator_zone();
+    let mut document = zone.head().corrections.gameplay.as_deref().unwrap().clone();
+    document
+        .creator
+        .as_mut()
+        .unwrap()
+        .surfaces
+        .push(forge_gameplay::CreatorSurface::Actors);
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(document),
+            forge_core::CommandId::deterministic("package-shared/tamper-surfaces"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    let bytes = repin_archive(&mut manifest, &zone);
+    assert!(matches!(
+        manifest.validate_zone_archive(manifest.zones[0].area_id, &bytes),
+        Err(ModulePackageError::Creator(_))
+    ));
+    assert_eq!(
+        original.creator.unwrap().surfaces,
+        vec![forge_gameplay::CreatorSurface::Rules]
+    );
+}
+
+#[test]
+fn package_refuses_foreign_and_future_creator_definitions() {
+    let (manifest, _) = shared_creator_zone();
+    let mut foreign = manifest.clone();
+    foreign.creator.as_mut().unwrap().module_id = ModuleId::deterministic("foreign-shared");
+    assert!(matches!(
+        foreign.validate(),
+        Err(ModulePackageError::Creator(_))
+    ));
+    let mut future = manifest;
+    future.creator.as_mut().unwrap().version = 999;
+    assert!(matches!(
+        future.validate(),
+        Err(ModulePackageError::Creator(_))
+    ));
 }

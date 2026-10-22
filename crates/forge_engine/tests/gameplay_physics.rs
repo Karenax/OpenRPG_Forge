@@ -18,6 +18,15 @@ use forge_gameplay::{
 use forge_world::VisualValleyPlayerControllerRecipe;
 use std::time::Duration;
 
+#[path = "gameplay_physics/retry.rs"]
+mod retry;
+
+#[path = "gameplay_physics/temporal.rs"]
+mod temporal;
+
+#[path = "gameplay_physics/cinematics.rs"]
+mod cinematics;
+
 #[derive(Clone, Copy)]
 struct FixtureIds {
     player: EntityId,
@@ -101,6 +110,12 @@ fn fixture() -> (GameplayDocument, FixtureIds) {
         held: id("held"),
     };
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: forge_core::ModuleId::deterministic("gameplay-physics/module"),
@@ -155,6 +170,12 @@ fn fixture() -> (GameplayDocument, FixtureIds) {
 fn player_save_fixture() -> GameplayDocument {
     let player = id("save/player");
     GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: forge_core::ModuleId::deterministic("gameplay-physics/save-module"),
@@ -181,6 +202,12 @@ fn rotation_fixture() -> (GameplayDocument, RotationIds) {
         rotating: id("rotation/object"),
     };
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: forge_core::ModuleId::deterministic("gameplay-physics/rotation-module"),
@@ -218,6 +245,12 @@ fn destruction_fixture() -> (GameplayDocument, DestructionIds) {
     let mut breakable_support = physics(CoreVec3::new(2.0, 0.2, 0.5), 0.0, false, vec![ids.child]);
     breakable_support.break_energy_j = Some(0.5);
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: forge_core::ModuleId::deterministic("gameplay-physics/destruction-module"),
@@ -1215,6 +1248,144 @@ fn stationary_attack_app(separation: f32) -> (App, EntityId, EntityId) {
         app.update();
     }
     (app, player, enemy)
+}
+
+fn faction_attack_app() -> (App, GameplayDocument, ContentHash, [EntityId; 3]) {
+    use forge_gameplay::{FactionDefinition, FactionsDefinition};
+    let mut document = player_save_fixture();
+    let ids = [
+        id("faction/victim"),
+        id("faction/visible"),
+        id("faction/hidden"),
+    ];
+    for (entity, name, role, position) in [
+        (
+            ids[0],
+            "Victim",
+            ActorRole::Enemy,
+            CoreVec3::new(0.75, 0.95, -6.0),
+        ),
+        (
+            ids[1],
+            "Visible witness",
+            ActorRole::Friendly,
+            CoreVec3::new(0.0, 0.95, -3.0),
+        ),
+        (
+            ids[2],
+            "Hidden witness",
+            ActorRole::Friendly,
+            CoreVec3::new(0.0, 0.95, -9.0),
+        ),
+    ] {
+        document.actors.push(actor(entity, name, role, position));
+    }
+    let group = id("faction/guards");
+    let document = document
+        .with_factions_definition(Some(FactionsDefinition {
+            version: 1,
+            factions: vec![FactionDefinition {
+                id: group,
+                name: "Guards".into(),
+                perception_range_m: 10.0,
+                protects_factions: vec![group],
+                assault_delta: -10,
+            }],
+            memberships: ids.into_iter().map(|actor| (actor, group)).collect(),
+            relations: vec![],
+        }))
+        .unwrap();
+    let source = ContentHash::from_bytes([0x87; 32]);
+    let mut app = app(document.clone(), source);
+    wait_for_player_saveable(&mut app);
+    for entity in ids {
+        wait_for_body(&mut app, entity, RigidBody::KinematicPositionBased);
+    }
+    for _ in 0..12 {
+        app.update();
+    }
+    (app, document, source, ids)
+}
+
+#[test]
+fn local_faction_witnesses_follow_real_occlusion_and_preserve_their_distinct_causes() {
+    let (mut app, document, source, [victim, visible, hidden]) = faction_attack_app();
+    let wall = app
+        .world_mut()
+        .spawn((
+            RigidBody::Fixed,
+            Collider::cuboid(2.0, 2.0, 0.05),
+            Transform::from_xyz(0.375, 0.95, -7.5),
+        ))
+        .id();
+    for _ in 0..4 {
+        app.update();
+    }
+    queue_stationary_attack(&mut app, victim, "faction/occluded-witness");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    let player = document.player;
+    assert_eq!(
+        runtime.session().state().sequence,
+        1,
+        "{}",
+        runtime.feedback()
+    );
+    assert_eq!(
+        runtime.session().personal_relation(visible, player),
+        Some(-10)
+    );
+    assert_eq!(runtime.session().personal_relation(hidden, player), Some(0));
+    let receipt = &runtime.session().state().receipts[0];
+    assert!(
+        receipt
+            .faction_witnesses
+            .iter()
+            .any(|witness| witness.observer == visible)
+    );
+    assert!(
+        !receipt
+            .faction_witnesses
+            .iter()
+            .any(|witness| witness.observer == hidden)
+    );
+    assert_eq!(runtime.session().document(), &document);
+    let saved = runtime.session().save_bytes().unwrap();
+    let resumed =
+        forge_gameplay::GameSession::resume(document.clone(), source, &saved, false).unwrap();
+    assert_eq!(resumed.personal_relation(visible, player), Some(-10));
+    assert_eq!(resumed.personal_relation(hidden, player), Some(0));
+    app.world_mut().despawn(wall);
+    for _ in 0..4 {
+        app.update();
+    }
+    queue_stationary_attack(&mut app, victim, "faction/wall-removed");
+    let runtime = app.world().resource::<GameplayRuntime>();
+    assert_eq!(
+        runtime.session().state().sequence,
+        2,
+        "{}",
+        runtime.feedback()
+    );
+    assert_eq!(
+        runtime.session().personal_relation(visible, player),
+        Some(-20)
+    );
+    assert_eq!(
+        runtime.session().personal_relation(hidden, player),
+        Some(-10)
+    );
+    let receipt = &runtime.session().state().receipts[1];
+    assert!(
+        receipt
+            .faction_witnesses
+            .iter()
+            .any(|witness| witness.observer == hidden)
+    );
+    assert_ne!(
+        receipt.request.command_id,
+        resumed.state().receipts[0].request.command_id
+    );
+    assert_eq!(runtime.session().document(), &document);
 }
 
 fn queue_stationary_attack(app: &mut App, target: EntityId, command: &str) {

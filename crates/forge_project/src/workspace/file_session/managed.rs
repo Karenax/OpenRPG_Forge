@@ -28,8 +28,11 @@ impl FileWorkspaceSession {
             != self.saved_head.as_ref().and_then(|h| reference(h, area))
     }
     pub fn read_zone(&self, area: AreaId) -> Result<ZoneEditSession, String> {
-        let (project, _, reference) = self.zone_reference(area)?;
-        ZoneEditSession::from_archive_bytes(&self.objects.read(project, &reference)?)
+        let (project, module, reference) = self.zone_reference(area)?;
+        let session =
+            ZoneEditSession::from_archive_bytes(&self.objects.read(project, &reference)?)?;
+        self.validate_zone_creator(module, &session)?;
+        Ok(session)
     }
 
     /// Read effective labels without activating zones or saving any document.
@@ -182,9 +185,27 @@ impl FileWorkspaceSession {
         let bytes = self.objects.read(project, reference)?;
         let mut session = ZoneEditSession::from_archive_bytes(&bytes)?;
         let receipt = session.execute_with_audit(request, audit)?;
+        let (_, module, _) = self.zone_reference(reference.area_id)?;
+        self.validate_zone_creator(module, &session)?;
         let bytes = session.archive_bytes()?;
         let object = ReviewedZone::from_bytes(&bytes, bytes_sha256(&bytes))?;
         Ok((object, receipt))
+    }
+
+    fn validate_zone_creator(
+        &self,
+        module: ModuleId,
+        session: &ZoneEditSession,
+    ) -> Result<(), String> {
+        if let (Some(definition), Some(gameplay)) = (
+            self.module_creator(module)?,
+            session.head().corrections.gameplay.as_deref(),
+        ) {
+            definition
+                .validate_document(gameplay)
+                .map_err(|error| error.to_string())?;
+        }
+        Ok(())
     }
 
     pub(super) fn zone_reference(

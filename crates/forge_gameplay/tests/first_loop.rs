@@ -36,6 +36,12 @@ fn id(key: &str) -> EntityId {
 fn fixture() -> (GameplayDocument, FixtureIds) {
     let ids = fixture_ids();
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("first-loop/module"),

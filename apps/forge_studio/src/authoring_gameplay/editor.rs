@@ -1,5 +1,5 @@
 //! Structured authoring through the zone's existing preview/apply/history boundary.
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use forge_core::{CommandId, EntityId, Vec3};
 use forge_gameplay::{
@@ -11,6 +11,28 @@ use forge_project::authoring::{AuthoringRequest, AuthoringState};
 use leptos::prelude::*;
 
 type Edit = Result<AuthoringRequest, String>;
+
+type FieldSource = (String, Option<forge_core::ContentHash>);
+
+fn source_hash(state: RwSignal<Option<AuthoringState>>) -> Option<forge_core::ContentHash> {
+    state
+        .get()
+        .and_then(|state| state.zone_head)
+        .and_then(|head| head.content_hash().ok())
+}
+
+mod blueprint_controls;
+mod cinematic_controls;
+mod container_controls;
+mod creator_controls;
+mod dialogue_controls;
+mod faction_controls;
+mod item_controls;
+mod quest_flow_controls;
+mod script_controls;
+mod temporal_controls;
+mod variable_controls;
+mod variable_value_field;
 
 struct PhysicsFields {
     mass: String,
@@ -117,6 +139,14 @@ pub(crate) fn GameplayEditor(
             .and_then(|s| s.zone_head)
             .and_then(|h| h.corrections.gameplay.map(|d| *d))
     };
+    let surface_visible = move |surface| document().is_some_and(|d| d.surface_visible(surface));
+    Effect::new(move |_| {
+        if let Some(document) = document()
+            && !creator_controls::kind_visible(&document, &kind.get_untracked())
+        {
+            kind.set(String::new());
+        }
+    });
     Effect::new(move |previous: Option<Option<forge_core::AreaId>>| {
         let area = state.get().and_then(|s| s.document.map(|d| d.area_id));
         if previous != Some(area) {
@@ -208,22 +238,35 @@ pub(crate) fn GameplayEditor(
             <button on:click=move |_|send.run(initialize(state.get_untracked()))>"Activer les règles de jeu dans cette zone"</button>
         </Show>
         <Show when=move ||document().is_some()>
+            <creator_controls::CreatorControls state=state busy=busy send=send/>
+            <For each=move ||state.get().and_then(|state|state.document.map(|document|document.area_id))
+                key=|area|*area children=move |_|view! {
+                    <item_controls::ItemControls state=state busy=busy send=send/>
+                    <blueprint_controls::BlueprintControls state=state busy=busy send=send selected=selected/>
+                    <container_controls::ContainerControls state=state busy=busy send=send selected=selected/>
+                    <variable_controls::VariableControls state=state busy=busy send=send/>
+                    <dialogue_controls::DialogueControls state=state busy=busy send=send/>
+                    <quest_flow_controls::QuestFlowControls state=state busy=busy send=send/>
+                    <faction_controls::FactionControls state=state busy=busy send=send/>
+                    <temporal_controls::TemporalControls state=state busy=busy send=send/>
+                    <script_controls::ScriptControls state=state busy=busy send=send/>
+                    <cinematic_controls::CinematicControls state=state busy=busy send=send/>
+                }/>
             <label>"Type"<select prop:value=move ||kind.get() on:change=move |e|{
                 let value=event_target_value(&e);
                 if value=="door" {width.set("1.2".into());height.set("2".into());depth.set("0.2".into());mass.set("0".into());push.set(false);throwing.set(false);}
                 else {width.set("1".into());height.set("1".into());depth.set("1".into());mass.set("10".into());}
                 kind.set(value);
             }>
-                <option value="friendly">"PNJ et dialogue"</option><option value="enemy">"Ennemi"</option>
-                <option value="pickup">"Objet à ramasser"</option><option value="door">"Porte"</option>
-                <option value="prop">"Objet physique"</option><option value="place">"Lieu"</option>
+                <option value="">"Choisir un type visible"</option>
+                {move ||document().map(|d|[("friendly","PNJ et dialogue"),("enemy","Ennemi"),("pickup","Objet à ramasser"),("door","Porte"),("prop","Objet physique"),("place","Lieu")].into_iter().filter(|(kind,_)|creator_controls::kind_visible(&d,kind)).map(|(kind,label)|view!{<option value=kind>{label}</option>}).collect_view())}
             </select></label>
             <label>"Nom"<input prop:value=move ||name.get() on:input=move |e|name.set(event_target_value(&e))/></label>
             <label>"X (m)"<input type="number" prop:value=move ||x.get() on:input=move |e|x.set(event_target_value(&e))/></label>
             <label>"Z (m)"<input type="number" prop:value=move ||z.get() on:input=move |e|z.set(event_target_value(&e))/></label>
             <label>"Hauteur du centre (m, vide = terrain)"<input type="number" prop:value=move ||y.get() on:input=move |e|y.set(event_target_value(&e))/></label>
-            <label>"Réplique"<textarea prop:value=move ||reply.get() on:input=move |e|reply.set(event_target_value(&e))/></label>
-            <details><summary>"Propriétés physiques"</summary>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Dialogues)><label>"Réplique"<textarea prop:value=move ||reply.get() on:input=move |e|reply.set(event_target_value(&e))/></label></Show>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><details><summary>"Propriétés physiques"</summary>
                 <label>"Masse (kg)"<input type="number" min="0" prop:value=move ||mass.get() on:input=move |e|mass.set(event_target_value(&e))/></label>
                 <label>"Largeur (m)"<input type="number" min="0.05" prop:value=move ||width.get() on:input=move |e|width.set(event_target_value(&e))/></label>
                 <label>"Hauteur (m)"<input type="number" min="0.05" prop:value=move ||height.get() on:input=move |e|height.set(event_target_value(&e))/></label>
@@ -233,16 +276,21 @@ pub(crate) fn GameplayEditor(
                 <label><input type="checkbox" prop:checked=move ||flammable.get() on:change=move |e|flammable.set(event_target_checked(&e))/>"Inflammable"</label>
                 <label>"Dégâts de chaleur par tick (0 = aucun dégât)"<input type="number" min="0" max="1000000" step="1" prop:value=move ||heat_damage_per_tick.get() on:input=move |e|heat_damage_per_tick.set(event_target_value(&e))/></label>
                 <label>"Énergie de rupture (J, vide = solide)"<input type="number" prop:value=move ||break_energy.get() on:input=move |e|break_energy.set(event_target_value(&e))/></label>
-            </details>
+            </details></Show>
             <button on:click=move |_|send.run(add(state.get_untracked(),&kind.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked(),&physics_fields()))>"Examiner l’ajout"</button>
             <label>"Élément à retoucher"<select prop:value=move ||selected.get() on:change=move |e|selected.set(event_target_value(&e))>
                 <option value="">"Choisir"</option>
-                {move ||document().map(|d|d.actors.into_iter().map(|a|(a.id,a.name)).chain(d.objects.into_iter().map(|o|(o.id,o.name))).chain(d.places.into_iter().map(|p|(p.id,p.name))).map(|(id,label)|view!{<option value=id.to_string()>{label}</option>}).collect_view())}
+                {move ||document().map(|d| {
+                    let actors=d.surface_visible(forge_gameplay::CreatorSurface::Actors);
+                    let objects=d.surface_visible(forge_gameplay::CreatorSurface::Objects);
+                    let places=d.surface_visible(forge_gameplay::CreatorSurface::Places);
+                    d.actors.into_iter().filter(move |_|actors).map(|a|(a.id,a.name)).chain(d.objects.into_iter().filter(move |_|objects).map(|o|(o.id,o.name))).chain(d.places.into_iter().filter(move |_|places).map(|p|(p.id,p.name))).map(|(id,label)|view!{<option value=id.to_string()>{label}</option>}).collect_view()
+                })}
             </select></label>
             <button on:click=move |_|send.run(retouch(state.get_untracked(),&selected.get_untracked(),&name.get_untracked(),(&x.get_untracked(),&y.get_untracked(),&z.get_untracked()),&reply.get_untracked()))>"Examiner le nom, la position et la réplique"</button>
-            <button on:click=move |_|send.run(retouch_physics(state.get_untracked(),&selected.get_untracked(),&physics_fields()))>"Examiner les propriétés physiques"</button>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><button on:click=move |_|send.run(retouch_physics(state.get_untracked(),&selected.get_untracked(),&physics_fields()))>"Examiner les propriétés physiques"</button></Show>
             <button on:click=move |_|send.run(remove(state.get_untracked(),&selected.get_untracked()))>"Examiner la suppression de cet élément"</button>
-            <details><summary>"Statistiques du personnage sélectionné"</summary>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Actors)><details><summary>"Statistiques du personnage sélectionné"</summary>
                 <label>"Vitalité maximale"<input type="number" min="1" step="1" prop:value=move ||vitality.get() on:input=move |e|vitality.set(event_target_value(&e))/></label>
                 <label>"Protection"<input type="number" min="0" step="1" prop:value=move ||protection.get() on:input=move |e|protection.set(event_target_value(&e))/></label>
                 <label>"Capacité d’inventaire"<input type="number" min="0" step="1" prop:value=move ||capacity.get() on:input=move |e|capacity.set(event_target_value(&e))/></label>
@@ -253,20 +301,22 @@ pub(crate) fn GameplayEditor(
                 <label>"Points dans l’ordre : X Z hauteur du centre (m), un point par ligne. Hauteur facultative = terrain."<textarea aria-label="Points de patrouille" prop:value=move ||patrol.get() on:input=move |event|patrol.set(event_target_value(&event))/></label>
                 <p>"Le personnage suit les points en boucle. Effacer tous les points arrête la patrouille. Les obstacles peuvent rendre un trajet inaccessible."</p>
                 <button on:click=move |_|send.run(retouch_patrol(state.get_untracked(),&selected.get_untracked(),&patrol.get_untracked()))>"Examiner la patrouille"</button>
-            </details>
-            <details><summary>"Quête de récupération"</summary>
+            </details></Show>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Quests)><details><summary>"Quête de récupération"</summary>
                 <label>"PNJ donneur"<select prop:value=move ||giver.get() on:change=move |e|giver.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.actors.into_iter().filter(|a|a.dialogue.is_some()).map(|a|view!{<option value=a.id.to_string()>{a.name}</option>}).collect_view())}</select></label>
                 <label>"Objet demandé"<select prop:value=move ||required_item.get() on:change=move |e|required_item.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.items.into_iter().map(|i|view!{<option value=i.id.to_string()>{i.name}</option>}).collect_view())}</select></label>
                 <button on:click=move |_|send.run(quest(state.get_untracked(),&name.get_untracked(),&giver.get_untracked(),&required_item.get_untracked()))>"Examiner la quête et ses réponses"</button>
-            </details>
-            <details><summary>"Liaisons et mécanismes"</summary>
+            </details></Show>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Objects)><details><summary>"Mécanismes et supports"</summary>
                 <label>"Charge portée"<select prop:value=move ||child.get() on:change=move |e|child.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.objects.into_iter().map(|o|view!{<option value=o.id.to_string()>{o.name}</option>}).collect_view())}</select></label>
                 <button on:click=move |_|send.run(support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le support et sa charge"</button>
                 <button on:click=move |_|send.run(remove_support(state.get_untracked(),&selected.get_untracked(),&child.get_untracked()))>"Examiner le retrait de cette charge"</button>
+            </details></Show>
+            <Show when=move ||surface_visible(forge_gameplay::CreatorSurface::Places)><details><summary>"Liaisons entre lieux"</summary>
                 <label>"Lieu de destination"<select prop:value=move ||destination.get() on:change=move |e|destination.set(event_target_value(&e))><option value="">"Choisir"</option>{move ||document().map(|d|d.places.into_iter().map(|p|view!{<option value=p.id.to_string()>{p.name}</option>}).collect_view())}</select></label>
                 <button on:click=move |_|send.run(link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner la liaison entre les lieux"</button>
                 <button on:click=move |_|send.run(remove_link(state.get_untracked(),&selected.get_untracked(),&destination.get_untracked()))>"Examiner le retrait de cette liaison"</button>
-            </details>
+            </details></Show>
         </Show>
         </fieldset></details>
         <crate::authoring_gameplay_visuals::GameplayVisualControls state=state busy=busy send=send/>
@@ -292,6 +342,12 @@ fn initialize(state: Option<AuthoringState>) -> Edit {
     let (x, z) = start.map_or((0.0, 0.0), |s| (s.x_m, s.z_m));
     let position = position(&state, &x.to_string(), "", &z.to_string(), 0.85)?;
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: forge_gameplay::GAMEPLAY_SCHEMA.into(),
         version: forge_gameplay::GAMEPLAY_VERSION,
         module_id,
@@ -326,6 +382,17 @@ fn initialize(state: Option<AuthoringState>) -> Edit {
         dialogues: vec![],
         quests: vec![],
     };
+    let document = if let Some(definition) = state
+        .module_creator_context
+        .as_ref()
+        .and_then(|context| context.definition.as_ref())
+    {
+        definition
+            .apply_to(&document)
+            .map_err(|error| error.to_string())?
+    } else {
+        document
+    };
     preview(state, document)
 }
 
@@ -341,6 +408,16 @@ fn edit(
         .cloned()
         .ok_or("Activer les règles de jeu")?;
     change(&state, &mut document)?;
+    if document.creator.is_some() {
+        let used = document.used_capabilities();
+        let config = document
+            .creator
+            .as_mut()
+            .ok_or("Configuration Creator absente")?;
+        let mut required: BTreeSet<_> = config.required_capabilities.iter().copied().collect();
+        required.extend(used);
+        config.required_capabilities = required.into_iter().collect();
+    }
     preview(state, document)
 }
 
@@ -624,10 +701,24 @@ fn retouch_actor(
             .iter_mut()
             .find(|a| a.id == selected)
             .ok_or("Choisir un personnage")?;
+        let before = actor.clone();
         actor.max_vitality = vitality;
         actor.protection = protection;
         actor.inventory_capacity = capacity;
         actor.flees_danger = flees;
+        if let Some(binding) = document
+            .creator
+            .as_mut()
+            .and_then(|creator| creator.blueprints.as_mut())
+            .and_then(|library| {
+                library
+                    .bindings
+                    .iter_mut()
+                    .find(|binding| binding.actor == selected)
+            })
+        {
+            binding.overrides.capture_changes(&before, actor);
+        }
         Ok(())
     })
 }
@@ -666,6 +757,15 @@ fn remove(state: Option<AuthoringState>, selected: &str) -> Edit {
 
 fn references_to(document: &GameplayDocument, target: EntityId) -> Vec<String> {
     let mut references = Vec::new();
+    if document.actor_blueprints().is_some_and(|library| {
+        library
+            .bindings
+            .iter()
+            .any(|binding| binding.actor == target)
+    }) {
+        references
+            .push("un blueprint de personnage (détacher le personnage avant suppression)".into());
+    }
     for quest in &document.quests {
         if quest.giver == target {
             references.push(format!("le donneur de la quête « {} »", quest.name));
@@ -704,27 +804,29 @@ fn required_item_references(document: &GameplayDocument, target: EntityId) -> Ve
     let Some(object) = document.object(target) else {
         return Vec::new();
     };
-    let ObjectKind::Pickup { item, .. } = &object.kind else {
+    if !matches!(
+        object.kind,
+        ObjectKind::Pickup { .. } | ObjectKind::Container { .. }
+    ) {
         return Vec::new();
-    };
-
-    let item_name = document
-        .item(*item)
-        .map_or_else(|| item.to_string(), |definition| definition.name.clone());
+    }
     document
         .quests
         .iter()
-        .filter(|quest| quest.required_item == *item)
         .filter_map(|quest| {
-            let available = obtainable_item_quantities(
-                document,
-                target,
+            let required = u64::from(quest.required_quantity);
+            let before = document.potential_item_quantities(
+                None,
                 quest.id,
                 quest.required_item,
-                u64::from(quest.required_quantity),
+                required,
             );
-            let quantity = available.get(item).copied().unwrap_or_default();
-            (quantity < u64::from(quest.required_quantity)).then(|| {
+            let after = document.potential_item_quantities(Some(target),quest.id,quest.required_item,required);
+            let before_quantity = before.get(&quest.required_item).copied().unwrap_or_default();
+            let after_quantity = after.get(&quest.required_item).copied().unwrap_or_default();
+            let item_name = document.item(quest.required_item)
+                .map_or_else(||quest.required_item.to_string(),|item|item.name.clone());
+            (after_quantity < required && after_quantity < before_quantity).then(|| {
                 format!(
                     "la quête « {} » n’a plus de source démontrée pour la quantité requise de « {} »",
                     quest.name, item_name
@@ -732,92 +834,6 @@ fn required_item_references(document: &GameplayDocument, target: EntityId) -> Ve
             })
         })
         .collect()
-}
-
-fn obtainable_item_quantities(
-    document: &GameplayDocument,
-    excluded_object: EntityId,
-    blocked_quest: EntityId,
-    target_item: EntityId,
-    target_quantity: u64,
-) -> BTreeMap<EntityId, u64> {
-    let mut quantities = BTreeMap::new();
-    for object in &document.objects {
-        if object.id == excluded_object {
-            continue;
-        }
-        if let ObjectKind::Pickup { item, quantity } = &object.kind {
-            *quantities.entry(*item).or_default() += u64::from(*quantity);
-        }
-    }
-
-    // A sufficient direct source must not be consumed by optional quests in
-    // this structural check: the player can complete the target quest first.
-    if quantities.get(&target_item).copied().unwrap_or_default() >= target_quantity {
-        return quantities;
-    }
-
-    let mut rewarded = BTreeSet::new();
-    loop {
-        let mut added_reward = false;
-        for quest in &document.quests {
-            if quest.id == blocked_quest
-                || rewarded.contains(&quest.id)
-                || quest.reward_quantity == 0
-                || !quest_has_dialogue_path(document, quest.id, quest.giver)
-            {
-                continue;
-            }
-            let Some(reward_item) = quest.reward_item else {
-                continue;
-            };
-            let required_quantity = quantities
-                .get(&quest.required_item)
-                .copied()
-                .unwrap_or_default();
-            if required_quantity < u64::from(quest.required_quantity) {
-                continue;
-            }
-
-            *quantities.entry(quest.required_item).or_default() -=
-                u64::from(quest.required_quantity);
-            *quantities.entry(reward_item).or_default() += u64::from(quest.reward_quantity);
-            if quantities.get(&target_item).copied().unwrap_or_default() >= target_quantity {
-                return quantities;
-            }
-            rewarded.insert(quest.id);
-            added_reward = true;
-        }
-        if !added_reward {
-            break;
-        }
-    }
-    quantities
-}
-
-fn quest_has_dialogue_path(document: &GameplayDocument, quest: EntityId, giver: EntityId) -> bool {
-    let Some(dialogue_id) = document.actor(giver).and_then(|actor| actor.dialogue) else {
-        return false;
-    };
-    let Some(dialogue) = document.dialogue(dialogue_id) else {
-        return false;
-    };
-
-    let accepts = dialogue.nodes.iter().any(|node| {
-        node.choices.iter().any(|choice| {
-            choice.effects.iter().any(|effect| {
-                matches!(effect, DialogueEffect::AcceptQuest { quest: id } if *id == quest)
-            })
-        })
-    });
-    let completes = dialogue.nodes.iter().any(|node| {
-        node.choices.iter().any(|choice| {
-            choice.effects.iter().any(|effect| {
-                matches!(effect, DialogueEffect::CompleteQuest { quest: id } if *id == quest)
-            })
-        })
-    });
-    accepts && completes
 }
 
 fn quest(state: Option<AuthoringState>, name: &str, giver: &str, item: &str) -> Edit {

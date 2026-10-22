@@ -70,6 +70,13 @@ missing_panics_doc = "allow"
 
 [profile.dev]
 opt-level = 1
+# Keep line information for ordinary development without full variable symbols.
+# Full PDBs for the many native examples previously dominated the local disk.
+debug = 1
+
+[profile.dev-full-debug]
+inherits = "dev"
+debug = 2
 
 [profile.dev.package."*"]
 opt-level = 3

@@ -7,6 +7,7 @@ use forge_core::{AreaId, ContentHash};
 use serde::{Deserialize, Serialize};
 
 pub mod creation;
+pub mod creator;
 pub mod game_save;
 pub mod history;
 pub mod playtest;
@@ -72,6 +73,24 @@ pub enum AuthoringRequest {
     ApplyZone {
         request: crate::zone_authoring::session::ZoneRequest,
     },
+    PreviewModuleCreator {
+        expected_workspace_hash: ContentHash,
+        profile: forge_gameplay::RulesProfile,
+        surfaces: Vec<forge_gameplay::CreatorSurface>,
+        required_capabilities: Vec<forge_gameplay::GameplayCapability>,
+        command_id: forge_core::CommandId,
+    },
+    ApplyModuleCreator {
+        review: Box<crate::workspace::ModuleCreatorReview>,
+    },
+    PreviewModuleHistory {
+        expected_workspace_hash: ContentHash,
+        redo: bool,
+        command_id: forge_core::CommandId,
+    },
+    ApplyModuleHistory {
+        request: Box<crate::workspace::session::WorkspaceRequest>,
+    },
     ReviewZoneCompaction,
     CompactZoneArchive {
         review: crate::zone_authoring::session::ZoneCompactionReview,
@@ -97,7 +116,13 @@ pub enum AuthoringRequest {
 impl AuthoringRequest {
     #[must_use]
     pub const fn persists_audit_receipt(&self) -> bool {
-        matches!(self, Self::Apply { .. } | Self::ApplyZone { .. })
+        matches!(
+            self,
+            Self::Apply { .. }
+                | Self::ApplyZone { .. }
+                | Self::ApplyModuleCreator { .. }
+                | Self::ApplyModuleHistory { .. }
+        )
     }
 
     #[must_use]
@@ -108,6 +133,10 @@ impl AuthoringRequest {
                 | Self::Apply { .. }
                 | Self::PreviewZone { .. }
                 | Self::ApplyZone { .. }
+                | Self::PreviewModuleCreator { .. }
+                | Self::ApplyModuleCreator { .. }
+                | Self::PreviewModuleHistory { .. }
+                | Self::ApplyModuleHistory { .. }
         )
     }
 }
@@ -115,6 +144,14 @@ impl AuthoringRequest {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AuthoringState {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_creator_context: Option<creator::ModuleCreatorContext>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_creator_review: Option<crate::workspace::ModuleCreatorReview>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub module_creator_affected: Vec<creator::AffectedCreatorZone>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_history_receipt: Option<crate::workspace::session::WorkspaceReceipt>,
     /// Native-resolved owning module (or isolated standalone scope) for new gameplay data.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gameplay_module_id: Option<forge_core::ModuleId>,

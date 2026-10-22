@@ -64,7 +64,7 @@ pub(super) fn spawn(
                 Velocity::default(),
             ))
             .id();
-        if actor_state.vitality == 0 {
+        if !actor_state.active || actor_state.vitality == 0 {
             commands
                 .entity(entity)
                 .insert((Visibility::Hidden, ColliderDisabled));
@@ -115,6 +115,7 @@ fn object_color(kind: &ObjectKind, burning: bool) -> Color {
     match kind {
         ObjectKind::Pickup { .. } => Color::srgb(0.9, 0.7, 0.10),
         ObjectKind::Door { .. } => Color::srgb(0.35, 0.20, 0.10),
+        ObjectKind::Container { .. } => Color::srgb(0.45, 0.28, 0.12),
         ObjectKind::Prop => Color::srgb(0.4, 0.4, 0.4),
     }
 }
@@ -166,7 +167,7 @@ pub(super) fn synchronize(
                     .state()
                     .actors
                     .get(&id.0)
-                    .is_none_or(|a| a.vitality == 0)
+                    .is_none_or(|a| !a.active || a.vitality == 0)
             },
             |o| o.consumed || o.destroyed || o.open,
         );
@@ -243,6 +244,21 @@ mod material_tests;
 
 fn apply_effect(commands: &mut Commands, runtime: &GameplayRuntime, event: &GameplayEvent) {
     match event {
+        GameplayEvent::EncounterActivated { activation } => {
+            for actor in activation.previous_vitality.keys() {
+                if let (Some(entity), Some(state)) = (
+                    runtime.entities.get(actor),
+                    runtime.session.state().actors.get(actor),
+                ) {
+                    commands.entity(*entity).insert((
+                        Transform::from_translation(engine(state.position)),
+                        Velocity::default(),
+                        danger_motion::npc_controller(),
+                        DangerMotionState::default(),
+                    ));
+                }
+            }
+        }
         GameplayEvent::Impulse { object, impulse } => {
             if let Some(entity) = runtime.entities.get(object) {
                 commands.entity(*entity).insert((

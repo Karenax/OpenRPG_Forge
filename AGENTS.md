@@ -74,8 +74,38 @@ le 15 octobre sur les preuves locales et les validations propriétaire, selon
 Gate 4 porte le verdict **clôturée localement** au 16 octobre 2026, selon
 [son rapport final](docs/evidence/gate4/GATE4_CLOSURE_20261016.md), lot `0.1.0-preview.20261016.019`.
 Ses preuves locales restent distinctes de la distribution, de Windows vierge,
-de Linux et des résultats distants. Les gates suivantes ne sont pas ouvertes
-par cette mise à jour ; aucune publication Git n'est implicite.
+de Linux et des résultats distants. Gate 5 est ouverte par le propriétaire
+le 19 octobre avec objectif de clôture ; suivre `docs/planning/GATE5_IMPLEMENTATION_PLAN.md`.
+Consigne propriétaire actualisée le 20 octobre : E: porte tout le développement,
+les outils, compilations, caches et temporaires ; F: conserve les preuves,
+l'historique et la bibliothèque d'assets convertis `F:/OpenRPG_AssetVault`.
+Le checkout commun reste sur E: ; le cache Cargo partagé est
+`E:/OpenRPG_Forge/.build/cargo-target`, le registre Cargo sous
+`E:/OpenRPG_Forge/.build/cargo-home`, `TEMP` et `TMP` sous
+`E:/OpenRPG_Forge/.build/tmp`. Cette consigne remplace la répartition du 19 octobre.
+Neutraliser les anciennes variables héritées qui dirigent encore les builds vers F:.
+Les conversions d'assets utilisent E: comme espace de travail et F: pour leur
+bibliothèque finale. Ne pas conserver de preuves ou d'historique détaillé des
+conversions closes ; garder les fiches fonctionnelles, provenance, licences,
+hashes, dépendances, profils et retouches nécessaires à l'usage des assets.
+Consigne de stockage du 20 octobre : les nouvelles preuves et analyses vont sous
+`E:/OpenRPG_Forge/Preuves-et-analyses/` ; `actives/` et `archives/` y donnent accès
+au stockage F:. Les anciennes campagnes sont cataloguées et archivées avec
+manifeste SHA-256. Ne plus créer de dossier de campagne à la racine du workspace.
+Voir `../Preuves-et-analyses/LIRE-MOI.md` et les règles de `../AGENTS.md`.
+Le cache commun est configuré par défaut et l'incrémental désactivé. Le profil
+`dev` garde les symboles de ligne ; réserver `dev-full-debug` au composant à
+déboguer. `cargo xtest` couvre bibliothèques et tests d'intégration ; les 145
+exemples sont vérifiés/compilés selon l'impact, et `cargo xtest-all` conserve le
+parcours complet lorsque le protocole le demande. Cela ne retire aucun critère
+de qualification et ne transforme pas une ancienne preuve en validation actuelle.
+Décision propriétaire du 22 octobre : GitHub sert de sauvegarde distante ;
+arrêter les contrôles GitHub et ne plus en faire un critère de clôture des gates.
+Les validations locales et leurs preuves restent exigées. ADR-0034 consigne
+cette décision, distincte des anciennes exceptions et de leurs verdicts.
+Gate 5 est clôturée localement le 22 octobre selon
+`docs/evidence/gate5/GATE5_CLOSURE_20261022.md`.
+Gate 6 et suivantes restent non ouvertes ; aucune publication Git n'est implicite.
 Le run historique du 11 octobre 2026 `38123749165` sur
 `48a894d550c5770a5ea50bc54707113e85ab5218` a exécuté les runners : WASM et supply-chain
 ont réussi ; Windows/Linux ont échoué à Clippy, sans exécuter les tests/builds natifs suivants.

@@ -9,9 +9,13 @@ use bevy_rapier3d::prelude::{QueryFilter, RapierContext, ReadRapierContext};
 use forge_core::EntityId;
 use forge_gameplay::{ActorRole, GameAction, GameSession, ObjectKind, QuestStatus};
 
+mod cinematics;
+mod temporal;
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub(super) struct GameView {
     summary: String,
+    feedback: String,
     dialogues: Vec<(EntityId, String)>,
     pub(super) actions: Vec<(String, GameAction)>,
 }
@@ -181,6 +185,11 @@ pub(super) fn refresh(
     mut recovery_buttons: Query<(&UiCommand, &mut Node)>,
 ) {
     let mut view = game_view(runtime.session());
+    view.feedback = format!(
+        "{}\n{}",
+        ui.feedback,
+        runtime.error().unwrap_or(runtime.feedback())
+    );
     let context = rapier.single().ok();
     let player = player.single().ok();
     filter_visibility(&mut view, &runtime, context.as_ref(), player);
@@ -249,8 +258,11 @@ fn filter_visibility(
                 })
             })
     };
-    view.actions
-        .retain(|(_, action)| !runtime.has_queued_actions() && visible_target(target(action)));
+    view.actions.retain(|(_, action)| {
+        runtime.is_ready()
+            && !runtime.has_queued_actions()
+            && target(action).is_none_or(&visible_target)
+    });
     view.dialogues
         .retain(|(speaker, _)| visible_target(*speaker));
 }
@@ -283,8 +295,9 @@ fn render_actions(commands: &mut Commands, area: Entity, view: &GameView, font: 
     commands.entity(area).with_children(|parent| {
         parent.spawn((
             Text::new(format!(
-                "{}\n{}",
+                "{}\n{}\n{}",
                 view.summary,
+                view.feedback,
                 view.dialogues
                     .iter()
                     .map(|(_, text)| text.as_str())
@@ -320,17 +333,24 @@ fn render_actions(commands: &mut Commands, area: Entity, view: &GameView, font: 
     });
 }
 
-pub(super) fn target(action: &GameAction) -> EntityId {
-    match *action {
+pub(super) fn target(action: &GameAction) -> Option<EntityId> {
+    Some(match *action {
+        GameAction::UseAbility { target, .. } | GameAction::Attack { target } => target,
+        GameAction::CancelEffect { .. }
+        | GameAction::RunScript { .. }
+        | GameAction::StartCinematic { .. }
+        | GameAction::SkipCinematic
+        | GameAction::InterruptCinematic => return None,
         GameAction::ChooseDialogue { speaker, .. } => speaker,
-        GameAction::Attack { target } => target,
         GameAction::Pickup { object }
+        | GameAction::TransferItem { object, .. }
+        | GameAction::SetContainerLocked { object, .. }
         | GameAction::SetDoor { object, .. }
         | GameAction::Push { object, .. }
         | GameAction::Throw { object, .. }
         | GameAction::Ignite { object }
         | GameAction::Extinguish { object } => object,
-    }
+    })
 }
 
 pub(super) fn game_view(session: &GameSession) -> GameView {
@@ -350,14 +370,19 @@ pub(super) fn game_view(session: &GameSession) -> GameView {
         })
         .collect::<Vec<_>>()
         .join(" · ");
-    let quests = document
-        .quests
-        .iter()
+    let quests = session
+        .quest_journal()
+        .into_iter()
         .map(|quest| {
             format!(
-                "{} : {}",
+                "{} : {}{}",
                 quest.name,
-                quest_status_label(state.quests[&quest.id])
+                quest_status_label(quest.status),
+                if document.quest_flow(quest.quest).is_some() {
+                    format!(" · {}", quest.text)
+                } else {
+                    String::new()
+                }
             )
         })
         .collect::<Vec<_>>()
@@ -378,6 +403,8 @@ pub(super) fn game_view(session: &GameSession) -> GameView {
     };
     actor_actions(session, &mut view);
     object_actions(session, &mut view);
+    temporal::append(session, &mut view);
+    cinematics::append(session, &mut view);
     view
 }
 fn actor_actions(session: &GameSession, view: &mut GameView) {
@@ -385,7 +412,10 @@ fn actor_actions(session: &GameSession, view: &mut GameView) {
     let state = session.state();
     let player = &state.actors[&document.player];
     for actor in &document.actors {
-        if actor.id == document.player || state.actors[&actor.id].vitality == 0 {
+        if actor.id == document.player
+            || !state.actors[&actor.id].active
+            || state.actors[&actor.id].vitality == 0
+        {
             continue;
         }
         if let Ok(dialogue) = session.dialogue_view(document.player, actor.id) {
@@ -443,6 +473,17 @@ fn object_actions(session: &GameSession, view: &mut GameView) {
                     open: !current.open,
                 },
             )),
+            ObjectKind::Container { .. } => {
+                if let Some(summary) = session.container_summary(object.id) {
+                    view.summary.push('\n');
+                    view.summary.push_str(&summary);
+                }
+                for action in session.container_transfer_requests(document.player, object.id) {
+                    if let Some(label) = session.container_action_label(&action) {
+                        view.actions.push((label, action));
+                    }
+                }
+            }
             ObjectKind::Prop => (),
         }
         let delta = Vec3::new(
@@ -500,9 +541,5 @@ fn distance_squared(a: forge_core::Vec3, b: forge_core::Vec3) -> f32 {
     (a.x - b.x).powi(2) + (a.y - b.y).powi(2) + (a.z - b.z).powi(2)
 }
 fn quest_status_label(status: QuestStatus) -> &'static str {
-    match status {
-        QuestStatus::Available => "À découvrir",
-        QuestStatus::Active => "En cours",
-        QuestStatus::Completed => "Terminée",
-    }
+    status.label()
 }

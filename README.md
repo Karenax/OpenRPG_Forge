@@ -85,9 +85,10 @@ ou contribution ; les assets tiers et privés conservent leurs propres droits.
 
 ## Où en est le projet ?
 
-Au **21 octobre 2026**, les étapes jusqu’à Gate 4 disposent de leurs clôtures
-documentées, avec leurs périmètres et réserves. **Gate 5 est en cours** : elle
-approfondit les règles et les mécanismes génériques du Creator et du runtime.
+Au **22 octobre 2026**, les étapes jusqu’à Gate 5 disposent de leurs clôtures
+documentées, avec leurs périmètres et réserves. **Gate 5 est clôturée localement** :
+ses treize domaines et R5-P01/P02 valident les mécanismes de base du Creator et du
+runtime permettant de créer des quêtes ensuite, sans livraison d'une aventure.
 Le projet reste en développement ; la distribution générale, les performances
 sur tous les matériels et la qualification multiplateforme restent à établir.
 
@@ -110,7 +111,7 @@ précisément cartes, personnages et histoire, conserver ces corrections lors de
 régénérations, puis jouer, sauvegarder et distribuer une aventure. Cette vision
 reste distincte des capacités actuellement qualifiées.
 
-## État au 18 octobre 2026
+## État au 22 octobre 2026
 
 | Étape | État documenté |
 |---|---|
@@ -120,12 +121,14 @@ reste distincte des capacités actuellement qualifiées.
 | Gate 2 — édition de monde | Clôturée par validation propriétaire |
 | Gate 3 — première boucle RPG | Clôturée le 15 octobre |
 | Gate 4 — assets gouvernés, modules et installation | Clôturée localement sous Windows le 16 octobre |
+| Gate 5 — Creator RPG étendu | Clôturée localement le 22 octobre |
+| Gate 6 et gate bonus | Non ouvertes |
 
 Le lot Gate 4 est `0.1.0-preview.20261016.019`. Les rapports
 [Gate 3](docs/evidence/gate3/GATE3_CLOSURE_20261015.md) et
 [Gate 4](docs/evidence/gate4/GATE4_CLOSURE_20261016.md) précisent les versions,
-critères, preuves et réserves. Gate 5 a ensuite été ouverte le 19 octobre 2026 et reste en cours ;
-ces clôtures ne qualifient pas ses critères. Le [contexte canonique](PROJECT_CONTEXT.md) et la
+critères, preuves et réserves. Le [rapport Gate 5](docs/evidence/gate5/GATE5_CLOSURE_20261022.md)
+documente sa clôture locale du 22 octobre et ses limites propres. Le [contexte canonique](PROJECT_CONTEXT.md) et la
 [roadmap](docs/planning/MIGRATION_ROADMAP.md) portent le suivi détaillé.
 
 La [reprise d’architecture du 18 octobre](docs/planning/ENGINE_RESERVES_20261018.md)
@@ -150,15 +153,22 @@ leurs anciennes API. Cette séparation est contrôlée automatiquement.
   reprend son viewport au retour.
 - **Assets gouvernés** : imports GLB, textures et audio, provenance, licences,
   empreintes, variantes et validation de publication.
-- **Modules** : packages `.orpmod` v2, dépendances, contrôles d'archives,
-  installation et régression avec un second module.
+- **Creator RPG étendu** : règles communes au module, blueprints avec héritage,
+  conteneurs, variables et dialogues conditionnels, transitions de quête et journal,
+  factions à témoins locaux, capacités et effets temporaires, calendrier,
+  rencontres, scripts bornés, cinématiques et diagnostics corrigibles.
+- **Modules** : packages `.orpmod` v3 avec profil commun, compatibilité v2,
+  dépendances, contrôles d'archives, installation et validation de deux modules
+  aux profils et surfaces distincts, avec sauvegardes isolées et réexports privés.
 - **Livraison Windows locale** : un installateur principal, un launcher Aube,
   un gestionnaire de contenus, le Studio et le jeu, avec contenus séparables.
 
 Ces capacités sont rattachées aux scénarios et composants des rapports de gate.
 Elles ne constituent pas une qualification générale de tous les modules,
-matériels ou usages futurs. L'assistant IA complet, la narration avancée,
-le scripting et le multijoueur restent suivis par la roadmap.
+matériels ou usages futurs. Gate 5 comprend aussi les réglages visuels des modèles
+de bibliothèque, l'historique d'édition et la sauvegarde/reprise des nouveaux états.
+L'assistant IA complet, les extensions narratives et de scripting au-delà des
+profils bornés qualifiés, ainsi que le multijoueur restent suivis par la roadmap.
 
 ## Limites de qualification
 
@@ -179,6 +189,11 @@ Le run Gate 3 du 15 octobre documenté pour cette clôture est
 [ADR-0023](docs/ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md) retire
 l'attente GitHub des critères de cette clôture Gate 3, sans produire de PASS
 distant. Les anciennes décisions de CI gardent leur portée datée.
+Depuis la décision propriétaire du 22 octobre, GitHub sert de sauvegarde distante :
+les contrôles GitHub sont arrêtés et retirés des critères des gates selon
+[ADR-0034](docs/ADR/ADR-0034-github-backup-local-gate-validation.md).
+Les validations locales restent exigées ; aucun succès distant n'est déduit de
+cette décision. La clôture locale ne constitue pas un commit ou un push du lot.
 
 ## Reprendre le développement
 

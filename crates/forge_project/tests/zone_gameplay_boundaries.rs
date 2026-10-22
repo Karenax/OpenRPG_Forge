@@ -139,6 +139,12 @@ fn gameplay(area_id: AreaId) -> GameplayDocument {
     let quest = id("quest/key");
 
     GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("zone-gameplay-boundaries/module"),

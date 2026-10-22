@@ -181,6 +181,11 @@ pub(crate) fn GameplayControls(
                 </details>
                 <details open><summary>"Inventaire et objectifs"</summary>
                 <ul>{move ||view.get().inventory.into_iter().chain(view.get().quests).map(|line|view!{<li>{line}</li>}).collect_view()}</ul></details>
+                <Show when=move ||!view.get().containers.is_empty()>
+                    <details open><summary>"Conteneurs proches"</summary>
+                        <ul>{move ||view.get().containers.into_iter().map(|line|view!{<li>{line}</li>}).collect_view()}</ul>
+                    </details>
+                </Show>
                 <button disabled=move ||busy.get() ||saving.get() ||!view.get().ready ||view.get().pending on:click=move |_| {
                     let current=view.get_untracked();
                     if let Some(source)=current.source {

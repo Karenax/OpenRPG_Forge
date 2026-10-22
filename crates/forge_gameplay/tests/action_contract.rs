@@ -1,14 +1,20 @@
 use forge_core::{AreaId, CommandId, ContentHash, EntityId, ModuleId, Vec3};
 use forge_gameplay::{
     ActionObservation, ActorDefinition, ActorRole, GAMEPLAY_SCHEMA, GameAction, GameRequest,
-    GameSession, GameplayDocument, ItemDefinition, ObjectDefinition, ObjectKind, ObjectPhysics,
-    RulesProfile,
+    GameSession, GameplayDocument, GameplayEvent, ItemDefinition, ObjectDefinition, ObjectKind,
+    ObjectPhysics, RulesProfile,
 };
 
 fn fixture() -> GameplayDocument {
     let player = EntityId::deterministic("action/player");
     let item = EntityId::deterministic("action/item");
     GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: 1,
         module_id: ModuleId::deterministic("action/module"),
@@ -74,6 +80,94 @@ fn visible() -> ActionObservation {
         confirmed_contact: false,
         water_contact: false,
     }
+}
+
+fn creature_fixture(vitality: u32, protection: u32) -> (GameplayDocument, EntityId) {
+    let mut document = fixture();
+    let target = EntityId::deterministic("action/creature");
+    document.actors.push(ActorDefinition {
+        id: target,
+        name: "Configured creature".into(),
+        role: ActorRole::Enemy,
+        position: Vec3::new(1.0, 0.0, 0.0),
+        max_vitality: vitality,
+        protection,
+        ..document.actors[0].clone()
+    });
+    (document, target)
+}
+
+fn strike(game: &mut GameSession, target: EntityId, sequence: u64) -> forge_gameplay::GameReceipt {
+    game.execute(
+        &GameRequest {
+            command_id: CommandId::deterministic(format!("action/strike/{sequence}")),
+            expected_sequence: sequence,
+            actor: game.document().player,
+            action: GameAction::Attack { target },
+        },
+        ActionObservation {
+            line_of_sight: true,
+            confirmed_contact: true,
+            ..Default::default()
+        },
+    )
+    .unwrap()
+}
+
+#[test]
+fn lethal_attack_on_a_low_vitality_creature_remains_saveable_and_retry_safe() {
+    let (document, target) = creature_fixture(7, 0);
+    let mut game = GameSession::new(document.clone(), ContentHash::from_bytes([7; 32])).unwrap();
+    let receipt = strike(&mut game, target, 0);
+    assert_eq!(game.state().actors[&target].vitality, 0);
+    assert_eq!(game.state().actors[&document.player].stamina, 95);
+    let bytes = game
+        .save_bytes()
+        .expect("a legitimate lethal hit must remain saveable");
+    assert_eq!(
+        receipt.events,
+        vec![GameplayEvent::Damage {
+            target,
+            contact: true,
+            amount: 7
+        }]
+    );
+    assert_eq!(
+        game.execute(&receipt.request, ActionObservation::default())
+            .unwrap(),
+        receipt
+    );
+    assert_eq!(game.save_bytes().unwrap(), bytes);
+    let resumed = GameSession::resume(document.clone(), game.source_hash(), &bytes, false).unwrap();
+    assert_eq!(resumed.state(), game.state());
+    assert_eq!(game.document(), &document);
+}
+
+#[test]
+fn final_hit_records_only_remaining_vitality_after_protection() {
+    let (document, target) = creature_fixture(25, 3);
+    let mut game = GameSession::new(document.clone(), ContentHash::from_bytes([7; 32])).unwrap();
+    assert_eq!(
+        strike(&mut game, target, 0).events,
+        vec![GameplayEvent::Damage {
+            target,
+            contact: true,
+            amount: 17
+        }]
+    );
+    assert_eq!(game.state().actors[&target].vitality, 8);
+    assert_eq!(
+        strike(&mut game, target, 1).events,
+        vec![GameplayEvent::Damage {
+            target,
+            contact: true,
+            amount: 8
+        }]
+    );
+    assert_eq!(game.state().actors[&target].vitality, 0);
+    assert_eq!(game.state().actors[&document.player].stamina, 90);
+    let bytes = game.save_bytes().unwrap();
+    assert!(GameSession::resume(document, game.source_hash(), &bytes, false).is_ok());
 }
 
 #[test]

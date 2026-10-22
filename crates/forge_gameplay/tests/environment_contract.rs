@@ -10,6 +10,12 @@ fn id(key: &str) -> EntityId {
 }
 fn document() -> GameplayDocument {
     GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: "forge.gameplay".into(),
         version: 1,
         module_id: ModuleId::deterministic("environment/module"),
@@ -93,6 +99,7 @@ fn session() -> GameSession {
 }
 fn frame(game: &GameSession) -> PhysicsFrame {
     PhysicsFrame {
+        simulation_step_ns: None,
         source_hash: game.source_hash(),
         tick: game.state().tick + 1,
         actors: vec![],

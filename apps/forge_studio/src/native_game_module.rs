@@ -32,7 +32,12 @@ pub(super) fn launch(expected: ContentHash, package: ContentHash) -> Result<u32,
     current.last_diagnostics = None;
     let receipt = crate::native_module_export::receipt(expected, package)?;
     // Refuse a changed authoring head even when the package itself is still intact.
-    crate::with_authoring_host(|host| host.game_archive(expected).map(|_| ()))?;
+    crate::with_authoring_host(|host| {
+        if host.module_content_revision(expected)? != receipt.module_hash {
+            return Err("Le module a changé ; refaire l’export.".into());
+        }
+        Ok(())
+    })?;
     let config = forge_studio_frontend::launch_configuration::game()?;
     if !config.executable.is_file() {
         return Err(format!("Jeu introuvable : {}", config.executable.display()));
@@ -75,7 +80,11 @@ pub(super) fn launch(expected: ContentHash, package: ContentHash) -> Result<u32,
     let mut command = module_command(&config, &receipt, &session, expected, archive_hash)?;
     // Recheck immediately before spawn; no frontend-supplied path or arguments are accepted.
     let child = crate::with_authoring_host(|host| {
-        host.game_archive(expected)?;
+        if host.module_content_revision(expected)? != receipt.module_hash {
+            return Err(
+                "Le module a changé pendant la préparation du jeu ; refaire l’export.".into(),
+            );
+        }
         crate::native_module_export::receipt(expected, package)?;
         command
             .spawn()

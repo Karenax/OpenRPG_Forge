@@ -188,7 +188,14 @@ impl TerrainRuntimeBindingSnapshot {
 struct QueuedTerrainPartialUpdate {
     sequence: u64,
     request: TerrainPartialUpdateRequest,
-    authoring: bool,
+    mode: TerrainProjectionMode,
+}
+
+#[derive(Debug)]
+enum TerrainProjectionMode {
+    SparseEdit,
+    AuthoringEdit,
+    AuthoringSnapshot,
 }
 
 /// Single-slot request queue. At most one terrain transaction is applied per fixed tick.
@@ -214,7 +221,7 @@ impl PendingTerrainPartialUpdate {
         self.request = Some(QueuedTerrainPartialUpdate {
             sequence,
             request,
-            authoring: false,
+            mode: TerrainProjectionMode::SparseEdit,
         });
         Ok(sequence)
     }
@@ -226,7 +233,20 @@ impl PendingTerrainPartialUpdate {
     ) -> Result<u64, TerrainUpdateSubmissionError> {
         let sequence = self.submit(request)?;
         if let Some(queued) = &mut self.request {
-            queued.authoring = true;
+            queued.mode = TerrainProjectionMode::AuthoringEdit;
+        }
+        Ok(sequence)
+    }
+
+    /// Projects an accepted source snapshot without rewriting its historical revision.
+    /// The live base and all mesh/collider transaction checks still apply.
+    pub fn submit_authoring_snapshot(
+        &mut self,
+        request: TerrainPartialUpdateRequest,
+    ) -> Result<u64, TerrainUpdateSubmissionError> {
+        let sequence = self.submit(request)?;
+        if let Some(queued) = &mut self.request {
+            queued.mode = TerrainProjectionMode::AuthoringSnapshot;
         }
         Ok(sequence)
     }
@@ -569,10 +589,16 @@ fn apply_pending_terrain_partial_update(
         let source_revision = state.document.revision;
         let plan = TerrainGenerationPlan::from_document(&state.document)
             .map_err(|error| TerrainRuntimeUpdateError::Core(error.to_string()))?;
-        let update = if queued.authoring {
-            plan.apply_authoring_update(&state.cache, queued.request)
-        } else {
-            plan.apply_partial_update(&state.cache, queued.request)
+        let update = match queued.mode {
+            TerrainProjectionMode::SparseEdit => {
+                plan.apply_partial_update(&state.cache, queued.request)
+            }
+            TerrainProjectionMode::AuthoringEdit => {
+                plan.apply_authoring_update(&state.cache, queued.request)
+            }
+            TerrainProjectionMode::AuthoringSnapshot => {
+                plan.apply_authoring_snapshot(&state.cache, queued.request)
+            }
         }
         .map_err(|error| TerrainRuntimeUpdateError::Core(error.to_string()))?;
         let binding_snapshots = bindings.snapshots()?;
@@ -2513,6 +2539,53 @@ mod tests {
         assert!(outcome.projection_failed());
         assert!(outcome.rollback_verified(), "{:?}", outcome.error());
         assert_source_runtime_restored(&mut app, &original);
+    }
+
+    #[test]
+    fn authoring_history_restores_exact_snapshots_and_rapier_height() {
+        let mut app = build_test_app(true);
+        app.update();
+        app.world_mut().run_schedule(FixedUpdate);
+        let original_bindings = snapshots(&app);
+        let original = app
+            .world()
+            .resource::<TerrainRuntimeState>()
+            .document()
+            .clone();
+        let handle = *app
+            .world()
+            .get::<RapierColliderHandle>(original_bindings[0].collider_entity)
+            .unwrap();
+        let initial_height = backend_raycast_height(&mut app, handle, 30.0);
+        let mut elevated = original.clone();
+        elevated.revision = original.revision.next().unwrap();
+        elevated.height_sampling.base_elevation_m += 8.0;
+        for target in [&elevated, &original, &elevated] {
+            let state = app.world().resource::<TerrainRuntimeState>();
+            let request = TerrainPartialUpdateRequest {
+                base_revision: state.document().revision,
+                base_document_hash: state.cache().source_document_hash,
+                target_document: target.clone(),
+            };
+            app.world_mut()
+                .resource_mut::<PendingTerrainPartialUpdate>()
+                .submit_authoring_snapshot(request)
+                .unwrap();
+            app.world_mut().run_schedule(FixedUpdate);
+            let outcome = app.world().resource::<TerrainRuntimeUpdateOutcome>();
+            assert!(outcome.error().is_none(), "{:?}", outcome.error());
+            assert_eq!(outcome.report().unwrap().target_revision(), target.revision);
+            let state = app.world().resource::<TerrainRuntimeState>();
+            assert_eq!(state.document(), target);
+            assert_eq!(
+                state.cache().source_document_hash,
+                target.content_hash().unwrap()
+            );
+            assert_eq!(snapshots(&app), original_bindings);
+            let height = backend_raycast_height(&mut app, handle, 30.0);
+            let difference = if target == &original { 0.0 } else { 8.0 };
+            assert!((height - initial_height - difference).abs() < 1.0e-4);
+        }
     }
 
     #[test]

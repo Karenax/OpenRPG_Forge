@@ -30,7 +30,7 @@ produit et ne sont pas réécrits par cette séparation.
 2. Lire [AGENTS.md](../AGENTS.md) : architecture, gouvernance et règles de travail,
    applicables aussi à un développeur humain ou à un autre assistant.
 3. Consulter les [ADR](ADR), en particulier ADR-0001 à ADR-0006, puis les décisions
-   propres au sous-système et [ADR-0023](ADR/ADR-0023-gate3-owner-removes-github-ci-criterion.md).
+   propres au sous-système et [ADR-0034](ADR/ADR-0034-github-backup-local-gate-validation.md).
 4. Lire l'état courant de la [roadmap](planning/MIGRATION_ROADMAP.md), puis le
    README du sous-système concerné.
 
@@ -45,13 +45,36 @@ Gate 3 est clôturée le 15 octobre ; Gate 4 est **clôturée localement** le
 [Gate 4](evidence/gate4/GATE4_CLOSURE_20261016.md) portent les critères et limites.
 Les anciennes sections « reste ouvert » ou « à acquérir » sont des constats datés,
 pas des instructions de recommencer les gates. Distribution, Windows vierge,
-Linux, réserve GLib et CI distante gardent des verdicts séparés.
+Linux, réserve GLib et résultats distants historiques gardent des verdicts séparés.
 
-**Prochaine étape :** choisir un périmètre explicite avec le propriétaire à partir
-de cet état. Aucune gate suivante n'est ouverte par la passation. Pour reprendre
+**État au 22 octobre : Gate 5 clôturée localement**, selon son
+[rapport final](evidence/gate5/GATE5_CLOSURE_20261022.md) : treize domaines et
+R5-P01/P02 validés. Il s'agit de fondations pour créer des quêtes ensuite, sans
+livraison d'aventure. Gate 6 et la gate bonus restent non ouvertes. GitHub sert
+de sauvegarde distante ; ses contrôles sont arrêtés et ne conditionnent plus
+les gates, selon ADR-0034. Les validations locales restent exigées. La clôture
+n'atteste pas un commit ou un push des modifications locales.
+
+**Reprise du 19 octobre :** le propriétaire ouvre Gate 5 avec objectif de clôture,
+selon le [plan de réalisation](planning/GATE5_IMPLEMENTATION_PLAN.md). Pour reprendre
 un chantier déjà autorisé, établir son objectif, ses fichiers et ses preuves
 actuelles avant toute modification ; une ancienne conversation n'est pas requise
 pour comprendre les règles du dépôt.
+
+La répartition propriétaire du 20 octobre remplace celle de l'ouverture : E:
+porte les sources, outils, téléchargements, compilations, caches et temporaires ;
+F: conserve les preuves, l'historique et la bibliothèque d'assets convertis.
+Compiler le checkout commun avec `scripts/Invoke-ForgeCargo.ps1`, la cible
+`E:/OpenRPG_Forge/.build/cargo-target`, `CARGO_HOME` sous `.build/cargo-home`,
+`CARGO_INCREMENTAL=0` et `TEMP`/`TMP` sous `.build/tmp` sur E:.
+Neutraliser les anciennes variables pointant vers F:, sans recopier les caches
+historiques. Les preuves sont centralisées sous
+`E:/OpenRPG_Forge/Preuves-et-analyses/actives/gate5/20261019/`, physiquement sur F:.
+L'archive vérifiée est `F:/OpenRPG_Forge/Preuves-et-analyses/archives/gate5-20261022-e-001.zip` ;
+son catalogue est `E:/OpenRPG_Forge/Preuves-et-analyses/rapports/gate5-closure-20261022-e-001.json`.
+Les anciens chemins et reçus restent historiques. Vérifier les processus actifs
+avant toute nouvelle compilation et consulter le rapport final avant de rejouer
+une qualification déjà acquise.
 
 ## Préserver le travail local avant la reprise
 
@@ -170,12 +193,69 @@ n'a pas été requalifié. L'accès au Vault `F:` a été refusé par l'environn
 de cette session : sa disponibilité et son contenu restent à vérifier sur le
 poste de reprise. Ne pas confondre refus d'accès et absence du dossier.
 
-Sur le poste actuel, les valeurs utilisées par la procédure commune sont :
+Sur le poste actuel, la consigne propriétaire du 20 octobre remplace celle de
+l'ouverture de Gate 5 : développer et compiler sur E:, conserver preuves,
+historique et bibliothèque d'assets sur F:. Les chemins installés déjà constatés
+plus haut restent des références de l'installation existante.
 
 ```powershell
-$env:CARGO_TARGET_DIR = 'E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002'
+$env:CARGO_TARGET_DIR = 'E:\OpenRPG_Forge\.build\cargo-target'
+$env:CARGO_HOME = 'E:\OpenRPG_Forge\.build\cargo-home'
+$env:CARGO_INCREMENTAL = '0'
+$env:TEMP = 'E:\OpenRPG_Forge\.build\tmp'
+$env:TMP = $env:TEMP
 $env:FORGE_STUDIO_LOCAL_ASSETS = 'E:\OpenRPG_Forge\.forge-local\studio-assets'
 ```
+
+Pour le frontend Gate 5, utiliser une destination de travail sur E: avant
+d'appeler le wrapper Trunk, puis conserver les preuves utiles sur F:. Le hook
+navigation utilise `TRUNK_STAGING_DIR` et hérite du cache Cargo et des temporaires E:.
+
+```powershell
+$env:TRUNK_BUILD_DIST = 'E:\OpenRPG_Forge\.build\frontend\gate5-candidat-unique'
+$env:TRUNK_OFFLINE = 'true'
+$env:TRUNK_SKIP_VERSION_CHECK = 'true'
+$env:CARGO_NET_OFFLINE = 'true'
+$env:PATH = 'E:\OpenRPG_Forge\.build\tools\binaryen-131-001\bin;' + $env:PATH
+```
+
+Trunk 0.21.14 et wasm-bindgen 0.2.127 sont disponibles sur le poste ; ce dernier
+correspond au verrou courant. Les exécutables existants sur C: peuvent être lus,
+mais aucun nouvel outil ou cache n'y est installé. Le mode hors ligne refuse un
+outil absent avant d'ouvrir le cache automatique de Trunk : vérifier les outils
+dans `PATH` et préparer les compléments éventuels sous `.build/tools/` sur E:. Voir le
+[code de résolution des outils de Trunk 0.21.14](https://github.com/trunk-rs/trunk/blob/v0.21.14/src/tools.rs#L265).
+Cette vérification ne constitue pas un build frontend. Le packager
+`Build-StudioCandidate.ps1` accepte désormais une sortie neuve sous
+`F:/OpenRPG_Forge/` ; lui fournir explicitement les dossiers de cache et de
+temporaires F:. Ses anciens défauts ne sont pas les paramètres de Gate 5.
+Le fichier d'entrée demande l'optimisation WASM `z`. Binaryen 131 a donc été
+recopié depuis l'outil existant sur E: vers le dossier F: ajouté au `PATH`
+ci-dessus, avec vérification d'empreinte, version exécutée et licence Apache 2.0.
+Le reçu `wasm-opt-tool-001.json`, sous les preuves Gate 5 sur F:, indique qu'aucun
+téléchargement ni build frontend n'a été exécuté par cette préparation.
+Le hook Trunk peut déjà avoir copié `forge-kit`. Fournir tout de même
+`-GovernedKit` au packager : celui-ci exige alors la même liste de fichiers et
+les mêmes empreintes, sans remplacement ni duplication des pins. Les tests
+d'entrée `candidate-kit-input-tests-002` du 20 octobre passent sur F:, y compris
+le refus d'un fichier caché supplémentaire ; ils ne
+constituent ni un build du Studio ni une qualification graphique.
+Avant tout lancement graphique du nouveau binaire, fixer aussi :
+
+```powershell
+$env:FORGE_WEBVIEW_DATA_ROOT = 'E:\OpenRPG_Forge\.build\webview\studio'
+```
+
+Le raccordement natif `native_webview.rs` diffère alors la création automatique
+des fenêtres et fournit ce chemin absolu au constructeur Tauri avant toute
+création de WebView ; la fenêtre Atelier emploie le même dossier. Une valeur
+vide ou relative est refusée au démarrage. Ce réglage est nécessaire car le
+gestionnaire Tauri peut créer son dossier local par défaut avant l'appel à
+WebView2. Les constats préparatoires du 20 octobre sont remplacés, pour l'état
+courant, par les validations du candidat final et les parcours graphiques acquis
+dans le [rapport Gate 5](evidence/gate5/GATE5_CLOSURE_20261022.md).
+Vérifier le chemin effectif dans les processus WebView2 lors d'un nouveau
+lancement et conserver les preuves nécessaires dans le catalogue central sur F:.
 
 Le wrapper [Invoke-StudioTrunk.ps1](../scripts/Invoke-StudioTrunk.ps1) gère le
 build/serve et normalise `NO_COLOR`. Pour une reconstruction livrable, suivre

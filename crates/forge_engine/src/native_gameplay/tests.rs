@@ -50,6 +50,12 @@ pub(super) fn fixture() -> (ZoneEditSession, GameplayDocument) {
     .unwrap();
     let player = EntityId::deterministic("native/player");
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: forge_gameplay::GAMEPLAY_SCHEMA.into(),
         version: forge_gameplay::GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("native/module"),
@@ -255,6 +261,47 @@ fn native_compatible_resume_remains_explicit_and_rejects_functional_changes() {
             .request_resume(&document, edited_source, true)
             .is_err()
     );
+}
+
+#[test]
+fn native_container_menu_keeps_full_pile_requests_when_only_one_unit_fits() {
+    let (_zone, mut document) = fixture();
+    let chest = document.objects[0].id;
+    let item = EntityId::deterministic("native/container-item");
+    document.objects[0].kind = ObjectKind::Prop;
+    document.actors[0].inventory_capacity = 1;
+    document.items.push(forge_gameplay::ItemDefinition {
+        id: item,
+        name: "Jeton".into(),
+        max_stack: 4,
+    });
+    let document = document
+        .with_container_definition(
+            chest,
+            forge_gameplay::ContainerDefinition {
+                capacity_units: 4,
+                initial_items: std::collections::BTreeMap::from([(item, 4)]),
+                accepts: vec![item],
+                key: None,
+            },
+        )
+        .unwrap();
+    let session =
+        forge_gameplay::GameSession::new(document, ContentHash::from_bytes([4; 32])).unwrap();
+    let view = presentation::game_view(&session);
+    for quantity in [1, 4] {
+        let action = GameAction::TransferItem {
+            object: chest,
+            item,
+            quantity,
+            direction: forge_gameplay::TransferDirection::Take,
+        };
+        assert!(
+            view.actions
+                .iter()
+                .any(|(_, candidate)| *candidate == action)
+        );
+    }
 }
 
 #[test]

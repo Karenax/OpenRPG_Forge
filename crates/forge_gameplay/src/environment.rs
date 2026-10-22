@@ -59,6 +59,8 @@ pub struct DangerObservation {
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PhysicsFrame {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simulation_step_ns: Option<u64>,
     pub source_hash: ContentHash,
     pub tick: u64,
     pub actors: Vec<ActorObservation>,
@@ -110,11 +112,19 @@ impl GameSession {
             return Err(refused("physics observation quota exceeded"));
         }
         let mut next = self.state.clone();
+        if self.document.simulation.is_some()
+            && self.state.requires_physics_revalidation
+            && frame.actors.len() != self.document.actors.len()
+        {
+            return Err(refused(
+                "observe every actor before clearing the current projection guard",
+            ));
+        }
         next.requires_physics_revalidation = false;
         next.tick = frame.tick;
         next.tick_events_used = 0;
         Self::apply_positions(&mut next, frame)?;
-        let mut events = Vec::new();
+        let mut events = self.advance_simulation_clock(&mut next, frame)?;
         let mut contacts = BTreeSet::new();
         let mut pairs = BTreeSet::new();
         for contact in &frame.contacts {
@@ -127,6 +137,19 @@ impl GameSession {
         }
         events.extend(self.apply_heat_exposures(&mut next, &frame.heat)?);
         events.extend(self.apply_danger(&mut next, &frame.danger)?);
+        events.extend(self.advance_cinematic(&mut next)?);
+        let remaining = self
+            .document
+            .profile
+            .max_events_per_tick
+            .saturating_sub(events.len());
+        events.extend(self.apply_calendar(&mut next, frame, remaining)?);
+        if events
+            .iter()
+            .any(|event| matches!(event, GameplayEvent::EncounterActivated { .. }))
+        {
+            next.requires_physics_revalidation = true;
+        }
         if events.len() > self.document.profile.max_events_per_tick {
             return Err(refused("physics event quota exceeded"));
         }
@@ -147,11 +170,14 @@ impl GameSession {
             if !ids.insert(observation.actor) {
                 return Err(refused("duplicate actor observation"));
             }
-            state
+            let actor = state
                 .actors
                 .get_mut(&observation.actor)
-                .ok_or_else(|| GameplayError::MissingReference(observation.actor.to_string()))?
-                .position = observation.position;
+                .ok_or_else(|| GameplayError::MissingReference(observation.actor.to_string()))?;
+            if !actor.active && observation.position != actor.position {
+                return Err(refused("an absent actor cannot change pose"));
+            }
+            actor.position = observation.position;
         }
         for observation in &frame.objects {
             crate::validation::rotation(observation.rotation_xyzw)?;
@@ -177,6 +203,14 @@ impl GameSession {
         &self,
         contact: &ContactObservation,
     ) -> Result<(), GameplayError> {
+        if self
+            .state
+            .actors
+            .get(&contact.target)
+            .is_some_and(|actor| !actor.active)
+        {
+            return Err(refused("collision target is absent"));
+        }
         let source = self
             .document
             .object(contact.source)
@@ -383,7 +417,7 @@ impl GameSession {
             }
         }
         for (id, actor) in &mut state.actors {
-            let active = actor.vitality > 0 && fleeing.contains(id);
+            let active = actor.active && actor.vitality > 0 && fleeing.contains(id);
             if active && !actor.fleeing {
                 events.push(GameplayEvent::Fleeing { actor: *id });
             }

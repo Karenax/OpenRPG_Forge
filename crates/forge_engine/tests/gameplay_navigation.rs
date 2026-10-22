@@ -268,6 +268,12 @@ fn actor(
 fn app() -> (App, Entity, EntityId) {
     let npc = id("patrol");
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("navigation-product/module"),

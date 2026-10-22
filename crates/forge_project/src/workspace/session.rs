@@ -34,6 +34,14 @@ pub enum WorkspaceAction {
         before: super::ZoneReference,
         after: super::ZoneReference,
     },
+    ConfigureCreator {
+        project_id: ProjectId,
+        module_id: ModuleId,
+        before: Option<super::ModuleCreatorReference>,
+        after: super::ModuleCreatorReference,
+        before_zones: Vec<super::ZoneReference>,
+        after_zones: Vec<super::ZoneReference>,
+    },
     Undo,
     Redo,
 }
@@ -157,44 +165,33 @@ impl WorkspaceSession {
                 project_id,
                 module_id,
                 reference,
-            } => {
-                let mut head = self.head.clone();
-                let module = head
-                    .projects
-                    .iter_mut()
-                    .find(|p| p.id == *project_id)
-                    .and_then(|p| p.modules.iter_mut().find(|m| m.id == *module_id))
-                    .ok_or(WorkspaceError::MissingProject)?;
-                module.zones.push(reference.clone());
-                head.validate()?;
-                head
-            }
+            } => self.attached_zone(*project_id, *module_id, reference)?,
             WorkspaceAction::UpdateZone {
                 project_id,
                 module_id,
                 before,
                 after,
-            } => {
-                let mut head = self.head.clone();
-                let zone = head
-                    .projects
-                    .iter_mut()
-                    .find(|p| p.id == *project_id)
-                    .and_then(|p| p.modules.iter_mut().find(|m| m.id == *module_id))
-                    .and_then(|m| m.zones.iter_mut().find(|z| z.area_id == before.area_id))
-                    .ok_or(WorkspaceError::MissingProject)?;
-                if zone != before || before.area_id != after.area_id || before == after {
-                    return Err(SessionError::Stale);
-                }
-                *zone = after.clone();
-                head.validate()?;
-                head
-            }
+            } => self.updated_zone(*project_id, *module_id, before, after)?,
             WorkspaceAction::Undo => self
                 .undo
                 .last()
                 .cloned()
                 .ok_or(SessionError::EmptyHistory)?,
+            WorkspaceAction::ConfigureCreator {
+                project_id,
+                module_id,
+                before,
+                after,
+                before_zones,
+                after_zones,
+            } => self.head.with_module_creator(
+                *project_id,
+                *module_id,
+                *before,
+                *after,
+                before_zones,
+                after_zones,
+            )?,
             WorkspaceAction::Redo => self
                 .redo
                 .last()
@@ -213,6 +210,52 @@ impl WorkspaceSession {
             after,
             audit,
         })
+    }
+
+    fn updated_zone(
+        &self,
+        project: ProjectId,
+        module: ModuleId,
+        before: &super::ZoneReference,
+        after: &super::ZoneReference,
+    ) -> Result<WorkspaceHead, SessionError> {
+        let mut head = self.head.clone();
+        let zone = head
+            .projects
+            .iter_mut()
+            .find(|entry| entry.id == project)
+            .and_then(|entry| entry.modules.iter_mut().find(|entry| entry.id == module))
+            .and_then(|entry| {
+                entry
+                    .zones
+                    .iter_mut()
+                    .find(|zone| zone.area_id == before.area_id)
+            })
+            .ok_or(WorkspaceError::MissingProject)?;
+        if zone != before || before.area_id != after.area_id || before == after {
+            return Err(SessionError::Stale);
+        }
+        *zone = after.clone();
+        head.validate()?;
+        Ok(head)
+    }
+
+    fn attached_zone(
+        &self,
+        project: ProjectId,
+        module: ModuleId,
+        reference: &super::ZoneReference,
+    ) -> Result<WorkspaceHead, WorkspaceError> {
+        let mut head = self.head.clone();
+        let module = head
+            .projects
+            .iter_mut()
+            .find(|entry| entry.id == project)
+            .and_then(|entry| entry.modules.iter_mut().find(|entry| entry.id == module))
+            .ok_or(WorkspaceError::MissingProject)?;
+        module.zones.push(reference.clone());
+        head.validate()?;
+        Ok(head)
     }
 
     pub fn execute(

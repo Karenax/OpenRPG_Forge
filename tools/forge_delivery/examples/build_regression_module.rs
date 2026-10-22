@@ -212,6 +212,7 @@ fn build(
     )?;
     let (license_paths, proof_paths) = provenance(&root, &mut files, imported)?;
     let manifest = ModulePackageManifest {
+        creator: None,
         schema:MODULE_PACKAGE_SCHEMA.into(),version:MODULE_PACKAGE_VERSION,project_id,module_id,name:name.into(),module_version:"1.0.0".into(),
         compatibility:ModuleCompatibility { engine_version:orpmod::ENGINE_VERSION.into(),module_api_version:orpmod::MODULE_API_VERSION },
         provenance:ModuleProvenance { publisher:"OpenRPG Forge".into(),source:"Original Gate 4 regression adventure; selected historical text when explicitly supplied".into(),source_revision:"gate4-regression-v1".into(),rights:ModuleRights::PrivateLocalOnly,license_paths:license_paths.clone(),proof_paths,credits_path:"CREDITS.txt".into() },

@@ -1,5 +1,6 @@
 //! Authored RPG model bindings use the ordinary zone review and history controls.
 use crate::asset_import_protocol::{ImportReadRole, ImportRequest, ImportResponse};
+use crate::gameplay_visual_transform::VisualTransformDraft;
 use forge_assets::governed_import::{GovernedAssetKind, GovernedImportAsset};
 use forge_core::{AssetId, CommandId, EntityId, Transform};
 use forge_project::{
@@ -68,7 +69,7 @@ pub(crate) fn GameplayVisualControls(
             })
             .unwrap_or_default()
     };
-    let current = move || {
+    let current_binding = Memo::new(move |_| {
         let id = selected.get().parse::<EntityId>().ok()?;
         state
             .get()?
@@ -77,8 +78,16 @@ pub(crate) fn GameplayVisualControls(
             .gameplay_visuals?
             .into_iter()
             .find(|b| b.entity_id == id)
-            .map(|b| b.asset)
-    };
+    });
+    let current = move || current_binding.get().map(|binding| binding.asset);
+    let transform_draft = RwSignal::new(VisualTransformDraft::from_transform(Transform::IDENTITY));
+    Effect::new(move |_| {
+        transform_draft.set(VisualTransformDraft::from_transform(
+            current_binding
+                .get()
+                .map_or(Transform::IDENTITY, |binding| binding.local_transform),
+        ));
+    });
     view! {
         <details class="authoring-gameplay-visuals"><summary>"Modèles des personnages et objets"</summary>
             <p>"Choisir un modèle importé pour un élément de jeu. Examiner puis appliquer en haut ; Annuler rétablit le modèle précédent."</p>
@@ -97,10 +106,83 @@ pub(crate) fn GameplayVisualControls(
                 <button on:click=move |_|crate::authoring_assets::cancel_preview()>"Revenir à la carte"</button>
                 <button on:click=move |_|send.run(prepare(state.get_untracked(),&models.get_untracked(),&selected.get_untracked(),Some(&model.get_untracked())) )>"Examiner ce modèle"</button>
                 <button disabled=move||current().is_none() on:click=move |_|send.run(prepare(state.get_untracked(),&models.get_untracked(),&selected.get_untracked(),None))>"Examiner le retrait du modèle"</button>
+                <Show when=move ||current_binding.get().is_some()>
+                    <VisualTransformControls draft=transform_draft on_preview=Callback::new(move |()|
+                        send.run(prepare_transform(state.get_untracked(),&selected.get_untracked(),&transform_draft.get_untracked()))) />
+                </Show>
             </fieldset>
             <output aria-live="polite">{move ||status.get()}</output>
         </details>
     }
+}
+
+#[component]
+fn VisualTransformControls(
+    draft: RwSignal<VisualTransformDraft>,
+    on_preview: Callback<()>,
+) -> impl IntoView {
+    view! {
+        <details><summary>"Position, rotation et taille du modèle"</summary>
+            <p>"Décalage par rapport au personnage ou à l’objet, en mètres. Ces réglages concernent le modèle ; le corps physique conserve sa position et ses dimensions."</p>
+            {["Décalage X (m)", "Décalage Y (m)", "Décalage Z (m)"].into_iter().enumerate().map(|(index,label)|view!{
+                <label>{label}<input type="number" step="0.01"
+                    prop:value=move ||draft.get().offsets[index].clone()
+                    on:input=move |event|draft.update(|value|value.offsets[index]=event_target_value(&event))/></label>
+            }).collect_view()}
+            {["Échelle du modèle X", "Échelle du modèle Y", "Échelle du modèle Z"].into_iter().enumerate().map(|(index,label)|view!{
+                <label>{label}<input type="number" step="0.01"
+                    prop:value=move ||draft.get().scales[index].clone()
+                    on:input=move |event|draft.update(|value|value.scales[index]=event_target_value(&event))/></label>
+            }).collect_view()}
+            <label>"Axe de rotation du modèle"<select prop:value=move ||draft.get().axis
+                on:change=move |event|draft.update(|value|value.axis=event_target_value(&event))>
+                <option value="x">"X"</option><option value="y">"Y"</option><option value="z">"Z"</option>
+            </select></label>
+            <label>"Angle relatif du modèle (degrés)"<input type="number" step="1"
+                prop:value=move ||draft.get().angle
+                on:input=move |event|draft.update(|value|value.angle=event_target_value(&event))/></label>
+            <p>"Examiner ne cumule pas l’angle. Appliquer puis recommencer pour ajouter une autre rotation."</p>
+            <button on:click=move |_|on_preview.run(())>"Examiner le placement du modèle"</button>
+        </details>
+    }
+}
+
+fn prepare_transform(
+    state: Option<AuthoringState>,
+    entity: &str,
+    draft: &VisualTransformDraft,
+) -> Edit {
+    let state = state.ok_or("Ouvrir une zone")?;
+    if state.playtest_hash.is_some() {
+        return Err("Revenir à l’édition avant de changer un modèle.".into());
+    }
+    let head = state.zone_head.ok_or("Ouvrir une zone agrégée")?;
+    let entity = entity
+        .parse::<EntityId>()
+        .map_err(|_| "Choisir un personnage ou objet")?;
+    let mut bindings = head
+        .corrections
+        .gameplay_visuals
+        .clone()
+        .ok_or("Attribuer d’abord un modèle à cet élément")?;
+    let binding = bindings
+        .iter_mut()
+        .find(|binding| binding.entity_id == entity)
+        .ok_or("Aucun modèle enregistré pour cet élément")?;
+    binding.local_transform = draft.apply(binding.local_transform)?;
+    let key = serde_json::to_string(&(head.content_hash()?, entity, binding.local_transform))
+        .map_err(|error| error.to_string())?;
+    let pins = bindings
+        .iter()
+        .map(|binding| binding.asset)
+        .collect::<Vec<_>>();
+    Ok(AuthoringRequest::PreviewZone {
+        request: head.prepare_gameplay_visuals(
+            Some(bindings),
+            &pins,
+            CommandId::deterministic(format!("gameplay-visual-transform/{key}")),
+        )?,
+    })
 }
 
 fn preview_model(

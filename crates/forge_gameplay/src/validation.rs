@@ -1,7 +1,7 @@
 use crate::{
-    ActorDefinition, ActorRole, Condition, DialogueDefinition, DialogueEffect, GAMEPLAY_SCHEMA,
-    GAMEPLAY_VERSION, GameplayDocument, GameplayError, ItemDefinition, MAX_GAMEPLAY_ENTRIES,
-    ObjectDefinition, ObjectKind, QuestDefinition,
+    ActorDefinition, ActorRole, DialogueDefinition, GAMEPLAY_SCHEMA, GAMEPLAY_VERSION,
+    GameplayDocument, GameplayError, ItemDefinition, MAX_GAMEPLAY_ENTRIES, ObjectDefinition,
+    ObjectKind, QuestDefinition,
 };
 use forge_core::{EntityId, Vec3};
 use std::collections::BTreeSet;
@@ -67,26 +67,12 @@ impl GameplayDocument {
     }
 
     pub fn validate(&self) -> Result<(), GameplayError> {
-        if self.schema != GAMEPLAY_SCHEMA || self.version != GAMEPLAY_VERSION {
+        let supported_version = (self.version == GAMEPLAY_VERSION && self.creator.is_none())
+            || (self.version == crate::GAMEPLAY_CREATOR_VERSION && self.creator.is_some());
+        if self.schema != GAMEPLAY_SCHEMA || !supported_version {
             return Err(invalid("unsupported schema/version"));
         }
-        let profile = &self.profile;
-        text(&profile.id, 128)?;
-        if profile.version == 0
-            || !profile.interaction_range_m.is_finite()
-            || !(0.1..=20.0).contains(&profile.interaction_range_m)
-            || !profile.attack_range_m.is_finite()
-            || !(0.1..=20.0).contains(&profile.attack_range_m)
-            || profile.attack_damage == 0
-            || profile.attack_damage > 1_000_000
-            || profile.max_stamina == 0
-            || profile.max_stamina > 1_000_000
-            || profile.attack_stamina_cost > profile.max_stamina
-            || !(1..=4096).contains(&profile.max_action_receipts)
-            || !(1..=4096).contains(&profile.max_events_per_tick)
-        {
-            return Err(invalid("rules profile exceeds supported bounds"));
-        }
+        self.profile.validate()?;
         let counts = [
             self.actors.len(),
             self.items.len(),
@@ -136,6 +122,29 @@ impl GameplayDocument {
         for quest in &self.quests {
             unique(quest.id)?;
         }
+        self.validate_presentations(&mut ids)?;
+        if let Some(simulation) = &self.simulation {
+            if self.creator.is_none() {
+                return Err(invalid(
+                    "simulation requires explicit Creator v2 capabilities",
+                ));
+            }
+            simulation.validate(self, &mut ids)?;
+        }
+        if let Some(factions) = &self.factions {
+            if self.creator.is_none() {
+                return Err(invalid("factions require explicit Creator v2 capabilities"));
+            }
+            factions.validate(self, &mut ids)?;
+        }
+        if let Some(narrative) = &self.narrative {
+            if self.creator.is_none() {
+                return Err(invalid(
+                    "narrative requires explicit Creator v2 capabilities",
+                ));
+            }
+            narrative.validate(self, &mut ids)?;
+        }
         reference(
             self.actor(self.player)
                 .is_some_and(|a| a.role == ActorRole::Player),
@@ -156,6 +165,27 @@ impl GameplayDocument {
         self.validate_places()?;
         self.validate_dialogues()?;
         self.validate_quests()?;
+        self.validate_creator()?;
+        Ok(())
+    }
+
+    fn validate_presentations(&self, ids: &mut BTreeSet<EntityId>) -> Result<(), GameplayError> {
+        if (self.scripting.is_some() || self.cinematics.is_some()) && self.creator.is_none() {
+            return Err(invalid(
+                "presentation requires explicit Creator v2 capabilities",
+            ));
+        }
+        if let Some(scripting) = &self.scripting {
+            scripting
+                .validate(self, ids)
+                .map_err(GameplayError::ScriptRefused)?;
+        }
+        if let Some(cinematics) = &self.cinematics {
+            if self.simulation.is_none() {
+                return Err(invalid("cinematics require the common simulation clock"));
+            }
+            cinematics.validate(self, ids)?;
+        }
         Ok(())
     }
 
@@ -166,7 +196,7 @@ impl GameplayDocument {
             if actor.max_vitality == 0
                 || actor.max_vitality > 1_000_000
                 || actor.protection > 1_000_000
-                || actor.inventory_capacity > 10_000
+                || actor.inventory_capacity > crate::MAX_INVENTORY_UNITS
                 || actor.patrol.len() > 128
             {
                 return Err(invalid(format!("actor bounds: {}", actor.id)));
@@ -222,6 +252,14 @@ impl GameplayDocument {
                 if quantity == 0 || quantity > definition.max_stack {
                     return Err(invalid("invalid pickup quantity"));
                 }
+            }
+            if let ObjectKind::Container { definition } = &object.kind {
+                if self.creator.is_none() {
+                    return Err(invalid(
+                        "containers require explicit Creator v2 capabilities",
+                    ));
+                }
+                definition.validate(self)?;
             }
             let mut supports = BTreeSet::new();
             for supported in &physics.supports {
@@ -280,17 +318,7 @@ impl GameplayDocument {
                         return Err(invalid("too many dialogue effects"));
                     }
                     for effect in &choice.effects {
-                        match effect {
-                            DialogueEffect::AcceptQuest { quest }
-                            | DialogueEffect::CompleteQuest { quest } => {
-                                reference(self.quest(*quest).is_some(), *quest)?;
-                            }
-                            DialogueEffect::SetDoor { object, .. } => reference(
-                                self.object(*object)
-                                    .is_some_and(|o| matches!(o.kind, ObjectKind::Door { .. })),
-                                *object,
-                            )?,
-                        }
+                        self.validate_dialogue_effect(effect)?;
                     }
                     if let Some(next) = choice.next {
                         reference(dialogue.nodes.iter().any(|n| n.id == next), next)?;
@@ -327,22 +355,5 @@ impl GameplayDocument {
             }
         }
         Ok(())
-    }
-    fn validate_condition(&self, condition: &Condition) -> Result<(), GameplayError> {
-        match *condition {
-            Condition::Always => Ok(()),
-            Condition::Quest { quest, .. } => reference(self.quest(quest).is_some(), quest),
-            Condition::HasItem { item, quantity } => {
-                reference(self.item(item).is_some(), item)?;
-                if quantity == 0 || self.item(item).is_some_and(|v| quantity > v.max_stack) {
-                    return Err(invalid("condition quantity invalid"));
-                }
-                Ok(())
-            }
-            Condition::ActorDefeated { actor } => reference(self.actor(actor).is_some(), actor),
-            Condition::ObjectDestroyed { object } => {
-                reference(self.object(object).is_some(), object)
-            }
-        }
     }
 }

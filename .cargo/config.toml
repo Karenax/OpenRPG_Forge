@@ -1,11 +1,17 @@
 [alias]
 xcheck = "check --workspace --all-targets"
 xclippy = "clippy --workspace --all-targets -- -D warnings"
-xtest = "test --workspace --all-targets"
+# Ordinary regression checks avoid linking every historical graphics probe.
+xtest = "test --workspace --lib --tests"
+xtest-all = "test --workspace --all-targets"
 xwasm = "build -p forge_studio --target wasm32-unknown-unknown --profile wasm-release --no-default-features --features web"
 
 [build]
-incremental = true
+# One physical E: cache for this shared checkout; retain a relative path for
+# other environments. Evidence and the asset library remain on F:.
+target-dir = "../.build/cargo-target"
+# Keep generated-file growth bounded even though E: is NTFS.
+incremental = false
 
 [term]
 color = "always"

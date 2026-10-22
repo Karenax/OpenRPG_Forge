@@ -14,6 +14,12 @@ fn fixture() -> (ZoneEditSession, GameplayVisualBinding, [VisualAssetPin; 2]) {
     let player = EntityId::deterministic("visual-zone-history/player");
     let actor = EntityId::deterministic("visual-zone-history/keeper");
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("visual-zone-history/module"),

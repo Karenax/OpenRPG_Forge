@@ -23,6 +23,52 @@ impl GameplayDocument {
     pub fn functional_hash(&self) -> Result<ContentHash, GameplayError> {
         self.validate()?;
         let mut functional = self.clone();
+        // Authoring surface visibility never changes the meaning of a saved game.
+        functional.creator = None;
+        functional.version = crate::GAMEPLAY_VERSION;
+        if let Some(scripting) = &mut functional.scripting {
+            for script in &mut scripting.scripts {
+                script.name.clear();
+            }
+        }
+        if let Some(cinematics) = &mut functional.cinematics {
+            for sequence in &mut cinematics.sequences {
+                sequence.name.clear();
+            }
+        }
+        if let Some(simulation) = &mut functional.simulation {
+            for ability in &mut simulation.abilities {
+                ability.name.clear();
+            }
+            for effect in &mut simulation.effects {
+                effect.name.clear();
+            }
+            for event in &mut simulation.events {
+                event.name.clear();
+            }
+            for encounter in &mut simulation.encounters {
+                encounter.name.clear();
+            }
+        }
+        if let Some(factions) = &mut functional.factions {
+            for faction in &mut factions.factions {
+                faction.name.clear();
+            }
+        }
+        if let Some(narrative) = &mut functional.narrative {
+            for variable in &mut narrative.variables {
+                variable.name.clear();
+            }
+            for flow in &mut narrative.quests {
+                flow.journal_available.clear();
+                flow.journal_active.clear();
+                flow.journal_completed.clear();
+                flow.journal_failed.clear();
+                for solution in &mut flow.solutions {
+                    solution.name.clear();
+                }
+            }
+        }
         for actor in &mut functional.actors {
             actor.name.clear();
         }
@@ -51,6 +97,22 @@ impl GameplayDocument {
         }
         canonical_json_sha256(&functional).map_err(|e| GameplayError::Codec(e.to_string()))
     }
+
+    fn save_version(&self) -> u32 {
+        if self.scripting.is_some() || self.cinematics.is_some() {
+            6
+        } else if self.simulation.is_some() {
+            5
+        } else if self.factions.is_some() {
+            4
+        } else if self.narrative.is_some() {
+            3
+        } else if self.has_containers() {
+            2
+        } else {
+            1
+        }
+    }
 }
 
 impl GameSession {
@@ -68,7 +130,7 @@ impl GameSession {
         self.validate_state()?;
         let save = GameSave {
             schema: "forge.game-save".into(),
-            version: 1,
+            version: self.document.save_version(),
             module_id: self.document.module_id,
             area_id: self.document.area_id,
             source_hash: self.source_hash,
@@ -97,7 +159,7 @@ impl GameSession {
         let save: GameSave =
             serde_json::from_slice(bytes).map_err(|e| GameplayError::Codec(e.to_string()))?;
         if save.schema != "forge.game-save"
-            || save.version != 1
+            || save.version != document.save_version()
             || save.module_id != document.module_id
             || save.area_id != document.area_id
         {
@@ -194,6 +256,7 @@ impl GameSession {
                 .ok_or_else(|| invalid("object missing from save"))?;
             crate::validation::position(state.position)?;
             crate::validation::rotation(state.rotation_xyzw)?;
+            self.validate_saved_container(definition, state)?;
             if state.in_motion
                 || (state.burning
                     && (!definition.physics.flammable || state.destroyed || state.consumed))
@@ -214,11 +277,7 @@ impl GameSession {
                 return Err(invalid("object state invalid"));
             }
         }
-        for definition in &self.document.quests {
-            if !self.state.quests.contains_key(&definition.id) {
-                return Err(invalid("quest missing from save"));
-            }
-        }
+        self.validate_saved_quests()?;
         let mut command_ids = BTreeSet::new();
         let mut previous = 0_u64;
         let mut previous_tick = 0_u64;
@@ -243,8 +302,66 @@ impl GameSession {
         if self.state.sequence != previous {
             return Err(invalid("action sequence does not match retained journal"));
         }
+        self.validate_state_ledgers()
+    }
+
+    fn validate_state_ledgers(&self) -> Result<(), GameplayError> {
         self.validate_environment_state()?;
         self.validate_dialogue_cursors()?;
+        self.validate_inventory_ledger()?;
+        self.validate_narrative_state()?;
+        self.validate_faction_state()?;
+        self.validate_simulation_state()?;
+        self.validate_script_output_authority()?;
+        self.validate_door_projection()?;
+        self.validate_cinematic_state()?;
+        Ok(())
+    }
+
+    fn validate_saved_container(
+        &self,
+        definition: &crate::ObjectDefinition,
+        state: &crate::ObjectState,
+    ) -> Result<(), GameplayError> {
+        let invalid = |message: &str| GameplayError::IncompatibleSave(message.into());
+        match (&definition.kind, &state.container) {
+            (
+                ObjectKind::Container {
+                    definition: container,
+                },
+                Some(saved),
+            ) => {
+                let mut checked = container.clone();
+                checked.initial_items.clone_from(&saved.items);
+                checked
+                    .validate(&self.document)
+                    .map_err(|error| invalid(&error.to_string()))?;
+                if saved.locked && container.key.is_none() {
+                    return Err(invalid("container has no lock"));
+                }
+            }
+            (ObjectKind::Container { .. }, None) => return Err(invalid("container state missing")),
+            (_, Some(_)) => return Err(invalid("container state on another object kind")),
+            (_, None) => (),
+        }
+        Ok(())
+    }
+
+    fn validate_saved_quests(&self) -> Result<(), GameplayError> {
+        let invalid = |message: &str| GameplayError::IncompatibleSave(message.into());
+        for definition in &self.document.quests {
+            if !self.state.quests.contains_key(&definition.id) {
+                return Err(invalid("quest missing from save"));
+            }
+            if self.state.quests.get(&definition.id) == Some(&crate::QuestStatus::Failed)
+                && self
+                    .document
+                    .quest_flow(definition.id)
+                    .is_none_or(|flow| flow.failure_condition.is_none())
+            {
+                return Err(invalid("failed quest has no authored failure"));
+            }
+        }
         Ok(())
     }
 

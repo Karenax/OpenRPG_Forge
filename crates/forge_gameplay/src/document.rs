@@ -13,6 +13,18 @@ pub struct GameplayDocument {
     pub module_id: ModuleId,
     pub area_id: AreaId,
     pub profile: RulesProfile,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creator: Option<crate::CreatorConfiguration>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub narrative: Option<crate::NarrativeDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub factions: Option<crate::FactionsDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub simulation: Option<crate::SimulationDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scripting: Option<crate::ScriptingDefinition>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cinematics: Option<crate::CinematicsDefinition>,
     pub player: EntityId,
     pub actors: Vec<ActorDefinition>,
     pub items: Vec<ItemDefinition>,
@@ -81,8 +93,16 @@ pub struct ObjectDefinition {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ObjectKind {
-    Pickup { item: EntityId, quantity: u32 },
-    Door { initially_open: bool },
+    Pickup {
+        item: EntityId,
+        quantity: u32,
+    },
+    Door {
+        initially_open: bool,
+    },
+    Container {
+        definition: crate::ContainerDefinition,
+    },
     Prop,
 }
 
@@ -134,11 +154,41 @@ pub enum QuestStatus {
     Available,
     Active,
     Completed,
+    Failed,
+}
+
+impl QuestStatus {
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Available => "À découvrir",
+            Self::Active => "En cours",
+            Self::Completed => "Terminée",
+            Self::Failed => "Échec",
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Condition {
+    Relation {
+        observer: EntityId,
+        subject: EntityId,
+        comparison: crate::NarrativeComparison,
+        threshold: i16,
+    },
+    Variable {
+        variable: EntityId,
+        comparison: crate::NarrativeComparison,
+        value: crate::NarrativeValue,
+    },
+    All {
+        conditions: Vec<Condition>,
+    },
+    Any {
+        conditions: Vec<Condition>,
+    },
     Always,
     Quest {
         quest: EntityId,
@@ -159,9 +209,27 @@ pub enum Condition {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum DialogueEffect {
-    AcceptQuest { quest: EntityId },
-    CompleteQuest { quest: EntityId },
-    SetDoor { object: EntityId, open: bool },
+    SetVariable {
+        variable: EntityId,
+        value: crate::NarrativeValue,
+    },
+    CompleteQuestSolution {
+        quest: EntityId,
+        solution: EntityId,
+    },
+    FailQuest {
+        quest: EntityId,
+    },
+    AcceptQuest {
+        quest: EntityId,
+    },
+    CompleteQuest {
+        quest: EntityId,
+    },
+    SetDoor {
+        object: EntityId,
+        open: bool,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

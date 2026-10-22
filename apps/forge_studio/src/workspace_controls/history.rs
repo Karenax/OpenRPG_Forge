@@ -55,6 +55,10 @@ fn label(action: &WorkspaceAction) -> String {
             }
         }
         WorkspaceAction::Undo => "Annulation de la dernière opération du workspace".into(),
+        WorkspaceAction::ConfigureCreator { after_zones, .. } => format!(
+            "Configuration commune du Creator · {} zones",
+            after_zones.len()
+        ),
         WorkspaceAction::Redo => "Rétablissement d’une opération du workspace".into(),
     }
 }

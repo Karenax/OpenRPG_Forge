@@ -93,6 +93,7 @@ struct Snapshot {
 #[derive(Debug)]
 pub struct Library {
     root: PathBuf,
+    reference_root: PathBuf,
     snapshot: Option<Snapshot>,
     #[cfg(test)]
     physical_access_checks: std::cell::Cell<usize>,
@@ -167,6 +168,10 @@ impl BuildCache {
 
 impl Library {
     pub fn new(root: &Path) -> Result<Self, String> {
+        // Keep the configured spelling for metadata produced through a root
+        // alias (including Windows short paths). Physical reads use `root`.
+        let reference_root = std::path::absolute(root)
+            .map_err(|error| format!("impossible de résoudre la référence du Vault: {error}"))?;
         let root = root
             .canonicalize()
             .map_err(|error| format!("impossible de résoudre le Vault: {error}"))?;
@@ -175,6 +180,7 @@ impl Library {
         }
         Ok(Self {
             root,
+            reference_root,
             snapshot: None,
             #[cfg(test)]
             physical_access_checks: std::cell::Cell::new(0),
@@ -981,21 +987,32 @@ impl Library {
         {
             return Err("chemin absolu confiné attendu".to_owned());
         }
-        let base: Vec<_> = self.root.components().collect();
         let parts: Vec<_> = path
             .components()
             .filter(|part| !matches!(part, Component::CurDir))
             .collect();
-        if parts.len() <= base.len()
-            || !base
-                .iter()
-                .zip(&parts)
-                .all(|(a, b)| reference_component_equal(*a, *b))
-        {
-            return Err("chemin hors racine autorisée".to_owned());
-        }
+        let suffix = [&self.root, &self.reference_root]
+            .into_iter()
+            .find_map(|base| {
+                let base: Vec<_> = base
+                    .components()
+                    .filter(|part| !matches!(part, Component::CurDir))
+                    .collect();
+                if parts.len() <= base.len()
+                    || !base
+                        .iter()
+                        .zip(&parts)
+                        .all(|(a, b)| reference_component_equal(*a, *b))
+                {
+                    return None;
+                }
+                Some(&parts[base.len()..])
+            })
+            .ok_or_else(|| "chemin hors racine autorisée".to_owned())?;
+        // Rebase only the validated tail. Canonical access checks still reject
+        // descendant links escaping the physical Vault.
         let mut confined = self.root.clone();
-        for part in &parts[base.len()..] {
+        for part in suffix {
             match part {
                 Component::Normal(name) => confined.push(name),
                 _ => return Err("composant de chemin individuel refusé".to_owned()),
@@ -1634,9 +1651,7 @@ mod tests {
         fs::remove_dir_all(root).unwrap();
     }
 
-    #[test]
-    fn vault_model_transport_pins_selection_and_persisted_content() {
-        let (root, _) = fixture();
+    fn valid_model_fixture(root: &Path) -> Vec<u8> {
         let catalog_path = root.join("normalized/demo/catalog.v1.json");
         let pack = root.join("metadata/rev/demo/one");
         let mut details: Value =
@@ -1657,7 +1672,14 @@ mod tests {
         profiles["profiles"][0]["model_content_sha256"] = hash.clone().into();
         catalog["assets"][0]["sha256"] = hash.clone().into();
         fs::write(root.join("normalized/demo/models/a.glb"), &bytes).unwrap();
-        write_pack_fixture(&root, "demo", &details, &profiles, &catalog, &catalog_path);
+        write_pack_fixture(root, "demo", &details, &profiles, &catalog, &catalog_path);
+        bytes
+    }
+
+    #[test]
+    fn vault_model_transport_pins_selection_and_persisted_content() {
+        let (root, _) = fixture();
+        let mut bytes = valid_model_fixture(&root);
         let mut library = Library::new(&root).unwrap();
         let LibraryResponse::Page { page } = library
             .execute(LibraryRequest::Search {
@@ -1734,6 +1756,10 @@ mod tests {
                 .unwrap()
                 .as_nanos()
         ));
+        fixture_at(root)
+    }
+
+    fn fixture_at(root: PathBuf) -> (PathBuf, String) {
         let pack = root.join("metadata/rev/demo/one");
         let catalog = root.join("normalized/demo");
         fs::create_dir_all(catalog.join("previews")).unwrap();
@@ -1760,6 +1786,94 @@ mod tests {
         fs::create_dir_all(root.join("metadata")).unwrap();
         fs::write(root.join("metadata/asset-import-registry.v1.json"), &raw).unwrap();
         (root, snapshot_revision(&raw, None))
+    }
+
+    #[cfg(any(windows, unix))]
+    #[test]
+    fn configured_root_alias_keeps_reads_confined_to_canonical_vault() {
+        let temporary = std::env::temp_dir();
+        let parent = temporary.join(format!(
+            "forge-library-root-alias-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir(&parent).unwrap();
+        let physical = parent.join("physical-vault");
+        let alias = parent.join("selected-vault");
+        fs::create_dir(&physical).unwrap();
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&physical, &alias).unwrap();
+        #[cfg(windows)]
+        {
+            use std::os::windows::process::CommandExt as _;
+            // A junction needs no symlink privilege. Paths are data, never shell code.
+            let powershell = PathBuf::from(std::env::var_os("SystemRoot").unwrap())
+                .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+            let output = std::process::Command::new(powershell)
+                .args([
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-Command",
+                    "New-Item -ItemType Junction -Path $env:FORGE_TEST_ROOT_ALIAS -Target $env:FORGE_TEST_ROOT_TARGET -ErrorAction Stop | Out-Null",
+                ])
+                .env("FORGE_TEST_ROOT_ALIAS", &alias)
+                .env("FORGE_TEST_ROOT_TARGET", &physical)
+                .creation_flags(0x0800_0000)
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+        }
+        assert_eq!(
+            alias.canonicalize().unwrap(),
+            physical.canonicalize().unwrap()
+        );
+        let (configured, _) = fixture_at(alias.clone());
+        let bytes = valid_model_fixture(&configured);
+        let mut library = Library::new(&configured).unwrap();
+        let page = search_page(&mut library, LibraryQuery::default());
+        assert_eq!(page.total_assets, 1);
+        let LibraryResponse::Model { model } = library
+            .execute(LibraryRequest::ModelReference {
+                asset_id: vault_asset_id("demo.arbre-eclaire"),
+                sha256: forge_core::ContentHash::from_bytes(Sha256::digest(&bytes).into()),
+            })
+            .unwrap()
+        else {
+            panic!("model expected through the configured root alias");
+        };
+        assert_eq!(model.bytes, bytes);
+        assert!(
+            library
+                .lexical_absolute(
+                    &parent
+                        .join("selected-vault-sibling/secret.glb")
+                        .display()
+                        .to_string()
+                )
+                .is_err()
+        );
+        assert!(
+            library
+                .lexical_absolute(&alias.join("../secret.glb").display().to_string())
+                .is_err()
+        );
+        assert!(
+            parent
+                .canonicalize()
+                .unwrap()
+                .starts_with(temporary.canonicalize().unwrap())
+        );
+        #[cfg(windows)]
+        fs::remove_dir(&alias).unwrap();
+        #[cfg(unix)]
+        fs::remove_file(&alias).unwrap();
+        fs::remove_dir_all(parent).unwrap();
     }
 
     #[test]

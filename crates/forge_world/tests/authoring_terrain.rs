@@ -51,6 +51,80 @@ fn authoring_projection_preserves_geometry_for_names_and_rebuilds_elevation() {
 }
 
 #[test]
+fn authoring_snapshots_keep_exact_hashes_and_reject_stale_or_foreign_bases() {
+    let source = new_terrain("history-projection", "zone", "Source")
+        .unwrap()
+        .migrate_to_latest()
+        .unwrap();
+    let mut edited = source.clone();
+    edited.revision = source.revision.next().unwrap().next().unwrap();
+    edited.height_deltas = vec![forge_project::TerrainHeightDelta::new(32, 32, 5.0)];
+    let source_plan = TerrainGenerationPlan::from_document(&source).unwrap();
+    let mut cache = source_plan.generate().unwrap();
+    let mut live = source.clone();
+    for target in [&edited, &source, &edited] {
+        let plan = TerrainGenerationPlan::from_document(&live).unwrap();
+        let request = TerrainPartialUpdateRequest {
+            base_revision: live.revision,
+            base_document_hash: plan.document_hash(),
+            target_document: target.clone(),
+        };
+        // Ordinary edits keep their next-revision contract.
+        assert!(
+            plan.apply_authoring_update(&cache, request.clone())
+                .is_err()
+        );
+        assert!(plan.apply_partial_update(&cache, request.clone()).is_err());
+        let mut stale = request.clone();
+        stale.base_revision = live.revision.next().unwrap();
+        assert!(plan.apply_authoring_snapshot(&cache, stale).is_err());
+        let mut stale = request.clone();
+        stale.base_document_hash = forge_core::ContentHash::from_bytes([0; 32]);
+        assert!(plan.apply_authoring_snapshot(&cache, stale).is_err());
+        let mut foreign = request.clone();
+        foreign.target_document.area_id = forge_core::AreaId::deterministic("other-area");
+        assert!(plan.apply_authoring_snapshot(&cache, foreign).is_err());
+        let before = cache.clone();
+        let update = plan
+            .apply_authoring_snapshot(&cache, request.clone())
+            .unwrap();
+        assert_eq!(cache, before, "preparation is read-only");
+        assert_eq!(update.target_document(), target);
+        assert_eq!(
+            update.target_document_hash(),
+            target.content_hash().unwrap()
+        );
+        update.apply_to_cache(&mut cache).unwrap();
+        assert_eq!(
+            cache,
+            TerrainGenerationPlan::from_document(target)
+                .unwrap()
+                .generate()
+                .unwrap()
+        );
+        assert!(plan.apply_authoring_snapshot(&cache, request).is_err());
+        live = target.clone();
+    }
+    let plan = TerrainGenerationPlan::from_document(&live).unwrap();
+    let mut renamed = live.clone();
+    renamed.name = "Même révision, autre snapshot".into();
+    let request = TerrainPartialUpdateRequest {
+        base_revision: live.revision,
+        base_document_hash: plan.document_hash(),
+        target_document: renamed.clone(),
+    };
+    assert!(
+        plan.apply_authoring_update(&cache, request.clone())
+            .is_err()
+    );
+    plan.apply_authoring_snapshot(&cache, request)
+        .unwrap()
+        .apply_to_cache(&mut cache)
+        .unwrap();
+    assert_eq!(cache.source_document_hash, renamed.content_hash().unwrap());
+}
+
+#[test]
 fn new_editor_zone_and_reopened_edit_are_renderable_by_the_real_generator() {
     let document = new_terrain("authoring-test", "first-zone", "Zone neuve").unwrap();
     let plan = TerrainGenerationPlan::from_document(&document).unwrap();

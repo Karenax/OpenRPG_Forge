@@ -16,5 +16,9 @@ fn main() {
         let attributes = tauri_build::Attributes::new().app_manifest(app_manifest);
         tauri_build::try_build(attributes)
             .unwrap_or_else(|error| panic!("failed to build the bounded Studio ACL: {error:#}"));
+    } else {
+        // This branch generates nothing and reads no package files. Avoid the
+        // default whole-package scan; Rust source dependencies remain Cargo's.
+        println!("cargo:rerun-if-changed=build.rs");
     }
 }

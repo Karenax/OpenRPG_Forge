@@ -8,7 +8,12 @@ use std::sync::Arc;
 
 mod files;
 mod imports;
+mod set;
 mod workspace;
+pub use set::{
+    MAX_BOOTSTRAP_MODULES, ModuleSetInput, ModuleSetReport, ModuleSetRequest,
+    prepare_module_set_workspace,
+};
 
 /// Qualification producer profile; leaves at least 128 store revisions available.
 pub const MAX_BOOTSTRAP_ASSETS: usize = 128;
@@ -61,7 +66,21 @@ pub fn prepare_module_workspace(request: &BootstrapRequest) -> Result<BootstrapR
         return Err("Received package pin differs from --expected-package-sha256".into());
     }
     let documents = forge_delivery::orpmod::read_origin_documents(Arc::clone(&bytes))?;
-    let manifest = &documents.module;
+    validate_producer_module(&documents.module, request.area_id)?;
+    let stage = files::new_stage(&parent)?;
+    let result = prepare_staged(request, &stage, &bytes, &documents);
+    result.map_err(|error| {
+        format!(
+            "{error}; inactive bootstrap stage retained at {}",
+            stage.display()
+        )
+    })
+}
+
+fn validate_producer_module(
+    manifest: &forge_project::module_package::ModulePackageManifest,
+    area: AreaId,
+) -> Result<(), String> {
     if manifest.assets.len() > MAX_BOOTSTRAP_ASSETS {
         return Err(
             "Bootstrap profile accepts at most 128 assets, reserving import revisions".into(),
@@ -80,21 +99,10 @@ pub fn prepare_module_workspace(request: &BootstrapRequest) -> Result<BootstrapR
             "Bootstrap profile does not support source blobs; no source was discarded".into(),
         );
     }
-    if !manifest
-        .zones
-        .iter()
-        .any(|zone| zone.area_id == request.area_id)
-    {
+    if !manifest.zones.iter().any(|zone| zone.area_id == area) {
         return Err("Requested area is absent from the admitted package".into());
     }
-    let stage = files::new_stage(&parent)?;
-    let result = prepare_staged(request, &stage, &bytes, &documents);
-    result.map_err(|error| {
-        format!(
-            "{error}; inactive bootstrap stage retained at {}",
-            stage.display()
-        )
-    })
+    Ok(())
 }
 
 pub fn read_export_origin(
@@ -151,6 +159,17 @@ fn prepare_staged(
     bytes: &[u8],
     documents: &forge_delivery::orpmod::OriginDocuments,
 ) -> Result<BootstrapReport, String> {
+    let report = populate_staged(request, stage, bytes, documents)?;
+    files::activate(stage, &request.destination)?;
+    Ok(report)
+}
+
+fn populate_staged(
+    request: &BootstrapRequest,
+    stage: &Path,
+    bytes: &[u8],
+    documents: &forge_delivery::orpmod::OriginDocuments,
+) -> Result<BootstrapReport, String> {
     let module = &documents.module;
     let relative = PathBuf::from("module-imports").join(module.module_id.to_string());
     let origin_root = stage.join(&relative);
@@ -198,7 +217,6 @@ fn prepare_staged(
     workspace::seed(stage, &loaded, pin)?;
     workspace::verify(stage, &loaded, pin)?;
     read_export_origin(stage, module.module_id, pin)?;
-    files::activate(stage, &request.destination)?;
     Ok(BootstrapReport {
         workspace_root: request.destination.clone(),
         project_id: module.project_id,

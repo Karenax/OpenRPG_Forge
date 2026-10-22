@@ -123,7 +123,7 @@ pub(super) fn drive(
             stop(&mut controller, &mut motion);
             continue;
         };
-        if !valid_simulation || actor.vitality == 0 {
+        if !valid_simulation || !actor.active || actor.vitality == 0 {
             navigation.disable_actor(domain.0, transform.translation);
             stop(&mut controller, &mut motion);
             continue;
@@ -219,7 +219,7 @@ fn apply_navigation_motion(
                 .state()
                 .actors
                 .get(&domain.0)
-                .is_some_and(|actor| actor.vitality > 0);
+                .is_some_and(|actor| actor.active && actor.vitality > 0);
         if !available {
             stop(&mut controller, &mut motion);
             continue;

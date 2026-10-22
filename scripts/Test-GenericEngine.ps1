@@ -1,5 +1,5 @@
 param(
-    [string]$TargetDirectory = "E:\OpenRPG_Forge\.gate3-ntfs-cargo-20261002",
+    [string]$TargetDirectory = "E:\OpenRPG_Forge\.build\cargo-target",
     [string]$OutputDirectory = "",
     [switch]$PrepareBrowser
 )
@@ -7,8 +7,12 @@ $ErrorActionPreference = "Stop"
 $sourceRoot = Split-Path $PSScriptRoot -Parent
 Set-Location -LiteralPath $sourceRoot
 $env:CARGO_TARGET_DIR = $TargetDirectory
+$env:CARGO_INCREMENTAL = '0'
+$env:CARGO_HOME = 'E:\OpenRPG_Forge\.build\cargo-home'
+$env:TEMP = 'E:\OpenRPG_Forge\.build\tmp'
+$env:TMP = $env:TEMP
 if (-not $OutputDirectory) {
-    $OutputDirectory = Join-Path $sourceRoot ("output/generic-engine-" + [DateTime]::UtcNow.ToString("yyyyMMdd-HHmmss"))
+    $OutputDirectory = Join-Path 'F:/OpenRPG_Forge/Preuves-et-analyses/actives/generic-engine' ([DateTime]::UtcNow.ToString("yyyyMMdd-HHmmss"))
 }
 if (Test-Path -LiteralPath $OutputDirectory) { throw "Output already exists: $OutputDirectory" }
 New-Item -ItemType Directory -Path $OutputDirectory | Out-Null

@@ -26,6 +26,12 @@ fn fixture() -> (GameplayDocument, FixtureIds) {
     };
 
     let document = GameplayDocument {
+        narrative: None,
+        factions: None,
+        simulation: None,
+        scripting: None,
+        cinematics: None,
+        creator: None,
         schema: GAMEPLAY_SCHEMA.into(),
         version: GAMEPLAY_VERSION,
         module_id: ModuleId::deterministic("save-integrity/module"),
@@ -307,6 +313,7 @@ fn settled_throw_impact_save_preserves_exact_float_energy_on_resume() {
     let contact_id = CommandId::deterministic("save-integrity/float-contact");
     session
         .advance_frame(&PhysicsFrame {
+            simulation_step_ns: None,
             source_hash,
             tick: 1,
             actors: vec![],

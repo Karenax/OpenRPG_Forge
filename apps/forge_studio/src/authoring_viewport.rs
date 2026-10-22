@@ -488,7 +488,9 @@ fn project_edits(
         base_document_hash: state.cache().source_document_hash,
         target_document: document,
     };
-    match pending.submit_authoring(request) {
+    // The native authority has already accepted this complete source document.
+    // Module history can restore an older revision or skip intermediate ones.
+    match pending.submit_authoring_snapshot(request) {
         Ok(sequence) => *awaiting = Some(sequence),
         Err(error) => {
             INVALIDATED.with(|slot| slot.replace(true));

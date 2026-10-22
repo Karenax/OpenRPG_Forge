@@ -32,6 +32,7 @@ struct GameView {
     vitality: u32,
     stamina: u32,
     inventory: Vec<String>,
+    containers: Vec<String>,
     quests: Vec<String>,
     actions: Vec<(String, GameAction)>,
     dialogue: String,
@@ -268,10 +269,21 @@ fn game_view(runtime: &GameplayRuntime) -> GameView {
             )
         })
         .collect();
-    view.quests = document
-        .quests
-        .iter()
-        .map(|quest| format!("{} · {:?}", quest.name, state.quests[&quest.id]))
+    view.quests = session
+        .quest_journal()
+        .into_iter()
+        .map(|quest| {
+            format!(
+                "{} · {}{}",
+                quest.name,
+                quest.status.label(),
+                if document.quest_flow(quest.quest).is_some() {
+                    format!(" · {}", quest.text)
+                } else {
+                    String::new()
+                }
+            )
+        })
         .collect();
     actor_actions(session, player, &mut view);
     object_actions(session, player, &mut view);
@@ -286,7 +298,10 @@ fn actor_actions(
     let document = session.document();
     let state = session.state();
     for actor in &document.actors {
-        if actor.id == document.player || state.actors[&actor.id].vitality == 0 {
+        if actor.id == document.player
+            || !state.actors[&actor.id].active
+            || state.actors[&actor.id].vitality == 0
+        {
             continue;
         }
         if let Ok(dialogue) = session.dialogue_view(document.player, actor.id) {
@@ -350,6 +365,16 @@ fn object_actions(
                     open: !current.open,
                 },
             )),
+            forge_gameplay::ObjectKind::Container { .. } => {
+                if let Some(summary) = session.container_summary(object.id) {
+                    view.containers.push(summary);
+                }
+                for action in session.container_transfer_requests(document.player, object.id) {
+                    if let Some(label) = session.container_action_label(&action) {
+                        view.actions.push((label, action));
+                    }
+                }
+            }
             forge_gameplay::ObjectKind::Prop => (),
         }
         let delta = Vec3::new(

@@ -32,11 +32,26 @@ pub(super) fn import_catalog(
             {
                 continue;
             }
-            let candidate = candidate(loaded, asset, store.state()?.revision)?;
+            let state = store.state()?;
+            let previous = state
+                .catalog
+                .as_ref()
+                .and_then(|catalog| catalog.assets.iter().find(|entry| entry.id == asset.id));
+            let mut candidate = candidate(loaded, asset, state.revision)?;
+            candidate.expected_asset_sha256 = previous.map(|entry| entry.payload.sha256);
             let plan = store
                 .prepare(&candidate)
                 .map_err(|error| format!("Import asset {}: {error}", asset.id))?;
-            store.apply(plan.command_id, plan.plan_sha256)?;
+            if let Some(previous) = previous {
+                if plan.asset != *previous {
+                    return Err(format!(
+                        "Shared asset {} has conflicting metadata or revision; existing modules were not overwritten",
+                        asset.id
+                    ));
+                }
+            } else {
+                store.apply(plan.command_id, plan.plan_sha256)?;
+            }
             imported.insert(asset.id);
         }
         if imported.len() == before {

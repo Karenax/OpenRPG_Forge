@@ -42,7 +42,12 @@ fn matching_receipt(
 }
 
 pub(super) fn execute(request: ModuleExportRequest) -> Result<ModuleExportResult, String> {
-    if request.schema_version != 1
+    if request.schema_version
+        != if request.expected_workspace_hash.is_some() {
+            2
+        } else {
+            1
+        }
         || request.license_text.len() > 32 * 1024
         || request.name.len() > 256
         || request.version.len() > 128
@@ -53,16 +58,9 @@ pub(super) fn execute(request: ModuleExportRequest) -> Result<ModuleExportResult
     let root = forge_studio_frontend::launch_configuration::authoring_root()?
         .ok_or("Ouvrir un espace auteur avant l’export")?;
     super::with_authoring_host(|host| {
-        let archive = host.game_archive(request.expected_head)?;
-        let zone =
-            forge_project::zone_authoring::session::ZoneEditSession::from_archive_bytes(&archive)?;
-        let head = zone.head();
-        let module_id = head
-            .corrections
-            .gameplay
-            .as_deref()
-            .ok_or("L’export attend une carte avec des définitions RPG")?
-            .module_id;
+        let module =
+            host.module_export_snapshot(request.expected_head, request.expected_workspace_hash)?;
+        let module_id = module.module_id;
         let origin = host
             .game_module_origin(request.expected_head)?
             .map(|pin| {
@@ -71,14 +69,34 @@ pub(super) fn execute(request: ModuleExportRequest) -> Result<ModuleExportResult
                 )
             })
             .transpose()?;
-        let pins = required_assets(head)?;
+        let pins = required_module_assets(&module)?;
+        let retained_assets = origin
+            .as_ref()
+            .map(|origin| {
+                forge_delivery::orpmod::read_origin_documents(std::sync::Arc::clone(
+                    &origin.package_bytes,
+                ))
+                .map(|documents| {
+                    documents
+                        .module
+                        .assets
+                        .into_iter()
+                        .map(|asset| asset.asset_id)
+                        .collect::<Vec<_>>()
+                })
+            })
+            .transpose()?
+            .unwrap_or_default();
         let snapshot = super::with_asset_imports(|store| {
-            store.export_snapshot(&pins, request.redistributable)
+            if module.workspace_hash.is_some() {
+                store.export_module_snapshot(&pins, &retained_assets, request.redistributable)
+            } else {
+                store.export_snapshot(&pins, request.redistributable)
+            }
         })?;
-        let exported = forge_delivery::module_builder::build_zone_with_origin(
+        let exported = forge_delivery::module_builder::build_module_with_origin(
             &root.join("exports"),
-            &archive,
-            request.expected_head,
+            &module,
             forge_delivery::module_builder::ExportMetadata {
                 name: request.name,
                 version: request.version,
@@ -95,6 +113,8 @@ pub(super) fn execute(request: ModuleExportRequest) -> Result<ModuleExportResult
             origin,
         )?;
         let result = ModuleExportResult {
+            module_hash: exported.module_hash,
+            areas: module.zones.len(),
             module_id: exported.module_id,
             area_id: exported.area_id,
             source_hash: exported.head_hash,
@@ -114,6 +134,19 @@ pub(super) fn execute(request: ModuleExportRequest) -> Result<ModuleExportResult
         );
         Ok(result)
     })
+}
+
+fn required_module_assets(
+    module: &forge_project::workspace::export::ModuleExportSnapshot,
+) -> Result<Vec<(forge_core::AssetId, ContentHash)>, String> {
+    let mut pins = std::collections::BTreeSet::new();
+    for source in &module.zones {
+        let zone = forge_project::zone_authoring::session::ZoneEditSession::from_archive_bytes(
+            &source.bytes,
+        )?;
+        pins.extend(required_assets(zone.head())?);
+    }
+    Ok(pins.into_iter().collect())
 }
 
 fn required_assets(
@@ -155,6 +188,7 @@ mod tests {
         let head = bytes_sha256(b"reviewed zone");
         let package = bytes_sha256(b"verified package");
         let value = ExportedModule {
+            module_hash: None,
             module_id: ModuleId::deterministic("receipt-module"),
             area_id: AreaId::deterministic("receipt-area"),
             head_hash: head,
@@ -179,6 +213,7 @@ mod tests {
         let mut receipts = VecDeque::new();
         let head = bytes_sha256(b"reviewed zone");
         let make_receipt = |index: usize| ExportedModule {
+            module_hash: None,
             module_id: ModuleId::deterministic("receipt-module"),
             area_id: AreaId::deterministic("receipt-area"),
             head_hash: head,

@@ -3,10 +3,10 @@
 fn main() -> Result<(), String> {
     use forge_core::{AreaId, ContentHash};
     use forge_studio_frontend::module_workspace_bootstrap::{
-        BootstrapRequest, prepare_module_workspace,
+        BootstrapRequest, ModuleSetRequest, prepare_module_set_workspace, prepare_module_workspace,
     };
-    use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
-    let usage = "prepare_module_workspace --module FILE.orpmod --area UUID --expected-package-sha256 SHA256 --destination FRESH_ABSOLUTE_DIRECTORY\nOne selected zone; source blobs are explicitly unsupported. No Vault fallback or UI qualification.";
+    use std::{collections::BTreeMap, ffi::OsString, io::Read as _, path::PathBuf};
+    let usage = "prepare_module_workspace --module FILE.orpmod --area UUID --expected-package-sha256 SHA256 --destination FRESH_ABSOLUTE_DIRECTORY\nOr: --module-set REQUEST.json. All module areas are preserved; source blobs are explicitly unsupported. No Vault fallback or UI qualification.";
     let mut args = std::env::args_os().skip(1);
     let mut values = BTreeMap::<String, OsString>::new();
     while let Some(flag) = args.next() {
@@ -17,7 +17,7 @@ fn main() -> Result<(), String> {
         }
         if !matches!(
             flag,
-            "--module" | "--area" | "--expected-package-sha256" | "--destination"
+            "--module" | "--area" | "--expected-package-sha256" | "--destination" | "--module-set"
         ) {
             return Err(format!("Unknown option {flag}\n{usage}"));
         }
@@ -27,6 +27,29 @@ fn main() -> Result<(), String> {
         if values.insert(flag.into(), value).is_some() {
             return Err(format!("Repeated option {flag}"));
         }
+    }
+    if let Some(path) = values.get("--module-set") {
+        if values.len() != 1 {
+            return Err("--module-set cannot be combined with single-module options".into());
+        }
+        let path = PathBuf::from(path);
+        forge_delivery::manifest::safe_chain(&path)?;
+        let file = std::fs::File::open(&path).map_err(|error| error.to_string())?;
+        let mut bytes = Vec::new();
+        file.take(64 * 1024 + 1)
+            .read_to_end(&mut bytes)
+            .map_err(|error| error.to_string())?;
+        if bytes.len() > 64 * 1024 {
+            return Err("Module set request exceeds its byte budget".into());
+        }
+        let request: ModuleSetRequest =
+            serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+        let report = prepare_module_set_workspace(&request)?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report).map_err(|error| error.to_string())?
+        );
+        return Ok(());
     }
     let value = |name: &str| {
         values

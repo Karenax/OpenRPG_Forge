@@ -610,3 +610,162 @@ fn unsupported_raster_or_missing_rpg_is_refused_without_creating_an_export() {
     );
     assert!(!root.exists());
 }
+
+fn aggregate_snapshot(
+    fixture: &mut Fixture,
+) -> forge_project::workspace::export::ModuleExportSnapshot {
+    use forge_project::workspace::{
+        creator::ModuleCreatorProfile,
+        export::{ModuleAreaArchive, ModuleExportSnapshot},
+    };
+    let original = fixture
+        .zone
+        .head()
+        .corrections
+        .gameplay
+        .as_deref()
+        .unwrap()
+        .clone();
+    let definition = ModuleCreatorProfile::for_documents(
+        original.module_id,
+        original.profile.clone(),
+        vec![forge_project::workspace::creator::CreatorSurface::Rules],
+        &[&original],
+    )
+    .unwrap();
+    let document = definition.apply_to(&original).unwrap();
+    let request = fixture
+        .zone
+        .head()
+        .prepare_gameplay(
+            Some(document.clone()),
+            CommandId::deterministic("builder/shared"),
+        )
+        .unwrap();
+    fixture.zone.execute(&request).unwrap();
+    let mut second = ZoneEditSession::from_initial_terrain(
+        new_terrain("builder-review", "second", "Second").unwrap(),
+    )
+    .unwrap();
+    let mut document = document;
+    document.area_id = second.head().base.terrain.area_id;
+    document.actors[1].name = "Second keeper".into();
+    let request = second
+        .head()
+        .prepare_gameplay(Some(document), CommandId::deterministic("builder/second"))
+        .unwrap();
+    second.execute(&request).unwrap();
+    let blank = ZoneEditSession::from_initial_terrain(
+        new_terrain("builder-review", "blank", "Blank").unwrap(),
+    )
+    .unwrap();
+    ModuleExportSnapshot {
+        module_id: original.module_id,
+        project_id: fixture.zone.head().base.terrain.project_id,
+        primary_area: fixture.zone.head().base.terrain.area_id,
+        primary_head: fixture.zone.head().content_hash().unwrap(),
+        workspace_hash: Some(bytes_sha256(b"explicit test workspace revision")),
+        creator: Some(definition),
+        zones: [&fixture.zone, &second, &blank]
+            .into_iter()
+            .map(|zone| ModuleAreaArchive {
+                area_id: zone.head().base.terrain.area_id,
+                head_hash: zone.head().content_hash().unwrap(),
+                bytes: zone.archive_bytes().unwrap(),
+            })
+            .collect(),
+    }
+}
+
+#[test]
+fn complete_module_export_transports_common_profile_all_areas_and_exact_archives() {
+    let temp = Temp::new();
+    let mut fixture = Fixture::new(false);
+    let snapshot = aggregate_snapshot(&mut fixture);
+    let exported = build_module_with_origin(
+        &temp.0.join("exports"),
+        &snapshot,
+        Fixture::metadata(),
+        fixture.catalog,
+        fixture.payloads,
+        None,
+    )
+    .unwrap();
+    assert_eq!(exported.module_hash, Some(snapshot.content_hash().unwrap()));
+    for source in &snapshot.zones {
+        let loaded = module_runtime::load(
+            &exported.package_path,
+            source.area_id,
+            Some(&temp.0.join("cache")),
+        )
+        .unwrap();
+        assert_eq!(loaded.archive, source.bytes);
+        assert_eq!(loaded.manifest.zones.len(), 3);
+        assert_eq!(
+            loaded.manifest.version,
+            forge_project::module_package::MODULE_PACKAGE_CREATOR_VERSION
+        );
+        assert_eq!(loaded.manifest.creator, snapshot.creator);
+    }
+}
+
+#[test]
+fn module_export_refuses_revised_duplicate_and_inconsistent_areas_before_output() {
+    let temp = Temp::new();
+    let mut fixture = Fixture::new(false);
+    let mut snapshot = aggregate_snapshot(&mut fixture);
+    let root = temp.0.join("exports");
+    let original = snapshot.zones[1].head_hash;
+    snapshot.zones[1].head_hash = bytes_sha256(b"stale area");
+    assert!(
+        build_module_with_origin(
+            &root,
+            &snapshot,
+            Fixture::metadata(),
+            fixture.catalog.clone(),
+            fixture.payloads.clone(),
+            None
+        )
+        .is_err()
+    );
+    assert!(!root.exists());
+    snapshot.zones[1].head_hash = original;
+    let mut zone = ZoneEditSession::from_archive_bytes(&snapshot.zones[1].bytes).unwrap();
+    let mut document = zone.head().corrections.gameplay.as_deref().unwrap().clone();
+    document.profile.attack_damage = 99;
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(document),
+            CommandId::deterministic("builder/inconsistent"),
+        )
+        .unwrap();
+    zone.execute(&request).unwrap();
+    snapshot.zones[1].head_hash = zone.head().content_hash().unwrap();
+    snapshot.zones[1].bytes = zone.archive_bytes().unwrap();
+    assert!(
+        build_module_with_origin(
+            &root,
+            &snapshot,
+            Fixture::metadata(),
+            fixture.catalog.clone(),
+            fixture.payloads.clone(),
+            None
+        )
+        .is_err()
+    );
+    assert!(!root.exists());
+    snapshot.zones[1].area_id = snapshot.primary_area;
+    assert!(
+        build_module_with_origin(
+            &root,
+            &snapshot,
+            Fixture::metadata(),
+            fixture.catalog,
+            fixture.payloads,
+            None
+        )
+        .is_err()
+    );
+    assert!(!root.exists());
+}

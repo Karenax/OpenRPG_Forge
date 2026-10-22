@@ -25,7 +25,9 @@ const LICENSE: &str = "_forge-export/license.txt";
 const SOURCE: &str = "_forge-export/source.json";
 const CREDITS: &str = "_forge-export/credits.txt";
 
+mod aggregate;
 mod origin;
+pub use aggregate::build_module_with_origin;
 
 struct Prepared {
     module: ModulePackageManifest,
@@ -51,6 +53,8 @@ pub struct ExportMetadata {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExportedModule {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub module_hash: Option<ContentHash>,
     pub module_id: ModuleId,
     pub area_id: AreaId,
     pub head_hash: ContentHash,
@@ -142,6 +146,7 @@ fn publish_prepared(
         module.provenance.rights == ModuleRights::Redistributable,
     )?;
     Ok(ExportedModule {
+        module_hash: None,
         module_id: module.module_id,
         area_id: module.zones[0].area_id,
         head_hash: expected_head,
@@ -248,6 +253,7 @@ fn prepare(
         })
         .collect::<Result<Vec<_>>>()?;
     let module = ModulePackageManifest {
+        creator: None,
         schema: MODULE_PACKAGE_SCHEMA.into(),
         version: MODULE_PACKAGE_VERSION,
         project_id: head.base.terrain.project_id,

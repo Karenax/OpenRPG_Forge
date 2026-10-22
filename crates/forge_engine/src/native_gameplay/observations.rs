@@ -238,6 +238,7 @@ mod tests {
         actor: EntityId,
     ) -> PhysicsFrame {
         PhysicsFrame {
+            simulation_step_ns: None,
             source_hash: source,
             tick,
             actors: vec![],

@@ -1,4 +1,4 @@
-//! Engine-neutral `.orpmod` v2 admission contract over canonical Forge documents.
+//! Engine-neutral `.orpmod` v2/v3 admission contract over canonical Forge documents.
 //!
 //! The transport owns `module.json`; its digest is not listed inside itself.
 //! `files` is the closed inventory of every other payload file. This module does
@@ -10,6 +10,7 @@ use thiserror::Error;
 
 pub const MODULE_PACKAGE_SCHEMA: &str = "forge.module-package";
 pub const MODULE_PACKAGE_VERSION: u32 = 2;
+pub const MODULE_PACKAGE_CREATOR_VERSION: u32 = 3;
 pub const MODULE_MANIFEST_PATH: &str = "module.json";
 pub const MAX_MODULE_MANIFEST_BYTES: usize = 4 * 1024 * 1024;
 pub const MAX_MODULE_FILES: usize = 100_000;
@@ -109,6 +110,9 @@ pub struct ModulePackageManifest {
     /// Authored visual bindings never replace gameplay definitions or collision bodies.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub gameplay_visuals: Vec<crate::module_gameplay_visuals::GameplayVisualBinding>,
+    /// Shared definition is pinned by the canonical manifest and verified in every area.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub creator: Option<forge_gameplay::ModuleCreatorProfile>,
 }
 
 #[derive(Debug, Error)]
@@ -131,6 +135,8 @@ pub enum ModulePackageError {
     Inventory,
     #[error("invalid canonical zone archive: {0}")]
     Archive(String),
+    #[error("invalid common module Creator definition: {0}")]
+    Creator(String),
     #[error("invalid module package JSON: {0}")]
     Json(#[from] serde_json::Error),
     #[error("cannot hash module package: {0}")]
@@ -139,9 +145,15 @@ pub enum ModulePackageError {
 
 impl ModulePackageManifest {
     pub fn validate(&self) -> Result<(), ModulePackageError> {
-        if self.schema != MODULE_PACKAGE_SCHEMA || self.version != MODULE_PACKAGE_VERSION {
+        let expected_version = if self.creator.is_some() {
+            MODULE_PACKAGE_CREATOR_VERSION
+        } else {
+            MODULE_PACKAGE_VERSION
+        };
+        if self.schema != MODULE_PACKAGE_SCHEMA || self.version != expected_version {
             return Err(ModulePackageError::Schema);
         }
+        self.validate_creator()?;
         text(&self.name, 256, "name")?;
         text(&self.module_version, 128, "module version")?;
         text(&self.compatibility.engine_version, 128, "engine version")?;
@@ -215,6 +227,20 @@ impl ModulePackageManifest {
         let manifest: Self = serde_json::from_slice(bytes)?;
         manifest.validate()?;
         Ok(manifest)
+    }
+
+    fn validate_creator(&self) -> Result<(), ModulePackageError> {
+        if let Some(definition) = &self.creator {
+            if definition.module_id != self.module_id {
+                return Err(ModulePackageError::Creator(
+                    "definition belongs to another module".into(),
+                ));
+            }
+            definition
+                .to_bytes()
+                .map_err(|error| ModulePackageError::Creator(error.to_string()))?;
+        }
+        Ok(())
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>, ModulePackageError> {
@@ -296,6 +322,11 @@ impl ModulePackageManifest {
             return Err(archive_error("zone identity or canonical head differs"));
         }
         let actual_gameplay = head.corrections.gameplay.as_deref();
+        if let (Some(definition), Some(document)) = (&self.creator, actual_gameplay) {
+            definition
+                .validate_document(document)
+                .map_err(|error| ModulePackageError::Creator(error.to_string()))?;
+        }
         if actual_gameplay.is_some_and(|gameplay| gameplay.module_id != self.module_id)
             || actual_gameplay
                 .map(forge_core::canonical_json_sha256)

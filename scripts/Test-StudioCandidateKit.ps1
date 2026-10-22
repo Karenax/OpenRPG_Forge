@@ -4,12 +4,37 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 if (Test-Path -LiteralPath $Output) { throw 'Fresh fixture output required' }
 $root = [IO.Path]::GetFullPath($Output)
-if ([IO.Path]::GetPathRoot($root) -ne 'E:\') { throw 'Fixtures must stay on E:' }
+$forgeStorageRoot = [IO.Path]::GetFullPath('F:/OpenRPG_Forge').TrimEnd('\') + '\'
+if ([IO.Path]::GetPathRoot($root) -ne 'E:\' -and
+    -not $root.StartsWith($forgeStorageRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'Fixtures must stay on E: or inside F:/OpenRPG_Forge'
+}
 $frontend = Join-Path $root 'frontend'
 $kit = Join-Path $root 'kit'
 $null = New-Item -ItemType Directory -Path $frontend, (Join-Path $kit 'assets') -Force
 'fixture' | Set-Content (Join-Path $frontend 'index.html')
 'not a compiled wasm' | Set-Content (Join-Path $frontend 'forge_studio_bg.wasm')
+'// input fixture only: wasm.start(); wasm.__wbindgen_start();' | Set-Content (Join-Path $frontend 'forge_studio.js')
+$repository = Split-Path -Parent $PSScriptRoot
+$workerArtifacts = @('forge_navigation.js','forge_navigation_bg.wasm','forge-navigation-worker.js')
+foreach ($name in $workerArtifacts) { 'input fixture only' | Set-Content (Join-Path $frontend $name) }
+$workerInputs = @('Cargo.toml','Cargo.lock','crates/forge_navigation/Cargo.toml','crates/forge_navigation/build.rs',
+    'third_party/rerecast-0.4.0/Cargo.toml','apps/forge_studio/forge-navigation-worker.js')
+foreach ($directory in @('crates/forge_navigation/src','third_party/rerecast-0.4.0/src')) {
+    $workerInputs += @(Get-ChildItem -LiteralPath (Join-Path $repository $directory) -Recurse -File | ForEach-Object {
+        [IO.Path]::GetRelativePath($repository,$_.FullName).Replace('\','/')
+    })
+}
+@{
+    schema='forge.navigation-worker-build'; version=1; build_only=$true; runtime_verified=$false
+    source_unchanged_during_build=$true; configuration='release'
+    artifacts=@($workerArtifacts | ForEach-Object {
+        @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $frontend $_)).Hash.ToLowerInvariant()}
+    })
+    source_pins=@($workerInputs | Sort-Object -Unique | ForEach-Object {
+        @{path=$_;sha256=(Get-FileHash -LiteralPath (Join-Path $repository $_)).Hash.ToLowerInvariant()}
+    })
+} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $frontend 'forge-navigation-worker-manifest.json')
 'not a real glb' | Set-Content (Join-Path $kit 'assets/fixture.glb')
 $wasmHash = (Get-FileHash (Join-Path $frontend 'forge_studio_bg.wasm')).Hash
 $build = @{ schema = 'forge.blender-asset-kit-build'; asset_kit_id = 'fixture'; asset_kit_revision = 1;
@@ -35,10 +60,10 @@ try {
 } catch {
     if ($_.Exception.Message -notlike '*WindowX and WindowY must be supplied together*') { throw }
 }
-if ($plain.files -ne 2 -or $plain.build_executed) { throw 'Plain validation failed' }
+if ($plain.files -ne 7 -or $plain.build_executed) { throw 'Plain validation failed' }
 $parameters.GovernedKit = $kit
 $withKit = & $builder @parameters | ConvertFrom-Json
-if ($withKit.files -ne 6 -or $withKit.build_executed -or (Test-Path $parameters.Output)) { throw 'Kit validation mutated output or wrong pins' }
+if ($withKit.files -ne 11 -or $withKit.build_executed -or (Test-Path $parameters.Output)) { throw 'Kit validation mutated output or wrong pins' }
 if ($withKit.bridge_probe -or $withKit.entry_url -ne 'index.html?forge_scene=world-sketch-visual-valley&forge_kit=governed&forge_forest=batches') { throw 'Default scene changed' }
 $probe = & $builder @parameters -BridgeProbe | ConvertFrom-Json
 if (-not $probe.bridge_probe -or $probe.entry_url -ne ($withKit.entry_url + '&forge_probe=bridge') -or
@@ -122,6 +147,19 @@ Assert-Rejected 'Unsafe kit asset path'
 $build.asset_kit_revision = 2
 Save-Build
 Assert-Rejected 'identity/revision mismatch'
-$null = New-Item -ItemType Directory (Join-Path $frontend 'forge-kit')
-Assert-Rejected 'already contains a kit'
+$build.asset_kit_revision = 1
+$build.assets[0].glb.path = 'assets/fixture.glb'
+$build.assets[0].glb.sha256 = (Get-FileHash -LiteralPath (Join-Path $kit 'assets/fixture.glb')).Hash
+Save-Build
+Copy-Item -LiteralPath $kit -Destination (Join-Path $frontend 'forge-kit') -Recurse
+$staged = & $builder @parameters | ConvertFrom-Json
+if ($staged.files -ne $withKit.files -or $staged.build_executed -or (Test-Path $parameters.Output)) {
+    throw 'Identical staged kit duplicated pins or mutated output'
+}
+'modified input fixture' | Set-Content -LiteralPath (Join-Path $frontend 'forge-kit/assets/fixture.glb')
+Assert-Rejected 'Staged kit hash differs'
+'extra input fixture' | Set-Content -LiteralPath (Join-Path $frontend 'forge-kit/unexpected.txt')
+$hiddenExtra = Get-Item -LiteralPath (Join-Path $frontend 'forge-kit/unexpected.txt')
+$hiddenExtra.Attributes = $hiddenExtra.Attributes -bor [IO.FileAttributes]::Hidden
+Assert-Rejected 'Staged kit file set differs'
 'STUDIO_KIT_INPUT_TESTS_PASS: including authoring kit and integrated cloud routes; no build or output mutation'

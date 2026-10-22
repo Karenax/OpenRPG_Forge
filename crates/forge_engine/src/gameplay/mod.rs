@@ -4,6 +4,7 @@ use forge_core::{ContentHash, EntityId};
 use forge_gameplay::{GameRequest, GameSession, GameplayDocument, GameplayEvent};
 use std::collections::{BTreeMap, VecDeque};
 
+mod cinematic_presentation;
 mod danger_motion;
 mod projection;
 mod simulation;
@@ -136,6 +137,16 @@ impl Plugin for GameplayPlugin {
             .add_systems(Startup, projection::spawn)
             .add_systems(Startup, visuals::attach.after(projection::spawn))
             .add_systems(PostUpdate, visuals::observe)
+            .add_systems(
+                FixedUpdate,
+                cinematic_presentation::control.before(crate::PlayerControllerSet::Drive),
+            )
+            .add_systems(
+                FixedUpdate,
+                cinematic_presentation::project
+                    .after(crate::PlayerControllerSet::Camera)
+                    .after(GameplaySet::Observe),
+            )
             .configure_sets(
                 FixedUpdate,
                 GameplaySet::Drive

@@ -363,6 +363,7 @@ fn fixture_manifest(
     let module_id = gameplay.module_id;
     let archive = zone.archive_bytes().unwrap();
     ModulePackageManifest {
+        creator: None,
         schema: MODULE_PACKAGE_SCHEMA.into(),
         version: MODULE_PACKAGE_VERSION,
         project_id,
@@ -706,6 +707,353 @@ fn managed_reopen_export_preserves_unplaced_assets_lineage_pins_and_original_rig
             f.payloads[&original.payload.path]
         );
     }
+}
+
+fn extend_and_configure_module(
+    root: &Path,
+    module: ModuleId,
+    primary: forge_core::AreaId,
+) -> forge_project::workspace::export::ModuleExportSnapshot {
+    use forge_gameplay::{CreatorSurface, ModuleCreatorProfile};
+    use forge_project::authoring::creation::{NewTerrainSettings, prepare_module_terrain};
+    let mut workspace = FileWorkspaceSession::open(root).unwrap();
+    let project = workspace.session().head().projects[0].id;
+    let source = workspace.read_zone(primary).unwrap();
+    let document = source
+        .head()
+        .corrections
+        .gameplay
+        .as_deref()
+        .unwrap()
+        .clone();
+    let mut profile = document.profile.clone();
+    profile.attack_damage = 37;
+    let definition = ModuleCreatorProfile::for_documents(
+        module,
+        profile,
+        vec![CreatorSurface::Rules],
+        &[&document],
+    )
+    .unwrap();
+    let terrain = prepare_module_terrain(
+        project,
+        module,
+        "second",
+        "Deuxième carte",
+        NewTerrainSettings::default(),
+    )
+    .unwrap();
+    let area = terrain.area_id;
+    let receipt = workspace.review_new_zone(module, terrain.clone()).unwrap();
+    workspace
+        .create_new_zone(&receipt.request, terrain)
+        .unwrap();
+    let zone = workspace.read_zone(area).unwrap();
+    let mut document = document;
+    document.area_id = area;
+    document.actors[0].name = "Second player".into();
+    let request = zone
+        .head()
+        .prepare_gameplay(
+            Some(document),
+            CommandId::deterministic("bootstrap/shared-second"),
+        )
+        .unwrap();
+    let (receipt, _) = workspace
+        .preview_zone_edit(
+            area,
+            &request,
+            CommandId::deterministic("bootstrap/shared-second-root"),
+        )
+        .unwrap();
+    workspace
+        .apply_zone_edit(&receipt.request, &request)
+        .unwrap();
+    let review = workspace
+        .preview_module_creator(
+            definition,
+            CommandId::deterministic("bootstrap/shared-configure"),
+        )
+        .unwrap();
+    workspace.apply_module_creator(&review).unwrap();
+    workspace.save().unwrap();
+    let primary_head = workspace
+        .read_zone(area)
+        .unwrap()
+        .head()
+        .content_hash()
+        .unwrap();
+    workspace
+        .module_export_snapshot(
+            module,
+            area,
+            primary_head,
+            workspace.session().head().content_hash().unwrap(),
+        )
+        .unwrap()
+}
+
+#[test]
+fn full_module_export_and_bootstrap_preserve_two_areas_common_profile_and_origin() {
+    let f = Fixture::new("shared-roundtrip", false);
+    let initial = prepare_module_workspace(&f.request()).unwrap();
+    let source =
+        extend_and_configure_module(&initial.workspace_root, initial.module_id, initial.area_id);
+    let store = AssetImportStore::new(&initial.workspace_root.join("asset-imports")).unwrap();
+    let assets = store.export_snapshot(&[], false).unwrap();
+    let workspace = FileWorkspaceSession::open(&initial.workspace_root).unwrap();
+    let pin = workspace.session().head().projects[0].modules[0]
+        .origin
+        .unwrap();
+    drop(workspace);
+    let exported = forge_delivery::module_builder::build_module_with_origin(
+        &f.root.join("complete-exports"),
+        &source,
+        ExportMetadata {
+            name: "Deux cartes".into(),
+            version: "1.0.1".into(),
+            publisher: "Forge tests".into(),
+            license_text: "Local original changes; original conditions remain applicable.".into(),
+            rights: ModuleRights::PrivateLocalOnly,
+        },
+        assets.catalog,
+        assets.files,
+        Some(read_export_origin(&initial.workspace_root, initial.module_id, pin).unwrap()),
+    )
+    .unwrap();
+    let request = BootstrapRequest {
+        package_path: exported.package_path,
+        expected_package_sha256: exported.package_sha256,
+        area_id: source.primary_area,
+        destination: f.root.join("Complete reopened"),
+    };
+    let reopened = prepare_module_workspace(&request).unwrap();
+    let workspace = FileWorkspaceSession::open(&reopened.workspace_root).unwrap();
+    let module = &workspace.session().head().projects[0].modules[0];
+    assert_eq!(module.zones.len(), 2);
+    assert!(module.creator.is_some());
+    assert_eq!(
+        workspace.module_content_hash(module.id).unwrap(),
+        source.content_hash().unwrap()
+    );
+    for zone in &source.zones {
+        assert_eq!(
+            workspace
+                .read_zone(zone.area_id)
+                .unwrap()
+                .archive_bytes()
+                .unwrap(),
+            zone.bytes
+        );
+    }
+    let profile = workspace.module_creator(module.id).unwrap().unwrap();
+    assert_eq!(profile.profile.attack_damage, 37);
+    let original =
+        read_export_origin(&reopened.workspace_root, module.id, module.origin.unwrap()).unwrap();
+    assert_eq!(
+        original.expected_package_sha256,
+        request.expected_package_sha256
+    );
+}
+
+fn module_set_input(
+    fixture: &Fixture,
+) -> forge_studio_frontend::module_workspace_bootstrap::ModuleSetInput {
+    forge_studio_frontend::module_workspace_bootstrap::ModuleSetInput {
+        package_path: fixture.package.clone(),
+        expected_package_sha256: bytes_sha256(&fs::read(&fixture.package).unwrap()),
+        area_id: fixture.zone.head().base.terrain.area_id,
+    }
+}
+
+#[test]
+fn two_modules_share_one_workspace_without_replacing_sources_or_shared_assets() {
+    use forge_studio_frontend::module_workspace_bootstrap::{
+        ModuleSetRequest, prepare_module_set_workspace,
+    };
+    let first = Fixture::new("set-first", false);
+    let second = Fixture::new("set-second", false);
+    let request = ModuleSetRequest {
+        modules: vec![module_set_input(&first), module_set_input(&second)],
+        destination: first.root.join("Two modules"),
+    };
+    let report = prepare_module_set_workspace(&request).unwrap();
+    assert_eq!(report.modules.len(), 2);
+    let workspace = FileWorkspaceSession::open(&report.workspace_root).unwrap();
+    let modules: Vec<_> = workspace
+        .session()
+        .head()
+        .projects
+        .iter()
+        .flat_map(|project| &project.modules)
+        .collect();
+    assert_eq!(modules.len(), 2);
+    for fixture in [&first, &second] {
+        let area = fixture.zone.head().base.terrain.area_id;
+        assert_eq!(
+            workspace.read_zone(area).unwrap().archive_bytes().unwrap(),
+            fixture.zone.archive_bytes().unwrap()
+        );
+        let module = modules
+            .iter()
+            .find(|module| module.id == fixture.manifest.module_id)
+            .unwrap();
+        assert_eq!(
+            read_export_origin(&report.workspace_root, module.id, module.origin.unwrap())
+                .unwrap()
+                .package_bytes
+                .as_ref(),
+            fs::read(&fixture.package).unwrap()
+        );
+    }
+    let store = AssetImportStore::new(&report.workspace_root.join("asset-imports")).unwrap();
+    assert_eq!(
+        store.state().unwrap().catalog.unwrap().assets.len(),
+        first.catalog.assets.len()
+    );
+}
+
+fn authoring_rules(
+    state: &forge_project::authoring::AuthoringState,
+) -> &forge_gameplay::RulesProfile {
+    &state
+        .zone_head
+        .as_ref()
+        .unwrap()
+        .corrections
+        .gameplay
+        .as_ref()
+        .unwrap()
+        .profile
+}
+
+#[test]
+fn studio_history_request_undoes_shared_rules_and_keeps_the_other_module_unchanged() {
+    use forge_project::authoring::{
+        AuthoringRequest as A, host::AuthoringHost, workspace::WorkspaceHostRequest as W,
+    };
+    use forge_studio_frontend::{
+        authoring_history_request,
+        module_workspace_bootstrap::{ModuleSetRequest, prepare_module_set_workspace},
+    };
+    let first = Fixture::new("history-ui-first", false);
+    let second = Fixture::new("history-ui-second", false);
+    let report = prepare_module_set_workspace(&ModuleSetRequest {
+        modules: vec![module_set_input(&first), module_set_input(&second)],
+        destination: first.root.join("History workspace"),
+    })
+    .unwrap();
+    let area = first.manifest.zones[0].area_id;
+    let other = second.manifest.zones[0].area_id;
+    let mut host = AuthoringHost::new(&report.workspace_root).unwrap();
+    host.execute_workspace(W::Open).unwrap();
+    let initial = host.execute(A::OpenManaged { area_id: area }).unwrap();
+    let original = authoring_rules(&initial).clone();
+    let mut changed = original.clone();
+    changed.interaction_range_m += 1.0;
+    let preview = host
+        .execute(A::PreviewModuleCreator {
+            expected_workspace_hash: initial
+                .module_creator_context
+                .as_ref()
+                .unwrap()
+                .workspace_hash,
+            profile: changed.clone(),
+            surfaces: forge_gameplay::CreatorSurface::ALL.to_vec(),
+            required_capabilities: vec![],
+            command_id: CommandId::deterministic("history-ui/configure"),
+        })
+        .unwrap();
+    let applied = host
+        .execute(A::ApplyModuleCreator {
+            review: Box::new(preview.module_creator_review.unwrap()),
+        })
+        .unwrap();
+    assert!(authoring_history_request::available(&applied, false));
+    let stale = authoring_history_request::prepare(&applied, false).unwrap();
+    assert!(matches!(stale, A::PreviewModuleHistory { .. }));
+    let undo = host
+        .execute(stale.clone())
+        .unwrap()
+        .module_history_receipt
+        .unwrap();
+    // Preview is read-only, including the active zone projection.
+    assert_eq!(
+        host.execute(A::Inspect).unwrap().zone_head,
+        applied.zone_head
+    );
+    let undone = host
+        .execute(A::ApplyModuleHistory {
+            request: Box::new(undo.request),
+        })
+        .unwrap();
+    assert_eq!(authoring_rules(&undone), &original);
+    assert!(host.execute(stale).is_err());
+    assert!(authoring_history_request::available(&undone, true));
+    let redo = host
+        .execute(authoring_history_request::prepare(&undone, true).unwrap())
+        .unwrap()
+        .module_history_receipt
+        .unwrap();
+    let redone = host
+        .execute(A::ApplyModuleHistory {
+            request: Box::new(redo.request),
+        })
+        .unwrap();
+    assert_eq!(authoring_rules(&redone), &changed);
+    host.execute(A::Save).unwrap();
+    drop(host);
+    let workspace = FileWorkspaceSession::open(&report.workspace_root).unwrap();
+    assert_eq!(
+        workspace.read_zone(other).unwrap().archive_bytes().unwrap(),
+        second.zone.archive_bytes().unwrap()
+    );
+    assert_eq!(
+        workspace
+            .read_zone(area)
+            .unwrap()
+            .head()
+            .corrections
+            .gameplay
+            .as_ref()
+            .unwrap()
+            .profile,
+        changed
+    );
+}
+
+#[test]
+fn module_set_refuses_duplicates_and_conflicting_shared_metadata_without_activation() {
+    use forge_studio_frontend::module_workspace_bootstrap::{
+        ModuleSetRequest, prepare_module_set_workspace,
+    };
+    let first = Fixture::new("set-safe-first", false);
+    let mut second = Fixture::new("set-safe-second", false);
+    let destination = first.root.join("Refused set");
+    let duplicate = ModuleSetRequest {
+        modules: vec![module_set_input(&first), module_set_input(&first)],
+        destination: destination.clone(),
+    };
+    assert!(
+        prepare_module_set_workspace(&duplicate)
+            .unwrap_err()
+            .contains("repeats a module")
+    );
+    assert!(!destination.exists());
+    let original = fs::read(&first.package).unwrap();
+    let marker = first.root.join("untouched-user-data.txt");
+    fs::write(&marker, b"existing data").unwrap();
+    second.catalog.assets[0].name = "Conflicting label from another module".into();
+    second.repack("conflicting-shared-metadata", false);
+    let request = ModuleSetRequest {
+        modules: vec![module_set_input(&first), module_set_input(&second)],
+        destination: destination.clone(),
+    };
+    let error = prepare_module_set_workspace(&request).unwrap_err();
+    assert!(error.contains("conflicting metadata"), "{error}");
+    assert!(!destination.exists());
+    assert_eq!(fs::read(&first.package).unwrap(), original);
+    assert_eq!(fs::read(marker).unwrap(), b"existing data");
 }
 
 #[test]
