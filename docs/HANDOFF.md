@@ -1,5 +1,56 @@
 # Reprendre OpenRPG Forge hors Codex
 
+<a id="gate-7-etat-courant"></a>
+
+## Gate 7 — état courant au 7 novembre 2026
+
+**Gate 7 reste ouverte.** R7-01 à R7-06 disposent de verdicts locaux Windows
+datés. Le Hub a été retiré du checkout de qualification au lot 048. Le produit suit le parcours
+Studio → export du jeu et de son launcher → jeu autonome.
+
+- **R7-07, R7-09 et R7-10 sous Windows.** Le candidat privé 049 couvre le
+  Studio installé et l'export de Tidewater et du Grand Plateau dans un
+  Sandbox hors ligne sans SDK. Un invité joueur séparé a installé, lancé et
+  repris les deux jeux sans Studio. Les cycles de mise à jour, restauration
+  et désinstallation du Studio et de Tidewater préservent les données
+  contrôlées. Le bilan Windows 049 rapproche 43 pièces.
+- **R7-07, R7-09 et R7-10 sous Linux.** Le build privé 0837 et les essais en
+  conteneur Debian 12 sans SDK couvrent l'ouverture de la fenêtre Studio
+  et, avec le kit 0837, le lancement de diagnostic et la sauvegarde du
+  Grand Plateau. Restent à qualifier un build sur les sources courantes,
+  le parcours auteur/export, la reprise via le launcher, la mise à jour,
+  la restauration et le parcours complet sur un OS propre.
+- **R7-08.** Le service d'export natif a produit les crédits de la
+  référence Tidewater. L'attribution des dépendances du Studio, dont
+  `drain_filter_polyfill` identifié dans le WASM livré, et les droits de
+  redistribution des assets et composants restent à établir.
+- **Performance du moteur commun.** Dernier trajet Tidewater mesuré sur
+  l'export 049 au profil Moyen : 18,85 ms en moyenne, 31,37 ms au p95.
+  La cible moyenne de 16,67 ms et la comparaison appariée avec la
+  référence restent à vérifier. Une exécution par variante ne permet
+  pas d'attribuer l'écart mesuré à la dernière modification.
+
+Voir le [plan](planning/GATE7_IMPLEMENTATION_PLAN.md) et la
+[matrice d'acceptation](evidence/gate7/GATE7_PROGRESS_20261023.md#matrice-dacceptation).
+Les résultats sont rattachés aux révisions des candidats de qualification.
+Le code publié sur la branche Rust peut correspondre à une révision antérieure.
+
+### Reçus de référence
+
+Les reçus ci-dessous appartiennent à la campagne interne
+« gate7-monde-distribution ». Les paquets d'essai sont privés.
+
+| Périmètre | Reçu | SHA-256 |
+| --- | --- | --- |
+| Volets Windows 049 | R7-07-09-10-windows-049-assessment.json | a8cc186a3cf6630ed9a63f2300d7f51e41fa366716f51c1cff16082346afb5d4 |
+| Fenêtre Studio Linux 0837 | linux-studio-installed-sdk-free-container-0837.json | 2e2d45dd7256e8f7918e67ac5190b78fa19d8ff6b8432dae1f871e7d782e71d7 |
+| Jeu et sauvegarde Linux 0837 | linux-plateau-gameplay-save-container-0837.json | 7d25a478358ae676f449eccd7f9f6b7f2d766e932093484fc0c971fd4680e217 |
+| Crédits Tidewater | R7-08-reference-credits-export-049-data.json | cd4626880ef6478e75e1a264861fdac122ab27b99edaada67d89087e36279478 |
+| Analyse du WASM Studio 049 | R7-08-studio-wasm-instruction-scope-049.json | 06c812528fae7e234b66b9c73098803aef117674c605b1780d24d150c3f136d8 |
+| Mesure Tidewater Moyen | G7-D6-plant-partition-borrowed-comparison.json | 7395b30a91ede1a87d1363cba1072158ef54dc7648e7d5a2084498418694f049 |
+
+## Historique de la passation
+
 Validation du 18 octobre : [rapport de séparation moteur/carte](evidence/architecture/STRICT_MAP_SEPARATION_20261018.md) ;
 14 contrôles réussis et 2 232 tests du workspace réussis. Les preuves de runtime
 générique et des extensions optiques gardent des périmètres distincts.

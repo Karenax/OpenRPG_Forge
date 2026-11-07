@@ -1,6 +1,33 @@
 # Roadmap de migration — OpenRPG Forge Rust/WebGPU
 
-## État courant — Gate 5 ouverte le 19 octobre 2026
+## État courant — Gate 7 ouverte le 23 octobre 2026
+
+Gates 5 et 6 clôturées localement. Le propriétaire ouvre Gate 7 avec objectif
+de clôture documentée sur preuves. Voir son
+[plan](GATE7_IMPLEMENTATION_PLAN.md) et son
+[suivi](../evidence/gate7/GATE7_PROGRESS_20261023.md).
+R7-01 à R7-06 sont qualifiés localement sous Windows sur leurs preuves datées ;
+les quatre autres critères restent ouverts et Gate 7 n'est pas clôturée. GitHub n'est plus
+un critère selon ADR-0034.
+
+La clarification propriétaire des 24–25 octobre, rappelée le 2 novembre,
+actualise [ADR-0026](../ADR/ADR-0026-strict-engine-map-separation.md) : les
+capacités réutilisables de Tidewater sont communes au moteur et les modules
+fournissent leurs données et réglages. Le raccord et la parité restent à prouver.
+
+La décision propriétaire du **2 novembre** impose le parcours **éditeur Forge
+→ export du jeu avec son launcher → jeu autonome**. Le Hub séparé sort de la
+cible produit ; les fonctions utiles sont réaffectées aux deux parcours sur le
+socle commun. L'identité Aube/Tidewater ne doit pas être imposée aux autres jeux.
+La [transition planifiée dans Gate 7](GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
+précise la migration et les preuves attendues. Le lot 048 a retiré le Hub
+du checkout de qualification. Le candidat privé Windows 049 a couvert le parcours Studio,
+l'export, le jeu autonome et les cycles de maintenance en Sandbox sans SDK.
+Les essais Linux 0837 couvrent une partie des parcours. La
+[passation](../HANDOFF.md#gate-7-etat-courant) distingue les résultats et les
+travaux restants. Les dix critères et les verdicts datés du moteur sont conservés.
+
+## Historique — Gate 5 ouverte le 19 octobre 2026
 
 Ouverture explicite par le propriétaire, avec objectif de clôture. Le
 [plan de réalisation](GATE5_IMPLEMENTATION_PLAN.md) suit les lots et preuves.

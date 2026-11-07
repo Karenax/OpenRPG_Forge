@@ -1,5 +1,73 @@
 # Contexte canonique — OpenRPG Forge Rust/WebGPU
 
+## Découpage produit obligatoire — décision propriétaire du 2 novembre 2026
+
+OpenRPG Forge fournit **l'éditeur et le launcher de chaque jeu créé avec cet
+éditeur**. Le parcours de référence est : **créer et retoucher dans le Studio
+→ exporter le jeu avec son launcher → installer, jouer et reprendre sans
+l'environnement de développement**.
+
+- **Éditeur OpenRPG Forge** : créer le projet et ses contenus, les importer et
+  les qualifier, régler la présentation du jeu et de son launcher, tester,
+  sauvegarder et préparer l'export/distribution depuis le parcours auteur.
+- **Launcher du jeu exporté** : présenter le jeu auquel il appartient, avec son
+  identité et ses contenus déclarés, ses réglages et ses actions de jeu/reprise.
+  Sa configuration vient du projet créé dans l'éditeur ; aucun passage par un
+  catalogue global Forge ou un gestionnaire de contenus séparé n'est requis.
+- **Un seul socle interne partagé** : le moteur, les documents, les commandes,
+  le runtime et les services de packaging/installation restent réutilisables.
+  Un runtime natif séparé, une CLI technique ou un assistant d'installation
+  ponctuel ne constituent pas une troisième application produit à développer.
+  Deux interfaces utilisateur ne signifient pas deux fichiers physiques.
+
+Le **Hub séparé n'appartient pas à la cible produit**. Ses fonctions utiles
+d'import, installation, vérification, mise à jour ou restauration doivent être
+réaffectées au parcours auteur ou au launcher du jeu, selon leur utilisateur,
+en conservant les validations communes. Ne pas créer un nouveau portail ou une
+interface parallèle pour remplacer le Hub. Limiter les composants et fichiers
+aux responsabilités utiles ; réutiliser les propriétaires existants et retirer
+les doublons devenus inutiles après migration vérifiée.
+
+L'Aube des royaumes, Tidewater et tout autre jeu/module sont des contenus ou
+références créés avec Forge, jamais l'identité imposée à tous les jeux exportés
+ni une condition de fonctionnement du moteur ou de leur launcher. Préserver les
+capacités et la qualité de présentation existantes en les rendant configurables
+depuis le projet, sans identité de jeu codée en dur dans le socle commun.
+
+Cette décision remplace toute prescription antérieure de maintenir durablement
+le couple launcher Aube / Hub comme deux applications de distribution.
+Le retrait 048 enlève la cible Hub et ses recettes d'assemblage du checkout
+de qualification. Le Studio conserve la reprise des installations et données historiques.
+
+**Gate 7 reste en cours.** La transition s'intègre à ses critères de packaging,
+lanceur et installation, avec les validations de plateforme, licences et machine
+propre ; elle ne crée aucune nouvelle gate et ne clôt aucun critère par ce texte.
+R7-01 à R7-06 disposent de verdicts locaux Windows datés. R7-07 à R7-10
+restent ouverts sur leur périmètre complet. Le [plan unique de transition dans Gate 7](docs/planning/GATE7_IMPLEMENTATION_PLAN.md#transition-editeur-launcher)
+fixe les lots, leurs dépendances et la requalification des parcours affectés.
+
+## Gate 7 ouverte — 23 octobre 2026
+
+**Candidat privé Windows 049 — 7 novembre.** Le Studio installé sur un
+Windows Sandbox hors ligne et sans SDK a exporté Tidewater et Le Grand
+Plateau. Un autre invité a installé, lancé et repris les deux jeux de façon
+autonome avec le même moteur et des sauvegardes distinctes. Les cycles
+de mise à jour, retour arrière et désinstallation de Tidewater et du Studio
+ont conservé les sauvegardes et les fichiers auteur contrôlés. Les reçus
+Windows, les réserves de redistribution et la portée des mesures sont
+rattachés au [suivi de qualification](docs/HANDOFF.md#gate-7-etat-courant). Le rapprochement
+des 43 pièces établit les volets Windows de R7-07, R7-09 et R7-10 pour ce
+candidat privé. Les critères R7-07/08/09/10 restent ouverts sur leur
+périmètre complet.
+
+Les essais Linux du kit 0837 en conteneur sans SDK couvrent l'ouverture de
+la fenêtre Studio et un lancement de diagnostic du Grand Plateau suivi
+d'une sauvegarde. Le build des sources courantes et le parcours complet
+sur OS propre restent à qualifier. Les exports 049 restent privés pendant
+l'établissement des droits et notices. Sur le trajet Tidewater du 049
+au profil Moyen, la dernière mesure moyenne est de 18,85 ms pour un
+budget de 16,67 ms. La comparaison appariée avec la référence reste à faire.
+
 ## Gate 5 clôturée localement — 22 octobre 2026
 
 **Gate 5 est clôturée localement** selon le
